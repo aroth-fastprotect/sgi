@@ -1,0 +1,76 @@
+// kate: syntax C++11;
+/* -*-c++-*- OpenSceneGraph - Copyright (C) 1998-2006 Robert Osfield
+ *
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
+ * (at your option) any later version.  The full license is in LICENSE file
+ * included with this distribution, and on the openscenegraph.org website.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * OpenSceneGraph Public License for more details.
+*/
+//sgi - Copyright (C) 2012-2013 Andreas Roth
+
+#pragma once
+
+#include "plugins/SGIHostItemGenerator"
+
+class QWidget;
+
+namespace sgi {
+
+class SGIItemBase;
+class SGIHostItemBase;
+typedef QWidget * QWidgetPtr;
+
+template<typename AUTOLOADCLASS>
+inline QWidget * parentWidgetImpl(const SGIHostItemBase * object)
+{
+    ISceneGraphDialog * ret;
+    typedef ISceneGraphDialog * (*pfn)(QWidgetPtr & widget, const SGIHostItemBase * object);
+    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_parentWidget");
+    if(func)
+        ret = func(widget, object);
+    else
+        ret = NULL;
+    return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline QWidget * parentWidgetImpl(SGIItemBase * item)
+{
+    QWidget * ret = NULL;
+    typedef QWidget * (*pfn)(QWidgetPtr & widget, SGIItemBase * item);
+    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_parentWidgetItem");
+    if(func)
+        ret = func(widget, item);
+    else
+        ret = NULL;
+    return ret;
+}
+
+template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
+inline QWidget * parentWidget(OBJECT_TYPE * object)
+{
+    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    ISceneGraphDialog * ret = parentWidgetImpl<AUTOLOADCLASS>(parent, hostitem.get(), info);
+    return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline QWidget * parentWidget(SGIItemBase * item)
+{
+    QWidget * ret = parentWidgetImpl<AUTOLOADCLASS>(item);
+    return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline QWidget * showSceneGraphDialog(const SGIHostItemBase * item)
+{
+    QWidget * ret = parentWidgetImpl<AUTOLOADCLASS>(item);
+    return ret;
+}
+
+} // namespace sgi

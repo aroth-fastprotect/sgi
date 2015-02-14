@@ -1,0 +1,56 @@
+// kate: syntax C++11;
+/* -*-c++-*- OpenSceneGraph - Copyright (C) 1998-2006 Robert Osfield
+ *
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
+ * (at your option) any later version.  The full license is in LICENSE file
+ * included with this distribution, and on the openscenegraph.org website.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * OpenSceneGraph Public License for more details.
+*/
+//sgi - Copyright (C) 2012-2013 Andreas Roth
+
+#pragma once
+
+namespace sgi {
+namespace details {
+    template<class DIALOG_CLASS>
+    struct IgnoreSetObjectPolicy {
+        IgnoreSetObjectPolicy(DIALOG_CLASS * dialog) {}
+        void            setObject(SGIItemBase * item, ISettingsDialogInfo * info=NULL) {}
+        void            setObject(const SGIHostItemBase * item, ISettingsDialogInfo * info=NULL) {}
+    };
+    template<class DIALOG_CLASS>
+    struct PerformSetObjectPolicy {
+        PerformSetObjectPolicy(DIALOG_CLASS * dialog) : _dialog(dialog) {}
+        void            setObject(SGIItemBase * item, ISettingsDialogInfo * info=NULL) { _dialog->setObject(item, info); }
+        void            setObject(const SGIHostItemBase * item, ISettingsDialogInfo * info=NULL) { _dialog->setObject(item, info); }
+        DIALOG_CLASS * _dialog;
+    };
+}
+
+template<class DIALOG_CLASS=QDialog, template<typename> class SETOBJECTPOLICY=details::IgnoreSetObjectPolicy>
+class SettingsDialogImplT : public ISettingsDialog
+{
+public:
+    SettingsDialogImplT(DIALOG_CLASS * dialog)
+        : _dialog(dialog), _setObject(dialog) {}
+
+    virtual void            setObject(SGIItemBase * item, ISettingsDialogInfo * info=NULL) { _setObject.setObject(item, info); }
+    virtual void            setObject(const SGIHostItemBase * item, ISettingsDialogInfo * info=NULL) { _setObject.setObject(item, info); }
+    virtual void            show() { _dialog->show(); }
+    virtual void            hide() { _dialog->hide(); }
+    virtual bool            isVisible() { return _dialog->isVisible(); }
+    virtual int             showModal() { return _dialog->exec(); }
+
+protected:
+    DIALOG_CLASS * _dialog;
+    SETOBJECTPOLICY<DIALOG_CLASS> _setObject;
+};
+
+typedef SettingsDialogImplT<QDialog, details::IgnoreSetObjectPolicy> SettingsDialogImpl;
+
+} // namespace sgi

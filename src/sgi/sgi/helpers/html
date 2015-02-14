@@ -1,0 +1,32 @@
+// kate: syntax: C++
+#pragma once
+
+namespace sgi {
+namespace helpers {
+
+/** Replaces all the instances of "sub" with "other" in "s". */
+inline std::string& replaceIn( std::string& s, const std::string& sub, const std::string& other)
+{
+    if ( sub.empty() ) return s;
+    size_t b=0;
+    for( ; ; )
+    {
+        b = s.find( sub, b );
+        if ( b == s.npos ) break;
+        s.replace( b, sub.size(), other );
+        b += other.size();
+    }
+    return s;
+}
+
+inline static const std::string html_encode(const std::string & str)
+{
+    std::string ret = str;
+    helpers::replaceIn(ret, "<", "&lt;");
+    helpers::replaceIn(ret, ">", "&gt;");
+    helpers::replaceIn(ret, "\"", "&quot;");
+    return ret;
+}
+
+} // namespace helpers
+} // namespace sgi

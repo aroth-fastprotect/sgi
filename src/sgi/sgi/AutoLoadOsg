@@ -1,0 +1,95 @@
+// kate: syntax C++11;
+/* -*-c++-*- OpenSceneGraph - Copyright (C) 1998-2006 Robert Osfield
+ *
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
+ * (at your option) any later version.  The full license is in LICENSE file
+ * included with this distribution, and on the openscenegraph.org website.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * OpenSceneGraph Public License for more details.
+*/
+//sgi - Copyright (C) 2012-2013 Andreas Roth
+
+#pragma once
+
+#include <osgDB/Registry>
+#include "Export"
+
+namespace sgi {
+namespace autoload {
+    class Osg
+    {
+    public:
+        typedef void*   PROC_ADDRESS;
+
+        Osg()
+            : _loadStatus(osgDB::Registry::NOT_LOADED)
+        {
+            // find and load the library in the OSG_LIBRARY_PATH
+            _libraryFilename = osgDB::Registry::instance()->findLibraryFile(SGI_LIBRARY_NAME, NULL, osgDB::CASE_SENSITIVE);
+            if(!_libraryFilename.empty())
+            {
+                _loadStatus = osgDB::Registry::instance()->loadLibrary(_libraryFilename);
+                if(_loadStatus != osgDB::Registry::NOT_LOADED)
+                    _library = osgDB::Registry::instance()->getLibrary(_libraryFilename);
+            }
+        }
+        ~Osg()
+        {
+            _library = NULL;
+        }
+        osgDB::DynamicLibrary * library()
+        {
+            return _library;
+        }
+        PROC_ADDRESS getProcAddress(const char* procName)
+        {
+            return (_library.valid())?_library->getProcAddress(std::string(procName)):NULL;
+        }
+        std::string libraryFilename() const
+        {
+            return (_library.valid())?_library->getFullName():_libraryFilename;
+        }
+        std::string libraryError() const
+        {
+            return (_library.valid())?std::string():std::string("Unknown");
+        }
+        static Osg & instance()
+        {
+            static Osg s_sgi;
+            return s_sgi;
+        }
+        static inline osgDB::DynamicLibrary * sgiLibrary()
+        {
+            return Osg::instance().library();
+        }
+        static inline void * sgiLibraryProcAddress(const char * procName)
+        {
+            return Osg::instance().getProcAddress(procName);
+        }
+        static inline std::string sgiLibraryName()
+        {
+            return std::string(SGI_LIBRARY_NAME);
+        }
+        static inline std::string sgiLibraryFilename()
+        {
+            return Osg::instance().libraryFilename();
+        }
+        static inline std::string sgiLibraryError()
+        {
+            return Osg::instance().libraryError();
+        }
+        static inline bool sgiLibraryLoaded()
+        {
+            return Osg::instance().library() != NULL;
+        }
+    private:
+        std::string _libraryFilename;
+        osgDB::Registry::LoadStatus _loadStatus;
+        osg::ref_ptr<osgDB::DynamicLibrary> _library;
+    };
+
+} } // namespace sgi::autoload

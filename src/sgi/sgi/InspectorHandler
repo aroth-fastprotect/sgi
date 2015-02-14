@@ -1,0 +1,148 @@
+// kate: syntax C++11;
+/* -*-c++-*- OpenSceneGraph - Copyright (C) 1998-2006 Robert Osfield
+ *
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
+ * (at your option) any later version.  The full license is in LICENSE file
+ * included with this distribution, and on the openscenegraph.org website.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * OpenSceneGraph Public License for more details.
+*/
+//sgi - Copyright (C) 2012-2013 Andreas Roth
+
+#pragma once
+
+#include <osgGA/GUIEventHandler>
+#include "ReferencedPicker"
+#include "AutoLoadOsg"
+#include "plugins/SGIHostItemOsg.h"
+#include "plugins/SGIHostItemInternal.h"
+#include "SGIItemInternal"
+
+namespace sgi {
+
+class ISceneGraphInspectorHandlerInfo : public osg::Referenced
+{
+public:
+    enum PickerType {
+        PickerTypeDefault,
+        PickerTypeLine,
+        PickerTypePolytope
+    };
+    virtual bool            showSceneGraphDialog(const SGIHostItemBase * item) = 0;
+    virtual bool            showObjectLoggerDialog(const SGIHostItemBase * item) = 0;
+    virtual ReferencedPickerBase * createPicker(PickerType type, float x, float y) = 0;
+};
+
+class SceneGraphInspectorHandler : public osgGA::GUIEventHandler
+{
+public:
+    SceneGraphInspectorHandler(ISceneGraphInspectorHandlerInfo * info);
+
+    virtual bool handle( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa );
+
+    ISceneGraphInspectorHandlerInfo * info() { return _info; }
+
+protected:
+    bool                showSceneGraphDialog(const SGIHostItemOsg * item);
+    bool                showObjectLoggerDialog(const SGIHostItemOsg * item);
+
+protected:
+    osg::ref_ptr<ISceneGraphInspectorHandlerInfo> _info;
+    ReferencedPickerBasePtr _picker;
+    int                 _inspectorHitTestKey;
+    int                 _inspectorEventKey;
+    int                 _inspectorLoggerKey;
+    int                 _inspectorLoggerModMask;
+    int                 _inspectorInfoKey;
+    int                 _inspectorInfoKeyModMask;
+    int                 _inspectorHitTestMouseButton;
+    int                 _inspectorHitTestMouseLeftModMask;
+    int                 _inspectorHitTestMouseRightModMask;
+};
+
+inline SceneGraphInspectorHandler::SceneGraphInspectorHandler(ISceneGraphInspectorHandlerInfo * info)
+: _info(info)
+, _picker()
+, _inspectorHitTestKey('i')
+, _inspectorEventKey('e')
+, _inspectorLoggerKey('l')
+, _inspectorLoggerModMask(osgGA::GUIEventAdapter::MODKEY_SHIFT)
+, _inspectorInfoKey('Q')
+, _inspectorInfoKeyModMask(osgGA::GUIEventAdapter::MODKEY_SHIFT)
+, _inspectorHitTestMouseButton(osgGA::GUIEventAdapter::MIDDLE_MOUSE_BUTTON)
+, _inspectorHitTestMouseLeftModMask(osgGA::GUIEventAdapter::MODKEY_LEFT_CTRL|osgGA::GUIEventAdapter::MODKEY_LEFT_SHIFT)
+, _inspectorHitTestMouseRightModMask(osgGA::GUIEventAdapter::MODKEY_RIGHT_CTRL|osgGA::GUIEventAdapter::MODKEY_RIGHT_SHIFT)
+{
+}
+
+inline bool SceneGraphInspectorHandler::showSceneGraphDialog(const SGIHostItemOsg * item)
+{
+    return _info->showSceneGraphDialog(item);
+}
+
+inline bool SceneGraphInspectorHandler::showObjectLoggerDialog(const SGIHostItemOsg * item)
+{
+    return _info->showObjectLoggerDialog(item);
+}
+
+inline bool SceneGraphInspectorHandler::handle( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa )
+{
+    if ( ea.getEventType() == ea.KEYDOWN )
+    {
+        if(_inspectorHitTestKey != 0 && ea.getKey() == _inspectorHitTestKey)
+        {
+            ISceneGraphInspectorHandlerInfo::PickerType pickerType;
+            if(ea.getModKeyMask() & (osgGA::GUIEventAdapter::MODKEY_LEFT_SHIFT|osgGA::GUIEventAdapter::MODKEY_RIGHT_SHIFT))
+                pickerType = ISceneGraphInspectorHandlerInfo::PickerTypeLine;
+            else
+                pickerType = ISceneGraphInspectorHandlerInfo::PickerTypeDefault;
+            _picker = _info->createPicker(pickerType, ea.getX(), ea.getY());
+            if(_picker.valid() && _picker->result())
+            {
+                SGIHostItemOsg itemPicker(_picker);
+                showSceneGraphDialog(&itemPicker);
+            }
+            else
+            {
+                showSceneGraphDialog(NULL);
+            }
+        }
+        else if(_inspectorInfoKey != 0 && ea.getKey() == _inspectorInfoKey &&
+            ea.getModKeyMask() & (_inspectorInfoKeyModMask))
+        {
+            ReferencedInternalInfoData * info = new ReferencedInternalInfoData(InternalInfoData::CommandIdAbout);
+            SGIHostItemInternal itemAbout(info);
+            showSceneGraphDialog(&itemAbout);
+        }
+        else if(_inspectorEventKey != 0 && ea.getKey() == _inspectorEventKey)
+        {
+            SGIHostItemOsg itemEa(&ea);
+            showSceneGraphDialog(&itemEa);
+        }
+        else if(_inspectorLoggerKey != 0 && ea.getKey() == _inspectorLoggerKey &&
+                ea.getModKeyMask() & (_inspectorLoggerModMask))
+        {
+            SGIHostItemOsg itemEa(&ea);
+            showObjectLoggerDialog(&itemEa);
+        }
+    }
+    else if ( ea.getEventType() == ea.PUSH)
+    {
+        if(_inspectorHitTestMouseButton != 0 &&
+                ea.getButton() == _inspectorHitTestMouseButton &&
+            ( ((ea.getModKeyMask() & _inspectorHitTestMouseRightModMask) == _inspectorHitTestMouseRightModMask) ||
+              ((ea.getModKeyMask() & _inspectorHitTestMouseLeftModMask) == _inspectorHitTestMouseLeftModMask) )
+            )
+        {
+            SGIHostItemOsg itemEa(&ea);
+            showSceneGraphDialog(&itemEa);
+        }
+    }
+    return false;
+}
+
+} // namespace sgi

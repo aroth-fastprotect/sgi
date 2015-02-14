@@ -1,0 +1,122 @@
+// kate: syntax C++11;
+/* -*-c++-*- OpenSceneGraph - Copyright (C) 1998-2006 Robert Osfield
+ *
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
+ * (at your option) any later version.  The full license is in LICENSE file
+ * included with this distribution, and on the openscenegraph.org website.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * OpenSceneGraph Public License for more details.
+*/
+//sgi - Copyright (C) 2012-2013 Andreas Roth
+
+#pragma once
+
+#include "plugins/SGIHostItemGenerator"
+
+class QWidget;
+class QDialog;
+
+namespace terra3d {
+    class Terra3DView;
+}
+
+namespace sgi {
+
+class IContextMenu;
+class IContextMenuInfo;
+class IObjectTreeItem;
+
+class SGIItemBase;
+class SGIHostItemBase;
+
+class ISceneGraphDialogInfo : public osg::Referenced
+{
+public:
+    virtual                 ~ISceneGraphDialogInfo() {}
+    virtual IContextMenu *  contextMenu(QWidget * parent, const SGIItemBase * item, IContextMenuInfo * info) = 0;
+    virtual bool            showObjectLoggerDialog(SGIItemBase * item) = 0;
+    virtual void            triggerRepaint() = 0;
+    virtual SGIHostItemBase * getView() = 0;
+};
+
+class ISceneGraphDialog : public osg::Referenced
+{
+public:
+    virtual                 ~ISceneGraphDialog() {}
+    virtual QDialog *       getDialog() = 0;
+    virtual IContextMenu *  toolsMenu() = 0;
+    virtual void            setObject(SGIItemBase * item, ISceneGraphDialogInfo * info=NULL) = 0;
+    virtual void            setObject(const SGIHostItemBase * item, ISceneGraphDialogInfo * info=NULL) = 0;
+    virtual void            show() = 0;
+    virtual void            hide() = 0;
+    virtual bool            isVisible() = 0;
+    virtual IObjectTreeItem * selectedItem() = 0;
+    virtual IObjectTreeItem * rootItem() = 0;
+    virtual void            setInfoText(const std::string & text) = 0;
+};
+
+typedef osg::ref_ptr<ISceneGraphDialog> ISceneGraphDialogPtr;
+
+class ISceneGraphDialogToolsMenu : public osg::Referenced
+{
+public:
+    virtual                     ~ISceneGraphDialogToolsMenu() {}
+    virtual ISceneGraphDialog * getDialog() = 0;
+    virtual IContextMenu *      toolsMenu() = 0;
+};
+
+typedef osg::ref_ptr<ISceneGraphDialogToolsMenu> ISceneGraphDialogToolsMenuPtr;
+
+template<typename AUTOLOADCLASS>
+inline ISceneGraphDialog * showSceneGraphDialogImpl(QWidget *parent, const SGIHostItemBase * object, ISceneGraphDialogInfo * info=NULL)
+{
+    ISceneGraphDialog * ret;
+    typedef ISceneGraphDialog * (*pfn)(QWidget *parent, const SGIHostItemBase * object, ISceneGraphDialogInfo * info);
+    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_showSceneGraphDialog");
+    if(func)
+        ret = func(parent, object, info);
+    else
+        ret = NULL;
+    return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline ISceneGraphDialog * showSceneGraphDialogImpl(QWidget *parent, SGIItemBase * item, ISceneGraphDialogInfo * info=NULL)
+{
+    ISceneGraphDialog * ret;
+    typedef ISceneGraphDialog * (*pfn)(QWidget *parent, const SGIItemBase * item, ISceneGraphDialogInfo * info);
+    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_showSceneGraphDialogItem");
+    if(func)
+        ret = func(parent, item, info);
+    else
+        ret = NULL;
+    return ret;
+}
+
+template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
+inline ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, OBJECT_TYPE * object, ISceneGraphDialogInfo * info=NULL)
+{
+    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    ISceneGraphDialog * ret = showSceneGraphDialogImpl<AUTOLOADCLASS>(parent, hostitem.get(), info);
+    return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, ISceneGraphDialogInfo * info=NULL)
+{
+    ISceneGraphDialog * ret = showSceneGraphDialogImpl<AUTOLOADCLASS>(parent, item, info);
+    return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * item, ISceneGraphDialogInfo * info=NULL)
+{
+    ISceneGraphDialog * ret = showSceneGraphDialogImpl<AUTOLOADCLASS>(parent, item, info);
+    return ret;
+}
+
+} // namespace sgi

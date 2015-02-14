@@ -1,0 +1,57 @@
+// kate: syntax: C++
+#pragma once
+
+
+namespace sgi {
+namespace helpers {
+
+template<typename INT_TYPE>
+inline std::string str_plus_count(const char * str, const INT_TYPE & n)
+{
+    std::stringstream buf;
+    buf << str << '(' << n << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE, typename INT_TYPE2>
+inline std::string str_plus_count(const char * str, const INT_TYPE & n, const INT_TYPE2 & n2)
+{
+    std::stringstream buf;
+    buf << str << '(' << n << ':' << n2 << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE>
+inline std::string str_plus_info(const char * str, const INT_TYPE & n)
+{
+    std::stringstream buf;
+    buf << str << '(' << n << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE, typename INT_TYPE2>
+inline std::string str_plus_info(const char * str, const INT_TYPE & n, const INT_TYPE2 & n2)
+{
+    std::stringstream buf;
+    buf << str << '(' << n << ':' << n2 << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE>
+inline std::string str_plus_hex(const char * str, const INT_TYPE & n)
+{
+    std::stringstream buf;
+    buf << str << "(0x" << std::hex << n << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE>
+inline std::string str_plus_number(const char * str, const INT_TYPE & n)
+{
+    std::stringstream buf;
+    buf << str << '#' << n;
+    return buf.str();
+}
+
+} // namespace helpers
+} // namespace sgi

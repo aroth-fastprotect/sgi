@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ObjectLoggerDialog</class>
+ <widget class="QDialog" name="ObjectLoggerDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>963</width>
+    <height>692</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QTreeWidget" name="treeWidget">
+      <property name="contextMenuPolicy">
+       <enum>Qt::CustomContextMenu</enum>
+      </property>
+      <column>
+       <property name="text">
+        <string notr="true">Name</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Type</string>
+       </property>
+      </column>
+     </widget>
+     <widget class="QTableWidget" name="tableWidget"/>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+ <slots>
+  <slot>onItemExpanded(QTreeWidgetItem*)</slot>
+  <slot>onItemCollapsed(QTreeWidgetItem*)</slot>
+  <slot>onItemSelected(QTreeWidgetItem*,QTreeWidgetItem*)</slot>
+  <slot>onItemActivated(QTreeWidgetItem*,int)</slot>
+  <slot>onItemContextMenu(QPoint)</slot>
+  <slot>onItemClicked(QTreeWidgetItem*,int)</slot>
+ </slots>
+</ui>

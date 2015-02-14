@@ -1,0 +1,94 @@
+// kate: syntax C++11;
+/* -*-c++-*- OpenSceneGraph - Copyright (C) 1998-2006 Robert Osfield
+ *
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
+ * (at your option) any later version.  The full license is in LICENSE file
+ * included with this distribution, and on the openscenegraph.org website.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * OpenSceneGraph Public License for more details.
+*/
+//sgi - Copyright (C) 2012-2013 Andreas Roth
+
+#pragma once
+
+#include "plugins/SGIHostItemGenerator"
+
+namespace sgi {
+
+template<typename AUTOLOADCLASS>
+inline bool getObjectNameImpl(std::string & name, const SGIHostItemBase * object, bool full=true)
+{
+    bool ret = false;
+    typedef bool (*pfn)(std::string & name, const SGIHostItemBase * object, bool full);
+    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_getObjectName");
+    if(func)
+        ret = func(object, full);
+    return ret;
+}
+
+template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
+inline std::string getObjectName(std::string & name, OBJECT_TYPE * object, bool full=true)
+{
+    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    return getObjectNameImpl<AUTOLOADCLASS>(name, hostitem.get(), full);
+}
+
+template<typename AUTOLOADCLASS>
+inline bool getObjectName(std::string & name, const SGIHostItemBase * item, bool full=true)
+{
+    return getObjectName<AUTOLOADCLASS>(name, item, full);
+}
+
+template<typename AUTOLOADCLASS>
+inline bool getObjectDisplayNameImpl(std::string & name, const SGIHostItemBase * object)
+{
+    bool ret = false;
+    typedef bool (*pfn)(std::string & name, const SGIHostItemBase * object);
+    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_getObjectDisplayName");
+    if(func)
+        ret = func(name, object);
+    return ret;
+}
+
+template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
+inline bool getObjectDisplayName(std::string & name, OBJECT_TYPE * object)
+{
+    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    return getObjectDisplayNameImpl<AUTOLOADCLASS>(name, hostitem.get());
+}
+
+template<typename AUTOLOADCLASS>
+inline bool getObjectDisplayName(std::string & name, const SGIHostItemBase * item)
+{
+    return getObjectDisplayName<AUTOLOADCLASS>(name, item);
+}
+
+template<typename AUTOLOADCLASS>
+inline bool getObjectTypenameImpl(std::string & name, const SGIHostItemBase * object, bool full=true)
+{
+    bool ret = false;
+    typedef bool (*pfn)(std::string & name, const SGIHostItemBase * object, bool full);
+    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_getObjectTypename");
+    if(func)
+        ret = func(name, object, full);
+    return ret;
+}
+
+template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
+inline bool getObjectTypename(std::string & name, OBJECT_TYPE * object, bool full=true)
+{
+    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    return getObjectTypenameImpl<AUTOLOADCLASS>(name, hostitem.get(), full);
+}
+
+template<typename AUTOLOADCLASS>
+inline bool getObjectTypename(std::string & name, const SGIHostItemBase * item, bool full=true)
+{
+    return getObjectTypename<AUTOLOADCLASS>(name, item, full);
+}
+
+} // namespace sgi
