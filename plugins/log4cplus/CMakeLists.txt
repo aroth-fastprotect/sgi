@@ -1,0 +1,29 @@
+SET(TARGET_SRC
+    sgi_log4cplus_plugin.cpp
+    ObjectTreeLog4cplus.cpp
+    writeHTMLLog4cplus.cpp
+    getObjectInfoLog4cplus.cpp
+    ContextMenuLog4cplus.cpp
+    MenuActionLog4cplus.cpp
+    )
+
+SET(TARGET_H
+    SGIItemLog4cplus.h
+    ObjectTreeLog4cplus.h
+    writeHTMLLog4cplus.h
+    getObjectInfoLog4cplus.h
+    ContextMenuLog4cplus.h
+    MenuActionLog4cplus.h
+    )
+
+SET(TARGET_LIBRARIES_VARS
+    OSG_LIBRARY
+    OSGDB_LIBRARY
+    TERRA3D_LOGGING_LIBRARY
+)
+
+IF((UNIX AND FAST_PLATFORM_BITS EQUAL 32) OR WIN32)
+    LIST(APPEND TARGET_LIBRARIES_VARS OPENTHREADS_LIBRARY)
+ENDIF()
+
+SGI_PLUGIN(log4cplus)

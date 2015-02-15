@@ -1,0 +1,57 @@
+SET(TARGET_SRC
+    sgi_osgearth_plugin.cpp
+    writeHTMLOSGEarth.cpp
+    writeHTMLOSGEarthConfig.cpp
+    getObjectInfoOSGEarth.cpp
+    ObjectTreeOSGEarth.cpp
+    ContextMenuOSGEarth.cpp
+    MenuActionOSGEarth.cpp
+    string_helpers.cpp
+    SettingsDialogOSGEarth.cpp
+    GUIAdapterOSGEarth.cpp
+    AutoClipPlaneCullCallbackDialog.cpp
+    TileInspectorDialog.cpp
+    RetrieveElevationDialog.cpp
+    geo_helpers.cpp
+    )
+
+SET(TARGET_H
+    ../osg/SGIItemOsg.h
+    writeHTMLOSGEarth.h
+    writeHTMLOSGEarthConfig.h
+    getObjectInfoOSGEarth.h
+    ObjectTreeOSGEarth.h
+    ContextMenuOSGEarth.h
+    MenuActionOSGEarth.h
+    SettingsDialogOSGEarth.h
+    GUIAdapterOSGEarth.h
+    string_helpers.h
+    elevquery_ref.h
+    geo_helpers.h
+    )
+
+SET(TARGET_MOC_H
+    AutoClipPlaneCullCallbackDialog.h
+    TileInspectorDialog.h
+    RetrieveElevationDialog.h
+    )
+SET(TARGET_UI
+    AutoClipPlaneCullCallbackDialog.ui
+    TileInspectorDialog.ui
+    RetrieveElevationDialog.ui
+    )
+
+SET(TARGET_LIBRARIES_VARS
+    OPENTHREADS_LIBRARY
+    OSG_LIBRARY
+    OSGDB_LIBRARY
+    OSGEARTH_LIBRARY
+    OSGEARTHUTIL_LIBRARY
+    OSGEARTHFEATURES_LIBRARY
+    OSGEARTHANNOTATION_LIBRARY
+	OSGEARTHSYMBOLOGY_LIBRARY
+    QT_QTCORE_LIBRARY
+    QT_QTGUI_LIBRARY
+)
+
+SGI_PLUGIN(osgearth)

@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include "SGIHostSupport"
 #include "../helpers/preprocessor.h"
 
 #define _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM(...) \
@@ -67,8 +66,4 @@
         _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM(__VA_ARGS__) \
     };
 
-namespace sgi {
-
-    SGI_HOSTITEM_GENERATOR(Osg, Qt, QtMeta, Fallback, OsgEarthConfig, OsgEarthConfigOptions, Log4cplus, Model)
-
-} // namespace sgi
+#include "SGIHostSupport"

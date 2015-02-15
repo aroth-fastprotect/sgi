@@ -49,8 +49,6 @@ private:
     osg::ref_ptr<osg::Referenced>   _userData;
 };
 
-const static int metaTypeQtSGIItemType = qRegisterMetaType<sgi::QtSGIItem>("sgi::QtSGIItem");
-
 class QtMenuSGIItem : public QtSGIItem
 {
 public:
@@ -82,8 +80,6 @@ private:
     unsigned                _mode;
 };
 
-const static int metaTypeQtMenuSGIItemType = qRegisterMetaType<sgi::QtMenuSGIItem>("sgi::QtMenuSGIItem");
-
 class QtTableSGIItem
 {
 public:
@@ -108,8 +104,6 @@ private:
     SGIDataItemBasePtr  _item;
     unsigned            _field;
 };
-
-const static int metaTypeQtTableSGIItemType = qRegisterMetaType<sgi::QtTableSGIItem>("sgi::QtTableSGIItem");
 
 inline QString fromLocal8Bit(const std::string & str)
 {

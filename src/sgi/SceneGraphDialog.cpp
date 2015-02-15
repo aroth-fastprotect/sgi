@@ -156,62 +156,6 @@ void SceneGraphDialog::init()
     _spinBoxRefreshTime->setSuffix("s");
     Q_ASSERT(connect(_spinBoxRefreshTime, SIGNAL(valueChanged(int)), this, SLOT(refreshTimeChanged(int))));
 
-#if 0
-    m_actionToolFindUpdateNodes = new QAction(tr("Find update nodes"), this);
-    connect(m_actionToolFindUpdateNodes, SIGNAL(triggered()), this, SLOT(toolsFindUpdateNodes()));
-    m_actionToolFindEventNodes = new QAction(tr("Find event nodes"), this);
-    connect(m_actionToolFindEventNodes, SIGNAL(triggered()), this, SLOT(toolsFindEventNodes()));
-    m_actionToolFindNaNNodes = new QAction(tr("Find NaN nodes"), this);
-    connect(m_actionToolFindNaNNodes, SIGNAL(triggered()), this, SLOT(toolsFindNaNNodes()));
-    m_actionToolGPSToXYZConverter = new QAction(tr("GPS to XYZ..."), this);
-    connect(m_actionToolGPSToXYZConverter, SIGNAL(triggered()), this, SLOT(toolsGPSToXYZConverter()));
-    m_actionToolXYZToGPSConverter = new QAction(tr("XYZ to GPS..."), this);
-    connect(m_actionToolXYZToGPSConverter, SIGNAL(triggered()), this, SLOT(toolsXYZToGPSConverter()));
-    m_actionToolSavePositionMatrix = new QAction(tr("Save position matrix..."), this);
-    connect(m_actionToolSavePositionMatrix, SIGNAL(triggered()), this, SLOT(toolsSavePositionMatrix()));
-    m_actionToolSaveShapeBox = new QAction(tr("Save box..."), this);
-    connect(m_actionToolSaveShapeBox, SIGNAL(triggered()), this, SLOT(toolsSaveShapeBox()));
-    m_actionToolFindVisibleNodes = new QAction(tr("Visible nodes"), this);
-    connect(m_actionToolFindVisibleNodes, SIGNAL(triggered()), this, SLOT(toolsFindVisibleNodes()));
-    m_actionToolFindOsgUpdatableNodes = new QAction(tr("Find osgUpdatableNodes"), this);
-    connect(m_actionToolFindOsgUpdatableNodes, SIGNAL(triggered()), this, SLOT(toolsFindOsgUpdableNodes()));
-    m_actionToolFindOsgUpdatableNodesStuck = new QAction(tr("Find osgUpdatableNodes (stuck)"), this);
-    connect(m_actionToolFindOsgUpdatableNodesStuck, SIGNAL(triggered()), this, SLOT(toolsFindOsgUpdableNodesStuck()));
-    m_actionToolUpdatableNodeWatcher = new QAction(tr("osgUpdatableNode watcher"), this);
-    connect(m_actionToolUpdatableNodeWatcher, SIGNAL(triggered()), this, SLOT(toolsUpdatableNodeWatcher()));
-    m_actionToolListNodeMasks = new QAction(tr("List node masks"), this);
-    connect(m_actionToolListNodeMasks, SIGNAL(triggered()), this, SLOT(toolsListNodeMasks()));
-    m_actionToolCameraDistance = new QAction(tr("Distance to camera"), this);
-    connect(m_actionToolCameraDistance, SIGNAL(triggered()), this, SLOT(toolsCameraDistance()));
-    m_actionToolAddTerra3DCalc = new QAction(tr("Add Terra3DCalc"), this);
-    connect(m_actionToolAddTerra3DCalc, SIGNAL(triggered()), this, SLOT(toolsAddTerra3DCalc()));
-    m_actionToolTraversalHook = new QAction(tr("Traversal hook"), this);
-    connect(m_actionToolTraversalHook, SIGNAL(triggered()), this, SLOT(toolsTraversalHook()));
-
-    m_actionToolTraversalHook = new QAction(tr("Traversal hook"), this);
-    connect(m_actionToolTraversalHook, SIGNAL(triggered()), this, SLOT(toolsTraversalHook()));
-
-	QMenu * toolsMenu = new QMenu(this);
-	toolsMenu->addAction(m_actionToolFindUpdateNodes);
-	toolsMenu->addAction(m_actionToolFindEventNodes);
-	toolsMenu->addAction(m_actionToolFindNaNNodes);
-    toolsMenu->addAction(m_actionToolFindVisibleNodes);
-    toolsMenu->addAction(m_actionToolFindOsgUpdatableNodes);
-    toolsMenu->addAction(m_actionToolFindOsgUpdatableNodesStuck);
-    toolsMenu->addAction(m_actionToolGPSToXYZConverter);
-    toolsMenu->addAction(m_actionToolXYZToGPSConverter);
-    QMenu * toolsOsgNodesMenu = toolsMenu->addMenu(tr("OSG Nodes"));
-    toolsOsgNodesMenu->addAction(m_actionToolSavePositionMatrix);
-    toolsOsgNodesMenu->addAction(m_actionToolSaveShapeBox);
-
-    toolsMenu->addAction(m_actionToolUpdatableNodeWatcher);
-    toolsMenu->addAction(m_actionToolListNodeMasks);
-    toolsMenu->addAction(m_actionToolCameraDistance);
-    toolsMenu->addAction(m_actionToolAddTerra3DCalc);
-    toolsMenu->addAction(m_actionToolTraversalHook);
-
-#endif // 0
-
     _toolBar->addAction(_actionReloadSelected);
     _toolBar->addAction(_actionReload);
     _toolBar->addAction(_actionItemPrevious);
@@ -590,7 +534,7 @@ void SceneGraphDialog::onItemContextMenu(QPoint pt)
 	QtSGIItem itemData;
     if (item)
     {
-        itemData = qVariantValue<QtSGIItem>(item->data(0, Qt::UserRole));
+        itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
 
         QMenu * contextMenu = NULL;
         if (!_contextMenuCallback)

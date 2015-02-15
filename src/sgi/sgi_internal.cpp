@@ -27,7 +27,14 @@ GENERATE_IMPL_NO_ACCEPT(osg::NodeCallback)
 GENERATE_IMPL_NO_ACCEPT(osgGA::GUIEventHandler)
 
 SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(SGIPlugins, ReferencedInternalItemData, ReferencedInternalInfoData, osg::Object))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced,
+                                  LOKI_TYPELIST(SGIPlugins,
+                                                ISceneGraphDialog,
+                                                IContextMenu,
+                                                IObjectLoggerDialog,
+                                                ReferencedInternalItemData,
+                                                ReferencedInternalInfoData,
+                                                osg::Object))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(SGIItemBase, osg::NodeCallback))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::NodeCallback, LOKI_TYPELIST(osgGA::GUIEventHandler))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgGA::GUIEventHandler, LOKI_TYPELIST(SceneGraphInspectorHandler))

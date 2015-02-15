@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>RetrieveElevationDialog</class>
+ <widget class="QDialog" name="RetrieveElevationDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>689</width>
+    <height>551</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Retrieve Elevation</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QLabel" name="label_4">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Layer</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="layer">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Coordinate</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="coordinate">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="queryButton">
+       <property name="text">
+        <string>Query</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="webQueryButton">
+       <property name="text">
+        <string>Web Query</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QSplitter" name="splitter">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QTreeWidget" name="results">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <column>
+       <property name="text">
+        <string>Coordinate</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Elevation</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Resolution</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Time</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Timestamp</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Info</string>
+       </property>
+      </column>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>layer</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>RetrieveElevationDialog</receiver>
+   <slot>layerChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>124</x>
+     <y>18</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>344</x>
+     <y>275</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>queryButton</sender>
+   <signal>clicked()</signal>
+   <receiver>RetrieveElevationDialog</receiver>
+   <slot>query()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>177</x>
+     <y>16</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>344</x>
+     <y>275</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>webQueryButton</sender>
+   <signal>clicked()</signal>
+   <receiver>RetrieveElevationDialog</receiver>
+   <slot>webQuery()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>405</x>
+     <y>45</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>344</x>
+     <y>275</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>results</sender>
+   <signal>itemClicked(QTreeWidgetItem*,int)</signal>
+   <receiver>RetrieveElevationDialog</receiver>
+   <slot>resultItemClicked(QTreeWidgetItem*,int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>344</x>
+     <y>304</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>344</x>
+     <y>275</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>results</sender>
+   <signal>customContextMenuRequested(QPoint)</signal>
+   <receiver>RetrieveElevationDialog</receiver>
+   <slot>resultItemContextMenu(QPoint)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>344</x>
+     <y>304</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>344</x>
+     <y>275</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>query()</slot>
+  <slot>webQuery()</slot>
+  <slot>layerChanged()</slot>
+  <slot>resultItemClicked(QTreeWidgetItem*,int)</slot>
+  <slot>resultItemContextMenu(QPoint)</slot>
+ </slots>
+</ui>

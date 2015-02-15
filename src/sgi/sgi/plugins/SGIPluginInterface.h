@@ -3,6 +3,8 @@
 #include <osg/Object>
 #include "../ContextMenu"
 #include "../ObjectLoggerDialog"
+#include <map>
+#include <sstream>
 
 class QWidget;
 

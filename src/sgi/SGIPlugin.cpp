@@ -15,12 +15,6 @@
 #include "QTextDialog.h"
 #include "qt_helper.h"
 
-#ifdef OSG_LIBRARY_POSTFIX
-    #define OSG_LIBRARY_POSTFIX_WITH_QUOTES SGI_QUOTE(OSG_LIBRARY_POSTFIX)
-#else
-    #define OSG_LIBRARY_POSTFIX_WITH_QUOTES ""
-#endif
-
 using namespace sgi;
 
 class SGIPlugins::SGIPluginsImpl
@@ -403,7 +397,7 @@ public:
     PluginFileNameList listAllAvailablePlugins(PluginType pluginType=PluginTypeModel)
     {
         PluginFileNameList ret;
-        std::string postfix = OSG_LIBRARY_POSTFIX_WITH_QUOTES;
+        std::string postfix = OSG_LIBRARY_POSTFIX;
         size_t postfix_len = postfix.length();
 
         osgDB::FileNameList plugins = osgDB::listAllAvailablePlugins();
@@ -943,7 +937,7 @@ public:
             ret = QString::fromUtf16((const ushort*)text.data(), text.size());
             break;
         case SGIPluginHostInterface::InputDialogStringEncodingASCII:
-            ret = QString::fromAscii(text.data(), text.size());
+            ret = QString::fromLatin1(text.data(), text.size());
             break;
         }
         return ret;
@@ -965,7 +959,7 @@ public:
             qba = QByteArray((const char*)text.utf16(), text.size() * sizeof(ushort));
             break;
         case SGIPluginHostInterface::InputDialogStringEncodingASCII:
-            qba = text.toAscii();
+            qba = text.toLatin1();
             break;
         }
         ret.assign(qba.constData(), qba.size());
@@ -1030,7 +1024,7 @@ public:
         else
             qwindowTitle = fromLocal8Bit(windowTitle);
         bool ok = false;
-        int newNumber = QInputDialog::getInteger(parent, qwindowTitle, fromLocal8Bit(label), number, minNumber, maxNumber, step, &ok);
+        int newNumber = QInputDialog::getInt(parent, qwindowTitle, fromLocal8Bit(label), number, minNumber, maxNumber, step, &ok);
         if(ok)
         {
             number = newNumber;

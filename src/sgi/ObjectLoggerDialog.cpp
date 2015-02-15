@@ -389,7 +389,7 @@ void ObjectLoggerDialog::onItemContextMenu(QPoint pt)
     QTreeWidgetItem * item = ui->treeWidget->itemAt (pt);
     QtSGIItem itemData;
     if(item)
-        itemData = qVariantValue<QtSGIItem>(item->data(0, Qt::UserRole));
+        itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
 
     QMenu * contextMenu = NULL;
     if(!_contextMenuCallback)

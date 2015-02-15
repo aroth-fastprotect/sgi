@@ -185,6 +185,7 @@ FIND_PACKAGE(OsgEarth)
 # Make the headers visible to everything
 INCLUDE_DIRECTORIES(
     ${OSG_INCLUDE_DIR}
+    ${QT_INCLUDES}
     ${SGI_INCLUDE_DIR}
 )
 
@@ -234,17 +235,25 @@ ENDIF(INSTALL_TO_OSG_DIR)
 
 
 INCLUDE(OsgEarthMacroUtils)
+INCLUDE(SGIMacros)
 
 DETECT_OSG_VERSION()
 
 SET(OPENSCENEGRAPH_VERSION ${OPENSCENEGRAPH_MAJOR_VERSION}.${OPENSCENEGRAPH_MINOR_VERSION}.${OPENSCENEGRAPH_PATCH_VERSION})
 SET(OSG_PLUGINS osgPlugins-${OPENSCENEGRAPH_VERSION})
 
+OPTION(SGI_PLUGIN_OSG "Enable OSG plugin" ON)
+OPTION(SGI_PLUGIN_OSGEARTH "Enable osgEarth plugin" ON)
+OPTION(SGI_PLUGIN_QT "Enable Qt plugin" ON)
+OPTION(SGI_PLUGIN_LOG4CPLUS "Enable log4cplus plugin" OFF)
+
 # SGI Core
 ADD_SUBDIRECTORY(src)
 
 # SGI Plugins
 ADD_SUBDIRECTORY(plugins)
+
+add_subdirectory(applications)
 
 #-----------------------------------------------------------------------------
 ### uninstall target

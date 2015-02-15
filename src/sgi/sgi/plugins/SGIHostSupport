@@ -16,9 +16,14 @@
 #pragma once
 
 #include "SGIHostItemInternal.h"
+
+
 #include "osg_support.h"
-#include "osgearth_support.h"
 #include "qt_support.h"
 #include "fallback_support.h"
-#include "log4cplus_support.h"
-#include "model_support.h"
+
+namespace sgi {
+
+    SGI_HOSTITEM_GENERATOR(Osg, Qt, QtMeta, Fallback)
+
+} // namespace sgi

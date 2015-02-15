@@ -7,8 +7,13 @@
 #include "SceneGraphDialog.h"
 #include "ContextMenu.h"
 #include "ObjectLoggerDialog.h"
+#include "qt_helper.h"
 
 namespace sgi {
+
+const static int metaTypeQtSGIItemType = qRegisterMetaType<sgi::QtSGIItem>("sgi::QtSGIItem");
+const static int metaTypeQtMenuSGIItemType = qRegisterMetaType<sgi::QtMenuSGIItem>("sgi::QtMenuSGIItem");
+const static int metaTypeQtTableSGIItemType = qRegisterMetaType<sgi::QtTableSGIItem>("sgi::QtTableSGIItem");
 
 namespace {
     static void ensure_QApplication()
@@ -16,8 +21,15 @@ namespace {
         QCoreApplication * app = QApplication::instance();
         if(!app)
         {
-            int argc = 0;
-            char ** argv = NULL;
+            static int argc = 0;
+            static char ** argv = NULL;
+
+#ifndef _WIN32
+            // Workaround to avoid re-initilaziation of glib
+            char* envvar = qstrdup("QT_NO_THREADED_GLIB=1");
+            ::putenv(envvar);
+#endif
+
             new QApplication(argc, argv);
         }
     }

@@ -52,7 +52,7 @@ namespace sgi {
         }
         PROC_ADDRESS getProcAddress(const char* procName)
         {
-            return (_library)?_library->resolve(procName):NULL;
+            return (_library)?(PROC_ADDRESS)_library->resolve(procName):NULL;
         }
         std::string libraryFilename() const
         {

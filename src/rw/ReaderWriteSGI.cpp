@@ -109,7 +109,7 @@ public:
 #else
             else if(osgViewer::GraphicsWindowX11 * gwx11 = dynamic_cast<osgViewer::GraphicsWindowX11*>(ctx))
             {
-                _parent = QWidget::find(gwx11->getWindow());
+                //_parent = QWidget::find(gwx11->getWindow());
             }
 #endif
         }

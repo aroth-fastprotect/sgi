@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>AutoClipPlaneCullCallbackDialog</class>
+ <widget class="QDialog" name="AutoClipPlaneCullCallbackDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>539</width>
+    <height>289</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Setup AutoClipPlaneCullback</string>
+  </property>
+  <property name="windowOpacity">
+   <double>1.000000000000000</double>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Min near/far ratio</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QSlider" name="minNearFarRatio">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>100000</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="minNearFarRatioSpin">
+         <property name="suffix">
+          <string/>
+         </property>
+         <property name="decimals">
+          <number>6</number>
+         </property>
+         <property name="minimum">
+          <double>0.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.000001000000000</double>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Max near/far ratio</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QSlider" name="maxNearFarRatio">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>100000</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="maxNearFarRatioSpin">
+         <property name="suffix">
+          <string/>
+         </property>
+         <property name="decimals">
+          <number>6</number>
+         </property>
+         <property name="minimum">
+          <double>0.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.000001000000000</double>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Height Threshold</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QSlider" name="heightThreshold">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>100000</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="heightThresholdSpin">
+         <property name="suffix">
+          <string>m</string>
+         </property>
+         <property name="decimals">
+          <number>1</number>
+         </property>
+         <property name="minimum">
+          <double>0.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>10000.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>10.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>ClampFarClipPlane</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QCheckBox" name="clampFarClipPlane">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>31</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Close|QDialogButtonBox::RestoreDefaults</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>minNearFarRatio</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>AutoClipPlaneCullCallbackDialog</receiver>
+   <slot>minNearFarRatioChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>268</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>217</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>minNearFarRatioSpin</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>AutoClipPlaneCullCallbackDialog</receiver>
+   <slot>minNearFarRatioChanged(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>503</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>217</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>maxNearFarRatio</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>AutoClipPlaneCullCallbackDialog</receiver>
+   <slot>maxNearFarRatioChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>276</x>
+     <y>46</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>65</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>maxNearFarRatioSpin</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>AutoClipPlaneCullCallbackDialog</receiver>
+   <slot>maxNearFarRatioChanged(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>505</x>
+     <y>45</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>65</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>heightThreshold</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>AutoClipPlaneCullCallbackDialog</receiver>
+   <slot>heightThresholdChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>278</x>
+     <y>75</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>144</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>heightThresholdSpin</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>AutoClipPlaneCullCallbackDialog</receiver>
+   <slot>heightThresholdChanged(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>495</x>
+     <y>74</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>144</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>clampFarClipPlane</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>AutoClipPlaneCullCallbackDialog</receiver>
+   <slot>clampFarClipPlaneChanged(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>114</x>
+     <y>102</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>144</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>maxNearFarRatioChanged(int)</slot>
+  <slot>maxNearFarRatioChanged(double)</slot>
+  <slot>minNearFarRatioChanged(int)</slot>
+  <slot>minNearFarRatioChanged(double)</slot>
+  <slot>heightThresholdChanged(int)</slot>
+  <slot>heightThresholdChanged(double)</slot>
+  <slot>clampFarClipPlaneChanged(bool)</slot>
+ </slots>
+</ui>

@@ -3,6 +3,7 @@
 #include "SGIPluginInterface.h"
 #include <typeindex>
 #include <unordered_map>
+#include <string.h>
 
 #include "../helpers/NullType.h"
 

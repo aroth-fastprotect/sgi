@@ -16,6 +16,7 @@
 #pragma once
 
 #include "plugins/SGIHostItemGenerator"
+#include <list>
 
 class QWidget;
 class QDialog;

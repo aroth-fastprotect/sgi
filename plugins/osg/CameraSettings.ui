@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CameraSettings</class>
+ <widget class="QDialog" name="CameraSettings">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>539</width>
+    <height>316</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Camera LOD scale</string>
+  </property>
+  <property name="windowOpacity">
+   <double>1.000000000000000</double>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <property name="fieldGrowthPolicy">
+      <enum>QFormLayout::ExpandingFieldsGrow</enum>
+     </property>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="computeNearFarMode">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <item>
+        <property name="text">
+         <string>No compute</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Near/far using bounding volumes</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Near/far using primitives</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Near using primitives</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Near clipping</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <widget class="QSlider" name="nearClipping">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>2500000</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="nearClippingSpin">
+         <property name="suffix">
+          <string>m</string>
+         </property>
+         <property name="decimals">
+          <number>5</number>
+         </property>
+         <property name="minimum">
+          <double>0.000010000000000</double>
+         </property>
+         <property name="maximum">
+          <double>25.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.000010000000000</double>
+         </property>
+         <property name="value">
+          <double>0.000010000000000</double>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Far clipping</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QSlider" name="farClipping">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>10000000</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="farClippingSpin">
+         <property name="suffix">
+          <string>m</string>
+         </property>
+         <property name="decimals">
+          <number>1</number>
+         </property>
+         <property name="minimum">
+          <double>0.100000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>1000000.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.500000000000000</double>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>LOD scale</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QSlider" name="lodScale">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>250</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="lodScaleSpin">
+         <property name="suffix">
+          <string>x</string>
+         </property>
+         <property name="decimals">
+          <number>1</number>
+         </property>
+         <property name="minimum">
+          <double>0.100000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>25.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.050000000000000</double>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Small Feature</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QSlider" name="smallFeature">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>250</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="smallFeatureSpin">
+         <property name="suffix">
+          <string>px</string>
+         </property>
+         <property name="decimals">
+          <number>1</number>
+         </property>
+         <property name="minimum">
+          <double>0.100000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>25.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Compute near/far mode</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <widget class="QSlider" name="nearFarRatio">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>20000</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="nearFarRatioSpin">
+         <property name="suffix">
+          <string>x</string>
+         </property>
+         <property name="decimals">
+          <number>5</number>
+         </property>
+         <property name="minimum">
+          <double>0.000010000000000</double>
+         </property>
+         <property name="maximum">
+          <double>2.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.005000000000000</double>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>Near/far ratio</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>31</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Close|QDialogButtonBox::RestoreDefaults</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>lodScale</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>CameraSettings</receiver>
+   <slot>changeLODScale(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>268</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>217</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lodScaleSpin</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>CameraSettings</receiver>
+   <slot>changeLODScale(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>503</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>217</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>smallFeature</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>CameraSettings</receiver>
+   <slot>changeSmallFeature(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>276</x>
+     <y>46</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>65</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>smallFeatureSpin</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>CameraSettings</receiver>
+   <slot>changeSmallFeature(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>505</x>
+     <y>45</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>65</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>farClipping</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>CameraSettings</receiver>
+   <slot>changeFarClipping(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>260</x>
+     <y>46</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>77</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>farClippingSpin</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>CameraSettings</receiver>
+   <slot>changeFarClipping(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>489</x>
+     <y>45</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>77</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>nearClipping</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>CameraSettings</receiver>
+   <slot>changeNearClipping(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>263</x>
+     <y>17</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>77</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>nearClippingSpin</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>CameraSettings</receiver>
+   <slot>changeNearClipping(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>492</x>
+     <y>16</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>77</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>computeNearFarMode</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>CameraSettings</receiver>
+   <slot>changeComputeNearFarMode(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>168</x>
+     <y>16</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>157</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>nearFarRatio</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>CameraSettings</receiver>
+   <slot>changeNearFarRatio(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>303</x>
+     <y>102</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>157</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>nearFarRatioSpin</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>CameraSettings</receiver>
+   <slot>changeNearFarRatio(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>506</x>
+     <y>101</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>157</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>changeLODScale(int)</slot>
+  <slot>changeLODScale(double)</slot>
+  <slot>changeSmallFeature(int)</slot>
+  <slot>changeSmallFeature(double)</slot>
+  <slot>changeFarClipping(int)</slot>
+  <slot>changeFarClipping(double)</slot>
+  <slot>changeNearClipping(int)</slot>
+  <slot>changeNearClipping(double)</slot>
+  <slot>changeComputeNearFarMode(int)</slot>
+  <slot>changeNearFarRatio(int)</slot>
+  <slot>changeNearFarRatio(double)</slot>
+ </slots>
+</ui>

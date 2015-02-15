@@ -374,12 +374,15 @@ void ContextMenu::slotPopulateItemMenu()
     {
         QAction * action = menu->menuAction();
         QtMenuSGIItem itemData = action->data().value<QtMenuSGIItem>();
-        ContextMenuItem menuItem(this, menu);
-        menu->blockSignals(true);
-        menu->clear();
-        bool onlyRootItem = (menu == this)?_onlyRootItem:true;
-        SGIPlugins::instance()->contextMenuPopulate(&menuItem, itemData.item(), onlyRootItem);
-        menu->blockSignals(false);
+        if(itemData.hasItem())
+        {
+            ContextMenuItem menuItem(this, menu);
+            menu->blockSignals(true);
+            menu->clear();
+            bool onlyRootItem = (menu == this)?_onlyRootItem:true;
+            SGIPlugins::instance()->contextMenuPopulate(&menuItem, itemData.item(), onlyRootItem);
+            menu->blockSignals(false);
+        }
     }
 }
 

@@ -1,0 +1,18 @@
+#pragma once
+
+#include <sgi/plugins/SGIPluginMacros.h>
+
+namespace sgi {
+namespace qt_plugin {
+
+CONTEXT_MENU_POPULATE_IMPL_TEMPLATE()
+CONTEXT_MENU_POPULATE_IMPL_DECLARE(QObject)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE(QWidget)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE(QMetaObject)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE(QPaintDevice)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE(QImage)
+
+typedef ReferencedDataT<QMetaMethod> ReferencedDataMetaMethod;
+
+} // namespace qt_plugin
+} // namespace sgi

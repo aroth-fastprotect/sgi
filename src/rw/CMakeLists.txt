@@ -21,11 +21,21 @@ SET(TARGET_LIBRARIES_VARS
     OSGQT_LIBRARY
     OSGVIEWER_LIBRARY
     OSGEARTH_LIBRARY
-    QT_QTCORE_LIBRARY
-    QT_QTGUI_LIBRARY
 )
+IF ( NOT Qt5Widgets_FOUND )
+    LIST(APPEND TARGET_LIBRARIES_VARS
+        QT_QTCORE_LIBRARY
+        QT_QTGUI_LIBRARY
+        QT_QTWIDGETS_LIBRARY
+        )
+ENDIF()
 
 # CHECK-IT:
 # choose the target type (lib or application)
 SETUP_PLUGIN(${LIB_NAME})
+
+IF ( Qt5Widgets_FOUND )
+    qt5_use_modules( ${TARGET_DEFAULT_PREFIX}${LIB_NAME} Gui Widgets)
+ENDIF( Qt5Widgets_FOUND )
+
 
