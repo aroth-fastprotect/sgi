@@ -233,11 +233,17 @@ bool writePrettyHTMLImpl<SceneGraphInspectorHandler>::process(std::basic_ostream
 GET_OBJECT_NAME_IMPL_TEMPLATE()
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 
 std::string getObjectNameImpl<ReferencedInternalItemData>::process()
 {
     return "ReferencedInternalItemData";
+}
+
+std::string getObjectNameImpl<ReferencedInternalInfoData>::process()
+{
+    return "ReferencedInternalInfoData";
 }
 
 std::string getObjectNameImpl<SGIPlugins>::process()
@@ -263,11 +269,17 @@ std::string getObjectNameImpl<SGIProxyItemBase>::process()
 GET_OBJECT_TYPE_IMPL_TEMPLATE()
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
+GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 
 std::string getObjectTypeImpl<ReferencedInternalItemData>::process()
 {
     return "sgi::ReferencedInternalItemData";
+}
+
+std::string getObjectTypeImpl<ReferencedInternalInfoData>::process()
+{
+    return "sgi::ReferencedInternalInfoData";
 }
 
 std::string getObjectTypeImpl<SGIPlugins>::process()
@@ -293,11 +305,17 @@ std::string getObjectTypeImpl<SGIProxyItemBase>::process()
 GET_OBJECT_DISPLAYNAME_IMPL_TEMPLATE()
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
+GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 
 std::string getObjectDisplayNameImpl<ReferencedInternalItemData>::process()
 {
     return "ReferencedInternalItemData";
+}
+
+std::string getObjectDisplayNameImpl<ReferencedInternalInfoData>::process()
+{
+    return "ReferencedInternalInfoData";
 }
 
 std::string getObjectDisplayNameImpl<SGIPlugins>::process()
@@ -322,6 +340,7 @@ std::string getObjectDisplayNameImpl<SGIProxyItemBase>::process()
 
 OBJECT_TREE_BUILD_IMPL_TEMPLATE()
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 
 bool objectTreeBuildImpl<ReferencedInternalItemData>::build(IObjectTreeItem * treeItem)
@@ -352,6 +371,23 @@ bool objectTreeBuildImpl<ReferencedInternalItemData>::build(IObjectTreeItem * tr
                 if(root.hasObject())
                     treeItem->addChild("Root", &root);
             }
+            ret = true;
+        }
+        break;
+    default:
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<ReferencedInternalInfoData>::build(IObjectTreeItem * treeItem)
+{
+    ReferencedInternalInfoData * object = getObject<ReferencedInternalInfoData,SGIItemInternal>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
             ret = true;
         }
         break;
