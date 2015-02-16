@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QtCore/QDateTime>
 #include <QtGui/QDialog>
 #include <sgi/plugins/SGIPluginInterface.h>
 

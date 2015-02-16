@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "TileInspectorDialog.h"
 #include "../osg/SGIItemOsg.h"
-#include "TileInspectorDialog.moc"
 
 #include "ui_TileInspectorDialog.h"
 
@@ -25,7 +24,7 @@
 #include <sgi/ContextMenu>
 #include <sgi/SceneGraphDialog>
 
-#include "../../ObjectTreeImpl.h"
+#include "../../src/sgi/ObjectTreeImpl.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

@@ -7,8 +7,6 @@ SET(TARGET_DEFAULT_LABEL_PREFIX "Plugin")
 SET(LIB_NAME sgi_loader)
 
 SET(TARGET_SRC ReaderWriteSGI.cpp)
-SET(LIBRARY_OUTPUT_PATH ${LIBRARY_OUTPUT_PATH}/${OSG_PLUGINS})
-MAKE_DIRECTORY(${OUTPUT_LIBDIR})
 
 include_directories(${QT_QTOPENGL_INCLUDE_DIR})
 
@@ -26,13 +24,12 @@ IF ( NOT Qt5Widgets_FOUND )
     LIST(APPEND TARGET_LIBRARIES_VARS
         QT_QTCORE_LIBRARY
         QT_QTGUI_LIBRARY
-        QT_QTWIDGETS_LIBRARY
         )
 ENDIF()
 
 # CHECK-IT:
 # choose the target type (lib or application)
-SETUP_PLUGIN(${LIB_NAME})
+FAST_SHARED_LIBRARY(${LIB_NAME})
 
 IF ( Qt5Widgets_FOUND )
     qt5_use_modules( ${TARGET_DEFAULT_PREFIX}${LIB_NAME} Gui Widgets)

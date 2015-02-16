@@ -1,3 +1,5 @@
+# reset plugin count
+SET(SGI_PLUGIN_COUNT 0)
 
 if(SGI_PLUGIN_OSG)
     add_subdirectory(osg)
