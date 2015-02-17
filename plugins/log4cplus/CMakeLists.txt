@@ -1,3 +1,5 @@
+include_directories(${LOG4CPLUS_INCLUDE_DIR})
+
 SET(TARGET_SRC
     sgi_log4cplus_plugin.cpp
     ObjectTreeLog4cplus.cpp

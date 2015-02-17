@@ -6,9 +6,9 @@
 
 #include <sgi/plugins/SGISettingsDialogImpl>
 
-#include <QtCore/QTextStream>
-#include <QtGui/QFileDialog>
-#include <QtGui/QMenu>
+#include <QTextStream>
+#include <QFileDialog>
+#include <QMenu>
 
 #include <osgEarth/Registry>
 #include <osgEarth/Viewpoint>
@@ -639,7 +639,7 @@ void TileInspectorDialog::onItemContextMenu(QPoint pt)
     QTreeWidgetItem * item = ui->treeWidget->itemAt (pt);
     QtSGIItem itemData;
     if(item)
-        itemData = qVariantValue<QtSGIItem>(item->data(0, Qt::UserRole));
+        itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
 
     QMenu * contextMenu = NULL;
     if(!_contextMenuCallback)
@@ -924,6 +924,7 @@ void TileInspectorDialog::refresh()
 
 void TileInspectorDialog::updateMetaData()
 {
+#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
     osgEarth::TileSource * tileSource = const_cast<osgEarth::TileSource *>(getTileSource());
     if(tileSource)
     {
@@ -931,6 +932,7 @@ void TileInspectorDialog::updateMetaData()
         tileSource->readMetaData(config);
         tileSource->writeMetaData(config);
     }
+#endif
 }
 
 void TileInspectorDialog::proxySaveScript()

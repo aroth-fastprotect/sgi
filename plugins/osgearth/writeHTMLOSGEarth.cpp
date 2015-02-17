@@ -4,6 +4,7 @@
 
 #include "string_helpers.h"
 
+#include <osgEarth/Version>
 #include <osgEarth/Registry>
 #include <osgEarth/Capabilities>
 #include <osgEarth/StateSetCache>
@@ -22,7 +23,12 @@
 #include <osgEarth/ElevationQuery>
 
 #include <osgEarthUtil/LatLongFormatter>
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 #include <osgEarthUtil/Sky>
+#else
+#include <osgEarthUtil/SkyNode>
+#endif
 #include <osgEarthFeatures/FeatureModelSource>
 
 #include <osgEarthAnnotation/CircleNode>
@@ -117,7 +123,9 @@ bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& 
             os << "<tr><td>HTTP user agent</td><td>" << osgEarth::HTTPClient::getUserAgent() << "</td></tr>" << std::endl;
             os << "<tr><td>HTTP timeout</td><td>" << osgEarth::HTTPClient::getTimeout() << "</td></tr>" << std::endl;
             os << "<tr><td>HTTP connect timeout</td><td>" << osgEarth::HTTPClient::getConnectTimeout() << "</td></tr>" << std::endl;
+#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
             os << "<tr><td>HTTP proxy</td><td>" << osgEarth::HTTPClient::getProxySettings() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>HTTP URL rewriter</td><td>" << osgEarth::HTTPClient::getURLRewriter() << "</td></tr>" << std::endl;
 
             if(_table)
@@ -168,7 +176,9 @@ bool writePrettyHTMLImpl<osgEarth::Capabilities>::process(std::basic_ostream<cha
             os << "<tr><td>supportsTexture2DLod</td><td>" << (object->supportsTexture2DLod()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>supportsMipmappedTextureUpdates</td><td>" << (object->supportsMipmappedTextureUpdates()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>supportsDepthPackedStencilBuffer</td><td>" << (object->supportsDepthPackedStencilBuffer()?"true":"false") << "</td></tr>" << std::endl;
+#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
             os << "<tr><td>supportsQuadBufferStereo</td><td>" << (object->supportsQuadBufferStereo()?"true":"false") << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>supportsOcclusionQuery</td><td>" << (object->supportsOcclusionQuery()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>supportsDrawInstanced</td><td>" << (object->supportsDrawInstanced()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>supportsUniformBufferObjects</td><td>" << (object->supportsUniformBufferObjects()?"true":"false") << "</td></tr>" << std::endl;
@@ -196,6 +206,7 @@ namespace {
     public:
         void writeHTML(std::basic_ostream<char>& os) const
         {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             osgEarth::Threading::ScopedMutexLock lock( _mutex );
 
             os << "<tr><td>size</td><td>" << size() << "</td></tr>" << std::endl;
@@ -203,6 +214,7 @@ namespace {
             os << "<tr><td>ineligibles attrs</td><td>" << _attrsIneligible << "</td></tr>" << std::endl;
             os << "<tr><td>attr share hits</td><td>" << _attrShareHits << "</td></tr>" << std::endl;
             os << "<tr><td>attr share misses</td><td>" << _attrShareMisses << "</td></tr>" << std::endl;
+#endif
         }
     };
 }
@@ -315,7 +327,9 @@ bool writePrettyHTMLImpl<osgEarth::Cache>::process(std::basic_ostream<char>& os)
                 const osg::ref_ptr<osgEarth::CacheBin> & cachebin = it->second;
                 os << "<li>" << getObjectNameAndType(cachebin.get()) << "</li>" << std::endl;
             }
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             os << "<tr><td>approx. size</td><td>" << object->getApproximateSize() << "</td></tr>" << std::endl;
+#endif
             os << "</ul></td></tr>" << std::endl;
 
             if(_table)
@@ -622,7 +636,9 @@ bool writePrettyHTMLImpl<osgEarth::ElevationLayer>::process(std::basic_ostream<c
             // add elevation layer properties
             ElevationLayerAccessor * access = (ElevationLayerAccessor*)object;
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             os << "<tr><td>isOffset</td><td>" << (access->isOffset()?"true":"false") << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>suggestCacheFormat</td><td>" << access->suggestCacheFormatStr() << "</td></tr>" << std::endl;
 
             if(_table)
@@ -658,7 +674,9 @@ bool writePrettyHTMLImpl<osgEarth::ModelLayer>::process(std::basic_ostream<char>
             os << "<tr><td>visible</td><td>" << (object->getVisible()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>enabled</td><td>" << (object->getEnabled()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>lightingEnabled</td><td>" << (object->isLightingEnabled()?"true":"false") << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             os << "<tr><td>isTerrainPatch</td><td>" << (object->isTerrainPatch()?"true":"false") << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>opacity</td><td>" << object->getOpacity() << "</td></tr>" << std::endl;
 
             if(_table)
@@ -689,7 +707,9 @@ bool writePrettyHTMLImpl<osgEarth::MaskLayer>::process(std::basic_ostream<char>&
 
             // add mask layer properties
             os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             os << "<tr><td>minLevel</td><td>" << object->getMinLevel() << "</td></tr>" << std::endl;
+#endif
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -857,7 +877,9 @@ bool writePrettyHTMLImpl<osgEarth::Map>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>map callbacks</td><td><ul>" << std::endl;
             osgEarth::MapCallbackList callbacks;
+#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
             object->getMapCallbacks(callbacks);
+#endif
             for(osgEarth::MapCallbackList::const_iterator it = callbacks.begin(); it != callbacks.end(); it++)
             {
                 const osg::ref_ptr<osgEarth::MapCallback> & callback = *it;
@@ -993,8 +1015,10 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osgEarth::DataExtentLis
 
         os << "<li>" << std::endl;
 
+#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
         if(ext.description().isSet())
             os << ext.description() << " ";
+#endif
 
         if(ext.minLevel().isSet() || ext.maxLevel().isSet())
             os << "min=" << ext.minLevel() << " max=" << ext.maxLevel();
@@ -1078,6 +1102,7 @@ bool writePrettyHTMLImpl<osgEarth::ModelSource>::process(std::basic_ostream<char
             callNextHandler(os);
 
             // add remaining ModelSource properties
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             const osgEarth::NodeOperationVector& preMergeOperations = object->preMergeOperations();
             os << "<tr><td>preMergeOperations</td><td><ul>";
             for(osgEarth::NodeOperationVector::const_iterator it = preMergeOperations.begin(); it != preMergeOperations.end(); it++)
@@ -1096,6 +1121,7 @@ bool writePrettyHTMLImpl<osgEarth::ModelSource>::process(std::basic_ostream<char
             }
             os << "</ul></td></tr>" << std::endl;
             os << "<tr><td>dataExtents</td><td>" << object->getDataExtents().size() << " entries" << "</td></tr>" << std::endl;
+#endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -1103,7 +1129,9 @@ bool writePrettyHTMLImpl<osgEarth::ModelSource>::process(std::basic_ostream<char
         }
         break;
     case SGIItemTypeDataExtents:
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
         writePrettyHTML(os, object->getDataExtents());
+#endif
         ret = true;
         break;
     default:
@@ -1720,10 +1748,16 @@ bool writePrettyHTMLImpl<osgEarth::Util::SkyNode>::process(std::basic_ostream<ch
             callNextHandler(os);
 
             // add remaining SkyNode properties
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             os << "<tr><td>referencePoint</td><td>" << object->getReferencePoint() << "</td></tr>" << std::endl;
             os << "<tr><td>lighting</td><td>" << object->getLighting() << "</td></tr>" << std::endl;
             os << "<tr><td>dateTime</td><td>" << object->getDateTime() << "</td></tr>" << std::endl;
             os << "<tr><td>sunVisible</td><td>" << (object->getSunVisible()?"true":"false") << "</td></tr>" << std::endl;
+#else
+            osgEarth::DateTime t;
+            object->getDateTime(t);
+            os << "<tr><td>dateTime</td><td>" << t << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>moonVisible</td><td>" << (object->getMoonVisible()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>starsVisible</td><td>" << (object->getStarsVisible()?"true":"false") << "</td></tr>" << std::endl;
 
@@ -1906,7 +1940,9 @@ bool writePrettyHTMLImpl<osgEarth::Annotation::LocalizedNode>::process(std::basi
             os << "<tr><td>local offset</td><td>" << object->getLocalOffset() << "</td></tr>" << std::endl;
             os << "<tr><td>local rotation</td><td>" << object->getLocalRotation() << "</td></tr>" << std::endl;
             os << "<tr><td>scale</td><td>" << object->getScale() << "</td></tr>" << std::endl;
+#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
             os << "<tr><td>horizon culling</td><td>" << (object->getHorizonCulling()?"true":"false") << "</td></tr>" << std::endl;
+#endif
 
             if(_table)
                 os << "</table>" << std::endl;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QtGui/QDialog>
+#include <QDialog>
 #include <sgi/plugins/SGIPluginInterface.h>
 
 QT_BEGIN_NAMESPACE

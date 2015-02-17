@@ -11,10 +11,15 @@
 #include <sgi/plugins/SGIProxyItem.h>
 #include <sgi/helpers/string>
 
+#include <osgEarth/Version>
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
 #include <osgEarth/Registry>
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 #include <osgEarthUtil/Sky>
+#else
+#include <osgEarthUtil/SkyNode>
+#endif
 #include <osgEarthUtil/Controls>
 #include <osgEarth/Capabilities>
 #include <osgEarth/TaskService>
@@ -89,7 +94,9 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
         if(ret)
         {
             osgEarth::MapCallbackList callbacks;
+#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
             object->getMapCallbacks(callbacks);
+#endif
             if(!callbacks.empty())
                 treeItem->addChildIfNotExists("Callbacks", cloneItem<SGIItemOsg>(SGIItemTypeCallbacks));
 
@@ -144,7 +151,9 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
             callNextHandler(treeItem);
 
             osgEarth::MapCallbackList callbacks;
+#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
             object->getMapCallbacks(callbacks);
+#endif
             for(osgEarth::MapCallbackList::const_iterator it = callbacks.begin(); it != callbacks.end(); it++)
             {
                 SGIHostItemOsg callback(*it);
@@ -417,12 +426,14 @@ bool objectTreeBuildImpl<osgEarth::Util::SkyNode>::build(IObjectTreeItem * treeI
             osg::Camera * camera = findFirstParentOfType<osg::Camera>(object);
             osg::View * view = (camera)?camera->getView():NULL;
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             SGIHostItemOsg ephemeris(object->getEphemeris());
             if(ephemeris.hasObject())
                 treeItem->addChild("Ephemeris", &ephemeris);
             SGIHostItemOsg light(object->getSunLight());
             if(light.hasObject())
                 treeItem->addChild("Light", &light);
+#endif
         }
         break;
     default:
@@ -579,9 +590,11 @@ bool objectTreeBuildImpl<osgEarth::Util::Controls::LabelControl>::build(IObjectT
             if(font.hasObject())
                 treeItem->addChild("Font", &font);
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             SGIHostItemOsg drawable(object->drawable());
             if(drawable.hasObject())
                 treeItem->addChild("Drawable", &drawable);
+#endif
         }
         break;
     default:
@@ -900,19 +913,23 @@ bool objectTreeBuildImpl<osgEarth::ModelSource>::build(IObjectTreeItem * treeIte
             SGIHostItemOsgEarthConfigOptions runtimeOptions(object->getOptions());
             treeItem->addChild("Runtime Options", &runtimeOptions);
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             const osgEarth::DataExtentList& dataExtents = object->getDataExtents();
             if(!dataExtents.empty())
                 treeItem->addChild(helpers::str_plus_count("Data extents", dataExtents.size()), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents));
+#endif
         }
         break;
     case SGIItemTypeDataExtents:
         {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             const osgEarth::DataExtentList& dataExtents = object->getDataExtents();
             for(osgEarth::DataExtentList::const_iterator it = dataExtents.begin(); it != dataExtents.end(); it++)
             {
                 const osgEarth::DataExtent & extent = *it;
                 treeItem->addChild(extent.toString(), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents));
             }
+#endif
             ret = true;
         }
         break;

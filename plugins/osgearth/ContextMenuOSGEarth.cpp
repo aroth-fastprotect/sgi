@@ -4,8 +4,13 @@
 
 #include <sgi/helpers/string>
 
+#include <osgEarth/Version>
 #include <osgEarth/MapNode>
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 #include <osgEarthUtil/Sky>
+#else
+#include <osgEarthUtil/SkyNode>
+#endif
 #include <osgEarthUtil/AutoClipPlaneHandler>
 #include <osgEarthUtil/Controls>
 #include <osgEarth/TileSource>
@@ -432,10 +437,17 @@ bool contextMenuPopulateImpl<osgEarth::Util::SkyNode>::populate(IContextMenuItem
         {
             menuItem->addSimpleAction(MenuActionSkyNodeLightSettings, "Light settings...", _item);
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             const osgEarth::DateTime & t = object->getDateTime();
+#else
+            osgEarth::DateTime t;
+            object->getDateTime(t);
+#endif
             menuItem->addSimpleAction(MenuActionSkyNodeSetDateTime, helpers::str_plus_info("Date/time", t.asRFC1123()), _item);
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             menuItem->addBoolAction(MenuActionSkyNodeSetSunVisible, "Sun", _item, object->getSunVisible());
+#endif
             menuItem->addBoolAction(MenuActionSkyNodeSetMoonVisible, "Moon", _item, object->getMoonVisible());
             menuItem->addBoolAction(MenuActionSkyNodeSetStarsVisible, "Stars", _item, object->getStarsVisible());
         }

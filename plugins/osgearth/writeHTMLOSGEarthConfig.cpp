@@ -6,6 +6,7 @@
 
 #include "string_helpers.h"
 
+#include <osgEarth/Version>
 #include <osgEarth/Registry>
 #include <osgEarth/Capabilities>
 #include <osgEarth/HTTPClient>
@@ -459,7 +460,9 @@ bool writePrettyHTMLImpl<osgEarth::ImageLayerOptions>::process(std::basic_ostrea
 
             os << "<tr><td>minFilter</td><td>" << object->minFilter() << "</td></tr>" << std::endl;
             os << "<tr><td>magFilter</td><td>" << object->magFilter() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             os << "<tr><td>textureCompression</td><td>" << object->textureCompression() << "</td></tr>" << std::endl;
+#endif
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -831,7 +834,9 @@ bool writePrettyHTMLImpl<osgEarth::Drivers::VPBOptions>::process(std::basic_ostr
             os << "<tr><td>url</td><td>" << object->url() << "</td></tr>" << std::endl;
             os << "<tr><td>primarySplitLevel</td><td>" << object->primarySplitLevel() << "</td></tr>" << std::endl;
             os << "<tr><td>secondarySplitLevel</td><td>" << object->secondarySplitLevel() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             os << "<tr><td>maxDataLevelOverride</td><td>" << object->maxDataLevelOverride() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>directoryStructure</td><td>" << object->directoryStructure() << "</td></tr>" << std::endl;
             os << "<tr><td>layer</td><td>" << object->layer() << "</td></tr>" << std::endl;
             os << "<tr><td>layerSetName</td><td>" << object->layerSetName() << "</td></tr>" << std::endl;
