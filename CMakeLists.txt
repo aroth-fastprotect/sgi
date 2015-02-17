@@ -181,6 +181,7 @@ SET(CMAKE_AUTOMOC OFF CACHE BOOL "disable cmake automoc")
 
 FIND_PACKAGE(OSG)
 FIND_PACKAGE(OsgEarth)
+FIND_PACKAGE(Log4cplus)
 
 # Make the headers visible to everything
 INCLUDE_DIRECTORIES(
