@@ -1,8 +1,7 @@
 #include "stdafx.h"
 #include "AutoClipPlaneCullCallbackDialog.h"
-#include "AutoClipPlaneCullCallbackDialog.moc"
 
-#include <QtGui/QPushButton>
+#include <QPushButton>
 
 #include "ui_AutoClipPlaneCullCallbackDialog.h"
 

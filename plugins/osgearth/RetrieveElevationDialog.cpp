@@ -1,10 +1,10 @@
 #include "stdafx.h"
 #include "RetrieveElevationDialog.h"
 #include "../osg/SGIItemOsg.h"
-#include "RetrieveElevationDialog.moc"
 
 #include "ui_RetrieveElevationDialog.h"
 
+#include <osgEarth/Version>
 #include <osgEarth/ElevationQuery>
 
 #include <sgi/plugins/SGISettingsDialogImpl>
@@ -219,8 +219,13 @@ namespace {
         bool ret = false;
         elevation = 0.0;
         resolution = 0.0;
+        osgEarth::ReadResult result;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
         osgEarth::HTTPRequest req(url);
-        osgEarth::ReadResult result = osgEarth::HTTPClient::readString(req);
+        result = osgEarth::HTTPClient::readString(req);
+#else
+        result = osgEarth::HTTPClient::readString(url);
+#endif
         if(result.succeeded())
         {
             std::stringstream is(result.getString());

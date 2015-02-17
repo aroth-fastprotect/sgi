@@ -5,6 +5,7 @@
 #include <sgi/SceneGraphDialog>
 #include <sgi/ContextMenu>
 
+#include <osgEarth/Version>
 #include <osgEarth/MapNode>
 #include <osgEarth/ShaderGenerator>
 #include <osgEarth/Registry>
@@ -12,7 +13,11 @@
 #include <osgEarth/TileSource>
 
 #include <osgEarthDrivers/debug/DebugOptions>
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 #include <osgEarthUtil/Sky>
+#else
+#include <osgEarthUtil/SkyNode>
+#endif
 
 #include "osgearth_accessor.h"
 #include "SettingsDialogOSGEarth.h"
@@ -225,7 +230,9 @@ bool actionHandlerImpl<MenuActionNotifyLevel>::execute()
 bool actionHandlerImpl<MenuActionNodeRegenerateShaders>::execute()
 {
     osg::Node * object = getObject<osg::Node, SGIItemOsg>();
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
     osgEarth::Registry::shaderGenerator().run(object, getObjectName(object));
+#endif
     return true;
 }
 
@@ -370,9 +377,11 @@ bool actionHandlerImpl<MenuActionTileSourceCreateHeightField>::execute()
 bool actionHandlerImpl<MenuActionTileSourceUpdateMetaData>::execute()
 {
     osgEarth::TileSource * object = getObject<osgEarth::TileSource,SGIItemOsg,DynamicCaster>();
+#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
     osgEarth::Config config;
     object->readMetaData(config);
     object->writeMetaData(config);
+#endif
     return true;
 }
 
