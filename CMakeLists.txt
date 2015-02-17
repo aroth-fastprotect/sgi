@@ -113,4 +113,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 	ADD_SUBDIRECTORY(plugins)
 
 	add_subdirectory(applications)
+	
+	FAST_PROJECT_PACKAGE()
 
+ENDIF(NOT SGI_IS_SYSTEM_LIB)
