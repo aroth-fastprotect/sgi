@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cctype>
+#include <stdint.h>
 #include "writeHTMLOSG.h"
 #include "SGIItemOsg.h"
 
