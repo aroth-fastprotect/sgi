@@ -76,7 +76,7 @@ SET(TARGET_H
 	sgi_internal.h
 )
 
-SET(TARGET_PUBLIC_H
+SET(TARGET_H
     sgi/Export
     sgi/AutoLoadOsg
     sgi/AutoLoadQt
@@ -165,3 +165,5 @@ target_compile_definitions(${TARGET_DEFAULT_PREFIX}${LIB_NAME} PRIVATE
 IF ( Qt5Widgets_FOUND )
     qt5_use_modules( ${TARGET_DEFAULT_PREFIX}${LIB_NAME} Gui Widgets)
 ENDIF( Qt5Widgets_FOUND )
+
+FAST_INSTALL_EXTRA_HEADER_FILES(DIRECTORY sgi DESTINATION include/sgi)
