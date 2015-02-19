@@ -12,7 +12,7 @@
 
 #include <sgi/helpers/string>
 
-#include "string_helpers.h"
+#include "osg_string_helpers"
 #include "osgdb_accessor.h"
 
 namespace sgi {

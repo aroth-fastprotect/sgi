@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ContextMenuOSG.h"
-#include "string_helpers.h"
-#include "SGIItemOsg.h"
+#include "osg_string_helpers"
+#include "SGIItemOsg"
 
 #include <sgi/ContextMenu>
 #include <sgi/SceneGraphDialog>

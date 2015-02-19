@@ -64,7 +64,7 @@
 
 #include <osgUtil/Statistics>
 
-#include "string_helpers.h"
+#include "osg_string_helpers"
 #include <sgi/helpers/rtti>
 #include <sgi/ReferencedPicker>
 

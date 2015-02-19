@@ -7,7 +7,7 @@
 
 #include "SGIItemOsg"
 
-#include "string_helpers.h"
+#include "osg_string_helpers"
 #include "std_ostream_osg.h"
 
 namespace sgi {

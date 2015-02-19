@@ -1,7 +1,7 @@
 #include <osg/StateAttribute>
 #include <osg/Texture>
 #include <sgi/plugins/SGIItemBase.h>
-#include "string_helpers.h"
+#include "osg_string_helpers"
 
 namespace sgi {
     namespace osg_plugin {

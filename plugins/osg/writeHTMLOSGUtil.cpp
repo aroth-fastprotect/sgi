@@ -7,8 +7,8 @@
 #include <osgUtil/RenderStage>
 #include <osgUtil/RenderLeaf>
 
-#include "SGIItemOsg.h"
-#include "string_helpers.h"
+#include "SGIItemOsg"
+#include "osg_string_helpers"
 #include "std_ostream_osg.h"
 
 namespace sgi {

@@ -9,8 +9,8 @@
 // osgQt headers
 #include <osgQt/GraphicsWindowQt>
 
-#include "SGIItemOsg.h"
-#include "string_helpers.h"
+#include "SGIItemOsg"
+#include "osg_string_helpers"
 
 namespace sgi {
 namespace osg_plugin {

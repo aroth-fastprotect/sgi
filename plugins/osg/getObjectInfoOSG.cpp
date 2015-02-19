@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "getObjectInfoOSG.h"
-#include "string_helpers.h"
+#include "osg_string_helpers"
 
 #include "SGIItemOsg"
 

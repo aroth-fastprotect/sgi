@@ -31,6 +31,7 @@ SET(TARGET_SRC
 
 SET(TARGET_H
     SGIItemOsg
+    osg_string_helpers
     writeHTMLOSG.h
     writeHTMLOSGAnimation.h
     writeHTMLOSGDB.h
@@ -45,7 +46,6 @@ SET(TARGET_H
 
     osg_accessor.h
     osgdb_accessor.h
-    string_helpers.h
     stateset_helpers.h
     std_ostream_osg.h
     std_ostream_osgtext.h
@@ -96,4 +96,4 @@ IF ( Qt5Widgets_FOUND )
     qt5_use_modules( osgdb_sgi_osg_plugin Gui Widgets OpenGL)
 ENDIF( Qt5Widgets_FOUND )
 
-FAST_INSTALL_EXTRA_HEADER_FILES(FILES SGIItemOsg DESTINATION include/sgi/plugins)
+FAST_INSTALL_EXTRA_HEADER_FILES(FILES SGIItemOsg osg_string_helpers DESTINATION include/sgi/plugins)

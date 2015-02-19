@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "ObjectLoggerOSG.h"
-#include "SGIItemOsg.h"
+#include "SGIItemOsg"
 
 #include <osg/ProxyNode>
 #include <osg/ClipNode>

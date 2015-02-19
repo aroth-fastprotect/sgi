@@ -19,7 +19,7 @@
 #include <sgi/plugins/SGISettingsDialogImpl>
 #include <sgi/plugins/SGIPluginMacros.h>
 
-#include "string_helpers.h"
+#include "osg_string_helpers"
 #include "FindTopMostNodeOfType"
 
 #ifdef _DEBUG

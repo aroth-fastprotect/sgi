@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ObjectTreeOSG.h"
-#include "string_helpers.h"
-#include "SGIItemOsg.h"
+#include "osg_string_helpers"
+#include "SGIItemOsg"
 #include "getObjectInfoOSG.h"
 
 #include <sgi/SGIItemInternal>

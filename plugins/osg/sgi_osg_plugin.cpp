@@ -99,7 +99,7 @@
 #include <osgAnimation/AnimationUpdateCallback>
 
 #include "DrawableHelper.h"
-#include "string_helpers.h"
+#include "osg_string_helpers"
 
 #include <sgi/ReferencedPicker>
 

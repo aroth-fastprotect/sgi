@@ -7,7 +7,7 @@
 #include <osgText/Font>
 #include <osgText/Text>
 
-#include "string_helpers.h"
+#include "osg_string_helpers"
 #include "std_ostream_osg.h"
 #include "std_ostream_osgtext.h"
 

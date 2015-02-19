@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "SettingsDialogOSG.h"
-#include "string_helpers.h"
-#include "SGIItemOsg.h"
+#include "osg_string_helpers"
+#include "SGIItemOsg"
 
 #include <osg/Camera>
 #include <osg/Shape>
