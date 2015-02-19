@@ -135,11 +135,11 @@ SET(TARGET_SRC
 	SGIPlugin.cpp
 	entrypoint.cpp
 	sgi_internal.cpp
-	SGIItemBase.cpp
 	QtProxy.cpp
 	QTextDialog.cpp
 )
 
+SET(TARGET_ADDED_LIBRARIES osgSGI-plugin-impl)
 SET(TARGET_LIBRARIES_VARS
 	OPENTHREADS_LIBRARY
 	OSG_LIBRARY

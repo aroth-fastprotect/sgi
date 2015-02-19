@@ -19,13 +19,12 @@
 
 
 #include "osg_support.h"
-#include "osgearth_support.h"
 #include "log4cplus_support.h"
 #include "qt_support.h"
 #include "fallback_support.h"
 
 namespace sgi {
 
-    SGI_HOSTITEM_GENERATOR(Osg, OsgEarthConfig, OsgEarthConfigOptions, Log4cplus, Qt, QtMeta, Fallback)
+    SGI_HOSTITEM_GENERATOR(Osg, Log4cplus, Qt, QtMeta, Fallback)
 
 } // namespace sgi

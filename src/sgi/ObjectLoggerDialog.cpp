@@ -14,7 +14,7 @@
 #include "sgi/plugins/SGIPluginInterface.h"
 #include "sgi/plugins/SGIDataItemBase.h"
 
-#include "ObjectTreeImpl.h"
+#include "sgi/plugins/ObjectTreeImpl"
 #include "sgi/SGIItemInternal"
 
 #ifdef _DEBUG

@@ -1,6 +1,8 @@
+// kate: syntax C++11;
+
 #pragma once
 
-#include "sgi/plugins/SGIDataItemBase.h"
+#include <sgi/plugins/SGIDataItemBase.h>
 
 namespace sgi {
 

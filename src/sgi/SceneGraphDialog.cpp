@@ -28,8 +28,6 @@
 
 namespace sgi {
 
-SGIPluginHostInterface * ObjectTreeItem::s_hostInterface = NULL;
-
 class SceneGraphDialog::ContextMenuCallback : public IContextMenuInfo
 {
 public:
