@@ -98,6 +98,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 	)
 
 	INCLUDE(SGIMacros)
+	FAST_INSTALL_DATA_FILE(CMakeModules/SGIMacros.cmake DESTINATION share/cmake/modules COMPONENT "Developer files")
 
 	SET(OSG_PLUGINS osgPlugins-${OPENSCENEGRAPH_VERSION})
 
