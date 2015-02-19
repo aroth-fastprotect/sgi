@@ -15,7 +15,7 @@
 #include <sgi/plugins/SGIProxyItem.h>
 #include <sgi/helpers/string>
 
-#include "string_helpers.h"
+#include "qt_string_helpers"
 
 namespace sgi {
 namespace qt_plugin {

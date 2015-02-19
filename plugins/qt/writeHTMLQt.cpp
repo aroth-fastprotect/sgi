@@ -11,7 +11,7 @@
 #include "SGIItemQt"
 
 #include "std_ostream_qt.h"
-#include "string_helpers.h"
+#include "qt_string_helpers"
 #include <sgi/helpers/html>
 #include <sgi/helpers/rtti>
 

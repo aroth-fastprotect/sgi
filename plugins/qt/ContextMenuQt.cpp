@@ -2,7 +2,7 @@
 #include "ContextMenuQt.h"
 #include "SGIItemQt"
 #include "MenuActionQt.h"
-#include "string_helpers.h"
+#include "qt_string_helpers"
 #include <QMetaClassInfo>
 #include <QWidget>
 #include <sgi/helpers/string>

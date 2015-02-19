@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "MenuActionQt.h"
-#include "string_helpers.h"
+#include "qt_string_helpers"
 #include "SGIItemQt"
 
 #include <sgi/ContextMenu>

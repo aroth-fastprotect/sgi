@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "SettingsDialogQt.h"
-#include "string_helpers.h"
+#include "qt_string_helpers"
 #include "SGIItemQt"
 
 #include "ImagePreviewDialog.h"
