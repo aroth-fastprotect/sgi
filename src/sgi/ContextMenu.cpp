@@ -6,7 +6,7 @@
 
 #include "SGIPlugin.h"
 
-#include "qt_helper.h"
+#include "sgi/helpers/qt_helper"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "qt_helper.h"
-#include "sgi/plugins/SGIPluginInterface.h"
+#include "../helpers/qt_helper"
+#include "SGIPluginInterface.h"
 
 namespace sgi {
 

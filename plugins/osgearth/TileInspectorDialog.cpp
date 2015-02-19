@@ -23,8 +23,7 @@
 
 #include <sgi/ContextMenu>
 #include <sgi/SceneGraphDialog>
-
-#include "../../src/sgi/ObjectTreeImpl.h"
+#include <sgi/plugins/ObjectTreeImpl>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

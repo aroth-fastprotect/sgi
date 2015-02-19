@@ -7,7 +7,7 @@
 #include "SceneGraphDialog.h"
 #include "ContextMenu.h"
 #include "ObjectLoggerDialog.h"
-#include "qt_helper.h"
+#include "sgi/helpers/qt_helper"
 
 namespace sgi {
 

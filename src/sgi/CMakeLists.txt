@@ -72,7 +72,6 @@ SET(TARGET_H
 	stdafx.h
 	SGIPlugin.h
 	entrypoint.h
-	qt_helper.h
 	sgi_internal.h
 )
 
@@ -85,6 +84,8 @@ SET(TARGET_H
     sgi/ContextMenu
     sgi/SceneGraphDialog
     sgi/ObjectLoggerDialog
+
+	sgi/helpers/qt_helper
 
     sgi/plugins/fallback_support.h
     sgi/plugins/log4cplus_support.h

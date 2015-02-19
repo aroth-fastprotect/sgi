@@ -13,7 +13,7 @@
 #include "QtProxy.h"
 #include "sgi_internal.h"
 #include "QTextDialog.h"
-#include "qt_helper.h"
+#include "sgi/helpers/qt_helper"
 
 using namespace sgi;
 

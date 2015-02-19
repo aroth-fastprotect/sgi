@@ -17,7 +17,7 @@
 #include "SGIPlugin.h"
 #include "sgi/SGIItemInternal"
 
-#include "ObjectTreeImpl.h"
+#include "sgi/plugins/ObjectTreeImpl"
 #include "ContextMenu.h"
 
 #include "sgi/plugins/SGIHostItemInternal.h"
