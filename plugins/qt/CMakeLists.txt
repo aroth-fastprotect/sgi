@@ -12,7 +12,7 @@ SET(TARGET_SRC
     )
 
 SET(TARGET_H
-    SGIItemQt.h
+    SGIItemQt
     writeHTMLQt.h
     getObjectInfoQt.h
     ObjectTreeQt.h
@@ -48,3 +48,5 @@ SGI_PLUGIN(qt NO_MOC_INCLUDE)
 IF ( Qt5Widgets_FOUND )
     qt5_use_modules( osgdb_sgi_qt_plugin Gui Widgets OpenGL)
 ENDIF( Qt5Widgets_FOUND )
+
+FAST_INSTALL_EXTRA_HEADER_FILES(FILES SGIItemQt DESTINATION include/sgi/plugins)

@@ -10,7 +10,7 @@ SET(TARGET_SRC
     )
 
 SET(TARGET_H
-    SGIItemLog4cplus.h
+    SGIItemLog4cplus
     ObjectTreeLog4cplus.h
     writeHTMLLog4cplus.h
     getObjectInfoLog4cplus.h
@@ -29,3 +29,5 @@ IF((UNIX AND FAST_PLATFORM_BITS EQUAL 32) OR WIN32)
 ENDIF()
 
 SGI_PLUGIN(log4cplus NO_MOC_INCLUDE)
+
+FAST_INSTALL_EXTRA_HEADER_FILES(FILES SGIItemLog4cplus DESTINATION include/sgi/plugins)
