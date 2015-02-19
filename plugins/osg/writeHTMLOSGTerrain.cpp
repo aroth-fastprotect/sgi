@@ -1,7 +1,7 @@
 #include <ostream>
 #include "writeHTMLOSG.h"
 #include "writeHTMLOSGTerrain.h"
-#include "SGIItemOsg.h"
+#include "SGIItemOsg"
 
 #include <osg/io_utils>
 

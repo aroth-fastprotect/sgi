@@ -3,8 +3,8 @@
 #include "string_helpers.h"
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SGIHostItemOsgEarth.h>
-#include "../osg/SGIItemOsg.h"
-#include "SGIItemOsgEarth.h"
+#include "../osg/SGIItemOsg"
+#include "SGIItemOsgEarth"
 
 #include <sgi/SGIItemInternal>
 #include <sgi/SceneGraphDialog>

@@ -8,7 +8,7 @@
 #include <QDesktopWidget>
 
 #include "ObjectTreeQt.h"
-#include "SGIItemQt.h"
+#include "SGIItemQt"
 
 #include <sgi/SGIItemInternal>
 #include <sgi/SceneGraphDialog>

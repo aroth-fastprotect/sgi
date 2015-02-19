@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "MenuActionOSGEarth.h"
-#include "../osg/SGIItemOsg.h"
+#include "../osg/SGIItemOsg"
 
 #include <sgi/SceneGraphDialog>
 #include <sgi/ContextMenu>

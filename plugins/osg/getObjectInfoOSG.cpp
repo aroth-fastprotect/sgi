@@ -2,7 +2,7 @@
 #include "getObjectInfoOSG.h"
 #include "string_helpers.h"
 
-#include "SGIItemOsg.h"
+#include "SGIItemOsg"
 
 #include <osg/PagedLOD>
 #include <osg/Image>

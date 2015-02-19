@@ -4,7 +4,7 @@
 #include <cctype>
 #include <stdint.h>
 #include "writeHTMLOSG.h"
-#include "SGIItemOsg.h"
+#include "SGIItemOsg"
 
 #include <osg/ObserverNodePath>
 #include <osg/UserDataContainer>

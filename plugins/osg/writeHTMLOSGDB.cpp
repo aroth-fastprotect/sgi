@@ -1,7 +1,7 @@
 #include <ostream>
 #include "writeHTMLOSG.h"
 #include "writeHTMLOSGDB.h"
-#include "SGIItemOsg.h"
+#include "SGIItemOsg"
 
 #include <osg/Version>
 #include <osgDB/Registry>

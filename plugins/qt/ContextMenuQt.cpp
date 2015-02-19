@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "ContextMenuQt.h"
-#include "SGIItemQt.h"
+#include "SGIItemQt"
 #include "MenuActionQt.h"
 #include "string_helpers.h"
 #include <QMetaClassInfo>

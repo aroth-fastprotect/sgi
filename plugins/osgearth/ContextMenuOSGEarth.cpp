@@ -1,5 +1,5 @@
 #include "ContextMenuOSGEarth.h"
-#include "../osg/SGIItemOsg.h"
+#include "../osg/SGIItemOsg"
 #include "../osg/string_helpers.h"
 
 #include <sgi/helpers/string>

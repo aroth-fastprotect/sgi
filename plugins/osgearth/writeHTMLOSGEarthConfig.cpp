@@ -1,8 +1,8 @@
 #include <ostream>
 #include "writeHTMLOSGEarth.h"
 #include "writeHTMLOSGEarthConfig.h"
-#include "../osg/SGIItemOsg.h"
-#include "SGIItemOsgEarth.h"
+#include "../osg/SGIItemOsg"
+#include "SGIItemOsgEarth"
 
 #include "string_helpers.h"
 

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "MenuActionQt.h"
 #include "string_helpers.h"
-#include "SGIItemQt.h"
+#include "SGIItemQt"
 
 #include <sgi/ContextMenu>
 #include <sgi/SceneGraphDialog>

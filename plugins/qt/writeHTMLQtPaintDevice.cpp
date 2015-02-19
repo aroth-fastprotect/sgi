@@ -2,7 +2,7 @@
 #include <QtGui/QImage>
 #include <QtGui/QPicture>
 #include "writeHTMLQt.h"
-#include "SGIItemQt.h"
+#include "SGIItemQt"
 
 #include <sgi/helpers/rtti>
 

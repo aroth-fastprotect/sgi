@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "ContextMenuLog4cplus.h"
-#include "SGIItemLog4cplus.h"
+#include "SGIItemLog4cplus"
 #include <sgi/helpers/string>
 #include "MenuActionLog4cplus.h"
 

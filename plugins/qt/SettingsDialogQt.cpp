@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "SettingsDialogQt.h"
 #include "string_helpers.h"
-#include "SGIItemQt.h"
+#include "SGIItemQt"
 
 #include "ImagePreviewDialog.h"
 

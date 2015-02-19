@@ -5,7 +5,7 @@
 
 #include <osgFX/Outline>
 
-#include "SGIItemOsg.h"
+#include "SGIItemOsg"
 
 #include "string_helpers.h"
 #include "std_ostream_osg.h"

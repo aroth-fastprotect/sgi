@@ -1,7 +1,7 @@
 #include <ostream>
 #include "writeHTMLOSG.h"
 #include "writeHTMLOSGText.h"
-#include "SGIItemOsg.h"
+#include "SGIItemOsg"
 
 // osgText headers
 #include <osgText/Font>

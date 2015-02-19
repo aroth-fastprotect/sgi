@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "getObjectInfoLog4cplus.h"
 
-#include "SGIItemLog4cplus.h"
+#include "SGIItemLog4cplus"
 
 #include <sstream>
 #include <sgi/helpers/rtti>

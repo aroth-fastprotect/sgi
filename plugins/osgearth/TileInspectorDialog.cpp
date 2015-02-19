@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "TileInspectorDialog.h"
-#include "../osg/SGIItemOsg.h"
+#include "../osg/SGIItemOsg"
 
 #include "ui_TileInspectorDialog.h"
 

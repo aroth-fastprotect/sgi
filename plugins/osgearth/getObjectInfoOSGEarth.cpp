@@ -2,8 +2,8 @@
 #include "getObjectInfoOSGEarth.h"
 #include "string_helpers.h"
 
-#include "../osg/SGIItemOsg.h"
-#include "SGIItemOsgEarth.h"
+#include "../osg/SGIItemOsg"
+#include "SGIItemOsgEarth"
 
 #include <osgEarth/Registry>
 #include <osgEarth/Map>

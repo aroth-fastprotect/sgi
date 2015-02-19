@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "RetrieveElevationDialog.h"
-#include "../osg/SGIItemOsg.h"
+#include "../osg/SGIItemOsg"
 
 #include "ui_RetrieveElevationDialog.h"
 

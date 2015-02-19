@@ -8,7 +8,7 @@
 #include <QLocale>
 #include <QEasingCurve>
 #include "writeHTMLQt.h"
-#include "SGIItemQt.h"
+#include "SGIItemQt"
 
 #include "std_ostream_qt.h"
 #include "string_helpers.h"
