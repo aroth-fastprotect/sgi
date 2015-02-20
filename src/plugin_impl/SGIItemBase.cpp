@@ -1,12 +1,10 @@
-#include "stdafx.h"
-#include "sgi/plugins/SGIItemBase.h"
-#include "SGIPlugin.h"
+#include <sgi/plugins/SGIItemBase.h>
 
 namespace sgi {
 // some method implementations from SGIItemBase which are only
 // used within the SGI base and not in any plugin or caller.
 
-void SGIItemBase::setPluginInfo(const SGIPluginInfo * pluginInfo)
+void SGIItemBase::setPluginInfo(const ISGIPluginInfo * pluginInfo)
 {
     SGIItemBasePtr item = this;
     while(item.valid())
@@ -50,7 +48,7 @@ void SGIItemBase::insertByScore(SGIItemBase * item, SGIItemBasePtr & front)
         {
             if(insertionPoint->_score == itemToInsert->_score)
             {
-                if(insertionPoint->_pluginInfo->pluginScore > itemToInsert->_pluginInfo->pluginScore)
+                if(insertionPoint->_pluginInfo->pluginScore() > itemToInsert->_pluginInfo->pluginScore())
                 {
                     if(insertionPoint->_next.valid())
                         insertionPoint = insertionPoint->_next;
@@ -70,7 +68,7 @@ void SGIItemBase::insertByScore(SGIItemBase * item, SGIItemBasePtr & front)
         }
         if(itemToInsert->_score == insertionPoint->_score)
         {
-            if(itemToInsert->_pluginInfo->pluginScore > insertionPoint->_pluginInfo->pluginScore)
+            if(itemToInsert->_pluginInfo->pluginScore() > insertionPoint->_pluginInfo->pluginScore())
             {
                 insertionPoint->insertBefore(itemToInsert);
                 if(insertionPoint == front)
