@@ -1,4 +1,5 @@
 SET(TARGET_SRC
+    stdafx.cpp
     sgi_qt_plugin.cpp
     writeHTMLQt.cpp
     writeHTMLQtMeta.cpp
@@ -14,6 +15,7 @@ SET(TARGET_SRC
 SET(TARGET_H
     SGIItemQt
 	qt_string_helpers
+	stdafx.h
     writeHTMLQt.h
     getObjectInfoQt.h
     ObjectTreeQt.h

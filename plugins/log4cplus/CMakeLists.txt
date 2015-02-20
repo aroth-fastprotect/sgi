@@ -1,6 +1,7 @@
 include_directories(${LOG4CPLUS_INCLUDE_DIR})
 
 SET(TARGET_SRC
+    stdafx.cpp
     sgi_log4cplus_plugin.cpp
     ObjectTreeLog4cplus.cpp
     writeHTMLLog4cplus.cpp
@@ -10,6 +11,7 @@ SET(TARGET_SRC
     )
 
 SET(TARGET_H
+    stdafx.h
     SGIItemLog4cplus
     ObjectTreeLog4cplus.h
     writeHTMLLog4cplus.h

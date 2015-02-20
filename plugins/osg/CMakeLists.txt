@@ -1,4 +1,5 @@
 SET(TARGET_SRC
+    stdafx.cpp
     sgi_osg_plugin.cpp
     writeHTMLOSG.cpp
     writeHTMLOSGAnimation.cpp
@@ -32,6 +33,7 @@ SET(TARGET_SRC
 SET(TARGET_H
     SGIItemOsg
     osg_string_helpers
+    stdafx.h
     writeHTMLOSG.h
     writeHTMLOSGAnimation.h
     writeHTMLOSGDB.h

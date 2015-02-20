@@ -1,4 +1,5 @@
 SET(TARGET_SRC
+    stdafx.cpp
     sgi_osgearth_plugin.cpp
     writeHTMLOSGEarth.cpp
     writeHTMLOSGEarthConfig.cpp
@@ -17,6 +18,7 @@ SET(TARGET_SRC
 
 SET(TARGET_H
 	SGIItemOsgEarth
+	stdafx.h
     writeHTMLOSGEarth.h
     writeHTMLOSGEarthConfig.h
     getObjectInfoOSGEarth.h
