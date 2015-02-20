@@ -25,6 +25,9 @@ SET(TARGET_H
     std_ostream_qt.h
     )
 
+fast_configure_file(SGIItemQt ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemQt COPY_ONLY)
+fast_configure_file(qt_string_helpers ${SGI_INCLUDE_DIR}/sgi/plugins/qt_string_helpers COPY_ONLY)
+
 SET(TARGET_MOC_H
     ImagePreviewDialog.h
 )

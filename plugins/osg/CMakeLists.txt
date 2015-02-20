@@ -64,6 +64,8 @@ SET(TARGET_H
     DrawableHelper.h
     ManipulateObject.h
     )
+fast_configure_file(SGIItemOsg ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsg COPY_ONLY)
+fast_configure_file(osg_string_helpers ${SGI_INCLUDE_DIR}/sgi/plugins/osg_string_helpers COPY_ONLY)
 
 SET(TARGET_MOC_H
     CameraSettings.h

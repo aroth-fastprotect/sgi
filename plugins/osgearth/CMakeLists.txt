@@ -32,6 +32,8 @@ SET(TARGET_H
     geo_helpers.h
     )
 
+fast_configure_file(SGIItemOsgEarth ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsgEarth COPY_ONLY)
+
 SET(TARGET_MOC_H
     AutoClipPlaneCullCallbackDialog.h
     TileInspectorDialog.h
