@@ -3,7 +3,7 @@
 #include <sstream>
 #include <iomanip>
 
-#include "../osg/string_helpers.h"
+#include <sgi/plugins/osg_string_helpers>
 
 #include <osgEarth/optional>
 #include <osgEarth/Units>

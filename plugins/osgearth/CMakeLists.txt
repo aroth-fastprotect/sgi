@@ -1,3 +1,4 @@
+include_directories(${OSGEARTH_INCLUDE_DIR})
 SET(TARGET_SRC
     stdafx.cpp
     sgi_osgearth_plugin.cpp
@@ -58,6 +59,7 @@ SET(TARGET_LIBRARIES_VARS
 IF ( NOT Qt5Widgets_FOUND )
     LIST(APPEND TARGET_LIBRARIES_VARS QT_QTCORE_LIBRARY QT_QTGUI_LIBRARY)
 ENDIF(  )
+SET(TARGET_ADDED_LIBRARIES osgSGI-plugin-impl)
 
 SGI_PLUGIN(osgearth NO_MOC_INCLUDE)
 

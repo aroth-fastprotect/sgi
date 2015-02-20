@@ -22,7 +22,7 @@
 #include "osgearth_accessor.h"
 #include "SettingsDialogOSGEarth.h"
 
-#include "../osg/string_helpers.h"
+#include <sgi/plugins/osg_string_helpers>
 
 namespace sgi {
 

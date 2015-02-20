@@ -44,9 +44,8 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 	FIND_PACKAGE(OpenGL)
 	FAST_PACKAGE_QT4()
 	FAST_PACKAGE_LOG4CPLUS()
-	FAST_PACKAGE_OSG()
-	#FAST_PACKAGE_OSGEARTH()
-	SET(OSGEARTH_FOUND ON)
+	find_package(OSG 3.2.0 REQUIRED)
+	find_package(OsgEarth)
 
 	IF(WIN32)
         # More MSVC specific compilation flags

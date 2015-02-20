@@ -1,7 +1,6 @@
 #include "ContextMenuOSGEarth.h"
-#include "../osg/SGIItemOsg"
-#include "../osg/string_helpers.h"
-
+#include <sgi/plugins/SGIItemOsg>
+#include <sgi/plugins/osg_string_helpers>
 #include <sgi/helpers/string>
 
 #include <osgEarth/Version>

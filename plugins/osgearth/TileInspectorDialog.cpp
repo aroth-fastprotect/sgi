@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "TileInspectorDialog.h"
-#include "../osg/SGIItemOsg"
+#include <sgi/plugins/SGIItemOsg>
 
 #include "ui_TileInspectorDialog.h"
 
@@ -30,8 +30,6 @@
 #endif
 
 namespace sgi {
-
-SGIPluginHostInterface * ObjectTreeItem::s_hostInterface = NULL;
 
 namespace osgearth_plugin {
 
