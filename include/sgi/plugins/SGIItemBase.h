@@ -174,6 +174,12 @@ typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrVector;
 class SGIPluginInfo;
 
+class ISGIPluginInfo
+{
+public:
+    virtual unsigned pluginScore() const = 0;
+};
+
 class SGIItemBase : public osg::Object
 {
 public:
@@ -231,8 +237,8 @@ public:
     size_t hash_code() const { return _type_info->hash_code(); }
     const char * typeName() const { return _type_info->name(); }
 
-    const SGIPluginInfo * pluginInfo() const { return _pluginInfo; }
-    void setPluginInfo(const SGIPluginInfo * pluginInfo);
+    const ISGIPluginInfo * pluginInfo() const { return _pluginInfo; }
+    void setPluginInfo(const ISGIPluginInfo * pluginInfo);
 
     SGIItemBase * rootBase() const
     {
@@ -379,7 +385,7 @@ protected:
     unsigned                _flags;
 private:
     unsigned                _score;
-    const SGIPluginInfo *   _pluginInfo;
+    const ISGIPluginInfo *  _pluginInfo;
     const std::type_info *  _type_info;
     SGIItemBasePtr          _next;
     SGIItemBaseOverserverPtr _prev;
