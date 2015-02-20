@@ -1,4 +1,0 @@
-#pragma once
-
-#define SGI_PLUGIN_NAME "@SGI_PLUGIN_NAME@"
-#define SGI_ITEMTYPE_OFFSET (@SGI_PLUGIN_COUNT@ * 1000)

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "sgi_plugin_config.h"
-
 namespace sgi {
 
 enum SGIItemType_log4cplus
