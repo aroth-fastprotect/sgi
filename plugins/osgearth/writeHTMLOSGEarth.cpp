@@ -42,7 +42,7 @@
 
 
 #include "osgearth_accessor.h"
-#include "elevquery_ref.h"
+#include "ElevationQueryReferenced"
 #include "geo_helpers.h"
 
 namespace sgi {
@@ -71,7 +71,7 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::TileSource)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::ModelSource)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::VirtualProgram)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::TileBlacklist)
-WRITE_PRETTY_HTML_IMPL_REGISTER(ElevationQueryRef)
+WRITE_PRETTY_HTML_IMPL_REGISTER(ElevationQueryReferenced)
 
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Util::Controls::ControlCanvas)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Util::Controls::Control)
@@ -1297,9 +1297,9 @@ bool writePrettyHTMLImpl<osgEarth::TileBlacklist>::process(std::basic_ostream<ch
     return ret;
 }
 
-bool writePrettyHTMLImpl<ElevationQueryRef>::process(std::basic_ostream<char>& os)
+bool writePrettyHTMLImpl<ElevationQueryReferenced>::process(std::basic_ostream<char>& os)
 {
-    ElevationQueryRef * query_ref = getObject<ElevationQueryRef, SGIItemOsg>();
+    ElevationQueryReferenced * query_ref = getObject<ElevationQueryReferenced, SGIItemOsg>();
     osgEarth::ElevationQuery* object = query_ref->get();
     bool ret = false;
     switch(itemType())

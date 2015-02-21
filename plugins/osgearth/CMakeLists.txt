@@ -19,6 +19,7 @@ SET(TARGET_SRC
 
 SET(TARGET_H
 	SGIItemOsgEarth
+	ElevationQueryReferenced
 	stdafx.h
     writeHTMLOSGEarth.h
     writeHTMLOSGEarthConfig.h
@@ -29,11 +30,11 @@ SET(TARGET_H
     SettingsDialogOSGEarth.h
     GUIAdapterOSGEarth.h
     string_helpers.h
-    elevquery_ref.h
     geo_helpers.h
     )
 
 fast_configure_file(SGIItemOsgEarth ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsgEarth COPY_ONLY)
+fast_configure_file(ElevationQueryReferenced ${SGI_INCLUDE_DIR}/sgi/plugins/ElevationQueryReferenced COPY_ONLY)
 
 SET(TARGET_MOC_H
     AutoClipPlaneCullCallbackDialog.h

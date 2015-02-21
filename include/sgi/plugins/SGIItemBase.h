@@ -421,6 +421,34 @@ private:
 typedef ReferencedDataT<int> ReferencedDataInt;
 typedef ReferencedDataT<std::string> ReferencedDataString;
 
+template<typename T>
+class ReferencedRawPtrT : public osg::Referenced
+{
+public:
+    ReferencedRawPtrT()
+        : osg::Referenced()
+        , _ptr(NULL)
+        {}
+    ReferencedRawPtrT(T * ptr)
+        : osg::Referenced()
+        , _ptr(ptr)
+        {}
+    ReferencedRawPtrT(const ReferencedRawPtrT & rhs)
+        : osg::Referenced(rhs)
+        , _ptr(rhs._ptr)
+        {}
+
+    T& operator*() const { return *_ptr; }
+    T* operator->() const { return _ptr; }
+    T* get() const { return _ptr; }
+
+    bool operator!() const   { return _ptr==0; } // not required
+    bool valid() const       { return _ptr!=0; }
+
+private:
+    T* _ptr;
+};
+
 template <class To, class From>
 struct StaticCaster
 {

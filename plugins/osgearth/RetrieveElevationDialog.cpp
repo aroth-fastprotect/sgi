@@ -13,7 +13,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QProcess>
 
-#include "elevquery_ref.h"
+#include "ElevationQueryReferenced"
 #include "osgearth_accessor.h"
 
 #ifdef _DEBUG
@@ -25,12 +25,12 @@ namespace sgi {
 namespace osgearth_plugin {
 
 namespace {
-    ElevationQueryRef * getElevationQuery(SGIItemBase * item)
+    ElevationQueryReferenced * getElevationQuery(SGIItemBase * item)
     {
-        ElevationQueryRef * ret = NULL;
+        ElevationQueryReferenced * ret = NULL;
         SGIItemOsg* osgitem = dynamic_cast<SGIItemOsg*>(item);
         if(osgitem)
-            ret = dynamic_cast<ElevationQueryRef* >(osgitem->object());
+            ret = dynamic_cast<ElevationQueryReferenced*>(osgitem->object());
         return ret;
     }
 
@@ -296,8 +296,8 @@ QTreeWidgetItem * RetrieveElevationDialog::addResult(const osgEarth::GeoPoint & 
 bool RetrieveElevationDialog::getQueryPoint(osgEarth::GeoPoint & point)
 {
     bool ret = false;
-    ElevationQueryRef * queryRef = getElevationQuery(_item.get());
-    ElevationQueryAccess * query = (ElevationQueryAccess *)queryRef->get();
+    ElevationQueryReferenced * queryRef = getElevationQuery(_item.get());
+    ElevationQueryAccess * query = queryRef?(ElevationQueryAccess *)queryRef->get():NULL;
     if(query)
     {
         const osgEarth::MapInfo& mapInfo = query->getMapInfo();
@@ -320,8 +320,8 @@ void RetrieveElevationDialog::query()
     osgEarth::GeoPoint point;
     if(getQueryPoint(point))
     {
-        ElevationQueryRef * queryRef = getElevationQuery(_item.get());
-        ElevationQueryAccess * query = (ElevationQueryAccess *)queryRef->get();
+        ElevationQueryReferenced * queryRef = getElevationQuery(_item.get());
+        ElevationQueryAccess * query = queryRef?(ElevationQueryAccess *)queryRef->get():NULL;
         
         qint64 start = QDateTime::currentMSecsSinceEpoch();
 

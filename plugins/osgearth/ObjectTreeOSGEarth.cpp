@@ -37,7 +37,7 @@
 #include <osgEarthDrivers/feature_ogr/OGRFeatureOptions>
 
 #include "osgearth_accessor.h"
-#include "elevquery_ref.h"
+#include "ElevationQueryReferenced"
 #include "../osg/FindTopMostNodeOfType"
 
 namespace sgi {
@@ -69,7 +69,7 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::TileSource)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::TileBlacklist)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::ModelSource)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::MaskSource)
-OBJECT_TREE_BUILD_IMPL_REGISTER(ElevationQueryRef)
+OBJECT_TREE_BUILD_IMPL_REGISTER(ElevationQueryReferenced)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::VirtualProgram)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::Cache)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::CacheBin)
@@ -961,9 +961,9 @@ bool objectTreeBuildImpl<osgEarth::MaskSource>::build(IObjectTreeItem * treeItem
     return ret;
 }
 
-bool objectTreeBuildImpl<ElevationQueryRef>::build(IObjectTreeItem * treeItem)
+bool objectTreeBuildImpl<ElevationQueryReferenced>::build(IObjectTreeItem * treeItem)
 {
-    ElevationQueryRef * query_ref = getObject<ElevationQueryRef, SGIItemOsg>();
+    ElevationQueryReferenced * query_ref = getObject<ElevationQueryReferenced, SGIItemOsg>();
     osgEarth::ElevationQuery* object = query_ref->get();
     bool ret = false;
     switch(itemType())

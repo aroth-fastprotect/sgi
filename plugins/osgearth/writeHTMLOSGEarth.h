@@ -91,7 +91,7 @@ namespace osgEarth {
 namespace sgi {
 namespace osgearth_plugin {
 
-class ElevationQueryRef;
+typedef ReferencedRawPtrT<osgEarth::ElevationQuery> ElevationQueryReferenced;
 
 WRITE_PRETTY_HTML_IMPL_TEMPLATE()
 
@@ -118,7 +118,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::TileSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::ModelSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::VirtualProgram)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::TileBlacklist)
-WRITE_PRETTY_HTML_IMPL_DECLARE(ElevationQueryRef)
+WRITE_PRETTY_HTML_IMPL_DECLARE(ElevationQueryReferenced)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Util::Controls::ControlCanvas)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Util::Controls::Control)
