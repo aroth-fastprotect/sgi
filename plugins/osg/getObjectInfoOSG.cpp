@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "getObjectInfoOSG.h"
-#include "osg_string_helpers"
+#include <sgi/helpers/osg>
 
 #include "SGIItemOsg"
 
@@ -55,6 +55,8 @@ HAS_CALLBACK_IMPL_REGISTER(osgGA::CameraManipulator)
 WRITE_OBJECT_FILE_IMPL_REGISTER(osg::Object)
 WRITE_OBJECT_FILE_IMPL_REGISTER(osg::Node)
 WRITE_OBJECT_FILE_IMPL_REGISTER(osg::Image)
+
+using namespace sgi::osg_helpers;
 
 //--------------------------------------------------------------------------------
 // getObjectNameImpl

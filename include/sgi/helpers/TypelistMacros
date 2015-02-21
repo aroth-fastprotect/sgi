@@ -17,7 +17,7 @@
 
 // $Id: TypelistMacros.h 749 2006-10-17 19:49:26Z syntheticpp $
 
-#include "preprocessor.h"
+#include "preprocessor"
 
 //#define LOKI_DISABLE_TYPELIST_MACROS
 #ifndef LOKI_DISABLE_TYPELIST_MACROS

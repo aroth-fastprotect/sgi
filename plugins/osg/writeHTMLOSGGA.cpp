@@ -11,8 +11,7 @@
 
 #include "SGIItemOsg"
 
-#include "osg_string_helpers"
-#include "std_ostream_osg.h"
+#include <sgi/helpers/osg>
 
 namespace sgi {
 namespace osg_plugin {
@@ -22,6 +21,8 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgGA::GUIEventAdapter)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgGA::CameraManipulator)
 
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgUtil::SceneView)
+
+using namespace sgi::osg_helpers;
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osgUtil::SceneView::FusionDistanceMode t)
 {

@@ -11,7 +11,7 @@
 #include "SGIItemQt"
 
 #include "std_ostream_qt.h"
-#include "qt_string_helpers"
+#include <sgi/helpers/qt_string_helpers>
 #include <sgi/helpers/html>
 #include <sgi/helpers/rtti>
 
@@ -121,7 +121,7 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
             for(QObjectList::const_iterator it = children.begin(); it != children.end(); it++)
             {
                 QObject * child = *it;
-                os << "<li>" << getObjectNameAndType(child) << "</li>" << std::endl;
+                os << "<li>" << qt_helpers::getObjectNameAndType(child) << "</li>" << std::endl;
             }
             os << "</ul>";
             ret = true;

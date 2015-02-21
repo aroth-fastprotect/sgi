@@ -72,6 +72,8 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 	FAST_INSTALL_DATA_FILE(CMakeModules/SGIMacros.cmake DESTINATION share/cmake/modules COMPONENT "Developer files")
 	fast_configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Export.in ${SGI_INCLUDE_DIR}/sgi/Export)
 
+	SET(SGI_PLUGIN_IMPL_LIBRARY osgSGI-plugin-impl)
+
     set(SGI_PLUGIN_HOST_SUPPORT_INCLUDES)
     set(SGI_PLUGIN_HOST_SUPPORT_ITEM_CLASSES)
     set(SGI_PLUGIN_FALLBACK ON)

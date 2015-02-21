@@ -20,7 +20,6 @@ SET(TARGET_SRC
     ObjectLoggerOSG.cpp
     GUIAdapterOSG.cpp
 
-    string_helpers.cpp
     stateset_helpers.cpp
     std_ostream_osgtext.cpp
     DrawableHelper.cpp
@@ -32,7 +31,6 @@ SET(TARGET_SRC
 
 SET(TARGET_H
     SGIItemOsg
-    osg_string_helpers
     stdafx.h
     writeHTMLOSG.h
     writeHTMLOSGAnimation.h
@@ -49,7 +47,6 @@ SET(TARGET_H
     osg_accessor.h
     osgdb_accessor.h
     stateset_helpers.h
-    std_ostream_osg.h
     std_ostream_osgtext.h
 
     ObjectLoggerOSG.h
@@ -65,7 +62,6 @@ SET(TARGET_H
     ManipulateObject.h
     )
 fast_configure_file(SGIItemOsg ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsg COPY_ONLY)
-fast_configure_file(osg_string_helpers ${SGI_INCLUDE_DIR}/sgi/plugins/osg_string_helpers COPY_ONLY)
 
 SET(TARGET_MOC_H
     CameraSettings.h
@@ -89,6 +85,7 @@ SET(TARGET_LIBRARIES_VARS
     OSGVIEWER_LIBRARY
     OSGUTIL_LIBRARY
     OSGQT_LIBRARY
+    SGI_PLUGIN_IMPL_LIBRARY
 )
 IF ( NOT Qt5Widgets_FOUND )
     LIST(APPEND TARGET_LIBRARIES_VARS QT_QTCORE_LIBRARY QT_QTGUI_LIBRARY QT_QTOPENGL_LIBRARY)
@@ -99,5 +96,3 @@ SGI_PLUGIN(osg NO_MOC_INCLUDE)
 IF ( Qt5Widgets_FOUND )
     qt5_use_modules( osgdb_sgi_osg_plugin Gui Widgets OpenGL)
 ENDIF( Qt5Widgets_FOUND )
-
-FAST_INSTALL_EXTRA_HEADER_FILES(FILES SGIItemOsg osg_string_helpers DESTINATION include/sgi/plugins)

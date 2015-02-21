@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "getObjectInfoQt.h"
-#include "qt_string_helpers"
+#include <sgi/helpers/qt_string_helpers>
 
 #include "SGIItemQt"
 
@@ -20,6 +20,8 @@ GET_OBJECT_TYPE_IMPL_REGISTER(QMetaObject)
 GET_OBJECT_TYPE_IMPL_REGISTER(QPaintDevice)
 GET_OBJECT_PATH_IMPL_REGISTER(QObject)
 GET_OBJECT_PATH_IMPL_REGISTER(QMetaObject)
+
+using namespace sgi::qt_helpers;
 
 std::string getObjectNameImpl<QObject>::process()
 {

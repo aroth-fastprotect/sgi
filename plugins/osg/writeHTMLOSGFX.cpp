@@ -7,14 +7,15 @@
 
 #include "SGIItemOsg"
 
-#include "osg_string_helpers"
-#include "std_ostream_osg.h"
+#include <sgi/helpers/osg>
 
 namespace sgi {
 namespace osg_plugin {
 
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgFX::Effect)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgFX::Outline)
+
+using namespace sgi::osg_helpers;
 
 bool writePrettyHTMLImpl<osgFX::Effect>::process(std::basic_ostream<char>& os)
 {
@@ -69,7 +70,7 @@ bool writePrettyHTMLImpl<osgFX::Outline>::process(std::basic_ostream<char>& os)
 
             callNextHandler(os);
             os << "<tr><td>width</td><td>" << object->getWidth() << "</td></tr>" << std::endl;
-            os << "<tr><td>color</td><td>" << object->getColor() << "</td></tr>" << std::endl;
+            os << "<tr><td>color</td><td>" << vec4fToHtmlColor(object->getColor()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;

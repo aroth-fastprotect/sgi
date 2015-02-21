@@ -10,7 +10,7 @@
 #include <osgQt/GraphicsWindowQt>
 
 #include "SGIItemOsg"
-#include "osg_string_helpers"
+#include <sgi/helpers/osg>
 
 namespace sgi {
 namespace osg_plugin {
@@ -23,6 +23,7 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgViewer::Renderer)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgViewer::Scene)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgQt::GraphicsWindowQt)
 
+using namespace sgi::osg_helpers;
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osgViewer::ViewerBase::ThreadingModel t)
 {

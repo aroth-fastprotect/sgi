@@ -1,10 +1,10 @@
 #include "stdafx.h"
 #include "MenuActionQt.h"
-#include "qt_string_helpers"
 #include "SGIItemQt"
 
 #include <sgi/ContextMenu>
 #include <sgi/SceneGraphDialog>
+#include <sgi/helpers/qt_string_helpers>
 
 #include "SettingsDialogQt.h"
 #include "ContextMenuQt.h"
@@ -20,6 +20,8 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionDumpObjectInfo)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDumpObjectTree)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectMethodInvoke)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionImagePreview)
+
+using namespace sgi::qt_helpers;
 
 bool actionHandlerImpl<MenuActionObjectInfo>::execute()
 {

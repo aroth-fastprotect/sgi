@@ -99,7 +99,7 @@
 #include <osgAnimation/AnimationUpdateCallback>
 
 #include "DrawableHelper.h"
-#include "osg_string_helpers"
+#include <sgi/helpers/osg>
 
 #include <sgi/ReferencedPicker>
 
@@ -250,7 +250,7 @@ typedef SGIPluginImplementationT< LOKI_TYPELIST(SGIItemOsg),
 
 
 #define GLCONSTANT(c) \
-    registerNamedEnumValue<GLConstant>(c, #c)
+    registerNamedEnumValue<osg_helpers::GLConstant>(c, #c)
 
 class SGIPlugin_osg_Implementation : public osg_plugin::SGIPluginImpl
 {
@@ -259,22 +259,22 @@ public:
         : osg_plugin::SGIPluginImpl(hostInterface)
     {
         // register the osgNodeMask enum as bit field
-        registerNamedEnum<osgNodeMask>("node mask", true );
+        registerNamedEnum<osg_helpers::osgNodeMask>("node mask", true );
         registerGLConstants();
 
-        registerNamedEnum<GLModeValue>("GL mode value", true );
-        registerNamedEnumValue<GLModeValue>(osg::StateAttribute::ON, "ON");
-        registerNamedEnumValue<GLModeValue>(osg::StateAttribute::OFF, "OFF");
-        registerNamedEnumValue<GLModeValue>(osg::StateAttribute::OVERRIDE, "OVERRIDE");
-        registerNamedEnumValue<GLModeValue>(osg::StateAttribute::INHERIT, "INHERIT");
-        registerNamedEnumValue<GLModeValue>(osg::StateAttribute::PROTECTED, "PROTECTED");
+        registerNamedEnum<osg_helpers::GLModeValue>("GL mode value", true );
+        registerNamedEnumValue<osg_helpers::GLModeValue>(osg::StateAttribute::ON, "ON");
+        registerNamedEnumValue<osg_helpers::GLModeValue>(osg::StateAttribute::OFF, "OFF");
+        registerNamedEnumValue<osg_helpers::GLModeValue>(osg::StateAttribute::OVERRIDE, "OVERRIDE");
+        registerNamedEnumValue<osg_helpers::GLModeValue>(osg::StateAttribute::INHERIT, "INHERIT");
+        registerNamedEnumValue<osg_helpers::GLModeValue>(osg::StateAttribute::PROTECTED, "PROTECTED");
 
-        registerNamedEnum<GLModeOverrideValue>("GL mode override value", true );
-        registerNamedEnumValue<GLModeOverrideValue>(osg::StateAttribute::ON, "ON");
-        registerNamedEnumValue<GLModeOverrideValue>(osg::StateAttribute::OFF, "OFF");
-        registerNamedEnumValue<GLModeOverrideValue>(osg::StateAttribute::OVERRIDE, "OVERRIDE");
-        registerNamedEnumValue<GLModeOverrideValue>(osg::StateAttribute::INHERIT, "INHERIT");
-        registerNamedEnumValue<GLModeOverrideValue>(osg::StateAttribute::PROTECTED, "PROTECTED");
+        registerNamedEnum<osg_helpers::GLModeOverrideValue>("GL mode override value", true );
+        registerNamedEnumValue<osg_helpers::GLModeOverrideValue>(osg::StateAttribute::ON, "ON");
+        registerNamedEnumValue<osg_helpers::GLModeOverrideValue>(osg::StateAttribute::OFF, "OFF");
+        registerNamedEnumValue<osg_helpers::GLModeOverrideValue>(osg::StateAttribute::OVERRIDE, "OVERRIDE");
+        registerNamedEnumValue<osg_helpers::GLModeOverrideValue>(osg::StateAttribute::INHERIT, "INHERIT");
+        registerNamedEnumValue<osg_helpers::GLModeOverrideValue>(osg::StateAttribute::PROTECTED, "PROTECTED");
 
     }
     SGIPlugin_osg_Implementation(const SGIPlugin_osg_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
@@ -286,7 +286,7 @@ public:
 
     void registerGLConstants()
     {
-        registerNamedEnum<GLConstant>("GL constant", false );
+        registerNamedEnum<osg_helpers::GLConstant>("GL constant", false );
 
         GLCONSTANT(GL_BYTE);
         GLCONSTANT(GL_UNSIGNED_BYTE);

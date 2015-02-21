@@ -1,0 +1,20 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include <QString>
+
+class QObject;
+
+namespace sgi {
+    namespace qt_helpers {
+
+        QString fromLocal8Bit(const std::string & str);
+        std::string toLocal8Bit(const QString & str);
+        std::string getObjectTypename(const QObject * object);
+        std::string getObjectName(const QObject * object);
+        std::string getObjectNameAndType(const QObject * object);
+
+    } // namespace qt_helpers
+} // namespace sgi

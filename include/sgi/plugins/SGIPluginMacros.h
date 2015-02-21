@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <string.h>
 
-#include "../helpers/NullType.h"
+#include "../helpers/NullType"
 
 namespace sgi {
 

@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "../helpers/preprocessor.h"
+#include "../helpers/preprocessor"
 
 #define _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM(...) \
     _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_( _SGI_PP_VARIADIC_SIZE(__VA_ARGS__), __VA_ARGS__ )

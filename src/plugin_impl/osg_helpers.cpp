@@ -1,50 +1,243 @@
-#pragma once
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
 
-#include <osg/BoundingBox>
-#include <osg/BoundingSphere>
+#include <osg/StateAttribute>
+#include <osg/Texture>
 #include <osg/CoordinateSystemNode>
-#include <vector>
+#include <osg/ObserverNodePath>
 #include <osg/io_utils>
 
-namespace osg {
-    class Vec2f;
-    class Vec3f;
-    class Vec4f;
-    class Vec2d;
-    class Vec3d;
-    class Vec4d;
-    typedef Vec2f Vec2;
-    typedef Vec3f Vec3;
-    typedef Vec4f Vec4;
-    class Quat;
-    class Matrixd;
-    class Array;
-
-    class Referenced;
-    class Object;
-    class UserDataContainer;
-    class Node;
-    typedef std::vector< Node* > NodePath;
-    class ObserverNodePath;
-}
+#include <sgi/plugins/SGIItemBase.h>
+#include <sgi/helpers/string>
+#include <sgi/helpers/rtti>
+#include <sgi/helpers/osg>
 
 namespace sgi {
-namespace osg_plugin {
+    namespace osg_helpers {
 
-inline const osg::EllipsoidModel & getDefaultEllipsoid()
+std::string getObjectTypename(const osg::Referenced * object)
+{
+    return object?(helpers::getRTTITypename_html(object)):"(null)";
+}
+
+std::string getObjectTypename(const osg::Observer * object)
+{
+    return object?(helpers::getRTTITypename_html(object)):"(null)";
+}
+
+std::string getObjectTypename(const osg::Object * object)
+{
+    return object?(std::string(object->libraryName()) + std::string("::") + std::string(object->className())):"(null)";
+}
+
+std::string getObjectName(const osg::Referenced * object)
+{
+    std::string ret;
+    if(object)
+    {
+        std::stringstream buf;
+        buf << helpers::getRTTITypename_html(object);
+        buf << '(';
+        buf << (void*)object;
+        buf << ')';
+        ret = buf.str();
+    }
+    else
+        ret = "(null)";
+    return ret;
+}
+
+std::string getObjectName(const osg::Observer * object)
+{
+    std::string ret;
+    if(object)
+    {
+        std::stringstream buf;
+        buf << helpers::getRTTITypename_html(object);
+        buf << '(';
+        buf << (void*)object;
+        buf << ')';
+        ret = buf.str();
+    }
+    else
+        ret = "(null)";
+    return ret;
+}
+
+std::string getObjectName(const osg::Object * object)
+{
+    std::string ret = object?(object->getName()):"(null)";
+    if(ret.empty())
+    {
+        std::stringstream buf;
+        buf << (void*)object;
+        ret = buf.str();
+    }
+    return ret;
+}
+
+std::string getObjectNameAndType(const osg::Referenced * object)
+{
+    std::string ret;
+    if(object)
+    {
+        std::stringstream buf;
+        buf << (void*)object;
+        buf << " (" << getObjectTypename(object) << ")";
+        ret = buf.str();
+    }
+    else
+        ret = "(null)";
+    return ret;
+}
+
+std::string getObjectNameAndType(const osg::Observer * object)
+{
+    std::string ret;
+    if(object)
+    {
+        std::stringstream buf;
+        buf << (void*)object;
+        buf << " (" << getObjectTypename(object) << ")";
+        ret = buf.str();
+    }
+    else
+        ret = "(null)";
+    return ret;
+}
+
+std::string getObjectNameAndType(const osg::Object * object)
+{
+    std::string ret;
+    if(object)
+    {
+        std::stringstream buf;
+        buf << getObjectName(object) << " (" << getObjectTypename(object) << ")";
+        ret = buf.str();
+    }
+    else
+        ret = "(null)";
+    return ret;
+}
+
+
+std::string glValueName(unsigned n)
+{
+    std::string ret;
+    if(n & osg::StateAttribute::ON)
+        ret = "ON";
+    else
+        ret = "OFF";
+    if(n & osg::StateAttribute::OVERRIDE)
+        sgi::helpers::str_append(ret, "OVERRIDE");
+    if(n & osg::StateAttribute::PROTECTED)
+        sgi::helpers::str_append(ret, "PROTECTED");
+    if(n & osg::StateAttribute::INHERIT)
+        sgi::helpers::str_append(ret, "INHERIT");
+    else
+        sgi::helpers::str_append(ret, "NOINHERIT");
+    std::stringstream ss;
+    ss << ret << "(0x" << std::hex << n << ')';
+    ret = ss.str();
+    return ret;
+}
+
+std::string glOverrideValueName(unsigned n)
+{
+    std::string ret;
+    if(n == 0)
+        ret = "NOOVERRIDE";
+    else
+    {
+        if(n & osg::StateAttribute::ON)
+            ret = "Override disabled";
+        else
+        {
+            if(n & osg::StateAttribute::OVERRIDE)
+                sgi::helpers::str_append(ret, "OVERRIDE");
+            if(n & osg::StateAttribute::INHERIT)
+                sgi::helpers::str_append(ret, "INHERIT");
+            if(n & osg::StateAttribute::PROTECTED)
+                sgi::helpers::str_append(ret, "PROTECTED");
+            if(ret.empty())
+            {
+                std::stringstream ss;
+                ss << "0x" << std::hex << n;
+                ret = ss.str();
+            }
+        }
+    }
+    return ret;
+}
+
+std::string clearMaskToString(unsigned clearMask)
+{
+    std::string ret;
+    if(clearMask == ~0u)
+        ret = "all";
+    else if(clearMask == 0u)
+        ret = "off";
+    else
+    {
+        if(clearMask & GL_CURRENT_BIT)
+            sgi::helpers::str_append(ret, "current");
+        if(clearMask & GL_POINT_BIT)
+            sgi::helpers::str_append(ret, "point");
+        if(clearMask & GL_LINE_BIT)
+            sgi::helpers::str_append(ret, "line");
+        if(clearMask & GL_POLYGON_BIT)
+            sgi::helpers::str_append(ret, "polygon");
+        if(clearMask & GL_POLYGON_STIPPLE_BIT)
+            sgi::helpers::str_append(ret, "polygonStipple");
+        if(clearMask & GL_PIXEL_MODE_BIT)
+            sgi::helpers::str_append(ret, "pixelMode");
+        if(clearMask & GL_LIGHTING_BIT)
+            sgi::helpers::str_append(ret, "lighting");
+        if(clearMask & GL_FOG_BIT)
+            sgi::helpers::str_append(ret, "fog");
+        if(clearMask & GL_DEPTH_BUFFER_BIT)
+            sgi::helpers::str_append(ret, "depthBuffer");
+        if(clearMask & GL_ACCUM_BUFFER_BIT)
+            sgi::helpers::str_append(ret, "accumBuffer");
+        if(clearMask & GL_STENCIL_BUFFER_BIT)
+            sgi::helpers::str_append(ret, "stencilBuffer");
+        if(clearMask & GL_VIEWPORT_BIT)
+            sgi::helpers::str_append(ret, "viewport");
+        if(clearMask & GL_TRANSFORM_BIT)
+            sgi::helpers::str_append(ret, "transform");
+        if(clearMask & GL_ENABLE_BIT)
+            sgi::helpers::str_append(ret, "enable");
+        if(clearMask & GL_COLOR_BUFFER_BIT)
+            sgi::helpers::str_append(ret, "colorBuffer");
+        if(clearMask & GL_HINT_BIT)
+            sgi::helpers::str_append(ret, "hint");
+        if(clearMask & GL_EVAL_BIT)
+            sgi::helpers::str_append(ret, "eval");
+        if(clearMask & GL_LIST_BIT)
+            sgi::helpers::str_append(ret, "list");
+        if(clearMask & GL_TEXTURE_BIT)
+            sgi::helpers::str_append(ret, "texture");
+        if(clearMask & GL_SCISSOR_BIT)
+            sgi::helpers::str_append(ret, "scissor");
+    }
+    return ret;
+}
+
+
+const osg::EllipsoidModel & getDefaultEllipsoid()
 {
     static osg::EllipsoidModel s_default;
     return s_default;
 }
 
-inline osg::Vec3d fromECEFToXYZ(const osg::EllipsoidModel & ellipsoid, const osg::Vec3d & coord)
+osg::Vec3d fromECEFToXYZ(const osg::EllipsoidModel & ellipsoid, const osg::Vec3d & coord)
 {
     osg::Vec3d ret;
     ellipsoid.convertLatLongHeightToXYZ(osg::DegreesToRadians(coord.x()), osg::DegreesToRadians(coord.y()), coord.z(), ret.x(), ret.y(), ret.z());
     return ret;
 }
 
-inline osg::Vec3d fromXYZToECEF(const osg::EllipsoidModel & ellipsoid, const osg::Vec3d & v)
+osg::Vec3d fromXYZToECEF(const osg::EllipsoidModel & ellipsoid, const osg::Vec3d & v)
 {
     osg::Vec3d ret;
     ellipsoid.convertXYZToLatLongHeight(v.x(), v.y(), v.z(), ret.x(), ret.y(), ret.z());
@@ -53,17 +246,17 @@ inline osg::Vec3d fromXYZToECEF(const osg::EllipsoidModel & ellipsoid, const osg
     return ret;
 }
 
-inline osg::Vec3d fromECEFToXYZ(const osg::Vec3d & coord)
+osg::Vec3d fromECEFToXYZ(const osg::Vec3d & coord)
 {
     return fromECEFToXYZ(getDefaultEllipsoid(), coord);
 }
 
-inline osg::Vec3d fromXYZToECEF(const osg::Vec3d & v)
+osg::Vec3d fromXYZToECEF(const osg::Vec3d & v)
 {
     return fromXYZToECEF(getDefaultEllipsoid(), v);
 }
 
-inline void getHPRFromQuat(const osg::Quat& q, double &h, double &p, double &r)
+void getHPRFromQuat(const osg::Quat& q, double &h, double &p, double &r)
 {
     osg::Matrixd rot(q);
     p = asin(rot(1,2));
@@ -79,37 +272,37 @@ inline void getHPRFromQuat(const osg::Quat& q, double &h, double &p, double &r)
     }
 }
 
-inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec2f & v)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec2f & v)
 {
     os << std::setprecision(12) << "(" << v[0] << ", " << v[1] << ")" << std::endl;
 }
 
-inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec3f & v)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec3f & v)
 {
     os << std::setprecision(12) << "(" << v[0] << ", " << v[1] << ", " << v[2] << ")" << std::endl;
 }
 
-inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec4f & v)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec4f & v)
 {
     os << std::setprecision(12) << "(" << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << ")" << std::endl;
 }
 
-inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec2d & v)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec2d & v)
 {
     os << std::setprecision(12) << "(" << v[0] << ", " << v[1] << ")" << std::endl;
 }
 
-inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec3d & v)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec3d & v)
 {
     os << std::setprecision(12) << "(" << v[0] << ", " << v[1] << ", " << v[2] << ")" << std::endl;
 }
 
-inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec4d & v)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec4d & v)
 {
     os << std::setprecision(12) << "(" << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << ")" << std::endl;
 }
 
-inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::Quat & q)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::Quat & q)
 {
     double h, p, r;
     getHPRFromQuat(q, h, p, r);
@@ -118,7 +311,7 @@ inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::Quat & q)
     os << std::setprecision(12) << "(" << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << ")";
 }
 
-inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::NodePath & path)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::NodePath & path)
 {
     if(path.empty())
         os << "&lt;empty&gt;";
@@ -128,14 +321,13 @@ inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::NodePath & 
         for(osg::NodePath::const_iterator it = path.begin(); it != path.end(); it++)
         {
             const osg::Node * node = *it;
-            os << "<li>" << getObjectNameAndType(node) << "</li>" << std::endl;
+            os << "<li>" << osg_helpers::getObjectNameAndType(node) << "</li>" << std::endl;
         }
         os << "</ol>";
     }
 }
 
-#ifdef OSG_OBSERVERNODEPATH
-inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::ObserverNodePath & path)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::ObserverNodePath & path)
 {
     osg::NodePath nodepath;
     if(path.getNodePath(nodepath))
@@ -143,16 +335,15 @@ inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::ObserverNod
     else
         os << "&lt;none&gt;";
 }
-#endif // OSG_OBSERVERNODEPATH
 
-inline void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Node * refNode=NULL)
+void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Node * refNode)
 {
     osg::Vec3d ecef = fromXYZToECEF(v);
     os << std::setprecision(12) << "(" << v[0] << ", " << v[1] << ", " << v[2] << ")@("
         << ecef[0] << ", " << ecef[1] << ", " << ecef[2] << ")" << std::endl;
 }
 
-inline void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Drawable * refDrawable=NULL)
+void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Drawable * refDrawable)
 {
     osg::Vec3d ecef = fromXYZToECEF(v);
     os << std::setprecision(12) << "(" << v[0] << ", " << v[1] << ", " << v[2] << ")@("
@@ -172,12 +363,12 @@ inline void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec
     */
 }
 
-inline void writePrettyRotationHTML(std::basic_ostream<char>& os, const osg::Quat & q)
+void writePrettyRotationHTML(std::basic_ostream<char>& os, const osg::Quat & q)
 {
     writePrettyHTML(os, q);
 }
 
-inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSphere & bs, const osg::Node * refNode=NULL)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSphere & bs, const osg::Node * refNode)
 {
     const osg::BoundingSphere::vec_type & center = bs.center();
     const osg::BoundingSphere::value_type & radius = bs.radius();
@@ -187,7 +378,7 @@ inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSph
     os << "<br/>radius=" << radius << (bs.valid()?" valid":" invalid");
 }
 
-inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSphere * bs, const osg::Node * refNode=NULL)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSphere * bs, const osg::Node * refNode)
 {
     if(bs)
         writePrettyHTML(os, *bs, refNode);
@@ -195,7 +386,7 @@ inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSph
         os << "&lt;null&gt;";
 }
 
-inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox & bb, const osg::Node * refNode)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox & bb, const osg::Node * refNode)
 {
     os << "center=";
     writePrettyPositionHTML(os, bb.center(), refNode);
@@ -206,7 +397,7 @@ inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox
     os << "<br/>radius=" << bb.radius() << (bb.valid()?" valid":" invalid");
 }
 
-inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox & bb, const osg::Drawable * refDrawable)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox & bb, const osg::Drawable * refDrawable)
 {
     os << "center=";
     writePrettyPositionHTML(os, bb.center(), refDrawable);
@@ -217,7 +408,7 @@ inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox
     os << "<br/>radius=" << bb.radius() << (bb.valid()?" valid":" invalid");
 }
 
-inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox * bb, const osg::Drawable * refDrawable)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox * bb, const osg::Drawable * refDrawable)
 {
     if(bb)
         writePrettyHTML(os, *bb, refDrawable);
@@ -225,17 +416,7 @@ inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox
         os << "&lt;null&gt;";
 }
 
-enum MatrixUsageType
-{
-    MatrixUsageTypeGeneric = 0,
-    MatrixUsageTypeModelView,
-    MatrixUsageTypePerspective,
-    MatrixUsageTypeLookAt,
-    MatrixUsageTypeFrustum,
-    MatrixUsageTypeOrtho,
-};
-
-inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Node * refNode=NULL)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Node * refNode)
 {
     switch(type)
     {
@@ -322,7 +503,8 @@ inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & m
         break;
     }
 }
-inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Drawable * refDrawable)
+
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Drawable * refDrawable)
 {
     switch(type)
     {
@@ -391,5 +573,6 @@ inline void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & m
     }
 }
 
-} // namespace osg_plugin
+
+    } // namespace osg_helpers
 } // namespace sgi

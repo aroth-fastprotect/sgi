@@ -94,16 +94,19 @@ void setStateAttributeModeFromObject(const osg::Object * object, osg::StateAttri
             ss = const_cast<osg::Node*>(node)->getOrCreateStateSet();
         else if(const osg::Drawable * drawable = dynamic_cast<const osg::Drawable*>(object))
             ss = const_cast<osg::Drawable*>(drawable)->getOrCreateStateSet();
-        osg::StateAttribute::GLModeValue glmodevalue;
-        switch(value)
+        if(ss)
         {
-        case StateAttributeModeValueOverrideOn: glmodevalue = osg::StateAttribute::ON|osg::StateAttribute::OVERRIDE; break;
-        case StateAttributeModeValueOverrideOff: glmodevalue = osg::StateAttribute::OFF|osg::StateAttribute::OVERRIDE; break;
-        case StateAttributeModeValueOn: glmodevalue = osg::StateAttribute::ON; break;
-        case StateAttributeModeValueOff: glmodevalue = osg::StateAttribute::OFF; break;
-        default: glmodevalue = osg::StateAttribute::INHERIT; break;
+            osg::StateAttribute::GLModeValue glmodevalue;
+            switch(value)
+            {
+            case StateAttributeModeValueOverrideOn: glmodevalue = osg::StateAttribute::ON|osg::StateAttribute::OVERRIDE; break;
+            case StateAttributeModeValueOverrideOff: glmodevalue = osg::StateAttribute::OFF|osg::StateAttribute::OVERRIDE; break;
+            case StateAttributeModeValueOn: glmodevalue = osg::StateAttribute::ON; break;
+            case StateAttributeModeValueOff: glmodevalue = osg::StateAttribute::OFF; break;
+            default: glmodevalue = osg::StateAttribute::INHERIT; break;
+            }
+            ss->setMode(mode, glmodevalue);
         }
-        ss->setMode(mode, glmodevalue);
     }
 }
 

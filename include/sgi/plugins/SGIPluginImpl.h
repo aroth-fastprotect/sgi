@@ -4,8 +4,8 @@
 #include <osgDB/FileNameUtils>
 #include <osgDB/Registry>
 
-#include "../helpers/Typelist.h"
-#include "../helpers/TypelistMacros.h"
+#include "../helpers/Typelist"
+#include "../helpers/TypelistMacros"
 
 #include "SGIPluginInterface.h"
 #include "SGIHostItemBase.h"

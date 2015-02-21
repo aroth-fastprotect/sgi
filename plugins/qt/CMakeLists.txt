@@ -14,7 +14,6 @@ SET(TARGET_SRC
 
 SET(TARGET_H
     SGIItemQt
-	qt_string_helpers
 	stdafx.h
     writeHTMLQt.h
     getObjectInfoQt.h
@@ -26,7 +25,6 @@ SET(TARGET_H
     )
 
 fast_configure_file(SGIItemQt ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemQt COPY_ONLY)
-fast_configure_file(qt_string_helpers ${SGI_INCLUDE_DIR}/sgi/plugins/qt_string_helpers COPY_ONLY)
 
 SET(TARGET_MOC_H
     ImagePreviewDialog.h
@@ -39,6 +37,7 @@ SET(TARGET_UI
 SET(TARGET_LIBRARIES_VARS
     OSG_LIBRARY
     OSGDB_LIBRARY
+    SGI_PLUGIN_IMPL_LIBRARY
 )
 
 IF((UNIX AND FAST_PLATFORM_BITS EQUAL 32) OR WIN32)
@@ -54,5 +53,3 @@ SGI_PLUGIN(qt NO_MOC_INCLUDE)
 IF ( Qt5Widgets_FOUND )
     qt5_use_modules( osgdb_sgi_qt_plugin Gui Widgets OpenGL)
 ENDIF( Qt5Widgets_FOUND )
-
-FAST_INSTALL_EXTRA_HEADER_FILES(FILES SGIItemQt qt_string_helpers DESTINATION include/sgi/plugins)

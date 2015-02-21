@@ -1,6 +1,7 @@
-// kate: syntax: C++
+// kate: syntax C++11;
 #pragma once
 
+#include <sstream>
 
 namespace sgi {
 namespace helpers {
@@ -52,6 +53,19 @@ inline std::string str_plus_number(const char * str, const INT_TYPE & n)
     buf << str << '#' << n;
     return buf.str();
 }
+
+template<typename INT_TYPE>
+inline void str_append(std::string & str, const INT_TYPE & n, const char seperator=',')
+{
+    std::stringstream buf;
+    if(!str.empty())
+        buf << str << seperator << n;
+    else
+        buf << n;
+    str = buf.str();
+}
+
+void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size);
 
 } // namespace helpers
 } // namespace sgi

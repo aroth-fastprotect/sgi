@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "MenuActionOSG.h"
-#include "osg_string_helpers"
+#include <sgi/helpers/osg>
 #include "SGIItemOsg"
 
 #include <sgi/ContextMenu>
@@ -35,8 +35,6 @@
 #include "FindTopMostNodeOfType"
 #include "DrawableHelper.h"
 #include "ManipulateObject.h"
-
-#include "std_ostream_osg.h"
 
 #undef max
 #undef min
@@ -155,6 +153,8 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionToolEffectiveStateSet)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindCamera)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindView)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionToolDistanceToCamera)
+
+using namespace sgi::osg_helpers;
 
 bool actionHandlerImpl<MenuActionObjectInfo>::execute()
 {

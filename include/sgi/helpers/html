@@ -1,4 +1,4 @@
-// kate: syntax: C++
+// kate: syntax C++11;
 #pragma once
 
 namespace sgi {

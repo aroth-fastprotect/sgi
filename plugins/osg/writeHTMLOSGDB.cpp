@@ -12,7 +12,7 @@
 
 #include <sgi/helpers/string>
 
-#include "osg_string_helpers"
+#include <sgi/helpers/osg>
 #include "osgdb_accessor.h"
 
 namespace sgi {
@@ -107,10 +107,10 @@ bool writePrettyHTMLImpl<osgDB::Registry>::process(std::basic_ostream<char>& os)
             // first add all callbacks from base classes
             callNextHandler(os);
 
-            os << "<tr><td>ReadFileCallback</td><td>" << getObjectNameAndType(object->getReadFileCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>WriteFileCallback</td><td>" << getObjectNameAndType(object->getWriteFileCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>FileLocationCallback</td><td>" << getObjectNameAndType(object->getFileLocationCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>FindFileCallback</td><td>" << getObjectNameAndType(object->getFindFileCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>ReadFileCallback</td><td>" << osg_helpers::getObjectNameAndType(object->getReadFileCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>WriteFileCallback</td><td>" << osg_helpers::getObjectNameAndType(object->getWriteFileCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>FileLocationCallback</td><td>" << osg_helpers::getObjectNameAndType(object->getFileLocationCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>FindFileCallback</td><td>" << osg_helpers::getObjectNameAndType(object->getFindFileCallback()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -123,7 +123,7 @@ bool writePrettyHTMLImpl<osgDB::Registry>::process(std::basic_ostream<char>& os)
             const osgDB::Registry::ReaderWriterList& list = object->getReaderWriterList();
             for(osgDB::Registry::ReaderWriterList::const_iterator it = list.begin(); it != list.end(); it++)
             {
-                os << "<li>" << getObjectNameAndType((*it).get()) << "</li>";
+                os << "<li>" << osg_helpers::getObjectNameAndType((*it).get()) << "</li>";
             }
             os << "</ul>";
             ret = true;
@@ -135,7 +135,7 @@ bool writePrettyHTMLImpl<osgDB::Registry>::process(std::basic_ostream<char>& os)
             const osgDB::Registry::ImageProcessorList& list = object->getImageProcessorList();
             for(osgDB::Registry::ImageProcessorList::const_iterator it = list.begin(); it != list.end(); it++)
             {
-                os << "<li>" << getObjectNameAndType((*it).get()) << "</li>";
+                os << "<li>" << osg_helpers::getObjectNameAndType((*it).get()) << "</li>";
             }
             os << "</ul>";
             ret = true;
@@ -193,10 +193,10 @@ bool writePrettyHTMLImpl<osgDB::Options>::process(std::basic_ostream<char>& os)
             // first add all callbacks from base classes
             callNextHandler(os);
 
-            os << "<tr><td>ReadFileCallback</td><td>" << getObjectNameAndType(object->getReadFileCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>WriteFileCallback</td><td>" << getObjectNameAndType(object->getWriteFileCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>FileLocationCallback</td><td>" << getObjectNameAndType(object->getFileLocationCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>FindFileCallback</td><td>" << getObjectNameAndType(object->getFindFileCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>ReadFileCallback</td><td>" << osg_helpers::getObjectNameAndType(object->getReadFileCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>WriteFileCallback</td><td>" << osg_helpers::getObjectNameAndType(object->getWriteFileCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>FileLocationCallback</td><td>" << osg_helpers::getObjectNameAndType(object->getFileLocationCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>FindFileCallback</td><td>" << osg_helpers::getObjectNameAndType(object->getFindFileCallback()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -399,7 +399,7 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
             for(unsigned num = 0; num < object->getNumDatabaseThreads(); num++)
             {
                 osg::ref_ptr<const osgDB::DatabasePager::DatabaseThread> thread = object->getDatabaseThread(num);
-                os << "<li>" << getObjectNameAndType(thread.get()) << "</li>";
+                os << "<li>" << osg_helpers::getObjectNameAndType(thread.get()) << "</li>";
             }
             os << "</ul></td></tr>" << std::endl;
 
@@ -450,7 +450,7 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
                 osg::ref_ptr<osg::PagedLOD> node;
                 if(value.lock(node))
                 {
-                    os << "<li>" << getObjectNameAndType(node.get()) << "</li>";
+                    os << "<li>" << osg_helpers::getObjectNameAndType(node.get()) << "</li>";
                 }
             }
             os << "</ul>";
@@ -465,7 +465,7 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
             for(auto it = requestList.begin(); it != requestList.end(); it++)
             {
                 const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
-                os << "<li>" << getObjectNameAndType(req) << "</li>";
+                os << "<li>" << osg_helpers::getObjectNameAndType(req) << "</li>";
             }
             os << "</ul>";
             ret = true;
@@ -479,7 +479,7 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
             for(auto it = requestList.begin(); it != requestList.end(); it++)
             {
                 const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
-                os << "<li>" << getObjectNameAndType(req) << "</li>";
+                os << "<li>" << osg_helpers::getObjectNameAndType(req) << "</li>";
             }
             os << "</ul>";
             ret = true;
@@ -493,7 +493,7 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
             for(auto it = requestList.begin(); it != requestList.end(); it++)
             {
                 const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
-                os << "<li>" << getObjectNameAndType(req) << "</li>";
+                os << "<li>" << osg_helpers::getObjectNameAndType(req) << "</li>";
             }
             os << "</ul>";
             ret = true;
@@ -507,7 +507,7 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
             for(auto it = requestList.begin(); it != requestList.end(); it++)
             {
                 const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
-                os << "<li>" << getObjectNameAndType(req) << "</li>";
+                os << "<li>" << osg_helpers::getObjectNameAndType(req) << "</li>";
             }
             os << "</ul>";
             ret = true;
@@ -549,7 +549,7 @@ bool writePrettyHTMLImpl<osgDB::FileCache>::process(std::basic_ostream<char>& os
             const osgDB::FileCache::DatabaseRevisionsList& revlist = object->getDatabaseRevisionsList();
             for(osgDB::FileCache::DatabaseRevisionsList::const_iterator it = revlist.begin(); it != revlist.end(); it++)
             {
-                os << "<li>" << getObjectNameAndType((*it).get()) << "</li>";
+                os << "<li>" << osg_helpers::getObjectNameAndType((*it).get()) << "</li>";
             }
             os << "</ol>";
             ret = true;
@@ -619,7 +619,7 @@ bool writePrettyHTMLImpl<osgDB::DatabaseRevisions>::process(std::basic_ostream<c
             const osgDB::DatabaseRevisions::DatabaseRevisionList& revlist = object->getDatabaseRevisionList();
             for(osgDB::DatabaseRevisions::DatabaseRevisionList::const_iterator it = revlist.begin(); it != revlist.end(); it++)
             {
-                os << "<li>" << getObjectNameAndType((*it).get()) << "</li>";
+                os << "<li>" << osg_helpers::getObjectNameAndType((*it).get()) << "</li>";
             }
             os << "</ol>";
             ret = true;
@@ -709,7 +709,7 @@ bool writePrettyHTMLImpl<osgDB::ObjectWrapper>::process(std::basic_ostream<char>
             const osgDB::ObjectWrapper::SerializerList & serializers = object->getSerializerList();
             for(osgDB::ObjectWrapper::SerializerList::const_iterator it = serializers.begin(); it != serializers.end(); it++)
             {
-                os << "<li>" << getObjectNameAndType(*it) << "</li>";
+                os << "<li>" << osg_helpers::getObjectNameAndType(*it) << "</li>";
             }
             os << "</ul></td></tr>" << std::endl;
 #endif
@@ -744,7 +744,7 @@ bool writePrettyHTMLImpl<osgDB::ObjectWrapperManager>::process(std::basic_ostrea
             const osgDB::ObjectWrapperManager::WrapperMap & wrappers = object->getWrapperMap();
             for(auto it = wrappers.begin(); it != wrappers.end(); it++)
             {
-                os << "<li>" << it->first << "=" << getObjectNameAndType(it->second.get()) << "</li>";
+                os << "<li>" << it->first << "=" << osg_helpers::getObjectNameAndType(it->second.get()) << "</li>";
             }
             os << "</ul></td></tr>" << std::endl;
 
@@ -752,7 +752,7 @@ bool writePrettyHTMLImpl<osgDB::ObjectWrapperManager>::process(std::basic_ostrea
             const osgDB::ObjectWrapperManager::CompressorMap & compressors = object->getCompressorMap();
             for(auto it = compressors.begin(); it != compressors.end(); it++)
             {
-                os << "<li>" << it->first << "=" << getObjectNameAndType(it->second.get()) << "</li>";
+                os << "<li>" << it->first << "=" << osg_helpers::getObjectNameAndType(it->second.get()) << "</li>";
             }
             os << "</ul></td></tr>" << std::endl;
 
@@ -777,7 +777,7 @@ bool writePrettyHTMLImpl<osgDB::ObjectWrapperManager>::process(std::basic_ostrea
             const osgDB::ObjectWrapperManager::WrapperMap & wrappers = object->getWrapperMap();
             for(auto it = wrappers.begin(); it != wrappers.end(); it++)
             {
-                os << "<li>" << it->first << "=" << getObjectNameAndType(it->second.get()) << "</li>";
+                os << "<li>" << it->first << "=" << osg_helpers::getObjectNameAndType(it->second.get()) << "</li>";
             }
             os << "</ul>";
             ret = true;
@@ -789,7 +789,7 @@ bool writePrettyHTMLImpl<osgDB::ObjectWrapperManager>::process(std::basic_ostrea
             const osgDB::ObjectWrapperManager::CompressorMap & compressors = object->getCompressorMap();
             for(auto it = compressors.begin(); it != compressors.end(); it++)
             {
-                os << "<li>" << it->first << "=" << getObjectNameAndType(it->second.get()) << "</li>";
+                os << "<li>" << it->first << "=" << osg_helpers::getObjectNameAndType(it->second.get()) << "</li>";
             }
             os << "</ul>";
             ret = true;

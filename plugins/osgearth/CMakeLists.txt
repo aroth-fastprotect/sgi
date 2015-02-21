@@ -66,5 +66,3 @@ SGI_PLUGIN(osgearth NO_MOC_INCLUDE)
 IF ( Qt5Widgets_FOUND )
     qt5_use_modules( osgdb_sgi_osgearth_plugin Gui Widgets)
 ENDIF( Qt5Widgets_FOUND )
-
-FAST_INSTALL_EXTRA_HEADER_FILES(FILES SGIItemOsgEarth DESTINATION include/sgi/plugins)

@@ -14,8 +14,7 @@
 #include <sgi/SceneGraphDialog>
 #include <sgi/plugins/SGIProxyItem.h>
 #include <sgi/helpers/string>
-
-#include "qt_string_helpers"
+#include <sgi/helpers/qt_string_helpers>
 
 namespace sgi {
 namespace qt_plugin {
@@ -27,6 +26,8 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(QCoreApplication)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QApplication)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QPaintDevice)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QImage)
+
+using namespace sgi::qt_helpers;
 
 bool objectTreeBuildImpl<QMetaObject>::build(IObjectTreeItem * treeItem)
 {
