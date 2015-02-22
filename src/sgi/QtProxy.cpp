@@ -7,13 +7,11 @@
 #include "SceneGraphDialog.h"
 #include "ContextMenu.h"
 #include "ObjectLoggerDialog.h"
-#include "sgi/helpers/qt_helper"
+#include <sgi/helpers/qt>
 
 namespace sgi {
 
-const static int metaTypeQtSGIItemType = qRegisterMetaType<sgi::QtSGIItem>("sgi::QtSGIItem");
-const static int metaTypeQtMenuSGIItemType = qRegisterMetaType<sgi::QtMenuSGIItem>("sgi::QtMenuSGIItem");
-const static int metaTypeQtTableSGIItemType = qRegisterMetaType<sgi::QtTableSGIItem>("sgi::QtTableSGIItem");
+using namespace qt_helpers;
 
 namespace {
     static void ensure_QApplication()

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "MenuActionOSGEarth.h"
-#include "../osg/SGIItemOsg"
+#include <sgi/plugins/SGIItemOsg>
 
 #include <sgi/SceneGraphDialog>
 #include <sgi/ContextMenu>
@@ -22,7 +22,7 @@
 #include "osgearth_accessor.h"
 #include "SettingsDialogOSGEarth.h"
 
-#include <sgi/plugins/osg_string_helpers>
+#include <sgi/helpers/osg>
 
 namespace sgi {
 
@@ -71,6 +71,8 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionControlAbsorbEvents)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionControlVisible)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionImagePreviewRGBA)
+
+using namespace sgi::osg_helpers;
 
 namespace {
     // This callback installs a control canvas under a view.

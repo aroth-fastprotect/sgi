@@ -17,16 +17,19 @@
 #include "SGIPlugin.h"
 #include "sgi/SGIItemInternal"
 
-#include "sgi/plugins/ObjectTreeImpl"
+#include <sgi/plugins/ObjectTreeImpl>
+#include <sgi/helpers/qt>
 #include "ContextMenu.h"
 
-#include "sgi/plugins/SGIHostItemInternal.h"
+#include <sgi/plugins/SGIHostItemInternal.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
 namespace sgi {
+
+using namespace qt_helpers;
 
 class SceneGraphDialog::ContextMenuCallback : public IContextMenuInfo
 {

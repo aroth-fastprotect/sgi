@@ -1,6 +1,7 @@
 #include <ostream>
 #include "writeHTMLOSGEarth.h"
-#include "../osg/SGIItemOsg"
+#include <sgi/plugins/SGIItemOsg>
+#include <sgi/helpers/osg>
 
 #include "string_helpers.h"
 
@@ -100,6 +101,7 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::EllipseNode)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::RectangleNode)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::ModelNode)
 
+using namespace osg_helpers;
 
 bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& os)
 {

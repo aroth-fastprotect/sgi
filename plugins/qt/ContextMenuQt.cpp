@@ -5,7 +5,7 @@
 #include <QMetaClassInfo>
 #include <QWidget>
 #include <sgi/helpers/string>
-#include <sgi/helpers/qt_string_helpers>
+#include <sgi/helpers/qt>
 
 namespace sgi {
 

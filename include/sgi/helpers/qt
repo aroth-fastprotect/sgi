@@ -2,7 +2,31 @@
 
 #pragma once
 
+#include <QString>
+#include <QColor>
+#include <QMetaType>
 #include <sgi/plugins/SGIDataItemBase.h>
+
+class QVariant;
+class QVariant;
+class QString;
+class QStringRef;
+class QBitArray;
+class QByteArray;
+class QByteRef;
+class QDate;
+class QTime;
+class QDateTime;
+class QLocale;
+class QColor;
+class QSize;
+class QSizeF;
+class QRect;
+class QRectF;
+class QPoint;
+class QPointF;
+class QChar;
+class QUrl;
 
 namespace sgi {
 
@@ -11,6 +35,8 @@ class SGIDataItemBase;
 
 typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
 typedef osg::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
+
+namespace qt_helpers {
 
 class QtSGIItem
 {
@@ -107,19 +133,61 @@ private:
     unsigned            _field;
 };
 
-inline QString fromLocal8Bit(const std::string & str)
+QString fromLocal8Bit(const std::string & str);
+std::string toLocal8Bit(const QString & str);
+std::string getObjectTypename(const QObject * object);
+std::string getObjectName(const QObject * object);
+std::string getObjectNameAndType(const QObject * object);
+
+inline sgi::Color qtColor(const QColor & c)
 {
-    return QString::fromLocal8Bit(str.data(), str.size());
+    return sgi::Color((float)c.redF(), (float)c.greenF(), (float)c.blueF(), (float)c.alphaF());
 }
 
-inline std::string toLocal8Bit(const QString & str)
+inline QColor qtColor(const sgi::Color & c)
 {
-    QByteArray qba = str.toLocal8Bit();
-    return std::string(qba.constData(), qba.size());
+    return QColor(c.r, c.g, c.b, c.a);
 }
 
+    } // namespace qt_helpers
 } // namespace sgi
 
-Q_DECLARE_METATYPE (sgi::QtSGIItem);
-Q_DECLARE_METATYPE (sgi::QtMenuSGIItem);
-Q_DECLARE_METATYPE (sgi::QtTableSGIItem);
+namespace std {
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVariant & v);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QString& str);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QStringRef& str);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QBitArray& v);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QByteArray& v);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QByteRef& str);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QDate & date);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QTime& t);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QDateTime& date);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QLocale& l);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QColor& color);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSize & size);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSizeF & size);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QRect & r);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QRectF & r);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPoint & p);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPointF & p);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QChar & c);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QUrl & url);
+
+    template<typename T>
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QList<T> & list)
+    {
+        for(typename QList<T>::const_iterator it = list.begin(); it != list.end();)
+        {
+            os << (const T &)(*it);
+            it++;
+            if(it != list.end())
+                os << ';';
+        }
+        return os;
+    }
+
+} // namespace std
+
+Q_DECLARE_METATYPE (sgi::qt_helpers::QtSGIItem);
+Q_DECLARE_METATYPE (sgi::qt_helpers::QtMenuSGIItem);
+Q_DECLARE_METATYPE (sgi::qt_helpers::QtTableSGIItem);

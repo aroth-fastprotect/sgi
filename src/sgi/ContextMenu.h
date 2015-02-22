@@ -6,7 +6,9 @@
 
 namespace sgi {
 
-class QtSGIItem;
+    namespace qt_helpers {
+        class QtSGIItem;
+    }
 
 class ContextMenu : public QMenu
 {
@@ -34,8 +36,8 @@ protected slots:
 protected:
     void                            populate();
 
-    QAction *                       addSimpleAction(QMenu * menu, const QString & text, const QtSGIItem & data, const char * trigger_method);
-    QAction *                       addBoolAction(QMenu * menu, const QString & text, const QtSGIItem & data, bool value, const char * trigger_method);
+    QAction *                       addSimpleAction(QMenu * menu, const QString & text, const qt_helpers::QtSGIItem & data, const char * trigger_method);
+    QAction *                       addBoolAction(QMenu * menu, const QString & text, const qt_helpers::QtSGIItem & data, bool value, const char * trigger_method);
 
     void							showSceneGraphDialog(SGIItemBase * item);
 

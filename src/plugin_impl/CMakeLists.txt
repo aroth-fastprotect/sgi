@@ -2,7 +2,7 @@ SET(TARGET_SRC
     SGIItemBase.cpp
     ObjectTreeImpl.cpp
     osg_helpers.cpp
-    qt_string_helpers.cpp
+    qt_helpers.cpp
     string_helpers.cpp
     )
 

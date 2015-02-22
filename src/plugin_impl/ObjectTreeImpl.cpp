@@ -1,12 +1,14 @@
 // kate: syntax C++11;
 // SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
 
-#include <QtCore/QString>
-#include <QtGui/QTreeWidget>
+#include <QTreeWidget>
 
 #include <sgi/plugins/ObjectTreeImpl>
+#include <sgi/helpers/qt>
 
 namespace sgi {
+
+using namespace qt_helpers;
 
 SGIPluginHostInterface * ObjectTreeItem::s_hostInterface = NULL;
 

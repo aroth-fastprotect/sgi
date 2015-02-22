@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "../helpers/qt_helper"
 #include "SGIPluginInterface.h"
 
 class QTreeWidgetItem;

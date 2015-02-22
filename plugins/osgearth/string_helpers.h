@@ -1,9 +1,6 @@
 #pragma once
 
 #include <sstream>
-#include <iomanip>
-
-#include <sgi/plugins/osg_string_helpers>
 
 #include <osgEarth/optional>
 #include <osgEarth/Units>

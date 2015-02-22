@@ -14,7 +14,7 @@
 #include <sgi/SceneGraphDialog>
 #include <sgi/plugins/SGIProxyItem.h>
 #include <sgi/helpers/string>
-#include <sgi/helpers/qt_string_helpers>
+#include <sgi/helpers/qt>
 
 namespace sgi {
 namespace qt_plugin {

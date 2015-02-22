@@ -21,7 +21,6 @@ SET(TARGET_H
     ContextMenuQt.h
     MenuActionQt.h
     SettingsDialogQt.h
-    std_ostream_qt.h
     )
 
 fast_configure_file(SGIItemQt ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemQt COPY_ONLY)

@@ -5,6 +5,7 @@
 #include "ui_TileInspectorDialog.h"
 
 #include <sgi/plugins/SGISettingsDialogImpl>
+#include <sgi/helpers/qt>
 
 #include <QTextStream>
 #include <QFileDialog>
@@ -32,6 +33,8 @@
 namespace sgi {
 
 namespace osgearth_plugin {
+
+using namespace sgi::qt_helpers;
 
 namespace {
 

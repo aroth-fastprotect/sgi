@@ -6,13 +6,15 @@
 
 #include "SGIPlugin.h"
 
-#include "sgi/helpers/qt_helper"
+#include <sgi/helpers/qt>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
 namespace sgi {
+
+using namespace qt_helpers;
 
 class ContextMenu::ContextMenuItem : public IContextMenuItem
 {

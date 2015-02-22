@@ -4,7 +4,7 @@
 
 #include <sgi/ContextMenu>
 #include <sgi/SceneGraphDialog>
-#include <sgi/helpers/qt_string_helpers>
+#include <sgi/helpers/qt>
 
 #include "SettingsDialogQt.h"
 #include "ContextMenuQt.h"

@@ -1,10 +1,9 @@
 #include "stdafx.h"
 #include "getObjectInfoQt.h"
-#include <sgi/helpers/qt_string_helpers>
-
-#include "SGIItemQt"
-
+#include <sgi/helpers/qt>
 #include <sgi/helpers/rtti>
+
+#include <sgi/plugins/SGIItemQt>
 
 namespace sgi {
 

@@ -13,9 +13,10 @@
 #include "QtProxy.h"
 #include "sgi_internal.h"
 #include "QTextDialog.h"
-#include "sgi/helpers/qt_helper"
+#include <sgi/helpers/qt>
 
 using namespace sgi;
+using namespace sgi::qt_helpers;
 
 class SGIPlugins::SGIPluginsImpl
 {

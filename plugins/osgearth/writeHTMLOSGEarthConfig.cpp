@@ -1,9 +1,10 @@
 #include <ostream>
 #include "writeHTMLOSGEarth.h"
 #include "writeHTMLOSGEarthConfig.h"
-#include "../osg/SGIItemOsg"
+#include <sgi/plugins/SGIItemOsg>
 #include "SGIItemOsgEarth"
 
+#include <sgi/helpers/osg>
 #include "string_helpers.h"
 
 #include <osgEarth/Version>
@@ -46,10 +47,10 @@ inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const 
 {
     if(!v.isSet())
     {
-        return os << "unset(" << sgi::castToEnumValueString<sgi::GLConstant>(v.defaultValue()) << ")";
+        return os << "unset(" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(v.defaultValue()) << ")";
     }
     else
-        return os << sgi::castToEnumValueString<sgi::GLConstant>(v.value());
+        return os << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(v.value());
 }
 } // namespace std
 
@@ -85,6 +86,7 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Drivers::FeatureGeomModelOptions)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Drivers::FeatureStencilModelOptions)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Drivers::OGRFeatureOptions)
 
+using namespace osg_helpers;
 
 void writePrettyHTMLImplForDriverOptions(SGIPluginHostInterface * hostInterface, std::basic_ostream<char>& os, const osgEarth::DriverConfigOptions & opts)
 {
