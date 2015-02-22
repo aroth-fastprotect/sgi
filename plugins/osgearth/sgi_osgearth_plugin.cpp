@@ -6,8 +6,8 @@
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SGIHostItemOsgEarth.h>
 
-#include "../osg/SGIItemOsg.h"
-#include "SGIItemOsgEarth.h"
+#include "../osg/SGIItemOsg"
+#include "SGIItemOsgEarth"
 
 #include "writeHTMLOSGEarth.h"
 #include "writeHTMLOSGEarthConfig.h"
@@ -60,7 +60,7 @@
 #include <osgEarthDrivers/feature_ogr/OGRFeatureOptions>
 #include <osgEarthDrivers/gdal/GDALOptions>
 
-#include "elevquery_ref.h"
+#include "ElevationQueryReferenced"
 
 namespace sgi {
 namespace osgearth_plugin {
@@ -87,7 +87,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                  osgEarth::TileBlacklist, osgEarth::Util::Controls::ControlEventHandler,
                                                                  osgEarth::Annotation::Decoration,
                                                                  osgEarth::StateSetCache,
-                                                                 ElevationQueryRef
+                                                                 ElevationQueryReferenced
                                                                 ))
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(osgEarth::Cache, osgEarth::TileSource, osgEarth::ModelSource,

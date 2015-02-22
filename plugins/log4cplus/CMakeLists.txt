@@ -1,6 +1,7 @@
 include_directories(${LOG4CPLUS_INCLUDE_DIR})
 
 SET(TARGET_SRC
+    stdafx.cpp
     sgi_log4cplus_plugin.cpp
     ObjectTreeLog4cplus.cpp
     writeHTMLLog4cplus.cpp
@@ -10,13 +11,15 @@ SET(TARGET_SRC
     )
 
 SET(TARGET_H
-    SGIItemLog4cplus.h
+    stdafx.h
+    SGIItemLog4cplus
     ObjectTreeLog4cplus.h
     writeHTMLLog4cplus.h
     getObjectInfoLog4cplus.h
     ContextMenuLog4cplus.h
     MenuActionLog4cplus.h
     )
+configure_file(SGIItemLog4cplus ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemLog4cplus COPYONLY)
 
 SET(TARGET_LIBRARIES_VARS
     OSG_LIBRARY

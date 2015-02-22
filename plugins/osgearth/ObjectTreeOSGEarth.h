@@ -53,7 +53,7 @@ namespace osgEarth {
 namespace sgi {
 namespace osgearth_plugin {
 
-class ElevationQueryRef;
+typedef ReferencedRawPtrT<osgEarth::ElevationQuery> ElevationQueryReferenced;
 
 OBJECT_TREE_BUILD_IMPL_TEMPLATE()
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::MapNode)
@@ -80,7 +80,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::TileSource)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::TileBlacklist)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::ModelSource)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::MaskSource)
-OBJECT_TREE_BUILD_IMPL_DECLARE(ElevationQueryRef)
+OBJECT_TREE_BUILD_IMPL_DECLARE(ElevationQueryReferenced)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::VirtualProgram)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::Cache)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::CacheBin)

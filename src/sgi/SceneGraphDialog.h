@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QDialog>
-#include "sgi/SceneGraphDialog"
+#include <sgi/SceneGraphDialog>
 
 QT_BEGIN_NAMESPACE
 class Ui_SceneGraphDialog;

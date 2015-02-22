@@ -1,0 +1,193 @@
+// kate: syntax C++11;
+
+#pragma once
+
+#include <QString>
+#include <QColor>
+#include <QMetaType>
+#include <sgi/plugins/SGIDataItemBase.h>
+
+class QVariant;
+class QVariant;
+class QString;
+class QStringRef;
+class QBitArray;
+class QByteArray;
+class QByteRef;
+class QDate;
+class QTime;
+class QDateTime;
+class QLocale;
+class QColor;
+class QSize;
+class QSizeF;
+class QRect;
+class QRectF;
+class QPoint;
+class QPointF;
+class QChar;
+class QUrl;
+
+namespace sgi {
+
+class SGIItemBase;
+class SGIDataItemBase;
+
+typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
+typedef osg::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
+
+namespace qt_helpers {
+
+class QtSGIItem
+{
+public:
+    QtSGIItem(SGIItemType type=SGIItemTypeInvalid, SGIItemBase * item=NULL, bool populated=false, osg::Referenced * userData=NULL)
+        : _type(type), _item(item), _populated(populated), _userData(userData) {}
+    QtSGIItem(SGIItemBase * item, bool populated=false, osg::Referenced * userData=NULL)
+        : _type(item?item->type():SGIItemTypeInvalid), _item(item), _populated(populated), _userData(userData) {}
+    QtSGIItem(const QtSGIItem & rhs)
+        : _type(rhs._type), _item(rhs._item), _populated(rhs._populated), _userData(rhs._userData) {}
+    ~QtSGIItem()
+        { _item = NULL; }
+
+    QtSGIItem & operator = (const QtSGIItem & rhs)
+    {
+        _type = rhs._type;
+        _item = rhs._item;
+        _populated = rhs._populated;
+        _userData = rhs._userData;
+        return *this;
+    }
+    SGIItemType type() const { return _type; }
+    SGIItemBase * item() const { return _item.get(); }
+
+    bool hasItem() const { return _item.valid(); }
+
+    bool isPopulated() const { return _populated; }
+    void markAsPopulated() { _populated = true; }
+
+    const osg::Referenced * userData() const { return _userData.get(); }
+    osg::Referenced * userData() { return _userData.get(); }
+    void setUserData(osg::Referenced * userData) { _userData = userData; }
+
+private:
+    SGIItemType             _type;
+    SGIItemBasePtr          _item;
+    bool                    _populated;
+    osg::ref_ptr<osg::Referenced>   _userData;
+};
+
+class QtMenuSGIItem : public QtSGIItem
+{
+public:
+    QtMenuSGIItem(SGIItemType type=SGIItemTypeInvalid, SGIItemBase * item=NULL, bool populated=false, osg::Referenced * userData=NULL)
+        : QtSGIItem(type, item, populated, userData), _actionId(0), _mode(0) {}
+    QtMenuSGIItem(SGIItemBase * item, bool populated=false, osg::Referenced * userData=NULL)
+        : QtSGIItem(item, populated, userData), _actionId(0), _mode(0) {}
+    QtMenuSGIItem(const QtMenuSGIItem & rhs)
+        : QtSGIItem(rhs), _actionId(rhs._actionId), _mode(rhs._mode) {}
+    ~QtMenuSGIItem()
+        { }
+
+    QtMenuSGIItem & operator = (const QtMenuSGIItem & rhs)
+    {
+        QtSGIItem::operator=(rhs);
+        _actionId = rhs._actionId;
+        _mode = rhs._mode;
+        return *this;
+    }
+
+    unsigned actionId() const { return _actionId; }
+    void setActionId(unsigned actionId) { _actionId = actionId; }
+
+    unsigned mode() const { return _mode; }
+    void setMode(unsigned mode) { _mode = mode; }
+
+private:
+    unsigned                _actionId;
+    unsigned                _mode;
+};
+
+class QtTableSGIItem
+{
+public:
+    QtTableSGIItem(SGIDataItemBase * item=NULL, unsigned field=0)
+        : _item(item), _field(field) {}
+    QtTableSGIItem(const QtTableSGIItem & rhs)
+        : _item(rhs._item), _field(rhs._field) {}
+    ~QtTableSGIItem()
+        { }
+
+    QtTableSGIItem & operator = (const QtTableSGIItem & rhs)
+    {
+        _item = rhs._item;
+        _field = rhs._field;
+        return *this;
+    }
+
+    SGIDataItemBase * item() const { return _item.get(); }
+    bool hasItem() const { return _item.valid(); }
+
+private:
+    SGIDataItemBasePtr  _item;
+    unsigned            _field;
+};
+
+QString fromLocal8Bit(const std::string & str);
+std::string toLocal8Bit(const QString & str);
+std::string getObjectTypename(const QObject * object);
+std::string getObjectName(const QObject * object);
+std::string getObjectNameAndType(const QObject * object);
+
+inline sgi::Color qtColor(const QColor & c)
+{
+    return sgi::Color((float)c.redF(), (float)c.greenF(), (float)c.blueF(), (float)c.alphaF());
+}
+
+inline QColor qtColor(const sgi::Color & c)
+{
+    return QColor(c.r, c.g, c.b, c.a);
+}
+
+    } // namespace qt_helpers
+} // namespace sgi
+
+namespace std {
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVariant & v);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QString& str);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QStringRef& str);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QBitArray& v);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QByteArray& v);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QByteRef& str);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QDate & date);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QTime& t);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QDateTime& date);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QLocale& l);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QColor& color);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSize & size);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSizeF & size);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QRect & r);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QRectF & r);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPoint & p);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPointF & p);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QChar & c);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QUrl & url);
+
+    template<typename T>
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QList<T> & list)
+    {
+        for(typename QList<T>::const_iterator it = list.begin(); it != list.end();)
+        {
+            os << (const T &)(*it);
+            it++;
+            if(it != list.end())
+                os << ';';
+        }
+        return os;
+    }
+
+} // namespace std
+
+Q_DECLARE_METATYPE (sgi::qt_helpers::QtSGIItem);
+Q_DECLARE_METATYPE (sgi::qt_helpers::QtMenuSGIItem);
+Q_DECLARE_METATYPE (sgi::qt_helpers::QtTableSGIItem);

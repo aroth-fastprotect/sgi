@@ -3,64 +3,16 @@
 #include <QDialog>
 #include <QGLWidget>
 #include <QMetaProperty>
-#include <QBitArray>
-#include <QByteArray>
-#include <QLocale>
-#include <QEasingCurve>
 #include "writeHTMLQt.h"
-#include "SGIItemQt.h"
+#include "SGIItemQt"
 
-#include "std_ostream_qt.h"
-#include "string_helpers.h"
+#include <sgi/helpers/qt>
 #include <sgi/helpers/html>
 #include <sgi/helpers/rtti>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-namespace std {
-
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVariant & v)
-    {
-        switch(v.type())
-        {
-        case QVariant::Invalid: os << "(invalid)"; break;
-        case QVariant::Bool: os << (v.toBool()?"true":"false"); break;
-        case QVariant::Int: os << v.toInt(); break;
-        case QVariant::UInt: os << v.toUInt(); break;
-        case QVariant::LongLong: os << v.toLongLong(); break;
-        case QVariant::ULongLong: os << v.toULongLong(); break;
-        case QVariant::Double: os << v.toDouble(); break;
-        case QVariant::Char: os << v.toChar(); break;
-        case QVariant::Map: os << v.toMap(); break;
-        case QVariant::List: os << v.toList(); break;
-        case QVariant::String: os << v.toString(); break;
-        case QVariant::StringList: os << v.toStringList(); break;
-        case QVariant::ByteArray: os << v.toByteArray(); break;
-        case QVariant::BitArray: os << v.toBitArray(); break;
-        case QVariant::Date: os << v.toDate(); break;
-        case QVariant::Time: os << v.toTime(); break;
-        case QVariant::DateTime: os << v.toDateTime(); break;
-        case QVariant::Url: os << v.toUrl(); break;
-        case QVariant::Locale: os << v.toLocale(); break;
-        case QVariant::Rect: os << v.toRect(); break;
-        case QVariant::RectF: os << v.toRectF(); break;
-        case QVariant::Size: os << v.toSize(); break;
-        case QVariant::SizeF: os << v.toSizeF(); break;
-        case QVariant::Line: os << v.toLine(); break;
-        case QVariant::LineF: os << v.toLineF(); break;
-        case QVariant::Point: os << v.toPoint(); break;
-        case QVariant::PointF: os << v.toPointF(); break;
-        case QVariant::RegExp: os << v.toRegExp(); break;
-        case QVariant::Hash: os << v.toHash(); break;
-        case QVariant::EasingCurve: os << v.toEasingCurve(); break;
-        default: os << v.toString(); break;
-        }
-        return os;
-    }
-
-}
 
 namespace sgi {
 namespace qt_plugin {
@@ -121,7 +73,7 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
             for(QObjectList::const_iterator it = children.begin(); it != children.end(); it++)
             {
                 QObject * child = *it;
-                os << "<li>" << getObjectNameAndType(child) << "</li>" << std::endl;
+                os << "<li>" << qt_helpers::getObjectNameAndType(child) << "</li>" << std::endl;
             }
             os << "</ul>";
             ret = true;

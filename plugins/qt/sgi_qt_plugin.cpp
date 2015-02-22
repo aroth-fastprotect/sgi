@@ -7,7 +7,7 @@
 #include <sgi/plugins/SGIPluginMacros.h>
 #include <sgi/SGIItemInternal>
 #include <sgi/SceneGraphDialog>
-#include "SGIItemQt.h"
+#include "SGIItemQt"
 
 #include <QtCore/QThread>
 #include <QCoreApplication>

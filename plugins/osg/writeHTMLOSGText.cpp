@@ -1,14 +1,13 @@
 #include <ostream>
 #include "writeHTMLOSG.h"
 #include "writeHTMLOSGText.h"
-#include "SGIItemOsg.h"
+#include "SGIItemOsg"
 
 // osgText headers
 #include <osgText/Font>
 #include <osgText/Text>
 
-#include "string_helpers.h"
-#include "std_ostream_osg.h"
+#include <sgi/helpers/osg>
 #include "std_ostream_osgtext.h"
 
 namespace sgi {
@@ -17,6 +16,8 @@ namespace osg_plugin {
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgText::Font)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgText::TextBase)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgText::Text)
+
+using namespace sgi::osg_helpers;
 
 bool writePrettyHTMLImpl<osgText::Font>::process(std::basic_ostream<char>& os)
 {
@@ -40,8 +41,8 @@ bool writePrettyHTMLImpl<osgText::Font>::process(std::basic_ostream<char>& os)
             os << "<tr><td>glyphImageMargin</td><td>" << object->getGlyphImageMargin() << "</td></tr>" << std::endl;
             os << "<tr><td>glyphImageMarginRatio</td><td>" << object->getGlyphImageMarginRatio() << "</td></tr>" << std::endl;
 
-            os << "<tr><td>minFilterHint</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getMinFilterHint()) << "</td></tr>" << std::endl;
-            os << "<tr><td>magFilterHint</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getMagFilterHint()) << "</td></tr>" << std::endl;
+            os << "<tr><td>minFilterHint</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getMinFilterHint()) << "</td></tr>" << std::endl;
+            os << "<tr><td>magFilterHint</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getMagFilterHint()) << "</td></tr>" << std::endl;
             os << "<tr><td>fontDepth</td><td>" << object->getFontDepth() << "</td></tr>" << std::endl;
             os << "<tr><td>numberCurveSamples</td><td>" << object->getNumberCurveSamples() << "</td></tr>" << std::endl;
 

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ObjectTreeOSG.h"
-#include "string_helpers.h"
-#include "SGIItemOsg.h"
+#include <sgi/helpers/osg>
+#include "SGIItemOsg"
 #include "getObjectInfoOSG.h"
 
 #include <sgi/SGIItemInternal>
@@ -142,6 +142,8 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(RenderInfoDrawable)
 OBJECT_TREE_BUILD_IMPL_REGISTER(sgi::ReferencedPickerBase)
 OBJECT_TREE_BUILD_IMPL_REGISTER(sgi::ReferencedPicker)
 OBJECT_TREE_BUILD_IMPL_REGISTER(sgi::ReferencedLinePicker)
+
+using namespace sgi::osg_helpers;
 
 extern bool objectInfo_hasCallback(SGIPluginHostInterface * hostInterface, bool & result, const SGIItemBase * object);
 extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::StateAttribute::Type & t);

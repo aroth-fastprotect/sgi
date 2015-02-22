@@ -2,6 +2,9 @@
 
 #include <sgi/plugins/SGIPluginMacros.h>
 
+class QImage;
+class QMetaMethod;
+
 namespace sgi {
 namespace qt_plugin {
 

@@ -1,11 +1,11 @@
 #include "stdafx.h"
 #include "ContextMenuQt.h"
-#include "SGIItemQt.h"
+#include "SGIItemQt"
 #include "MenuActionQt.h"
-#include "string_helpers.h"
 #include <QMetaClassInfo>
 #include <QWidget>
 #include <sgi/helpers/string>
+#include <sgi/helpers/qt>
 
 namespace sgi {
 
@@ -16,6 +16,8 @@ CONTEXT_MENU_POPULATE_IMPL_REGISTER(QWidget)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(QMetaObject)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(QPaintDevice)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(QImage)
+
+using namespace sgi::qt_helpers;
 
 bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
 {

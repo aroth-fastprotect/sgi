@@ -8,14 +8,13 @@
 #include <QDesktopWidget>
 
 #include "ObjectTreeQt.h"
-#include "SGIItemQt.h"
+#include "SGIItemQt"
 
 #include <sgi/SGIItemInternal>
 #include <sgi/SceneGraphDialog>
 #include <sgi/plugins/SGIProxyItem.h>
 #include <sgi/helpers/string>
-
-#include "string_helpers.h"
+#include <sgi/helpers/qt>
 
 namespace sgi {
 namespace qt_plugin {
@@ -27,6 +26,8 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(QCoreApplication)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QApplication)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QPaintDevice)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QImage)
+
+using namespace sgi::qt_helpers;
 
 bool objectTreeBuildImpl<QMetaObject>::build(IObjectTreeItem * treeItem)
 {

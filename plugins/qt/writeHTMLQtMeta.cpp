@@ -3,7 +3,7 @@
 #include <QtCore/QMetaClassInfo>
 #include <QtCore/QMetaProperty>
 #include "writeHTMLQt.h"
-#include "SGIItemQt.h"
+#include "SGIItemQt"
 
 #include <sgi/helpers/rtti>
 

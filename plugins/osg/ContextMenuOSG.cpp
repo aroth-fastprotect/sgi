@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ContextMenuOSG.h"
-#include "string_helpers.h"
-#include "SGIItemOsg.h"
+#include <sgi/helpers/osg>
+#include "SGIItemOsg"
 
 #include <sgi/ContextMenu>
 #include <sgi/SceneGraphDialog>
@@ -103,6 +103,8 @@ CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgAnimation::AnimationManagerBase)
 
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(sgi::ISceneGraphDialogToolsMenu)
 
+using namespace sgi::osg_helpers;
+
 namespace {
     static void createStateAttributeMenu(unsigned actionId, osg::StateAttribute * attr, IContextMenuItem * menuItem,
                                              const std::string & name, SGIItemBase * item, const osg::StateAttribute::OverrideValue value)
@@ -140,7 +142,7 @@ namespace {
     }
     static void addStateSetModeMenu(IContextMenuItem * menuItem, osg::StateAttribute::GLMode mode, SGIItemBase * item)
     {
-        std::string name = sgi::castToEnumValueString<sgi::GLConstant>(mode);
+        std::string name = sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(mode);
         StateAttributeModeValue currentMode = getStateAttributeModeFromObject(static_cast<osg::Object*>(static_cast<SGIItemOsg*>(item)->object()), mode);
         createStateAttributeModeMenu(MenuActionStateSetMode, mode, menuItem, name, item, currentMode);
     }

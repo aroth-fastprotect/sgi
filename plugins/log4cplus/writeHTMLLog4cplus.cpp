@@ -1,7 +1,7 @@
 #include <ostream>
 #include <log4cplus/hierarchy.h>
 #include "writeHTMLLog4cplus.h"
-#include "SGIItemLog4cplus.h"
+#include "SGIItemLog4cplus"
 
 #include <sgi/helpers/rtti>
 

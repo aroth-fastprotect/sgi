@@ -43,7 +43,7 @@ ENDIF()
 
 SET(SGI_VERSION ${SGI_MAJOR_VERSION}.${SGI_MINOR_VERSION}.${SGI_PATCH_VERSION})
 
-SET(SGI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/sgi)
+SET(SGI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # We want to build SONAMES shared librariess
 SET(SGI_SONAMES TRUE)
@@ -57,7 +57,7 @@ SET(THIRD_PARTY_DIR "" CACHE PATH "OSG 3rd-party dependency folder")
 
 # We have some custom .cmake scripts not in the official distribution.
 # Maybe this can be used override existing behavior if needed?
-SET(CMAKE_MODULE_PATH "${SGI_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
+SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 
 IF(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
     SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
@@ -236,7 +236,10 @@ ENDIF(INSTALL_TO_OSG_DIR)
 
 
 INCLUDE(OsgEarthMacroUtils)
+configure_file(CMakeModules/SGIMacros.cmake.in ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/SGIMacros.cmake @ONLY)
 INCLUDE(SGIMacros)
+
+SET(SGI_PLUGIN_IMPL_LIBRARY osgSGI-plugin-impl)
 
 DETECT_OSG_VERSION()
 

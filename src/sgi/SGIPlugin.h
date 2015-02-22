@@ -34,13 +34,12 @@ class IContextMenuAction;
 class ISettingsDialog;
 class ISettingsDialogInfo;
 
-class SGIPluginInfo
+class SGIPluginInfo : public ISGIPluginInfo
 {
 public:
     SGIPluginInfo()
         : pluginName()
         , pluginFilename()
-        , pluginScore(0)
         , pluginInterface(NULL)
         , pluginUIInterface(NULL)
         , writePrettyHTMLInterface(NULL)
@@ -50,12 +49,12 @@ public:
         , contextMenuInterface(NULL)
         , settingsDialogInterface(NULL)
         , guiAdapterInterface(NULL)
+        , _pluginScore(0)
     {
     }
     SGIPluginInfo(const SGIPluginInfo & rhs)
         : pluginName(rhs.pluginName)
         , pluginFilename(rhs.pluginFilename)
-        , pluginScore(rhs.pluginScore)
         , pluginInterface(rhs.pluginInterface)
         , pluginUIInterface(rhs.pluginUIInterface)
         , writePrettyHTMLInterface(rhs.writePrettyHTMLInterface)
@@ -65,12 +64,13 @@ public:
         , contextMenuInterface(rhs.contextMenuInterface)
         , settingsDialogInterface(rhs.settingsDialogInterface)
         , guiAdapterInterface(rhs.guiAdapterInterface)
+        , _pluginScore(rhs._pluginScore)
     {
     }
+    virtual unsigned pluginScore() const { return _pluginScore; }
 public:
     std::string                             pluginName;
     std::string                             pluginFilename;
-    unsigned                                pluginScore;
     osg::ref_ptr<SGIPluginInterface>        pluginInterface;
     osg::ref_ptr<SGIPluginInterface>        pluginUIInterface;
     SGIPluginInterface::WritePrettyHTML*    writePrettyHTMLInterface;
@@ -80,6 +80,7 @@ public:
     SGIPluginInterface::ContextMenu*        contextMenuInterface;
     SGIPluginInterface::SettingsDialog*     settingsDialogInterface;
     SGIPluginInterface::GUIAdapter*         guiAdapterInterface;
+    unsigned                                _pluginScore;
 };
 
 

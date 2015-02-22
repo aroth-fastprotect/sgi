@@ -1,4 +1,6 @@
+include_directories(${OSGEARTH_INCLUDE_DIR})
 SET(TARGET_SRC
+    stdafx.cpp
     sgi_osgearth_plugin.cpp
     writeHTMLOSGEarth.cpp
     writeHTMLOSGEarthConfig.cpp
@@ -16,7 +18,9 @@ SET(TARGET_SRC
     )
 
 SET(TARGET_H
-    ../osg/SGIItemOsg.h
+	SGIItemOsgEarth
+	ElevationQueryReferenced
+	stdafx.h
     writeHTMLOSGEarth.h
     writeHTMLOSGEarthConfig.h
     getObjectInfoOSGEarth.h
@@ -26,9 +30,11 @@ SET(TARGET_H
     SettingsDialogOSGEarth.h
     GUIAdapterOSGEarth.h
     string_helpers.h
-    elevquery_ref.h
     geo_helpers.h
     )
+
+configure_file(SGIItemOsgEarth ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsgEarth COPYONLY)
+configure_file(ElevationQueryReferenced ${SGI_INCLUDE_DIR}/sgi/plugins/ElevationQueryReferenced COPYONLY)
 
 SET(TARGET_MOC_H
     AutoClipPlaneCullCallbackDialog.h
@@ -45,6 +51,7 @@ SET(TARGET_LIBRARIES_VARS
     OPENTHREADS_LIBRARY
     OSG_LIBRARY
     OSGDB_LIBRARY
+    SGI_PLUGIN_IMPL_LIBRARY
     OSGEARTH_LIBRARY
     OSGEARTHUTIL_LIBRARY
     OSGEARTHFEATURES_LIBRARY

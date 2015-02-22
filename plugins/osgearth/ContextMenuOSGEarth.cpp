@@ -1,7 +1,6 @@
 #include "ContextMenuOSGEarth.h"
-#include "../osg/SGIItemOsg.h"
-#include "../osg/string_helpers.h"
-
+#include <sgi/plugins/SGIItemOsg>
+#include <sgi/helpers/osg>
 #include <sgi/helpers/string>
 
 #include <osgEarth/Version>
@@ -20,7 +19,7 @@
 #include "MenuActionOSGEarth.h"
 
 #include "osgearth_accessor.h"
-#include "elevquery_ref.h"
+#include "ElevationQueryReferenced"
 
 namespace sgi {
 
@@ -47,7 +46,7 @@ CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgEarth::Util::Controls::ControlCanvas)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgEarth::TileSource)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgEarth::TileBlacklist)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgEarth::VirtualProgram)
-CONTEXT_MENU_POPULATE_IMPL_REGISTER(ElevationQueryRef)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(ElevationQueryReferenced)
 
 bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
 {
@@ -617,9 +616,9 @@ bool contextMenuPopulateImpl<osgEarth::TileBlacklist>::populate(IContextMenuItem
     return ret;
 }
 
-bool contextMenuPopulateImpl<ElevationQueryRef>::populate(IContextMenuItem * menuItem)
+bool contextMenuPopulateImpl<ElevationQueryReferenced>::populate(IContextMenuItem * menuItem)
 {
-    ElevationQueryRef * query_ref = getObject<ElevationQueryRef, SGIItemOsg>();
+    ElevationQueryReferenced * query_ref = getObject<ElevationQueryReferenced, SGIItemOsg>();
     osgEarth::ElevationQuery* object = query_ref->get();
     bool ret = false;
     switch(itemType())

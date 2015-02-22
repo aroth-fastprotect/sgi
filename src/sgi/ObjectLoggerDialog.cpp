@@ -9,19 +9,22 @@
 #include <QTimer>
 
 #include "SGIPlugin.h"
-#include "sgi/ContextMenu"
-#include "sgi/SceneGraphDialog"
-#include "sgi/plugins/SGIPluginInterface.h"
-#include "sgi/plugins/SGIDataItemBase.h"
+#include <sgi/ContextMenu>
+#include <sgi/SceneGraphDialog>
+#include <sgi/plugins/SGIPluginInterface.h>
+#include <sgi/plugins/SGIDataItemBase.h>
 
-#include "ObjectTreeImpl.h"
-#include "sgi/SGIItemInternal"
+#include <sgi/plugins/ObjectTreeImpl>
+#include <sgi/SGIItemInternal>
+#include <sgi/helpers/qt>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
 namespace sgi {
+
+using namespace qt_helpers;
 
 class ObjectLoggerDialog::ContextMenuCallback : public IContextMenuInfo
 {

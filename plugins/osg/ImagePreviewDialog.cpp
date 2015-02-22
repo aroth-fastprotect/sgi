@@ -18,8 +18,8 @@
 
 #include <sgi/plugins/SGISettingsDialogImpl>
 #include <sgi/plugins/SGIPluginMacros.h>
+#include <sgi/helpers/osg>
 
-#include "string_helpers.h"
 #include "FindTopMostNodeOfType"
 
 #ifdef _DEBUG
@@ -28,6 +28,8 @@
 
 namespace sgi {
 namespace osg_plugin {
+
+using namespace sgi::osg_helpers;
 
 namespace {
 
@@ -319,7 +321,7 @@ void ImagePreviewDialog::load(const osg::Image * img)
 
     std::stringstream ss;
     ss << "osg::Image " << img->s() << "x" << img->t() << "x" << img->r();
-    ss << " [format=" << sgi::castToEnumValueString<sgi::GLConstant>(img->getPixelFormat()) << ";mipmap=" << img->getNumMipmapLevels() << "]";
+    ss << " [format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(img->getPixelFormat()) << ";mipmap=" << img->getNumMipmapLevels() << "]";
     ss << "\r\n";
     ss << "Qt " << qimg.width() << "x" << qimg.height() << "x" << qimg.depth();
     ss << " [format=" << qimg.format() << ";colors=" << qimg.colorCount() << "]";
@@ -350,7 +352,7 @@ void ImagePreviewDialog::load(const osg::Texture * texture)
 
     std::stringstream ss;
     ss << "osg::Texture " << img->s() << "x" << img->t() << "x" << img->r();
-    ss << " [format=" << sgi::castToEnumValueString<sgi::GLConstant>(img->getPixelFormat()) << ";mipmap=" << img->getNumMipmapLevels() << "]";
+    ss << " [format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(img->getPixelFormat()) << ";mipmap=" << img->getNumMipmapLevels() << "]";
     ss << "\r\n";
     ss << "Qt N/A";
 
@@ -583,7 +585,7 @@ void ImagePreviewDialog::textureReady(QImage qimg)
 
     std::stringstream ss;
     ss << "osg::Texture " << img->s() << "x" << img->t() << "x" << img->r();
-    ss << " [format=" << sgi::castToEnumValueString<sgi::GLConstant>(img->getPixelFormat()) << ";mipmap=" << img->getNumMipmapLevels() << "]";
+    ss << " [format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(img->getPixelFormat()) << ";mipmap=" << img->getNumMipmapLevels() << "]";
     ss << "\r\n";
     ss << "Qt " << qimg.width() << "x" << qimg.height() << "x" << qimg.depth();
     ss << " [format=" << qimg.format() << ";colors=" << qimg.colorCount() << "]";

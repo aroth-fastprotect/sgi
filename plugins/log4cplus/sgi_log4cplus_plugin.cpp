@@ -8,7 +8,7 @@
 #include <sgi/SGIItemInternal>
 #include <sgi/SceneGraphDialog>
 
-#include "SGIItemLog4cplus.h"
+#include "SGIItemLog4cplus"
 #include "ObjectTreeLog4cplus.h"
 #include "writeHTMLLog4cplus.h"
 #include "getObjectInfoLog4cplus.h"

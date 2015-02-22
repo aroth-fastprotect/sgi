@@ -1,0 +1,61 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#if defined(_MSC_VER) || defined(__CYGWIN__) || defined(__MINGW32__) || defined( __BCPLUSPLUS__) || defined( __MWERKS__)
+    #  if defined( SGI_LIBRARY )
+    #    define SGI_EXPORT   __declspec(dllexport)
+    #  else
+    #    define SGI_EXPORT   __declspec(dllimport)
+    #  endif
+#elif defined(__GNUC__)
+    #  define SGI_EXPORT __attribute__ ((visibility ("default")))
+#else
+    #  define SGI_EXPORT
+#endif
+/**
+
+\namespace sgi
+
+The sgi library is a NodeKit that allows to inspect and modify a scene graph during runtime.
+*/
+
+
+#define SGI_MAJOR_VERSION    0
+#define SGI_MINOR_VERSION    3
+#define SGI_PATCH_VERSION    0
+#define SGI_SOVERSION        0
+
+#define SGI_VERSION_STR      "0.3.0"
+#define SGI_SOVERSION_STR    "0"
+
+#ifdef _DEBUG
+#define SGI_LIBRARY_NAME "libosgSGI.so"
+#else // _DEBUG
+#  ifdef _MINSIZEREL
+#    define SGI_LIBRARY_NAME "libosgSGIs.so"
+#  else // _MINSIZEREL
+#    ifdef _RELWITHDEBINFO
+#      define SGI_LIBRARY_NAME "libosgSGIrd.so"
+#    else // _RELWITHDEBINFO
+#      define SGI_LIBRARY_NAME "libosgSGI.so"
+#    endif // _RELWITHDEBINFO
+#  endif // _MINSIZEREL
+#endif // _DEBUG
+
+extern "C" {
+/**
+  * sgiGetVersion() returns the library version number.
+  * Numbering convention : SGI-3 will return 3 from sgiGetVersion.
+  *
+*/
+extern SGI_EXPORT const char* sgiGetVersion();
+
+/** The sgiGetSOVersion() method returns the SGI shared object version number. */
+extern SGI_EXPORT const char* sgiGetSOVersion();
+
+/** The sgiGetLibraryName() method returns the library name in human-friendly form. */
+extern SGI_EXPORT const char* sgiGetLibraryName();
+
+}

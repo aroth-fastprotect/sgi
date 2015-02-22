@@ -1,5 +1,5 @@
 #include "GUIAdapterOSGEarth.h"
-#include "../osg/SGIItemOsg.h"
+#include "../osg/SGIItemOsg"
 
 #include "ContextMenuOSGEarth.h"
 

@@ -1,0 +1,91 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include "plugins/SGIHostItemGenerator"
+
+class QWidget;
+class QMenu;
+
+namespace osg {
+    class View;
+}
+
+namespace sgi {
+
+class SGIItemBase;
+class SGIHostItemBase;
+
+class IContextMenuInfo : public osg::Referenced
+{
+public:
+    virtual                 ~IContextMenuInfo() {}
+    virtual bool            showSceneGraphDialog(SGIItemBase * item) = 0;
+    virtual bool            showObjectLoggerDialog(SGIItemBase * item) = 0;
+    virtual void            triggerRepaint() = 0;
+    virtual SGIHostItemBase * getView() = 0;
+};
+typedef osg::ref_ptr<IContextMenuInfo> IContextMenuInfoPtr;
+
+class IContextMenu : public osg::Referenced
+{
+public:
+    virtual                 ~IContextMenu() {}
+    virtual void            setObject(SGIItemBase * item, IContextMenuInfo * info=NULL) = 0;
+    virtual void            setObject(const SGIHostItemBase * item, IContextMenuInfo * info=NULL) = 0;
+    virtual QWidget *       parentWidget() = 0;
+    virtual QMenu *         getMenu() = 0;
+    virtual IContextMenuInfo * getInfo() = 0;
+};
+typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
+
+template<typename AUTOLOADCLASS>
+inline IContextMenu * createContextMenuImpl(QWidget *parent, const SGIHostItemBase * object, IContextMenuInfo * info=NULL)
+{
+    IContextMenu * ret;
+    typedef IContextMenu * (*pfn)(QWidget *parent, const SGIHostItemBase * object, IContextMenuInfo * info);
+    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_createContextMenu");
+    if(func)
+        ret = func(parent, object, info);
+    else
+        ret = NULL;
+    return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline IContextMenu * createContextMenuImpl(QWidget *parent, SGIItemBase * item, IContextMenuInfo * info=NULL)
+{
+    IContextMenu * ret;
+    typedef IContextMenu * (*pfn)(QWidget *parent, SGIItemBase * item, IContextMenuInfo * info);
+    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_createContextMenuItem");
+    if(func)
+        ret = func(parent, item, info);
+    else
+        ret = NULL;
+    return ret;
+}
+
+template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
+inline IContextMenu * createContextMenu(QWidget *parent, OBJECT_TYPE * object, IContextMenuInfo * info=NULL)
+{
+    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    IContextMenu * ret = createContextMenuImpl<AUTOLOADCLASS>(parent, hostitem.get(), info);
+    return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * item, IContextMenuInfo * info=NULL)
+{
+    IContextMenu * ret = createContextMenuImpl<AUTOLOADCLASS>(parent, item, info);
+    return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IContextMenuInfo * info=NULL)
+{
+    IContextMenu * ret = createContextMenuImpl<AUTOLOADCLASS>(parent, item, info);
+    return ret;
+}
+
+} // namespace sgi

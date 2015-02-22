@@ -1,0 +1,151 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+#include <sgi/plugins/SGIItemBase.h>
+#include <QtCore/QSharedPointer>
+#include <QtGui/QPaintDevice>
+
+class QObject;
+struct QMetaObject;
+
+namespace sgi {
+namespace support {
+    class SGIHostItemQt;
+    class SGIHostItemQtMeta;
+}
+
+class SGIItemQt : public SGIItemBase
+{
+public:
+    typedef support::SGIHostItemQt HostItemType;
+    typedef QObject ObjectType;
+    typedef QObject * ObjectStorageType;
+    SGIItemQt(const HostItemType * hostItem=NULL, SGIItemType type=SGIItemTypeInvalid, QObject * object=NULL, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
+        : SGIItemBase(type, flags, score, userData), _object(object) {}
+    SGIItemQt(const SGIItemQt & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
+        : SGIItemBase(rhs, copyop), _object(rhs._object) {}
+    ~SGIItemQt()
+        { }
+
+    META_Object(sgi, SGIItemQt);
+
+    SGIItemQt & operator = (const SGIItemQt & rhs)
+    {
+        SGIItemBase::operator=(rhs);
+        _object = rhs._object;
+        return *this;
+    }
+    ObjectType * object() { return _object; }
+    ObjectType * object() const { return _object; }
+
+protected:
+    virtual int compare(const SGIItemBase & rhs) const
+    {
+        int ret = SGIItemBase::compare(rhs);
+        if(!ret)
+        {
+            if(_object == static_cast<const SGIItemQt&>(rhs)._object)
+                return 0;
+            else if(_object < static_cast<const SGIItemQt&>(rhs)._object)
+                return -1;
+            else
+                return 1;
+        }
+        else
+            return ret;
+    }
+
+private:
+    ObjectStorageType _object;
+};
+
+class SGIItemQtMeta : public SGIItemBase
+{
+public:
+    typedef support::SGIHostItemQtMeta HostItemType;
+    typedef QMetaObject ObjectType;
+    typedef QMetaObject * ObjectStorageType;
+
+    SGIItemQtMeta(const HostItemType * hostItem=NULL, SGIItemType type=SGIItemTypeInvalid, QMetaObject * object=NULL, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
+        : SGIItemBase(type, flags, score, userData), _object(object) {}
+    SGIItemQtMeta(const SGIItemQtMeta & rhs)
+        : SGIItemBase(rhs), _object(rhs._object) {}
+    ~SGIItemQtMeta()
+        { }
+
+    SGIItemQtMeta & operator = (const SGIItemQtMeta & rhs)
+    {
+        SGIItemBase::operator=(rhs);
+        _object = rhs._object;
+        return *this;
+    }
+    ObjectType * object() { return _object; }
+    ObjectType * object() const { return _object; }
+
+protected:
+    virtual int compare(const SGIItemBase & rhs) const
+    {
+        int ret = SGIItemBase::compare(rhs);
+        if(!ret)
+        {
+            if(_object == static_cast<const SGIItemQtMeta&>(rhs)._object)
+                return 0;
+            else if(_object < static_cast<const SGIItemQtMeta&>(rhs)._object)
+                return -1;
+            else
+                return 1;
+        }
+        else
+            return ret;
+    }
+
+private:
+    ObjectStorageType _object;
+};
+
+class SGIItemQtPaintDevice : public SGIItemBase
+{
+public:
+    typedef support::SGIHostItemQtPaintDevice HostItemType;
+    typedef QPaintDevice ObjectType;
+    typedef QSharedPointer<QPaintDevice> ObjectStorageType;
+
+    SGIItemQtPaintDevice(const HostItemType * hostItem=NULL, SGIItemType type=SGIItemTypeInvalid, QPaintDevice * object=NULL, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
+        : SGIItemBase(type, flags, score, userData), _object(object) {}
+    SGIItemQtPaintDevice(const SGIItemQtPaintDevice & rhs)
+        : SGIItemBase(rhs), _object(rhs._object) {}
+    ~SGIItemQtPaintDevice()
+        { }
+
+    SGIItemQtPaintDevice & operator = (const SGIItemQtPaintDevice & rhs)
+    {
+        SGIItemBase::operator=(rhs);
+        _object = rhs._object;
+        return *this;
+    }
+    ObjectType * object() { return _object.data(); }
+    ObjectType * object() const { return _object.data(); }
+
+protected:
+    virtual int compare(const SGIItemBase & rhs) const
+    {
+        int ret = SGIItemBase::compare(rhs);
+        if(!ret)
+        {
+            if(_object == static_cast<const SGIItemQtPaintDevice&>(rhs)._object)
+                return 0;
+            else if(_object < static_cast<const SGIItemQtPaintDevice&>(rhs)._object)
+                return -1;
+            else
+                return 1;
+        }
+        else
+            return ret;
+    }
+
+private:
+    ObjectStorageType _object;
+};
+
+} // namespace sgi

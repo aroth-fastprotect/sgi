@@ -72,7 +72,7 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
                     os << "<table border=\'1\' align=\'left\' width='100%'>";
                     os << "<tr><td>name</td><td>" << info.pluginName << "</td></tr>";
                     os << "<tr><td>filename</td><td>" << info.pluginFilename << "</td></tr>";
-                    os << "<tr><td>score</td><td>" << info.pluginScore << "</td></tr>";
+                    os << "<tr><td>score</td><td>" << info.pluginScore() << "</td></tr>";
                     os << "<tr><td>WritePrettyHTML</td><td>" << (void*)info.writePrettyHTMLInterface << "</td></tr>";
                     os << "<tr><td>ObjectInfo</td><td>" << (void*)info.objectInfoInterface << "</td></tr>";
                     os << "<tr><td>ObjectTree</td><td>" << (void*)info.objectTreeInterface << "</td></tr>";
@@ -121,7 +121,7 @@ bool writePrettyHTMLImpl<ReferencedInternalItemData>::process(std::basic_ostream
 
             const SGIPlugins::PluginInfo * pluginInfo = (const SGIPlugins::PluginInfo *)data->pluginInfo();
             os << "<tr><td>plugin</td><td>" << pluginInfo->pluginName << "</td></tr>" << std::endl;
-            os << "<tr><td>pluginScore</td><td>" << pluginInfo->pluginScore << "</td></tr>" << std::endl;
+            os << "<tr><td>pluginScore</td><td>" << pluginInfo->pluginScore() << "</td></tr>" << std::endl;
 
             os << "<tr><td>item chain</td><td><ul>";
             SGIItemType initialType = data->type();
@@ -138,7 +138,7 @@ bool writePrettyHTMLImpl<ReferencedInternalItemData>::process(std::basic_ostream
                         os << "(this)";
                     else
                         os << (void*)item;
-                    os << "&nbsp;<b>" << helpers::demangle_html(item->typeName()) << "</b>&nbsp;<i>" << itemPluginInfo->pluginName << ':' << itemPluginInfo->pluginScore << "</i></li>";
+                    os << "&nbsp;<b>" << helpers::demangle_html(item->typeName()) << "</b>&nbsp;<i>" << itemPluginInfo->pluginName << ':' << itemPluginInfo->pluginScore() << "</i></li>";
                     item = item->nextBase();
                 }
             }

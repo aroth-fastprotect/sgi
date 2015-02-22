@@ -1,6 +1,6 @@
 #include "GUIAdapterOSG.h"
 #include "MenuActionOSG.h"
-#include "SGIItemOsg.h"
+#include "SGIItemOsg"
 #include <osgViewer/View>
 
 namespace sgi {

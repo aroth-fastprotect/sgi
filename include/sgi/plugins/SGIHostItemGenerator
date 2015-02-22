@@ -1,0 +1,69 @@
+// kate: syntax C++11;
+/* -*-c++-*- OpenSceneGraph - Copyright (C) 1998-2006 Robert Osfield
+ *
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
+ * (at your option) any later version.  The full license is in LICENSE file
+ * included with this distribution, and on the openscenegraph.org website.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * OpenSceneGraph Public License for more details.
+*/
+//sgi - Copyright (C) 2012-2013 Andreas Roth
+
+
+#pragma once
+
+#include "../helpers/preprocessor"
+
+#define _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM(...) \
+    _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_( _SGI_PP_VARIADIC_SIZE(__VA_ARGS__), __VA_ARGS__ )
+#define _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_( num, ... ) \
+    _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM__( num, __VA_ARGS__)
+#define _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM__( num, ... ) \
+    _SGI_PP_CAT(_SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_,num)(__VA_ARGS__)
+
+#define _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_1(_1) \
+    static inline SGIHostItemBase * generateHostItem(support::_1::object_type * object) { return new support::_1::host_item_type(object); }
+
+#define _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_2(_1, _2) \
+    _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_1(_1) \
+    static inline SGIHostItemBase * generateHostItem(support::_2::object_type * object) { return new support::_2::host_item_type(object); }
+
+#define _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_3(_1, _2, _3) \
+    _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_2(_1, _2) \
+    static inline SGIHostItemBase * generateHostItem(support::_3::object_type * object) { return new support::_3::host_item_type(object); }
+
+#define _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_4(_1, _2, _3, _4) \
+    _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_3(_1, _2, _3) \
+    static inline SGIHostItemBase * generateHostItem(support::_4::object_type * object) { return new support::_4::host_item_type(object); }
+
+#define _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_5(_1, _2, _3, _4, _5) \
+    _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_4(_1, _2, _3, _4) \
+    static inline SGIHostItemBase * generateHostItem(support::_5::object_type * object) { return new support::_5::host_item_type(object); }
+
+#define _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_6(_1, _2, _3, _4, _5, _6) \
+    _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_5(_1, _2, _3, _4, _5) \
+    static inline SGIHostItemBase * generateHostItem(support::_6::object_type * object) { return new support::_6::host_item_type(object); }
+
+#define _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_7(_1, _2, _3, _4, _5, _6, _7) \
+    _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_6(_1, _2, _3, _4, _5, _6) \
+    static inline SGIHostItemBase * generateHostItem(support::_7::object_type * object) { return new support::_7::host_item_type(object); }
+
+#define _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_8(_1, _2, _3, _4, _5, _6, _7, _8) \
+    _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM_7(_1, _2, _3, _4, _5, _6, _7) \
+    static inline SGIHostItemBase * generateHostItem(support::_8::object_type * object) { return new support::_8::host_item_type(object); }
+
+#define SGI_HOSTITEM_GENERATOR(...) \
+    class SGIHostItemGenerator \
+    { \
+    private: \
+        SGIHostItemGenerator() {} \
+        ~SGIHostItemGenerator() {} \
+    public: \
+        _SGI_HOSTITEM_GENERATOR_GENERATE_HOST_ITEM(__VA_ARGS__) \
+    };
+
+#include "SGIHostSupport"

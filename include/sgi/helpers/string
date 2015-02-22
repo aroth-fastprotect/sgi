@@ -1,0 +1,71 @@
+// kate: syntax C++11;
+#pragma once
+
+#include <sstream>
+
+namespace sgi {
+namespace helpers {
+
+template<typename INT_TYPE>
+inline std::string str_plus_count(const char * str, const INT_TYPE & n)
+{
+    std::stringstream buf;
+    buf << str << '(' << n << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE, typename INT_TYPE2>
+inline std::string str_plus_count(const char * str, const INT_TYPE & n, const INT_TYPE2 & n2)
+{
+    std::stringstream buf;
+    buf << str << '(' << n << ':' << n2 << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE>
+inline std::string str_plus_info(const char * str, const INT_TYPE & n)
+{
+    std::stringstream buf;
+    buf << str << '(' << n << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE, typename INT_TYPE2>
+inline std::string str_plus_info(const char * str, const INT_TYPE & n, const INT_TYPE2 & n2)
+{
+    std::stringstream buf;
+    buf << str << '(' << n << ':' << n2 << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE>
+inline std::string str_plus_hex(const char * str, const INT_TYPE & n)
+{
+    std::stringstream buf;
+    buf << str << "(0x" << std::hex << n << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE>
+inline std::string str_plus_number(const char * str, const INT_TYPE & n)
+{
+    std::stringstream buf;
+    buf << str << '#' << n;
+    return buf.str();
+}
+
+template<typename INT_TYPE>
+inline void str_append(std::string & str, const INT_TYPE & n, const char seperator=',')
+{
+    std::stringstream buf;
+    if(!str.empty())
+        buf << str << seperator << n;
+    else
+        buf << n;
+    str = buf.str();
+}
+
+void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size);
+
+} // namespace helpers
+} // namespace sgi

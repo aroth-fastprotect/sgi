@@ -1,9 +1,6 @@
 #pragma once
 
 #include <sstream>
-#include <iomanip>
-
-#include "../osg/string_helpers.h"
 
 #include <osgEarth/optional>
 #include <osgEarth/Units>

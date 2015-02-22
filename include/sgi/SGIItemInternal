@@ -1,0 +1,82 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include "plugins/SGIItemBase.h"
+
+namespace sgi {
+namespace support {
+    class SGIHostItemOsg;
+    typedef SGIHostItemOsg SGIHostItemInternal;
+}
+
+class SGIItemInternal : public SGIItemBase
+{
+public:
+    typedef osg::Referenced ObjectType;
+    typedef osg::ref_ptr<osg::Referenced> ObjectStorageType;
+    typedef support::SGIHostItemInternal HostItemType;
+
+    SGIItemInternal(const HostItemType * hostItem=NULL, SGIItemType type=SGIItemTypeInvalid, osg::Referenced * ref=NULL, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
+        : SGIItemBase(type, flags, score, userData), _object(ref) {}
+    SGIItemInternal(SGIItemType type, const osg::Referenced * ref=NULL, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
+        : SGIItemBase(type, flags, score, userData), _object(const_cast<osg::Referenced*>(ref)) {}
+    SGIItemInternal(const SGIItemInternal & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
+        : SGIItemBase(rhs, copyop), _object(rhs._object) {}
+    ~SGIItemInternal()
+        { }
+
+    META_Object(sgi, SGIItemInternal);
+
+    SGIItemInternal & operator = (const SGIItemInternal & rhs)
+    {
+        SGIItemBase::operator=(rhs);
+        _object = rhs._object;
+        return *this;
+    }
+    ObjectType * object() { return _object.get(); }
+    ObjectType * object() const { return _object.get(); }
+
+protected:
+    virtual int compare(const SGIItemBase & rhs) const
+    {
+        int ret = SGIItemBase::compare(rhs);
+        if(!ret)
+        {
+            if(_object == static_cast<const SGIItemInternal&>(rhs)._object)
+                return 0;
+            else if(_object < static_cast<const SGIItemInternal&>(rhs)._object)
+                return -1;
+            else
+                return 1;
+        }
+        else
+            return ret;
+    }
+
+private:
+    ObjectStorageType _object;
+};
+
+struct InternalItemData
+{
+    SGIItemBasePtr item;
+    InternalItemData(SGIItemBase * item_) : item(item_) {}
+};
+
+typedef ReferencedDataT<InternalItemData> ReferencedInternalItemData;
+
+struct InternalInfoData
+{
+    enum CommandId {
+        CommandIdInvalid = 0,
+        CommandIdAbout
+    };
+    CommandId command;
+    InternalInfoData(CommandId command_) : command(command_) {}
+};
+
+typedef ReferencedDataT<InternalInfoData> ReferencedInternalInfoData;
+
+} // namespace sgi

@@ -13,9 +13,10 @@
 #include "QtProxy.h"
 #include "sgi_internal.h"
 #include "QTextDialog.h"
-#include "qt_helper.h"
+#include <sgi/helpers/qt>
 
 using namespace sgi;
+using namespace sgi::qt_helpers;
 
 class SGIPlugins::SGIPluginsImpl
 {
@@ -360,7 +361,7 @@ public:
             if (info.pluginInterface)
             {
                 info.pluginFilename = filename;
-                info.pluginScore = info.pluginInterface->getPluginScore();
+                info._pluginScore = info.pluginInterface->getPluginScore();
                 info.writePrettyHTMLInterface = info.pluginInterface->getWritePrettyHTML();
                 info.objectInfoInterface = info.pluginInterface->getObjectInfo();
                 info.objectTreeInterface = info.pluginInterface->getObjectTree();
@@ -576,7 +577,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = item->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
             if(pluginInfo && pluginInfo->writePrettyHTMLInterface)
             {
                 ret = pluginInfo->writePrettyHTMLInterface->writePrettyHTML(os, item, table);
@@ -599,7 +600,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = item->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
             if(pluginInfo && pluginInfo->objectInfoInterface)
             {
                 ret = pluginInfo->objectInfoInterface->getObjectName(name, item, full);
@@ -622,7 +623,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = item->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
             if(pluginInfo && pluginInfo->objectInfoInterface)
             {
                 ret = pluginInfo->objectInfoInterface->getObjectDisplayName(name, item, full);
@@ -645,7 +646,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = item->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
             if(pluginInfo && pluginInfo->objectInfoInterface)
             {
                 ret = pluginInfo->objectInfoInterface->getObjectTypename(name, item, full);
@@ -668,7 +669,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = item->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
             if(pluginInfo && pluginInfo->objectInfoInterface)
             {
                 ret = pluginInfo->objectInfoInterface->getObjectSuggestedFilename(filename, item);
@@ -691,7 +692,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = item->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
             if(pluginInfo && pluginInfo->objectInfoInterface)
             {
                 ret = pluginInfo->objectInfoInterface->getObjectSuggestedFilenameExtension(ext, item);
@@ -714,7 +715,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = item->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
             if(pluginInfo && pluginInfo->objectInfoInterface)
             {
                 ret = pluginInfo->objectInfoInterface->getObjectFilenameFilters(filters, item);
@@ -738,7 +739,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = item->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
             if(pluginInfo && pluginInfo->objectInfoInterface)
             {
                 ret = pluginInfo->objectInfoInterface->getObjectPath(path, item);
@@ -761,7 +762,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = item->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
             if(pluginInfo)
             {
                 if(pluginInfo && pluginInfo->objectInfoInterface)
@@ -826,7 +827,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = item->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
             if(pluginInfo && pluginInfo->objectTreeInterface)
             {
                 ret = pluginInfo->objectTreeInterface->buildTree(treeItem, item);
@@ -866,7 +867,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = item->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
             if(pluginInfo && pluginInfo->contextMenuInterface)
             {
                 ret = pluginInfo->contextMenuInterface->populate(menuItem, item);
@@ -884,7 +885,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = item->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
             if(pluginInfo && pluginInfo->contextMenuInterface)
             {
                 ret = pluginInfo->contextMenuInterface->execute(menuAction, item);
@@ -907,7 +908,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = item->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
             if(pluginInfo)
             {
                 if(loadPluginUI(*const_cast<PluginInfo *>(pluginInfo)) &&
@@ -1202,7 +1203,7 @@ public:
         bool ret = false;
         while(view != NULL && !ret)
         {
-            const PluginInfo * pluginInfo = view->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )view->pluginInfo();
             if(pluginInfo)
             {
                 if(pluginInfo && pluginInfo->guiAdapterInterface)
@@ -1244,7 +1245,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = item->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
             if(pluginInfo)
             {
                 if(pluginInfo && pluginInfo->objectLoggerInterface)
@@ -1270,7 +1271,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = item->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
             if(pluginInfo)
             {
                 if(pluginInfo && pluginInfo->objectLoggerInterface)
@@ -1296,7 +1297,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = item->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
             if(pluginInfo)
             {
                 if(pluginInfo && pluginInfo->objectLoggerInterface)
@@ -1323,7 +1324,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = item->pluginInfo();
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
             if(pluginInfo)
             {
                 if(pluginInfo && pluginInfo->guiAdapterInterface)

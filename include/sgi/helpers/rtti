@@ -1,0 +1,116 @@
+// kate: syntax C++11;
+#pragma once
+
+#ifdef __GNUC__
+#include <cxxabi.h>
+#endif // __GNUC__
+
+#include "./html"
+
+namespace sgi {
+namespace helpers {
+
+#ifdef _MSC_VER
+inline static std::string clean_classname(const std::string & a)
+{
+    if(a.compare(0, 5, "class") == 0)
+        return a.substr(6);
+    else
+        return a;
+}
+#else // _MSC_VER
+inline static const std::string & clean_classname(const std::string & a)
+{
+    return a;
+}
+#endif // _MSC_VER
+
+#ifdef _MSC_VER
+inline static std::string demangle(const char * type)
+{
+    return std::string(type);
+}
+#else // _MSC_VER
+inline static std::string demangle(const char * type)
+{
+#ifdef __GNUC__
+    std::string ret;
+    int status = 0;
+    char* demangled_name = abi::__cxa_demangle(type, 0, 0, &status);
+    if(demangled_name)
+    {
+        ret = demangled_name;
+        free(demangled_name);
+    }
+    return ret;
+#else // __GNUC__
+    return std::string(type);
+#endif // __GNUC__
+}
+#endif // _MSC_VER
+
+inline static std::string demangle_html(const char * type)
+{
+    return html_encode(demangle(type));
+}
+
+template<typename T>
+inline static std::string getRTTITypename(const T * obj)
+{
+    std::string ret;
+    try
+    {
+        ret = clean_classname(demangle(typeid(*obj).name()));
+    }
+    catch(std::bad_typeid &)
+    {
+        ret.clear();
+    }
+    return ret;
+}
+
+template<typename T>
+inline static std::string getRTTITypenameShort(const T * obj)
+{
+    std::string ret;
+    try
+    {
+        ret = clean_classname(demangle(typeid(*obj).name()));
+        std::string::size_type last_colon = ret.rfind(':');
+        if(last_colon != std::string::npos)
+            ret = ret.substr(last_colon + 1);
+    }
+    catch(std::bad_typeid &)
+    {
+        ret.clear();
+    }
+    return ret;
+}
+
+template<typename T>
+inline static std::string getRTTITypename_html(const T * obj)
+{
+    std::string ret;
+    try
+    {
+        ret = html_encode(clean_classname(demangle(typeid(*obj).name())));
+    }
+    catch(std::bad_typeid &)
+    {
+        ret.clear();
+    }
+    return ret;
+}
+
+inline static bool is_same_class(const std::string & a, const std::string & b)
+{
+    bool ret;
+    if(clean_classname(a) == clean_classname(b))
+        ret = true;
+    else
+        ret = false;
+    return ret;
+}
+
+} // namespace helpers
+} // namespace sgi

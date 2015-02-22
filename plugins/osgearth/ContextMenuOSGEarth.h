@@ -18,6 +18,7 @@ namespace osgEarth {
     class TileSource;
     class TileBlacklist;
     class VirtualProgram;
+    class ElevationQuery;
 
     namespace Util {
         class SkyNode;
@@ -33,7 +34,7 @@ namespace osgEarth {
 namespace sgi {
 namespace osgearth_plugin {
 
-class ElevationQueryRef;
+typedef ReferencedRawPtrT<osgEarth::ElevationQuery> ElevationQueryReferenced;
 
 class NamedViewpoint : public osgEarth::Viewpoint
 {
@@ -97,7 +98,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::Util::Controls::ControlCanvas)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::TileSource)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::TileBlacklist)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::VirtualProgram)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(ElevationQueryRef)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE(ElevationQueryReferenced)
 
 } // namespace osgearth_plugin
 } // namespace sgi

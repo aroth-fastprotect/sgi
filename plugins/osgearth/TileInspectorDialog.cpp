@@ -1,10 +1,11 @@
 #include "stdafx.h"
 #include "TileInspectorDialog.h"
-#include "../osg/SGIItemOsg.h"
+#include <sgi/plugins/SGIItemOsg>
 
 #include "ui_TileInspectorDialog.h"
 
 #include <sgi/plugins/SGISettingsDialogImpl>
+#include <sgi/helpers/qt>
 
 #include <QTextStream>
 #include <QFileDialog>
@@ -23,8 +24,7 @@
 
 #include <sgi/ContextMenu>
 #include <sgi/SceneGraphDialog>
-
-#include "../../src/sgi/ObjectTreeImpl.h"
+#include <sgi/plugins/ObjectTreeImpl>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -32,9 +32,9 @@
 
 namespace sgi {
 
-SGIPluginHostInterface * ObjectTreeItem::s_hostInterface = NULL;
-
 namespace osgearth_plugin {
+
+using namespace sgi::qt_helpers;
 
 namespace {
 

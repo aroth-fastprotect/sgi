@@ -4,7 +4,7 @@
 #include <cctype>
 #include <stdint.h>
 #include "writeHTMLOSG.h"
-#include "SGIItemOsg.h"
+#include "SGIItemOsg"
 
 #include <osg/ObserverNodePath>
 #include <osg/UserDataContainer>
@@ -64,13 +64,13 @@
 
 #include <osgUtil/Statistics>
 
-#include "string_helpers.h"
+#include <sgi/helpers/osg>
+#include <sgi/helpers/string>
 #include <sgi/helpers/rtti>
 #include <sgi/ReferencedPicker>
 
 #include "DrawableHelper.h"
 
-#include "std_ostream_osg.h"
 #include "osg_accessor.h"
 
 namespace sgi {
@@ -190,59 +190,9 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(sgi::ReferencedPickerBase)
 WRITE_PRETTY_HTML_IMPL_REGISTER(sgi::ReferencedPicker)
 WRITE_PRETTY_HTML_IMPL_REGISTER(sgi::ReferencedLinePicker)
 
+using namespace sgi::osg_helpers;
+
 namespace {
-    std::string clearMaskToString(unsigned clearMask)
-    {
-        std::string ret;
-        if(clearMask == ~0u)
-            ret = "all";
-        else if(clearMask == 0u)
-            ret = "off";
-        else
-        {
-            if(clearMask & GL_CURRENT_BIT)
-                appendToCSVString(ret, "current");
-            if(clearMask & GL_POINT_BIT)
-                appendToCSVString(ret, "point");
-            if(clearMask & GL_LINE_BIT)
-                appendToCSVString(ret, "line");
-            if(clearMask & GL_POLYGON_BIT)
-                appendToCSVString(ret, "polygon");
-            if(clearMask & GL_POLYGON_STIPPLE_BIT)
-                appendToCSVString(ret, "polygonStipple");
-            if(clearMask & GL_PIXEL_MODE_BIT)
-                appendToCSVString(ret, "pixelMode");
-            if(clearMask & GL_LIGHTING_BIT)
-                appendToCSVString(ret, "lighting");
-            if(clearMask & GL_FOG_BIT)
-                appendToCSVString(ret, "fog");
-            if(clearMask & GL_DEPTH_BUFFER_BIT)
-                appendToCSVString(ret, "depthBuffer");
-            if(clearMask & GL_ACCUM_BUFFER_BIT)
-                appendToCSVString(ret, "accumBuffer");
-            if(clearMask & GL_STENCIL_BUFFER_BIT)
-                appendToCSVString(ret, "stencilBuffer");
-            if(clearMask & GL_VIEWPORT_BIT)
-                appendToCSVString(ret, "viewport");
-            if(clearMask & GL_TRANSFORM_BIT)
-                appendToCSVString(ret, "transform");
-            if(clearMask & GL_ENABLE_BIT)
-                appendToCSVString(ret, "enable");
-            if(clearMask & GL_COLOR_BUFFER_BIT)
-                appendToCSVString(ret, "colorBuffer");
-            if(clearMask & GL_HINT_BIT)
-                appendToCSVString(ret, "hint");
-            if(clearMask & GL_EVAL_BIT)
-                appendToCSVString(ret, "eval");
-            if(clearMask & GL_LIST_BIT)
-                appendToCSVString(ret, "list");
-            if(clearMask & GL_TEXTURE_BIT)
-                appendToCSVString(ret, "texture");
-            if(clearMask & GL_SCISSOR_BIT)
-                appendToCSVString(ret, "scissor");
-        }
-        return ret;
-    }
 
     std::string getObjectSuggestedFilenameExtension(const osg::Image * image)
     {
@@ -259,39 +209,6 @@ namespace {
         return ret;
     }
 
-    void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size)
-    {
-        unsigned w = 4;
-        if(size > 65535)
-            w = 6;
-        for(unsigned offset = 0; offset < size; offset += 16)
-        {
-            const unsigned char * pData = (const unsigned char*)data + offset;
-            size_t max_row = std::min((size_t)16u, size - (size_t)offset);
-            std::stringstream ssAscii;
-            os << "0x" << std::hex << std::setw(w) << std::setfill('0') << offset << ':' << ' ';
-            static const char * hex_digits = "0123456789abcdef";
-            for(unsigned row = 0; row < 16; row++)
-            {
-                if(row < max_row)
-                {
-                    unsigned char c = (row < max_row) ? *(pData + row) : 0;
-                    os << hex_digits[(c >> 4) & 0xF] << hex_digits[c & 0xF] << ' ';
-                    if(std::isprint(c))
-                        ssAscii << c;
-                    else
-                        ssAscii << '.';
-                }
-                else
-                {
-                    os << ' ' << ' ' << ' ';
-                    ssAscii << ' ';
-                }
-            }
-            os << ssAscii.str();
-            os << std::endl;
-        }
-    }
 }
 
 
@@ -710,7 +627,7 @@ bool writePrettyHTMLImpl<osg::PagedLOD>::process(std::basic_ostream<char>& os)
             os << "<tr><td>numChildrenThatCannotBeExpired</td><td>" << object->getNumChildrenThatCannotBeExpired() << "</td></tr>" << std::endl;
             os << "<tr><td>disableExternalChildrenPaging</td><td>" << (object->getDisableExternalChildrenPaging()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>databasePath</td><td>" << object->getDatabasePath() << "</td></tr>" << std::endl;
-            os << "<tr><td>databaseOptions</td><td>" << getObjectNameAndType(object->getDatabaseOptions()) << "</td></tr>" << std::endl;
+            os << "<tr><td>databaseOptions</td><td>" << osg_helpers::getObjectNameAndType(object->getDatabaseOptions()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -771,7 +688,7 @@ bool writePrettyHTMLImpl<osg::ProxyNode>::process(std::basic_ostream<char>& os)
             writePrettyPositionHTML(os, object->getCenter(), object);
             os << "</td></tr>" << std::endl;
             os << "<tr><td>databasePath</td><td>" << object->getDatabasePath() << "</td></tr>" << std::endl;
-            os << "<tr><td>databaseOptions</td><td>" << getObjectNameAndType(object->getDatabaseOptions()) << "</td></tr>" << std::endl;
+            os << "<tr><td>databaseOptions</td><td>" << osg_helpers::getObjectNameAndType(object->getDatabaseOptions()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -832,7 +749,7 @@ bool writePrettyHTMLImpl<osg::CoordinateSystemNode>::process(std::basic_ostream<
 
             // add remaining properties
             os << "<tr><td>cs</td><td>" << object->getCoordinateSystem() << "</td></tr>" << std::endl;
-            os << "<tr><td>ellipsoid</td><td>" << getObjectNameAndType(object->getEllipsoidModel()) << "</td></tr>" << std::endl;
+            os << "<tr><td>ellipsoid</td><td>" << osg_helpers::getObjectNameAndType(object->getEllipsoidModel()) << "</td></tr>" << std::endl;
             os << "<tr><td>format</td><td>" << object->getFormat() << "</td></tr>" << std::endl;
 
             if(_table)
@@ -877,7 +794,7 @@ void writePrettyHTMLImplGroupChilds(osg::Group * object, std::basic_ostream<char
             if(!onlyOneItem)
                 os << "<li>";
             os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
-            os << "<tr><td>child</td><td>" << getObjectNameAndType(child) << "</td></tr>" << std::endl;
+            os << "<tr><td>child</td><td>" << osg_helpers::getObjectNameAndType(child) << "</td></tr>" << std::endl;
             os << "<tr><td>range</td><td>" << minRange << "/" << maxRange << "</td></tr>" << std::endl;
             os << "<tr><td>filename</td><td>" << filename << "</td></tr>" << std::endl;
             os << "<tr><td>priorityOffset</td><td>" << priorityOffset << "</td></tr>" << std::endl;
@@ -886,7 +803,7 @@ void writePrettyHTMLImplGroupChilds(osg::Group * object, std::basic_ostream<char
             os << "<tr><td>minExpiryTime</td><td>" << minExpiryTime << "</td></tr>" << std::endl;
             os << "<tr><td>frameNo</td><td>" << frameNo << "</td></tr>" << std::endl;
             os << "<tr><td>timestamp</td><td>" << timestamp << "</td></tr>" << std::endl;
-            os << "<tr><td>dbRequest</td><td>" << getObjectNameAndType(req.get()) << "</td></tr>" << std::endl;
+            os << "<tr><td>dbRequest</td><td>" << osg_helpers::getObjectNameAndType(req.get()) << "</td></tr>" << std::endl;
             os << "</table>";
             if(!onlyOneItem)
                 os << "</li>";
@@ -906,7 +823,7 @@ void writePrettyHTMLImplGroupChilds(osg::Group * object, std::basic_ostream<char
             if(!onlyOneItem)
                 os << "<li>";
             os << "<li><table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
-            os << "<tr><td>child</td><td>" << getObjectNameAndType(child) << "</td></tr>" << std::endl;
+            os << "<tr><td>child</td><td>" << osg_helpers::getObjectNameAndType(child) << "</td></tr>" << std::endl;
             os << "<tr><td>range</td><td>" << minRange << "/" << maxRange << "</td></tr>" << std::endl;
             os << "</table>";
             if(!onlyOneItem)
@@ -928,9 +845,9 @@ void writePrettyHTMLImplGroupChilds(osg::Group * object, std::basic_ostream<char
             if(!onlyOneItem)
                 os << "<li>";
             os << "<li><table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
-            os << "<tr><td>child</td><td>" << getObjectNameAndType(child) << "</td></tr>" << std::endl;
+            os << "<tr><td>child</td><td>" << osg_helpers::getObjectNameAndType(child) << "</td></tr>" << std::endl;
             os << "<tr><td>filename</td><td>" << filename << "</td></tr>" << std::endl;
-            os << "<tr><td>dbRequest</td><td>" << getObjectNameAndType(req.get()) << "</td></tr>" << std::endl;
+            os << "<tr><td>dbRequest</td><td>" << osg_helpers::getObjectNameAndType(req.get()) << "</td></tr>" << std::endl;
             os << "</table>";
             if(!onlyOneItem)
                 os << "</li>";
@@ -945,7 +862,7 @@ void writePrettyHTMLImplGroupChilds(osg::Group * object, std::basic_ostream<char
             const osg::Node * child = object->getChild(n);
             if(!onlyOneItem)
                 os << "<li>";
-            os << getObjectNameAndType(child);
+            os << osg_helpers::getObjectNameAndType(child);
             if(!onlyOneItem)
                 os << "</li>";
         }
@@ -1348,7 +1265,7 @@ bool writePrettyHTMLImpl<osg::CompositeShape>::process(std::basic_ostream<char>&
             for(unsigned n = 0; n < object->getNumChildren(); n++)
             {
                 osg::Shape * child = object->getChild(n);
-                os << "<li>" << getObjectName(child) << " (" << getObjectTypename(child) << ")</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(child) << "</li>" << std::endl;
             }
             os << "</ol></td></tr>" << std::endl;
 
@@ -1363,7 +1280,7 @@ bool writePrettyHTMLImpl<osg::CompositeShape>::process(std::basic_ostream<char>&
             for(unsigned n = 0; n < object->getNumChildren(); n++)
             {
                 osg::Shape * child = object->getChild(n);
-                os << "<li>" << getObjectName(child) << " (" << getObjectTypename(child) << ")</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(child) << "</li>" << std::endl;
             }
             os << "</ol>" << std::endl;
             ret = true;
@@ -1436,7 +1353,7 @@ bool writePrettyHTMLImpl<osg::Drawable>::process(std::basic_ostream<char>& os)
             os << "<tr><td>supports display list</td><td>" << (object->getSupportsDisplayList()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>use display list</td><td>" << (object->getUseDisplayList()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>use VBO</td><td>" << (object->getUseVertexBufferObjects()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>shape</td><td>" << getObjectNameAndType(object->getShape()) << "</td></tr>" << std::endl;
+            os << "<tr><td>shape</td><td>" << osg_helpers::getObjectNameAndType(object->getShape()) << "</td></tr>" << std::endl;
             os << "<tr><td>numChildrenRequiringUpdateTraversal</td><td>" << access->getNumChildrenRequiringUpdateTraversal() << "</td></tr>" << std::endl;
             os << "<tr><td>numChildrenRequiringEventTraversal</td><td>" << access->getNumChildrenRequiringEventTraversal() << "</td></tr>" << std::endl;
 
@@ -1451,7 +1368,7 @@ bool writePrettyHTMLImpl<osg::Drawable>::process(std::basic_ostream<char>& os)
             for(unsigned n = 0; n < object->getNumParents(); n++)
             {
                 const osg::Node * parent = object->getParent(n);
-                os << "<li>" << getObjectNameAndType(parent) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(parent) << "</li>" << std::endl;
             }
             os << "</ol>" << std::endl;
             ret = true;
@@ -1672,7 +1589,7 @@ bool writePrettyHTMLImpl<osg::Geometry>::process(std::basic_ostream<char>& os)
             for(unsigned i = 0; i < numTexCoordArrays; i++)
             {
                 osg::Array * texcoords = object->getTexCoordArray(i);
-                os << "<li>" << getObjectName(texcoords) << " (" << getObjectTypename(texcoords) << ")</li>";
+                os << "<li>" << osg_helpers::getObjectName(texcoords) << " (" << osg_helpers::getObjectTypename(texcoords) << ")</li>";
             }
             os << "</ol>";
             ret = true;
@@ -1685,7 +1602,7 @@ bool writePrettyHTMLImpl<osg::Geometry>::process(std::basic_ostream<char>& os)
             for(unsigned i = 0; i < numPrimitiveSets; i++)
             {
                 osg::PrimitiveSet * primset = object->getPrimitiveSet(i);
-                os << "<li>" << getObjectName(primset) << " (" << getObjectTypename(primset) << ")</li>";
+                os << "<li>" << osg_helpers::getObjectName(primset) << " (" << osg_helpers::getObjectTypename(primset) << ")</li>";
             }
             os << "</ol>";
             ret = true;
@@ -1789,7 +1706,7 @@ bool writePrettyHTMLImpl<osg::Uniform>::process(std::basic_ostream<char>& os)
             for(unsigned n = 0; n < object->getNumParents(); n++)
             {
                 const osg::Object * parent = object->getParent(n);
-                os << "<li>" << getObjectName(parent) << " (" << getObjectTypename(parent) << ")</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectName(parent) << " (" << osg_helpers::getObjectTypename(parent) << ")</li>" << std::endl;
             }
             os << "</ol>" << std::endl;
             ret = true;
@@ -1803,8 +1720,8 @@ bool writePrettyHTMLImpl<osg::Uniform>::process(std::basic_ostream<char>& os)
             // first add all callbacks from base classes
             callNextHandler(os);
 
-            os << "<tr><td>update callback</td><td>" << getObjectNameAndType(object->getUpdateCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>event callback</td><td>" << getObjectNameAndType(object->getEventCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>update callback</td><td>" << osg_helpers::getObjectNameAndType(object->getUpdateCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>event callback</td><td>" << osg_helpers::getObjectNameAndType(object->getEventCallback()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -1849,7 +1766,7 @@ bool writePrettyHTMLImpl<osg::BufferData>::process(std::basic_ostream<char>& os)
             // first add all callbacks from base classes
             callNextHandler(os);
 
-            os << "<tr><td>modified callback</td><td>" << getObjectNameAndType(object->getModifiedCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>modified callback</td><td>" << osg_helpers::getObjectNameAndType(object->getModifiedCallback()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -1859,7 +1776,7 @@ bool writePrettyHTMLImpl<osg::BufferData>::process(std::basic_ostream<char>& os)
     case SGIItemTypeArrayData:
         {
             os << "<pre>";
-            hexDumpMemory(os, object->getDataPointer(), object->getTotalDataSize());
+            sgi::helpers::hexDumpMemory(os, object->getDataPointer(), object->getTotalDataSize());
             os << "</pre>";
             ret = true;
         }
@@ -1901,9 +1818,9 @@ bool writePrettyHTMLImpl<osg::PrimitiveSet>::process(std::basic_ostream<char>& o
             callNextHandler(os);
 
             // add remaining PrimitiveSet properties
-            os << "<tr><td>type</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getMode()) << "</td></tr>" << std::endl;
+            os << "<tr><td>type</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getMode()) << "</td></tr>" << std::endl;
             os << "<tr><td>numInstances</td><td>" << object->getNumInstances() << "</td></tr>" << std::endl;
-            os << "<tr><td>mode</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getMode()) << "</td></tr>" << std::endl;
+            os << "<tr><td>mode</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getMode()) << "</td></tr>" << std::endl;
             os << "<tr><td>data ptr</td><td>" << (void*)object->getDataPointer() << "</td></tr>" << std::endl;
             os << "<tr><td>total data size</td><td>" << object->getTotalDataSize() << "</td></tr>" << std::endl;
             os << "<tr><td>supportsBufferObject</td><td>" << (object->supportsBufferObject()?"true":"false") << "</td></tr>" << std::endl;
@@ -2194,7 +2111,7 @@ bool writePrettyHTMLImpl<osg::ClipNode>::process(std::basic_ostream<char>& os)
             for(osg::ClipNode::ClipPlaneList::const_iterator it = list.begin(); it != list.end(); it++)
             {
                 const osg::ref_ptr<osg::ClipPlane> clipplane = *it;
-                os << "<li>" << getObjectNameAndType(clipplane.get()) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(clipplane.get()) << "</li>" << std::endl;
             }
             os << "</ol></td></tr>" << std::endl;
 
@@ -2300,11 +2217,11 @@ bool writePrettyHTMLImpl<osg::Image>::process(std::basic_ostream<char>& os)
             os << "<tr><td>origin</td><td>" << object->getOrigin() << "</td></tr>" << std::endl;
 
             os << "<tr><td>rowLength</td><td>" << object->getRowLength() << "</td></tr>" << std::endl;
-            os << "<tr><td>internalTextureFormat</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getInternalTextureFormat()) << "</td></tr>" << std::endl;
+            os << "<tr><td>internalTextureFormat</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getInternalTextureFormat()) << "</td></tr>" << std::endl;
             os << "<tr><td>isCompressedInternalFormat</td><td>" << (osg::Texture::isCompressedInternalFormat(object->getInternalTextureFormat())?"true":"false") << "</td></tr>" << std::endl;
 
-            os << "<tr><td>pixelFormat</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getPixelFormat()) << "</td></tr>" << std::endl;
-            os << "<tr><td>dataType</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getDataType()) << "</td></tr>" << std::endl;
+            os << "<tr><td>pixelFormat</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getPixelFormat()) << "</td></tr>" << std::endl;
+            os << "<tr><td>dataType</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDataType()) << "</td></tr>" << std::endl;
             os << "<tr><td>packing</td><td>" << object->getPacking() << "</td></tr>" << std::endl;
             os << "<tr><td>compressed</td><td>" << (object->isCompressed()?"true":"false") << "</td></tr>" << std::endl;
 
@@ -2322,7 +2239,7 @@ bool writePrettyHTMLImpl<osg::Image>::process(std::basic_ostream<char>& os)
             os << "<tr><td>supportsTextureSubloading</td><td>" << (object->supportsTextureSubloading()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>isImageTranslucent</td><td>" << (object->isImageTranslucent()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>requiresUpdateCall</td><td>" << (object->requiresUpdateCall()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>pixelBufferObject</td><td>" << getObjectNameAndType(object->getPixelBufferObject()) << "</td></tr>" << std::endl;
+            os << "<tr><td>pixelBufferObject</td><td>" << osg_helpers::getObjectNameAndType(object->getPixelBufferObject()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -2512,7 +2429,7 @@ bool writePrettyHTMLImpl<osg::StateAttribute>::process(std::basic_ostream<char>&
             callNextHandler(os);
 
             os << "<tr><td>type</td><td>" << object->getType() << "</td></tr>" << std::endl;
-            os << "<tr><td>shader component</td><td>" << getObjectNameAndType(object->getShaderComponent()) << "</td></tr>" << std::endl;
+            os << "<tr><td>shader component</td><td>" << osg_helpers::getObjectNameAndType(object->getShaderComponent()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -2525,7 +2442,7 @@ bool writePrettyHTMLImpl<osg::StateAttribute>::process(std::basic_ostream<char>&
             for(unsigned n = 0; n < object->getNumParents(); n++)
             {
                 const osg::Object * parent = object->getParent(n);
-                os << "<li>" << getObjectNameAndType(parent) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(parent) << "</li>" << std::endl;
             }
             os << "</ol>" << std::endl;
             ret = true;
@@ -2668,13 +2585,13 @@ bool writePrettyHTMLImpl<osg::Texture>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>internal format mode</td><td>" << (object?object->getInternalFormatMode():osg::Texture::USE_IMAGE_DATA_FORMAT) << "</td></tr>" << std::endl;
             os << "<tr><td>internal format type</td><td>" << (object?object->getInternalFormatType():osg::Texture::NORMALIZED) << "</td></tr>" << std::endl;
-            os << "<tr><td>internal format</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object?object->getInternalFormat():0) << "</td></tr>" << std::endl;
-            os << "<tr><td>source format</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object?object->getSourceFormat():0) << "</td></tr>" << std::endl;
-            os << "<tr><td>source type</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object?object->getSourceType():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>internal format</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object?object->getInternalFormat():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>source format</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object?object->getSourceFormat():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>source type</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object?object->getSourceType():0) << "</td></tr>" << std::endl;
 
             os << "<tr><td>shadowComparison</td><td>" << (object?(object->getShadowComparison()?"true":"false"):std::string("&lt;null&gt;")) << "</td></tr>" << std::endl;
             os << "<tr><td>shadow texture mode</td><td>" << (object?object->getShadowTextureMode():osg::Texture::LUMINANCE) << "</td></tr>" << std::endl;
-            os << "<tr><td>shadow compare function</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object?object->getShadowCompareFunc():osg::Texture::NEVER) << "</td></tr>" << std::endl;
+            os << "<tr><td>shadow compare function</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object?object->getShadowCompareFunc():osg::Texture::NEVER) << "</td></tr>" << std::endl;
             os << "<tr><td>shadow ambient</td><td>" << (object?object->getShadowAmbient():0.0f) << "</td></tr>" << std::endl;
 
             os << "<tr><td>areAllTextureObjectsLoaded</td><td>" << (object?(object->areAllTextureObjectsLoaded()?"true":"false"):std::string("&lt;null&gt;")) << "</td></tr>" << std::endl;
@@ -2694,7 +2611,7 @@ bool writePrettyHTMLImpl<osg::Texture>::process(std::basic_ostream<char>& os)
             for(unsigned n = 0; n < object->getNumImages(); n++)
             {
                 const osg::Image * image = object->getImage(n);
-                os << "<tr><td>image " << n << "</td><td>" << getObjectNameAndType(image) << "</td></tr>" << std::endl;
+                os << "<tr><td>image " << n << "</td><td>" << osg_helpers::getObjectNameAndType(image) << "</td></tr>" << std::endl;
             }
 
             if(_table)
@@ -2882,7 +2799,7 @@ bool writePrettyHTMLImpl<osg::Material>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add remaining Material properties
-            os << "<tr><td>color mode</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object?object->getColorMode():osg::Material::OFF) << "</td></tr>" << std::endl;
+            os << "<tr><td>color mode</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object?object->getColorMode():osg::Material::OFF) << "</td></tr>" << std::endl;
 
             osg::Material::Face faces[3] = { osg::Material::FRONT, osg::Material::BACK, osg::Material::FRONT_AND_BACK };
             const char * faceNames[3] = { "front", "back", "front+back" };
@@ -3356,12 +3273,12 @@ bool writePrettyHTMLImpl<osg::BlendFunc>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add remaining BlendFunc properties
-            os << "<tr><td>source</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getSource()) << "</td></tr>" << std::endl;
-            os << "<tr><td>source rgb</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getSourceRGB()) << "</td></tr>" << std::endl;
-            os << "<tr><td>source alpha</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getSourceAlpha()) << "</td></tr>" << std::endl;
-            os << "<tr><td>destination</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getDestination()) << "</td></tr>" << std::endl;
-            os << "<tr><td>destination rgb</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getDestinationRGB()) << "</td></tr>" << std::endl;
-            os << "<tr><td>destination alpha</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getDestinationAlpha()) << "</td></tr>" << std::endl;
+            os << "<tr><td>source</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getSource()) << "</td></tr>" << std::endl;
+            os << "<tr><td>source rgb</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getSourceRGB()) << "</td></tr>" << std::endl;
+            os << "<tr><td>source alpha</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getSourceAlpha()) << "</td></tr>" << std::endl;
+            os << "<tr><td>destination</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDestination()) << "</td></tr>" << std::endl;
+            os << "<tr><td>destination rgb</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDestinationRGB()) << "</td></tr>" << std::endl;
+            os << "<tr><td>destination alpha</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDestinationAlpha()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -3931,11 +3848,11 @@ bool writePrettyHTMLImpl<osg::GraphicsContext>::process(std::basic_ostream<char>
             for(osg::GraphicsContext::Cameras::const_iterator it = cameras.begin(); it != cameras.end(); it++)
             {
                 osg::Camera * camera = *it;
-                os << "<li>" << getObjectNameAndType(camera) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(camera) << "</li>" << std::endl;
             }
             os << "<ul></td></tr>" << std::endl;
-            os << "<tr><td>traits</td><td>" << getObjectNameAndType(object->getTraits()) << "</td></tr>" << std::endl;
-            os << "<tr><td>thread</td><td>" << getObjectNameAndType(object->getGraphicsThread()) << "</td></tr>" << std::endl;
+            os << "<tr><td>traits</td><td>" << osg_helpers::getObjectNameAndType(object->getTraits()) << "</td></tr>" << std::endl;
+            os << "<tr><td>thread</td><td>" << osg_helpers::getObjectNameAndType(object->getGraphicsThread()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -3951,8 +3868,8 @@ bool writePrettyHTMLImpl<osg::GraphicsContext>::process(std::basic_ostream<char>
             callNextHandler(os);
 
             // add osg::GraphicsContext callbacks now
-            os << "<tr><td>swap callback</td><td>" << getObjectNameAndType(object->getSwapCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>resized callback</td><td>" << getObjectNameAndType(object->getResizedCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>swap callback</td><td>" << osg_helpers::getObjectNameAndType(object->getSwapCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>resized callback</td><td>" << osg_helpers::getObjectNameAndType(object->getResizedCallback()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -3967,7 +3884,7 @@ bool writePrettyHTMLImpl<osg::GraphicsContext>::process(std::basic_ostream<char>
             {
                 osg::Camera * camera = *it;
                 os << "<li>";
-                os << getObjectName(camera) << " (" << getObjectTypename(camera) << ")" << std::endl;
+                os << osg_helpers::getObjectName(camera) << " (" << osg_helpers::getObjectTypename(camera) << ")" << std::endl;
                 os << "</li>" << std::endl;
             }
             os << "</ol>";
@@ -4112,7 +4029,7 @@ void writePrettyHTMLStateSetModeList(std::basic_ostream<char>& os, const SGIItem
         {
             const osg::StateAttribute::GLMode & mode = it->first;
             const osg::StateAttribute::GLModeValue & value = it->second;
-            os << "<li>" << sgi::castToEnumValueString<sgi::GLConstant>(mode) << "=" << glValueName(value) << "</li>";
+            os << "<li>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(mode) << "=" << glValueName(value) << "</li>";
         }
         os << "</ol>" << std::endl;
     }
@@ -4157,7 +4074,7 @@ void writePrettyHTMLStateSetTextureModeList(std::basic_ostream<char>& os, const 
                         {
                             const osg::StateAttribute::GLMode & mode = it2->first;
                             const osg::StateAttribute::GLModeValue & value = it2->second;
-                            os << "<li>" << sgi::castToEnumValueString<sgi::GLConstant>(mode) << "=" << glValueName(value) << "</li>";
+                            os << "<li>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(mode) << "=" << glValueName(value) << "</li>";
                         }
                         os << "</ol>";
                     }
@@ -4209,7 +4126,7 @@ void writePrettyHTMLStateSetTextureAttributeList(std::basic_ostream<char>& os, c
                         const osg::StateAttribute::OverrideValue & value = attrpair.second;
 
                         os << "<li>" << type << " member=" << member << " value=" << glOverrideValueName(value) << "<br/>";
-                        os << getObjectNameAndType(attr.get());
+                        os << osg_helpers::getObjectNameAndType(attr.get());
                         os << "</li>";
                     }
                     os << "</ol></td></tr>";
@@ -4248,7 +4165,7 @@ void writePrettyHTMLStateSetAttributeList(std::basic_ostream<char>& os, const SG
                     const osg::StateAttribute::OverrideValue & value = attrpair.second;
 
                     os << "<li>" << type << " member=" << member << " value=" << glOverrideValueName(value) << " (0x" << std::hex << value << std::dec << ")<br/>";
-                    os << getObjectNameAndType(attr.get());
+                    os << osg_helpers::getObjectNameAndType(attr.get());
                     os << "</li>";
                 }
             }
@@ -4281,7 +4198,7 @@ void writePrettyHTMLStateSetUniformList(std::basic_ostream<char>& os, const SGII
                     const osg::StateAttribute::OverrideValue & overridevalue = it->second.second;
                     const osg::ref_ptr<osg::Uniform> & uniform = it->second.first;
                     os << "<li>" << name << " override=" << glOverrideValueName(overridevalue) << "<br/>";
-                    os << getObjectNameAndType(uniform.get());
+                    os << osg_helpers::getObjectNameAndType(uniform.get());
                     os << "</li>";
                 }
             }
@@ -4367,8 +4284,8 @@ bool writePrettyHTMLImpl<osg::StateSet>::process(std::basic_ostream<char>& os)
             // first add all callbacks from base classes
             callNextHandler(os);
 
-            os << "<tr><td>update callback</td><td>" << getObjectNameAndType(object->getUpdateCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>event callback</td><td>" << getObjectNameAndType(object->getEventCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>update callback</td><td>" << osg_helpers::getObjectNameAndType(object->getUpdateCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>event callback</td><td>" << osg_helpers::getObjectNameAndType(object->getEventCallback()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -4381,7 +4298,7 @@ bool writePrettyHTMLImpl<osg::StateSet>::process(std::basic_ostream<char>& os)
             for(unsigned n = 0; n < object->getNumParents(); n++)
             {
                 const osg::Object * parent = object->getParent(n);
-                os << "<li>" << getObjectNameAndType(parent) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(parent) << "</li>" << std::endl;
             }
             os << "</ol>" << std::endl;
             ret = true;
@@ -4458,7 +4375,7 @@ bool writePrettyHTMLImpl<osg::Geode>::process(std::basic_ostream<char>& os)
             for(unsigned i = 0; i < numDrawables; i++)
             {
                 const osg::Drawable * drawable = object->getDrawable(i);
-                os << "<li>" << getObjectName(drawable) << " (" << getObjectTypename(drawable) << ")</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectName(drawable) << " (" << osg_helpers::getObjectTypename(drawable) << ")</li>" << std::endl;
             }
             os << "</ol></td></tr>" << std::endl;
             if(_table)
@@ -4474,7 +4391,7 @@ bool writePrettyHTMLImpl<osg::Geode>::process(std::basic_ostream<char>& os)
             for(unsigned i = 0; i < numDrawables; i++)
             {
                 const osg::Drawable * drawable = object->getDrawable(i);
-                os << "<li>" << getObjectName(drawable) << "&nbsp;(" << getObjectTypename(drawable) << ")</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectName(drawable) << "&nbsp;(" << osg_helpers::getObjectTypename(drawable) << ")</li>" << std::endl;
             }
             os << "</ol>";
             ret = true;
@@ -4622,8 +4539,8 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
             os << "<tr><td>clearDepth</td><td>" << object->getClearDepth() << "</td></tr>" << std::endl;
             os << "<tr><td>clearStencil</td><td>" << object->getClearStencil()<< "</td></tr>" << std::endl;
 
-            os << "<tr><td>colorMask</td><td>" << getObjectNameAndType(object->getColorMask()) << "</td></tr>" << std::endl;
-            os << "<tr><td>viewport</td><td>" << getObjectNameAndType(object->getViewport()) << "</td></tr>" << std::endl;
+            os << "<tr><td>colorMask</td><td>" << osg_helpers::getObjectNameAndType(object->getColorMask()) << "</td></tr>" << std::endl;
+            os << "<tr><td>viewport</td><td>" << osg_helpers::getObjectNameAndType(object->getViewport()) << "</td></tr>" << std::endl;
             os << "<tr><td>transformOrder</td><td>" << object->getTransformOrder() << "</td></tr>" << std::endl;
 
             os << "<tr><td>projectionMatrix</td><td>";
@@ -4639,8 +4556,8 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
             os << "<tr><td>renderOrderNum</td><td>" << object->getRenderOrderNum() << "</td></tr>" << std::endl;
             os << "<tr><td>renderTargetImpl</td><td>" << object->getRenderTargetImplementation() << "</td></tr>" << std::endl;
             os << "<tr><td>renderTargetFallback</td><td>" << object->getRenderTargetFallback() << "</td></tr>" << std::endl;
-            os << "<tr><td>drawBuffer</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getDrawBuffer()) << "</td></tr>" << std::endl;
-            os << "<tr><td>readBuffer</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getReadBuffer()) << "</td></tr>" << std::endl;
+            os << "<tr><td>drawBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDrawBuffer()) << "</td></tr>" << std::endl;
+            os << "<tr><td>readBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getReadBuffer()) << "</td></tr>" << std::endl;
             os << "<tr><td>projResizePolicy</td><td>" << object->getProjectionResizePolicy() << "</td></tr>" << std::endl;
             if(_table)
                 os << "</table>" << std::endl;
@@ -4656,10 +4573,10 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add osg::Camera callbacks now
-            os << "<tr><td>initial draw callback</td><td>" << getObjectNameAndType(object->getInitialDrawCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>pre-draw callback</td><td>" << getObjectNameAndType(object->getPreDrawCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>post-draw callback</td><td>" << getObjectNameAndType(object->getPostDrawCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>final draw callback</td><td>" << getObjectNameAndType(object->getFinalDrawCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>initial draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getInitialDrawCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>pre-draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getPreDrawCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>post-draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getPostDrawCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>final draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getFinalDrawCallback()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -5221,10 +5138,10 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
             os << "<tr><td>numUpdateTraversal</td><td>" << object->getNumChildrenRequiringUpdateTraversal() << "</td></tr>" << std::endl;
             os << "<tr><td>numEventTraversal</td><td>" << object->getNumChildrenRequiringEventTraversal() << "</td></tr>" << std::endl;
             os << "<tr><td>initialBound</td><td>";
-            writePrettyHTML(os, object->getInitialBound(), object);
+            osg_helpers::writePrettyHTML(os, object->getInitialBound(), object);
             os << "</td></tr>" << std::endl;
             os << "<tr><td>bound</td><td>";
-            writePrettyHTML(os, object->getBound(), object);
+            osg_helpers::writePrettyHTML(os, object->getBound(), object);
             os << "</td></tr>" << std::endl;
             os << "<tr><td>isBoundingSphereComputed</td><td>" << (access->isBoundingSphereComputed()?"true":"false") << "</td></tr>" << std::endl;
 
@@ -5251,7 +5168,7 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
             cb = object->getEventCallback();
             while(cb)
             {
-                os << "<li>" << getObjectNameAndType(cb) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(cb) << "</li>" << std::endl;
                 cb = cb->getNestedCallback();
             }
             os << "</ol></td></tr>" << std::endl;
@@ -5260,7 +5177,7 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
             cb = object->getUpdateCallback();
             while(cb)
             {
-                os << "<li>" << getObjectNameAndType(cb) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(cb) << "</li>" << std::endl;
                 cb = cb->getNestedCallback();
             }
             os << "</ol></td></tr>" << std::endl;
@@ -5269,12 +5186,12 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
             cb = object->getCullCallback();
             while(cb)
             {
-                os << "<li>" << getObjectNameAndType(cb) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(cb) << "</li>" << std::endl;
                 cb = cb->getNestedCallback();
             }
             os << "</ol></td></tr>" << std::endl;
 
-            os << "<tr><td>Compute boundingSphere callback</td><td>" << getObjectNameAndType(object->getComputeBoundingSphereCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>Compute boundingSphere callback</td><td>" << osg_helpers::getObjectNameAndType(object->getComputeBoundingSphereCallback()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -5287,7 +5204,7 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
             for(unsigned n = 0; n < object->getNumParents(); n++)
             {
                 const osg::Group * parent = object->getParent(n);
-                os << "<li>" << getObjectNameAndType(parent) << ")</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(parent) << ")</li>" << std::endl;
             }
             os << "</ol>" << std::endl;
             ret = true;
@@ -5301,12 +5218,12 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
             if(numPath == ~0u)
             {
                 os << "<table border=\'1\' align=\'left\'>" << std::endl;
-                os << "<tr><td>" << getObjectNameAndType(object) << " <i>" << parentalNodePaths.size() << "</i></td></tr>" << std::endl;
+                os << "<tr><td>" << osg_helpers::getObjectNameAndType(object) << " <i>" << parentalNodePaths.size() << "</i></td></tr>" << std::endl;
                 for(osg::NodePathList::const_iterator itPathList = parentalNodePaths.begin(); itPathList != parentalNodePaths.end(); itPathList++)
                 {
                     const osg::NodePath & nodePath = *itPathList;
                     os << "<tr><td>" << std::endl;
-                    writePrettyHTML(os, nodePath);
+                    osg_helpers::writePrettyHTML(os, nodePath);
                     os << "</td></tr>" << std::endl;
                 }
                 os << "</table>" << std::endl;
@@ -5316,18 +5233,18 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
                 const osg::NodePathList parentalNodePaths = object->getParentalNodePaths();
                 if(numPath >= parentalNodePaths.size())
                 {
-                    os << "<p>ParentalNodePath <i>" << numPath << "</i> for <b>" << getObjectNameAndType(object) << "</b> is unavailable.</p>" << std::endl;
+                    os << "<p>ParentalNodePath <i>" << numPath << "</i> for <b>" << osg_helpers::getObjectNameAndType(object) << "</b> is unavailable.</p>" << std::endl;
                 }
                 else
                 {
-                    os << "<p>ParentalNodePath <i>" << numPath << "</i> for <b>" << getObjectNameAndType(object) << "</b></p>" << std::endl;
+                    os << "<p>ParentalNodePath <i>" << numPath << "</i> for <b>" << osg_helpers::getObjectNameAndType(object) << "</b></p>" << std::endl;
                     unsigned parentalNodePathNum = 0;
                     for(osg::NodePathList::const_iterator itPathList = parentalNodePaths.begin(); itPathList != parentalNodePaths.end(); itPathList++, parentalNodePathNum++)
                     {
                         if(parentalNodePathNum == numPath)
                         {
                             const osg::NodePath & nodePath = *itPathList;
-                            writePrettyHTML(os, nodePath);
+                            osg_helpers::writePrettyHTML(os, nodePath);
                             break;
                         }
                     }
@@ -5373,7 +5290,7 @@ bool writePrettyHTMLImpl<osg::NodeCallback>::process(std::basic_ostream<char>& o
             const osg::NodeCallback * nested = (object!=NULL)?object->getNestedCallback():NULL;
 #endif
             if(nested)
-                os << getObjectName(nested) << " (" << getObjectTypename(nested) << ")" << std::endl;
+                os << osg_helpers::getObjectName(nested) << " (" << osg_helpers::getObjectTypename(nested) << ")" << std::endl;
             else
                 os << "&lt;null&gt;";
             os << "</td></tr>" << std::endl;
@@ -5394,7 +5311,7 @@ void writePrettyHTMLViewSlave(std::basic_ostream<char>& os, unsigned num, const 
     os << "<table border=\'1\' align=\'left\'><tr><th>Slave " << num << " Field</th><th>Value</th></tr>" << std::endl;
 
     os << "<tr><td>camera</td><td>";
-    os << getObjectName(object._camera.get()) << " (" << getObjectTypename(object._camera.get()) << ")" << std::endl;
+    os << osg_helpers::getObjectName(object._camera.get()) << " (" << osg_helpers::getObjectTypename(object._camera.get()) << ")" << std::endl;
     os << "</td></tr>" << std::endl;
 
     os << "<tr><td>projectionOffset</td><td>";
@@ -5440,10 +5357,10 @@ bool writePrettyHTMLImpl<osg::View>::process(std::basic_ostream<char>& os)
 
             // add remaining View properties
             os << "<tr><td>lighting mode</td><td>" << (object?object->getLightingMode():osg::View::NO_LIGHT) << "</td></tr>" << std::endl;
-            os << "<tr><td>light</td><td>" << getObjectNameAndType(object->getLight()) << "</td></tr>" << std::endl;
-            os << "<tr><td>camera</td><td>" << getObjectNameAndType(object->getCamera()) << "</td></tr>" << std::endl;
+            os << "<tr><td>light</td><td>" << osg_helpers::getObjectNameAndType(object->getLight()) << "</td></tr>" << std::endl;
+            os << "<tr><td>camera</td><td>" << osg_helpers::getObjectNameAndType(object->getCamera()) << "</td></tr>" << std::endl;
             const osg::FrameStamp * fs = object->getFrameStamp();
-            os << "<tr><td>frame stamp</td><td>" << getObjectNameAndType(object->getFrameStamp()) << "</td></tr>" << std::endl;
+            os << "<tr><td>frame stamp</td><td>" << osg_helpers::getObjectNameAndType(object->getFrameStamp()) << "</td></tr>" << std::endl;
             if(fs)
             {
                 os << "<tr><td>frame number</td><td>" << fs->getFrameNumber() << "</td></tr>" << std::endl;
@@ -5641,8 +5558,8 @@ bool writePrettyHTMLImpl<osg::Object>::process(std::basic_ostream<char>& os)
             os << "<tr><td>classname</td><td>" << object->className() << "</td></tr>" << std::endl;
             os << "<tr><td>libname</td><td>" << object->libraryName() << "</td></tr>" << std::endl;
             os << "<tr><td>dataVariance</td><td>" << object->getDataVariance() << "</td></tr>" << std::endl;
-            os << "<tr><td>userData</td><td>" << getObjectNameAndType(object->getUserData()) << "</td></tr>" << std::endl;
-            os << "<tr><td>userDataContainer</td><td>" << getObjectNameAndType(object->getUserDataContainer()) << "</td></tr>" << std::endl;
+            os << "<tr><td>userData</td><td>" << osg_helpers::getObjectNameAndType(object->getUserData()) << "</td></tr>" << std::endl;
+            os << "<tr><td>userDataContainer</td><td>" << osg_helpers::getObjectNameAndType(object->getUserDataContainer()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -5698,13 +5615,13 @@ bool writePrettyHTMLImpl<osg::ObserverSet>::process(std::basic_ostream<char>& os
 
             // add remaining ObserverSet properties
             os << "<tr><td>observerd</td><td>";
-            os << getObjectNameAndType(object->getObserverdObject());
+            os << osg_helpers::getObjectNameAndType(object->getObserverdObject());
             os << "</td></tr>" << std::endl;
             os << "<tr><td>observers</td><td><ul>";
             const osg::ObserverSet::Observers& observers = object->getObservers();
             for(osg::ObserverSet::Observers::const_iterator it = observers.begin(); it != observers.end(); it++)
             {
-                os << "<li>" << getObjectNameAndType(*it) << "</li>";
+                os << "<li>" << osg_helpers::getObjectNameAndType(*it) << "</li>";
             }
             os << "</ul></td></tr>" << std::endl;
 
@@ -5719,7 +5636,7 @@ bool writePrettyHTMLImpl<osg::ObserverSet>::process(std::basic_ostream<char>& os
             const osg::ObserverSet::Observers& observers = object->getObservers();
             for(osg::ObserverSet::Observers::const_iterator it = observers.begin(); it != observers.end(); it++)
             {
-                os << "<li>" << getObjectNameAndType(*it) << "</li>";
+                os << "<li>" << osg_helpers::getObjectNameAndType(*it) << "</li>";
             }
             os << "</ul>" << std::endl;
             ret = true;
@@ -5803,7 +5720,7 @@ bool writePrettyHTMLImpl<osg::Array>::process(std::basic_ostream<char>& os)
 
             // remaining Array properties
             os << "<tr><td>type</td><td>" << object->getType() << "</td></tr>" << std::endl;
-            os << "<tr><td>dataType</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getDataType()) << "</td></tr>" << std::endl;
+            os << "<tr><td>dataType</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDataType()) << "</td></tr>" << std::endl;
             os << "<tr><td>dataSize</td><td>" << object->getDataSize() << "</td></tr>" << std::endl;
             os << "<tr><td>totalDataSize</td><td>" << object->getTotalDataSize() << "</td></tr>" << std::endl;
             os << "<tr><td>numElements</td><td>" << object->getNumElements() << "</td></tr>" << std::endl;
@@ -5903,8 +5820,8 @@ bool writePrettyHTMLImpl<osg::BufferObject>::process(std::basic_ostream<char>& o
             // add osg::Array properties first
             callNextHandler(os);
 
-            os << "<tr><td>target</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getTarget()) << "</td></tr>" << std::endl;
-            os << "<tr><td>usage</td><td>" << sgi::castToEnumValueString<sgi::GLConstant>(object->getUsage()) << "</td></tr>" << std::endl;
+            os << "<tr><td>target</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getTarget()) << "</td></tr>" << std::endl;
+            os << "<tr><td>usage</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getUsage()) << "</td></tr>" << std::endl;
             os << "<tr><td>size</td><td>" << object->getProfile()._size << "</td></tr>" << std::endl;
             os << "<tr><td>numBufferData</td><td>" << object->getNumBufferData() << "</td></tr>" << std::endl;
 
@@ -5919,7 +5836,7 @@ bool writePrettyHTMLImpl<osg::BufferObject>::process(std::basic_ostream<char>& o
             unsigned numBufferData = object->getNumBufferData();
             for(unsigned n = 0; n < numBufferData; n++)
             {
-                os << "<li>" << getObjectNameAndType(object->getBufferData(n)) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(object->getBufferData(n)) << "</li>" << std::endl;
             }
             os << "</ol>";
             ret = true;
@@ -6013,7 +5930,7 @@ bool writePrettyHTMLImpl<osg::ShaderComponent>::process(std::basic_ostream<char>
             unsigned numShaders = object->getNumShaders();
             for(unsigned n = 0; n < numShaders; n++)
             {
-                os << "<li>" << getObjectNameAndType(object->getShader(n)) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(object->getShader(n)) << "</li>" << std::endl;
             }
             os << "</ol>";
             ret = true;
@@ -6042,7 +5959,7 @@ bool writePrettyHTMLImpl<RenderInfoDrawable>::process(std::basic_ostream<char>& 
 
             // add remaining node properties
 /*
-            os << "<tr><td>lastView</td><td>" << getObjectNameAndType(object->lastView()) << "</td></tr>" << std::endl;
+            os << "<tr><td>lastView</td><td>" << osg_helpers::getObjectNameAndType(object->lastView()) << "</td></tr>" << std::endl;
             {
                 const RenderInfoDrawable::StateSetStack & lastStack = object->lastStateSetStack();
                 os << "<tr><td>lastStateSetStack</td><td>" << lastStack.size() << " elements</td></tr>" << std::endl;
@@ -6072,7 +5989,7 @@ bool writePrettyHTMLImpl<RenderInfoDrawable>::process(std::basic_ostream<char>& 
                 const RenderInfoDrawable::StateSetStack & set = state.stateSetStack;
                 for(RenderInfoDrawable::StateSetStack::const_iterator it = set.begin(); it != set.end(); it++)
                 {
-                    os << "<li>" << getObjectNameAndType((*it).get()) << "</li>" << std::endl;
+                    os << "<li>" << osg_helpers::getObjectNameAndType((*it).get()) << "</li>" << std::endl;
                 }
                 os << "</ol>";
             }
@@ -6090,7 +6007,7 @@ bool writePrettyHTMLImpl<RenderInfoDrawable>::process(std::basic_ostream<char>& 
                 const RenderInfoDrawable::RenderBinStack & set = state.renderBinStack;
                 for(RenderInfoDrawable::RenderBinStack::const_iterator it = set.begin(); it != set.end(); it++)
                 {
-                    os << "<li>" << getObjectNameAndType((*it).get()) << "</li>" << std::endl;
+                    os << "<li>" << osg_helpers::getObjectNameAndType((*it).get()) << "</li>" << std::endl;
                 }
                 os << "</ol>";
             }
@@ -6108,7 +6025,7 @@ bool writePrettyHTMLImpl<RenderInfoDrawable>::process(std::basic_ostream<char>& 
                 const RenderInfoDrawable::CameraStack & set = state.cameraStack;
                 for(RenderInfoDrawable::CameraStack::const_iterator it = set.begin(); it != set.end(); it++)
                 {
-                    os << "<li>" << getObjectNameAndType((*it).get()) << "</li>" << std::endl;
+                    os << "<li>" << osg_helpers::getObjectNameAndType((*it).get()) << "</li>" << std::endl;
                 }
                 os << "</ol>";
             }
@@ -6126,7 +6043,7 @@ bool writePrettyHTMLImpl<RenderInfoDrawable>::process(std::basic_ostream<char>& 
                 const RenderInfoDrawable::PerContextProgramSet & set = state.appliedProgamSet;
                 for(RenderInfoDrawable::PerContextProgramSet::const_iterator it = set.begin(); it != set.end(); it++)
                 {
-                    os << "<li>" << getObjectNameAndType((*it).get()) << "</li>" << std::endl;
+                    os << "<li>" << osg_helpers::getObjectNameAndType((*it).get()) << "</li>" << std::endl;
                 }
                 os << "</ol>";
             }
@@ -6184,18 +6101,18 @@ namespace {
             if(!hit.nodePath.empty())
             {
                 osg::Node * back = hit.nodePath.back();
-                os << " back=" << getObjectName(back) << " (" << getObjectTypename(back) << ")";
+                os << " back=" << osg_helpers::getObjectName(back) << " (" << osg_helpers::getObjectTypename(back) << ")";
             }
         }
         else
         {
-            writePrettyHTML(os, hit.nodePath);
+            osg_helpers::writePrettyHTML(os, hit.nodePath);
         }
         os << "</td></tr>" << std::endl;
 
         os << "<tr><td>drawable</td><td>";
         if(hit.drawable.valid())
-            os << getObjectName(hit.drawable.get()) << " (" << getObjectTypename(hit.drawable.get()) << ")";
+            os << osg_helpers::getObjectName(hit.drawable.get()) << " (" << osg_helpers::getObjectTypename(hit.drawable.get()) << ")";
         os << "</td></tr>" << std::endl;
         os << "<tr><td>matrix</td><td>";
         if(hit.matrix.valid())

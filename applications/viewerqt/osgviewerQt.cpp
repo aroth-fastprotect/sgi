@@ -124,6 +124,12 @@ int main( int argc, char** argv )
     arguments.getApplicationUsage()->addCommandLineOption("--device <device-name>","add named device to the viewer");
     arguments.getApplicationUsage()->addCommandLineOption("--window <x y w h>","Set the position (x,y) and size (w,h) of the viewer window.");
 
+#ifndef _WIN32
+    // QApplication constructor shall call X11InitThreads to get OpenGL working with
+    // multi-threading.
+    QApplication::setAttribute (Qt::AA_X11InitThreads);
+#endif // _WIN32
+
     QApplication app(argc, argv);
     ViewerWidget * mainWidget = new ViewerWidget(arguments);
 
