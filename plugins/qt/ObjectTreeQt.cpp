@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include <ostream>
 #include <QThread>
 #include <QMetaProperty>

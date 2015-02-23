@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "GUIAdapterOSG.h"
 #include "MenuActionOSG.h"
 #include "SGIItemOsg"

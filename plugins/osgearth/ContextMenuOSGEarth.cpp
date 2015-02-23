@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "ContextMenuOSGEarth.h"
 #include <sgi/plugins/SGIItemOsg>
 #include <sgi/helpers/osg>

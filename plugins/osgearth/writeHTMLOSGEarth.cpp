@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include <ostream>
 #include "writeHTMLOSGEarth.h"
 #include <sgi/plugins/SGIItemOsg>
