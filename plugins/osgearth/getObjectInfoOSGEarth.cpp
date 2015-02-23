@@ -2,6 +2,7 @@
 #include "getObjectInfoOSGEarth.h"
 #include "string_helpers.h"
 
+#include <sgi/plugins/SGIHostItemOsgEarth.h>
 #include "../osg/SGIItemOsg"
 #include "SGIItemOsgEarth"
 
