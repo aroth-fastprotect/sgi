@@ -6,6 +6,7 @@
 #include <sgi/ContextMenu>
 #include <sgi/SceneGraphDialog>
 #include <sgi/SGIItemInternal>
+#include <sgi/plugins/SGIHostItemQt.h>
 #include <sgi/helpers/string>
 
 #include <osg/Version>
@@ -1393,9 +1394,9 @@ bool contextMenuPopulateImpl<osgQt::GraphicsWindowQt>::populate(IContextMenuItem
         ret = callNextHandler(menuItem);
         if(ret)
         {
-            SGIHostItemQt shape(object->getGLWidget());
-            if(shape.hasObject())
-                menuItem->addMenu("GLWidget", &shape);
+            SGIHostItemQt widget(object->getGLWidget());
+            if(widget.hasObject())
+                menuItem->addMenu("GLWidget", &widget);
         }
         break;
     default:
