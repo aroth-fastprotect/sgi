@@ -6,6 +6,7 @@
 
 #include "SGIPlugin.h"
 
+#include <sgi/plugins/SGIHostItemQt.h>
 #include <sgi/helpers/qt>
 
 #ifdef _DEBUG
