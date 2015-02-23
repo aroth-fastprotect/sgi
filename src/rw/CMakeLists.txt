@@ -1,3 +1,6 @@
+IF(OSGEARTH_FOUND)
+	include_directories(${OSGEARTH_INCLUDE_DIR})
+ENDIF()
 
 # here we use the command to generate the library
 #not sure if needed, but for plugins only Msvc need the d suffix
