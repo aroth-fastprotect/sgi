@@ -19,6 +19,18 @@ namespace osg {
     class Node;
     class Drawable;
     class ObserverNodePath;
+
+    template<typename VT>
+    class BoundingBoxImpl;
+
+    typedef BoundingBoxImpl<Vec3f> BoundingBoxf;
+    typedef BoundingBoxImpl<Vec3d> BoundingBoxd;
+
+#ifdef OSG_USE_FLOAT_BOUNDINGBOX
+    typedef BoundingBoxf BoundingBox;
+#else
+    typedef BoundingBoxd BoundingBox;
+#endif
 }
 
 namespace sgi {
