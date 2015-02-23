@@ -300,13 +300,17 @@ public:
             {
                 if(!_installed)
                 {
-                    OSG_NOTICE << LC << "install." << std::endl;
-
-                    osgUtil::CullVisitor * cv = dynamic_cast<osgUtil::CullVisitor *>(&nv);
-                    if(cv)
+                    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+                    if(!_installed)
                     {
-                        installToCamera(cv->getCurrentCamera());
-                        _installed = true;
+                        OSG_NOTICE << LC << "install." << std::endl;
+
+                        osgUtil::CullVisitor * cv = dynamic_cast<osgUtil::CullVisitor *>(&nv);
+                        if(cv)
+                        {
+                            installToCamera(cv->getCurrentCamera());
+                            _installed = true;
+                        }
                     }
                 }
             }
@@ -321,6 +325,7 @@ private:
 
 private:
     bool _installed;
+    OpenThreads::Mutex _mutex;
 };
 
 
