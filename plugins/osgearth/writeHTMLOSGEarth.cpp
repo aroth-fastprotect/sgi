@@ -550,15 +550,13 @@ bool writePrettyHTMLImpl<osgEarth::TerrainLayer>::process(std::basic_ostream<cha
             if(_table)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
-            bool brief = true;
-
             // add layer properties first
             callNextHandler(os);
 
             // add terrain layer properties
             TerrainLayerAccessor * access = (TerrainLayerAccessor*)object;
             const osgEarth::Profile * profile = access->profileNoInit();
-            const osgEarth::Profile * targetProfile = access->targetProfileNoInit();
+            const osgEarth::Profile * targetProfileHint = access->targetProfileHintNoInit();
 
             os << "<tr><td>enabled</td><td>" << (object->getEnabled()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>tileSourceInitAttempted</td><td>" << (access->tileSourceInitAttempted()?"true":"false") << "</td></tr>" << std::endl;
@@ -569,6 +567,12 @@ bool writePrettyHTMLImpl<osgEarth::TerrainLayer>::process(std::basic_ostream<cha
             os << "<tr><td>profile</td><td>";
             if(profile)
                 os << profile->toString();
+            else
+                os << "&lt;null&gt;";
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>targetProfileHint</td><td>";
+            if(targetProfileHint)
+                os << targetProfileHint->toString();
             else
                 os << "&lt;null&gt;";
             os << "</td></tr>" << std::endl;
@@ -602,13 +606,29 @@ bool writePrettyHTMLImpl<osgEarth::ImageLayer>::process(std::basic_ostream<char>
             callNextHandler(os);
 
             // add image layer properties
-            // add elevation layer properties
+            os << "<tr><td>colorFilters</td><td>";
+            const osgEarth::ColorFilterChain & colorFilters = object->getColorFilters();
+            if(colorFilters.empty())
+                os << "<i>none</i>";
+            else
+            {
+                os << "<ol>";
+                for(auto it = colorFilters.begin(); it != colorFilters.end(); it++)
+                {
+                    os << "<li>" << getObjectNameAndType((*it).get()) << "</li>";
+                }
+                os << "</ol>";
+            }
+            os << "</td></tr>" << std::endl;
             os << "<tr><td>opacity</td><td>" << object->getOpacity() << "</td></tr>" << std::endl;
+
             os << "<tr><td>LOD blending</td><td>" <<  (object->isLODBlendingEnabled()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>minVisibleRange</td><td>" << object->getMinVisibleRange() << "</td></tr>" << std::endl;
             os << "<tr><td>maxVisibleRange</td><td>" << object->getMaxVisibleRange() << "</td></tr>" << std::endl;
             os << "<tr><td>isShared</td><td>" <<  (object->isShared()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>isCoverage</td><td>" <<  (object->isCoverage()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>shareImageUnit</td><td>" <<  object->shareImageUnit() << "</td></tr>" << std::endl;
+            os << "<tr><td>shareTexMatUniformName</td><td>" <<  object->shareTexMatUniformName() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -667,7 +687,6 @@ bool writePrettyHTMLImpl<osgEarth::ModelLayer>::process(std::basic_ostream<char>
             if(_table)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
-            bool brief = true;
             // add terrain layer properties first
             callNextHandler(os);
 
@@ -680,6 +699,7 @@ bool writePrettyHTMLImpl<osgEarth::ModelLayer>::process(std::basic_ostream<char>
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             os << "<tr><td>isTerrainPatch</td><td>" << (object->isTerrainPatch()?"true":"false") << "</td></tr>" << std::endl;
 #endif
+            os << "<tr><td>maskMinLevel</td><td>" << object->getMaskMinLevel() << "</td></tr>" << std::endl;
             os << "<tr><td>opacity</td><td>" << object->getOpacity() << "</td></tr>" << std::endl;
 
             if(_table)
@@ -737,7 +757,6 @@ bool writePrettyHTMLImpl<osgEarth::Map>::process(std::basic_ostream<char>& os)
             if(_table)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
-            bool brief = true;
             // add referenced properties first
             callNextHandler(os);
 
@@ -757,13 +776,6 @@ bool writePrettyHTMLImpl<osgEarth::Map>::process(std::basic_ostream<char>& os)
             os << "</td></tr>" << std::endl;
             os << "<tr><td>geocentric</td><td>" << (object->isGeocentric()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>cache</td><td>" << object->getCache() << "</td></tr>" << std::endl;
-            if(!brief)
-            {
-                /*
-                os << "<tr><td>initial map options</td><td>" << ((object!=NULL)?object->getInitialMapOptions():osgEarth::MapOptions()) << "</td></tr>" << std::endl;
-                os << "<tr><td>map options</td><td>" << ((object!=NULL)?object->getMapOptions():osgEarth::MapOptions()) << "</td></tr>" << std::endl;
-                */
-            }
             
             osgEarth::MapFrame mapframe(object, osgEarth::Map::ENTIRE_MODEL);
 

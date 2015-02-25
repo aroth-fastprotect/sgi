@@ -660,13 +660,13 @@ bool objectTreeBuildImpl<osgEarth::TerrainLayer>::build(IObjectTreeItem * treeIt
             TerrainLayerAccessor * access = (TerrainLayerAccessor*)object;
             
             const osgEarth::Profile * profile = access->profileNoInit();
-            const osgEarth::Profile * targetProfile = access->targetProfileNoInit();
+            const osgEarth::Profile * targetProfileHint = access->targetProfileHintNoInit();
 
             SGIHostItemOsg profileItem(profile);
             if(profile)
                 treeItem->addChild("Profile", &profileItem);
-            SGIHostItemOsg targetProfileItem(targetProfile);
-            if(targetProfile && targetProfile != profile)
+            SGIHostItemOsg targetProfileItem(targetProfileHint);
+            if(targetProfileHint && targetProfileHint != profile)
                 treeItem->addChild("Target profile", &targetProfileItem);
 
             SGIHostItemOsg tileSource(access->tileSourceNoInit());
@@ -686,9 +686,9 @@ bool objectTreeBuildImpl<osgEarth::TerrainLayer>::build(IObjectTreeItem * treeIt
                 if(cacheBinNative.hasObject())
                     treeItem->addChild("CacheBin (native)", &cacheBinNative);
             }
-            if(profile)
+            if(targetProfileHint)
             {
-                SGIHostItemOsg cacheBinTarget(object->getCacheBin(targetProfile));
+                SGIHostItemOsg cacheBinTarget(object->getCacheBin(targetProfileHint));
                 if(cacheBinTarget.hasObject())
                     treeItem->addChild("CacheBin (target)", &cacheBinTarget);
             }
@@ -759,6 +759,10 @@ bool objectTreeBuildImpl<osgEarth::ModelLayer>::build(IObjectTreeItem * treeItem
             SGIHostItemOsg modelSource(object->getModelSource());
             if(modelSource.hasObject())
                 treeItem->addChild("Model source", &modelSource);
+
+            SGIHostItemOsg maskSource(object->getMaskSource());
+            if(maskSource.hasObject())
+                treeItem->addChild("Mask source", &maskSource);
 
             SGIHostItemOsg modelNode(mapNode?mapNode->getModelLayerNode(object):NULL);
             if(modelNode.hasObject())

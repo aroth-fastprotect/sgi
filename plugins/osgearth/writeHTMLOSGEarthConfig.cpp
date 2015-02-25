@@ -450,14 +450,20 @@ bool writePrettyHTMLImpl<osgEarth::ImageLayerOptions>::process(std::basic_ostrea
             os << "<tr><td>noDataImageFilename</td><td>" << object->noDataImageFilename() << "</td></tr>" << std::endl;
             os << "<tr><td>transparentColor</td><td>" << object->transparentColor() << "</td></tr>" << std::endl;
             os << "<tr><td>lodBlending</td><td>" << object->lodBlending() << "</td></tr>" << std::endl;
-            os << "<tr><td>colorFilters</td><td><ol>";
+            os << "<tr><td>colorFilters</td><td>";
             const osgEarth::ColorFilterChain & colorFilters = object->colorFilters();
-            for(auto it = colorFilters.begin(); it != colorFilters.end(); it++)
+            if(colorFilters.empty())
+                os << "<i>none</i>";
+            else
             {
-                os << "<li>" << getObjectNameAndType((*it).get()) << "</li>";
-
+                os << "<ol>";
+                for(auto it = colorFilters.begin(); it != colorFilters.end(); it++)
+                {
+                    os << "<li>" << getObjectNameAndType((*it).get()) << "</li>";
+                }
+                os << "</ol>";
             }
-            os << "</ol></td></tr>" << std::endl;
+            os << "</td></tr>" << std::endl;
             os << "<tr><td>shared</td><td>" << object->shared() << "</td></tr>" << std::endl;
             os << "<tr><td>featherPixels</td><td>" << object->featherPixels() << "</td></tr>" << std::endl;
 
@@ -585,13 +591,23 @@ bool writePrettyHTMLImpl<osgEarth::TileSourceOptions>::process(std::basic_ostrea
 
             os << "<tr><td>tileSize</td><td>" << object->tileSize() << "</td></tr>" << std::endl;
             os << "<tr><td>noDataValue</td><td>" << object->noDataValue() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+            os << "<tr><td>minValidValue</td><td>" << object->minValidValue() << "</td></tr>" << std::endl;
+            os << "<tr><td>maxValidValue</td><td>" << object->maxValidValue() << "</td></tr>" << std::endl;
+#else
             os << "<tr><td>noDataMinValue</td><td>" << object->noDataMinValue() << "</td></tr>" << std::endl;
             os << "<tr><td>noDataMaxValue</td><td>" << object->noDataMaxValue() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>blacklistFilename</td><td>" << object->blacklistFilename() << "</td></tr>" << std::endl;
             os << "<tr><td>profile</td><td>";
-            SGIHostItemOsgEarthConfigOptions profile(object->profile());
-            if(profile.hasObject())
-                _hostInterface->writePrettyHTML(os, &profile);
+            if(object->profile().isSet())
+            {
+                SGIHostItemOsgEarthConfigOptions profile(object->profile());
+                if(profile.hasObject())
+                    _hostInterface->writePrettyHTML(os, &profile);
+            }
+            else
+                os << "unset()";
             os << "</td></tr>" << std::endl;
             os << "<tr><td>L2CacheSize</td><td>" << object->L2CacheSize() << "</td></tr>" << std::endl;
             os << "<tr><td>bilinearReprojection</td><td>" << object->bilinearReprojection() << "</td></tr>" << std::endl;
@@ -876,6 +892,7 @@ bool writePrettyHTMLImpl<osgEarth::Drivers::ArcGISOptions>::process(std::basic_o
             os << "<tr><td>url</td><td>" << object->url() << "</td></tr>" << std::endl;
             os << "<tr><td>token</td><td>" << object->token() << "</td></tr>" << std::endl;
             os << "<tr><td>format</td><td>" << object->format() << "</td></tr>" << std::endl;
+            os << "<tr><td>layers</td><td>" << object->layers() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
