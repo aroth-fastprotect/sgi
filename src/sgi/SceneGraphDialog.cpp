@@ -201,37 +201,34 @@ void SceneGraphDialog::showBesideParent()
     {
         _firstShow = false;
 
+#if 0
         QDesktopWidget * dw = QApplication::desktop();
         QWidget * parent = parentWidget();
         if(parent)
         {
-            QPoint parentTopRight = parent->mapToGlobal(parent->frameGeometry().topRight());
-            QPoint targetPos = parent->mapFromGlobal(parentTopRight);
+            int numScreens = dw->screenCount();
+            int parentScreen = dw->screenNumber(parent);
+            int currentScreen = dw->screenNumber(this);
 
-            int currentScreen = dw->screenNumber(this);
-            QRect currentScreenRect = dw->screenGeometry(currentScreen);
-            if (targetPos.x() < currentScreenRect.right() && targetPos.y() < currentScreenRect.bottom())
+            if(parentScreen == currentScreen)
             {
-                move(targetPos);
+                int targetScreen = (currentScreen + 1) % numScreens;
+                if(targetScreen != currentScreen)
+                {
+                    QRect currentScreenRect = dw->screenGeometry(currentScreen);
+                    QRect targetScreenRect = dw->screenGeometry(targetScreen);
+                    QPoint currentTopLeft = parent->mapToGlobal(frameGeometry().topLeft());
+                    QPoint screenOffset = currentTopLeft - currentScreenRect.topLeft();
+                    QPoint targetTopLeft = targetScreenRect.topLeft() + screenOffset;
+                    if (targetScreenRect.contains(targetTopLeft))
+                    {
+                        targetTopLeft = parent->mapFromGlobal(targetTopLeft);
+                        move(targetTopLeft);
+                    }
+                }
             }
         }
-/*
-        int numScreens = dw->screenCount();
-        if(numScreens > 1)
-        {
-            int currentScreen = dw->screenNumber(this);
-            int parentScreen = dw->screenNumber(parentWidget());
-            if(currentScreen == parentScreen)
-            {
-                QRect currentScreenRect = dw->screenGeometry(currentScreen);
-                QPoint p = mapToGlobal(pos());
-                p -= currentScreenRect.topLeft();
-                QRect desiredScreenRect = dw->screenGeometry((currentScreen + 1) % numScreens);
-                QPoint desiredPos = mapFromGlobal(p + desiredScreenRect.topLeft());
-                move(desiredPos);
-            }
-        }
-*/
+#endif
     }
 }
 
