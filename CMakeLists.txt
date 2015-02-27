@@ -71,6 +71,11 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 	INCLUDE(SGIMacros)
 	FAST_INSTALL_DATA_FILE(CMakeModules/SGIMacros.cmake DESTINATION share/cmake/modules COMPONENT "Developer files")
 
+	OPTION(SGI_PLUGIN_OSG "Enable OSG plugin" ON)
+	OPTION(SGI_PLUGIN_OSGEARTH "Enable osgEarth plugin" ${OSGEARTH_FOUND})
+	OPTION(SGI_PLUGIN_QT "Enable Qt plugin" ON)
+	OPTION(SGI_PLUGIN_LOG4CPLUS "Enable log4cplus plugin" ${LOG4CPLUS_FOUND})
+
 	SET(SGI_PLUGIN_IMPL_LIBRARY osgSGI-plugin-impl)
 
     set(SGI_PLUGIN_HOST_SUPPORT_INCLUDES)
@@ -87,11 +92,6 @@ IF(NOT SGI_IS_SYSTEM_LIB)
     fast_configure_file(${CMAKE_CURRENT_SOURCE_DIR}/SGIHostSupport.in ${SGI_INCLUDE_DIR}/sgi/plugins/SGIHostSupport)
 
     FAST_INSTALL_EXTRA_HEADER_FILES(DIRECTORY ${SGI_INCLUDE_DIR}/sgi DESTINATION include/sgi)
-
-	OPTION(SGI_PLUGIN_OSG "Enable OSG plugin" ON)
-	OPTION(SGI_PLUGIN_OSGEARTH "Enable osgEarth plugin" ${OSGEARTH_FOUND})
-	OPTION(SGI_PLUGIN_QT "Enable Qt plugin" ON)
-	OPTION(SGI_PLUGIN_LOG4CPLUS "Enable log4cplus plugin" ${LOG4CPLUS_FOUND})
 
 	# SGI Core
 	ADD_SUBDIRECTORY(src)
