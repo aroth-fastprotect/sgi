@@ -201,7 +201,6 @@ void SceneGraphDialog::showBesideParent()
     {
         _firstShow = false;
 
-#if 0
         QDesktopWidget * dw = QApplication::desktop();
         QWidget * parent = parentWidget();
         if(parent)
@@ -215,11 +214,14 @@ void SceneGraphDialog::showBesideParent()
                 int targetScreen = (currentScreen + 1) % numScreens;
                 if(targetScreen != currentScreen)
                 {
+                    QRect geom = frameGeometry();
                     QRect currentScreenRect = dw->screenGeometry(currentScreen);
                     QRect targetScreenRect = dw->screenGeometry(targetScreen);
-                    QPoint currentTopLeft = parent->mapToGlobal(frameGeometry().topLeft());
+                    QPoint currentTopLeft = parent->mapToGlobal(geom.topLeft());
+                    QPoint currentBottomRight = parent->mapToGlobal(geom.bottomRight());
                     QPoint screenOffset = currentTopLeft - currentScreenRect.topLeft();
                     QPoint targetTopLeft = targetScreenRect.topLeft() + screenOffset;
+                    QPoint targetBottomRight(targetTopLeft.x() + geom.width(), targetTopLeft.y() + geom.height());
                     if (targetScreenRect.contains(targetTopLeft))
                     {
                         targetTopLeft = parent->mapFromGlobal(targetTopLeft);
@@ -228,7 +230,6 @@ void SceneGraphDialog::showBesideParent()
                 }
             }
         }
-#endif
     }
 }
 
