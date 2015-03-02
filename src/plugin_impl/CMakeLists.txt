@@ -1,3 +1,7 @@
+IF(OSGEARTH_FOUND)
+	include_directories(${OSGEARTH_INCLUDE_DIR})
+ENDIF()
+
 SET(TARGET_SRC
     SGIItemBase.cpp
     ObjectTreeImpl.cpp
