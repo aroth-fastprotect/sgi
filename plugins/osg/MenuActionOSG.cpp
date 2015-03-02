@@ -3,9 +3,10 @@
 #include <sgi/helpers/osg>
 #include "SGIItemOsg"
 
-#include <sgi/ContextMenu>
-#include <sgi/SceneGraphDialog>
-#include <sgi/ObjectLoggerDialog>
+#include <sgi/plugins/ContextMenu>
+#include <sgi/plugins/SceneGraphDialog>
+#include <sgi/plugins/ObjectLoggerDialog>
+#include <sgi/plugins/SettingsDialog>
 #include <sgi/SGIItemInternal>
 #include <sgi/helpers/string>
 

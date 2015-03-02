@@ -9,12 +9,13 @@
 #include <QTimer>
 
 #include "SGIPlugin.h"
-#include <sgi/ContextMenu>
-#include <sgi/SceneGraphDialog>
+#include <sgi/plugins/ContextMenu>
+#include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SGIPluginInterface.h>
 #include <sgi/plugins/SGIDataItemBase.h>
 
 #include <sgi/plugins/ObjectTreeImpl>
+#include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/SGIItemInternal>
 #include <sgi/helpers/qt>
 

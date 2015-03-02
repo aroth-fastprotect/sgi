@@ -22,8 +22,8 @@
 
 #include <osgEarthUtil/TMS>
 
-#include <sgi/ContextMenu>
-#include <sgi/SceneGraphDialog>
+#include <sgi/plugins/ContextMenu>
+#include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/ObjectTreeImpl>
 
 #ifdef _DEBUG

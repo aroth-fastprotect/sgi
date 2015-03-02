@@ -4,7 +4,8 @@
 #include <sgi/plugins/SGIPluginImpl.h>
 #include <sgi/plugins/SGIPluginInterface.h>
 #include <sgi/plugins/SGIHostItemOsg.h>
-#include <sgi/SceneGraphDialog>
+#include <sgi/plugins/SceneGraphDialog>
+#include <sgi/plugins/SettingsDialog>
 #include "SGIItemOsg"
 
 #include "writeHTMLOSG.h"

@@ -3,6 +3,7 @@
 #include "string_helpers.h"
 #include "../osg/SGIItemOsg"
 
+#include <sgi/plugins/SettingsDialog>
 #include <osgEarthUtil/AutoClipPlaneHandler>
 
 #include "AutoClipPlaneCullCallbackDialog.h"

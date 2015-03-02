@@ -3,54 +3,14 @@
 
 #pragma once
 
-#include <osgGA/GUIEventHandler>
 #include "ReferencedPicker"
 #include "AutoLoadOsg"
 #include "plugins/SGIHostItemOsg.h"
 #include "plugins/SGIHostItemInternal.h"
+#include "plugins/InspectorHandler"
 #include "SGIItemInternal"
 
 namespace sgi {
-
-class ISceneGraphInspectorHandlerInfo : public osg::Referenced
-{
-public:
-    enum PickerType {
-        PickerTypeDefault,
-        PickerTypeLine,
-        PickerTypePolytope
-    };
-    virtual bool            showSceneGraphDialog(const SGIHostItemBase * item) = 0;
-    virtual bool            showObjectLoggerDialog(const SGIHostItemBase * item) = 0;
-    virtual ReferencedPickerBase * createPicker(PickerType type, float x, float y) = 0;
-};
-
-class SceneGraphInspectorHandler : public osgGA::GUIEventHandler
-{
-public:
-    SceneGraphInspectorHandler(ISceneGraphInspectorHandlerInfo * info);
-
-    virtual bool handle( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa );
-
-    ISceneGraphInspectorHandlerInfo * info() { return _info; }
-
-protected:
-    bool                showSceneGraphDialog(const SGIHostItemOsg * item);
-    bool                showObjectLoggerDialog(const SGIHostItemOsg * item);
-
-protected:
-    osg::ref_ptr<ISceneGraphInspectorHandlerInfo> _info;
-    ReferencedPickerBasePtr _picker;
-    int                 _inspectorHitTestKey;
-    int                 _inspectorEventKey;
-    int                 _inspectorLoggerKey;
-    int                 _inspectorLoggerModMask;
-    int                 _inspectorInfoKey;
-    int                 _inspectorInfoKeyModMask;
-    int                 _inspectorHitTestMouseButton;
-    int                 _inspectorHitTestMouseLeftModMask;
-    int                 _inspectorHitTestMouseRightModMask;
-};
 
 inline SceneGraphInspectorHandler::SceneGraphInspectorHandler(ISceneGraphInspectorHandlerInfo * info)
 : _info(info)

@@ -2,6 +2,8 @@
 #include "SettingsDialogOSG.h"
 #include "SGIItemOsg"
 
+#include <sgi/plugins/SettingsDialog>
+
 #include <osg/Camera>
 #include <osg/Shape>
 

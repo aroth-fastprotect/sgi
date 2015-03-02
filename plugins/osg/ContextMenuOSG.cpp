@@ -3,8 +3,9 @@
 #include <sgi/helpers/osg>
 #include "SGIItemOsg"
 
-#include <sgi/ContextMenu>
-#include <sgi/SceneGraphDialog>
+#include <sgi/plugins/ContextMenu>
+#include <sgi/plugins/SceneGraphDialog>
+#include <sgi/plugins/ObjectLoggerDialog>
 #include <sgi/SGIItemInternal>
 #include <sgi/plugins/SGIHostItemQt.h>
 #include <sgi/helpers/string>

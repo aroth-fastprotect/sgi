@@ -7,7 +7,7 @@
 #include "SGIItemOsgEarth"
 
 #include <sgi/SGIItemInternal>
-#include <sgi/SceneGraphDialog>
+#include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SGIProxyItem.h>
 #include <sgi/helpers/string>
 

@@ -34,6 +34,7 @@
 #include <osgViewer/api/X11/GraphicsWindowX11>
 #endif
 
+#define SGI_NO_HOSTITEM_GENERATOR
 #include <sgi/InspectorHandler>
 #include <sgi/SceneGraphDialog>
 #include <sgi/ObjectLoggerDialog>
@@ -122,7 +123,10 @@ public:
     {
         OSG_NOTICE << LC << "showSceneGraphDialog node " << node << std::endl;
         if(!_dialog.valid())
-            _dialog = sgi::showSceneGraphDialog<autoload::Osg>(_parent, node, _dialogInfo);
+        {
+            SGIHostItemOsg item(node);
+            _dialog = sgi::showSceneGraphDialogImpl<autoload::Osg>(_parent, &item, _dialogInfo);
+        }
         else
         {
             SGIHostItemOsg item(node);

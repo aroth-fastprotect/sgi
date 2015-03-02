@@ -2,8 +2,8 @@
 #include "MenuActionLog4cplus.h"
 #include "SGIItemLog4cplus"
 
-#include <sgi/ContextMenu>
-#include <sgi/SceneGraphDialog>
+#include <sgi/plugins/ContextMenu>
+#include <sgi/plugins/SceneGraphDialog>
 
 namespace sgi {
 

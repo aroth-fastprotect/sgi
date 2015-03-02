@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QMenu>
-#include "sgi/ContextMenu"
+#include "sgi/plugins/ContextMenu"
 #include "sgi/ContextMenuQt"
 
 namespace sgi {
@@ -9,6 +9,15 @@ namespace sgi {
     namespace qt_helpers {
         class QtSGIItem;
     }
+
+class SGIItemBase;
+class SGIHostItemBase;
+class SGIDataItemBase;
+typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
+typedef osg::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
+typedef std::list<SGIDataItemBasePtr> SGIDataItemBasePtrList;
+typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
+typedef std::vector<SGIItemBasePtr> SGIItemBasePtrVector;
 
 class ContextMenu : public QMenu
 {

@@ -1,0 +1,70 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include "ContextMenu"
+
+class QWidget;
+class QDialog;
+
+namespace sgi {
+
+class ISettingsDialogInfo : public osg::Referenced
+{
+public:
+    virtual unsigned dialogId() = 0;
+    virtual QWidget * parent() = 0;
+    virtual void triggerRepaint() = 0;
+};
+typedef osg::ref_ptr<ISettingsDialogInfo> ISettingsDialogInfoPtr;
+
+class SettingsDialogInfoBase : public ISettingsDialogInfo
+{
+public:
+    SettingsDialogInfoBase(unsigned dialogId, QWidget * parent)
+        : _dialogId(dialogId), _parent(parent)
+        {}
+    virtual unsigned dialogId() { return _dialogId; }
+    virtual QWidget * parent() { return _parent; }
+    virtual void triggerRepaint() { }
+
+protected:
+    // hide it to force allocation on heap (using ref_ptr)
+    virtual ~SettingsDialogInfoBase() {}
+
+private:
+    unsigned _dialogId;
+    QWidget * _parent;
+};
+
+class SettingsDialogInfoForMenu : public SettingsDialogInfoBase
+{
+public:
+    SettingsDialogInfoForMenu(unsigned dialogId, QWidget * parent, IContextMenuInfo * menuInfo)
+        : SettingsDialogInfoBase(dialogId, parent), _menuInfo(menuInfo) {}
+    virtual void triggerRepaint() { _menuInfo->triggerRepaint(); }
+
+protected:
+    // hide it to force allocation on heap (using ref_ptr)
+    virtual ~SettingsDialogInfoForMenu() {}
+
+private:
+    IContextMenuInfoPtr _menuInfo;
+};
+
+
+class ISettingsDialog : public osg::Referenced
+{
+public:
+    virtual void            setObject(SGIItemBase * item, ISettingsDialogInfo * info=NULL) = 0;
+    virtual void            setObject(const SGIHostItemBase * item, ISettingsDialogInfo * info=NULL) = 0;
+    virtual void            show() = 0;
+    virtual void            hide() = 0;
+    virtual bool            isVisible() = 0;
+    virtual int             showModal() = 0;
+};
+
+typedef osg::ref_ptr<ISettingsDialog> ISettingsDialogPtr;
+
+} // namespace sgi
