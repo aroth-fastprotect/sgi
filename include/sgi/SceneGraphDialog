@@ -36,14 +36,6 @@ inline ISceneGraphDialog * showSceneGraphDialogImpl(QWidget *parent, SGIItemBase
     return ret;
 }
 
-template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
-inline ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, OBJECT_TYPE * object, ISceneGraphDialogInfo * info=NULL)
-{
-    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
-    ISceneGraphDialog * ret = showSceneGraphDialogImpl<AUTOLOADCLASS>(parent, hostitem.get(), info);
-    return ret;
-}
-
 template<typename AUTOLOADCLASS>
 inline ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, ISceneGraphDialogInfo * info=NULL)
 {
@@ -57,5 +49,15 @@ inline ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostIt
     ISceneGraphDialog * ret = showSceneGraphDialogImpl<AUTOLOADCLASS>(parent, item, info);
     return ret;
 }
+
+#if !defined(SGI_NO_HOSTITEM_GENERATOR)
+template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
+inline ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, OBJECT_TYPE * object, ISceneGraphDialogInfo * info=NULL)
+{
+    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    ISceneGraphDialog * ret = showSceneGraphDialogImpl<AUTOLOADCLASS>(parent, hostitem.get(), info);
+    return ret;
+}
+#endif // !defined(SGI_NO_HOSTITEM_GENERATOR)
 
 } // namespace sgi

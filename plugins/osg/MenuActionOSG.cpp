@@ -3,6 +3,7 @@
 #include <sgi/helpers/osg>
 #include "SGIItemOsg"
 
+#include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/ContextMenu>
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/ObjectLoggerDialog>

@@ -2,6 +2,7 @@
 #include "GUIAdapterOSG.h"
 #include "MenuActionOSG.h"
 #include "SGIItemOsg"
+#include <sgi/plugins/SGIHostItemOsg.h>
 #include <osgViewer/View>
 
 namespace sgi {

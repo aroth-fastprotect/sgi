@@ -36,14 +36,6 @@ inline IContextMenu * createContextMenuImpl(QWidget *parent, SGIItemBase * item,
     return ret;
 }
 
-template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
-inline IContextMenu * createContextMenu(QWidget *parent, OBJECT_TYPE * object, IContextMenuInfo * info=NULL)
-{
-    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
-    IContextMenu * ret = createContextMenuImpl<AUTOLOADCLASS>(parent, hostitem.get(), info);
-    return ret;
-}
-
 template<typename AUTOLOADCLASS>
 inline IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * item, IContextMenuInfo * info=NULL)
 {
@@ -57,5 +49,15 @@ inline IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, ICo
     IContextMenu * ret = createContextMenuImpl<AUTOLOADCLASS>(parent, item, info);
     return ret;
 }
+
+#if !defined(SGI_NO_HOSTITEM_GENERATOR)
+template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
+inline IContextMenu * createContextMenu(QWidget *parent, OBJECT_TYPE * object, IContextMenuInfo * info=NULL)
+{
+    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    IContextMenu * ret = createContextMenuImpl<AUTOLOADCLASS>(parent, hostitem.get(), info);
+    return ret;
+}
+#endif // !defined(SGI_NO_HOSTITEM_GENERATOR)
 
 } // namespace sgi

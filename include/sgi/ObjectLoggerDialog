@@ -36,14 +36,6 @@ inline IObjectLoggerDialog * showObjectLoggerDialogImpl(QWidget *parent, SGIItem
     return ret;
 }
 
-template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
-inline IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, OBJECT_TYPE * object, IObjectLoggerDialogInfo * info=NULL)
-{
-    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
-    IObjectLoggerDialog * ret = showObjectLoggerDialogImpl<AUTOLOADCLASS>(parent, hostitem.get(), info);
-    return ret;
-}
-
 template<typename AUTOLOADCLASS>
 inline IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * item, IObjectLoggerDialogInfo * info=NULL)
 {
@@ -57,5 +49,15 @@ inline IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase
     IObjectLoggerDialog * ret = showObjectLoggerDialogImpl<AUTOLOADCLASS>(parent, item, info);
     return ret;
 }
+
+#if !defined(SGI_NO_HOSTITEM_GENERATOR)
+template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
+inline IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, OBJECT_TYPE * object, IObjectLoggerDialogInfo * info=NULL)
+{
+    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    IObjectLoggerDialog * ret = showObjectLoggerDialogImpl<AUTOLOADCLASS>(parent, hostitem.get(), info);
+    return ret;
+}
+#endif // !defined(SGI_NO_HOSTITEM_GENERATOR)
 
 } // namespace sgi

@@ -27,6 +27,10 @@ inline SceneGraphInspectorHandler::SceneGraphInspectorHandler(ISceneGraphInspect
 {
 }
 
+inline SceneGraphInspectorHandler::~SceneGraphInspectorHandler()
+{
+}
+
 inline bool SceneGraphInspectorHandler::showSceneGraphDialog(const SGIHostItemOsg * item)
 {
     return _info->showSceneGraphDialog(item);

@@ -10,12 +10,12 @@
 #include <sgi/SGIItemInternal>
 #include "SGIPlugin.h"
 #include <sgi/plugins/SceneGraphDialog>
-#include <sgi/plugins/InspectorHandler>
 #include <sgi/plugins/ObjectLoggerDialog>
 #include <sgi/plugins/SettingsDialog>
 
 #include "sgi/helpers/rtti"
-#include <osgGA/GUIEventHandler>
+
+#include <sgi/InspectorHandler>
 
 sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = NULL;
 

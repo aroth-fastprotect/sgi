@@ -27,6 +27,7 @@ class SceneGraphInspectorHandler : public osgGA::GUIEventHandler
 {
 public:
     SceneGraphInspectorHandler(ISceneGraphInspectorHandlerInfo * info);
+    virtual ~SceneGraphInspectorHandler();
 
     virtual bool handle( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa );
 

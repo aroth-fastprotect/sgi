@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "ContextMenuQt.h"
+#include <sgi/plugins/SGIHostItemQt.h>
 #include "SGIItemQt"
 #include "MenuActionQt.h"
 #include <QMetaClassInfo>

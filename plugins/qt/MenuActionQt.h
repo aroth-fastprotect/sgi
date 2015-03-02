@@ -1,8 +1,6 @@
 #pragma once
 
-#include <sgi/plugins/SGIPluginMacros.h>
-#include <sgi/plugins/SGIHostItemQt.h>
-
+#include <sgi/plugins/ActionHandlerImpl>
 
 namespace sgi {
 namespace qt_plugin {

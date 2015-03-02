@@ -4,6 +4,7 @@
 
 #include <sgi/plugins/ContextMenu>
 #include <sgi/plugins/SceneGraphDialog>
+#include <sgi/plugins/SGIHostItemLog4cplus.h>
 
 namespace sgi {
 

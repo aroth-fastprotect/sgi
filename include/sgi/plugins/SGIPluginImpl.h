@@ -10,6 +10,8 @@
 #include "SGIPluginInterface.h"
 #include "SGIHostItemBase.h"
 #include "SGIPluginMacros.h"
+#include "ActionHandlerImpl"
+#include "SettingsDialogImpl"
 
 namespace sgi {
 

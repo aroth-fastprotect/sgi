@@ -1,0 +1,98 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include "SGIPluginMacros.h"
+#include "SettingsDialog"
+
+namespace sgi {
+
+template<template<unsigned> class ImplT>
+class settingsDialogCreateImplBaseT : public functionImplBase
+{
+public:
+    struct TypePolicy {
+        struct CallParamType
+        {
+            CallParamType(SGIPluginHostInterface * hostInterface_, SGIItemBase * item_, ISettingsDialogInfo * info_)
+                : hostInterface(hostInterface_), item(item_), info(info_) {}
+            SGIPluginHostInterface * hostInterface;
+            SGIItemBase * item;
+            ISettingsDialogInfo * info;
+        };
+        typedef ISettingsDialogPtr & ResultType;
+    };
+
+    settingsDialogCreateImplBaseT(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL, ISettingsDialogInfo * info=NULL)
+        : functionImplBase(hostInterface, item)
+        , _info(info)
+        {
+        }
+
+    typedef details::call_by_id_registryT<TypePolicy> Registry;
+    template<unsigned Id>
+    class AutoRegisterTypeT : public details::call_by_id_auto_registerT<settingsDialogCreateImplBaseT, Id>
+    {
+    };
+
+    typedef typename TypePolicy::CallParamType CallParamType;
+    typedef typename TypePolicy::ResultType ResultType;
+
+    template<unsigned Id>
+    static bool callImpl(const details::UintWrap<Id> & t, const CallParamType & param, ResultType & result)
+    {
+        ImplT<Id> f(param.hostInterface, param.item, param.info);
+        return f.execute(result);
+    }
+
+    static bool call(SGIPluginHostInterface * hostInterface, SGIItemBase * item, ISettingsDialogInfo * info, ISettingsDialogPtr & result)
+    {
+        CallParamType param(hostInterface, item, info);
+        return Registry::instance()->call(info->dialogId(), param, result);
+    }
+
+    QWidget * parent()
+    {
+        return _info->parent();
+    }
+    ISettingsDialogInfo * info()
+    {
+        return _info;
+    }
+
+protected:
+    ISettingsDialogInfo * _info;
+};
+
+#define SETTINGS_DIALOG_CREATE_IMPL_TEMPLATE() \
+    template<unsigned T> \
+    class settingsDialogCreateImpl { \
+    public: \
+        typedef sgi::details::constexpr_false accept; \
+        settingsDialogCreateImpl(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL, ISettingsDialogInfo * info=NULL) {} \
+        bool execute(ISettingsDialogPtr & dialog) { return false; } \
+    }; \
+    typedef settingsDialogCreateImplBaseT<settingsDialogCreateImpl> settingsDialogCreateImplBase;
+
+#define SETTINGS_DIALOG_CREATE_IMPL_DECLARE(__id) \
+    template<> \
+    class settingsDialogCreateImpl<__id> : public settingsDialogCreateImplBase { \
+    private: \
+        typedef AutoRegisterTypeT<__id> AutoRegisterType; \
+        static AutoRegisterType s_autoregister; \
+    public: \
+        typedef sgi::details::constexpr_true accept; \
+        settingsDialogCreateImpl<__id>(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL, ISettingsDialogInfo * info=NULL) \
+            : settingsDialogCreateImplBase(hostInterface, item, info) {} \
+        bool execute(ISettingsDialogPtr & dialog); \
+    };
+
+#define SETTINGS_DIALOG_CREATE_IMPL_REGISTER(__id) \
+    settingsDialogCreateImpl<__id>::AutoRegisterType settingsDialogCreateImpl<__id>::s_autoregister;
+
+#define SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(__id) \
+    SETTINGS_DIALOG_CREATE_IMPL_DECLARE(__id) \
+    SETTINGS_DIALOG_CREATE_IMPL_REGISTER(__id)
+
+} // namespace sgi

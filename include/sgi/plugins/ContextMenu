@@ -9,10 +9,6 @@
 class QWidget;
 class QMenu;
 
-namespace osg {
-    class View;
-}
-
 namespace sgi {
 
 class SGIItemBase;
