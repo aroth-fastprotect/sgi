@@ -137,25 +137,25 @@ void SceneGraphDialog::init()
     mainLayout->insertWidget(0, _toolBar);
 
     _comboBoxPath = new QComboBox(_toolBar);
-    Q_ASSERT(connect(_comboBoxPath, SIGNAL(activated(int)), this, SLOT(selectItemFromPath(int))));
+    connect(_comboBoxPath, SIGNAL(activated(int)), this, SLOT(selectItemFromPath(int)));
 
     _actionReloadSelected = new QAction(tr("Reload"), this);
-    Q_ASSERT(connect(_actionReloadSelected, SIGNAL(triggered()), this, SLOT(reloadSelectedItem())));
+    connect(_actionReloadSelected, SIGNAL(triggered()), this, SLOT(reloadSelectedItem()));
 
     _actionReload = new QAction(tr("Reload All"), this);
-    Q_ASSERT(connect(_actionReload, SIGNAL(triggered()), this, SLOT(reload())));
+    connect(_actionReload, SIGNAL(triggered()), this, SLOT(reload()));
 
     _actionItemPrevious = new QAction(tr("Previous"), this);
-    Q_ASSERT(connect(_actionItemPrevious, SIGNAL(triggered()), this, SLOT(itemPrevious())));
+    connect(_actionItemPrevious, SIGNAL(triggered()), this, SLOT(itemPrevious()));
     _actionItemNext = new QAction(tr("Next"), this);
-    Q_ASSERT(connect(_actionItemNext, SIGNAL(triggered()), this, SLOT(itemNext())));
+    connect(_actionItemNext, SIGNAL(triggered()), this, SLOT(itemNext()));
 
     _spinBoxRefreshTime = new QSpinBox(_toolBar);
     _spinBoxRefreshTime->setMinimum(0);
     _spinBoxRefreshTime->setMaximum(600);
     _spinBoxRefreshTime->setPrefix("Refresh ");
     _spinBoxRefreshTime->setSuffix("s");
-    Q_ASSERT(connect(_spinBoxRefreshTime, SIGNAL(valueChanged(int)), this, SLOT(refreshTimeChanged(int))));
+    connect(_spinBoxRefreshTime, SIGNAL(valueChanged(int)), this, SLOT(refreshTimeChanged(int)));
 
     _toolBar->addAction(_actionReloadSelected);
     _toolBar->addAction(_actionReload);
@@ -186,9 +186,9 @@ void SceneGraphDialog::init()
     root->setData(0, Qt::UserRole, QVariant::fromValue(nodeDataRoot));
     _rootTreeItem = new ObjectTreeItem(root);
 
-    Q_ASSERT(QObject::connect(this, SIGNAL(triggerOnObjectChanged()), this, SLOT(onObjectChanged()), Qt::QueuedConnection));
-    Q_ASSERT(QObject::connect(this, SIGNAL(triggerShow()), this, SLOT(showBesideParent()), Qt::QueuedConnection));
-    Q_ASSERT(QObject::connect(this, SIGNAL(triggerHide()), this, SLOT(hide()), Qt::QueuedConnection));
+    QObject::connect(this, SIGNAL(triggerOnObjectChanged()), this, SLOT(onObjectChanged()), Qt::QueuedConnection);
+    QObject::connect(this, SIGNAL(triggerShow()), this, SLOT(showBesideParent()), Qt::QueuedConnection);
+    QObject::connect(this, SIGNAL(triggerHide()), this, SLOT(hide()), Qt::QueuedConnection);
 
     updatePathComboBox();
     reload();
@@ -664,7 +664,7 @@ void SceneGraphDialog::refreshTimeChanged ( int n )
     if(!_refreshTimer)
     {
         _refreshTimer = new QTimer(this);
-        Q_ASSERT(connect(_refreshTimer, SIGNAL(timeout()), this, SLOT(refreshTimerExpired())));
+        connect(_refreshTimer, SIGNAL(timeout()), this, SLOT(refreshTimerExpired()));
     }
     if(n > 0)
         _refreshTimer->start(n * 1000);
