@@ -760,9 +760,11 @@ bool objectTreeBuildImpl<osgEarth::ModelLayer>::build(IObjectTreeItem * treeItem
             if(modelSource.hasObject())
                 treeItem->addChild("Model source", &modelSource);
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             SGIHostItemOsg maskSource(object->getMaskSource());
             if(maskSource.hasObject())
                 treeItem->addChild("Mask source", &maskSource);
+#endif
 
             SGIHostItemOsg modelNode(mapNode?mapNode->getModelLayerNode(object):NULL);
             if(modelNode.hasObject())
