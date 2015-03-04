@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "SettingsDialogQt.h"
 #include "SGIItemQt"
-
+#include <sgi/plugins/SettingsDialog>
 #include "ImagePreviewDialog.h"
 
 namespace sgi {

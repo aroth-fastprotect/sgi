@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QDialog>
-#include <sgi/SceneGraphDialog>
+#include <sgi/plugins/SceneGraphDialog>
 
 QT_BEGIN_NAMESPACE
 class Ui_SceneGraphDialog;
@@ -19,6 +19,14 @@ class IObjectTreeItem;
 class ObjectTreeItem;
 class ContextMenu;
 typedef osg::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
+class SGIItemBase;
+class SGIHostItemBase;
+class SGIDataItemBase;
+typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
+typedef osg::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
+typedef std::list<SGIDataItemBasePtr> SGIDataItemBasePtrList;
+typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
+typedef std::vector<SGIItemBasePtr> SGIItemBasePtrVector;
 
 class SceneGraphDialog : public QDialog
 {

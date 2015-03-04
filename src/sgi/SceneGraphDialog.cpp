@@ -137,25 +137,25 @@ void SceneGraphDialog::init()
     mainLayout->insertWidget(0, _toolBar);
 
     _comboBoxPath = new QComboBox(_toolBar);
-    Q_ASSERT(connect(_comboBoxPath, SIGNAL(activated(int)), this, SLOT(selectItemFromPath(int))));
+    connect(_comboBoxPath, SIGNAL(activated(int)), this, SLOT(selectItemFromPath(int)));
 
     _actionReloadSelected = new QAction(tr("Reload"), this);
-    Q_ASSERT(connect(_actionReloadSelected, SIGNAL(triggered()), this, SLOT(reloadSelectedItem())));
+    connect(_actionReloadSelected, SIGNAL(triggered()), this, SLOT(reloadSelectedItem()));
 
     _actionReload = new QAction(tr("Reload All"), this);
-    Q_ASSERT(connect(_actionReload, SIGNAL(triggered()), this, SLOT(reload())));
+    connect(_actionReload, SIGNAL(triggered()), this, SLOT(reload()));
 
     _actionItemPrevious = new QAction(tr("Previous"), this);
-    Q_ASSERT(connect(_actionItemPrevious, SIGNAL(triggered()), this, SLOT(itemPrevious())));
+    connect(_actionItemPrevious, SIGNAL(triggered()), this, SLOT(itemPrevious()));
     _actionItemNext = new QAction(tr("Next"), this);
-    Q_ASSERT(connect(_actionItemNext, SIGNAL(triggered()), this, SLOT(itemNext())));
+    connect(_actionItemNext, SIGNAL(triggered()), this, SLOT(itemNext()));
 
     _spinBoxRefreshTime = new QSpinBox(_toolBar);
     _spinBoxRefreshTime->setMinimum(0);
     _spinBoxRefreshTime->setMaximum(600);
     _spinBoxRefreshTime->setPrefix("Refresh ");
     _spinBoxRefreshTime->setSuffix("s");
-    Q_ASSERT(connect(_spinBoxRefreshTime, SIGNAL(valueChanged(int)), this, SLOT(refreshTimeChanged(int))));
+    connect(_spinBoxRefreshTime, SIGNAL(valueChanged(int)), this, SLOT(refreshTimeChanged(int)));
 
     _toolBar->addAction(_actionReloadSelected);
     _toolBar->addAction(_actionReload);
@@ -186,9 +186,9 @@ void SceneGraphDialog::init()
     root->setData(0, Qt::UserRole, QVariant::fromValue(nodeDataRoot));
     _rootTreeItem = new ObjectTreeItem(root);
 
-    Q_ASSERT(QObject::connect(this, SIGNAL(triggerOnObjectChanged()), this, SLOT(onObjectChanged()), Qt::QueuedConnection));
-    Q_ASSERT(QObject::connect(this, SIGNAL(triggerShow()), this, SLOT(showBesideParent()), Qt::QueuedConnection));
-    Q_ASSERT(QObject::connect(this, SIGNAL(triggerHide()), this, SLOT(hide()), Qt::QueuedConnection));
+    QObject::connect(this, SIGNAL(triggerOnObjectChanged()), this, SLOT(onObjectChanged()), Qt::QueuedConnection);
+    QObject::connect(this, SIGNAL(triggerShow()), this, SLOT(showBesideParent()), Qt::QueuedConnection);
+    QObject::connect(this, SIGNAL(triggerHide()), this, SLOT(hide()), Qt::QueuedConnection);
 
     updatePathComboBox();
     reload();
@@ -205,33 +205,31 @@ void SceneGraphDialog::showBesideParent()
         QWidget * parent = parentWidget();
         if(parent)
         {
-            QPoint parentTopRight = parent->mapToGlobal(parent->frameGeometry().topRight());
-            QPoint targetPos = parent->mapFromGlobal(parentTopRight);
+            int numScreens = dw->screenCount();
+            int parentScreen = dw->screenNumber(parent);
+            int currentScreen = dw->screenNumber(this);
 
-            int currentScreen = dw->screenNumber(this);
-            QRect currentScreenRect = dw->screenGeometry(currentScreen);
-            if (targetPos.x() < currentScreenRect.right() && targetPos.y() < currentScreenRect.bottom())
+            if(parentScreen == currentScreen)
             {
-                move(targetPos);
+                int targetScreen = (currentScreen + 1) % numScreens;
+                if(targetScreen != currentScreen)
+                {
+                    QRect geom = frameGeometry();
+                    QRect currentScreenRect = dw->screenGeometry(currentScreen);
+                    QRect targetScreenRect = dw->screenGeometry(targetScreen);
+                    QPoint currentTopLeft = parent->mapToGlobal(geom.topLeft());
+                    QPoint currentBottomRight = parent->mapToGlobal(geom.bottomRight());
+                    QPoint screenOffset = currentTopLeft - currentScreenRect.topLeft();
+                    QPoint targetTopLeft = targetScreenRect.topLeft() + screenOffset;
+                    QPoint targetBottomRight(targetTopLeft.x() + geom.width(), targetTopLeft.y() + geom.height());
+                    if (targetScreenRect.contains(targetTopLeft))
+                    {
+                        targetTopLeft = parent->mapFromGlobal(targetTopLeft);
+                        move(targetTopLeft);
+                    }
+                }
             }
         }
-/*
-        int numScreens = dw->screenCount();
-        if(numScreens > 1)
-        {
-            int currentScreen = dw->screenNumber(this);
-            int parentScreen = dw->screenNumber(parentWidget());
-            if(currentScreen == parentScreen)
-            {
-                QRect currentScreenRect = dw->screenGeometry(currentScreen);
-                QPoint p = mapToGlobal(pos());
-                p -= currentScreenRect.topLeft();
-                QRect desiredScreenRect = dw->screenGeometry((currentScreen + 1) % numScreens);
-                QPoint desiredPos = mapFromGlobal(p + desiredScreenRect.topLeft());
-                move(desiredPos);
-            }
-        }
-*/
     }
 }
 
@@ -666,7 +664,7 @@ void SceneGraphDialog::refreshTimeChanged ( int n )
     if(!_refreshTimer)
     {
         _refreshTimer = new QTimer(this);
-        Q_ASSERT(connect(_refreshTimer, SIGNAL(timeout()), this, SLOT(refreshTimerExpired())));
+        connect(_refreshTimer, SIGNAL(timeout()), this, SLOT(refreshTimerExpired()));
     }
     if(n > 0)
         _refreshTimer->start(n * 1000);

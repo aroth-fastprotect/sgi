@@ -13,6 +13,7 @@ namespace sgi {
 namespace support {
     class SGIHostItemQt;
     class SGIHostItemQtMeta;
+    class SGIHostItemQtPaintDevice;
 }
 
 class SGIItemQt : public SGIItemBase

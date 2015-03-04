@@ -9,12 +9,13 @@
 #include <QTimer>
 
 #include "SGIPlugin.h"
-#include <sgi/ContextMenu>
-#include <sgi/SceneGraphDialog>
+#include <sgi/plugins/ContextMenu>
+#include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SGIPluginInterface.h>
 #include <sgi/plugins/SGIDataItemBase.h>
 
 #include <sgi/plugins/ObjectTreeImpl>
+#include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/SGIItemInternal>
 #include <sgi/helpers/qt>
 
@@ -191,23 +192,23 @@ void ObjectLoggerDialog::init()
     mainLayout->insertWidget(0, _toolBar);
 
     _actionReload = new QAction(tr("Reload"), this);
-    Q_ASSERT(connect(_actionReload, SIGNAL(triggered()), this, SLOT(reload())));
+    connect(_actionReload, SIGNAL(triggered()), this, SLOT(reload()));
 
     _spinBoxRefreshTime = new QSpinBox(_toolBar);
     _spinBoxRefreshTime->setMinimum(0);
     _spinBoxRefreshTime->setMaximum(600);
     _spinBoxRefreshTime->setPrefix("Refresh ");
     _spinBoxRefreshTime->setSuffix("s");
-    Q_ASSERT(connect(_spinBoxRefreshTime, SIGNAL(valueChanged(int)), this, SLOT(refreshTimeChanged(int))));
+    connect(_spinBoxRefreshTime, SIGNAL(valueChanged(int)), this, SLOT(refreshTimeChanged(int)));
 
     _toolBar->addAction(_actionReload);
     _toolBar->addWidget(_spinBoxRefreshTime);
 
-    Q_ASSERT(QObject::connect(this, SIGNAL(triggerOnObjectChanged()), this, SLOT(onObjectChanged()), Qt::QueuedConnection));
-    Q_ASSERT(QObject::connect(this, SIGNAL(triggerShow()), this, SLOT(show()), Qt::QueuedConnection));
-    Q_ASSERT(QObject::connect(this, SIGNAL(triggerHide()), this, SLOT(hide()), Qt::QueuedConnection));
+    QObject::connect(this, SIGNAL(triggerOnObjectChanged()), this, SLOT(onObjectChanged()), Qt::QueuedConnection);
+    QObject::connect(this, SIGNAL(triggerShow()), this, SLOT(show()), Qt::QueuedConnection);
+    QObject::connect(this, SIGNAL(triggerHide()), this, SLOT(hide()), Qt::QueuedConnection);
 
-    Q_ASSERT(QObject::connect(this, SIGNAL(triggerUpdateLog()), this, SLOT(updateLog()), Qt::QueuedConnection));
+    QObject::connect(this, SIGNAL(triggerUpdateLog()), this, SLOT(updateLog()), Qt::QueuedConnection);
 
     reload();
 }
@@ -432,7 +433,7 @@ void ObjectLoggerDialog::refreshTimeChanged ( int n )
     if(!_refreshTimer)
     {
         _refreshTimer = new QTimer(this);
-        Q_ASSERT(connect(_refreshTimer, SIGNAL(timeout()), this, SLOT(refreshTimerExpired())));
+        connect(_refreshTimer, SIGNAL(timeout()), this, SLOT(refreshTimerExpired()));
     }
     if(n > 0)
         _refreshTimer->start(n * 1000);

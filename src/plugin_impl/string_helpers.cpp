@@ -1,5 +1,6 @@
 #include <sgi/helpers/string>
 #include <iomanip>
+#include <cctype>
 
 namespace sgi {
     namespace helpers {

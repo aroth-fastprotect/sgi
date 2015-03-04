@@ -1,12 +1,15 @@
+#include "stdafx.h"
 #include <stdio.h>
 #include <iostream>
 
+#include <sgi/plugins/SceneGraphDialog>
+#include <sgi/plugins/SettingsDialog>
 #include <sgi/plugins/SGIPluginImpl.h>
 #include <sgi/plugins/SGIPluginInterface.h>
 #include <sgi/plugins/SGIHostItemLog4cplus.h>
+#include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SGIPluginMacros.h>
 #include <sgi/SGIItemInternal>
-#include <sgi/SceneGraphDialog>
 
 #include "SGIItemLog4cplus"
 #include "ObjectTreeLog4cplus.h"

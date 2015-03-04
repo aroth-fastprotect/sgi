@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include <ostream>
 #include <QtCore/QMetaObject>
 #include <QtCore/QMetaClassInfo>

@@ -1,9 +1,11 @@
 #include "stdafx.h"
 #include "MenuActionOSGEarth.h"
 #include <sgi/plugins/SGIItemOsg>
+#include <sgi/plugins/SGIHostItemOsg.h>
 
-#include <sgi/SceneGraphDialog>
-#include <sgi/ContextMenu>
+#include <sgi/plugins/SceneGraphDialog>
+#include <sgi/plugins/ContextMenu>
+#include <sgi/plugins/SettingsDialog>
 
 #include <osgEarth/Version>
 #include <osgEarth/MapNode>

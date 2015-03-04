@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include <ostream>
 #include "writeHTMLOSG.h"
 #include "writeHTMLOSGDB.h"

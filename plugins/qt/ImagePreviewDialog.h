@@ -20,6 +20,7 @@ class ImagePreviewDialog : public QDialog
 
 public:
 	ImagePreviewDialog(QWidget * parent, QImage * image);
+    virtual ~ImagePreviewDialog();
 
 public:
     ISettingsDialog *   dialogInterface() { return _interface; }

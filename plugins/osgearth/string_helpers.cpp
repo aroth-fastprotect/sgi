@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include <osg/Object>
 #include <osgEarth/Viewpoint>
 #include <osgEarth/URI>

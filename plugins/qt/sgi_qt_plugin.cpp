@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include <stdio.h>
 #include <iostream>
 
@@ -6,7 +7,8 @@
 #include <sgi/plugins/SGIHostItemQt.h>
 #include <sgi/plugins/SGIPluginMacros.h>
 #include <sgi/SGIItemInternal>
-#include <sgi/SceneGraphDialog>
+#include <sgi/plugins/SceneGraphDialog>
+#include <sgi/plugins/SettingsDialog>
 #include "SGIItemQt"
 
 #include <QtCore/QThread>

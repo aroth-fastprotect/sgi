@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QDialog>
-#include "sgi/ObjectLoggerDialog"
+#include "sgi/plugins/ObjectLoggerDialog"
 #include <queue>
 
 class QTimer;

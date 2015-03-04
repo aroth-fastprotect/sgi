@@ -41,6 +41,10 @@ ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, QImage * image)
 	load(image);
 }
 
+ImagePreviewDialog::~ImagePreviewDialog()
+{
+}
+
 void ImagePreviewDialog::setLabel(const QString & label)
 {
     _labelText = label;

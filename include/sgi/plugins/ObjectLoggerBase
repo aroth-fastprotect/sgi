@@ -4,7 +4,7 @@
 #pragma once
 
 #include "SGIDataItemBase.h"
-#include "SGIPluginInterface.h"
+#include "ObjectLoggerDialog"
 
 namespace sgi {
 

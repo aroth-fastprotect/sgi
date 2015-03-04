@@ -3,7 +3,9 @@
 
 #pragma once
 
+#if !defined(SGI_NO_HOSTITEM_GENERATOR)
 #include "plugins/SGIHostItemGenerator"
+#endif
 
 namespace sgi {
 

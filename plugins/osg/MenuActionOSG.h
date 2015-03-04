@@ -1,9 +1,8 @@
 #pragma once
 
+#include <sgi/plugins/ActionHandlerImpl>
 #include <osg/NodeVisitor>
 #include <osg/Transform>
-#include <sgi/plugins/SGIPluginMacros.h>
-#include <sgi/plugins/SGIHostItemOsg.h>
 
 namespace sgi {
 namespace osg_plugin {

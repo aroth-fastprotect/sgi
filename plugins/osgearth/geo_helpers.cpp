@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include <sgi/plugins/SGIItemBase.h>
 #include "geo_helpers.h"
 #include "string_helpers.h"

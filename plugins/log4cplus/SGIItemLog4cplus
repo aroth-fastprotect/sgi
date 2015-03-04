@@ -8,6 +8,9 @@ namespace sgi {
 namespace support {
     class SGIHostItemLog4cplus;
 }
+namespace log4cplus_plugin {
+    class Log4cplusObjectBase;
+}
 
 class SGIItemLog4cplus : public SGIItemBase
 {

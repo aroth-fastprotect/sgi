@@ -1,11 +1,12 @@
 #include "stdafx.h"
 #include "ContextMenu.h"
 
-#include "sgi/ContextMenu"
+#include "sgi/plugins/ContextMenu"
 #include "sgi/plugins/SGIPluginInterface.h"
 
 #include "SGIPlugin.h"
 
+#include <sgi/plugins/SGIHostItemQt.h>
 #include <sgi/helpers/qt>
 
 #ifdef _DEBUG
@@ -64,7 +65,7 @@ public:
         QAction * action = new QAction(itemText, _menu);
         action->setData(QVariant::fromValue(itemData));
         _menu->addAction(action);
-        Q_ASSERT(connect(action, SIGNAL(triggered()), _contextMenu, SLOT(slotSimpleItemAction())));
+        connect(action, SIGNAL(triggered()), _contextMenu, SLOT(slotSimpleItemAction()));
         return action;
     }
     bool addBoolAction(unsigned actionId, const std::string & name, SGIItemBase * item, bool state, osg::Referenced * userData=NULL)
@@ -87,7 +88,7 @@ public:
         action->setCheckable(true);
         action->setChecked(state);
         _menu->addAction(action);
-        Q_ASSERT(connect(action, SIGNAL(triggered(bool)), _contextMenu, SLOT(slotBoolItemAction(bool))));
+        connect(action, SIGNAL(triggered(bool)), _contextMenu, SLOT(slotBoolItemAction(bool)));
         return action;
     }
 
@@ -161,7 +162,7 @@ protected:
 
         newMenu->setTitle(itemText);
         newMenu->menuAction()->setData(QVariant::fromValue(itemData));
-        Q_ASSERT(connect(newMenu, SIGNAL(aboutToShow()), _contextMenu, SLOT(slotPopulateItemMenu())));
+        connect(newMenu, SIGNAL(aboutToShow()), _contextMenu, SLOT(slotPopulateItemMenu()));
         // ... and finally add the new sub-menu to the menu
         _menu->addMenu(newMenu);
         return addChild(new ContextMenuItem(_contextMenu, newMenu));
@@ -186,7 +187,7 @@ protected:
 
         QActionGroup * actionGroup = new QActionGroup(newMenu);
         actionGroup->setExclusive(true);
-        Q_ASSERT(connect(actionGroup, SIGNAL(triggered(QAction *)), _contextMenu, SLOT(slotActionGroup(QAction *))));
+        connect(actionGroup, SIGNAL(triggered(QAction *)), _contextMenu, SLOT(slotActionGroup(QAction *)));
 
         newMenu->setTitle(itemText);
         newMenu->menuAction()->setData(QVariant::fromValue(itemData));
@@ -326,7 +327,7 @@ ContextMenu::ContextMenu(bool onlyRootItem, QWidget * parent)
     , _info(NULL)
     , _onlyRootItem(onlyRootItem)
 {
-    Q_ASSERT(connect(this, SIGNAL(aboutToShow()), this, SLOT(slotPopulateItemMenu())));
+    connect(this, SIGNAL(aboutToShow()), this, SLOT(slotPopulateItemMenu()));
 }
 
 ContextMenu::ContextMenu(SGIItemBase * item, IContextMenuInfo* info, bool onlyRootItem, QWidget *parent)
@@ -337,7 +338,7 @@ ContextMenu::ContextMenu(SGIItemBase * item, IContextMenuInfo* info, bool onlyRo
     , _onlyRootItem(onlyRootItem)
 {
     populate();
-    Q_ASSERT(connect(this, SIGNAL(aboutToShow()), this, SLOT(slotPopulateItemMenu())));
+    connect(this, SIGNAL(aboutToShow()), this, SLOT(slotPopulateItemMenu()));
 }
 
 ContextMenu::~ContextMenu()

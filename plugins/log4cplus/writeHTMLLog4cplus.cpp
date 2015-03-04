@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include <ostream>
 #include <log4cplus/hierarchy.h>
 #include "writeHTMLLog4cplus.h"

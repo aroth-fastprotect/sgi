@@ -102,7 +102,7 @@ namespace osgearth_plugin {
 
         inline osgEarth::TileSource * tileSourceNoInit() { return _tileSource.get(); }
         inline const osgEarth::Profile * profileNoInit() { return _profile.get(); }
-        inline const osgEarth::Profile * targetProfileNoInit() { return _targetProfileHint.get(); }
+        inline const osgEarth::Profile * targetProfileHintNoInit() { return _targetProfileHint.get(); }
         
         inline bool tileSourceInitAttempted() const { return _tileSourceInitAttempted; }
         inline bool tileSourceInitFailed() const { return _tileSourceInitFailed; }

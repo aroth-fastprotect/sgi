@@ -1,4 +1,14 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6.4 FATAL_ERROR)
+#
+# FAST Protect GmbH: SGI
+#
+# Project is hosted on:
+# https://github.com/aroth-fastprotect/sgi
+#
+#
+# History: 
+# 2015-02-16  ARO  initial release
+
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.0 FATAL_ERROR) 
 
 if(COMMAND cmake_policy)
     # Works around warnings libraries linked against that don't
@@ -28,6 +38,7 @@ PROJECT(SGI)
 SET(SGI_MAJOR_VERSION 0)
 SET(SGI_MINOR_VERSION 3)
 SET(SGI_PATCH_VERSION 0)
+SET(SGI_BUILD_VERSION 0)
 SET(SGI_SOVERSION     0)
 
 SET(SGI_PLUGIN_PREFIX "")
@@ -40,6 +51,7 @@ IF(MINGW)
     SET(SGI_PLUGIN_PREFIX "mingw_")
 ENDIF()
 
+SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 
 SET(SGI_VERSION ${SGI_MAJOR_VERSION}.${SGI_MINOR_VERSION}.${SGI_PATCH_VERSION})
 
@@ -138,9 +150,7 @@ IF(WIN32)
         # endforeach(warning)
 
         # More MSVC specific compilation flags
-        ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
-        ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
-        ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
+        ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS)
     ENDIF(MSVC)
 ENDIF(WIN32)
 
@@ -183,12 +193,15 @@ FIND_PACKAGE(OSG)
 FIND_PACKAGE(OsgEarth)
 FIND_PACKAGE(Log4cplus)
 
-# Make the headers visible to everything
-INCLUDE_DIRECTORIES(
-    ${OSG_INCLUDE_DIR}
-    ${QT_INCLUDES}
-    ${SGI_INCLUDE_DIR}
-)
+	# Make the headers visible to everything
+	INCLUDE_DIRECTORIES(
+		${OSG_INCLUDE_DIR}
+		${QT_INCLUDES}
+	)
+	INCLUDE_DIRECTORIES(BEFORE
+		${SGI_INCLUDE_DIR}
+		)
+    INCLUDE(SGIFunctions)
 
 ################################################################################
 # Create bin and lib directories if required
@@ -238,8 +251,7 @@ ENDIF(INSTALL_TO_OSG_DIR)
 INCLUDE(OsgEarthMacroUtils)
 configure_file(CMakeModules/SGIMacros.cmake.in ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/SGIMacros.cmake @ONLY)
 INCLUDE(SGIMacros)
-
-SET(SGI_PLUGIN_IMPL_LIBRARY osgSGI-plugin-impl)
+install(FILES CMakeModules/SGIMacros.cmake DESTINATION share/cmake/modules COMPONENT devel)
 
 DETECT_OSG_VERSION()
 
@@ -250,6 +262,23 @@ OPTION(SGI_PLUGIN_OSG "Enable OSG plugin" ON)
 OPTION(SGI_PLUGIN_OSGEARTH "Enable osgEarth plugin" ${OSGEARTH_FOUND})
 OPTION(SGI_PLUGIN_QT "Enable Qt plugin" ON)
 OPTION(SGI_PLUGIN_LOG4CPLUS "Enable log4cplus plugin" ${LOG4CPLUS_FOUND})
+
+SET(SGI_PLUGIN_IMPL_LIBRARY osgSGI-plugin-impl)
+
+set(SGI_PLUGIN_HOST_SUPPORT_INCLUDES)
+set(SGI_PLUGIN_HOST_SUPPORT_ITEM_CLASSES)
+set(SGI_PLUGIN_FALLBACK ON)
+SGI_PLUGIN_HOST_SUPPORT(osg Osg)
+SGI_PLUGIN_HOST_SUPPORT(osgearth OsgEarthConfig OsgEarthConfigOptions)
+SGI_PLUGIN_HOST_SUPPORT(log4cplus Log4cplus)
+SGI_PLUGIN_HOST_SUPPORT(qt Qt QtMeta)
+SGI_PLUGIN_HOST_SUPPORT(fallback Fallback)
+
+TO_LIST_NEWLINES(SGI_PLUGIN_HOST_SUPPORT_INCLUDES SGI_PLUGIN_HOST_SUPPORT_INCLUDES)
+TO_LIST_COMMA(SGI_PLUGIN_HOST_SUPPORT_ITEM_CLASSES SGI_PLUGIN_HOST_SUPPORT_ITEM_CLASSES)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/SGIHostSupport.in ${SGI_INCLUDE_DIR}/sgi/plugins/SGIHostSupport)
+
+install(DIRECTORY ${SGI_INCLUDE_DIR}/sgi DESTINATION include/sgi COMPONENT devel)
 
 # SGI Core
 ADD_SUBDIRECTORY(src)

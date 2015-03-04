@@ -8,6 +8,7 @@
 
 #include <osg/Vec4f>
 #include <osg/Vec4d>
+#include <osg/Vec3>
 #include <sgi/helpers/rtti>
 
 namespace osg {
@@ -19,6 +20,34 @@ namespace osg {
     class Node;
     class Drawable;
     class ObserverNodePath;
+    class Matrixf;
+    class Matrixd;
+
+    typedef std::vector< Node* > NodePath;
+
+    template<typename VT>
+    class BoundingBoxImpl;
+
+    typedef BoundingBoxImpl<Vec3f> BoundingBoxf;
+    typedef BoundingBoxImpl<Vec3d> BoundingBoxd;
+
+#ifdef OSG_USE_FLOAT_BOUNDINGBOX
+    typedef BoundingBoxf BoundingBox;
+#else
+    typedef BoundingBoxd BoundingBox;
+#endif
+
+    template<typename VT>
+    class BoundingSphereImpl;
+
+    typedef BoundingSphereImpl<Vec3f> BoundingSpheref;
+    typedef BoundingSphereImpl<Vec3d> BoundingSphered;
+
+#ifdef OSG_USE_FLOAT_BOUNDINGSPHERE
+    typedef BoundingSpheref BoundingSphere;
+#else
+    typedef BoundingSphered BoundingSphere;
+#endif
 }
 
 namespace sgi {

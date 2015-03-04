@@ -45,24 +45,24 @@ QtProxy::QtProxy()
     // implementation function using a BlockingQueuedConnection to
     // transfer the creation of GUI related objects to the main
     // thread and the result back again.
-    Q_ASSERT(connect(this, SIGNAL(triggerShowSceneGraphDialog(JobShowSceneGraphDialog *)),
+    connect(this, SIGNAL(triggerShowSceneGraphDialog(JobShowSceneGraphDialog *)),
             this, SLOT(implShowSceneGraphDialog(JobShowSceneGraphDialog *)),
-            Qt::BlockingQueuedConnection));
+            Qt::BlockingQueuedConnection);
 
-    Q_ASSERT(connect(this, SIGNAL(triggerShowObjectLoggerDialog(JobShowObjectLoggerDialog *)),
+    connect(this, SIGNAL(triggerShowObjectLoggerDialog(JobShowObjectLoggerDialog *)),
             this, SLOT(implShowObjectLoggerDialog(JobShowObjectLoggerDialog *)),
-            Qt::BlockingQueuedConnection));
+            Qt::BlockingQueuedConnection);
 
-    Q_ASSERT(connect(this, SIGNAL(triggerShowObjectLoggerDialogForLogger(JobShowObjectLoggerDialogForLogger *)),
+    connect(this, SIGNAL(triggerShowObjectLoggerDialogForLogger(JobShowObjectLoggerDialogForLogger *)),
             this, SLOT(implShowObjectLoggerDialogForLogger(JobShowObjectLoggerDialogForLogger *)),
-            Qt::BlockingQueuedConnection));
+            Qt::BlockingQueuedConnection);
 
-    Q_ASSERT(connect(this, SIGNAL(triggerCreateContextMenu(JobCreateContextMenu *)),
+    connect(this, SIGNAL(triggerCreateContextMenu(JobCreateContextMenu *)),
             this, SLOT(implCreateContextMenu(JobCreateContextMenu *)),
-            Qt::BlockingQueuedConnection));
-    Q_ASSERT(connect(this, SIGNAL(triggerCreateContextMenuQt(JobCreateContextMenuQt *)),
+            Qt::BlockingQueuedConnection);
+    connect(this, SIGNAL(triggerCreateContextMenuQt(JobCreateContextMenuQt *)),
             this, SLOT(implCreateContextMenuQt(JobCreateContextMenuQt *)),
-            Qt::BlockingQueuedConnection));
+            Qt::BlockingQueuedConnection);
 }
 
 QtProxy * QtProxy::instance(bool erase)

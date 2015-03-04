@@ -1,0 +1,41 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include <osg/Referenced>
+#include <osg/ref_ptr>
+
+class QWidget;
+class QMenu;
+
+namespace sgi {
+
+class SGIItemBase;
+class SGIHostItemBase;
+
+class IContextMenuInfo : public osg::Referenced
+{
+public:
+    virtual                 ~IContextMenuInfo() {}
+    virtual bool            showSceneGraphDialog(SGIItemBase * item) = 0;
+    virtual bool            showObjectLoggerDialog(SGIItemBase * item) = 0;
+    virtual void            triggerRepaint() = 0;
+    virtual SGIHostItemBase * getView() = 0;
+};
+typedef osg::ref_ptr<IContextMenuInfo> IContextMenuInfoPtr;
+
+class IContextMenu : public osg::Referenced
+{
+public:
+    virtual                 ~IContextMenu() {}
+    virtual void            setObject(SGIItemBase * item, IContextMenuInfo * info=NULL) = 0;
+    virtual void            setObject(const SGIHostItemBase * item, IContextMenuInfo * info=NULL) = 0;
+    virtual QWidget *       parentWidget() = 0;
+    virtual QMenu *         getMenu() = 0;
+    virtual IContextMenuInfo * getInfo() = 0;
+};
+typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
+
+
+} // namespace sgi

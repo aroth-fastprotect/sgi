@@ -1,8 +1,6 @@
 #pragma once
 
-#include <osg/Object>
-#include "../ContextMenu"
-#include "../ObjectLoggerDialog"
+#include "SGIItemBase.h"
 #include <map>
 #include <sstream>
 
@@ -22,6 +20,26 @@ typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 
 class ISceneGraphDialog;
 class ISceneGraphDialogInfo;
+typedef osg::ref_ptr<ISceneGraphDialog> ISceneGraphDialogPtr;
+typedef osg::ref_ptr<ISceneGraphDialogInfo> ISceneGraphDialogInfoPtr;
+
+class IContextMenu;
+class IContextMenuInfo;
+typedef osg::ref_ptr<IContextMenuInfo> IContextMenuInfoPtr;
+typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
+
+class IObjectLogger;
+class IObjectLoggerDialog;
+class IObjectLoggerDialogInfo;
+
+typedef osg::ref_ptr<IObjectLogger> IObjectLoggerPtr;
+typedef osg::ref_ptr<IObjectLoggerDialog> IObjectLoggerDialogPtr;
+typedef osg::ref_ptr<IObjectLoggerDialogInfo> IObjectLoggerDialogInfoPtr;
+
+class ISettingsDialog;
+class ISettingsDialogInfo;
+typedef osg::ref_ptr<ISettingsDialog> ISettingsDialogPtr;
+typedef osg::ref_ptr<ISettingsDialogInfo> ISettingsDialogInfoPtr;
 
 class IObjectTreeItem : public osg::Referenced
 {
@@ -70,63 +88,6 @@ public:
     virtual const osg::Referenced * modeUserData() const = 0;
 };
 typedef osg::ref_ptr<IContextMenuAction> IContextMenuActionPtr;
-
-class ISettingsDialogInfo : public osg::Referenced
-{
-public:
-    virtual unsigned dialogId() = 0;
-    virtual QWidget * parent() = 0;
-    virtual void triggerRepaint() = 0;
-};
-typedef osg::ref_ptr<ISettingsDialogInfo> ISettingsDialogInfoPtr;
-
-class SettingsDialogInfoBase : public ISettingsDialogInfo
-{
-public:
-    SettingsDialogInfoBase(unsigned dialogId, QWidget * parent)
-        : _dialogId(dialogId), _parent(parent)
-        {}
-    virtual unsigned dialogId() { return _dialogId; }
-    virtual QWidget * parent() { return _parent; }
-    virtual void triggerRepaint() { }
-
-protected:
-    // hide it to force allocation on heap (using ref_ptr)
-    virtual ~SettingsDialogInfoBase() {}
-
-private:
-    unsigned _dialogId;
-    QWidget * _parent;
-};
-
-class SettingsDialogInfoForMenu : public SettingsDialogInfoBase
-{
-public:
-    SettingsDialogInfoForMenu(unsigned dialogId, QWidget * parent, IContextMenuInfo * menuInfo)
-        : SettingsDialogInfoBase(dialogId, parent), _menuInfo(menuInfo) {}
-    virtual void triggerRepaint() { _menuInfo->triggerRepaint(); }
-
-protected:
-    // hide it to force allocation on heap (using ref_ptr)
-    virtual ~SettingsDialogInfoForMenu() {}
-
-private:
-    IContextMenuInfoPtr _menuInfo;
-};
-
-
-class ISettingsDialog : public osg::Referenced
-{
-public:
-    virtual void            setObject(SGIItemBase * item, ISettingsDialogInfo * info=NULL) = 0;
-    virtual void            setObject(const SGIHostItemBase * item, ISettingsDialogInfo * info=NULL) = 0;
-    virtual void            show() = 0;
-    virtual void            hide() = 0;
-    virtual bool            isVisible() = 0;
-    virtual int             showModal() = 0;
-};
-
-typedef osg::ref_ptr<ISettingsDialog> ISettingsDialogPtr;
 
 typedef QWidget * QWidgetPtr;
 

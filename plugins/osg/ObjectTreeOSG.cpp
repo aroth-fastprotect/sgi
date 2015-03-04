@@ -5,8 +5,9 @@
 #include "getObjectInfoOSG.h"
 
 #include <sgi/SGIItemInternal>
-#include <sgi/SceneGraphDialog>
+#include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SGIProxyItem.h>
+#include <sgi/plugins/SGIHostItemQt.h>
 #include <sgi/helpers/string>
 
 #include <osg/UserDataContainer>

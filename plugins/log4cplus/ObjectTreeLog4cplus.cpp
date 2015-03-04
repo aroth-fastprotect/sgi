@@ -1,10 +1,12 @@
+#include "stdafx.h"
 #include "ObjectTreeLog4cplus.h"
 #include "SGIItemLog4cplus"
 
 #include "sgi_log4cplus_plugin.h"
 #include <sgi/SGIItemInternal>
-#include <sgi/SceneGraphDialog>
+#include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SGIProxyItem.h>
+#include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/helpers/string>
 #include <log4cplus/hierarchy.h>
 

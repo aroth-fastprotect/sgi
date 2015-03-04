@@ -4,16 +4,18 @@
 #include "sgi/Export"
 #include "sgi/plugins/SGIPluginImpl.h"
 
-#include "sgi/plugins/SGIHostItemOsg.h"
-#include "sgi/plugins/SGIProxyItem.h"
-#include "sgi/SGIItemInternal"
+#include <sgi/plugins/SGIHostItemOsg.h>
+#include <sgi/plugins/SGIProxyItem.h>
+#include <sgi/plugins/SGIHostItemInternal.h>
+#include <sgi/SGIItemInternal>
 #include "SGIPlugin.h"
-#include "sgi/SceneGraphDialog"
-#include "sgi/InspectorHandler"
-//#include "ContextMenu.h"
+#include <sgi/plugins/SceneGraphDialog>
+#include <sgi/plugins/ObjectLoggerDialog>
+#include <sgi/plugins/SettingsDialog>
 
 #include "sgi/helpers/rtti"
-#include <osgGA/GUIEventHandler>
+
+#include <sgi/InspectorHandler>
 
 sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = NULL;
 

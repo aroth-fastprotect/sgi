@@ -21,8 +21,8 @@
 
 #include "FindTopMostNodeOfType"
 
-#include "sgi/ContextMenu"
-#include "sgi/SceneGraphDialog"
+#include <sgi/plugins/ContextMenu>
+#include <sgi/plugins/SceneGraphDialog>
 
 #include <cassert>
 

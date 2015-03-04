@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "GUIAdapterOSGEarth.h"
 #include "../osg/SGIItemOsg"
 

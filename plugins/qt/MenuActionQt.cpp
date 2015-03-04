@@ -2,8 +2,9 @@
 #include "MenuActionQt.h"
 #include "SGIItemQt"
 
-#include <sgi/ContextMenu>
-#include <sgi/SceneGraphDialog>
+#include <sgi/plugins/ContextMenu>
+#include <sgi/plugins/SceneGraphDialog>
+#include <sgi/plugins/SettingsDialog>
 #include <sgi/helpers/qt>
 
 #include "SettingsDialogQt.h"

@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include <stdio.h>
 #include <iostream>
 #include <sgi/plugins/SGIPluginImpl.h>
@@ -5,6 +6,7 @@
 #include <sgi/plugins/SGIPluginMacros.h>
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SGIHostItemOsgEarth.h>
+#include <sgi/plugins/SettingsDialog>
 
 #include "../osg/SGIItemOsg"
 #include "SGIItemOsgEarth"

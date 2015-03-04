@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sgi/plugins/SGIPluginMacros.h>
+#include <sgi/plugins/SettingsDialogImpl>
 
 namespace osg {
     class Camera;

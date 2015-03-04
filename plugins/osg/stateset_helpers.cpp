@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "stateset_helpers.h"
 #include <osg/Object>
 #include <osg/StateSet>
