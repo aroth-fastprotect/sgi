@@ -20,7 +20,7 @@ DoubleInputDialog::DoubleInputDialog(QWidget *parent, Qt::WindowFlags f)
     ui = new Ui_DoubleInputDialog;
     ui->setupUi( this );
 
-    _slider_factor = pow10(ui->doubleSpinBox->decimals());
+    _slider_factor = pow(10, ui->doubleSpinBox->decimals());
 
     connect(ui->buttonBox->button(QDialogButtonBox::Reset), SIGNAL(clicked()), this, SLOT(reset()));
 }
@@ -106,7 +106,7 @@ void DoubleInputDialog::setRange(double minimum, double maximum)
 void DoubleInputDialog::setDecimals(int decimals)
 {
     ui->doubleSpinBox->setDecimals(decimals);
-    _slider_factor = pow10(ui->doubleSpinBox->decimals());
+    _slider_factor = pow(10, ui->doubleSpinBox->decimals());
     double maximum = ui->doubleSpinBox->maximum();
     double minimum = ui->doubleSpinBox->minimum();
     ui->horizontalSlider->setMaximum(ceil(maximum * _slider_factor));
