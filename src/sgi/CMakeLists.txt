@@ -76,6 +76,7 @@ SET(TARGET_UI
 	SceneGraphDialog.ui
 	ObjectLoggerDialog.ui
 	QTextDialog.ui
+	DoubleInputDialog.ui
 	)
 
 SET(TARGET_MOC_H
@@ -84,6 +85,7 @@ SET(TARGET_MOC_H
 	ObjectLoggerDialog.h
 	QtProxy.h
 	QTextDialog.h
+	DoubleInputDialog.h
 )
 
 # CHECK-IT:
@@ -98,6 +100,7 @@ SET(TARGET_SRC
 	sgi_internal.cpp
 	QtProxy.cpp
 	QTextDialog.cpp
+	DoubleInputDialog.cpp
 )
 
 SET(TARGET_LIBRARIES_VARS

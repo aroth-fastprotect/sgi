@@ -13,6 +13,7 @@
 #include "QtProxy.h"
 #include "sgi_internal.h"
 #include "QTextDialog.h"
+#include "DoubleInputDialog.h"
 #include <sgi/helpers/qt>
 
 using namespace sgi;
@@ -1044,10 +1045,16 @@ public:
         else
             qwindowTitle = fromLocal8Bit(windowTitle);
         bool ok = false;
-        double newNumber = QInputDialog::getDouble(parent, qwindowTitle, fromLocal8Bit(label), number, minNumber, maxNumber, decimals, &ok);
+        DoubleInputDialog dlg(parent);
+        dlg.setWindowTitle(qwindowTitle);
+        dlg.setLabel(fromLocal8Bit(label));
+        dlg.setRange(minNumber, maxNumber);
+        dlg.setDecimals(decimals);
+        dlg.setValue(number);
+        ok = (dlg.exec() == QDialog::Accepted);
         if(ok)
         {
-            number = newNumber;
+            number = dlg.value();
         }
         return ok;
     }
