@@ -71,6 +71,7 @@ SET(LIB_QT_UIS
 	SceneGraphDialog.ui
 	ObjectLoggerDialog.ui
 	QTextDialog.ui
+	DoubleInputDialog.ui
 	)
 
 SET(LIB_MOC_HDRS
@@ -79,6 +80,7 @@ SET(LIB_MOC_HDRS
 	ObjectLoggerDialog.h
 	QtProxy.h
 	QTextDialog.h
+	DoubleInputDialog.h
 )
 
 
@@ -112,6 +114,7 @@ SET(TARGET_SRC
 	sgi_internal.cpp
 	QtProxy.cpp
 	QTextDialog.cpp
+	DoubleInputDialog.cpp
 )
 
 LIST(APPEND TARGET_SRC ${LIB_UI_SRCS} ${LIB_MOC_SRCS})
