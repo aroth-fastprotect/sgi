@@ -892,7 +892,9 @@ bool writePrettyHTMLImpl<osgEarth::Drivers::ArcGISOptions>::process(std::basic_o
             os << "<tr><td>url</td><td>" << object->url() << "</td></tr>" << std::endl;
             os << "<tr><td>token</td><td>" << object->token() << "</td></tr>" << std::endl;
             os << "<tr><td>format</td><td>" << object->format() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             os << "<tr><td>layers</td><td>" << object->layers() << "</td></tr>" << std::endl;
+#endif
 
             if(_table)
                 os << "</table>" << std::endl;

@@ -626,9 +626,13 @@ bool writePrettyHTMLImpl<osgEarth::ImageLayer>::process(std::basic_ostream<char>
             os << "<tr><td>minVisibleRange</td><td>" << object->getMinVisibleRange() << "</td></tr>" << std::endl;
             os << "<tr><td>maxVisibleRange</td><td>" << object->getMaxVisibleRange() << "</td></tr>" << std::endl;
             os << "<tr><td>isShared</td><td>" <<  (object->isShared()?"true":"false") << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             os << "<tr><td>isCoverage</td><td>" <<  (object->isCoverage()?"true":"false") << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>shareImageUnit</td><td>" <<  object->shareImageUnit() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             os << "<tr><td>shareTexMatUniformName</td><td>" <<  object->shareTexMatUniformName() << "</td></tr>" << std::endl;
+#endif
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -698,8 +702,8 @@ bool writePrettyHTMLImpl<osgEarth::ModelLayer>::process(std::basic_ostream<char>
             os << "<tr><td>lightingEnabled</td><td>" << (object->isLightingEnabled()?"true":"false") << "</td></tr>" << std::endl;
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             os << "<tr><td>isTerrainPatch</td><td>" << (object->isTerrainPatch()?"true":"false") << "</td></tr>" << std::endl;
-#endif
             os << "<tr><td>maskMinLevel</td><td>" << object->getMaskMinLevel() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>opacity</td><td>" << object->getOpacity() << "</td></tr>" << std::endl;
 
             if(_table)
