@@ -45,7 +45,7 @@
 
 namespace sgi {
 
-
+#if QT_VERSION < 0x050000
 class NativeWidget : public QWidget
 {
 public:
@@ -62,6 +62,7 @@ public:
         QWidget::create(handle, false, false);
     }
 };
+#endif // QT_VERSION < 0x050000
 
 namespace {
     static void ensure_QApplication()
@@ -101,7 +102,9 @@ public:
 #if defined(_WIN32)
             else if(osgViewer::GraphicsWindowWin32 * gwwin = dynamic_cast<osgViewer::GraphicsWindowWin32*>(ctx))
             {
+#if QT_VERSION < 0x050000
                 _parent = QWidget::find(gwwin->getHWND());
+#endif // QT_VERSION < 0x050000
             }
 #elif defined(__APPLE__)
             else if(osgViewer::GraphicsWindowCarbon * gwcarbon = dynamic_cast<osgViewer::GraphicsWindowCarbon*>(ctx))
