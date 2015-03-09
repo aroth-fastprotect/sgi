@@ -10,6 +10,7 @@
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
 #include <osgEarth/XmlUtils>
+#include "ElevationQueryReferenced"
 #include <sgi/helpers/rtti>
 
 namespace sgi {
@@ -24,8 +25,12 @@ GET_OBJECT_NAME_IMPL_REGISTER(osgEarth::MaskLayer)
 GET_OBJECT_NAME_IMPL_REGISTER(osgEarth::Registry)
 GET_OBJECT_NAME_IMPL_REGISTER(osgEarth::Config)
 GET_OBJECT_NAME_IMPL_REGISTER(osgEarth::ConfigOptions)
+GET_OBJECT_NAME_IMPL_REGISTER(TileKeyReferenced)
+GET_OBJECT_NAME_IMPL_REGISTER(TileSourceTileKey)
+
 GET_OBJECT_TYPE_IMPL_REGISTER(osgEarth::Config)
 GET_OBJECT_TYPE_IMPL_REGISTER(osgEarth::ConfigOptions)
+
 GET_OBJECT_SUGGESTED_FILENAME_IMPL_REGISTER(osgEarth::Map)
 GET_OBJECT_SUGGESTED_FILENAME_IMPL_REGISTER(osgEarth::MapNode)
 GET_OBJECT_SUGGESTED_FILENAME_EXTENSION_IMPL_REGISTER(osgEarth::Map)
@@ -71,6 +76,25 @@ std::string getObjectNameImpl<osgEarth::ConfigOptions>::process()
 std::string getObjectNameImpl<osgEarth::Registry>::process()
 {
     return "osgEarth::Registry";
+}
+
+std::string getObjectNameImpl<TileKeyReferenced>::process()
+{
+    TileKeyReferenced * object_ptr = static_cast<TileKeyReferenced*>(item<SGIItemOsg>()->object());
+    const osgEarth::TileKey object = object_ptr->data();
+    return object.str();
+}
+
+std::string getObjectNameImpl<TileSourceTileKey>::process()
+{
+    TileSourceTileKey * object_ptr = static_cast<TileSourceTileKey*>(item<SGIItemOsg>()->object());
+    const TileSourceTileKeyData object = object_ptr->data();
+    std::stringstream ss;
+    std::string tilesourceName;
+    SGIHostItemOsg ts(object.tileSource.get());
+    _hostInterface->getObjectName(tilesourceName, &ts);
+    ss << tilesourceName << '/' << object.tileKey.str();
+    return ss.str();
 }
 
 //--------------------------------------------------------------------------------

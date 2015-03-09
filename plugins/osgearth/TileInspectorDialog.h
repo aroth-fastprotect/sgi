@@ -20,6 +20,9 @@ class SGIItemOsg;
 class IObjectTreeItem;
 typedef osg::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
 
+class IObjectTreeImpl;
+typedef osg::ref_ptr<IObjectTreeImpl> IObjectTreeImplPtr;
+
 namespace osgearth_plugin {
 
 class TileInspectorDialog : public QDialog
@@ -27,7 +30,7 @@ class TileInspectorDialog : public QDialog
 	Q_OBJECT
 
 public:
-                                TileInspectorDialog(QWidget * parent, SGIItemOsg * item, ISettingsDialogInfo * info=NULL);
+                                TileInspectorDialog(QWidget * parent, SGIItemOsg * item, ISettingsDialogInfo * info=NULL, SGIPluginHostInterface * hostInterface=NULL);
 	virtual				        ~TileInspectorDialog();
 
 public:
@@ -35,14 +38,10 @@ public:
 
 public slots:
     void                        refresh();
+    void                        layerChanged(int index);
     void                        proxySaveScript();
     void                        reloadTree();
     void                        updateMetaData();
-    void                    onItemExpanded(QTreeWidgetItem * item);
-    void                    onItemCollapsed(QTreeWidgetItem * item);
-    void                    onItemClicked(QTreeWidgetItem * item, int column);
-    void                    onItemActivated(QTreeWidgetItem * item, int column);
-    void                    onItemContextMenu(QPoint pt);
 
 public:
     void                        requestRedraw();
@@ -55,12 +54,12 @@ public:
         NUM_NEIGHBORS_IMMEDIATE,
     };
 protected:
-    bool                    buildTree(IObjectTreeItem * treeItem, SGIItemBase * item);
-
     void                    triggerRepaint();
     SGIHostItemBase *       getView();
     bool                    showSceneGraphDialog(SGIItemBase * item);
     bool                    showSceneGraphDialog(const SGIHostItemBase * item);
+
+    void                    setNodeInfo(const SGIItemBase * item);
 
     bool                    newInstance(SGIItemBase * item);
     bool                    newInstance(const SGIHostItemBase * item);
@@ -68,11 +67,7 @@ protected:
 protected:
     class ContextMenuCallback;
     class SceneGraphDialogInfo;
-    class ObjectLoggerDialogImpl;
-
-private:
-    osgEarth::TileSource *          getTileSource() const;
-    osgEarth::TerrainLayer *        getTerrainLayer() const;
+    class ObjectTreeImpl;
 
 private:
 	Ui_TileInspectorDialog *	    ui;
@@ -80,6 +75,7 @@ private:
     ISettingsDialogPtr              _interface;
     ISettingsDialogInfoPtr          _info;
     IObjectTreeItemPtr              _treeRoot;
+    IObjectTreeImplPtr              _treeImpl;           
     osg::ref_ptr<IContextMenu>          _contextMenu;
     osg::ref_ptr<ContextMenuCallback>   _contextMenuCallback;
     osg::ref_ptr<SGIItemOsg>        _item;

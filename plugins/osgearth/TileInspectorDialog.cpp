@@ -461,43 +461,97 @@ private:
     TileInspectorDialog * _dialog;
 };
 
+class TileInspectorDialog::ObjectTreeImpl : public IObjectTreeImpl
+{
+public:
+    ObjectTreeImpl(TileInspectorDialog * dialog)
+        : _dialog(dialog) {}
+public:
+    virtual void    itemSelected(IObjectTreeItem * oldItem, IObjectTreeItem * newItem)
+    {
+        _dialog->setNodeInfo(newItem?newItem->item():NULL);
+    }
+    virtual void    itemContextMenu(IObjectTreeItem * item, IContextMenuPtr & contextMenu)
+    {
+    }
+    virtual void    itemExpanded(IObjectTreeItem * item)
+    {
+    }
+    virtual void    itemCollapsed(IObjectTreeItem * item)
+    {
+    }
+    virtual void    itemActivated(IObjectTreeItem * item)
+    {
+        _dialog->setNodeInfo(item->item());
+    }
+    virtual void    itemClicked(IObjectTreeItem * item)
+    {
+        _dialog->setNodeInfo(item->item());
+    }
 
-TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, ISettingsDialogInfo * info)
+private:
+    TileInspectorDialog * _dialog;
+};
+
+namespace {
+    osgEarth::TileSource * getTileSource(SGIItemOsg * item)
+    {
+        if(!item)
+            return NULL;
+        if(osgEarth::TileSource * tileSource = dynamic_cast<osgEarth::TileSource *>(item->object()))
+            return tileSource;
+        else if(osgEarth::TerrainLayer * terrainLayer = dynamic_cast<osgEarth::TerrainLayer*>(item->object()))
+            return terrainLayer->getTileSource();
+        else
+            return NULL;
+    }
+
+    osgEarth::TerrainLayer * getTerrainLayer(SGIItemOsg * item)
+    {
+        if(!item)
+            return NULL;
+        if(osgEarth::TerrainLayer * terrainLayer = dynamic_cast<osgEarth::TerrainLayer *>(item->object()))
+            return terrainLayer;
+        else
+            return NULL;
+    }
+}
+
+TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, ISettingsDialogInfo * info, SGIPluginHostInterface * hostInterface)
 	: QDialog(parent)
+    , _hostInterface(hostInterface)
     , _item(item)
     , _interface(new SettingsDialogImpl(this))
     , _info(info)
+    , _treeImpl(new ObjectTreeImpl(this))
 {
     Q_ASSERT(_info != NULL);
 
 	ui = new Ui_TileInspectorDialog;
 	ui->setupUi( this );
-    _treeRoot = new ObjectTreeItem(ui->treeWidget->invisibleRootItem());
+    ObjectTreeItem::s_hostInterface = _hostInterface;
+
+    _treeRoot = new ObjectTreeItem(ui->treeWidget, _treeImpl.get(), _hostInterface);
 
     QString name;
-    const osgEarth::TerrainLayer * terrainLayer = getTerrainLayer();
-    const osgEarth::TileSource * tileSource = getTileSource();
+    QVariant data = QVariant::fromValue(QtSGIItem(_item->type(), _item));
+    const osgEarth::TerrainLayer * terrainLayer = getTerrainLayer(_item.get());
+    const osgEarth::TileSource * tileSource = getTileSource(_item.get());
     if(terrainLayer)
-        name = QString::fromStdString(terrainLayer->getName());
-    else if(tileSource)
-        name = QString::fromStdString(tileSource->getName());
-    ui->layer->addItem(name);
-
-    ui->levelOfDetail->addItem(tr("All"), QVariant(-1));
-    for(unsigned lod = 0; lod < 23; lod++)
     {
-        if(tileSource->hasDataAtLOD(lod))
-        {
-            QString text(tr("LOD%1").arg(lod));
-            ui->levelOfDetail->addItem(text, QVariant(lod));
-        }
+        name = QString::fromStdString(terrainLayer->getName());
     }
+    else if(tileSource)
+    {
+        name = QString::fromStdString(tileSource->getName());
+    }
+    ui->layer->addItem(name, data);
 
     ui->numNeighbors->addItem(tr("None"), QVariant(NUM_NEIGHBORS_NONE) );
     ui->numNeighbors->addItem(tr("Cross (4)"), QVariant(NUM_NEIGHBORS_CROSS) );
     ui->numNeighbors->addItem(tr("Immediate (9)"), QVariant(NUM_NEIGHBORS_IMMEDIATE) );
 
-    refresh();
+    ui->layer->setCurrentIndex(0);
 }
 
 TileInspectorDialog::~TileInspectorDialog()
@@ -507,25 +561,6 @@ TileInspectorDialog::~TileInspectorDialog()
         delete ui;
         ui = NULL;
     }
-}
-
-osgEarth::TileSource * TileInspectorDialog::getTileSource() const
-{
-
-    if(osgEarth::TileSource * tileSource = dynamic_cast<osgEarth::TileSource *>(_item->object()))
-        return tileSource;
-    else if(osgEarth::TerrainLayer * terrainLayer = dynamic_cast<osgEarth::TerrainLayer*>(_item->object()))
-        return terrainLayer->getTileSource();
-    else
-        return NULL;
-}
-
-osgEarth::TerrainLayer * TileInspectorDialog::getTerrainLayer() const
-{
-    if(osgEarth::TerrainLayer * terrainLayer = dynamic_cast<osgEarth::TerrainLayer *>(_item->object()))
-        return terrainLayer;
-    else
-        return NULL;
 }
 
 void TileInspectorDialog::reloadTree()
@@ -548,6 +583,7 @@ void TileInspectorDialog::reloadTree()
     ui->treeWidget->setColumnWidth(0, 3 * total_width / 4);
     ui->treeWidget->setColumnWidth(1, total_width / 4);
 
+#if 0
     ObjectTreeItem objectTreeRootItem(ui->treeWidget->invisibleRootItem());
 
     ObjectTreeItem * firstTreeItem = NULL;
@@ -564,105 +600,11 @@ void TileInspectorDialog::reloadTree()
     if(firstTreeItem)
     {
         firstTreeItem->setSelected(true);
-        onItemActivated(firstTreeItem->treeItem(), 0);
+        //onItemActivated(firstTreeItem->treeItem(), 0);
     }
-
+#endif // 0
     ui->treeWidget->blockSignals(false);
     setCursor(Qt::ArrowCursor);
-}
-
-void TileInspectorDialog::onItemExpanded(QTreeWidgetItem * item)
-{
-    QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-    if(!itemData.isPopulated() && itemData.hasItem())
-    {
-        // we are going to re-populate the item with new data,
-        // so first remove the old dummy child item.
-        QList<QTreeWidgetItem *> children = item->takeChildren();
-        Q_FOREACH(QTreeWidgetItem * child, children)
-        {
-            delete child;
-        }
-        ObjectTreeItem treeItem(item);
-        buildTree(&treeItem, itemData.item());
-    }
-}
-
-void TileInspectorDialog::onItemCollapsed(QTreeWidgetItem * item)
-{
-    QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-    //setNodeInfo(itemData.item());
-}
-
-void TileInspectorDialog::onItemClicked(QTreeWidgetItem * item, int column)
-{
-    QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-    //setNodeInfo(itemData.item());
-}
-
-void TileInspectorDialog::onItemActivated(QTreeWidgetItem * item, int column)
-{
-    QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-    //setNodeInfo(itemData.item());
-}
-
-bool TileInspectorDialog::buildTree(IObjectTreeItem * treeItem, SGIItemBase * item)
-{
-    bool ret = _hostInterface->objectTreeBuildTree(treeItem, item);
-    if(ret)
-    {
-        /*
-        InternalItemData internalItemData(item);;
-        SGIHostItemOsg hostItemInternal(new ReferencedInternalItemData(internalItemData));
-        treeItem->addChild("Internal", &hostItemInternal);
-
-        QTreeWidgetItem * treeItemQt = treeItem->treeItem();
-        QtSGIItem itemData = treeItemQt->data(0, Qt::UserRole).value<QtSGIItem>();
-        itemData.markAsPopulated();
-        treeItemQt->setData(0, Qt::UserRole, QVariant::fromValue(itemData));
-        */
-    }
-    return ret;
-}
-
-void TileInspectorDialog::onItemContextMenu(QPoint pt)
-{
-    QTreeWidgetItem * item = ui->treeWidget->itemAt (pt);
-    QtSGIItem itemData;
-    if(item)
-        itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-
-    QMenu * contextMenu = NULL;
-    if(!_contextMenuCallback)
-        _contextMenuCallback = new ContextMenuCallback(this);
-
-    IContextMenu * objectMenu = NULL;
-//     if(_info)
-//         objectMenu = _info->contextMenu(this, itemData.item(), _contextMenuCallback);
-    if(!objectMenu)
-    {
-        if(_contextMenu)
-        {
-            _contextMenu->setObject(itemData.item(), _contextMenuCallback);
-            objectMenu = _contextMenu;
-        }
-        else
-        {
-            _hostInterface->createContextMenu(this, itemData.item(), _contextMenuCallback);
-        }
-    }
-
-    if(objectMenu)
-        contextMenu = objectMenu->getMenu();
-
-    _contextMenu = objectMenu;
-
-    if(contextMenu)
-    {
-        pt.ry() += ui->treeWidget->header()->height();
-        QPoint globalPos = ui->treeWidget->mapToGlobal(pt);
-        contextMenu->popup(globalPos);
-    }
 }
 
 SGIHostItemBase * TileInspectorDialog::getView()
@@ -711,11 +653,51 @@ bool TileInspectorDialog::newInstance(const SGIHostItemBase * hostitem)
     return ret;
 }
 
+void TileInspectorDialog::layerChanged(int index)
+{
+    QVariant data = ui->layer->itemData(index);
+    QtSGIItem qitem = data.value<QtSGIItem>();
+    SGIItemOsg * item = (SGIItemOsg *)qitem.item();
+
+    ui->levelOfDetail->clear();
+    osgEarth::TileSource * tileSource = getTileSource(item);
+    ui->levelOfDetail->addItem(tr("All"), QVariant(-1));
+    for(unsigned lod = 0; lod < 23; lod++)
+    {
+        if(tileSource && tileSource->hasDataAtLOD(lod))
+        {
+            QString text(tr("LOD%1").arg(lod));
+            ui->levelOfDetail->addItem(text, QVariant(lod));
+        }
+    }
+
+    refresh();
+}
+
+void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
+{
+    std::ostringstream os;
+    if(item)
+        _hostInterface->writePrettyHTML(os, item);
+    else
+    {
+        os << "<b>item is <i>NULL</i></b>";
+    }
+    ui->textEdit->blockSignals(true);
+    ui->textEdit->setHtml(fromLocal8Bit(os.str()));
+    ui->textEdit->blockSignals(false);
+}
+
 void TileInspectorDialog::refresh()
 {
-    osgEarth::TileSource * tileSource = getTileSource();
+    int index = ui->layer->currentIndex();
+    QVariant data = ui->layer->itemData(index);
+    QtSGIItem qitem = data.value<QtSGIItem>();
+    SGIItemOsg * item = (SGIItemOsg *)qitem.item();
+    osgEarth::TileSource * tileSource = getTileSource(item);
     if(tileSource)
     {
+        _treeRoot->clear();
         const osgEarth::Profile * profile = tileSource->getProfile();
         const osgEarth::TileSourceOptions & options = tileSource->getOptions();
         
@@ -936,7 +918,11 @@ void TileInspectorDialog::updateMetaData()
 
 void TileInspectorDialog::proxySaveScript()
 {
-    const osgEarth::TileSource * tileSource = getTileSource();
+    int index = ui->layer->currentIndex();
+    QVariant data = ui->layer->itemData(index);
+    QtSGIItem qitem = data.value<QtSGIItem>();
+    SGIItemOsg * item = (SGIItemOsg *)qitem.item();
+    osgEarth::TileSource * tileSource = getTileSource(item);
     if(tileSource)
     {
         const osgEarth::Profile * profile = tileSource->getProfile();
