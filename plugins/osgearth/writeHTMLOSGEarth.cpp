@@ -23,6 +23,7 @@
 #include <osgEarth/ModelLayer>
 #include <osgEarth/MaskLayer>
 #include <osgEarth/ElevationQuery>
+#include <osgEarth/ImageUtils>
 
 #include <osgEarthUtil/LatLongFormatter>
 
@@ -75,6 +76,9 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::VirtualProgram)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::TileBlacklist)
 WRITE_PRETTY_HTML_IMPL_REGISTER(ElevationQueryReferenced)
 
+WRITE_PRETTY_HTML_IMPL_REGISTER(TileKeyReferenced)
+WRITE_PRETTY_HTML_IMPL_REGISTER(TileSourceTileKey)
+
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Util::Controls::ControlCanvas)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Util::Controls::Control)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Util::Controls::ControlEventHandler)
@@ -101,6 +105,8 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::CircleNode)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::EllipseNode)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::RectangleNode)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::ModelNode)
+
+WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Image)
 
 using namespace osg_helpers;
 
@@ -1394,6 +1400,67 @@ bool writePrettyHTMLImpl<ElevationQueryReferenced>::process(std::basic_ostream<c
     return ret;
 }
 
+bool writePrettyHTMLImpl<TileKeyReferenced>::process(std::basic_ostream<char>& os)
+{
+    TileKeyReferenced * object_ptr = getObject<TileKeyReferenced, SGIItemOsg>();
+    const osgEarth::TileKey & object = object_ptr->data();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add Referenced properties first
+            callNextHandler(os);
+
+            // add remaining ElevationQuery properties
+            os << "<tr><td>tileKey</td><td>" << object << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<TileSourceTileKey>::process(std::basic_ostream<char>& os)
+{
+    TileSourceTileKey * object_ptr = getObject<TileSourceTileKey, SGIItemOsg>();
+    const TileSourceTileKeyData & object = object_ptr->data();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add Referenced properties first
+            callNextHandler(os);
+
+            // add remaining TileSourceTileKey properties
+            os << "<tr><td>tileKey</td><td>" << object.tileKey << "</td></tr>" << std::endl;
+            os << "<tr><td>tileSource</td><td>" << getObjectNameAndType(object.tileSource.get()) << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Util::Controls::ControlContext & object)
 {
     os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
@@ -1554,7 +1621,7 @@ bool writePrettyHTMLImpl<osgEarth::Util::Controls::Control>::process(std::basic_
             for(osgEarth::Util::Controls::ControlEventHandlerList::const_iterator it = eventHandlers.begin(); it != eventHandlers.end(); it++)
             {
                 const osg::ref_ptr<osgEarth::Util::Controls::ControlEventHandler> evthandler = *it;
-                os << "<li>" << getObjectName(evthandler.get()) << " (" << getObjectTypename(evthandler.get()) << ")</li>" << std::endl;
+                os << "<li>" << getObjectNameAndType(evthandler.get()) << "</li>" << std::endl;
             }
             os << "</ul>";
             ret = true;
@@ -2191,6 +2258,36 @@ bool writePrettyHTMLImpl<osgEarth::Annotation::ModelNode>::process(std::basic_os
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
             callNextHandler(os);
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+
+bool writePrettyHTMLImpl<osg::Image>::process(std::basic_ostream<char>& os)
+{
+    osg::Image * object = getObject<osg::Image, SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>isCompressed</td><td>" << (osgEarth::ImageUtils::isCompressed(object)?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>hasAlphaChannel</td><td>" << (osgEarth::ImageUtils::hasAlphaChannel(object)?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>hasTransparency</td><td>" << (osgEarth::ImageUtils::hasTransparency(object)?"true":"false") << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;

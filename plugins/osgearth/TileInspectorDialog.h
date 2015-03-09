@@ -15,8 +15,10 @@ namespace osgEarth {
 
 namespace sgi {
 class SGIPluginHostInterface;
-class ObjectTreeItem;
 class SGIItemOsg;
+
+class IObjectTreeItem;
+typedef osg::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
 
 namespace osgearth_plugin {
 
@@ -53,7 +55,7 @@ public:
         NUM_NEIGHBORS_IMMEDIATE,
     };
 protected:
-    bool                    buildTree(ObjectTreeItem * treeItem, SGIItemBase * item);
+    bool                    buildTree(IObjectTreeItem * treeItem, SGIItemBase * item);
 
     void                    triggerRepaint();
     SGIHostItemBase *       getView();
@@ -69,14 +71,15 @@ protected:
     class ObjectLoggerDialogImpl;
 
 private:
-    const osgEarth::TileSource *    getTileSource() const;
-    const osgEarth::TerrainLayer *  getTerrainLayer() const;
+    osgEarth::TileSource *          getTileSource() const;
+    osgEarth::TerrainLayer *        getTerrainLayer() const;
 
 private:
 	Ui_TileInspectorDialog *	    ui;
     SGIPluginHostInterface *        _hostInterface;
     ISettingsDialogPtr              _interface;
     ISettingsDialogInfoPtr          _info;
+    IObjectTreeItemPtr              _treeRoot;
     osg::ref_ptr<IContextMenu>          _contextMenu;
     osg::ref_ptr<ContextMenuCallback>   _contextMenuCallback;
     osg::ref_ptr<SGIItemOsg>        _item;

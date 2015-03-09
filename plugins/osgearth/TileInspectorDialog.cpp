@@ -5,6 +5,7 @@
 #include "ui_TileInspectorDialog.h"
 
 #include <sgi/plugins/SGISettingsDialogImpl>
+#include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/helpers/qt>
 
 #include <QTextStream>
@@ -25,6 +26,8 @@
 #include <sgi/plugins/ContextMenu>
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/ObjectTreeImpl>
+
+#include "ElevationQueryReferenced"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -469,19 +472,7 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
 
 	ui = new Ui_TileInspectorDialog;
 	ui->setupUi( this );
-#if 0
-    Terra3DView * view = m_info->get3DView();
-    Viewpoint vp;
-    GpsCoordinate pos;
-    if(view)
-    {
-        view->getViewpoint(vp);
-        pos = vp.getPosition();
-    }
-    ui->coordinate->setText(pos.toString());
-#endif
-
-
+    _treeRoot = new ObjectTreeItem(ui->treeWidget->invisibleRootItem());
 
     QString name;
     const osgEarth::TerrainLayer * terrainLayer = getTerrainLayer();
@@ -518,20 +509,20 @@ TileInspectorDialog::~TileInspectorDialog()
     }
 }
 
-const osgEarth::TileSource * TileInspectorDialog::getTileSource() const
+osgEarth::TileSource * TileInspectorDialog::getTileSource() const
 {
 
-    if(const osgEarth::TileSource * tileSource = dynamic_cast<const osgEarth::TileSource *>(_item->object()))
+    if(osgEarth::TileSource * tileSource = dynamic_cast<osgEarth::TileSource *>(_item->object()))
         return tileSource;
-    else if(const osgEarth::TerrainLayer * terrainLayer = dynamic_cast<const osgEarth::TerrainLayer*>(_item->object()))
+    else if(osgEarth::TerrainLayer * terrainLayer = dynamic_cast<osgEarth::TerrainLayer*>(_item->object()))
         return terrainLayer->getTileSource();
     else
         return NULL;
 }
 
-const osgEarth::TerrainLayer * TileInspectorDialog::getTerrainLayer() const
+osgEarth::TerrainLayer * TileInspectorDialog::getTerrainLayer() const
 {
-    if(const osgEarth::TerrainLayer * terrainLayer = dynamic_cast<const osgEarth::TerrainLayer *>(_item->object()))
+    if(osgEarth::TerrainLayer * terrainLayer = dynamic_cast<osgEarth::TerrainLayer *>(_item->object()))
         return terrainLayer;
     else
         return NULL;
@@ -615,7 +606,7 @@ void TileInspectorDialog::onItemActivated(QTreeWidgetItem * item, int column)
     //setNodeInfo(itemData.item());
 }
 
-bool TileInspectorDialog::buildTree(ObjectTreeItem * treeItem, SGIItemBase * item)
+bool TileInspectorDialog::buildTree(IObjectTreeItem * treeItem, SGIItemBase * item)
 {
     bool ret = _hostInterface->objectTreeBuildTree(treeItem, item);
     if(ret)
@@ -722,7 +713,7 @@ bool TileInspectorDialog::newInstance(const SGIHostItemBase * hostitem)
 
 void TileInspectorDialog::refresh()
 {
-    const osgEarth::TileSource * tileSource = getTileSource();
+    osgEarth::TileSource * tileSource = getTileSource();
     if(tileSource)
     {
         const osgEarth::Profile * profile = tileSource->getProfile();
@@ -870,7 +861,15 @@ void TileInspectorDialog::refresh()
                 os << "<i>Driver " << options.getDriver() << " not yet implemented.</i>" << std::endl;
             }
             ui->urlList->setText(QString::fromStdString(os.str()));
-            
+
+            for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
+            {
+                const osgEarth::TileKey & tilekey = *it;
+                TileSourceTileKeyData data(tileSource, tilekey);
+                SGIHostItemOsg tskey(new TileSourceTileKey(data));
+                _treeRoot->addChild(std::string(), &tskey);
+            }
+
             //ui->previewImage
             
             if(!urllist.empty())

@@ -5,12 +5,24 @@
 
 namespace osgEarth {
     class ElevationQuery;
+    class TileSource;
+    class TileKey;
 }
 
 namespace sgi {
 namespace osgearth_plugin {
 
     typedef ReferencedRawPtrT<osgEarth::ElevationQuery> ElevationQueryReferenced;
+    typedef ReferencedDataT<osgEarth::TileKey> TileKeyReferenced;
+
+    struct TileSourceTileKeyData
+    {
+        TileSourceTileKeyData(osgEarth::TileSource * ts, const osgEarth::TileKey & tk)
+            : tileSource(ts), tileKey(tk) {}
+        osg::ref_ptr<osgEarth::TileSource> tileSource;
+        osgEarth::TileKey tileKey;
+    };
+    typedef ReferencedDataT<TileSourceTileKeyData> TileSourceTileKey;
 
 } // namespace osgearth_plugin
 } // namespace sgi

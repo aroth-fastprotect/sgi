@@ -70,6 +70,8 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::TileBlacklist)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::ModelSource)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::MaskSource)
 OBJECT_TREE_BUILD_IMPL_REGISTER(ElevationQueryReferenced)
+OBJECT_TREE_BUILD_IMPL_REGISTER(TileKeyReferenced)
+OBJECT_TREE_BUILD_IMPL_REGISTER(TileSourceTileKey)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::VirtualProgram)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::Cache)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::CacheBin)
@@ -1010,6 +1012,45 @@ bool objectTreeBuildImpl<ElevationQueryReferenced>::build(IObjectTreeItem * tree
         break;
     case SGIItemTypeTileCacheLRU:
         ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<TileKeyReferenced>::build(IObjectTreeItem * treeItem)
+{
+    TileKeyReferenced * object_ref = getObject<TileKeyReferenced, SGIItemOsg>();
+    const osgEarth::TileKey & object = object_ref->data();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<TileSourceTileKey>::build(IObjectTreeItem * treeItem)
+{
+    TileSourceTileKey * object_ref = getObject<TileSourceTileKey, SGIItemOsg>();
+    TileSourceTileKeyData & object = object_ref->data();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            ret = callNextHandler(treeItem);
+            SGIHostItemOsg tileSource(object.tileSource.get());
+            if(tileSource.hasObject())
+                treeItem->addChild("TileSource", &tileSource);
+        }
         break;
     default:
         ret = callNextHandler(treeItem);
