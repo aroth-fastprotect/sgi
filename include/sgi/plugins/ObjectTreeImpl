@@ -53,6 +53,12 @@ public:
     QTreeWidgetItem * treeItem();
     const QTreeWidgetItem * treeItem() const;
 
+    virtual void children(IObjectTreeItemPtrList & children);
+
+    void reload();
+
+    virtual IObjectTreeItem * selectedItem();
+
 protected:
     IObjectTreeItem * addChildImpl(const std::string & name, SGIItemBase * item);
     static void addDummyChild(QTreeWidgetItem * itemParent);

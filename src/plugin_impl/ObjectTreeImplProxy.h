@@ -19,6 +19,7 @@ public slots:
 
 public:
 	IObjectTreeItem *		selectedTreeItem();
+	void					reloadSelectedItem();
 
 protected:
 	bool					buildTree(ObjectTreeItem * treeItem, SGIItemBase * item, bool addInternal=true);

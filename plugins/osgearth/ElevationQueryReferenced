@@ -17,10 +17,11 @@ namespace osgearth_plugin {
 
     struct TileSourceTileKeyData
     {
-        TileSourceTileKeyData(osgEarth::TileSource * ts, const osgEarth::TileKey & tk)
-            : tileSource(ts), tileKey(tk) {}
+        TileSourceTileKeyData(osgEarth::TileSource * ts, const osgEarth::TileKey & tk, osg::Referenced * td=NULL)
+            : tileSource(ts), tileKey(tk), tileData(td) {}
         osg::ref_ptr<osgEarth::TileSource> tileSource;
         osgEarth::TileKey tileKey;
+        osg::ref_ptr<osg::Referenced> tileData;
     };
     typedef ReferencedDataT<TileSourceTileKeyData> TileSourceTileKey;
 

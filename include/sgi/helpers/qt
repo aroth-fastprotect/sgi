@@ -65,6 +65,7 @@ public:
 
     bool isPopulated() const { return _populated; }
     void markAsPopulated() { _populated = true; }
+    void markAsUnpopulated() { _populated = false; }
 
     const osg::Referenced * userData() const { return _userData.get(); }
     osg::Referenced * userData() { return _userData.get(); }

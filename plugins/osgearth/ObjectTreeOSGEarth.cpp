@@ -1050,6 +1050,9 @@ bool objectTreeBuildImpl<TileSourceTileKey>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg tileSource(object.tileSource.get());
             if(tileSource.hasObject())
                 treeItem->addChild("TileSource", &tileSource);
+            SGIHostItemOsg tileData(object.tileData.get());
+            if(tileData.hasObject())
+                treeItem->addChild("TileData", &tileData);
         }
         break;
     default:

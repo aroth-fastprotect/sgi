@@ -27,6 +27,7 @@ ObjectTreeImplProxy::ObjectTreeImplProxy(QTreeWidget * widget, IObjectTreeImpl *
     , _hostInterface(hostInterface)
     , _selectedTreeItem(NULL)
 {
+    _widget->setContextMenuPolicy(Qt::CustomContextMenu);
     QObject::connect(_widget, SIGNAL(itemExpanded(QTreeWidgetItem*)), this, SLOT(onItemExpanded(QTreeWidgetItem*)));
     QObject::connect(_widget, SIGNAL(itemCollapsed(QTreeWidgetItem*)), this, SLOT(onItemCollapsed(QTreeWidgetItem*)));
     QObject::connect(_widget, SIGNAL(itemActivated(QTreeWidgetItem*,int)), this, SLOT(onItemActivated(QTreeWidgetItem*,int)));
@@ -148,6 +149,27 @@ void ObjectTreeImplProxy::onItemSelectionChanged()
     else
         _selectedTreeItem = NULL;
     _impl->itemSelected(oldItem.get(), _selectedTreeItem.get());
+}
+
+void ObjectTreeImplProxy::reloadSelectedItem()
+{
+    QTreeWidgetItem * item = _selectedTreeItem.valid()?((ObjectTreeItem*)_selectedTreeItem.get())->treeItem():NULL;
+    if(item)
+    {
+        QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
+        if(itemData.hasItem())
+        {
+            // we are going to re-populate the item with new data,
+            // so first remove the old dummy child item.
+            QList<QTreeWidgetItem *> children = item->takeChildren();
+            Q_FOREACH(QTreeWidgetItem * child, children)
+            {
+                delete child;
+            }
+        }
+        ObjectTreeItem treeItem(item);
+        buildTree(&treeItem, itemData.item());
+    }
 }
 
 ObjectTreeItem::ObjectTreeItem (QTreeWidget * widget, IObjectTreeImpl * impl, SGIPluginHostInterface * hostInterface)
@@ -321,5 +343,45 @@ void ObjectTreeItem::addDummyChild(QTreeWidgetItem * itemParent)
     itemParent->addChild(dummyChild);
 }
 
+void ObjectTreeItem::children(IObjectTreeItemPtrList & children)
+{
+    int numChilds = _item->childCount();
+    children.resize(numChilds);
+    for(int i = 0; i < numChilds; i++)
+    {
+        QTreeWidgetItem * child = _item->child(i);
+        children[i] = new ObjectTreeItem(child);
+    }
+}
+
+IObjectTreeItem * ObjectTreeItem::selectedItem()
+{
+    if(!_item)
+        return NULL;
+    QTreeWidgetItem * selitem = _item->treeWidget()->currentItem();
+    return new ObjectTreeItem(selitem);
+}
+
+void ObjectTreeItem::reload()
+{
+    if(_item)
+    {
+        QtSGIItem itemData = _item->data(0, Qt::UserRole).value<QtSGIItem>();
+        if(itemData.hasItem())
+        {
+            // we are going to re-populate the item with new data,
+            // so first remove the old dummy child item.
+            QList<QTreeWidgetItem *> children = _item->takeChildren();
+            Q_FOREACH(QTreeWidgetItem * child, children)
+            {
+                delete child;
+            }
+        }
+        itemData.markAsUnpopulated();
+        _item->setData(0, Qt::UserRole, QVariant::fromValue(itemData));
+        _item->setExpanded(false);
+        addDummyChild(_item);
+    }
+}
 
 } // namespace sgi

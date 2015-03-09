@@ -7,6 +7,9 @@
 #include <osg/ObserverNodePath>
 #include <osg/io_utils>
 
+#include <QImage>
+#include <QGLWidget>
+
 #include <sgi/plugins/SGIItemBase.h>
 #include <sgi/helpers/string>
 #include <sgi/helpers/rtti>
@@ -573,6 +576,39 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, Mat
     }
 }
 
+bool osgImageToQImage(const osg::Image * image, QImage * qimage)
+{
+    bool ret = false;
+    QImage::Format format;
+    switch(image->getPixelFormat())
+    {
+    case GL_RGB:
+        format = QImage::Format_RGB888;
+        break;
+    case GL_RGBA:
+        //format = QImage::Format_ARGB32;
+        format = QImage::Format_ARGB32_Premultiplied;
+        break;
+    case GL_LUMINANCE:
+        format = QImage::Format_Indexed8;
+        break;
+    default:
+        format = QImage::Format_Invalid;
+        break;
+    }
 
-    } // namespace osg_helpers
+    if(format != QImage::Format_Invalid)
+    {
+        int bytesPerLine = image->getRowSizeInBytes();
+        int width = image->s();
+        int height = image->t();
+        *qimage = QImage(image->data(), width, height, bytesPerLine, format);
+        *qimage = QGLWidget::convertToGLFormat(*qimage);
+        //ret = ret.mirrored(false, true);
+        ret = true;
+    }
+    return ret;
+}
+
+} // namespace osg_helpers
 } // namespace sgi

@@ -205,7 +205,7 @@ ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, osg::Image * image)
     ui->setupUi( this );
 
     connect(ui->buttonBox->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(reject()));
-    connect(this, SIGNAL(reloadTexture(QImage)), this, SLOT(textureReady(QImage)));
+    connect(this, SIGNAL(textureRendered(QImage)), this, SLOT(textureReady(QImage)));
 
     ui->imageLabel->setBackgroundRole(QPalette::Base);
     ui->scrollArea->setBackgroundRole(QPalette::Dark);

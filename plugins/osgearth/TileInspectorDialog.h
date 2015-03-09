@@ -42,6 +42,8 @@ public slots:
     void                        proxySaveScript();
     void                        reloadTree();
     void                        updateMetaData();
+    void                        loadData();
+    void                        reloadSelectedItem();
 
 public:
     void                        requestRedraw();
@@ -63,6 +65,8 @@ protected:
 
     bool                    newInstance(SGIItemBase * item);
     bool                    newInstance(const SGIHostItemBase * item);
+
+    void                    itemContextMenu(IObjectTreeItem * treeItem, IContextMenuPtr & contextMenu);
 
 protected:
     class ContextMenuCallback;

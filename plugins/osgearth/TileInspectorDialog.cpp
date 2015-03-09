@@ -7,6 +7,7 @@
 #include <sgi/plugins/SGISettingsDialogImpl>
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/helpers/qt>
+#include <sgi/helpers/osg>
 
 #include <QTextStream>
 #include <QFileDialog>
@@ -473,6 +474,7 @@ public:
     }
     virtual void    itemContextMenu(IObjectTreeItem * item, IContextMenuPtr & contextMenu)
     {
+        _dialog->itemContextMenu(item, contextMenu);
     }
     virtual void    itemExpanded(IObjectTreeItem * item)
     {
@@ -678,9 +680,46 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
 {
     std::ostringstream os;
     if(item)
+    {
+        QImage qimage;
         _hostInterface->writePrettyHTML(os, item);
+        const SGIItemOsg * osgitem = dynamic_cast<const SGIItemOsg *>(item);
+        if(osgitem)
+        {
+            const osg::Image * image = dynamic_cast<const osg::Image *>(osgitem->object());
+            if(image)
+            {
+                osg_helpers::osgImageToQImage(image, &qimage);
+            }
+            else
+            {
+                const TileSourceTileKey * tskey = dynamic_cast<const TileSourceTileKey *>(osgitem->object());
+                if(tskey)
+                {
+                    const TileSourceTileKeyData & data = tskey->data();
+                    const osg::Image * image = dynamic_cast<const osg::Image *>(data.tileData.get());
+                    if(image)
+                    {
+                        osg_helpers::osgImageToQImage(image, &qimage);
+                    }
+                }
+            }
+        }
+        if(!qimage.isNull())
+        {
+            ui->previewImage->setText(QString());
+            ui->previewImage->setPixmap(QPixmap::fromImage(qimage));
+        }
+        else
+        {
+            ui->previewImage->setPixmap(QPixmap());
+            ui->previewImage->setText(tr("No image"));
+        }
+    }
     else
     {
+        ui->previewImage->setPixmap(QPixmap());
+        ui->previewImage->setText(tr("No image"));
         os << "<b>item is <i>NULL</i></b>";
     }
     ui->textEdit->blockSignals(true);
@@ -1078,6 +1117,58 @@ void TileInspectorDialog::proxySaveScript()
             }
         }
     }
+}
+
+void TileInspectorDialog::loadData()
+{
+    IObjectTreeItemPtrList children;
+    _treeRoot->children(children);
+    for(auto it = children.begin(); it != children.end(); ++it)
+    {
+        IObjectTreeItemPtr & child = *it;
+        SGIItemOsg * item = dynamic_cast<SGIItemOsg *>(child->item());
+        if(item)
+        {
+            TileSourceTileKey * tskey = dynamic_cast<TileSourceTileKey *>(item->object());
+            if(tskey)
+            {
+                TileSourceTileKeyData & data = tskey->data();
+                osgEarth::TileSource * tileSource = data.tileSource;
+                osg::Image * image = tileSource->createImage(data.tileKey);
+                data.tileData = image;
+            }
+        }
+    }
+}
+
+void TileInspectorDialog::itemContextMenu(IObjectTreeItem * treeItem, IContextMenuPtr & contextMenu)
+{
+    SGIItemBasePtr item = treeItem->item();
+
+    if (!_contextMenuCallback)
+        _contextMenuCallback = new ContextMenuCallback(this);
+
+    if (!contextMenu)
+    {
+        if (_contextMenu)
+        {
+            _contextMenu->setObject(item, _contextMenuCallback);
+            contextMenu = _contextMenu;
+        }
+        else
+        {
+            contextMenu = _hostInterface->createContextMenu(this, item, _contextMenuCallback);
+            _contextMenu = contextMenu;
+        }
+    }
+    
+}
+
+void TileInspectorDialog::reloadSelectedItem()
+{
+    IObjectTreeItemPtr selectedItem = _treeRoot->selectedItem();
+    if(selectedItem.valid())
+        selectedItem->reload();
 }
 
 } // namespace osgearth_plugin
