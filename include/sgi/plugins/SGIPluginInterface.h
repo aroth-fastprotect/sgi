@@ -46,6 +46,7 @@ class IObjectTreeItem : public osg::Referenced
 public:
     virtual IObjectTreeItem * root() = 0;
     virtual IObjectTreeItem * parent() = 0;
+    virtual void clear() = 0;
     virtual IObjectTreeItem * addChild(const std::string & name, SGIItemBase * item) = 0;
     virtual IObjectTreeItem * addChild(const std::string & name, const SGIHostItemBase * item) = 0;
     virtual IObjectTreeItem * findChild(const std::string & name) = 0;
