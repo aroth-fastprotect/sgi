@@ -33,39 +33,6 @@ using namespace sgi::osg_helpers;
 
 namespace {
 
-QImage osgImageToQImage(const osg::Image& osgimage)
-{
-    QImage ret;
-    QImage::Format format;
-    switch(osgimage.getPixelFormat())
-    {
-    case GL_RGB:
-        format = QImage::Format_RGB888;
-        break;
-    case GL_RGBA:
-        //format = QImage::Format_ARGB32;
-        format = QImage::Format_ARGB32_Premultiplied;
-        break;
-    case GL_LUMINANCE:
-        format = QImage::Format_Indexed8;
-        break;
-    default:
-        format = QImage::Format_Invalid;
-        break;
-    }
-
-    if(format != QImage::Format_Invalid)
-    {
-        int bytesPerLine = osgimage.getRowSizeInBytes();
-        int width = osgimage.s();
-        int height = osgimage.t();
-        ret = QImage(osgimage.data(), width, height, bytesPerLine, format);
-        ret = QGLWidget::convertToGLFormat(ret);
-        //ret = ret.mirrored(false, true);
-    }
-    return ret;
-}
-
 osg::Image* QImageToOsgImage(const QImage& qimage)
 {
     QImage glImage = QGLWidget::convertToGLFormat(qimage);
@@ -153,7 +120,9 @@ public:
             }
 
             if (image.valid())
-                const_cast<WindowCaptureCallback*>(this)->_qimage = osgImageToQImage(*image);
+            {
+                osgImageToQImage(image, &const_cast<WindowCaptureCallback*>(this)->_qimage);
+            }
             // mark this as done
             const_cast<WindowCaptureCallback*>(this)->_readBuffer = 0;
             _dialog->emitTextureRendered(_qimage);
@@ -315,7 +284,8 @@ void ImagePreviewDialog::load(const QImage * img)
 
 void ImagePreviewDialog::load(const osg::Image * img)
 {
-    QImage qimg = osgImageToQImage(*img);
+    QImage qimg;
+    osgImageToQImage(img, &qimg);
     ui->imageLabel->setText(QString());
     ui->imageLabel->setPixmap(QPixmap::fromImage(qimg));
 
