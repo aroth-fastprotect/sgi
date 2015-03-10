@@ -17,6 +17,7 @@
 #include <osgEarth/Viewpoint>
 #include <osgEarth/TileKey>
 #include <osgEarth/TerrainLayer>
+#include <osgEarth/MapNode>
 
 #include <osgEarthDrivers/vpb/VPBOptions>
 #include <osgEarthDrivers/tms/TMSOptions>
@@ -496,6 +497,17 @@ private:
 };
 
 namespace {
+    osgEarth::Map * getMap(SGIItemOsg * item)
+    {
+        if(!item)
+            return NULL;
+        if(osgEarth::Map * map = dynamic_cast<osgEarth::Map*>(item->object()))
+            return map;
+        else if(osgEarth::MapNode * mapnode = dynamic_cast<osgEarth::MapNode*>(item->object()))
+            return mapnode->getMap();
+        else
+            return NULL;
+    }
     osgEarth::TileSource * getTileSource(SGIItemOsg * item)
     {
         if(!item)
@@ -507,7 +519,6 @@ namespace {
         else
             return NULL;
     }
-
     osgEarth::TerrainLayer * getTerrainLayer(SGIItemOsg * item)
     {
         if(!item)
@@ -535,19 +546,39 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
 
     _treeRoot = new ObjectTreeItem(ui->treeWidget, _treeImpl.get(), _hostInterface);
 
-    QString name;
-    QVariant data = QVariant::fromValue(QtSGIItem(_item->type(), _item));
-    const osgEarth::TerrainLayer * terrainLayer = getTerrainLayer(_item.get());
-    const osgEarth::TileSource * tileSource = getTileSource(_item.get());
-    if(terrainLayer)
+    osgEarth::Map * map = getMap(_item.get());
+    if(map)
     {
-        name = QString::fromStdString(terrainLayer->getName());
+        osgEarth::MapFrame frame(map);
+        for(auto it = frame.elevationLayers().begin(); it != frame.elevationLayers().end(); ++it)
+        {
+            SGIHostItemOsg layer(*it);
+            SGIItemBasePtr item;
+            if(_hostInterface->generateItem(item, &layer))
+            {
+                std::string name;
+                _hostInterface->getObjectDisplayName(name, item.get());
+                ui->layer->addItem(fromLocal8Bit(name), QVariant::fromValue(QtSGIItem(item.get())));
+            }
+        }
+        for(auto it = frame.imageLayers().begin(); it != frame.imageLayers().end(); ++it)
+        {
+            SGIHostItemOsg layer(*it);
+            SGIItemBasePtr item;
+            if(_hostInterface->generateItem(item, &layer))
+            {
+                std::string name;
+                _hostInterface->getObjectDisplayName(name, item.get());
+                ui->layer->addItem(fromLocal8Bit(name), QVariant::fromValue(QtSGIItem(item.get())));
+            }
+        }
     }
-    else if(tileSource)
+    else
     {
-        name = QString::fromStdString(tileSource->getName());
+        std::string name;
+        _hostInterface->getObjectDisplayName(name, _item.get());
+        ui->layer->addItem(fromLocal8Bit(name), QVariant::fromValue(QtSGIItem(_item.get())));
     }
-    ui->layer->addItem(name, data);
 
     ui->numNeighbors->addItem(tr("None"), QVariant(NUM_NEIGHBORS_NONE) );
     ui->numNeighbors->addItem(tr("Cross (4)"), QVariant(NUM_NEIGHBORS_CROSS) );
