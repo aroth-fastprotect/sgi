@@ -866,16 +866,20 @@ bool objectTreeBuildImpl<osgEarth::TileSource>::build(IObjectTreeItem * treeItem
 
             const osgEarth::DataExtentList& dataExtents = object->getDataExtents();
             if(!dataExtents.empty())
-                treeItem->addChild(helpers::str_plus_count("Data extents", dataExtents.size()), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents));
+                treeItem->addChild(helpers::str_plus_count("Data extents", dataExtents.size()), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents, ~0u));
         }
         break;
     case SGIItemTypeDataExtents:
         {
-            const osgEarth::DataExtentList& dataExtents = object->getDataExtents();
-            for(osgEarth::DataExtentList::const_iterator it = dataExtents.begin(); it != dataExtents.end(); it++)
+            if(_item->number() == ~0u)
             {
-                const osgEarth::DataExtent & extent = *it;
-                treeItem->addChild(extent.toString(), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents));
+                const osgEarth::DataExtentList& dataExtents = object->getDataExtents();
+                unsigned num = 0;
+                for(osgEarth::DataExtentList::const_iterator it = dataExtents.begin(); it != dataExtents.end(); ++it, ++num)
+                {
+                    const osgEarth::DataExtent & extent = *it;
+                    treeItem->addChild(extent.toString(), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents, num));
+                }
             }
             ret = true;
         }
@@ -924,18 +928,22 @@ bool objectTreeBuildImpl<osgEarth::ModelSource>::build(IObjectTreeItem * treeIte
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             const osgEarth::DataExtentList& dataExtents = object->getDataExtents();
             if(!dataExtents.empty())
-                treeItem->addChild(helpers::str_plus_count("Data extents", dataExtents.size()), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents));
+                treeItem->addChild(helpers::str_plus_count("Data extents", dataExtents.size()), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents, ~0u));
 #endif
         }
         break;
     case SGIItemTypeDataExtents:
         {
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
-            const osgEarth::DataExtentList& dataExtents = object->getDataExtents();
-            for(osgEarth::DataExtentList::const_iterator it = dataExtents.begin(); it != dataExtents.end(); it++)
+            if(_item->number() == ~0u)
             {
-                const osgEarth::DataExtent & extent = *it;
-                treeItem->addChild(extent.toString(), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents));
+                const osgEarth::DataExtentList& dataExtents = object->getDataExtents();
+                unsigned num = 0;
+                for(osgEarth::DataExtentList::const_iterator it = dataExtents.begin(); it != dataExtents.end(); ++it, ++num)
+                {
+                    const osgEarth::DataExtent & extent = *it;
+                    treeItem->addChild(extent.toString(), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents, num));
+                }
             }
 #endif
             ret = true;
