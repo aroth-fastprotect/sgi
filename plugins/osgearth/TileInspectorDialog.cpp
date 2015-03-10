@@ -976,7 +976,11 @@ void TileInspectorDialog::refresh()
 void TileInspectorDialog::updateMetaData()
 {
 #ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
-    osgEarth::TileSource * tileSource = const_cast<osgEarth::TileSource *>(getTileSource());
+    int index = ui->layer->currentIndex();
+    QVariant data = ui->layer->itemData(index);
+    QtSGIItem qitem = data.value<QtSGIItem>();
+    SGIItemOsg * item = (SGIItemOsg *)qitem.item();
+    osgEarth::TileSource * tileSource = getTileSource(item);
     if(tileSource)
     {
         osgEarth::Config config;
