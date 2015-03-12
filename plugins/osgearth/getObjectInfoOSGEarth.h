@@ -10,6 +10,8 @@ namespace osgEarth {
     class TerrainLayer;
     class ModelLayer;
     class MaskLayer;
+    class ElevationQuery;
+    class TileKey;
 
     class Config;
     class ConfigOptions;
@@ -21,6 +23,11 @@ class SGIItemOsg;
 
 namespace osgearth_plugin {
 
+typedef ReferencedRawPtrT<osgEarth::ElevationQuery> ElevationQueryReferenced;
+typedef ReferencedDataT<osgEarth::TileKey> TileKeyReferenced;
+struct TileSourceTileKeyData;
+typedef ReferencedDataT<TileSourceTileKeyData> TileSourceTileKey;
+
 //--------------------------------------------------------------------------------
 // getObjectNameImpl
 //--------------------------------------------------------------------------------
@@ -31,6 +38,8 @@ GET_OBJECT_NAME_IMPL_DECLARE(osgEarth::MaskLayer)
 GET_OBJECT_NAME_IMPL_DECLARE(osgEarth::Registry)
 GET_OBJECT_NAME_IMPL_DECLARE(osgEarth::Config)
 GET_OBJECT_NAME_IMPL_DECLARE(osgEarth::ConfigOptions)
+GET_OBJECT_NAME_IMPL_DECLARE(TileKeyReferenced)
+GET_OBJECT_NAME_IMPL_DECLARE(TileSourceTileKey)
 
 //--------------------------------------------------------------------------------
 // getObjectTypeImpl

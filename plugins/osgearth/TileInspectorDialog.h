@@ -15,8 +15,13 @@ namespace osgEarth {
 
 namespace sgi {
 class SGIPluginHostInterface;
-class ObjectTreeItem;
 class SGIItemOsg;
+
+class IObjectTreeItem;
+typedef osg::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
+
+class IObjectTreeImpl;
+typedef osg::ref_ptr<IObjectTreeImpl> IObjectTreeImplPtr;
 
 namespace osgearth_plugin {
 
@@ -25,7 +30,7 @@ class TileInspectorDialog : public QDialog
 	Q_OBJECT
 
 public:
-                                TileInspectorDialog(QWidget * parent, SGIItemOsg * item, ISettingsDialogInfo * info=NULL);
+                                TileInspectorDialog(QWidget * parent, SGIItemOsg * item, ISettingsDialogInfo * info=NULL, SGIPluginHostInterface * hostInterface=NULL);
 	virtual				        ~TileInspectorDialog();
 
 public:
@@ -33,14 +38,12 @@ public:
 
 public slots:
     void                        refresh();
+    void                        layerChanged(int index);
     void                        proxySaveScript();
     void                        reloadTree();
     void                        updateMetaData();
-    void                    onItemExpanded(QTreeWidgetItem * item);
-    void                    onItemCollapsed(QTreeWidgetItem * item);
-    void                    onItemClicked(QTreeWidgetItem * item, int column);
-    void                    onItemActivated(QTreeWidgetItem * item, int column);
-    void                    onItemContextMenu(QPoint pt);
+    void                        loadData();
+    void                        reloadSelectedItem();
 
 public:
     void                        requestRedraw();
@@ -53,30 +56,30 @@ public:
         NUM_NEIGHBORS_IMMEDIATE,
     };
 protected:
-    bool                    buildTree(ObjectTreeItem * treeItem, SGIItemBase * item);
-
     void                    triggerRepaint();
     SGIHostItemBase *       getView();
     bool                    showSceneGraphDialog(SGIItemBase * item);
     bool                    showSceneGraphDialog(const SGIHostItemBase * item);
 
+    void                    setNodeInfo(const SGIItemBase * item);
+
     bool                    newInstance(SGIItemBase * item);
     bool                    newInstance(const SGIHostItemBase * item);
+
+    void                    itemContextMenu(IObjectTreeItem * treeItem, IContextMenuPtr & contextMenu);
 
 protected:
     class ContextMenuCallback;
     class SceneGraphDialogInfo;
-    class ObjectLoggerDialogImpl;
-
-private:
-    const osgEarth::TileSource *    getTileSource() const;
-    const osgEarth::TerrainLayer *  getTerrainLayer() const;
+    class ObjectTreeImpl;
 
 private:
 	Ui_TileInspectorDialog *	    ui;
     SGIPluginHostInterface *        _hostInterface;
     ISettingsDialogPtr              _interface;
     ISettingsDialogInfoPtr          _info;
+    IObjectTreeItemPtr              _treeRoot;
+    IObjectTreeImplPtr              _treeImpl;           
     osg::ref_ptr<IContextMenu>          _contextMenu;
     osg::ref_ptr<ContextMenuCallback>   _contextMenuCallback;
     osg::ref_ptr<SGIItemOsg>        _item;

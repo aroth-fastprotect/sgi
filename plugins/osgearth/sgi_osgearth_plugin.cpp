@@ -89,7 +89,9 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                  osgEarth::TileBlacklist, osgEarth::Util::Controls::ControlEventHandler,
                                                                  osgEarth::Annotation::Decoration,
                                                                  osgEarth::StateSetCache,
-                                                                 ElevationQueryReferenced
+                                                                 ElevationQueryReferenced,
+                                                                 TileKeyReferenced,
+                                                                 TileSourceTileKey
                                                                 ))
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(osgEarth::Cache, osgEarth::TileSource, osgEarth::ModelSource,

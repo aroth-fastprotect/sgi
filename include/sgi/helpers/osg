@@ -22,6 +22,7 @@ namespace osg {
     class ObserverNodePath;
     class Matrixf;
     class Matrixd;
+    class Image;
 
     typedef std::vector< Node* > NodePath;
 
@@ -49,6 +50,8 @@ namespace osg {
     typedef BoundingSphered BoundingSphere;
 #endif
 }
+
+class QImage;
 
 namespace sgi {
     namespace osg_helpers {
@@ -144,6 +147,8 @@ enum MatrixUsageType
 
 void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Node * refNode=NULL);
 void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Drawable * refDrawable);
+
+bool osgImageToQImage(const osg::Image * image, QImage * qimage);
 
     } // namespace osg_helpers
 } // namespace sgi

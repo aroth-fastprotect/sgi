@@ -23,6 +23,7 @@
 #include <osgEarth/ModelLayer>
 #include <osgEarth/MaskLayer>
 #include <osgEarth/ElevationQuery>
+#include <osgEarth/ImageUtils>
 
 #include <osgEarthUtil/LatLongFormatter>
 
@@ -75,6 +76,9 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::VirtualProgram)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::TileBlacklist)
 WRITE_PRETTY_HTML_IMPL_REGISTER(ElevationQueryReferenced)
 
+WRITE_PRETTY_HTML_IMPL_REGISTER(TileKeyReferenced)
+WRITE_PRETTY_HTML_IMPL_REGISTER(TileSourceTileKey)
+
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Util::Controls::ControlCanvas)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Util::Controls::Control)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Util::Controls::ControlEventHandler)
@@ -101,6 +105,8 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::CircleNode)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::EllipseNode)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::RectangleNode)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::ModelNode)
+
+WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Image)
 
 using namespace osg_helpers;
 
@@ -1015,30 +1021,38 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
         return os << status.message();
 }
 
-void writePrettyHTML(std::basic_ostream<char>& os, const osgEarth::DataExtentList & object)
+void writePrettyHTML(std::basic_ostream<char>& os, const osgEarth::DataExtent & ext, bool table)
 {
-    os << "<ul>" << std::endl;
+    MapDownload::NamedGeoPointList coords;
+    coords.push_back(MapDownload::NamedGeoPoint("A", osgEarth::GeoPoint(ext.getSRS(), osg::Vec3d(ext.north(), ext.west(), 0), osgEarth::ALTMODE_ABSOLUTE)));
+    coords.push_back(MapDownload::NamedGeoPoint("B", osgEarth::GeoPoint(ext.getSRS(), osg::Vec3d(ext.north(), ext.east(), 0), osgEarth::ALTMODE_ABSOLUTE)));
+    coords.push_back(MapDownload::NamedGeoPoint("C", osgEarth::GeoPoint(ext.getSRS(), osg::Vec3d(ext.south(), ext.east(), 0), osgEarth::ALTMODE_ABSOLUTE)));
+    coords.push_back(MapDownload::NamedGeoPoint("D", osgEarth::GeoPoint(ext.getSRS(), osg::Vec3d(ext.south(), ext.west(), 0), osgEarth::ALTMODE_ABSOLUTE)));
+    std::string mapUrl = MapDownload::getUrl(coords);
 
-    os << std::setprecision(12);
-    for(osgEarth::DataExtentList::const_iterator it = object.begin(); it != object.end(); it++)
+    if(table)
     {
-        const osgEarth::DataExtent & ext = *it;
-
-        MapDownload::NamedGeoPointList coords;
-        coords.push_back(MapDownload::NamedGeoPoint("A", osgEarth::GeoPoint(ext.getSRS(), osg::Vec3d(ext.north(), ext.west(), 0), osgEarth::ALTMODE_ABSOLUTE)));
-        coords.push_back(MapDownload::NamedGeoPoint("B", osgEarth::GeoPoint(ext.getSRS(), osg::Vec3d(ext.north(), ext.east(), 0), osgEarth::ALTMODE_ABSOLUTE)));
-        coords.push_back(MapDownload::NamedGeoPoint("C", osgEarth::GeoPoint(ext.getSRS(), osg::Vec3d(ext.south(), ext.east(), 0), osgEarth::ALTMODE_ABSOLUTE)));
-        coords.push_back(MapDownload::NamedGeoPoint("D", osgEarth::GeoPoint(ext.getSRS(), osg::Vec3d(ext.south(), ext.west(), 0), osgEarth::ALTMODE_ABSOLUTE)));
-
-        std::string mapUrl = MapDownload::getUrl(coords);
-
-        os << "<li>" << std::endl;
-
+        os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
+        os << "<tr><td>description</td><td>" << ext.description() << "</td></tr>" << std::endl;
+#endif
+        os << "<tr><td>min level</td><td>" << ext.minLevel() << "</td></tr>" << std::endl;
+        os << "<tr><td>max level</td><td>" << ext.maxLevel() << "</td></tr>" << std::endl;
+        os << "<tr><td>north</td><td>" << ext.north() << "</td></tr>" << std::endl;
+        os << "<tr><td>south</td><td>" << ext.south() << "</td></tr>" << std::endl;
+        os << "<tr><td>east</td><td>" << ext.east() << "</td></tr>" << std::endl;
+        os << "<tr><td>west</td><td>" << ext.west() << "</td></tr>" << std::endl;
+        os << "<tr><td>preview</td><td>";
+        os << " <a href=\"" << mapUrl << "\">preview</a>";
+        os << "</td></tr>" << std::endl;
+        os << "</table>" << std::endl;
+    }
+    else
+    {
 #ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
         if(ext.description().isSet())
             os << ext.description() << " ";
 #endif
-
         if(ext.minLevel().isSet() || ext.maxLevel().isSet())
             os << "min=" << ext.minLevel() << " max=" << ext.maxLevel();
 
@@ -1048,10 +1062,36 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osgEarth::DataExtentLis
         os << " east=" << ext.east();
         os << " west=" << ext.west();
         os << " <a href=\"" << mapUrl << "\">preview</a>";
-        os << "</li>" << std::endl;
     }
+}
 
-    os << "</ul>" << std::endl;
+void writePrettyHTML(std::basic_ostream<char>& os, const osgEarth::DataExtentList & object, unsigned number)
+{
+    if(number == ~0u)
+    {
+        os << "<ul>" << std::endl;
+
+        os << std::setprecision(12);
+        for(osgEarth::DataExtentList::const_iterator it = object.begin(); it != object.end(); it++)
+        {
+            const osgEarth::DataExtent & ext = *it;
+            os << "<li>" << std::endl;
+            writePrettyHTML(os, ext, false);
+            os << "</li>" << std::endl;
+        }
+
+        os << "</ul>" << std::endl;
+    }
+    else
+    {
+        if(number >= object.size())
+            os << "element #" << number << " not available";
+        else
+        {
+            const osgEarth::DataExtent & ext = object[number];
+            writePrettyHTML(os, ext, true);
+        }
+    }
 }
 
 bool writePrettyHTMLImpl<osgEarth::TileSource>::process(std::basic_ostream<char>& os)
@@ -1096,7 +1136,7 @@ bool writePrettyHTMLImpl<osgEarth::TileSource>::process(std::basic_ostream<char>
         }
         break;
     case SGIItemTypeDataExtents:
-        writePrettyHTML(os, object->getDataExtents());
+        writePrettyHTML(os, object->getDataExtents(), _item->number());
         ret = true;
         break;
     default:
@@ -1149,7 +1189,7 @@ bool writePrettyHTMLImpl<osgEarth::ModelSource>::process(std::basic_ostream<char
         break;
     case SGIItemTypeDataExtents:
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
-        writePrettyHTML(os, object->getDataExtents());
+        writePrettyHTML(os, object->getDataExtents(), _item->number());
 #endif
         ret = true;
         break;
@@ -1394,6 +1434,68 @@ bool writePrettyHTMLImpl<ElevationQueryReferenced>::process(std::basic_ostream<c
     return ret;
 }
 
+bool writePrettyHTMLImpl<TileKeyReferenced>::process(std::basic_ostream<char>& os)
+{
+    TileKeyReferenced * object_ptr = getObject<TileKeyReferenced, SGIItemOsg>();
+    const osgEarth::TileKey & object = object_ptr->data();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add Referenced properties first
+            callNextHandler(os);
+
+            // add remaining ElevationQuery properties
+            os << "<tr><td>tileKey</td><td>" << object << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<TileSourceTileKey>::process(std::basic_ostream<char>& os)
+{
+    TileSourceTileKey * object_ptr = getObject<TileSourceTileKey, SGIItemOsg>();
+    const TileSourceTileKeyData & object = object_ptr->data();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add Referenced properties first
+            callNextHandler(os);
+
+            // add remaining TileSourceTileKey properties
+            os << "<tr><td>tileKey</td><td>" << object.tileKey << "</td></tr>" << std::endl;
+            os << "<tr><td>tileSource</td><td>" << getObjectNameAndType(object.tileSource.get()) << "</td></tr>" << std::endl;
+            os << "<tr><td>tileData</td><td>" << getObjectNameAndType(object.tileData.get()) << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Util::Controls::ControlContext & object)
 {
     os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
@@ -1554,7 +1656,7 @@ bool writePrettyHTMLImpl<osgEarth::Util::Controls::Control>::process(std::basic_
             for(osgEarth::Util::Controls::ControlEventHandlerList::const_iterator it = eventHandlers.begin(); it != eventHandlers.end(); it++)
             {
                 const osg::ref_ptr<osgEarth::Util::Controls::ControlEventHandler> evthandler = *it;
-                os << "<li>" << getObjectName(evthandler.get()) << " (" << getObjectTypename(evthandler.get()) << ")</li>" << std::endl;
+                os << "<li>" << getObjectNameAndType(evthandler.get()) << "</li>" << std::endl;
             }
             os << "</ul>";
             ret = true;
@@ -2191,6 +2293,36 @@ bool writePrettyHTMLImpl<osgEarth::Annotation::ModelNode>::process(std::basic_os
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
             callNextHandler(os);
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+
+bool writePrettyHTMLImpl<osg::Image>::process(std::basic_ostream<char>& os)
+{
+    osg::Image * object = getObject<osg::Image, SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>isCompressed</td><td>" << (osgEarth::ImageUtils::isCompressed(object)?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>hasAlphaChannel</td><td>" << (osgEarth::ImageUtils::hasAlphaChannel(object)?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>hasTransparency</td><td>" << (osgEarth::ImageUtils::hasTransparency(object)?"true":"false") << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;

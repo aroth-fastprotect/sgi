@@ -88,6 +88,8 @@ public:
         : ReferencedPickerBase(pos, view, root, traversalMask)
         , m_picker(NULL)
         , m_thickness(hitBufferSize)
+        , m_hits()
+        , m_limit(limit)
     {
         recalc();
     }
@@ -96,6 +98,8 @@ public:
         : ReferencedPickerBase(gw, root, traversalMask)
         , m_picker(NULL)
         , m_thickness(hitBufferSize)
+        , m_hits()
+        , m_limit(limit)
     {
         recalc();
     }
@@ -104,6 +108,8 @@ public:
         : ReferencedPickerBase(ea, root, traversalMask)
         , m_picker(NULL)
         , m_thickness(hitBufferSize)
+        , m_hits()
+        , m_limit(limit)
     {
         recalc();
     }
