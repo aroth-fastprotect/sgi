@@ -60,6 +60,8 @@ CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::CameraView)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::Camera)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::View)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::ProxyNode)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::LOD)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::PagedLOD)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::Drawable)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::ShapeDrawable)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::Geometry)
@@ -899,6 +901,18 @@ bool contextMenuPopulateImpl<osg::ProxyNode>::populate(IContextMenuItem * menuIt
         ret = callNextHandler(menuItem);
         if(ret)
         {
+            menuItem->addSimpleAction(MenuActionProxyNodeSetDatabasePath, helpers::str_plus_info("Database path", object->getDatabasePath()), _item);
+            osg::ProxyNode::CenterMode centerMode = object->getCenterMode();
+            IContextMenuItem * centerModeMenu = menuItem->addModeMenu(MenuActionProxyNodeSetCenterMode, "Center mode", _item, centerMode);
+            if(centerModeMenu)
+            {
+                centerModeMenu->addModeAction("Bounding sphere", osg::ProxyNode::USE_BOUNDING_SPHERE_CENTER);
+                centerModeMenu->addModeAction("User defined", osg::ProxyNode::USER_DEFINED_CENTER);
+                centerModeMenu->addModeAction("Union bounding sphere and user defined", osg::ProxyNode::UNION_OF_BOUNDING_SPHERE_AND_USER_DEFINED);
+            }
+            menuItem->addSimpleAction(MenuActionProxyNodeSetCenter, helpers::str_plus_info("Center", object->getCenter()), _item);
+            menuItem->addSimpleAction(MenuActionProxyNodeSetRadius, helpers::str_plus_info("Radius", object->getRadius()), _item);
+
             osg::ProxyNode::LoadingExternalReferenceMode loadingMode = object->getLoadingExternalReferenceMode();
             IContextMenuItem * loadingModeMenu = menuItem->addModeMenu(MenuActionProxyNodeLoadingExternalReferenceMode, "Loading mode", _item, loadingMode);
             if(loadingModeMenu)
@@ -911,6 +925,66 @@ bool contextMenuPopulateImpl<osg::ProxyNode>::populate(IContextMenuItem * menuIt
             if(manipulateMenu)
                 manipulateMenu->addSimpleAction(MenuActionProxyNodeForceLoad, "Force load", _item);
 
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::LOD>::populate(IContextMenuItem * menuItem)
+{
+    osg::LOD * object = getObject<osg::LOD,SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if(ret)
+        {
+            osg::LOD::CenterMode centerMode = object->getCenterMode();
+            IContextMenuItem * centerModeMenu = menuItem->addModeMenu(MenuActionProxyNodeSetCenterMode, "Center mode", _item, centerMode);
+            if(centerModeMenu)
+            {
+                centerModeMenu->addModeAction("Bounding sphere", osg::LOD::USE_BOUNDING_SPHERE_CENTER);
+                centerModeMenu->addModeAction("User defined", osg::LOD::USER_DEFINED_CENTER);
+                centerModeMenu->addModeAction("Union bounding sphere and user defined", osg::LOD::UNION_OF_BOUNDING_SPHERE_AND_USER_DEFINED);
+            }
+            menuItem->addSimpleAction(MenuActionProxyNodeSetCenter, helpers::str_plus_info("Center", object->getCenter()), _item);
+            menuItem->addSimpleAction(MenuActionProxyNodeSetRadius, helpers::str_plus_info("Radius", object->getRadius()), _item);
+
+            IContextMenuItem * rangeModeMenu = menuItem->addModeMenu(MenuActionLODSetRangeMode, "Range mode", _item, centerMode);
+            if(rangeModeMenu)
+            {
+                centerModeMenu->addModeAction("Distance from eye point", osg::LOD::DISTANCE_FROM_EYE_POINT);
+                centerModeMenu->addModeAction("Pixel size on screen", osg::LOD::PIXEL_SIZE_ON_SCREEN);
+            }
+
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::PagedLOD>::populate(IContextMenuItem * menuItem)
+{
+    osg::PagedLOD * object = getObject<osg::PagedLOD,SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if(ret)
+        {
+            menuItem->addBoolAction(MenuActionPagedLODDisableExternalChildrenPaging, "Disable external children paging", _item, object->getDisableExternalChildrenPaging());
+            menuItem->addSimpleAction(MenuActionPagedLODNumChildrenThatCannotBeExpired, helpers::str_plus_info("Num children that cannot be expired", object->getNumChildrenThatCannotBeExpired()), _item);
+            menuItem->addSimpleAction(MenuActionPagedLODFrameNumberOfLastTraversal, helpers::str_plus_info("Frame number of last traversal", object->getFrameNumberOfLastTraversal()), _item);
+            menuItem->addSimpleAction(MenuActionProxyNodeSetDatabasePath, helpers::str_plus_info("Database path", object->getDatabasePath()), _item);
         }
         break;
     default:
