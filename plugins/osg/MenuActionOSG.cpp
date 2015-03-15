@@ -310,7 +310,7 @@ bool actionHandlerImpl<MenuActionNodeLookAt>::execute()
 
     SGIHostItemOsg viewpointItem(new ReferencedSetViewNodeLookAt(SetViewNodeLookAt(object, mode)));
 
-    SGIHostItemBasePtr view;
+    SGIItemBasePtr view;
     IContextMenuInfo * info = menuAction()->menu()->getInfo();
     if(info)
         view = info->getView();

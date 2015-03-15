@@ -21,7 +21,7 @@ public:
     virtual bool            showSceneGraphDialog(SGIItemBase * item) = 0;
     virtual bool            showObjectLoggerDialog(SGIItemBase * item) = 0;
     virtual void            triggerRepaint() = 0;
-    virtual SGIHostItemBase * getView() = 0;
+    virtual SGIItemBase *   getView() = 0;
 };
 typedef osg::ref_ptr<IContextMenuInfo> IContextMenuInfoPtr;
 

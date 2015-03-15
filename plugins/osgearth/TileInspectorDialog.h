@@ -57,7 +57,7 @@ public:
     };
 protected:
     void                    triggerRepaint();
-    SGIHostItemBase *       getView();
+    SGIItemBase *           getView();
     bool                    showSceneGraphDialog(SGIItemBase * item);
     bool                    showSceneGraphDialog(const SGIHostItemBase * item);
 
@@ -79,7 +79,7 @@ private:
     ISettingsDialogPtr              _interface;
     ISettingsDialogInfoPtr          _info;
     IObjectTreeItemPtr              _treeRoot;
-    IObjectTreeImplPtr              _treeImpl;           
+    IObjectTreeImplPtr              _treeImpl;
     osg::ref_ptr<IContextMenu>          _contextMenu;
     osg::ref_ptr<ContextMenuCallback>   _contextMenuCallback;
     osg::ref_ptr<SGIItemOsg>        _item;

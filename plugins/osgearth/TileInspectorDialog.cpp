@@ -421,7 +421,7 @@ public:
     ContextMenuCallback(TileInspectorDialog * dialog)
         : _dialog(dialog) {}
 public:
-    virtual SGIHostItemBase * getView()
+    virtual SGIItemBase * getView()
     {
         return _dialog->getView();
     }
@@ -451,7 +451,7 @@ public:
     {
         return NULL;
     }
-    virtual SGIHostItemBase * getView()
+    virtual SGIItemBase * getView()
     {
         return _dialog->getView();
     }
@@ -640,7 +640,7 @@ void TileInspectorDialog::reloadTree()
     setCursor(Qt::ArrowCursor);
 }
 
-SGIHostItemBase * TileInspectorDialog::getView()
+SGIItemBase * TileInspectorDialog::getView()
 {
 //     if(_info)
 //         return _info->getView();

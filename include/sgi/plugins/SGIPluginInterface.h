@@ -181,6 +181,7 @@ public:
 
     virtual bool setView(SGIItemBase * view, const SGIItemBase * item, double animationTime = -1.0) = 0;
     virtual bool setView(const SGIHostItemBase * view, const SGIItemBase * item, double animationTime = -1.0) = 0;
+    virtual bool setView(SGIItemBase * view, const SGIHostItemBase * item, double animationTime = -1.0) = 0;
     virtual bool setView(const SGIHostItemBase * view, const SGIHostItemBase * item, double animationTime = -1.0) = 0;
 
     virtual bool registerNamedEnum(const std::string & enumname, const std::string & description=std::string(), bool bitmask=false) = 0;

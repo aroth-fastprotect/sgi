@@ -34,6 +34,8 @@ SGI_EXPORT const char* sgiGetVersion();
 SGI_EXPORT const char* sgiGetSOVersion();
 SGI_EXPORT const char* sgiGetLibraryName();
 
+
+SGI_EXPORT bool sgi_generateItem(osg::ref_ptr<sgi::SGIItemBase> & item, const sgi::SGIHostItemBase * object);
 SGI_EXPORT bool sgi_parentWidget(sgi::QWidgetPtr & widget, const sgi::SGIHostItemBase * object);
 SGI_EXPORT bool sgi_parentWidgetItem(sgi::QWidgetPtr & widget, sgi::SGIItemBase * item);
 SGI_EXPORT sgi::ISceneGraphDialog * sgi_showSceneGraphDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::ISceneGraphDialogInfo * info);
