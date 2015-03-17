@@ -1,6 +1,7 @@
 #include <sgi/helpers/string>
 #include <iomanip>
 #include <cctype>
+#include <algorithm>
 
 namespace sgi {
     namespace helpers {
