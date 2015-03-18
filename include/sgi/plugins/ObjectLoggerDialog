@@ -28,7 +28,7 @@ public:
     virtual IContextMenu *  contextMenu(QWidget * parent, const SGIItemBase * item, IContextMenuInfo * info) = 0;
     virtual bool            showSceneGraphDialog(SGIItemBase * item) = 0;
     virtual void            triggerRepaint() = 0;
-    virtual SGIHostItemBase * getView() = 0;
+    virtual SGIItemBase *   getView() = 0;
 };
 
 class IObjectLoggerDialog : public osg::Referenced
@@ -43,8 +43,8 @@ public:
     virtual void            hide() = 0;
     virtual bool            isVisible() = 0;
 
-    virtual bool                addLogItem(SGIDataItemBase * item) = 0;
-    virtual bool                removeLogItem(SGIDataItemBase * item, bool first) = 0;
+    virtual bool            addLogItem(SGIDataItemBase * item) = 0;
+    virtual bool            removeLogItem(SGIDataItemBase * item, bool first) = 0;
 };
 
 typedef osg::ref_ptr<IObjectLoggerDialog> IObjectLoggerDialogPtr;

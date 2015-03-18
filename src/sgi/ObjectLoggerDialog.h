@@ -73,7 +73,7 @@ protected:
     bool                    buildTree(ObjectTreeItem * treeItem, SGIItemBase * item);
 
     void                    triggerRepaint();
-    SGIHostItemBase *       getView();
+    SGIItemBase *           getView();
     bool                    showSceneGraphDialog(SGIItemBase * item);
     bool                    showSceneGraphDialog(const SGIHostItemBase * item);
 

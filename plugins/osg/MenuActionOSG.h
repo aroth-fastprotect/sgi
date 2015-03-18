@@ -76,8 +76,16 @@ enum MenuAction {
     MenuActionCameraClearColor,
     MenuActionCameraCullSettings,
     MenuActionCameraComputeNearFarMode,
+    MenuActionProxyNodeSetCenterMode,
+    MenuActionProxyNodeSetCenter,
+    MenuActionProxyNodeSetRadius,
     MenuActionProxyNodeLoadingExternalReferenceMode,
     MenuActionProxyNodeForceLoad,
+    MenuActionProxyNodeSetDatabasePath,
+    MenuActionLODSetRangeMode,
+    MenuActionPagedLODDisableExternalChildrenPaging,
+    MenuActionPagedLODNumChildrenThatCannotBeExpired,
+    MenuActionPagedLODFrameNumberOfLastTraversal,
     MenuActionShapeDrawableColor,
     MenuActionGeometryColor,
     MenuActionImagePreview,
@@ -171,8 +179,18 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionProgramAddShader)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionCameraCullSettings)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionCameraClearColor)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionCameraComputeNearFarMode)
+
+ACTION_HANDLER_IMPL_DECLARE(MenuActionProxyNodeSetCenterMode)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionProxyNodeSetCenter)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionProxyNodeSetRadius)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionProxyNodeLoadingExternalReferenceMode)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionProxyNodeForceLoad)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionProxyNodeSetDatabasePath)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionLODSetRangeMode)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionPagedLODDisableExternalChildrenPaging)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionPagedLODNumChildrenThatCannotBeExpired)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionPagedLODFrameNumberOfLastTraversal)
+
 ACTION_HANDLER_IMPL_DECLARE(MenuActionClipNodeReset)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionClipNodeSetState)
 

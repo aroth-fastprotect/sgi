@@ -244,6 +244,7 @@ typedef SGIPluginImplementationT< LOKI_TYPELIST(SGIItemOsg),
                                         contextMenuPopulateImpl,
                                         actionHandlerImpl,
                                         settingsDialogCreateImpl,
+                                        defaultPluginGuiAdapterParentWidgetImpl,
                                         guiAdapterSetViewImpl,
                                         getOrCreateObjectLoggerImpl
                                         >

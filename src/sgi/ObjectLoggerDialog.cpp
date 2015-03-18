@@ -33,7 +33,7 @@ public:
     ContextMenuCallback(ObjectLoggerDialog * dialog)
         : _dialog(dialog) {}
 public:
-    virtual SGIHostItemBase * getView()
+    virtual SGIItemBase * getView()
     {
         return _dialog->getView();
     }
@@ -63,7 +63,7 @@ public:
     {
         return NULL;
     }
-    virtual SGIHostItemBase * getView()
+    virtual SGIItemBase * getView()
     {
         return _dialog->getView();
     }
@@ -451,7 +451,7 @@ void ObjectLoggerDialog::refreshTimerExpired()
     }
 }
 
-SGIHostItemBase * ObjectLoggerDialog::getView()
+SGIItemBase * ObjectLoggerDialog::getView()
 {
     if(_info)
         return _info->getView();

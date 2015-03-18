@@ -85,7 +85,7 @@ protected:
 	void					setNodeInfo(const SGIItemBase * item);
 
 	void					triggerRepaint();
-    SGIHostItemBase *       getView();
+    SGIItemBase *           getView();
     bool                    newInstance(SGIItemBase * item);
     bool                    newInstance(const SGIHostItemBase * item);
 

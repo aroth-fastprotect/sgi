@@ -78,8 +78,18 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionProgramAddShader)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionCameraCullSettings)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionCameraClearColor)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionCameraComputeNearFarMode)
+
+ACTION_HANDLER_IMPL_REGISTER(MenuActionProxyNodeSetCenterMode)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionProxyNodeSetCenter)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionProxyNodeSetRadius)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionProxyNodeLoadingExternalReferenceMode)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionProxyNodeForceLoad)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionProxyNodeSetDatabasePath)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionLODSetRangeMode)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionPagedLODDisableExternalChildrenPaging)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionPagedLODNumChildrenThatCannotBeExpired)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionPagedLODFrameNumberOfLastTraversal)
+
 ACTION_HANDLER_IMPL_REGISTER(MenuActionClipNodeReset)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionClipNodeSetState)
 
@@ -300,7 +310,7 @@ bool actionHandlerImpl<MenuActionNodeLookAt>::execute()
 
     SGIHostItemOsg viewpointItem(new ReferencedSetViewNodeLookAt(SetViewNodeLookAt(object, mode)));
 
-    SGIHostItemBasePtr view;
+    SGIItemBasePtr view;
     IContextMenuInfo * info = menuAction()->menu()->getInfo();
     if(info)
         view = info->getView();
@@ -619,6 +629,72 @@ bool actionHandlerImpl<MenuActionProgramAddShader>::execute()
     return true;
 }
 
+bool actionHandlerImpl<MenuActionProxyNodeSetCenterMode>::execute()
+{
+    osg::ProxyNode * proxynode = getObject<osg::ProxyNode, SGIItemOsg,DynamicCaster>();
+    osg::LOD * lod = getObject<osg::LOD, SGIItemOsg,DynamicCaster>();
+    if(proxynode)
+        proxynode->setCenterMode((osg::ProxyNode::CenterMode)menuAction()->mode());
+    else if(lod)
+        lod->setCenterMode((osg::LOD::CenterMode)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionProxyNodeSetCenter>::execute()
+{
+    osg::ProxyNode * proxynode = getObject<osg::ProxyNode, SGIItemOsg,DynamicCaster>();
+    osg::LOD * lod = getObject<osg::LOD, SGIItemOsg,DynamicCaster>();
+
+    osg::Vec3d value;
+    if(proxynode)
+        value = proxynode->getCenter();
+    else if(lod)
+        value = lod->getCenter();
+    bool gotInput = _hostInterface->inputDialogValueAsString(menuAction()->menu()->parentWidget(), value, "Center", "Set center position", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item.get());
+    if(gotInput)
+    {
+        if(proxynode)
+            proxynode->setCenter(value);
+        else if(lod)
+            lod->setCenter(value);
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionProxyNodeSetRadius>::execute()
+{
+    osg::ProxyNode * proxynode = getObject<osg::ProxyNode, SGIItemOsg,DynamicCaster>();
+    osg::LOD * lod = getObject<osg::LOD, SGIItemOsg,DynamicCaster>();
+
+    double value;
+    if(proxynode)
+        value = proxynode->getRadius();
+    else if(lod)
+        value = lod->getRadius();
+    bool gotInput = _hostInterface->inputDialogDouble(menuAction()->menu()->parentWidget(), value, "Radius", "Set radius", 0.0, 10000000.0, 1, _item.get());
+    if(gotInput)
+    {
+        if(proxynode)
+            proxynode->setRadius(value);
+        else if(lod)
+            lod->setRadius(value);
+    }
+    return true;
+
+    if(proxynode)
+        proxynode->setCenterMode((osg::ProxyNode::CenterMode)menuAction()->mode());
+    else if(lod)
+        lod->setCenterMode((osg::LOD::CenterMode)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionLODSetRangeMode>::execute()
+{
+    osg::LOD * object = getObject<osg::LOD, SGIItemOsg>();
+    object->setRangeMode((osg::LOD::RangeMode)menuAction()->mode());
+    return true;
+}
+
 bool actionHandlerImpl<MenuActionProxyNodeLoadingExternalReferenceMode>::execute()
 {
     osg::ProxyNode * object = getObject<osg::ProxyNode, SGIItemOsg>();
@@ -652,6 +728,72 @@ bool actionHandlerImpl<MenuActionProxyNodeForceLoad>::execute()
             }
         }
     }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionProxyNodeSetDatabasePath>::execute()
+{
+    osg::PagedLOD* pagedlod = getObject<osg::PagedLOD,SGIItemOsg,DynamicCaster>();
+    osg::ProxyNode * proxynode = getObject<osg::ProxyNode,SGIItemOsg,DynamicCaster>();
+
+    bool ret;
+    std::string value;
+    if(pagedlod)
+        value = pagedlod->getDatabasePath();
+    else if(proxynode)
+        value = proxynode->getDatabasePath();
+    ret = _hostInterface->inputDialogString(menu()->parentWidget(),
+                                            value,
+                                            "Database path:", "Set database path",
+                                            SGIPluginHostInterface::InputDialogStringEncodingSystem,
+                                            _item
+                                            );
+    if(ret)
+    {
+        if(pagedlod)
+            pagedlod->setDatabasePath(value);
+        else if(proxynode)
+            proxynode->setDatabasePath(value);
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionPagedLODDisableExternalChildrenPaging>::execute()
+{
+    osg::PagedLOD* object = getObject<osg::PagedLOD,SGIItemOsg>();
+    object->setDisableExternalChildrenPaging(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionPagedLODNumChildrenThatCannotBeExpired>::execute()
+{
+    osg::PagedLOD* object = getObject<osg::PagedLOD,SGIItemOsg>();
+    int value = (int)object->getNumChildrenThatCannotBeExpired();
+    bool ret;
+    ret = _hostInterface->inputDialogInteger(menu()->parentWidget(),
+                                            value,
+                                            "Number:", "Set number of children that cannot be expired",
+                                            std::numeric_limits<unsigned>::min(), std::numeric_limits<unsigned>::max(), 1,
+                                            _item
+                                            );
+    if(ret)
+        object->setNumChildrenThatCannotBeExpired((unsigned)value);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionPagedLODFrameNumberOfLastTraversal>::execute()
+{
+    osg::PagedLOD* object = getObject<osg::PagedLOD,SGIItemOsg>();
+    int value = (int)object->getFrameNumberOfLastTraversal();
+    bool ret;
+    ret = _hostInterface->inputDialogInteger(menu()->parentWidget(),
+                                            value,
+                                            "Frame number:", "Set frame number of last traversal",
+                                            std::numeric_limits<unsigned>::min(), std::numeric_limits<unsigned>::max(), 1,
+                                            _item
+                                            );
+    if(ret)
+        object->setFrameNumberOfLastTraversal((unsigned)value);
     return true;
 }
 

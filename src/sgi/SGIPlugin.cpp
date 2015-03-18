@@ -5,6 +5,7 @@
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
 #include <osgDB/PluginQuery>
+//#include <osg/Notify>
 
 #include <QInputDialog>
 #include <QFileDialog>
@@ -18,6 +19,15 @@
 
 using namespace sgi;
 using namespace sgi::qt_helpers;
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const SGIItemBase * item)
+{
+    const SGIPluginInfo * pluginInfo = (const SGIPluginInfo* )item->pluginInfo();
+    return os << '{' << (void*)item << '/' << pluginInfo->pluginName
+        << ";type=" << item->type()
+        << ";typeName=" << item->typeName()
+        << '}';
+}
 
 class SGIPlugins::SGIPluginsImpl
 {
@@ -271,6 +281,10 @@ public:
             return _impl->setView(view, item, animationTime);
         }
         bool setView(const SGIHostItemBase * view, const SGIItemBase * item, double animationTime = -1.0)
+        {
+            return _impl->setView(view, item, animationTime);
+        }
+        bool setView(SGIItemBase * view, const SGIHostItemBase * item, double animationTime = -1.0)
         {
             return _impl->setView(view, item, animationTime);
         }
@@ -1227,6 +1241,14 @@ public:
         osg::ref_ptr<SGIItemBase> viewItem;
         if(generateItem(viewItem, view))
             return setView(viewItem.get(), item, animationTime);
+        else
+            return false;
+    }
+    bool setView(SGIItemBase * view, const SGIHostItemBase * object, double animationTime = -1.0)
+    {
+        osg::ref_ptr<SGIItemBase> item;
+        if(generateItem(item, object))
+            return setView(view, item, animationTime);
         else
             return false;
     }

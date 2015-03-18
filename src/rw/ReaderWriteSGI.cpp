@@ -40,6 +40,7 @@
 #include <sgi/ObjectLoggerDialog>
 #include <sgi/ContextMenu>
 #include <sgi/AutoLoadOsg>
+#include <sgi/GenerateItem>
 
 #define LC "[ReaderWriteSGI] "
 
@@ -178,6 +179,15 @@ public:
             _loggerDialog->show();
         return ret;
     }
+    SGIItemBase * getView()
+    {
+        if(!_viewPtr.valid() && _view)
+        {
+            SGIHostItemOsg viewHostItem(_view);
+            sgi::generateItem<autoload::Osg>(_viewPtr, &viewHostItem);
+        }
+        return _viewPtr.get();
+    }
     class SceneGraphDialogInfo : public ISceneGraphDialogInfo
     {
     public:
@@ -188,10 +198,9 @@ public:
         {
             return NULL;
         }
-        virtual SGIHostItemBase * getView()
+        virtual SGIItemBase * getView()
         {
-            //return _parent->_view->view();
-            return NULL;
+            return _parent->getView();
         }
         virtual void            triggerRepaint()
         {
@@ -214,10 +223,9 @@ public:
         {
             return NULL;
         }
-        virtual SGIHostItemBase * getView()
+        virtual SGIItemBase * getView()
         {
-            //return _parent->_view->view();
-            return NULL;
+            return _parent->getView();
         }
         virtual void            triggerRepaint()
         {
@@ -270,6 +278,7 @@ public:
 private:
     QWidget * _parent;
     osgViewer::View * _view;
+    SGIItemBasePtr _viewPtr;
     sgi::ISceneGraphDialogPtr _dialog;
     sgi::IObjectLoggerDialogPtr _loggerDialog;
     osg::ref_ptr<SceneGraphInspectorHandlerInfo> _inspectorInfo;
