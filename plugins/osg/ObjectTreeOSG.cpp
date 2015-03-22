@@ -723,7 +723,7 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
             {
                 for(osg::StateSet::TextureAttributeList::const_iterator it = textureAttributes.begin(); it != textureAttributes.end(); it++, childNo++)
                 {
-                    treeItem->addChild(helpers::str_plus_count("Texture", childNo), cloneItem<SGIItemOsg>(SGIItemTypeStateSetTextureAttributeLists, childNo));
+                    treeItem->addChild(helpers::str_plus_count("TextureUnit", childNo), cloneItem<SGIItemOsg>(SGIItemTypeStateSetTextureAttributeLists, childNo));
                 }
             }
             else

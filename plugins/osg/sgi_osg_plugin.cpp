@@ -516,6 +516,14 @@ public:
         GLCONSTANT(GL_PIXEL_PACK_BUFFER_BINDING);
         GLCONSTANT(GL_PIXEL_UNPACK_BUFFER_BINDING);
 
+        // EXT_blend_color
+        // http://www.msi.unilim.fr/~porquet/glexts/GL_EXT_blend_color.txt.html
+        GLCONSTANT(GL_CONSTANT_COLOR_EXT);
+        GLCONSTANT(GL_ONE_MINUS_CONSTANT_COLOR_EXT);
+        GLCONSTANT(GL_CONSTANT_ALPHA_EXT);
+        GLCONSTANT(GL_ONE_MINUS_CONSTANT_ALPHA_EXT);
+        GLCONSTANT(GL_BLEND_COLOR_EXT);
+
     }
 
 };

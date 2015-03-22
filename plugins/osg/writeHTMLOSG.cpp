@@ -4019,7 +4019,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::St
     return os;
 }
 
-void writePrettyHTMLStateSetModeList(std::basic_ostream<char>& os, const SGIItemOsg * item, bool brief)
+void writePrettyHTMLStateSetModeList(std::basic_ostream<char>& os, const SGIItemOsg * item)
 {
     osg::StateSet * object = static_cast<osg::StateSet*>(item->object());
     const osg::StateSet::ModeList & modeList = object->getModeList();
@@ -4040,50 +4040,35 @@ void writePrettyHTMLStateSetModeList(std::basic_ostream<char>& os, const SGIItem
     }
 }
 
-void writePrettyHTMLStateSetTextureModeList(std::basic_ostream<char>& os, const SGIItemOsg * item, int index, bool brief)
+void writePrettyHTMLStateSetTextureModeList(std::basic_ostream<char>& os, const SGIItemOsg * item, unsigned index)
 {
     osg::StateSet * object = static_cast<osg::StateSet*>(item->object());
     const osg::StateSet::TextureModeList & textureModeList = object->getTextureModeList();
     if(!textureModeList.empty())
     {
-        if(brief && index < 0)
+        unsigned count = 0;
+        os << "<ol>";
+        for(osg::StateSet::TextureModeList::const_iterator it = textureModeList.begin(); it != textureModeList.end(); it++, count++)
         {
-            int numModes = 0;
-            for(osg::StateSet::TextureModeList::const_iterator it = textureModeList.begin(); it != textureModeList.end(); it++)
+            if(index == ~0u || index == count)
             {
                 const osg::StateSet::ModeList & modeList = *it;
-                numModes += modeList.size();
-            }
-            os << numModes << " texture modes";
-        }
-        else
-        {
-            os << "<table border=\'1\' align=\'left\'><tr><th>Unit</th><th>Value</th></tr>" << std::endl;
-            int count = 0;
-            for(osg::StateSet::TextureModeList::const_iterator it = textureModeList.begin(); it != textureModeList.end(); it++, count++)
-            {
-                if(index < 0 || index == count)
+                if(modeList.empty())
+                    os << "<li>Unit #" << count << ":&nbsp;&lt;empty&gt;</li>" << std::endl;
+                else
                 {
-                    os << "<tr><td>" << count << "</td><td>";
-                    const osg::StateSet::ModeList & modeList = *it;
-                    if(modeList.empty())
-                        os << "&lt;empty&gt;" << std::endl;
-                    else
+                    for(osg::StateSet::ModeList::const_iterator it2 = modeList.begin(); it2 != modeList.end(); it2++)
                     {
-                        os << "<ol>";
-                        for(osg::StateSet::ModeList::const_iterator it2 = modeList.begin(); it2 != modeList.end(); it2++)
-                        {
-                            const osg::StateAttribute::GLMode & mode = it2->first;
-                            const osg::StateAttribute::GLModeValue & value = it2->second;
-                            os << "<li>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(mode) << "=" << glValueName(value) << "</li>";
-                        }
-                        os << "</ol>";
+                        const osg::StateAttribute::GLMode & mode = it2->first;
+                        const osg::StateAttribute::GLModeValue & value = it2->second;
+                        os << "<li>Unit #" << count << ":&nbsp;";
+                        os << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(mode) << "=" << glValueName(value);
+                        os << "</li>";
                     }
-                    os << "</td></tr>";
                 }
             }
-            os << "</table>";
         }
+        os << "</ol>";
     }
     else
     {
@@ -4091,32 +4076,23 @@ void writePrettyHTMLStateSetTextureModeList(std::basic_ostream<char>& os, const 
     }
 }
 
-void writePrettyHTMLStateSetTextureAttributeList(std::basic_ostream<char>& os, const SGIItemOsg * item, int index, bool brief)
+void writePrettyHTMLStateSetTextureAttributeList(std::basic_ostream<char>& os, const SGIItemOsg * item, unsigned index)
 {
     osg::StateSet * object = static_cast<osg::StateSet*>(item->object());
     const osg::StateSet::TextureAttributeList & textureAttributes = object->getTextureAttributeList();
     if(!textureAttributes.empty())
     {
-        if(brief && index < 0)
+        unsigned count = 0;
+        os << "<ol>";
+        for(osg::StateSet::TextureAttributeList::const_iterator it = textureAttributes.begin(); it != textureAttributes.end(); it++, count++)
         {
-            int numAttributes = 0;
-            for(osg::StateSet::TextureAttributeList::const_iterator it = textureAttributes.begin(); it != textureAttributes.end(); it++)
+            if(index == ~0u || index == count)
             {
                 const osg::StateSet::AttributeList & attributes = *it;
-                numAttributes += textureAttributes.size();
-            }
-            os << numAttributes << " texture attributes";
-        }
-        else
-        {
-            os << "<table border=\'1\' align=\'left\'><tr><th>Unit</th><th>Value</th></tr>" << std::endl;
-            int count = 0;
-            for(osg::StateSet::TextureAttributeList::const_iterator it = textureAttributes.begin(); it != textureAttributes.end(); it++, count++)
-            {
-                if(index < 0 || index == count)
+                if(attributes.empty())
+                    os << "<li>Unit #" << count << ":&nbsp;&lt;empty&gt;</li>" << std::endl;
+                else
                 {
-                    os << "<tr><td>" << count << "</td><td><ol>";
-                    const osg::StateSet::AttributeList & attributes = *it;
                     for(osg::StateSet::AttributeList::const_iterator it2 = attributes.begin(); it2 != attributes.end(); it2++)
                     {
                         const osg::StateAttribute::TypeMemberPair & typememberpair = it2->first;
@@ -4126,15 +4102,15 @@ void writePrettyHTMLStateSetTextureAttributeList(std::basic_ostream<char>& os, c
                         const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
                         const osg::StateAttribute::OverrideValue & value = attrpair.second;
 
-                        os << "<li>" << type << " member=" << member << " value=" << glOverrideValueName(value) << "<br/>";
+                        os << "<li>Unit #" << count << ":&nbsp;" << std::endl;
+                        os << type << " member=" << member << " value=" << glOverrideValueName(value) << "<br/>";
                         os << osg_helpers::getObjectNameAndType(attr.get());
                         os << "</li>";
                     }
-                    os << "</ol></td></tr>";
                 }
             }
-            os << "</table>";
         }
+        os << "</ol>";
     }
     else
     {
@@ -4142,36 +4118,31 @@ void writePrettyHTMLStateSetTextureAttributeList(std::basic_ostream<char>& os, c
     }
 }
 
-void writePrettyHTMLStateSetAttributeList(std::basic_ostream<char>& os, const SGIItemOsg * item, int index, bool brief)
+void writePrettyHTMLStateSetAttributeList(std::basic_ostream<char>& os, const SGIItemOsg * item, unsigned index)
 {
     osg::StateSet * object = static_cast<osg::StateSet*>(item->object());
     const osg::StateSet::AttributeList & attributes = object->getAttributeList();
     if(!attributes.empty())
     {
-        if(brief && index < 0)
-            os << attributes.size() << " attributes";
-        else
+        os << "<ol>";
+        unsigned count = 0;
+        for(osg::StateSet::AttributeList::const_iterator it = attributes.begin(); it != attributes.end(); it++, count++)
         {
-            os << "<ol>";
-            int count = 0;
-            for(osg::StateSet::AttributeList::const_iterator it = attributes.begin(); it != attributes.end(); it++, count++)
+            if(index == ~0u || index == count)
             {
-                if(index < 0 || index == count)
-                {
-                    const osg::StateAttribute::TypeMemberPair & typememberpair = it->first;
-                    const osg::StateAttribute::Type & type = typememberpair.first;
-                    const unsigned int & member = typememberpair.second;
-                    const osg::StateSet::RefAttributePair & attrpair = it->second;
-                    const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
-                    const osg::StateAttribute::OverrideValue & value = attrpair.second;
+                const osg::StateAttribute::TypeMemberPair & typememberpair = it->first;
+                const osg::StateAttribute::Type & type = typememberpair.first;
+                const unsigned int & member = typememberpair.second;
+                const osg::StateSet::RefAttributePair & attrpair = it->second;
+                const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
+                const osg::StateAttribute::OverrideValue & value = attrpair.second;
 
-                    os << "<li>" << type << " member=" << member << " value=" << glOverrideValueName(value) << " (0x" << std::hex << value << std::dec << ")<br/>";
-                    os << osg_helpers::getObjectNameAndType(attr.get());
-                    os << "</li>";
-                }
+                os << "<li>" << type << " member=" << member << " value=" << glOverrideValueName(value) << " (0x" << std::hex << value << std::dec << ")<br/>";
+                os << osg_helpers::getObjectNameAndType(attr.get());
+                os << "</li>";
             }
-            os << "</ol>";
         }
+        os << "</ol>";
     }
     else
     {
@@ -4179,32 +4150,27 @@ void writePrettyHTMLStateSetAttributeList(std::basic_ostream<char>& os, const SG
     }
 }
 
-void writePrettyHTMLStateSetUniformList(std::basic_ostream<char>& os, const SGIItemOsg * item, int index, bool brief)
+void writePrettyHTMLStateSetUniformList(std::basic_ostream<char>& os, const SGIItemOsg * item, unsigned index)
 {
     osg::StateSet * object = static_cast<osg::StateSet*>(item->object());
     const osg::StateSet::UniformList & uniforms = object->getUniformList();
     if(!uniforms.empty())
     {
-        if(brief && index < 0)
-            os << uniforms.size() << " uniforms";
-        else
+        os << "<ol>";
+        unsigned count = 0;
+        for(osg::StateSet::UniformList::const_iterator it = uniforms.begin(); it != uniforms.end(); it++, count++)
         {
-            os << "<ol>";
-            int count = 0;
-            for(osg::StateSet::UniformList::const_iterator it = uniforms.begin(); it != uniforms.end(); it++, count++)
+            if(index == ~0u || index == count)
             {
-                if(index < 0 || index == count)
-                {
-                    const std::string & name = it->first;
-                    const osg::StateAttribute::OverrideValue & overridevalue = it->second.second;
-                    const osg::ref_ptr<osg::Uniform> & uniform = it->second.first;
-                    os << "<li>" << name << " override=" << glOverrideValueName(overridevalue) << "<br/>";
-                    os << osg_helpers::getObjectNameAndType(uniform.get());
-                    os << "</li>";
-                }
+                const std::string & name = it->first;
+                const osg::StateAttribute::OverrideValue & overridevalue = it->second.second;
+                const osg::ref_ptr<osg::Uniform> & uniform = it->second.first;
+                os << "<li>" << name << " override=" << glOverrideValueName(overridevalue) << "<br/>";
+                os << osg_helpers::getObjectNameAndType(uniform.get());
+                os << "</li>";
             }
-            os << "</ol>";
         }
+        os << "</ol>";
     }
     else
     {
@@ -4233,23 +4199,23 @@ bool writePrettyHTMLImpl<osg::StateSet>::process(std::basic_ostream<char>& os)
             os << "<tr><td>renderBinName</td><td>" << object->getBinName() << "</td></tr>" << std::endl;
             os << "<tr><td>nested render bins</td><td>" << (object->getNestRenderBins()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>modes</td><td>" << std::endl;
-            writePrettyHTMLStateSetModeList(os, item<SGIItemOsg>(), true);
+            writePrettyHTMLStateSetModeList(os, item<SGIItemOsg>());
             os << "</td></tr>" << std::endl;
 
             os << "<tr><td>texture modes</td><td>" << std::endl;
-            writePrettyHTMLStateSetTextureModeList(os, item<SGIItemOsg>(), -1, true);
+            writePrettyHTMLStateSetTextureModeList(os, item<SGIItemOsg>(), ~0u);
             os << "</td></tr>" << std::endl;
 
             os << "<tr><td>texture attributes</td><td>" << std::endl;
-            writePrettyHTMLStateSetTextureAttributeList(os, item<SGIItemOsg>(), -1, true);
+            writePrettyHTMLStateSetTextureAttributeList(os, item<SGIItemOsg>(), ~0u);
             os << "</td></tr>" << std::endl;
 
             os << "<tr><td>attributes</td><td>";
-            writePrettyHTMLStateSetAttributeList(os, item<SGIItemOsg>(), -1, true);
+            writePrettyHTMLStateSetAttributeList(os, item<SGIItemOsg>(), ~0u);
             os << "</td></tr>" << std::endl;
 
             os << "<tr><td>uniforms</td><td>" << std::endl;
-            writePrettyHTMLStateSetUniformList(os, item<SGIItemOsg>(), -1, true);
+            writePrettyHTMLStateSetUniformList(os, item<SGIItemOsg>(), ~0u);
             os << "</td></tr>" << std::endl;
 
             if(_table)
@@ -4258,23 +4224,23 @@ bool writePrettyHTMLImpl<osg::StateSet>::process(std::basic_ostream<char>& os)
         }
         break;
     case SGIItemTypeStateSetModeList:
-        writePrettyHTMLStateSetModeList(os, item<SGIItemOsg>(), false);
+        writePrettyHTMLStateSetModeList(os, item<SGIItemOsg>());
         ret = true;
         break;
     case SGIItemTypeStateSetAttributeList:
-        writePrettyHTMLStateSetAttributeList(os, item<SGIItemOsg>(), -1, false);
+        writePrettyHTMLStateSetAttributeList(os, item<SGIItemOsg>(), _item->number());
         ret = true;
         break;
     case SGIItemTypeStateSetTextureModeList:
-        writePrettyHTMLStateSetTextureModeList(os, item<SGIItemOsg>(), -1, false);
+        writePrettyHTMLStateSetTextureModeList(os, item<SGIItemOsg>(), _item->number());
         ret = true;
         break;
     case SGIItemTypeStateSetTextureAttributeLists:
-        writePrettyHTMLStateSetTextureAttributeList(os, item<SGIItemOsg>(), -1, false);
+        writePrettyHTMLStateSetTextureAttributeList(os, item<SGIItemOsg>(), _item->number());
         ret = true;
         break;
     case SGIItemTypeStateSetUniformList:
-        writePrettyHTMLStateSetUniformList(os, item<SGIItemOsg>(), -1, false);
+        writePrettyHTMLStateSetUniformList(os, item<SGIItemOsg>(), _item->number());
         ret = true;
         break;
     case SGIItemTypeCallbacks:
