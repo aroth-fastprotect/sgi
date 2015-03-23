@@ -105,6 +105,14 @@
 
 #include <sgi/ReferencedPicker>
 
+#ifndef GL_EXT_blend_color
+#define GL_CONSTANT_COLOR_EXT             0x8001
+#define GL_ONE_MINUS_CONSTANT_COLOR_EXT   0x8002
+#define GL_CONSTANT_ALPHA_EXT             0x8003
+#define GL_ONE_MINUS_CONSTANT_ALPHA_EXT   0x8004
+#define GL_BLEND_COLOR_EXT                0x8005
+#endif
+
 namespace sgi {
 namespace osg_plugin {
 

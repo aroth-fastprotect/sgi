@@ -14,11 +14,7 @@ RenderInfoDrawable::RenderInfoDrawable()
 
 RenderInfoDrawable::RenderInfoDrawable(const RenderInfoDrawable & rhs, const osg::CopyOp & copyOp)
     : osg::Drawable(rhs, copyOp)
-/*
-    , _lastStateSetStack(rhs._lastStateSetStack)
-    , _lastRenderBinStack(rhs._lastRenderBinStack)
-    , _lastCameraStack(rhs._lastCameraStack)
-    */
+    , _hashedState(rhs._hashedState)
 {
 }
 
@@ -83,7 +79,7 @@ void RenderInfoDrawable::copyRenderBinStack(RenderBinStack & dest, const std::ve
 {
     dest.clear();
     dest.resize(src.size());
-#if OSG_VERSION_GREATER_THAN(3,3,0)
+#if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
     unsigned dest_index = 0;
     for(osg::RenderInfo::RenderBinStack::const_iterator it = src.begin(); it != src.end(); it++, dest_index++)
     {
@@ -97,7 +93,7 @@ void RenderInfoDrawable::copyCameraStack(CameraStack & dest, const std::vector<o
 {
     dest.clear();
     dest.resize(src.size());
-#if OSG_VERSION_GREATER_THAN(3,3,0)
+#if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
     unsigned dest_index = 0;
     for(osg::RenderInfo::CameraStack::const_iterator it = src.begin(); it != src.end(); it++, dest_index++)
     {
@@ -180,7 +176,7 @@ void RenderInfoDrawable::drawImplementation(osg::RenderInfo& renderInfo) const
 {
     StateAccess * state = (StateAccess*)renderInfo.getState();
     osg::State::StateSetStack& stateSetStack = state->getStateSetStack();
-#if OSG_VERSION_GREATER_THAN(3,3,0)
+#if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
     osg::RenderInfo::RenderBinStack & renderBinStack = renderInfo.getRenderBinStack();
     osg::RenderInfo::CameraStack & cameraStack = renderInfo.getCameraStack();
 #else
@@ -194,7 +190,7 @@ void RenderInfoDrawable::drawImplementation(osg::RenderInfo& renderInfo) const
     currentState.capturedStateSet = new osg::StateSet;
     state->captureCurrentState(*currentState.capturedStateSet.get());
     
-#if OSG_VERSION_GREATER_THAN(3,3,0)
+#if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
     const osg::State::UniformMap & uniformMap = state->getUniformMap();
     for(osg::State::UniformMap::const_iterator it = uniformMap.begin(); it != uniformMap.end(); it++)
     {
@@ -207,12 +203,17 @@ void RenderInfoDrawable::drawImplementation(osg::RenderInfo& renderInfo) const
 #endif
 
     copyStateSetStack(currentState.stateSetStack, stateSetStack);
-#if OSG_VERSION_GREATER_THAN(3,3,0)
+#if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
     copyRenderBinStack(currentState.renderBinStack, renderBinStack);
     copyCameraStack(currentState.cameraStack, cameraStack);
 #else
     //copyPerContextProgramSet(currentState.appliedProgamSet, appliedProgramObjectSet);
 #endif
+    currentState.combinedStateSet = new osg::StateSet;;
+    for(auto it = currentState.stateSetStack.begin(); it != currentState.stateSetStack.end(); ++it)
+    {
+        currentState.combinedStateSet->merge(*(it->get()));
+    }
     currentState.view = renderInfo.getView();
 
 /*

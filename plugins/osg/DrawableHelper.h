@@ -98,6 +98,7 @@ public:
         PerContextProgramSet appliedProgamSet;
         osg::ref_ptr<osg::View> view;
         osg::ref_ptr<osg::StateSet> capturedStateSet;
+        osg::ref_ptr<osg::StateSet> combinedStateSet;
     };
 
     typedef std::map<unsigned, State> HashedState;
