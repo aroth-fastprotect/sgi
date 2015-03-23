@@ -14,6 +14,7 @@ MACRO(SGI_PLUGIN PLUGIN_NAME)
     #not sure if needed, but for plugins only Msvc need the d suffix
     IF(MSVC)
         SET(TARGET_NO_DEBUG_POSTFIX)
+		SET(TARGET_DISABLE_PCH 1)
     ENDIF(MSVC)
 
     SET(TARGET_LABEL_PREFIX "SGIPlugin")
