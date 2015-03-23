@@ -184,6 +184,12 @@ void ObjectLoggerDialog::init()
 {
     ui = new Ui_ObjectLoggerDialog;
     ui->setupUi( this );
+
+    Qt::WindowFlags flags =this->windowFlags()
+        | Qt::WindowMinimizeButtonHint
+        | Qt::WindowMaximizeButtonHint
+        | Qt::WindowCloseButtonHint;
+    this->setWindowFlags(flags);
     
     ObjectTreeItem::s_hostInterface = SGIPlugins::instance()->hostInterface();
 

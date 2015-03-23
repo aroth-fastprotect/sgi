@@ -130,7 +130,13 @@ void SceneGraphDialog::init()
 {
     ui = new Ui_SceneGraphDialog;
     ui->setupUi( this );
-    
+
+    Qt::WindowFlags flags =this->windowFlags()
+        | Qt::WindowMinimizeButtonHint
+        | Qt::WindowMaximizeButtonHint
+        | Qt::WindowCloseButtonHint;
+    this->setWindowFlags(flags);
+
     ObjectTreeItem::s_hostInterface = SGIPlugins::instance()->hostInterface();
     
     _toolBar = new QToolBar;
