@@ -10,6 +10,7 @@
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SGIProxyItem.h>
 #include <sgi/helpers/string>
+#include <sgi/helpers/osg>
 
 #include <osgEarth/Version>
 #include <osgEarth/Map>
@@ -83,6 +84,8 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::ConfigOptions)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::ModelLayerOptions)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::Features::FeatureModelSourceOptions)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::Drivers::FeatureGeomModelOptions)
+
+using namespace osg_helpers;
 
 bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
 {
@@ -1104,16 +1107,14 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
             for(osgEarth::VirtualProgram::ShaderMap::const_iterator it = shadermap.begin(); it != shadermap.end(); it++, shaderNum++)
             {
                 const std::string & name = it->first;
-                /*
-                const osg::ref_ptr<osg::Shader> & shader = it->second.first;
-                const osg::StateAttribute::OverrideValue & overrideValue = it->second.second;
+                const osgEarth::VirtualProgram::ShaderEntry & entry = it->second;
+                const osg::ref_ptr<osg::Shader> & shader = entry._shader;
+                const osg::StateAttribute::OverrideValue & overrideValue = entry._overrideValue;
 
                 std::stringstream ss;
-                //ss << name << '(' << osg_plugin::glOverrideValueName(overrideValue) << ')';
-                ss << name << '(' << overrideValue << ')';
+                ss << name << '(' << glOverrideValueName(overrideValue) << ')';
                 SGIHostItemOsg child(shader.get());
                 treeItem->addChild(ss.str(), &child);
-                */
             }
             ret = true;
         }

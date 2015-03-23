@@ -2994,6 +2994,9 @@ bool objectTreeBuildImpl<RenderInfoDrawable>::build(IObjectTreeItem * treeItem)
                     SGIHostItemOsg capturedStateSet(state.capturedStateSet);
                     treeItem->addChild("CapturedStateSet", &capturedStateSet);
 
+                    SGIHostItemOsg combinedStateSet(state.combinedStateSet);
+                    treeItem->addChild("CombinedStateSet", &combinedStateSet);
+
                     treeItem->addChild(helpers::str_plus_count("StateSetStack", state.stateSetStack.size()), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoStateSetStack, itemNumber()));
                     treeItem->addChild(helpers::str_plus_count("RenderBinStack", state.renderBinStack.size()), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoRenderBinStack, itemNumber()));
                     treeItem->addChild(helpers::str_plus_count("CameraStack", state.cameraStack.size()), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoCameraStack, itemNumber()));
@@ -3016,6 +3019,10 @@ bool objectTreeBuildImpl<RenderInfoDrawable>::build(IObjectTreeItem * treeItem)
                     SGIHostItemOsg child(*it);
                     treeItem->addChild(std::string(), &child);
                 }
+
+                SGIHostItemOsg combinedStateSet(state.combinedStateSet);
+                treeItem->addChild("CombinedStateSet", &combinedStateSet);
+
             }
             ret = true;
         }

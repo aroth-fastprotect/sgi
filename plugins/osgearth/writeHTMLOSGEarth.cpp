@@ -1210,8 +1210,15 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     case osgEarth::ShaderComp::LOCATION_VERTEX_CLIP: os << "VERTEX_CLIP"; break;
     case osgEarth::ShaderComp::LOCATION_FRAGMENT_COLORING: os << "FRAGMENT_COLORING"; break;
     case osgEarth::ShaderComp::LOCATION_FRAGMENT_LIGHTING: os << "FRAGMENT_LIGHTING"; break;
+    case osgEarth::ShaderComp::LOCATION_FRAGMENT_OUTPUT: os << "FRAGMENT_OUTPUT"; break;
     default: os << (int)t; break;
     }
+    return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::Function & f)
+{
+    os << f._name << " min=" << f._minRange << " max=" << f._maxRange << " accept=" << getObjectNameAndType(f._accept.get());
     return os;
 }
 
@@ -1251,11 +1258,47 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
 
             osgEarth::VirtualProgram::ShaderMap shaderMap;
             access->getShaderMap(shaderMap);
-            os << "<tr><td>shader map</td><td>" << shaderMap.size() << " shaders</td></tr>" << std::endl;
+            os << "<tr><td>shader map</td><td>";
+            if(shaderMap.empty())
+                os << "<i>empty</i>";
+            else
+            {
+                os << "<ul>";
+                for(osgEarth::VirtualProgram::ShaderMap::const_iterator it = shaderMap.begin(); it != shaderMap.end(); it++)
+                {
+                    const std::string & name = it->first;
+                    const osgEarth::VirtualProgram::ShaderEntry & entry = it->second;
+                    os << "<li>" << name << "</li>";
+                }
+                os << "</ul>";
+            }
+            os << "</td></tr>" << std::endl;
 
             osgEarth::ShaderComp::FunctionLocationMap functions;
             access->getFunctions(functions);
-            os << "<tr><td>functions</td><td>" << functions.size() << " functions</td></tr>" << std::endl;
+
+            os << "<tr><td>functions</td><td>";
+            if(functions.empty())
+                os << "<i>empty</i>";
+            else
+            {
+                os << "<ul>";
+                for(osgEarth::ShaderComp::FunctionLocationMap::const_iterator it = functions.begin(); it != functions.end(); it++)
+                {
+                    const osgEarth::ShaderComp::FunctionLocation & location = it->first;
+                    const osgEarth::ShaderComp::OrderedFunctionMap & orderedFunctions = it->second;
+                    os << "<li>" << location << "<ul>";
+                    for(osgEarth::ShaderComp::OrderedFunctionMap::const_iterator it = orderedFunctions.begin(); it != orderedFunctions.end(); it++)
+                    {
+                        const float & order = it->first;
+                        const osgEarth::ShaderComp::Function & function = it->second;
+                        os << "<li>order " << order << " function " << function._name << "</li>";
+                    }
+                    os << "</ul></li>";
+                }
+                os << "</ul>" << std::endl;
+            }
+            os << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -1264,16 +1307,23 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
         break;
     case SGIItemTypeVirtualProgramShaderMap:
         {
-            os << "<ul>";
+            os << "<table border=\'1\' align=\'left\'><tr><th>Shader</th><th>Value</th></tr>" << std::endl;
             osgEarth::VirtualProgram::ShaderMap shaderMap;
             access->getShaderMap(shaderMap);
             for(osgEarth::VirtualProgram::ShaderMap::const_iterator it = shaderMap.begin(); it != shaderMap.end(); it++)
             {
                 const std::string & name = it->first;
+                os << "<tr><td>" << name << "</td><td>";
+                os << "<table border=\'1\' align=\'left\'>";
                 const osgEarth::VirtualProgram::ShaderEntry & entry = it->second;
-                os << "<li>" << name << "</li>";
+                os << "<tr><td>shader</td><td>" << getObjectNameAndType(entry._shader.get()) << "</td></tr>";
+                os << "<tr><td>override</td><td>" << glOverrideValueName(entry._overrideValue) << "</td></tr>";
+                os << "<tr><td>accept</td><td>" << getObjectNameAndType(entry._accept.get()) << "</td></tr>";
+                os << "</table>";
+                os << "</td></tr>";
             }
-            os << "</ul>" << std::endl;
+            os << "</table>" << std::endl;
+
             ret = true;
         }
         break;
@@ -1291,10 +1341,8 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
                 for(osgEarth::ShaderComp::OrderedFunctionMap::const_iterator it = orderedFunctions.begin(); it != orderedFunctions.end(); it++)
                 {
                     const float & order = it->first;
-                    /*
-                    const std::string & function = it->second;
-                    os << "<li>Order=" << order << " function=" << function << "</li>";
-                    */
+                    const osgEarth::ShaderComp::Function & function = it->second;
+                    os << "<li>Order=" << order << "<br/>" << function << "</li>";
                 }
                 os << "</ul></li>";
             }
