@@ -5,6 +5,7 @@
 
 #include <osgDB/Registry>
 #include "Export"
+#include "helpers/singleton"
 
 namespace sgi {
 namespace autoload {
@@ -45,18 +46,30 @@ namespace autoload {
         {
             return (_library.valid())?std::string():std::string("Unknown");
         }
-        static Osg & instance()
+
+        typedef helpers::SingletonT<Osg> Singleton;
+        typedef Singleton::InstanceAction InstanceAction;
+        static Singleton::value_type * instance(InstanceAction action=Singleton::InstanceActionGetOrCreate)
         {
-            static Osg s_sgi;
-            return s_sgi;
+            static Singleton s_singleton;
+            return s_singleton.instance(action);
         }
+
         static inline osgDB::DynamicLibrary * sgiLibrary()
         {
-            return Osg::instance().library();
+            return Osg::instance()->library();
         }
         static inline void * sgiLibraryProcAddress(const char * procName)
         {
-            return Osg::instance().getProcAddress(procName);
+            return Osg::instance()->getProcAddress(procName);
+        }
+        static inline void * sgiLibraryProcAddressNoLoad(const char * procName)
+        {
+            Osg * inst = Osg::instance(Singleton::InstanceActionGet);
+            if(inst)
+                return inst->getProcAddress(procName);
+            else
+                return NULL;
         }
         static inline std::string sgiLibraryName()
         {
@@ -64,15 +77,23 @@ namespace autoload {
         }
         static inline std::string sgiLibraryFilename()
         {
-            return Osg::instance().libraryFilename();
+            return Osg::instance()->libraryFilename();
         }
         static inline std::string sgiLibraryError()
         {
-            return Osg::instance().libraryError();
+            return Osg::instance()->libraryError();
         }
         static inline bool sgiLibraryLoaded()
         {
-            return Osg::instance().library() != NULL;
+            Osg * inst = Osg::instance(Singleton::InstanceActionGet);
+            if(inst)
+                return inst->library() != NULL;
+            else
+                return false;
+        }
+        static inline void sgiLibraryUnload()
+        {
+            Osg::instance(Singleton::InstanceActionErase);
         }
     private:
         std::string _libraryFilename;

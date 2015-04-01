@@ -1366,6 +1366,18 @@ public:
         while(item != NULL && !ret);
         return ret;
     }
+    void shutdown()
+    {
+        for(auto it = _plugins.begin(); it != _plugins.end(); ++it)
+        {
+            PluginInfo & pluginInfo = it->second;
+            if(pluginInfo.pluginInterface)
+                pluginInfo.pluginInterface->shutdown();
+        }
+        _plugins.clear();
+        _pluginsLoaded = false;
+        _namedEnums.clear();
+    }
 
     bool registerNamedEnum(const std::string & enumname, const std::string & description, bool bitmask)
     {
@@ -1475,7 +1487,7 @@ public:
         return ret;
     }
 
-    typedef std::map<std::string, PluginInfo>   PluginMap;
+    typedef std::map<std::string, PluginInfo> PluginMap;
     typedef std::map<int, std::string> NamedEnumValues;
     struct EnumType {
         std::string description;
@@ -1737,4 +1749,9 @@ bool SGIPlugins::parentWidget(QWidgetPtr & widget, const SGIHostItemBase * item)
 bool SGIPlugins::parentWidget(QWidgetPtr & widget, SGIItemBase * item)
 {
     return _impl->parentWidget(widget, item);
+}
+
+void SGIPlugins::shutdown()
+{
+    _impl->shutdown();
 }

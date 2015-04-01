@@ -210,6 +210,8 @@ public:
 
     virtual bool generateItem(const SGIHostItemBase * object, SGIItemBasePtr & item) = 0;
 
+    virtual void shutdown() = 0;
+
     class WritePrettyHTML
     {
     public:

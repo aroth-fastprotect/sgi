@@ -1,0 +1,50 @@
+// kate: syntax C++11;
+
+#pragma once
+
+
+namespace sgi {
+namespace helpers {
+
+template<typename T>
+class SingletonT {
+public:
+    enum InstanceAction {
+        InstanceActionGetOrCreate,
+        InstanceActionGet,
+        InstanceActionErase
+    };
+    typedef T value_type;
+    SingletonT()
+        : _instance(NULL)
+    {
+    }
+    ~SingletonT()
+    {
+    }
+    T * instance(InstanceAction action=InstanceActionGetOrCreate)
+    {
+        switch(action)
+        {
+        default:
+        case InstanceActionGetOrCreate:
+            if(!_instance)
+                _instance = new T;
+            break;
+        case InstanceActionGet:
+            // do nothing special here, just return the current pointer
+            break;
+        case InstanceActionErase:
+            if(_instance)
+                delete _instance;
+            _instance = NULL;
+            break;
+        }
+        return _instance;
+    }
+private:
+    T * _instance;
+};
+
+} // namespace helpers
+} // namespace sgi
