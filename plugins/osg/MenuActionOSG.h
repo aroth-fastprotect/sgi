@@ -88,6 +88,7 @@ enum MenuAction {
     MenuActionPagedLODFrameNumberOfLastTraversal,
     MenuActionShapeDrawableColor,
     MenuActionGeometryColor,
+    MenuActionGeometryDirtyDisplayList,
     MenuActionImagePreview,
     MenuActionHeightFieldPreview,
     MenuActionTexturePreview,
@@ -118,6 +119,9 @@ enum MenuAction {
     MenuActionDepthSetZFar,
 
     MenuActionUniformEdit,
+    MenuActionArrayDataEdit,
+    MenuActionBufferDataEdit,
+    MenuActionBufferDirty,
 
     MenuActionTextBaseAutoRotateToScreen,
     MenuActionTextBaseCharacterHeight,
@@ -195,6 +199,9 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionClipNodeReset)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionClipNodeSetState)
 
 ACTION_HANDLER_IMPL_DECLARE(MenuActionUniformEdit)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionBufferDataEdit)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionBufferDirty)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionArrayDataEdit)
 
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTexturePreview)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextureBorderColor)
@@ -213,6 +220,7 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionShapeCenter)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionShapeRotation)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionShapeBoxHalfLength)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionGeometryColor)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionGeometryDirtyDisplayList)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionImagePreview)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionHeightFieldPreview)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionBillboardMode)

@@ -85,6 +85,8 @@ CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::Shader)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::Program)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::Depth)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::Uniform)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::BufferData)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::Array)
 
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgDB::Registry)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgDB::ImagePager)
@@ -560,7 +562,7 @@ bool contextMenuPopulateImpl<osg::Depth>::populate(IContextMenuItem * menuItem)
 
 bool contextMenuPopulateImpl<osg::Uniform>::populate(IContextMenuItem * menuItem)
 {
-    osg::Uniform * object = static_cast<osg::Uniform*>(item<SGIItemOsg>()->object());
+    osg::Uniform * object = getObject<osg::Uniform,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -579,6 +581,54 @@ bool contextMenuPopulateImpl<osg::Uniform>::populate(IContextMenuItem * menuItem
             else
             {
                 menuItem->addSimpleAction(MenuActionUniformEdit, ss.str(), _item);
+            }
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::BufferData>::populate(IContextMenuItem * menuItem)
+{
+    osg::BufferData * object = getObject<osg::BufferData,SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if(ret)
+        {
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if(manipulateMenu)
+            {
+                manipulateMenu->addSimpleAction(MenuActionBufferDirty, "Dirty", _item);
+            }
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::Array>::populate(IContextMenuItem * menuItem)
+{
+    osg::Array * object = getObject<osg::Array,SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if(ret)
+        {
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if(manipulateMenu)
+            {
+                manipulateMenu->addSimpleAction(MenuActionArrayDataEdit, "Modify data...", _item);
             }
         }
         break;
@@ -1055,7 +1105,10 @@ bool contextMenuPopulateImpl<osg::Geometry>::populate(IContextMenuItem * menuIte
         {
             IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
             if(manipulateMenu)
+            {
                 manipulateMenu->addSimpleAction(MenuActionGeometryColor, "Color...", _item);
+                manipulateMenu->addSimpleAction(MenuActionGeometryDirtyDisplayList, "Dirty display list", _item);
+            }
         }
         break;
     default:

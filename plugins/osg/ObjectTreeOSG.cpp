@@ -1432,8 +1432,6 @@ bool objectTreeBuildImpl<osg::Array>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            treeItem->addChild("Data", cloneItem<SGIItemOsg>(SGIItemTypeArrayData));
-
             SGIHostItemOsg vbo(object->getVertexBufferObject());
             if(vbo.hasObject())
                 treeItem->addChild("VertexBufferObject", &vbo);

@@ -2,6 +2,7 @@
 #include "MenuActionOSG.h"
 #include <sgi/helpers/osg>
 #include "SGIItemOsg"
+#include <stdint.h>
 
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/ContextMenu>
@@ -94,6 +95,9 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionClipNodeReset)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionClipNodeSetState)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionUniformEdit)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionBufferDataEdit)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionBufferDirty)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionArrayDataEdit)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTexturePreview)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureBorderColor)
@@ -109,6 +113,7 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionGeodeAddShapeDrawable)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionGeodeRenderInfoDrawable)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeDrawableColor)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionGeometryColor)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionGeometryDirtyDisplayList)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeCenter)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeRotation)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeBoxHalfLength)
@@ -913,6 +918,132 @@ bool actionHandlerImpl<MenuActionUniformEdit>::execute()
     return true;
 }
 
+bool actionHandlerImpl<MenuActionBufferDataEdit>::execute()
+{
+    osg::BufferData * object = getObject<osg::BufferData,SGIItemOsg>();
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionBufferDirty>::execute()
+{
+    osg::BufferData * object = getObject<osg::BufferData,SGIItemOsg>();
+    object->dirty();
+    return true;
+}
+
+#define writeArrayDataImpl(__elem_type) \
+    { \
+        const __elem_type * d = (const __elem_type*)object->getDataPointer(); \
+        for(unsigned n = 0; n < object->getNumElements(); n++) \
+            os << d[n] << std::endl; \
+    }
+
+#define readArrayDataImpl(__elem_type) \
+    { \
+        __elem_type * d = (__elem_type*)object->getDataPointer(); \
+        for(unsigned n = 0; n < tokens.size(); n++) \
+        { \
+            std::istringstream ss(tokens[n]); \
+            ss >> d[n]; \
+        } \
+    }
+
+namespace {
+    std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
+        std::stringstream ss(s);
+        std::string item;
+        while (std::getline(ss, item, delim)) {
+            elems.push_back(item);
+        }
+        return elems;
+    }
+}
+
+bool actionHandlerImpl<MenuActionArrayDataEdit>::execute()
+{
+    osg::Array * object = getObject<osg::Array,SGIItemOsg>();
+
+    std::stringstream os;
+    switch(object->getType())
+    {
+    default:
+    case osg::Array::ArrayType:
+    case osg::Array::MatrixArrayType:
+        os << "array type " << object->getType() << " not implemented";
+        break;
+    case osg::Array::ByteArrayType: writeArrayDataImpl(int8_t); break;
+    case osg::Array::ShortArrayType: writeArrayDataImpl(int16_t); break;
+    case osg::Array::IntArrayType: writeArrayDataImpl(int32_t); break;
+    case osg::Array::UByteArrayType:  writeArrayDataImpl(uint8_t); break;
+    case osg::Array::UShortArrayType:  writeArrayDataImpl(uint16_t); break;
+    case osg::Array::UIntArrayType:  writeArrayDataImpl(uint32_t); break;
+    case osg::Array::Vec4ubArrayType:  writeArrayDataImpl(osg::Vec4ub); break;
+    case osg::Array::FloatArrayType: writeArrayDataImpl(float); break;
+    case osg::Array::Vec2ArrayType: writeArrayDataImpl(osg::Vec2); break;
+    case osg::Array::Vec3ArrayType: writeArrayDataImpl(osg::Vec3); break;
+    case osg::Array::Vec4ArrayType: writeArrayDataImpl(osg::Vec4); break;
+    case osg::Array::Vec2sArrayType: writeArrayDataImpl(osg::Vec2s); break;
+    case osg::Array::Vec3sArrayType: writeArrayDataImpl(osg::Vec3s); break;
+    case osg::Array::Vec4sArrayType: writeArrayDataImpl(osg::Vec4s); break;
+    case osg::Array::Vec2bArrayType: writeArrayDataImpl(osg::Vec2b); break;
+    case osg::Array::Vec3bArrayType: writeArrayDataImpl(osg::Vec3b); break;
+    case osg::Array::Vec4bArrayType: writeArrayDataImpl(osg::Vec4b); break;
+    case osg::Array::DoubleArrayType: writeArrayDataImpl(double); break;
+    case osg::Array::Vec2dArrayType: writeArrayDataImpl(osg::Vec2d); break;
+    case osg::Array::Vec3dArrayType: writeArrayDataImpl(osg::Vec3d); break;
+    case osg::Array::Vec4dArrayType: writeArrayDataImpl(osg::Vec4d); break;
+    }
+
+    std::string value = os.str();
+    bool ret;
+    ret = _hostInterface->inputDialogText(menu()->parentWidget(),
+        value,
+        "Data:", "Data",
+        SGIPluginHostInterface::InputDialogStringEncodingSystem,
+        _item
+        );
+    if(ret)
+    {
+        std::istringstream iss(value);
+        std::vector<std::string> tokens;
+        split(value, '\n', tokens);
+        if(tokens.size() != object->getNumElements())
+            object->resizeArray(tokens.size());
+
+        switch(object->getType())
+        {
+        default:
+        case osg::Array::ArrayType:
+        case osg::Array::MatrixArrayType:
+            break;
+        case osg::Array::ByteArrayType: readArrayDataImpl(int8_t); break;
+        case osg::Array::ShortArrayType: readArrayDataImpl(int16_t); break;
+        case osg::Array::IntArrayType: readArrayDataImpl(int32_t); break;
+        case osg::Array::UByteArrayType:  readArrayDataImpl(uint8_t); break;
+        case osg::Array::UShortArrayType:  readArrayDataImpl(uint16_t); break;
+        case osg::Array::UIntArrayType:  readArrayDataImpl(uint32_t); break;
+        case osg::Array::Vec4ubArrayType:  readArrayDataImpl(osg::Vec4ub); break;
+        case osg::Array::FloatArrayType: readArrayDataImpl(float); break;
+        case osg::Array::Vec2ArrayType: readArrayDataImpl(osg::Vec2); break;
+        case osg::Array::Vec3ArrayType: readArrayDataImpl(osg::Vec3); break;
+        case osg::Array::Vec4ArrayType: readArrayDataImpl(osg::Vec4); break;
+        case osg::Array::Vec2sArrayType: readArrayDataImpl(osg::Vec2s); break;
+        case osg::Array::Vec3sArrayType: readArrayDataImpl(osg::Vec3s); break;
+        case osg::Array::Vec4sArrayType: readArrayDataImpl(osg::Vec4s); break;
+        case osg::Array::Vec2bArrayType: readArrayDataImpl(osg::Vec2b); break;
+        case osg::Array::Vec3bArrayType: readArrayDataImpl(osg::Vec3b); break;
+        case osg::Array::Vec4bArrayType: readArrayDataImpl(osg::Vec4b); break;
+        case osg::Array::DoubleArrayType: readArrayDataImpl(double); break;
+        case osg::Array::Vec2dArrayType: readArrayDataImpl(osg::Vec2d); break;
+        case osg::Array::Vec3dArrayType: readArrayDataImpl(osg::Vec3d); break;
+        case osg::Array::Vec4dArrayType: readArrayDataImpl(osg::Vec4d); break;
+        }
+        object->dirty();
+    }
+
+    return true;
+}
+
 bool actionHandlerImpl<MenuActionTexturePreview>::execute()
 {
     osg::Texture * object = getObject<osg::Texture,SGIItemOsg>();
@@ -1017,6 +1148,14 @@ bool actionHandlerImpl<MenuActionTextureSetImage>::execute()
     return true;
 }
 
+bool actionHandlerImpl<MenuActionGeometryDirtyDisplayList>::execute()
+{
+    osg::Geometry * object = getObject<osg::Geometry,SGIItemOsg>();
+    object->dirtyDisplayList();
+    triggerRepaint();
+    return true;
+}
+
 bool actionHandlerImpl<MenuActionGeometryColor>::execute()
 {
     osg::Geometry * object = getObject<osg::Geometry,SGIItemOsg>();
@@ -1028,6 +1167,7 @@ bool actionHandlerImpl<MenuActionGeometryColor>::execute()
         {
             for(unsigned i = 0; i < colorArray->size(); i++)
                 (*colorArray)[i] = osgColor(color);
+            object->dirtyDisplayList();
             triggerRepaint();
         }
     }
