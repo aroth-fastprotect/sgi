@@ -1168,9 +1168,6 @@ public:
         QString newFilename;
         bool ok = false;
         QFileDialog::Options dialogFlags = QFileDialog::DontResolveSymlinks;
-#ifdef _WIN32
-        dialogFlags |= QFileDialog::DontUseNativeDialog;
-#endif
         switch(type)
         {
         case SGIPluginHostInterface::InputDialogFilenameOpen:

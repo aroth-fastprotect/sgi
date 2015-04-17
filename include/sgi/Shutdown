@@ -8,7 +8,6 @@ namespace sgi {
 template<typename AUTOLOADCLASS>
 inline void shutdown()
 {
-    bool ret;
     typedef void (*pfn)();
     pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddressNoLoad("sgi_shutdown");
     if(func)
