@@ -12,6 +12,7 @@
 #include <sgi/SGIItemInternal>
 
 #include "ObjectTreeImplProxy.h"
+#include "ObjectTreeImplProxy_p.h"
 #include <ObjectTreeImplProxy.moc>
 
 namespace sgi {
@@ -20,34 +21,47 @@ using namespace qt_helpers;
 
 SGIPluginHostInterface * ObjectTreeItem::s_hostInterface = NULL;
 
-ObjectTreeImplProxy::ObjectTreeImplProxy(QTreeWidget * widget, IObjectTreeImpl * impl, SGIPluginHostInterface * hostInterface)
-    : QObject(widget)
-    , _widget(widget)
+ObjectTreeImplProxyPrivate::ObjectTreeImplProxyPrivate(QTreeWidget * widget, IObjectTreeImpl * impl, SGIPluginHostInterface * hostInterface)
+    : _widget(widget)
     , _impl(impl)
     , _hostInterface(hostInterface)
     , _selectedTreeItem(NULL)
 {
-    _widget->setContextMenuPolicy(Qt::CustomContextMenu);
-    QObject::connect(_widget, SIGNAL(itemExpanded(QTreeWidgetItem*)), this, SLOT(onItemExpanded(QTreeWidgetItem*)));
-    QObject::connect(_widget, SIGNAL(itemCollapsed(QTreeWidgetItem*)), this, SLOT(onItemCollapsed(QTreeWidgetItem*)));
-    QObject::connect(_widget, SIGNAL(itemActivated(QTreeWidgetItem*,int)), this, SLOT(onItemActivated(QTreeWidgetItem*,int)));
-    QObject::connect(_widget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onItemContextMenu(QPoint)));
-    QObject::connect(_widget, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(onItemClicked(QTreeWidgetItem*,int)));
-    QObject::connect(_widget, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
+}
+
+ObjectTreeImplProxyPrivate::~ObjectTreeImplProxyPrivate()
+{
+}
+
+ObjectTreeImplProxy::ObjectTreeImplProxy(QTreeWidget * widget, IObjectTreeImpl * impl, SGIPluginHostInterface * hostInterface)
+    : QObject(widget)
+    , d_ptr(new ObjectTreeImplProxyPrivate(widget, impl, hostInterface))
+{
+    Q_D(ObjectTreeImplProxy);
+    d->_widget->setContextMenuPolicy(Qt::CustomContextMenu);
+    QObject::connect(d->_widget, SIGNAL(itemExpanded(QTreeWidgetItem*)), this, SLOT(onItemExpanded(QTreeWidgetItem*)));
+    QObject::connect(d->_widget, SIGNAL(itemCollapsed(QTreeWidgetItem*)), this, SLOT(onItemCollapsed(QTreeWidgetItem*)));
+    QObject::connect(d->_widget, SIGNAL(itemActivated(QTreeWidgetItem*,int)), this, SLOT(onItemActivated(QTreeWidgetItem*,int)));
+    QObject::connect(d->_widget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onItemContextMenu(const QPoint&)));
+    QObject::connect(d->_widget, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(onItemClicked(QTreeWidgetItem*,int)));
+    QObject::connect(d->_widget, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
 }
 
 ObjectTreeImplProxy::~ObjectTreeImplProxy()
 {
+    delete d_ptr;
 }
 
 IObjectTreeItem * ObjectTreeImplProxy::selectedTreeItem()
 {
-    return _selectedTreeItem.get();
+    Q_D(ObjectTreeImplProxy);
+    return d->_selectedTreeItem.get();
 }
 
-bool ObjectTreeImplProxy::buildTree(ObjectTreeItem * treeItem, SGIItemBase * item, bool addInternal)
+bool ObjectTreeImplProxy::buildTree(IObjectTreeItem * treeItem, SGIItemBase * item, bool addInternal)
 {
-    bool ret = _hostInterface->objectTreeBuildTree(treeItem, item);
+    Q_D(ObjectTreeImplProxy);
+    bool ret = d->_hostInterface->objectTreeBuildTree(treeItem, item);
 
     if(addInternal)
     {
@@ -61,7 +75,7 @@ bool ObjectTreeImplProxy::buildTree(ObjectTreeItem * treeItem, SGIItemBase * ite
         treeItem->addChild("Internal", &hostItemInternal);
     }
 
-    QTreeWidgetItem * treeItemQt = treeItem->treeItem();
+    QTreeWidgetItem * treeItemQt = static_cast<ObjectTreeItem*>(treeItem)->treeItem();
     QtSGIItem itemData = treeItemQt->data(0, Qt::UserRole).value<QtSGIItem>();
     itemData.markAsPopulated();
     treeItemQt->setData(0, Qt::UserRole, QVariant::fromValue(itemData));
@@ -72,6 +86,7 @@ bool ObjectTreeImplProxy::buildTree(ObjectTreeItem * treeItem, SGIItemBase * ite
 
 void ObjectTreeImplProxy::onItemExpanded(QTreeWidgetItem * item)
 {
+    Q_D(ObjectTreeImplProxy);
     QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
     if(!itemData.isPopulated() && itemData.hasItem())
     {
@@ -84,36 +99,40 @@ void ObjectTreeImplProxy::onItemExpanded(QTreeWidgetItem * item)
         }
         ObjectTreeItem treeItem(item);
         buildTree(&treeItem, itemData.item());
-        _impl->itemExpanded(&treeItem);
+        d->_impl->itemExpanded(&treeItem);
     }
     else
     {
         ObjectTreeItem treeItem(item);
-        _impl->itemExpanded(&treeItem);
+        d->_impl->itemExpanded(&treeItem);
     }
 }
 
 void ObjectTreeImplProxy::onItemCollapsed(QTreeWidgetItem * item)
 {
+    Q_D(ObjectTreeImplProxy);
     ObjectTreeItem treeItem(item);
-    _impl->itemCollapsed(&treeItem);
+    d->_impl->itemCollapsed(&treeItem);
 }
 
 void ObjectTreeImplProxy::onItemClicked(QTreeWidgetItem * item, int column)
 {
+    Q_D(ObjectTreeImplProxy);
     ObjectTreeItem treeItem(item);
-    _impl->itemClicked(&treeItem);
+    d->_impl->itemClicked(&treeItem);
 }
 
 void ObjectTreeImplProxy::onItemActivated(QTreeWidgetItem * item, int column)
 {
+    Q_D(ObjectTreeImplProxy);
     ObjectTreeItem treeItem(item);
-    _impl->itemActivated(&treeItem);
+    d->_impl->itemActivated(&treeItem);
 }
 
-void ObjectTreeImplProxy::onItemContextMenu(QPoint pt)
+void ObjectTreeImplProxy::onItemContextMenu(const QPoint & pt)
 {
-    QTreeWidgetItem * item = _widget->itemAt (pt);
+    Q_D(ObjectTreeImplProxy);
+    QTreeWidgetItem * item = d->_widget->itemAt (pt);
     QtSGIItem itemData;
     if (item)
     {
@@ -123,15 +142,16 @@ void ObjectTreeImplProxy::onItemContextMenu(QPoint pt)
         ObjectTreeItem treeItem(item);
 
         IContextMenuPtr objectMenu;
-        _impl->itemContextMenu(&treeItem, objectMenu);
+        d->_impl->itemContextMenu(&treeItem, objectMenu);
 
         if (objectMenu.valid())
             contextMenu = objectMenu->getMenu();
 
         if (contextMenu)
         {
-            pt.ry() += _widget->header()->height();
-            QPoint globalPos = _widget->mapToGlobal(pt);
+            QPoint tmp = pt;
+            tmp.ry() += d->_widget->header()->height();
+            QPoint globalPos = d->_widget->mapToGlobal(tmp);
             contextMenu->popup(globalPos);
         }
     }
@@ -139,21 +159,23 @@ void ObjectTreeImplProxy::onItemContextMenu(QPoint pt)
 
 void ObjectTreeImplProxy::onItemSelectionChanged()
 {
-    QTreeWidgetItem * item = _widget->currentItem();
-    IObjectTreeItemPtr oldItem = _selectedTreeItem;
+    Q_D(ObjectTreeImplProxy);
+    QTreeWidgetItem * item = d->_widget->currentItem();
+    IObjectTreeItemPtr oldItem = d->_selectedTreeItem;
     if(item)
     {
         QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-        _selectedTreeItem = new ObjectTreeItem(item);
+        d->_selectedTreeItem = new ObjectTreeItem(item);
     }
     else
-        _selectedTreeItem = NULL;
-    _impl->itemSelected(oldItem.get(), _selectedTreeItem.get());
+        d->_selectedTreeItem = NULL;
+    d->_impl->itemSelected(oldItem.get(), d->_selectedTreeItem.get());
 }
 
 void ObjectTreeImplProxy::reloadSelectedItem()
 {
-    QTreeWidgetItem * item = _selectedTreeItem.valid()?((ObjectTreeItem*)_selectedTreeItem.get())->treeItem():NULL;
+    Q_D(ObjectTreeImplProxy);
+    QTreeWidgetItem * item = d->_selectedTreeItem.valid()?((ObjectTreeItem*)d->_selectedTreeItem.get())->treeItem():NULL;
     if(item)
     {
         QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();

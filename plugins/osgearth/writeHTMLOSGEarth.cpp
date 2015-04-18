@@ -1210,17 +1210,21 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     case osgEarth::ShaderComp::LOCATION_VERTEX_CLIP: os << "VERTEX_CLIP"; break;
     case osgEarth::ShaderComp::LOCATION_FRAGMENT_COLORING: os << "FRAGMENT_COLORING"; break;
     case osgEarth::ShaderComp::LOCATION_FRAGMENT_LIGHTING: os << "FRAGMENT_LIGHTING"; break;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
     case osgEarth::ShaderComp::LOCATION_FRAGMENT_OUTPUT: os << "FRAGMENT_OUTPUT"; break;
+#endif
     default: os << (int)t; break;
     }
     return os;
 }
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::Function & f)
 {
     os << f._name << " min=" << f._minRange << " max=" << f._maxRange << " accept=" << getObjectNameAndType(f._accept.get());
     return os;
 }
+#endif
 
 bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<char>& os)
 {
@@ -1291,8 +1295,13 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
                     for(osgEarth::ShaderComp::OrderedFunctionMap::const_iterator it = orderedFunctions.begin(); it != orderedFunctions.end(); it++)
                     {
                         const float & order = it->first;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
                         const osgEarth::ShaderComp::Function & function = it->second;
                         os << "<li>order " << order << " function " << function._name << "</li>";
+#else
+                        const std::string & function = it->second;
+                        os << "<li>order " << order << " function " << function << "</li>";
+#endif
                     }
                     os << "</ul></li>";
                 }
@@ -1316,9 +1325,14 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
                 os << "<tr><td>" << name << "</td><td>";
                 os << "<table border=\'1\' align=\'left\'>";
                 const osgEarth::VirtualProgram::ShaderEntry & entry = it->second;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
                 os << "<tr><td>shader</td><td>" << getObjectNameAndType(entry._shader.get()) << "</td></tr>";
                 os << "<tr><td>override</td><td>" << glOverrideValueName(entry._overrideValue) << "</td></tr>";
                 os << "<tr><td>accept</td><td>" << getObjectNameAndType(entry._accept.get()) << "</td></tr>";
+#else
+                os << "<tr><td>shader</td><td>" << getObjectNameAndType(entry.first.get()) << "</td></tr>";
+                os << "<tr><td>override</td><td>" << glOverrideValueName(entry.second) << "</td></tr>";
+#endif
                 os << "</table>";
                 os << "</td></tr>";
             }
@@ -1341,8 +1355,12 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
                 for(osgEarth::ShaderComp::OrderedFunctionMap::const_iterator it = orderedFunctions.begin(); it != orderedFunctions.end(); it++)
                 {
                     const float & order = it->first;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
                     const osgEarth::ShaderComp::Function & function = it->second;
-                    os << "<li>Order=" << order << "<br/>" << function << "</li>";
+                    os << "<li>order=" << order << "<br/>" << function << "</li>";
+#else
+                    os << "<li>order=" << order << "<br/>" << it->second << "</li>";
+#endif
                 }
                 os << "</ul></li>";
             }

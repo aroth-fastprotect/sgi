@@ -1,10 +1,23 @@
 #pragma once
 
+#include <QObject>
+
+class QTreeWidget;
+class QTreeWidgetItem;
+
 namespace sgi {
+
+class SGIItemBase;
+class IObjectTreeImpl;
+class IObjectTreeItem;
+class SGIPluginHostInterface;
+
+class ObjectTreeImplProxyPrivate;
 
 class ObjectTreeImplProxy : public QObject
 {
 	Q_OBJECT
+    Q_DECLARE_PRIVATE(ObjectTreeImplProxy);
 public:
 	ObjectTreeImplProxy(QTreeWidget * widget, IObjectTreeImpl * impl=NULL, SGIPluginHostInterface * hostInterface=NULL);
 	virtual ~ObjectTreeImplProxy();
@@ -14,7 +27,7 @@ public slots:
     void                    onItemCollapsed(QTreeWidgetItem * item);
     void                    onItemClicked(QTreeWidgetItem * item, int column);
     void                    onItemActivated(QTreeWidgetItem * item, int column);
-    void                    onItemContextMenu(QPoint pt);
+    void                    onItemContextMenu(const QPoint & pt);
 	void					onItemSelectionChanged();
 
 public:
@@ -22,13 +35,10 @@ public:
 	void					reloadSelectedItem();
 
 protected:
-	bool					buildTree(ObjectTreeItem * treeItem, SGIItemBase * item, bool addInternal=true);
+	bool					buildTree(IObjectTreeItem * treeItem, SGIItemBase * item, bool addInternal=true);
 
-protected:
-	QTreeWidget *			 _widget;
-	IObjectTreeImplPtr		 _impl;
-	SGIPluginHostInterface * _hostInterface;
-	IObjectTreeItemPtr		 _selectedTreeItem;
+private:
+    ObjectTreeImplProxyPrivate * d_ptr;
 };
 
 } // namespace sgi {

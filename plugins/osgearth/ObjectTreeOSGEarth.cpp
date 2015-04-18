@@ -1108,8 +1108,13 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
             {
                 const std::string & name = it->first;
                 const osgEarth::VirtualProgram::ShaderEntry & entry = it->second;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
                 const osg::ref_ptr<osg::Shader> & shader = entry._shader;
                 const osg::StateAttribute::OverrideValue & overrideValue = entry._overrideValue;
+#else
+                const osg::ref_ptr<osg::Shader> & shader = entry.first;
+                const osg::StateAttribute::OverrideValue & overrideValue = entry.second;
+#endif
 
                 std::stringstream ss;
                 ss << name << '(' << glOverrideValueName(overrideValue) << ')';
