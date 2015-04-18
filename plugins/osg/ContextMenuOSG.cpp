@@ -24,6 +24,9 @@
 #include <osg/Texture3D>
 #include <osg/ClipNode>
 #include <osg/Depth>
+#include <osg/Material>
+#include <osg/LineWidth>
+#include <osg/LineStipple>
 #include <osg/io_utils>
 
 #include <osgDB/Registry>
@@ -87,6 +90,9 @@ CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::Depth)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::Uniform)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::BufferData)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::Array)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::Material)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::LineWidth)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::LineStipple)
 
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgDB::Registry)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgDB::ImagePager)
@@ -630,6 +636,87 @@ bool contextMenuPopulateImpl<osg::Array>::populate(IContextMenuItem * menuItem)
             {
                 manipulateMenu->addSimpleAction(MenuActionArrayDataEdit, "Modify data...", _item);
             }
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+#define contextMenuPopulateImpl_material_per_face_property(__id) \
+    menuItem->addSimpleAction(MenuActionMaterial##__id, helpers::str_plus_info(#__id " Front", object->get##__id(osg::Material::FRONT)), _item, new ReferencedDataInt(osg::Material::FRONT)); \
+    menuItem->addSimpleAction(MenuActionMaterial##__id, helpers::str_plus_info(#__id " Back", object->get##__id(osg::Material::BACK)), _item, new ReferencedDataInt(osg::Material::BACK)); \
+    menuItem->addSimpleAction(MenuActionMaterial##__id, helpers::str_plus_info(#__id " Front+Back", object->get##__id(osg::Material::FRONT_AND_BACK)), _item, new ReferencedDataInt(osg::Material::FRONT_AND_BACK)); \
+    (void(0))
+
+bool contextMenuPopulateImpl<osg::Material>::populate(IContextMenuItem * menuItem)
+{
+    osg::Material * object = getObject<osg::Material,SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if(ret)
+        {
+            IContextMenuItem * colorModeMenu = menuItem->addModeMenu(MenuActionMaterialColorMode, "Color mode", _item, object->getColorMode());
+            if(colorModeMenu)
+            {
+                colorModeMenu->addModeAction("AMBIENT", osg::Material::AMBIENT);
+                colorModeMenu->addModeAction("DIFFUSE", osg::Material::DIFFUSE);
+                colorModeMenu->addModeAction("SPECULAR", osg::Material::SPECULAR);
+                colorModeMenu->addModeAction("EMISSION", osg::Material::EMISSION);
+                colorModeMenu->addModeAction("AMBIENT_AND_DIFFUSE", osg::Material::AMBIENT_AND_DIFFUSE);
+                colorModeMenu->addModeAction("OFF", osg::Material::OFF);
+            }
+            contextMenuPopulateImpl_material_per_face_property(Ambient);
+            contextMenuPopulateImpl_material_per_face_property(Diffuse);
+            contextMenuPopulateImpl_material_per_face_property(Specular);
+            contextMenuPopulateImpl_material_per_face_property(Emission);
+            contextMenuPopulateImpl_material_per_face_property(Shininess);
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::LineWidth>::populate(IContextMenuItem * menuItem)
+{
+    osg::LineWidth * object = getObject<osg::LineWidth,SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if(ret)
+        {
+            menuItem->addSimpleAction(MenuActionLineWidthSet, helpers::str_plus_info("Width", object->getWidth()), _item);
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::LineStipple>::populate(IContextMenuItem * menuItem)
+{
+    osg::LineStipple * object = getObject<osg::LineStipple,SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if(ret)
+        {
+            menuItem->addSimpleAction(MenuActionLineStipplePattern, helpers::str_plus_info("Pattern", object->getPattern()), _item);
+            menuItem->addSimpleAction(MenuActionLineStippleFactor, helpers::str_plus_info("Factor", object->getFactor()), _item);
         }
         break;
     default:

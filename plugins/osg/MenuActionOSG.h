@@ -122,6 +122,15 @@ enum MenuAction {
     MenuActionArrayDataEdit,
     MenuActionBufferDataEdit,
     MenuActionBufferDirty,
+    MenuActionLineWidthSet,
+    MenuActionLineStipplePattern,
+    MenuActionLineStippleFactor,
+    MenuActionMaterialColorMode,
+    MenuActionMaterialAmbient,
+    MenuActionMaterialDiffuse,
+    MenuActionMaterialSpecular,
+    MenuActionMaterialEmission,
+    MenuActionMaterialShininess,
 
     MenuActionTextBaseAutoRotateToScreen,
     MenuActionTextBaseCharacterHeight,
@@ -202,6 +211,15 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionUniformEdit)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionBufferDataEdit)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionBufferDirty)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionArrayDataEdit)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionLineWidthSet)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionLineStipplePattern)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionLineStippleFactor)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionMaterialColorMode)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionMaterialAmbient)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionMaterialDiffuse)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionMaterialSpecular)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionMaterialEmission)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionMaterialShininess)
 
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTexturePreview)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextureBorderColor)
