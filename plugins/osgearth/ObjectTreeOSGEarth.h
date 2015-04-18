@@ -16,6 +16,7 @@ namespace osgEarth {
     class Terrain;
     class TileSource;
     class TileBlacklist;
+    class TileKey;
     class ModelSource;
     class MaskSource;
     class ElevationQuery;
@@ -54,6 +55,9 @@ namespace sgi {
 namespace osgearth_plugin {
 
 typedef ReferencedRawPtrT<osgEarth::ElevationQuery> ElevationQueryReferenced;
+typedef ReferencedDataT<osgEarth::TileKey> TileKeyReferenced;
+struct TileSourceTileKeyData;
+typedef ReferencedDataT<TileSourceTileKeyData> TileSourceTileKey;
 
 OBJECT_TREE_BUILD_IMPL_TEMPLATE()
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::MapNode)
@@ -81,6 +85,9 @@ OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::TileBlacklist)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::ModelSource)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::MaskSource)
 OBJECT_TREE_BUILD_IMPL_DECLARE(ElevationQueryReferenced)
+OBJECT_TREE_BUILD_IMPL_DECLARE(TileKeyReferenced)
+OBJECT_TREE_BUILD_IMPL_DECLARE(TileSourceTileKey)
+
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::VirtualProgram)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::Cache)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::CacheBin)

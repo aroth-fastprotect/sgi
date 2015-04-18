@@ -1,8 +1,10 @@
 #pragma once
 
 #include <sgi/plugins/SGIPluginMacros.h>
-#include <sgi/plugins/SGIHostItemOsg.h>
-#include <typeinfo>
+
+namespace osg {
+    class Image;
+}
 
 namespace osgEarth {
 
@@ -31,6 +33,7 @@ namespace osgEarth {
     class TileBlacklist;
     class ElevationQuery;
     class TileSource;
+    class TileKey;
     class ModelSource;
     class VirtualProgram;
 
@@ -92,6 +95,9 @@ namespace sgi {
 namespace osgearth_plugin {
 
 typedef ReferencedRawPtrT<osgEarth::ElevationQuery> ElevationQueryReferenced;
+typedef ReferencedDataT<osgEarth::TileKey> TileKeyReferenced;
+struct TileSourceTileKeyData;
+typedef ReferencedDataT<TileSourceTileKeyData> TileSourceTileKey;
 
 WRITE_PRETTY_HTML_IMPL_TEMPLATE()
 
@@ -120,6 +126,9 @@ WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::VirtualProgram)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::TileBlacklist)
 WRITE_PRETTY_HTML_IMPL_DECLARE(ElevationQueryReferenced)
 
+WRITE_PRETTY_HTML_IMPL_DECLARE(TileKeyReferenced)
+WRITE_PRETTY_HTML_IMPL_DECLARE(TileSourceTileKey)
+
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Util::Controls::ControlCanvas)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Util::Controls::Control)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Util::Controls::ControlEventHandler)
@@ -146,6 +155,8 @@ WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Annotation::CircleNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Annotation::EllipseNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Annotation::RectangleNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Annotation::ModelNode)
+
+WRITE_PRETTY_HTML_IMPL_DECLARE(osg::Image)
 
 /*
 void writePrettyHTML(std::basic_ostream<char>& os, const osgEarth::ConfigOptions & opts);

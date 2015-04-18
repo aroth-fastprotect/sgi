@@ -151,6 +151,7 @@ bool contextMenuPopulateImpl<osgEarth::Map>::populate(IContextMenuItem * menuIte
                     cacheMenu->addModeAction("No cache", osgEarth::CachePolicy::USAGE_NO_CACHE);
                 }
 
+                menuItem->addSimpleAction(MenuActionTileInspector, "Tile inspector...", _item);
                 unsigned numImage = object->getNumImageLayers();
                 if(numImage || true)
                     menuItem->addMenu(helpers::str_plus_count("Image layers", numImage), cloneItem<SGIItemOsg>(SGIItemTypeImageLayers));
@@ -258,6 +259,7 @@ bool contextMenuPopulateImpl<osgEarth::MapNode>::populate(IContextMenuItem * men
                 SGIHostItemOsg map(object->getMap());
                 if(map.hasObject())
                     menuItem->addMenu("Map", &map);
+                menuItem->addSimpleAction(MenuActionTileInspector, "Tile inspector...", _item);
             }
         }
         break;

@@ -723,7 +723,7 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
             {
                 for(osg::StateSet::TextureAttributeList::const_iterator it = textureAttributes.begin(); it != textureAttributes.end(); it++, childNo++)
                 {
-                    treeItem->addChild(helpers::str_plus_count("Texture", childNo), cloneItem<SGIItemOsg>(SGIItemTypeStateSetTextureAttributeLists, childNo));
+                    treeItem->addChild(helpers::str_plus_count("TextureUnit", childNo), cloneItem<SGIItemOsg>(SGIItemTypeStateSetTextureAttributeLists, childNo));
                 }
             }
             else
@@ -1432,8 +1432,6 @@ bool objectTreeBuildImpl<osg::Array>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            treeItem->addChild("Data", cloneItem<SGIItemOsg>(SGIItemTypeArrayData));
-
             SGIHostItemOsg vbo(object->getVertexBufferObject());
             if(vbo.hasObject())
                 treeItem->addChild("VertexBufferObject", &vbo);
@@ -2994,6 +2992,9 @@ bool objectTreeBuildImpl<RenderInfoDrawable>::build(IObjectTreeItem * treeItem)
                     SGIHostItemOsg capturedStateSet(state.capturedStateSet);
                     treeItem->addChild("CapturedStateSet", &capturedStateSet);
 
+                    SGIHostItemOsg combinedStateSet(state.combinedStateSet);
+                    treeItem->addChild("CombinedStateSet", &combinedStateSet);
+
                     treeItem->addChild(helpers::str_plus_count("StateSetStack", state.stateSetStack.size()), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoStateSetStack, itemNumber()));
                     treeItem->addChild(helpers::str_plus_count("RenderBinStack", state.renderBinStack.size()), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoRenderBinStack, itemNumber()));
                     treeItem->addChild(helpers::str_plus_count("CameraStack", state.cameraStack.size()), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoCameraStack, itemNumber()));
@@ -3016,6 +3017,10 @@ bool objectTreeBuildImpl<RenderInfoDrawable>::build(IObjectTreeItem * treeItem)
                     SGIHostItemOsg child(*it);
                     treeItem->addChild(std::string(), &child);
                 }
+
+                SGIHostItemOsg combinedStateSet(state.combinedStateSet);
+                treeItem->addChild("CombinedStateSet", &combinedStateSet);
+
             }
             ret = true;
         }

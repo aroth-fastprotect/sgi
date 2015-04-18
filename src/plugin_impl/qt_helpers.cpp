@@ -178,15 +178,19 @@ namespace std {
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QColor& color)
     {
-        std::stringstream buf;
-        buf << "#";
-        buf << std::hex << std::setw(2) << std::setfill('0') << color.red();
-        buf << std::hex << std::setw(2) << std::setfill('0') << color.green();
-        buf << std::hex << std::setw(2) << std::setfill('0') << color.blue();
-        if ( color.alpha() < 255)
-            buf << std::hex << std::setw(2) << std::setfill('0') << color.alpha();
-        std::string ssStr;
-        return os << buf.str();
+        if(color.isValid())
+        {
+            std::stringstream buf;
+            buf << "#";
+            buf << std::hex << std::setw(2) << std::setfill('0') << color.red();
+            buf << std::hex << std::setw(2) << std::setfill('0') << color.green();
+            buf << std::hex << std::setw(2) << std::setfill('0') << color.blue();
+            if ( color.alpha() < 255)
+                buf << std::hex << std::setw(2) << std::setfill('0') << color.alpha();
+            return os << buf.str();
+        }
+        else
+            return os << "invalid";
     }
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSize & size)

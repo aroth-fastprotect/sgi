@@ -40,12 +40,13 @@
 #include <sgi/ObjectLoggerDialog>
 #include <sgi/ContextMenu>
 #include <sgi/AutoLoadOsg>
+#include <sgi/GenerateItem>
 
 #define LC "[ReaderWriteSGI] "
 
 namespace sgi {
 
-
+#if QT_VERSION < 0x050000
 class NativeWidget : public QWidget
 {
 public:
@@ -62,6 +63,7 @@ public:
         QWidget::create(handle, false, false);
     }
 };
+#endif // QT_VERSION < 0x050000
 
 namespace {
     static void ensure_QApplication()
@@ -101,7 +103,9 @@ public:
 #if defined(_WIN32)
             else if(osgViewer::GraphicsWindowWin32 * gwwin = dynamic_cast<osgViewer::GraphicsWindowWin32*>(ctx))
             {
+#if QT_VERSION < 0x050000
                 _parent = QWidget::find(gwwin->getHWND());
+#endif // QT_VERSION < 0x050000
             }
 #elif defined(__APPLE__)
             else if(osgViewer::GraphicsWindowCarbon * gwcarbon = dynamic_cast<osgViewer::GraphicsWindowCarbon*>(ctx))
@@ -175,6 +179,15 @@ public:
             _loggerDialog->show();
         return ret;
     }
+    SGIItemBase * getView()
+    {
+        if(!_viewPtr.valid() && _view)
+        {
+            SGIHostItemOsg viewHostItem(_view);
+            sgi::generateItem<autoload::Osg>(_viewPtr, &viewHostItem);
+        }
+        return _viewPtr.get();
+    }
     class SceneGraphDialogInfo : public ISceneGraphDialogInfo
     {
     public:
@@ -185,10 +198,9 @@ public:
         {
             return NULL;
         }
-        virtual SGIHostItemBase * getView()
+        virtual SGIItemBase * getView()
         {
-            //return _parent->_view->view();
-            return NULL;
+            return _parent->getView();
         }
         virtual void            triggerRepaint()
         {
@@ -211,10 +223,9 @@ public:
         {
             return NULL;
         }
-        virtual SGIHostItemBase * getView()
+        virtual SGIItemBase * getView()
         {
-            //return _parent->_view->view();
-            return NULL;
+            return _parent->getView();
         }
         virtual void            triggerRepaint()
         {
@@ -267,6 +278,7 @@ public:
 private:
     QWidget * _parent;
     osgViewer::View * _view;
+    SGIItemBasePtr _viewPtr;
     sgi::ISceneGraphDialogPtr _dialog;
     sgi::IObjectLoggerDialogPtr _loggerDialog;
     osg::ref_ptr<SceneGraphInspectorHandlerInfo> _inspectorInfo;

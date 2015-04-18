@@ -458,6 +458,9 @@ public:
     {
         return generateItemImpl<CallFunctionT, pluginGenerateItemImpl, TypeList>::generate(object, item);
     }
+    virtual void shutdown()
+    {
+    }
 
     class WritePrettyHTMLImpl : public WritePrettyHTML
     {

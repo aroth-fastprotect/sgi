@@ -33,7 +33,7 @@ public:
     ContextMenuCallback(ObjectLoggerDialog * dialog)
         : _dialog(dialog) {}
 public:
-    virtual SGIHostItemBase * getView()
+    virtual SGIItemBase * getView()
     {
         return _dialog->getView();
     }
@@ -63,7 +63,7 @@ public:
     {
         return NULL;
     }
-    virtual SGIHostItemBase * getView()
+    virtual SGIItemBase * getView()
     {
         return _dialog->getView();
     }
@@ -184,6 +184,12 @@ void ObjectLoggerDialog::init()
 {
     ui = new Ui_ObjectLoggerDialog;
     ui->setupUi( this );
+
+    Qt::WindowFlags flags =this->windowFlags()
+        | Qt::WindowMinimizeButtonHint
+        | Qt::WindowMaximizeButtonHint
+        | Qt::WindowCloseButtonHint;
+    this->setWindowFlags(flags);
     
     ObjectTreeItem::s_hostInterface = SGIPlugins::instance()->hostInterface();
 
@@ -451,7 +457,7 @@ void ObjectLoggerDialog::refreshTimerExpired()
     }
 }
 
-SGIHostItemBase * ObjectLoggerDialog::getView()
+SGIItemBase * ObjectLoggerDialog::getView()
 {
     if(_info)
         return _info->getView();

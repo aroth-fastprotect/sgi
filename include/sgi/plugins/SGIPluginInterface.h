@@ -41,11 +41,16 @@ class ISettingsDialogInfo;
 typedef osg::ref_ptr<ISettingsDialog> ISettingsDialogPtr;
 typedef osg::ref_ptr<ISettingsDialogInfo> ISettingsDialogInfoPtr;
 
+class IObjectTreeItem;
+typedef osg::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
+typedef std::vector<IObjectTreeItemPtr> IObjectTreeItemPtrList;
+
 class IObjectTreeItem : public osg::Referenced
 {
 public:
     virtual IObjectTreeItem * root() = 0;
     virtual IObjectTreeItem * parent() = 0;
+    virtual void clear() = 0;
     virtual IObjectTreeItem * addChild(const std::string & name, SGIItemBase * item) = 0;
     virtual IObjectTreeItem * addChild(const std::string & name, const SGIHostItemBase * item) = 0;
     virtual IObjectTreeItem * findChild(const std::string & name) = 0;
@@ -56,8 +61,10 @@ public:
     virtual SGIItemBase * item() = 0;
     virtual void expand() = 0;
     virtual void collapse() = 0;
+    virtual void children(IObjectTreeItemPtrList & children) = 0;
+    virtual void reload() = 0;
+    virtual IObjectTreeItem * selectedItem() = 0;
 };
-typedef osg::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
 
 class IContextMenuItem : public osg::Referenced
 {
@@ -174,6 +181,7 @@ public:
 
     virtual bool setView(SGIItemBase * view, const SGIItemBase * item, double animationTime = -1.0) = 0;
     virtual bool setView(const SGIHostItemBase * view, const SGIItemBase * item, double animationTime = -1.0) = 0;
+    virtual bool setView(SGIItemBase * view, const SGIHostItemBase * item, double animationTime = -1.0) = 0;
     virtual bool setView(const SGIHostItemBase * view, const SGIHostItemBase * item, double animationTime = -1.0) = 0;
 
     virtual bool registerNamedEnum(const std::string & enumname, const std::string & description=std::string(), bool bitmask=false) = 0;
@@ -201,6 +209,8 @@ public:
     virtual unsigned getPluginScore() = 0;
 
     virtual bool generateItem(const SGIHostItemBase * object, SGIItemBasePtr & item) = 0;
+
+    virtual void shutdown() = 0;
 
     class WritePrettyHTML
     {

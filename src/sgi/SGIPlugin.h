@@ -153,6 +153,8 @@ public:
     bool parentWidget(QWidgetPtr & widget, const SGIHostItemBase * item);
     bool parentWidget(QWidgetPtr & widget, SGIItemBase * item);
 
+    void shutdown();
+
 public:
     static SGIPlugins * instance(bool erase=false);
 

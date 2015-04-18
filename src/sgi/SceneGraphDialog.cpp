@@ -37,7 +37,7 @@ public:
     ContextMenuCallback(SceneGraphDialog * dialog)
         : _dialog(dialog) {}
 public:
-    virtual SGIHostItemBase * getView()
+    virtual SGIItemBase * getView()
     {
         return _dialog->getView();
     }
@@ -74,6 +74,7 @@ public:
     virtual IObjectTreeItem * selectedItem() { return _dialog->selectedItem(); }
     virtual IObjectTreeItem * rootItem() { return _dialog->rootItem(); }
     virtual void            setInfoText(const std::string & text) { return _dialog->setInfoText(text); }
+    virtual ISceneGraphDialogInfo * getInfo() { return _dialog->_info; }
 
 private:
     SceneGraphDialog * _dialog;
@@ -129,7 +130,13 @@ void SceneGraphDialog::init()
 {
     ui = new Ui_SceneGraphDialog;
     ui->setupUi( this );
-    
+
+    Qt::WindowFlags flags =this->windowFlags()
+        | Qt::WindowMinimizeButtonHint
+        | Qt::WindowMaximizeButtonHint
+        | Qt::WindowCloseButtonHint;
+    this->setWindowFlags(flags);
+
     ObjectTreeItem::s_hostInterface = SGIPlugins::instance()->hostInterface();
     
     _toolBar = new QToolBar;
@@ -569,7 +576,7 @@ void SceneGraphDialog::onItemContextMenu(QPoint pt)
     }
 }
 
-SGIHostItemBase * SceneGraphDialog::getView()
+SGIItemBase * SceneGraphDialog::getView()
 {
     if(_info)
         return _info->getView();

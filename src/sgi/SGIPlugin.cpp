@@ -5,6 +5,7 @@
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
 #include <osgDB/PluginQuery>
+//#include <osg/Notify>
 
 #include <QInputDialog>
 #include <QFileDialog>
@@ -18,6 +19,15 @@
 
 using namespace sgi;
 using namespace sgi::qt_helpers;
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const SGIItemBase * item)
+{
+    const SGIPluginInfo * pluginInfo = (const SGIPluginInfo* )item->pluginInfo();
+    return os << '{' << (void*)item << '/' << pluginInfo->pluginName
+        << ";type=" << item->type()
+        << ";typeName=" << item->typeName()
+        << '}';
+}
 
 class SGIPlugins::SGIPluginsImpl
 {
@@ -271,6 +281,10 @@ public:
             return _impl->setView(view, item, animationTime);
         }
         bool setView(const SGIHostItemBase * view, const SGIItemBase * item, double animationTime = -1.0)
+        {
+            return _impl->setView(view, item, animationTime);
+        }
+        bool setView(SGIItemBase * view, const SGIHostItemBase * item, double animationTime = -1.0)
         {
             return _impl->setView(view, item, animationTime);
         }
@@ -1154,9 +1168,6 @@ public:
         QString newFilename;
         bool ok = false;
         QFileDialog::Options dialogFlags = QFileDialog::DontResolveSymlinks;
-#ifdef _WIN32
-        dialogFlags |= QFileDialog::DontUseNativeDialog;
-#endif
         switch(type)
         {
         case SGIPluginHostInterface::InputDialogFilenameOpen:
@@ -1227,6 +1238,14 @@ public:
         osg::ref_ptr<SGIItemBase> viewItem;
         if(generateItem(viewItem, view))
             return setView(viewItem.get(), item, animationTime);
+        else
+            return false;
+    }
+    bool setView(SGIItemBase * view, const SGIHostItemBase * object, double animationTime = -1.0)
+    {
+        osg::ref_ptr<SGIItemBase> item;
+        if(generateItem(item, object))
+            return setView(view, item, animationTime);
         else
             return false;
     }
@@ -1344,6 +1363,18 @@ public:
         while(item != NULL && !ret);
         return ret;
     }
+    void shutdown()
+    {
+        for(auto it = _plugins.begin(); it != _plugins.end(); ++it)
+        {
+            PluginInfo & pluginInfo = it->second;
+            if(pluginInfo.pluginInterface)
+                pluginInfo.pluginInterface->shutdown();
+        }
+        _plugins.clear();
+        _pluginsLoaded = false;
+        _namedEnums.clear();
+    }
 
     bool registerNamedEnum(const std::string & enumname, const std::string & description, bool bitmask)
     {
@@ -1453,7 +1484,7 @@ public:
         return ret;
     }
 
-    typedef std::map<std::string, PluginInfo>   PluginMap;
+    typedef std::map<std::string, PluginInfo> PluginMap;
     typedef std::map<int, std::string> NamedEnumValues;
     struct EnumType {
         std::string description;
@@ -1715,4 +1746,9 @@ bool SGIPlugins::parentWidget(QWidgetPtr & widget, const SGIHostItemBase * item)
 bool SGIPlugins::parentWidget(QWidgetPtr & widget, SGIItemBase * item)
 {
     return _impl->parentWidget(widget, item);
+}
+
+void SGIPlugins::shutdown()
+{
+    _impl->shutdown();
 }

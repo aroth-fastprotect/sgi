@@ -1,3 +1,6 @@
+IF(OSGEARTH_FOUND)
+	include_directories(${OSGEARTH_INCLUDE_DIR})
+ENDIF()
 SET(TARGET_SRC
     sgi_osg_plugin.cpp
     writeHTMLOSG.cpp

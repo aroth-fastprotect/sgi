@@ -5,6 +5,7 @@
 #include "sgi/plugins/SGIPluginImpl.h"
 
 #include <sgi/plugins/SGIHostItemOsg.h>
+#include <sgi/plugins/SGIHostItemQt.h>
 #include <sgi/plugins/SGIProxyItem.h>
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/SGIItemInternal>
@@ -32,8 +33,13 @@ SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced,
                                   LOKI_TYPELIST(SGIPlugins,
                                                 ISceneGraphDialog,
+                                                ISceneGraphDialogInfo,
                                                 IContextMenu,
+                                                IContextMenuInfo,
                                                 IObjectLoggerDialog,
+                                                IObjectLoggerDialogInfo,
+                                                ISettingsDialog,
+                                                ISettingsDialogInfo,
                                                 ReferencedInternalItemData,
                                                 ReferencedInternalInfoData,
                                                 osg::Object))
@@ -351,6 +357,8 @@ OBJECT_TREE_BUILD_IMPL_TEMPLATE()
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialogInfo)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 
 bool objectTreeBuildImpl<ReferencedInternalItemData>::build(IObjectTreeItem * treeItem)
 {
@@ -418,6 +426,54 @@ bool objectTreeBuildImpl<SGIProxyItemBase>::build(IObjectTreeItem * treeItem)
     return ret;
 }
 
+bool objectTreeBuildImpl<ISceneGraphDialogInfo>::build(IObjectTreeItem * treeItem)
+{
+    ISceneGraphDialogInfo * object = getObject<ISceneGraphDialogInfo,SGIItemInternal>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            callNextHandler(treeItem);
+
+            SGIItemBasePtr view = object->getView();
+            if(view.valid())
+                treeItem->addChild("View", view.get());
+            ret = true;
+        }
+        break;
+    default:
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeItem)
+{
+    ISceneGraphDialog * object = getObject<ISceneGraphDialog,SGIItemInternal>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            callNextHandler(treeItem);
+
+            SGIHostItemQt dialog(object->getDialog());
+            if(dialog.hasObject())
+                treeItem->addChild("Dialog", &dialog);
+
+            SGIHostItemInternal info(object->getInfo());
+            if(info.hasObject())
+                treeItem->addChild("Info", &info);
+            ret = true;
+        }
+        break;
+    default:
+        break;
+    }
+    return ret;
+}
+
 CONTEXT_MENU_POPULATE_IMPL_TEMPLATE()
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 
@@ -443,6 +499,8 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
     // no need to use a proxy node here, because the plugin instance is already created anyway
     SGIHostItemInternal hostItem(SGIPlugins::instance());
     treeItem->addChild(std::string(), &hostItem);
+
+    treeItem->addChild(std::string(), _item);
     return true;
 }
 

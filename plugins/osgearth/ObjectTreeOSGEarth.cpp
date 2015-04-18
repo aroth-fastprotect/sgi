@@ -10,6 +10,7 @@
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SGIProxyItem.h>
 #include <sgi/helpers/string>
+#include <sgi/helpers/osg>
 
 #include <osgEarth/Version>
 #include <osgEarth/Map>
@@ -70,6 +71,8 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::TileBlacklist)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::ModelSource)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::MaskSource)
 OBJECT_TREE_BUILD_IMPL_REGISTER(ElevationQueryReferenced)
+OBJECT_TREE_BUILD_IMPL_REGISTER(TileKeyReferenced)
+OBJECT_TREE_BUILD_IMPL_REGISTER(TileSourceTileKey)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::VirtualProgram)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::Cache)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::CacheBin)
@@ -81,6 +84,8 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::ConfigOptions)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::ModelLayerOptions)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::Features::FeatureModelSourceOptions)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::Drivers::FeatureGeomModelOptions)
+
+using namespace osg_helpers;
 
 bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
 {
@@ -864,16 +869,20 @@ bool objectTreeBuildImpl<osgEarth::TileSource>::build(IObjectTreeItem * treeItem
 
             const osgEarth::DataExtentList& dataExtents = object->getDataExtents();
             if(!dataExtents.empty())
-                treeItem->addChild(helpers::str_plus_count("Data extents", dataExtents.size()), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents));
+                treeItem->addChild(helpers::str_plus_count("Data extents", dataExtents.size()), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents, ~0u));
         }
         break;
     case SGIItemTypeDataExtents:
         {
-            const osgEarth::DataExtentList& dataExtents = object->getDataExtents();
-            for(osgEarth::DataExtentList::const_iterator it = dataExtents.begin(); it != dataExtents.end(); it++)
+            if(_item->number() == ~0u)
             {
-                const osgEarth::DataExtent & extent = *it;
-                treeItem->addChild(extent.toString(), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents));
+                const osgEarth::DataExtentList& dataExtents = object->getDataExtents();
+                unsigned num = 0;
+                for(osgEarth::DataExtentList::const_iterator it = dataExtents.begin(); it != dataExtents.end(); ++it, ++num)
+                {
+                    const osgEarth::DataExtent & extent = *it;
+                    treeItem->addChild(extent.toString(), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents, num));
+                }
             }
             ret = true;
         }
@@ -922,18 +931,22 @@ bool objectTreeBuildImpl<osgEarth::ModelSource>::build(IObjectTreeItem * treeIte
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             const osgEarth::DataExtentList& dataExtents = object->getDataExtents();
             if(!dataExtents.empty())
-                treeItem->addChild(helpers::str_plus_count("Data extents", dataExtents.size()), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents));
+                treeItem->addChild(helpers::str_plus_count("Data extents", dataExtents.size()), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents, ~0u));
 #endif
         }
         break;
     case SGIItemTypeDataExtents:
         {
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
-            const osgEarth::DataExtentList& dataExtents = object->getDataExtents();
-            for(osgEarth::DataExtentList::const_iterator it = dataExtents.begin(); it != dataExtents.end(); it++)
+            if(_item->number() == ~0u)
             {
-                const osgEarth::DataExtent & extent = *it;
-                treeItem->addChild(extent.toString(), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents));
+                const osgEarth::DataExtentList& dataExtents = object->getDataExtents();
+                unsigned num = 0;
+                for(osgEarth::DataExtentList::const_iterator it = dataExtents.begin(); it != dataExtents.end(); ++it, ++num)
+                {
+                    const osgEarth::DataExtent & extent = *it;
+                    treeItem->addChild(extent.toString(), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents, num));
+                }
             }
 #endif
             ret = true;
@@ -1018,6 +1031,48 @@ bool objectTreeBuildImpl<ElevationQueryReferenced>::build(IObjectTreeItem * tree
     return ret;
 }
 
+bool objectTreeBuildImpl<TileKeyReferenced>::build(IObjectTreeItem * treeItem)
+{
+    TileKeyReferenced * object_ref = getObject<TileKeyReferenced, SGIItemOsg>();
+    const osgEarth::TileKey & object = object_ref->data();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<TileSourceTileKey>::build(IObjectTreeItem * treeItem)
+{
+    TileSourceTileKey * object_ref = getObject<TileSourceTileKey, SGIItemOsg>();
+    TileSourceTileKeyData & object = object_ref->data();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            ret = callNextHandler(treeItem);
+            SGIHostItemOsg tileSource(object.tileSource.get());
+            if(tileSource.hasObject())
+                treeItem->addChild("TileSource", &tileSource);
+            SGIHostItemOsg tileData(object.tileData.get());
+            if(tileData.hasObject())
+                treeItem->addChild("TileData", &tileData);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
 bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * treeItem)
 {
     osgEarth::VirtualProgram * object = static_cast<osgEarth::VirtualProgram*>(item<SGIItemOsg>()->object());
@@ -1052,16 +1107,19 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
             for(osgEarth::VirtualProgram::ShaderMap::const_iterator it = shadermap.begin(); it != shadermap.end(); it++, shaderNum++)
             {
                 const std::string & name = it->first;
-                /*
-                const osg::ref_ptr<osg::Shader> & shader = it->second.first;
-                const osg::StateAttribute::OverrideValue & overrideValue = it->second.second;
+                const osgEarth::VirtualProgram::ShaderEntry & entry = it->second;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+                const osg::ref_ptr<osg::Shader> & shader = entry._shader;
+                const osg::StateAttribute::OverrideValue & overrideValue = entry._overrideValue;
+#else
+                const osg::ref_ptr<osg::Shader> & shader = entry.first;
+                const osg::StateAttribute::OverrideValue & overrideValue = entry.second;
+#endif
 
                 std::stringstream ss;
-                //ss << name << '(' << osg_plugin::glOverrideValueName(overrideValue) << ')';
-                ss << name << '(' << overrideValue << ')';
+                ss << name << '(' << glOverrideValueName(overrideValue) << ')';
                 SGIHostItemOsg child(shader.get());
                 treeItem->addChild(ss.str(), &child);
-                */
             }
             ret = true;
         }

@@ -21,6 +21,11 @@ const char* sgiGetLibraryName()
     return "SGI Library";
 }
 
+bool sgi_generateItem(osg::ref_ptr<sgi::SGIItemBase> & item, const sgi::SGIHostItemBase * object)
+{
+    return sgi::SGIPlugins::instance()->generateItem(item, object);
+}
+
 bool sgi_parentWidget(sgi::QWidgetPtr & widget, const sgi::SGIHostItemBase * object)
 {
     return sgi::SGIPlugins::instance()->parentWidget(widget, object);
@@ -29,6 +34,12 @@ bool sgi_parentWidget(sgi::QWidgetPtr & widget, const sgi::SGIHostItemBase * obj
 bool sgi_parentWidgetItem(sgi::QWidgetPtr & widget, sgi::SGIItemBase * item)
 {
     return sgi::SGIPlugins::instance()->parentWidget(widget, item);
+}
+
+void sgi_shutdown()
+{
+    sgi::SGIPlugins::instance()->shutdown();
+    sgi::SGIPlugins::instance(true);
 }
 
 sgi::ISceneGraphDialog * sgi_showSceneGraphDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::ISceneGraphDialogInfo * info)

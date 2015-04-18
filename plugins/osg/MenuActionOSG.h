@@ -76,10 +76,19 @@ enum MenuAction {
     MenuActionCameraClearColor,
     MenuActionCameraCullSettings,
     MenuActionCameraComputeNearFarMode,
+    MenuActionProxyNodeSetCenterMode,
+    MenuActionProxyNodeSetCenter,
+    MenuActionProxyNodeSetRadius,
     MenuActionProxyNodeLoadingExternalReferenceMode,
     MenuActionProxyNodeForceLoad,
+    MenuActionProxyNodeSetDatabasePath,
+    MenuActionLODSetRangeMode,
+    MenuActionPagedLODDisableExternalChildrenPaging,
+    MenuActionPagedLODNumChildrenThatCannotBeExpired,
+    MenuActionPagedLODFrameNumberOfLastTraversal,
     MenuActionShapeDrawableColor,
     MenuActionGeometryColor,
+    MenuActionGeometryDirtyDisplayList,
     MenuActionImagePreview,
     MenuActionHeightFieldPreview,
     MenuActionTexturePreview,
@@ -110,6 +119,9 @@ enum MenuAction {
     MenuActionDepthSetZFar,
 
     MenuActionUniformEdit,
+    MenuActionArrayDataEdit,
+    MenuActionBufferDataEdit,
+    MenuActionBufferDirty,
     MenuActionLineWidthSet,
     MenuActionLineStipplePattern,
     MenuActionLineStippleFactor,
@@ -180,12 +192,25 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionProgramAddShader)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionCameraCullSettings)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionCameraClearColor)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionCameraComputeNearFarMode)
+
+ACTION_HANDLER_IMPL_DECLARE(MenuActionProxyNodeSetCenterMode)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionProxyNodeSetCenter)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionProxyNodeSetRadius)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionProxyNodeLoadingExternalReferenceMode)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionProxyNodeForceLoad)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionProxyNodeSetDatabasePath)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionLODSetRangeMode)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionPagedLODDisableExternalChildrenPaging)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionPagedLODNumChildrenThatCannotBeExpired)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionPagedLODFrameNumberOfLastTraversal)
+
 ACTION_HANDLER_IMPL_DECLARE(MenuActionClipNodeReset)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionClipNodeSetState)
 
 ACTION_HANDLER_IMPL_DECLARE(MenuActionUniformEdit)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionBufferDataEdit)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionBufferDirty)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionArrayDataEdit)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionLineWidthSet)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionLineStipplePattern)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionLineStippleFactor)
@@ -195,7 +220,6 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionMaterialDiffuse)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionMaterialSpecular)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionMaterialEmission)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionMaterialShininess)
-
 
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTexturePreview)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextureBorderColor)
@@ -214,6 +238,7 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionShapeCenter)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionShapeRotation)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionShapeBoxHalfLength)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionGeometryColor)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionGeometryDirtyDisplayList)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionImagePreview)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionHeightFieldPreview)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionBillboardMode)
