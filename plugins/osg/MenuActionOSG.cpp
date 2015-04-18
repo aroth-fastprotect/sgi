@@ -16,6 +16,8 @@
 #include <osg/ClipNode>
 #include <osg/Depth>
 #include <osg/Material>
+#include <osg/LineWidth>
+#include <osg/LineStipple>
 #include <osg/ProxyNode>
 #include <osg/MatrixTransform>
 #include <osg/PositionAttitudeTransform>
@@ -84,6 +86,15 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionClipNodeReset)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionClipNodeSetState)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionUniformEdit)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionLineWidthSet)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionLineStipplePattern)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionLineStippleFactor)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialColorMode)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialAmbient)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialDiffuse)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialSpecular)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialEmission)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialShininess)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTexturePreview)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureBorderColor)
@@ -771,6 +782,160 @@ bool actionHandlerImpl<MenuActionUniformEdit>::execute()
     return true;
 }
 
+bool actionHandlerImpl<MenuActionLineWidthSet>::execute()
+{
+    osg::LineWidth * object = getObject<osg::LineWidth,SGIItemOsg>();
+    double value = object->getWidth();
+    bool ok;
+    ok = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+                                            value,
+                                            "Width:", "Line width",
+                                            0.0, 64.0, 1,
+                                            _item
+                                            );
+    if(ok)
+        object->setWidth(value);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionLineStipplePattern>::execute()
+{
+    osg::LineStipple * object = getObject<osg::LineStipple,SGIItemOsg>();
+    unsigned value = object->getPattern();
+    bool ok;
+    ok = _hostInterface->inputDialogBitmask(menu()->parentWidget(),
+                                            value,
+                                            "Pattern:", "Stipple pattern",
+                                            _item
+                                            );
+    if(ok)
+        object->setPattern(value);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionLineStippleFactor>::execute()
+{
+    osg::LineStipple * object = getObject<osg::LineStipple,SGIItemOsg>();
+    int value = object->getFactor();
+    bool ok;
+    ok = _hostInterface->inputDialogInteger(menu()->parentWidget(),
+                                            value,
+                                            "Factor:", "Stipple factor",
+                                            1, 256, 1,
+                                            _item
+                                            );
+    if(ok)
+        object->setFactor(value);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionMaterialColorMode>::execute()
+{
+    osg::Material * object = getObject<osg::Material,SGIItemOsg>();
+    object->setColorMode((osg::Material::ColorMode)menuAction()->mode());
+    return true;
+}
+
+namespace {
+    static const char * getMaterialFaceName(osg::Material::Face face)
+    {
+        switch(face)
+        {
+        case osg::Material::FRONT: return "Front"; break;
+        case osg::Material::BACK: return "Back"; break;
+        case osg::Material::FRONT_AND_BACK: return "Front+Back"; break;
+        default: return "Unknown"; break;
+        }
+        return NULL;
+    }
+}
+
+bool actionHandlerImpl<MenuActionMaterialAmbient>::execute()
+{
+    osg::Material * object = getObject<osg::Material,SGIItemOsg>();
+    const ReferencedDataInt * userData = static_cast<const ReferencedDataInt *>(menuAction()->userData());
+    osg::Material::Face face = (osg::Material::Face)userData->data();
+
+    sgi::Color color = osgColor(object->getAmbient(face));
+    if(_hostInterface->inputDialogColor(menu()->parentWidget(), color,
+                                        helpers::str_plus_info("Ambient color", getMaterialFaceName(face)), "Set ambient color", _item))
+    {
+        object->setAmbient(face, osgColor(color));
+        triggerRepaint();
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionMaterialDiffuse>::execute()
+{
+    osg::Material * object = getObject<osg::Material,SGIItemOsg>();
+    const ReferencedDataInt * userData = static_cast<const ReferencedDataInt *>(menuAction()->userData());
+    osg::Material::Face face = (osg::Material::Face)userData->data();
+
+    sgi::Color color = osgColor(object->getDiffuse(face));
+    if(_hostInterface->inputDialogColor(menu()->parentWidget(), color,
+                                        helpers::str_plus_info("Diffuse color", getMaterialFaceName(face)), "Set diffuse color", _item))
+    {
+        object->setDiffuse(face, osgColor(color));
+        triggerRepaint();
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionMaterialSpecular>::execute()
+{
+    osg::Material * object = getObject<osg::Material,SGIItemOsg>();
+    const ReferencedDataInt * userData = static_cast<const ReferencedDataInt *>(menuAction()->userData());
+    osg::Material::Face face = (osg::Material::Face)userData->data();
+
+    sgi::Color color = osgColor(object->getSpecular(face));
+    if(_hostInterface->inputDialogColor(menu()->parentWidget(), color,
+                                        helpers::str_plus_info("Specular color", getMaterialFaceName(face)), "Set specular color", _item))
+    {
+        object->setSpecular(face, osgColor(color));
+        triggerRepaint();
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionMaterialEmission>::execute()
+{
+    osg::Material * object = getObject<osg::Material,SGIItemOsg>();
+    const ReferencedDataInt * userData = static_cast<const ReferencedDataInt *>(menuAction()->userData());
+    osg::Material::Face face = (osg::Material::Face)userData->data();
+
+    sgi::Color color = osgColor(object->getEmission(face));
+    if(_hostInterface->inputDialogColor(menu()->parentWidget(), color,
+                                        helpers::str_plus_info("Emission color", getMaterialFaceName(face)), "Set emission color", _item))
+    {
+        object->setEmission(face, osgColor(color));
+        triggerRepaint();
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionMaterialShininess>::execute()
+{
+    osg::Material * object = getObject<osg::Material,SGIItemOsg>();
+    const ReferencedDataInt * userData = static_cast<const ReferencedDataInt *>(menuAction()->userData());
+    osg::Material::Face face = (osg::Material::Face)userData->data();
+
+    double value = object->getShininess(face);
+    bool ok;
+    ok = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+                                            value,
+                                            helpers::str_plus_info("Shininess", getMaterialFaceName(face)), "Set shininess",
+                                            0.0, 128.0, 1,
+                                            _item
+                                            );
+    if(ok)
+    {
+        object->setShininess(face, value);
+        triggerRepaint();
+    }
+    return true;
+}
+
 bool actionHandlerImpl<MenuActionTexturePreview>::execute()
 {
     osg::Texture * object = getObject<osg::Texture,SGIItemOsg>();
@@ -790,12 +955,6 @@ bool actionHandlerImpl<MenuActionTextureBorderColor>::execute()
 {
     osg::Texture * object = getObject<osg::Texture,SGIItemOsg>();
 
-    sgi::Color color = osgColor(object->getBorderColor());
-    if(_hostInterface->inputDialogColor(menu()->parentWidget(), color, "Border color", "Select texture border color", _item))
-    {
-        object->setBorderColor(osgColor(color));
-        triggerRepaint();
-    }
     return true;
 }
 
