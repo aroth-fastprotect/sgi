@@ -18,7 +18,7 @@ inline bool generateItem(SGIItemBasePtr & item, const SGIHostItemBase * object)
     if(func)
         ret = func(item, object);
     else
-        ret = NULL;
+        ret = false;
     return ret;
 }
 
