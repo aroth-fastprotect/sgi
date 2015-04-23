@@ -83,17 +83,16 @@ namespace {
             }
             else if(degreesOk)
             {
-                elems[1].toUpper();
-                QString s = elems[1].trimmed();
+                QString s = elems[1].toUpper().trimmed();
                 if (s[0] == positiveChar && s.length() == 1)
                 {
                     if(ok) *ok = true;
-                    result = fabs(degrees);
+                    result = std::abs(degrees);
                 }
                 else if (s[0] == negativeChar && s.length() == 1)
                 {
                     if(ok) *ok = true;
-                    result = -1.0 * fabs(degrees);
+                    result = -1.0 * std::abs(degrees);
                 }
                 else if (s.length() > 0)
                 {
@@ -117,17 +116,16 @@ namespace {
             {
                 result = degrees + (minutes/60.0) + (seconds/3600.0);
                 if (size > 3) {
-                    elems[3].toUpper();
-                    QString s = elems[3].trimmed();
+                    QString s = elems[3].toUpper().trimmed();
                     if (s[0] == positiveChar && s.length() == 1)
                     {
                         if(ok) *ok = true;
-                        result = fabs(degrees);
+                        result = std::abs(degrees);
                     }
                     else if (s[0] == negativeChar && s.length() == 1)
                     {
                         if(ok) *ok = true;
-                        result = -1.0 * fabs(degrees);
+                        result = -1.0 * std::abs(degrees);
                     }
                     else if (s.length() > 0)
                     {
@@ -143,17 +141,16 @@ namespace {
             else if(degreesOk && minutesOk)
             {
                 result = degrees + (minutes/60.0);
-                elems[2].toUpper();
-                QString s = elems[2].trimmed();
+                QString s = elems[2].toUpper().trimmed();
                 if (s[0] == positiveChar && s.length() == 1)
                 {
                     if(ok) *ok = true;
-                    result = fabs(degrees);
+                    result = std::abs(degrees);
                 }
                 else if (s[0] == negativeChar && s.length() == 1)
                 {
                     if(ok) *ok = true;
-                    result = -1.0 * fabs(degrees);
+                    result = -1.0 * std::abs(degrees);
                 }
                 else if (s.length() > 0)
                 {
@@ -164,7 +161,7 @@ namespace {
         }
 
         if (is_negative)
-            result = -fabs(result);
+            result = -std::abs(result);
 
         return result;
     }

@@ -67,14 +67,30 @@ std::string getObjectName(const osg::Observer * object)
     return ret;
 }
 
-std::string getObjectName(const osg::Object * object)
+std::string getObjectName(const osg::Object * object, bool includeAddr)
 {
-    std::string ret = object?(object->getName()):"(null)";
-    if(ret.empty())
+    std::string ret;
+    if(includeAddr)
     {
         std::stringstream buf;
         buf << (void*)object;
+        if(object)
+        {
+            const std::string& name = object->getName();
+            if(!name.empty())
+                buf << ' ' << name;
+        }
         ret = buf.str();
+    }
+    else
+    {
+        std::string ret = object?(object->getName()):"(null)";
+        if(ret.empty())
+        {
+            std::stringstream buf;
+            buf << (void*)object;
+            ret = buf.str();
+        }
     }
     return ret;
 }
@@ -109,13 +125,13 @@ std::string getObjectNameAndType(const osg::Observer * object)
     return ret;
 }
 
-std::string getObjectNameAndType(const osg::Object * object)
+std::string getObjectNameAndType(const osg::Object * object, bool includeAddr)
 {
     std::string ret;
     if(object)
     {
         std::stringstream buf;
-        buf << getObjectName(object) << " (" << getObjectTypename(object) << ")";
+        buf << getObjectName(object, includeAddr) << " (" << getObjectTypename(object) << ")";
         ret = buf.str();
     }
     else
@@ -324,7 +340,7 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::NodePath & path)
         for(osg::NodePath::const_iterator it = path.begin(); it != path.end(); it++)
         {
             const osg::Node * node = *it;
-            os << "<li>" << osg_helpers::getObjectNameAndType(node) << "</li>" << std::endl;
+            os << "<li>" << osg_helpers::getObjectNameAndType(node, true) << "</li>" << std::endl;
         }
         os << "</ol>";
     }

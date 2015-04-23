@@ -1369,7 +1369,7 @@ bool writePrettyHTMLImpl<osg::Drawable>::process(std::basic_ostream<char>& os)
             for(unsigned n = 0; n < object->getNumParents(); n++)
             {
                 const osg::Node * parent = object->getParent(n);
-                os << "<li>" << osg_helpers::getObjectNameAndType(parent) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(parent, true) << "</li>" << std::endl;
             }
             os << "</ol>" << std::endl;
             ret = true;
@@ -1707,7 +1707,7 @@ bool writePrettyHTMLImpl<osg::Uniform>::process(std::basic_ostream<char>& os)
             for(unsigned n = 0; n < object->getNumParents(); n++)
             {
                 const osg::Object * parent = object->getParent(n);
-                os << "<li>" << osg_helpers::getObjectName(parent) << " (" << osg_helpers::getObjectTypename(parent) << ")</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(parent, true) << "</li>" << std::endl;
             }
             os << "</ol>" << std::endl;
             ret = true;
@@ -2443,7 +2443,7 @@ bool writePrettyHTMLImpl<osg::StateAttribute>::process(std::basic_ostream<char>&
             for(unsigned n = 0; n < object->getNumParents(); n++)
             {
                 const osg::Object * parent = object->getParent(n);
-                os << "<li>" << osg_helpers::getObjectNameAndType(parent) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(parent, true) << "</li>" << std::endl;
             }
             os << "</ol>" << std::endl;
             ret = true;
@@ -4265,7 +4265,7 @@ bool writePrettyHTMLImpl<osg::StateSet>::process(std::basic_ostream<char>& os)
             for(unsigned n = 0; n < object->getNumParents(); n++)
             {
                 const osg::Object * parent = object->getParent(n);
-                os << "<li>" << osg_helpers::getObjectNameAndType(parent) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(parent, true) << "</li>" << std::endl;
             }
             os << "</ol>" << std::endl;
             ret = true;
@@ -4631,7 +4631,7 @@ namespace {
         NodeSet             _cameraViewSet;
         NodeSet             _matrixTransformSet;
         NodeSet             _patSet;
-        StateAttributeSet   _stateAttributeSet;
+        StateAttributeSet   _stateAttributeSets[MaxStateAttributeType + 1];
         UniformSet          _uniformSet;
         NodeSet             _animationSkeletonSet;
         NodeSet             _animationBoneSet;
@@ -4698,7 +4698,8 @@ namespace {
         _cameraViewSet.clear();
         _matrixTransformSet.clear();
         _patSet.clear();
-        _stateAttributeSet.clear();
+        for(int n = 0; n < MaxStateAttributeType; n++)
+            _stateAttributeSets[n].clear();
         _uniformSet.clear();
         _animationSkeletonSet.clear();
         _animationBoneSet.clear();
@@ -4966,7 +4967,7 @@ namespace {
     void StatisticsVisitor::apply(osg::StateAttribute & attr)
     {
         ++_numInstancedStateAttribute;
-        _stateAttributeSet.insert(&attr);
+        _stateAttributeSets[attr.getType()].insert(&attr);
 
         switch(attr.getType())
         {
@@ -5041,12 +5042,11 @@ namespace {
 
         out << "<table border=\'1\' width=\'100%\'>" << std::endl;
         out << "<tr><th>Object Type</th><th>Unique</th><th>Instanced</th></tr>" << std::endl;
-        out << "<tr><td>StateSet</td><td>" << _statesetSet.size() << "</td><td>" << _numInstancedStateSet << "</td></tr>" << std::endl;
-        out << "<tr><td>StateAttribute</td><td>" << _stateAttributeSet.size() << "</td><td>" << _numInstancedStateAttribute << "</td></tr>" << std::endl;
         out << "<tr><td>est. memory size</td><td>N/A</td><td>" << _estimatedMemory << "</td></tr>" << std::endl;
+        out << "<tr><td>StateSet</td><td>" << _statesetSet.size() << "</td><td>" << _numInstancedStateSet << "</td></tr>" << std::endl;
         for(int n = 0; n < MaxStateAttributeType; n++)
         {
-            out << "<tr><td>StateAttribute " << (osg::StateAttribute::Type)n << "</td><td>N/A</td><td>" << _numInstancedSA[n] << "</td></tr>" << std::endl;
+            out << "<tr><td>StateAttribute " << (osg::StateAttribute::Type)n << "</td><td>"  << _stateAttributeSets[n].size() << "</td><td>" << _numInstancedSA[n] << "</td></tr>" << std::endl;
         }
         out << "<tr><td>Uniform</td><td>" << _uniformSet.size() << "</td><td>" << _numInstancedUniform << "</td></tr>" << std::endl;
 
@@ -5171,7 +5171,7 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
             for(unsigned n = 0; n < object->getNumParents(); n++)
             {
                 const osg::Group * parent = object->getParent(n);
-                os << "<li>" << osg_helpers::getObjectNameAndType(parent) << ")</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(parent, true) << ")</li>" << std::endl;
             }
             os << "</ol>" << std::endl;
             ret = true;

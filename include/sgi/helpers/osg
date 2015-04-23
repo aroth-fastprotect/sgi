@@ -82,18 +82,18 @@ enum GLConstant { };
 enum GLModeValue { };
 enum GLModeOverrideValue { };
 
-std::string getObjectTypename(const ::osg::Referenced * object);
-std::string getObjectTypename(const ::osg::Observer * object);
-std::string getObjectTypename(const ::osg::Object * object);
-std::string getObjectName(const ::osg::Referenced * object);
-std::string getObjectName(const ::osg::Observer * object);
-std::string getObjectName(const ::osg::Object * object);
+std::string getObjectTypename(const osg::Referenced * object);
+std::string getObjectTypename(const osg::Observer * object);
+std::string getObjectTypename(const osg::Object * object);
+std::string getObjectName(const osg::Referenced * object);
+std::string getObjectName(const osg::Observer * object);
+std::string getObjectName(const osg::Object * object, bool includeAddr=false);
 
-std::string getObjectNameAndType(const ::osg::Referenced * object);
-std::string getObjectNameAndType(const ::osg::Observer * object);
-std::string getObjectNameAndType(const ::osg::Object * object);
+std::string getObjectNameAndType(const osg::Referenced * object);
+std::string getObjectNameAndType(const osg::Observer * object);
+std::string getObjectNameAndType(const osg::Object * object, bool includeAddr=false);
 
-inline sgi::Color osgColor(const ::osg::Vec4f & c)
+inline sgi::Color osgColor(const osg::Vec4f & c)
 {
     return sgi::Color(c.r(), c.g(), c.b(), c.a());
 }

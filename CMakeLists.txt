@@ -55,7 +55,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 	IF(CMAKE_COMPILER_IS_GNUCXX)
 		ADD_DEFINITIONS(-std=c++11)
 	ELSEIF(CLANG)
-		ADD_DEFINITIONS(-std=c++11 -Wno-deprecated-register -Wno-switch)
+		ADD_DEFINITIONS(-std=c++11 -Wno-deprecated-register -Wno-switch -Wno-inconsistent-missing-override)
 	ENDIF()
 
 	# Make the headers visible to everything
