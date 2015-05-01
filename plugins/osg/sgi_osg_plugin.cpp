@@ -342,9 +342,6 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeBufferDatas);
         SGIITEMTYPE_NAME(SGIItemTypePendingChild);
         SGIITEMTYPE_NAME(SGIItemTypeTasks);
-        SGIITEMTYPE_NAME(SGIItemTypeCameraFrustum);
-        SGIITEMTYPE_NAME(SGIItemTypeCameraVideoProjection);
-        SGIITEMTYPE_NAME(SGIItemTypeCameraPolygon);
         SGIITEMTYPE_NAME(SGIItemTypeChannels);
         SGIITEMTYPE_NAME(SGIItemTypeAnimations);
         SGIITEMTYPE_NAME(SGIItemTypeSerializers);
