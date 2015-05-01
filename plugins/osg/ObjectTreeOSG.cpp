@@ -2652,11 +2652,11 @@ bool objectTreeBuildImpl<osgTerrain::TerrainTile>::build(IObjectTreeItem * treeI
 
             unsigned numColorLayers = object->getNumColorLayers();
             if(numColorLayers)
-                treeItem->addChild(helpers::str_plus_count("ColorLayers", numColorLayers), cloneItem<SGIItemOsg>(SGIItemTypeImageLayers));
+                treeItem->addChild(helpers::str_plus_count("ColorLayers", numColorLayers), cloneItem<SGIItemOsg>(SGIItemTypeColorLayers));
 
         }
         break;
-    case SGIItemTypeImageLayers:
+    case SGIItemTypeColorLayers:
         {
             unsigned numColorLayers = object->getNumColorLayers();
             for(unsigned n = 0; n < numColorLayers; n++)

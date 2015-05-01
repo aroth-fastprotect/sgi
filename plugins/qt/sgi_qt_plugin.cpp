@@ -80,6 +80,8 @@ public:
     SGIPlugin_qt_Implementation(SGIPluginHostInterface * hostInterface=NULL)
         : qt_plugin::SGIPluginImpl(hostInterface)
     {
+        SGIITEMTYPE_NAME(SGIItemTypeWidgets);
+        SGIITEMTYPE_NAME(SGIItemTypeMethods);
     }
     SGIPlugin_qt_Implementation(const SGIPlugin_qt_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
         : qt_plugin::SGIPluginImpl(rhs, copyop)

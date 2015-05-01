@@ -4,8 +4,6 @@
 #include <sgi/helpers/string>
 #include "MenuActionLog4cplus.h"
 
-#include "sgi_log4cplus_plugin.h"
-
 namespace sgi {
 
 class SGIItemLog4cplus;

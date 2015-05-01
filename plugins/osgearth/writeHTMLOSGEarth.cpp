@@ -43,6 +43,7 @@
 #include <osgEarthAnnotation/ModelNode>
 #include <osgEarthAnnotation/TrackNode>
 
+#include "SGIItemOsgEarth"
 
 #include "osgearth_accessor.h"
 #include "ElevationQueryReferenced"

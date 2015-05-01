@@ -16,6 +16,13 @@ namespace support {
     class SGIHostItemQtPaintDevice;
 }
 
+enum SGIItemType_qt
+{
+    SGIItemType_plugin_qt = SGIItemTypePluginBaseQt,
+    SGIItemTypeMethods,
+    SGIItemTypeWidgets,
+};
+
 class SGIItemQt : public SGIItemBase
 {
 public:

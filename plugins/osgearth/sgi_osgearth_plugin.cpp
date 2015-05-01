@@ -7,7 +7,6 @@
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SGIHostItemOsgEarth.h>
 #include <sgi/plugins/SettingsDialog>
-
 #include "../osg/SGIItemOsg"
 #include "SGIItemOsgEarth"
 
@@ -254,6 +253,26 @@ public:
     SGIPlugin_osgearth_Implementation(SGIPluginHostInterface * hostInterface=NULL)
         : osgearth_plugin::SGIPluginImpl(hostInterface)
     {
+        SGIITEMTYPE_NAME(SGIItemTypeImageLayers);
+        SGIITEMTYPE_NAME(SGIItemTypeElevationLayers);
+        SGIITEMTYPE_NAME(SGIItemTypeModelLayers);
+        SGIITEMTYPE_NAME(SGIItemTypeMaskLayers);
+        SGIITEMTYPE_NAME(SGIItemTypeImageLayer);
+        SGIITEMTYPE_NAME(SGIItemTypeElevationLayer);
+        SGIITEMTYPE_NAME(SGIItemTypeModelLayer);
+        SGIITEMTYPE_NAME(SGIItemTypeMaskLayer);
+        SGIITEMTYPE_NAME(SGIItemTypeMap);
+        SGIITEMTYPE_NAME(SGIItemTypeMapNode);
+        SGIITEMTYPE_NAME(SGIItemTypeVirtualProgramShaderMap);
+        SGIITEMTYPE_NAME(SGIItemTypeVirtualProgramFunctions);
+        SGIITEMTYPE_NAME(SGIItemTypeOptions);
+        SGIITEMTYPE_NAME(SGIItemTypeConfig);
+        SGIITEMTYPE_NAME(SGIItemTypeDataExtents);
+        SGIITEMTYPE_NAME(SGIItemTypeTileCache);
+        SGIITEMTYPE_NAME(SGIItemTypeTileCacheLRU);
+        SGIITEMTYPE_NAME(SGIItemTypeTileCacheMap);
+        SGIITEMTYPE_NAME(SGIItemTypeShaderComposerShaderMap);
+        SGIITEMTYPE_NAME(SGIItemTypeShaderComposerProgramFunctions);
     }
     SGIPlugin_osgearth_Implementation(const SGIPlugin_osgearth_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
         : osgearth_plugin::SGIPluginImpl(rhs, copyop)

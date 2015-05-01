@@ -287,6 +287,75 @@ public:
         registerNamedEnumValue<osg_helpers::GLModeOverrideValue>(osg::StateAttribute::INHERIT, "INHERIT");
         registerNamedEnumValue<osg_helpers::GLModeOverrideValue>(osg::StateAttribute::PROTECTED, "PROTECTED");
 
+        SGIITEMTYPE_NAME(SGIItemTypeStateSetEffective);
+        SGIITEMTYPE_NAME(SGIItemTypeStateSetModeList);
+        SGIITEMTYPE_NAME(SGIItemTypeStateSetAttributeList);
+        SGIITEMTYPE_NAME(SGIItemTypeStateSetTextureModeList);
+        SGIITEMTYPE_NAME(SGIItemTypeStateSetTextureAttributeLists);
+        SGIITEMTYPE_NAME(SGIItemTypeStateSetUniformList);
+        SGIITEMTYPE_NAME(SGIItemTypeParentalNodePath);
+        SGIITEMTYPE_NAME(SGIItemTypeDrawables);
+        SGIITEMTYPE_NAME(SGIItemTypeDrawable);
+        SGIITEMTYPE_NAME(SGIItemTypeDrawableColors);
+        SGIITEMTYPE_NAME(SGIItemTypeDrawableColorIndicies);
+        SGIITEMTYPE_NAME(SGIItemTypeDrawableNormals);
+        SGIITEMTYPE_NAME(SGIItemTypeDrawableNormalIndicies);
+        SGIITEMTYPE_NAME(SGIItemTypeDrawableVertices);
+        SGIITEMTYPE_NAME(SGIItemTypeDrawableVertexIndicies);
+        SGIITEMTYPE_NAME(SGIItemTypeDrawableTexCoords);
+        SGIITEMTYPE_NAME(SGIItemTypeDrawableTexCoordsList);
+        SGIITEMTYPE_NAME(SGIItemTypeDrawableTexCoordIndicies);
+        SGIITEMTYPE_NAME(SGIItemTypeDrawablePrimitiveSetList);
+
+        SGIITEMTYPE_NAME(SGIItemTypeGraphicsContextCameras);
+        SGIITEMTYPE_NAME(SGIItemTypeGraphicsContextOperations);
+        SGIITEMTYPE_NAME(SGIItemTypeGraphicsContextGLExtensions);
+        SGIITEMTYPE_NAME(SGIItemTypeImage);
+        SGIITEMTYPE_NAME(SGIItemTypeShaders);
+        SGIITEMTYPE_NAME(SGIItemTypeShaderSource);
+        SGIITEMTYPE_NAME(SGIItemTypeShaderCodeInjectionMap);
+        SGIITEMTYPE_NAME(SGIItemTypePickerHits);
+        SGIITEMTYPE_NAME(SGIItemTypePickerHit);
+
+        SGIITEMTYPE_NAME(SGIItemTypeSlaves);
+
+        SGIITEMTYPE_NAME(SGIItemTypeArrayData);
+        SGIITEMTYPE_NAME(SGIItemTypeEventHandlers);
+        SGIITEMTYPE_NAME(SGIItemTypeDevices);
+        SGIITEMTYPE_NAME(SGIItemTypeActivePagedLODs);
+        SGIITEMTYPE_NAME(SGIItemTypeThreads);
+        SGIITEMTYPE_NAME(SGIItemTypeStateAttibutes);
+        SGIITEMTYPE_NAME(SGIItemTypeStateSets);
+        SGIITEMTYPE_NAME(SGIItemTypeViewerBaseScenes);
+        SGIITEMTYPE_NAME(SGIItemTypeViewerBaseViews);
+        SGIITEMTYPE_NAME(SGIItemTypeViewerBaseCameras);
+        SGIITEMTYPE_NAME(SGIItemTypeViewerBaseContexts);
+        SGIITEMTYPE_NAME(SGIItemTypeLeaves);
+        SGIITEMTYPE_NAME(SGIItemTypeRenderInfoStateSetStack);
+        SGIITEMTYPE_NAME(SGIItemTypeRenderInfoRenderBinStack);
+        SGIITEMTYPE_NAME(SGIItemTypeRenderInfoCameraStack);
+        SGIITEMTYPE_NAME(SGIItemTypeRenderInfoAppliedProgramSet);
+        SGIITEMTYPE_NAME(SGIItemTypeRenderInfoState);
+        SGIITEMTYPE_NAME(SGIItemTypeReadersWriters);
+        SGIITEMTYPE_NAME(SGIItemTypeImageProcessors);
+        SGIITEMTYPE_NAME(SGIItemTypeDatabaseRevisions);
+        SGIITEMTYPE_NAME(SGIItemTypeBufferDatas);
+        SGIITEMTYPE_NAME(SGIItemTypePendingChild);
+        SGIITEMTYPE_NAME(SGIItemTypeTasks);
+        SGIITEMTYPE_NAME(SGIItemTypeCameraFrustum);
+        SGIITEMTYPE_NAME(SGIItemTypeCameraVideoProjection);
+        SGIITEMTYPE_NAME(SGIItemTypeCameraPolygon);
+        SGIITEMTYPE_NAME(SGIItemTypeChannels);
+        SGIITEMTYPE_NAME(SGIItemTypeAnimations);
+        SGIITEMTYPE_NAME(SGIItemTypeSerializers);
+        SGIITEMTYPE_NAME(SGIItemTypeWrappers);
+        SGIITEMTYPE_NAME(SGIItemTypeCompressors);
+        SGIITEMTYPE_NAME(SGIItemTypeDBPagerFileRequests);
+        SGIITEMTYPE_NAME(SGIItemTypeDBPagerHttpRequests);
+        SGIITEMTYPE_NAME(SGIItemTypeDBPagerDataToCompile);
+        SGIITEMTYPE_NAME(SGIItemTypeDBPagerDataToMerge);
+        SGIITEMTYPE_NAME(SGIItemTypeColorLayers);
+
     }
     SGIPlugin_osg_Implementation(const SGIPlugin_osg_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
         : osg_plugin::SGIPluginImpl(rhs, copyop)

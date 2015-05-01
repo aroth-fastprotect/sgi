@@ -2,7 +2,6 @@
 #include "ObjectTreeLog4cplus.h"
 #include "SGIItemLog4cplus"
 
-#include "sgi_log4cplus_plugin.h"
 #include <sgi/SGIItemInternal>
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SGIProxyItem.h>

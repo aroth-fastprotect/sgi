@@ -17,7 +17,6 @@
 #include "getObjectInfoLog4cplus.h"
 #include "ContextMenuLog4cplus.h"
 #include "MenuActionLog4cplus.h"
-#include "sgi_log4cplus_plugin.h"
 
 namespace sgi {
 

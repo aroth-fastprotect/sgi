@@ -16,6 +16,7 @@
 #include <osgEarth/TileSource>
 #include <osgEarth/Registry>
 //#include <osgEarth/TimeControl>
+#include "SGIItemOsgEarth"
 
 #include "MenuActionOSGEarth.h"
 

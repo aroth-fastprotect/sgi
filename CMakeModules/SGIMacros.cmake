@@ -42,14 +42,8 @@ MACRO(SGI_PLUGIN PLUGIN_NAME)
     SET(TARGET_PRODUCT_COPYRIGHT "Copyright (C) 2012-2015")
     SET(TARGET_NO_TRANSLATION 1)
 
-    SET(SGI_PLUGIN_NAME "${PLUGIN_NAME}")
-    string(MD5 _itemtype_offset "${PLUGIN_NAME}")
-    string(SUBSTRING "${_itemtype_offset}" 0 6 _itemtype_offset)
-    SET(_itemtype_offset "0x${_itemtype_offset}00")
-
     LIST(APPEND TARGET_DEFINITIONS
-        SGI_PLUGIN_NAME=${PLUGIN_NAME}
-        SGI_ITEMTYPE_OFFSET=${_itemtype_offset})
+        SGI_PLUGIN_NAME=${PLUGIN_NAME})
 
     LIST(APPEND TARGET_LIBRARIES_VARS OSG_LIBRARY OSGDB_LIBRARY)
 

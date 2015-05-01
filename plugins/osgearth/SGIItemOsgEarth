@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <sgi/plugins/SGIItemBase.h>
+#include <sgi/plugins/SGIHostItemOsgEarth.h>
 #include <osgEarth/Config>
 
 namespace sgi {
@@ -11,6 +11,31 @@ namespace support {
     class SGIHostItemOsgEarthConfig;
     class SGIHostItemOsgEarthConfigOptions;
 }
+
+enum SGIItemType_osgearth
+{
+    SGIItemType_plugin_osgearth = SGIItemTypePluginBaseOsgEarth,
+    SGIItemTypeImageLayers,
+    SGIItemTypeElevationLayers,
+    SGIItemTypeModelLayers,
+    SGIItemTypeMaskLayers,
+    SGIItemTypeImageLayer,
+    SGIItemTypeElevationLayer,
+    SGIItemTypeModelLayer,
+    SGIItemTypeMaskLayer,
+    SGIItemTypeMap,
+    SGIItemTypeMapNode,
+    SGIItemTypeVirtualProgramShaderMap,
+    SGIItemTypeVirtualProgramFunctions,
+    SGIItemTypeOptions,
+    SGIItemTypeDataExtents,
+    SGIItemTypeConfig,
+    SGIItemTypeTileCache,
+    SGIItemTypeTileCacheLRU,
+    SGIItemTypeTileCacheMap,
+    SGIItemTypeShaderComposerShaderMap,
+    SGIItemTypeShaderComposerProgramFunctions,
+};
 
 class SGIItemEarthConfig : public SGIItemBase
 {
