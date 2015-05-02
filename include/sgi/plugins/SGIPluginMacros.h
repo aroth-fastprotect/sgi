@@ -255,11 +255,19 @@ public:
         return _item->rootBase()->clone<ANOTHER_ITEMTYPE>((SGIItemType)newType, copyop);
     }
     template<typename ANOTHER_ITEMTYPE, typename SGIITEMTYPE_ENUM>
+    ANOTHER_ITEMTYPE * cloneItem(SGIITEMTYPE_ENUM newType, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
+    {
+        return _item->rootBase()->clone<ANOTHER_ITEMTYPE>((SGIItemType)newType, userData, copyop);
+    }
+    template<typename ANOTHER_ITEMTYPE, typename SGIITEMTYPE_ENUM>
     ANOTHER_ITEMTYPE * cloneItem(SGIITEMTYPE_ENUM newType, unsigned number, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
     {
-        ANOTHER_ITEMTYPE * ret = _item->rootBase()->clone<ANOTHER_ITEMTYPE>((SGIItemType)newType, number, copyop);
-        ret->setNumber(number);
-        return ret;
+        return _item->rootBase()->clone<ANOTHER_ITEMTYPE>((SGIItemType)newType, number, copyop);
+    }
+    template<typename ANOTHER_ITEMTYPE, typename SGIITEMTYPE_ENUM>
+    ANOTHER_ITEMTYPE * cloneItem(SGIITEMTYPE_ENUM newType, unsigned number, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
+    {
+        return _item->rootBase()->clone<ANOTHER_ITEMTYPE>((SGIItemType)newType, number, userData, copyop);
     }
 
     template<typename ItemTypeFirst, typename ItemTypeSecond, typename SGIITEMTYPE_ENUM>

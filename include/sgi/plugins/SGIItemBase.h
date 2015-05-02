@@ -211,6 +211,65 @@ public:
         return static_cast<ANOTHER_ITEMTYPE *>(ret.release());
     }
 
+    template<typename ANOTHER_ITEMTYPE>
+    ANOTHER_ITEMTYPE * clone(SGIItemType newType, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
+    {
+        SGIItemBasePtr ret;
+        SGIItemBasePtr previous_cloned;
+        SGIItemBasePtr current = this;
+        while(current.valid())
+        {
+            SGIItemBasePtr clonedItem = (SGIItemBase*)current->clone(copyop);
+            if(newType!=SGIItemTypeInvalid)
+                clonedItem->setType(newType);
+            clonedItem->setUserData(userData);
+            if(!ret.valid())
+            {
+                // we always return the first cloned item
+                ret = clonedItem;
+            }
+            if(previous_cloned.valid())
+            {
+                previous_cloned->_next = clonedItem;
+                clonedItem->_prev = previous_cloned;
+            }
+            // remember the item cloned in the last loop
+            previous_cloned = clonedItem;
+            current = current->nextBase();
+        }
+        return static_cast<ANOTHER_ITEMTYPE *>(ret.release());
+    }
+
+    template<typename ANOTHER_ITEMTYPE>
+    ANOTHER_ITEMTYPE * clone(SGIItemType newType, unsigned number, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
+    {
+        SGIItemBasePtr ret;
+        SGIItemBasePtr previous_cloned;
+        SGIItemBasePtr current = this;
+        while(current.valid())
+        {
+            SGIItemBasePtr clonedItem = (SGIItemBase*)current->clone(copyop);
+            if(newType!=SGIItemTypeInvalid)
+                clonedItem->setType(newType);
+            clonedItem->setNumber(number);
+            clonedItem->setUserData(userData);
+            if(!ret.valid())
+            {
+                // we always return the first cloned item
+                ret = clonedItem;
+            }
+            if(previous_cloned.valid())
+            {
+                previous_cloned->_next = clonedItem;
+                clonedItem->_prev = previous_cloned;
+            }
+            // remember the item cloned in the last loop
+            previous_cloned = clonedItem;
+            current = current->nextBase();
+        }
+        return static_cast<ANOTHER_ITEMTYPE *>(ret.release());
+    }
+
     SGIItemBase * previousBase() const { return _prev.get(); }
     SGIItemBase * nextBase() const { return _next.get(); }
     template<typename ITEMTYPE>
