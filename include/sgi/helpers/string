@@ -39,10 +39,26 @@ inline std::string str_plus_info(const char * str, const INT_TYPE & n, const INT
 }
 
 template<typename INT_TYPE>
+inline std::string str_plus_hex(const std::string & str, const INT_TYPE & n)
+{
+    std::stringstream buf;
+    buf << str << "(0x" << std::hex << n << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE>
 inline std::string str_plus_hex(const char * str, const INT_TYPE & n)
 {
     std::stringstream buf;
     buf << str << "(0x" << std::hex << n << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE>
+inline std::string str_plus_number(const std::string & str, const INT_TYPE & n)
+{
+    std::stringstream buf;
+    buf << str << '#' << n;
     return buf.str();
 }
 
