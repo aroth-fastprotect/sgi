@@ -341,7 +341,6 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeDatabaseRevisions);
         SGIITEMTYPE_NAME(SGIItemTypeBufferDatas);
         SGIITEMTYPE_NAME(SGIItemTypePendingChild);
-        SGIITEMTYPE_NAME(SGIItemTypeTasks);
         SGIITEMTYPE_NAME(SGIItemTypeChannels);
         SGIITEMTYPE_NAME(SGIItemTypeAnimations);
         SGIITEMTYPE_NAME(SGIItemTypeSerializers);
