@@ -321,10 +321,15 @@ void ImagePreviewDialog::load(const osg::Texture * texture)
     ui->imageLabel->setPixmap(QPixmap());
 
     std::stringstream ss;
-    ss << "osg::Texture " << img->s() << "x" << img->t() << "x" << img->r();
-    ss << " [format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(img->getPixelFormat()) << ";mipmap=" << img->getNumMipmapLevels() << "]";
-    ss << "\r\n";
-    ss << "Qt N/A";
+	if(!img)
+		ss << "(null)";
+	else
+	{
+		ss << "osg::Texture " << img->s() << "x" << img->t() << "x" << img->r();
+		ss << " [format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(img->getPixelFormat()) << ";mipmap=" << img->getNumMipmapLevels() << "]";
+		ss << "\r\n";
+		ss << "Qt N/A";
+	}
 
     QString imageInfo = QString::fromStdString(ss.str());
     if(_labelText.isEmpty())
@@ -473,8 +478,8 @@ void ImagePreviewDialog::adjustScrollBar(QScrollBar *scrollBar, double factor)
 void ImagePreviewDialog::renderTextureToQImage(osg::Texture * texture)
 {
     const osg::Image * image = texture->getNumImages()?texture->getImage(0):NULL;
-    float width = image->s();
-    float height = image->t();
+    float width = image?image->s():0.0f;
+    float height = image?image->t():0.0f;
     osg::ref_ptr<osg::Geometry> textureQuad = osg::createTexturedQuadGeometry(osg::Vec3(0.0f,0.0f,0.0f),
                                                                                 osg::Vec3(width,0.0f,0.0f),
                                                                                 osg::Vec3(0.0f,0.0f,height),
@@ -507,7 +512,7 @@ void ImagePreviewDialog::renderTextureToQImage(osg::Texture * texture)
 
     // draw subgraph after main camera view.
     camera->setRenderOrder(osg::Camera::POST_RENDER);
-    GLenum buffer = gc->getTraits()->doubleBuffer ? GL_BACK : GL_FRONT;
+    GLenum buffer = gc ? (gc->getTraits()->doubleBuffer ? GL_BACK : GL_FRONT) : GL_BACK;
     camera->setDrawBuffer(buffer);
     camera->setReadBuffer(buffer);
 
