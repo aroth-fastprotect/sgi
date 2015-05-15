@@ -408,26 +408,31 @@ void ImagePreviewDialog::createToolbar()
 
 
     _saveAction = new QAction(tr("&Save..."), this);
+    _saveAction->setIcon(QIcon::fromTheme("document-save"));
     _saveAction->setShortcut(tr("Ctrl+S"));
     _saveAction->setEnabled(false);
     connect(_saveAction, SIGNAL(triggered()), this, SLOT(save()));
 
     _zoomInAction = new QAction(tr("Zoom &In (25%)"), this);
+    _zoomInAction->setIcon(QIcon::fromTheme("zoom-in"));
     _zoomInAction->setShortcut(tr("Ctrl++"));
     _zoomInAction->setEnabled(false);
     connect(_zoomInAction, SIGNAL(triggered()), this, SLOT(zoomIn()));
 
     _zoomOutAction = new QAction(tr("Zoom &Out (25%)"), this);
+    _zoomOutAction->setIcon(QIcon::fromTheme("zoom-out"));
     _zoomOutAction->setShortcut(tr("Ctrl+-"));
     _zoomOutAction->setEnabled(false);
     connect(_zoomOutAction, SIGNAL(triggered()), this, SLOT(zoomOut()));
 
     _normalSizeAction = new QAction(tr("&Normal Size"), this);
-    _normalSizeAction->setShortcut(tr("Ctrl+S"));
+    _normalSizeAction->setIcon(QIcon::fromTheme("zoom-original"));
+    _normalSizeAction->setShortcut(tr("Ctrl+O"));
     _normalSizeAction->setEnabled(false);
     connect(_normalSizeAction, SIGNAL(triggered()), this, SLOT(normalSize()));
 
     _fitToWindowAction = new QAction(tr("&Fit to Window"), this);
+    _fitToWindowAction->setIcon(QIcon::fromTheme("zoom-fit-best"));
     _fitToWindowAction->setEnabled(false);
     _fitToWindowAction->setCheckable(true);
     _fitToWindowAction->setShortcut(tr("Ctrl+F"));
@@ -495,7 +500,7 @@ void ImagePreviewDialog::renderTextureToQImage(osg::Texture * texture)
 
     osg::ref_ptr<osg::Camera> camera = new osg::Camera;
 
-    osg::GraphicsContext * gc = parentCamera->getGraphicsContext();
+    osg::GraphicsContext * gc = parentCamera?parentCamera->getGraphicsContext():NULL;
     camera->setGraphicsContext(gc);
 
     // set the projection matrix
