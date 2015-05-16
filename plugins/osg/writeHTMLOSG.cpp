@@ -4420,6 +4420,21 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg::Camera::
     return os;
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg::Camera::BufferComponent t)
+{
+    switch(t)
+    {
+    case osg::Camera::DEPTH_BUFFER: os << "DEPTH_BUFFER"; break;
+    case osg::Camera::STENCIL_BUFFER: os << "STENCIL_BUFFER"; break;
+    case osg::Camera::PACKED_DEPTH_STENCIL_BUFFER: os << "PACKED_DEPTH_STENCIL_BUFFER"; break;
+    case osg::Camera::COLOR_BUFFER: os << "COLOR_BUFFER"; break;
+    default:
+        os << "COLOR_BUFFER" << (t-osg::Camera::COLOR_BUFFER0);
+        break;
+    }
+    return os;
+}
+
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg::CullSettings::ComputeNearFarMode t)
 {
     switch(t)
@@ -4478,6 +4493,22 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::CullSettings * obj
 }
 
 
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::Camera::Attachment & attachment)
+{
+    os << "<tr><td>internalFormat</td><td>" << attachment._internalFormat << "</td></tr>" << std::endl;
+    os << "<tr><td>image</td><td>" << osg_helpers::getObjectNameAndType(attachment._image.get()) << "</td></tr>" << std::endl;
+    os << "<tr><td>texture</td><td>" << osg_helpers::getObjectNameAndType(attachment._texture.get()) << "</td></tr>" << std::endl;
+    os << "<tr><td>width</td><td>" << attachment.width() << "</td></tr>" << std::endl;
+    os << "<tr><td>height</td><td>" << attachment.height() << "</td></tr>" << std::endl;
+    os << "<tr><td>depth</td><td>" << attachment.depth() << "</td></tr>" << std::endl;
+    os << "<tr><td>level</td><td>" << attachment._level << "</td></tr>" << std::endl;
+    os << "<tr><td>face</td><td>" << attachment._face << "</td></tr>" << std::endl;
+    os << "<tr><td>mipMapGeneration</td><td>" << attachment._mipMapGeneration << "</td></tr>" << std::endl;
+    os << "<tr><td>multisampleSamples</td><td>" << attachment._multisampleSamples << "</td></tr>" << std::endl;
+    os << "<tr><td>multisampleColorSamples</td><td>" << attachment._multisampleColorSamples << "</td></tr>" << std::endl;
+}
+
+
 bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -4526,6 +4557,16 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
             os << "<tr><td>drawBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDrawBuffer()) << "</td></tr>" << std::endl;
             os << "<tr><td>readBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getReadBuffer()) << "</td></tr>" << std::endl;
             os << "<tr><td>projResizePolicy</td><td>" << object->getProjectionResizePolicy() << "</td></tr>" << std::endl;
+
+            os << "<tr><td>bufferAttachmentMap</td><td><ul>";
+            const osg::Camera::BufferAttachmentMap & bufferAttachmentMap = object->getBufferAttachmentMap();
+            for(auto it = bufferAttachmentMap.begin(); it != bufferAttachmentMap.end(); ++it)
+            {
+                const osg::Camera::BufferComponent & buffercomponent = it->first;
+                os << "<li>" << buffercomponent << "</li>";
+            }
+            os << "</ul></td></tr>" << std::endl;
+
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
@@ -4548,6 +4589,41 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
+        }
+        break;
+    case SGIItemTypeCameaBufferAttachments:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            const osg::Camera::BufferAttachmentMap & bufferAttachmentMap = object->getBufferAttachmentMap();
+            if(_item->number() == ~0u)
+            {
+                for(auto it = bufferAttachmentMap.begin(); it != bufferAttachmentMap.end(); ++it)
+                {
+                    const osg::Camera::BufferComponent & buffercomponent = it->first;
+
+                    os << "<tr><td>" << buffercomponent << "</td><td>";
+                    os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+                    os << "</table>" << std::endl;
+                    os << "</td></tr>" << std::endl;
+                }
+            }
+            else
+            {
+                const osg::Camera::BufferComponent buffercomponent = (osg::Camera::BufferComponent)_item->number();
+                os << "<tr><td>Buffer component</td><td>" << buffercomponent << "</td><td>";
+                auto it = bufferAttachmentMap.find(buffercomponent);
+                if(it != bufferAttachmentMap.end())
+                {
+                    const osg::Camera::Attachment & attachment = it->second;
+                    writePrettyHTML(os, attachment);
+                }
+            }
+
+            if(_table)
+                os << "</table>" << std::endl;
         }
         break;
     default:

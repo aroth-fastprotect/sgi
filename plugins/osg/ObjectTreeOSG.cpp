@@ -148,6 +148,7 @@ using namespace sgi::osg_helpers;
 
 extern bool objectInfo_hasCallback(SGIPluginHostInterface * hostInterface, bool & result, const SGIItemBase * object);
 extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::StateAttribute::Type & t);
+extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg::Camera::BufferComponent t);
 
 bool objectTreeBuildImpl<osg::Referenced>::build(IObjectTreeItem * treeItem)
 {
@@ -806,6 +807,10 @@ bool objectTreeBuildImpl<osg::Camera>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg renderer(object->getRenderer());
             if(renderer.hasObject())
                 treeItem->addChild("Renderer", &renderer);
+
+            const osg::Camera::BufferAttachmentMap & bufferAttachmentMap = object->getBufferAttachmentMap();
+            if(!bufferAttachmentMap.empty())
+                treeItem->addChild(helpers::str_plus_count("Attachments", bufferAttachmentMap.size()), cloneItem<SGIItemOsg>(SGIItemTypeCameaBufferAttachments, ~0u));
         }
         break;
     case SGIItemTypeCallbacks:
@@ -827,6 +832,36 @@ bool objectTreeBuildImpl<osg::Camera>::build(IObjectTreeItem * treeItem)
             if(clampProjectionMatrixCallback.hasObject())
                 treeItem->addChild("ClampProjectionMatrixCallback", &clampProjectionMatrixCallback);
             ret = true;
+        }
+        break;
+    case SGIItemTypeCameaBufferAttachments:
+        {
+            const osg::Camera::BufferAttachmentMap & bufferAttachmentMap = object->getBufferAttachmentMap();
+            if(_item->number() == ~0u)
+            {
+                for(auto it = bufferAttachmentMap.begin(); it != bufferAttachmentMap.end(); ++it)
+                {
+                    const osg::Camera::BufferComponent & buffercomponent = it->first;
+                    std::stringstream ss;
+                    ss << buffercomponent;
+                    treeItem->addChild(ss.str(), cloneItem<SGIItemOsg>(SGIItemTypeCameaBufferAttachments, (unsigned)buffercomponent));
+                }
+            }
+            else
+            {
+                const osg::Camera::BufferComponent buffercomponent = (osg::Camera::BufferComponent)_item->number();
+                auto it = bufferAttachmentMap.find(buffercomponent);
+                if(it != bufferAttachmentMap.end())
+                {
+                    const osg::Camera::Attachment & attachment = it->second;
+                    SGIHostItemOsg image(attachment._image.get());
+                    if(image.hasObject())
+                        treeItem->addChild("Image", &image);
+                    SGIHostItemOsg texture(attachment._texture.get());
+                    if(texture.hasObject())
+                        treeItem->addChild("Texture", &texture);
+                }
+            }
         }
         break;
     default:

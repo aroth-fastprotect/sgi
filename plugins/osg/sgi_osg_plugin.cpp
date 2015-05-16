@@ -412,6 +412,7 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeDBPagerDataToCompile);
         SGIITEMTYPE_NAME(SGIItemTypeDBPagerDataToMerge);
         SGIITEMTYPE_NAME(SGIItemTypeColorLayers);
+        SGIITEMTYPE_NAME(SGIItemTypeCameaBufferAttachments);
 
     }
     SGIPlugin_osg_Implementation(const SGIPlugin_osg_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
