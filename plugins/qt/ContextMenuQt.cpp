@@ -44,7 +44,6 @@ bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
             if(!children.empty())
                 menuItem->addMenu(helpers::str_plus_count("Childs", children.size()), cloneItem<SGIItemQt>(SGIItemTypeChilds));
             //menuItem->addMenu("Methods", cloneItem<SGIItemQt>(SGIItemTypeMethods));
-
             ret = true;
         }
         break;
@@ -92,6 +91,8 @@ bool contextMenuPopulateImpl<QWidget>::populate(IContextMenuItem * menuItem)
         ret = callNextHandler(menuItem);
         if(ret)
         {
+            menuItem->addSimpleAction(MenuActionGrabWidget, "Grab widget", _item);
+
 /*
             if(object->parentWidget() != object->parent())
             {

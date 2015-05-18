@@ -35,6 +35,7 @@ public:
         : SGIHostItemImpl<QMetaObject>(const_cast<QMetaObject*>(object), userData, flags)
         {}
 };
+
 class SGIHostItemQtPaintDevice : public SGIHostItemImpl<QPaintDevice>
 {
 public:
@@ -46,10 +47,25 @@ public:
         {}
 };
 
+class SGIHostItemQtIcon : public SGIHostItemImpl<QIcon>
+{
+public:
+    SGIHostItemQtIcon(QIcon * object, osg::Referenced * userData=NULL, unsigned flags=0)
+        : SGIHostItemImpl<QIcon>(object, userData, flags)
+        {}
+    SGIHostItemQtIcon(const QIcon * object, osg::Referenced * userData=NULL, unsigned flags=0)
+        : SGIHostItemImpl<QIcon>(const_cast<QIcon*>(object), userData, flags)
+        {}
+    SGIHostItemQtIcon(const QIcon & object, osg::Referenced * userData=NULL, unsigned flags=0)
+        : SGIHostItemImpl<QIcon>(const_cast<QIcon*>(&object), userData, flags)
+        {}
+};
+
 } // namespace support
 
 typedef support::SGIHostItemQt SGIHostItemQt;
 typedef support::SGIHostItemQtMeta SGIHostItemQtMeta;
 typedef support::SGIHostItemQtPaintDevice SGIHostItemQtPaintDevice;
+typedef support::SGIHostItemQtIcon SGIHostItemQtIcon;
 
 } // namespace sgi

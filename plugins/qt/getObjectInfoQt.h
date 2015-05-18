@@ -19,6 +19,7 @@ GET_OBJECT_NAME_IMPL_TEMPLATE()
 GET_OBJECT_NAME_IMPL_DECLARE(QObject)
 GET_OBJECT_NAME_IMPL_DECLARE(QMetaObject)
 GET_OBJECT_NAME_IMPL_DECLARE(QPaintDevice)
+GET_OBJECT_NAME_IMPL_DECLARE(QIcon)
 
 //--------------------------------------------------------------------------------
 // getObjectTypeImpl
@@ -27,6 +28,7 @@ GET_OBJECT_TYPE_IMPL_TEMPLATE()
 GET_OBJECT_TYPE_IMPL_DECLARE(QObject)
 GET_OBJECT_TYPE_IMPL_DECLARE(QMetaObject)
 GET_OBJECT_TYPE_IMPL_DECLARE(QPaintDevice)
+GET_OBJECT_TYPE_IMPL_DECLARE(QIcon)
 
 //--------------------------------------------------------------------------------
 // getObjectPathImpl

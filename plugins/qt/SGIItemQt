@@ -14,6 +14,7 @@ namespace support {
     class SGIHostItemQt;
     class SGIHostItemQtMeta;
     class SGIHostItemQtPaintDevice;
+    class SGIHostItemQtIcon;
 }
 
 enum SGIItemType_qt
@@ -144,6 +145,50 @@ protected:
             if(_object == static_cast<const SGIItemQtPaintDevice&>(rhs)._object)
                 return 0;
             else if(_object < static_cast<const SGIItemQtPaintDevice&>(rhs)._object)
+                return -1;
+            else
+                return 1;
+        }
+        else
+            return ret;
+    }
+
+private:
+    ObjectStorageType _object;
+};
+
+class SGIItemQtIcon : public SGIItemBase
+{
+public:
+    typedef support::SGIHostItemQtIcon HostItemType;
+    typedef QIcon ObjectType;
+    typedef QIcon ObjectStorageType;
+
+    SGIItemQtIcon(const HostItemType * hostItem=NULL, SGIItemType type=SGIItemTypeInvalid, const QIcon * object=NULL, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
+        : SGIItemBase(type, flags, score, userData), _object(object?*object:QIcon()) {}
+    SGIItemQtIcon(const SGIItemQtIcon & rhs)
+        : SGIItemBase(rhs), _object(rhs._object) {}
+    ~SGIItemQtIcon()
+        { }
+
+    SGIItemQtIcon & operator = (const SGIItemQtIcon & rhs)
+    {
+        SGIItemBase::operator=(rhs);
+        _object = rhs._object;
+        return *this;
+    }
+    ObjectType * object() { return &_object; }
+    ObjectType * object() const { return const_cast<ObjectType*>(&_object); }
+
+protected:
+    virtual int compare(const SGIItemBase & rhs) const
+    {
+        int ret = SGIItemBase::compare(rhs);
+        if(!ret)
+        {
+            if(_object.cacheKey() == static_cast<const SGIItemQtIcon&>(rhs)._object.cacheKey())
+                return 0;
+            else if(_object.cacheKey() < static_cast<const SGIItemQtIcon&>(rhs)._object.cacheKey())
                 return -1;
             else
                 return 1;

@@ -22,8 +22,24 @@ namespace qt_plugin {
 ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, QImage * image)
     : QDialog(parent)
     , _image(image)
+    , _pixmap()
     , _interface(new SettingsDialogImpl(this))
     , _scaleFactor(1.0)
+{
+    init();
+}
+
+ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, QPixmap * pixmap)
+    : QDialog(parent)
+    , _image()
+    , _pixmap(pixmap)
+    , _interface(new SettingsDialogImpl(this))
+    , _scaleFactor(1.0)
+{
+    init();
+}
+
+void ImagePreviewDialog::init()
 {
     ui = new Ui_ImagePreviewDialog;
     ui->setupUi( this );
@@ -34,11 +50,14 @@ ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, QImage * image)
     ui->imageLabel->setBackgroundRole(QPalette::Base);
     ui->scrollArea->setBackgroundRole(QPalette::Dark);
 
-	createToolbar();
+    createToolbar();
 
-	setWindowTitle(tr("Image Viewer"));
+    setWindowTitle(tr("Image Viewer"));
 
-	load(image);
+    if(_image)
+        load(_image.data());
+    else if(_pixmap)
+        load(_pixmap.data());
 }
 
 ImagePreviewDialog::~ImagePreviewDialog()
@@ -109,6 +128,29 @@ void ImagePreviewDialog::load(const QImage * img)
 
 	if (!_fitToWindowAction->isChecked())
 		ui->imageLabel->adjustSize();
+}
+
+void ImagePreviewDialog::load(const QPixmap * pixmap)
+{
+    ui->imageLabel->setText(QString());
+    ui->imageLabel->setPixmap(*pixmap);
+
+    std::stringstream ss;
+    ss << pixmap->width() << "x" << pixmap->height() << "x" << pixmap->depth();
+    ss << " [devtype=" << pixmap->devType() << ";alpha=" << pixmap->hasAlpha() << "]";
+
+    QString imageInfo = QString::fromStdString(ss.str());
+    if(_labelText.isEmpty())
+        ui->label->setText(imageInfo);
+    else
+        ui->label->setText(_labelText + QString("; ") + imageInfo);
+    _scaleFactor = 1.0;
+
+    _fitToWindowAction->setEnabled(true);
+    updateToolbar();
+
+    if (!_fitToWindowAction->isChecked())
+        ui->imageLabel->adjustSize();
 }
 
 //! [1]

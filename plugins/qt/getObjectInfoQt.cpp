@@ -14,9 +14,11 @@ namespace qt_plugin {
 GET_OBJECT_NAME_IMPL_REGISTER(QObject)
 GET_OBJECT_NAME_IMPL_REGISTER(QMetaObject)
 GET_OBJECT_NAME_IMPL_REGISTER(QPaintDevice)
+GET_OBJECT_NAME_IMPL_REGISTER(QIcon)
 GET_OBJECT_TYPE_IMPL_REGISTER(QObject)
 GET_OBJECT_TYPE_IMPL_REGISTER(QMetaObject)
 GET_OBJECT_TYPE_IMPL_REGISTER(QPaintDevice)
+GET_OBJECT_TYPE_IMPL_REGISTER(QIcon)
 GET_OBJECT_PATH_IMPL_REGISTER(QObject)
 GET_OBJECT_PATH_IMPL_REGISTER(QMetaObject)
 
@@ -58,6 +60,16 @@ std::string getObjectNameImpl<QPaintDevice>::process()
     return ret;
 }
 
+std::string getObjectNameImpl<QIcon>::process()
+{
+    QIcon * object = static_cast<QIcon*>(item<SGIItemQtIcon>()->object());
+    std::stringstream ss;
+    std::string ret;
+    ss << "QIcon(" << (void*)object << ")";
+    ret = ss.str();
+    return ret;
+}
+
 //--------------------------------------------------------------------------------
 // getObjectTypeImpl
 //--------------------------------------------------------------------------------
@@ -95,6 +107,20 @@ std::string getObjectTypeImpl<QPaintDevice>::process()
     QPaintDevice * object = static_cast<QPaintDevice*>(item<SGIItemQtPaintDevice>()->object());
     std::string ret;
     std::string classname = "QPaintDevice";
+    std::string rtticlass = helpers::getRTTITypename(object);
+
+    if(helpers::is_same_class(classname, rtticlass))
+        ret = classname;
+    else
+        ret = classname + '(' + rtticlass + ')';
+    return ret;
+}
+
+std::string getObjectTypeImpl<QIcon>::process()
+{
+    QIcon * object = static_cast<QIcon*>(item<SGIItemQtIcon>()->object());
+    std::string ret;
+    std::string classname = "QIcon";
     std::string rtticlass = helpers::getRTTITypename(object);
 
     if(helpers::is_same_class(classname, rtticlass))

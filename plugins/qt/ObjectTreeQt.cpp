@@ -168,6 +168,10 @@ bool objectTreeBuildImpl<QApplication>::build(IObjectTreeItem * treeItem)
             if(activeWindow.hasObject())
                 treeItem->addChild("ActiveWindow", &activeWindow);
 
+            SGIHostItemQtIcon windowIcon(object->windowIcon());
+            if(windowIcon.hasObject())
+                treeItem->addChild("WindowIcon", &windowIcon);
+
             SGIHostItemQt desktop(object->desktop());
             if(desktop.hasObject())
                 treeItem->addChild("Desktop", &desktop);

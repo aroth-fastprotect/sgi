@@ -47,11 +47,12 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QDialog, LOKI_TYPELIST(QFileDialog, QMessageBo
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QMetaObject, ::Loki::NullType);
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QPaintDevice, LOKI_TYPELIST(QGLFramebufferObject, QGLPixelBuffer, QImage, QPicture, QPixmap, QWidget))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QIcon, ::Loki::NullType);
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(ISceneGraphDialog))
 
 
-typedef SGIPluginImplementationT< LOKI_TYPELIST(SGIItemQt, SGIItemQtMeta, SGIItemQtPaintDevice),
+typedef SGIPluginImplementationT< LOKI_TYPELIST(SGIItemQt, SGIItemQtMeta, SGIItemQtPaintDevice, SGIItemQtIcon),
                                         call_function_for_object_type,
                                         generateItemImpl,
                                         writePrettyHTMLImpl,

@@ -11,9 +11,16 @@ SETTINGS_DIALOG_CREATE_IMPL_REGISTER(SettingsDialogImagePreview)
 
 bool settingsDialogCreateImpl<SettingsDialogImagePreview>::execute(ISettingsDialogPtr & dialog)
 {
-    QImage * object = getObject<QImage,SGIItemQtPaintDevice>();
-    ImagePreviewDialog * qtdialog = new ImagePreviewDialog(parent(), object);
-    dialog = qtdialog->dialogInterface();
+    QImage * image = getObject<QImage,SGIItemQtPaintDevice>();
+    QPixmap * pixmap = getObject<QPixmap,SGIItemQtPaintDevice>();
+    ImagePreviewDialog * qtdialog = NULL;
+    if(image)
+        qtdialog = new ImagePreviewDialog(parent(), image);
+    else if(pixmap)
+        qtdialog = new ImagePreviewDialog(parent(), pixmap);
+
+    if(qtdialog)
+        dialog = qtdialog->dialogInterface();
     return true;
 }
 

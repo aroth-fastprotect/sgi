@@ -5,6 +5,7 @@
 #include <sgi/plugins/ContextMenu>
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SettingsDialog>
+#include <sgi/plugins/SGIHostItemQt.h>
 #include <sgi/helpers/qt>
 
 #include "SettingsDialogQt.h"
@@ -19,6 +20,7 @@ namespace qt_plugin {
 ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectInfo)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDumpObjectInfo)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDumpObjectTree)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionGrabWidget)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectMethodInvoke)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionImagePreview)
 
@@ -140,6 +142,27 @@ bool actionHandlerImpl<MenuActionDumpObjectTree>::execute()
     object->dumpObjectTree();
     std::cout << handler.messageText();
     return true;
+}
+
+bool actionHandlerImpl<MenuActionGrabWidget>::execute()
+{
+    QWidget * object = getObject<QWidget,SGIItemQt>();
+    QPixmap * pixmap = new QPixmap(object->grab());
+    SGIHostItemQtPaintDevice pixmapHostItem(pixmap);
+
+    SGIItemBasePtr pixmapItem;
+    _hostInterface->generateItem(pixmapItem, &pixmapHostItem);
+
+    ISettingsDialogPtr dialog;
+    bool ret;
+    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogImagePreview, menu()->parentWidget());
+    ret = _hostInterface->openSettingsDialog(dialog, pixmapItem, info);
+    if(ret)
+    {
+        if(dialog.valid())
+            dialog->show();
+    }
+    return ret;
 }
 
 bool actionHandlerImpl<MenuActionObjectMethodInvoke>::execute()

@@ -20,6 +20,7 @@ class ImagePreviewDialog : public QDialog
 
 public:
 	ImagePreviewDialog(QWidget * parent, QImage * image);
+    ImagePreviewDialog(QWidget * parent, QPixmap * pixmap);
     virtual ~ImagePreviewDialog();
 
 public:
@@ -36,8 +37,10 @@ private slots:
     void fitToWindow();
 	void load(const QString & filename);
 	void load(const QImage * image);
+    void load(const QPixmap * pixmap);
 
 private:
+    void init();
     void createToolbar();
     void updateToolbar();
     void scaleImage(double factor);
@@ -46,6 +49,7 @@ private:
 private:
     Ui_ImagePreviewDialog *         ui;
     QSharedPointer<QImage>          _image;
+    QSharedPointer<QPixmap>         _pixmap;
     ISettingsDialogPtr              _interface;
     QToolBar *                      _toolBar;
     double                          _scaleFactor;

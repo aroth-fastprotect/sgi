@@ -9,6 +9,7 @@ enum MenuAction {
     MenuActionObjectInfo,
     MenuActionDumpObjectInfo,
     MenuActionDumpObjectTree,
+    MenuActionGrabWidget,
     MenuActionObjectMethodInvoke,
     MenuActionImagePreview
 };
@@ -17,6 +18,7 @@ ACTION_HANDLER_IMPL_TEMPLATE()
 ACTION_HANDLER_IMPL_DECLARE(MenuActionObjectInfo)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionDumpObjectInfo)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionDumpObjectTree)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionGrabWidget)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionObjectMethodInvoke)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionImagePreview)
 
