@@ -5149,7 +5149,7 @@ namespace {
         out << "<tr><td>update callbacks</td><td>" << _numUpdateCallbacks << "</td><td>" << _numUpdateCallbacks << "</td></tr>" << std::endl;
         out << "<tr><td>cull callbacks</td><td>" << _numCullCallbacks << "</td><td>" << _numCullCallbacks << "</td></tr>" << std::endl;
         out << "<tr><td>animation callbacks</td><td>" << _numAnimationCallbacks << "</td><td>" << _numAnimationCallbacks << "</td></tr>" << std::endl;
-        out << "<tr><td>cull incative</td><td>" << _numCullInactive << "</td><td>" << _numCullInactive << "</td></tr>" << std::endl;
+        out << "<tr><td>cull inactive</td><td>" << _numCullInactive << "</td><td>" << _numCullInactive << "</td></tr>" << std::endl;
         out << "<tr><td>cull disabled</td><td>" << _numCullDisabled << "</td><td>" << _numCullDisabled << "</td></tr>" << std::endl;
 
         out << "</table>" << std::endl;
@@ -5184,7 +5184,7 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
             osg_helpers::writePrettyHTML(os, object->getInitialBound(), object);
             os << "</td></tr>" << std::endl;
             os << "<tr><td>bound</td><td>";
-            osg_helpers::writePrettyHTML(os, object->getBound(), object);
+            osg_helpers::writePrettyHTML(os, access->getBoundNoCompute(), object);
             os << "</td></tr>" << std::endl;
             os << "<tr><td>isBoundingSphereComputed</td><td>" << (access->isBoundingSphereComputed()?"true":"false") << "</td></tr>" << std::endl;
 

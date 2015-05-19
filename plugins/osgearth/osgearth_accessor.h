@@ -3,6 +3,7 @@
 #include <osgEarthUtil/Controls>
 #include <osgEarthUtil/EarthManipulator>
 #include <osgEarthUtil/AutoClipPlaneHandler>
+#include <osgEarth/MapNode>
 #include <osgEarth/VirtualProgram>
 #include <osgEarth/ElevationQuery>
 #include <osgEarthFeatures/FeatureModelSource>
@@ -19,6 +20,15 @@ inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const 
 
 namespace sgi {
 namespace osgearth_plugin {
+
+	class MapNodeAccess : public osgEarth::MapNode
+	{
+	public:
+		const osgEarth::Terrain* terrain() const { return _terrainEngine.valid() ? _terrainEngine->getTerrain() : NULL; }
+		osgEarth::TerrainEngineNode * terrainEngineNode() const { return _terrainEngine.get(); }
+		bool terrainEngineInitialized() const { return _terrainEngineInitialized; }
+		osg::Group* terrainEngineContainer() const { return _terrainEngineContainer; }
+	};
 
     class ControlCanvasAccess : public osgEarth::Util::Controls::ControlCanvas
     {

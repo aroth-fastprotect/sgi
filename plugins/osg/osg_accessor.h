@@ -9,6 +9,16 @@ class NodeAccess : public osg::Node
 public:
     bool                            isBoundingSphereComputed() const { return _boundingSphereComputed; }
 
+    /** Get the bounding sphere of node.
+        Using lazy evaluation computes the bounding sphere if it is 'dirty'.*/
+    inline const osg::BoundingSphere& getBoundNoCompute() const
+    {
+        if(_boundingSphereComputed)
+	        return _boundingSphere;
+		else
+			return _initialBound;
+    }
+
     void    setNumUpdateTraversal(unsigned num) { osg::Node::setNumChildrenRequiringUpdateTraversal(num); }
     void    setNumEventTraversal(unsigned num) { osg::Node::setNumChildrenRequiringEventTraversal(num); }
 };

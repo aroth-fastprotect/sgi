@@ -243,12 +243,17 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsgEarthConfigOptions runtimeOptions(object->getMapNodeOptions());
             treeItem->addChild("Runtime Options", &runtimeOptions);
 
-            SGIHostItemOsg terrain(object->getTerrain());
+			MapNodeAccess * access = (MapNodeAccess*)object;
+
+			SGIHostItemOsg terrain(access->terrain());
             if(terrain.hasObject())
                 treeItem->addChild("Terrain", &terrain);
-            SGIHostItemOsg terrainEngine(object->getTerrainEngine());
+            SGIHostItemOsg terrainEngine(access->terrainEngineNode());
             if(terrainEngine.hasObject())
                 treeItem->addChild("TerrainEngine", &terrainEngine);
+			SGIHostItemOsg terrainEngineContainer(access->terrainEngineContainer());
+			if (terrainEngineContainer.hasObject())
+				treeItem->addChild("TerrainEngineContainer", &terrainEngineContainer);
             SGIHostItemOsg modelLayerGroup(object->getModelLayerGroup());
             if(modelLayerGroup.hasObject())
                 treeItem->addChild("ModelLayerGroup", &modelLayerGroup);

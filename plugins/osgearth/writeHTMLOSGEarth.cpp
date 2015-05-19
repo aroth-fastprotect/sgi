@@ -941,11 +941,15 @@ bool writePrettyHTMLImpl<osgEarth::MapNode>::process(std::basic_ostream<char>& o
             // add group properties first
             callNextHandler(os);
 
+			MapNodeAccess * access = (MapNodeAccess*)object;
+
             os << "<tr><td>map</td><td>" << getObjectNameAndType(const_cast<osgEarth::MapNode *>(object)->getMap()) << "</td></tr>" << std::endl;
-            os << "<tr><td>terrain</td><td>" << getObjectNameAndType(const_cast<osgEarth::MapNode *>(object)->getTerrain()) << "</td></tr>" << std::endl;
-            os << "<tr><td>terrain engine</td><td>" << getObjectNameAndType(const_cast<osgEarth::MapNode *>(object)->getTerrainEngine()) << "</td></tr>" << std::endl;
-            os << "<tr><td>modelLayerGroup</td><td>" << getObjectNameAndType(object->getModelLayerGroup()) << "</td></tr>" << std::endl;
-            os << "<tr><td>overlayDecorator</td><td>" << getObjectNameAndType(const_cast<osgEarth::MapNode *>(object)->getOverlayDecorator()) << "</td></tr>" << std::endl;
+            os << "<tr><td>terrain</td><td>" << getObjectNameAndType(access->terrain()) << "</td></tr>" << std::endl;
+            os << "<tr><td>terrain engine initialized</td><td>" << access->terrainEngineInitialized() << "</td></tr>" << std::endl;
+			os << "<tr><td>terrain engine</td><td>" << getObjectNameAndType(access->terrainEngineNode(), true) << "</td></tr>" << std::endl;
+			os << "<tr><td>terrain engine container</td><td>" << getObjectNameAndType(access->terrainEngineContainer(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>modelLayerGroup</td><td>" << getObjectNameAndType(object->getModelLayerGroup(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>overlayDecorator</td><td>" << getObjectNameAndType(const_cast<osgEarth::MapNode *>(object)->getOverlayDecorator(), true) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
