@@ -9,6 +9,7 @@
 #include <QToolBar>
 #include <QScrollBar>
 #include <QGLWidget>
+#include <QImageWriter>
 
 #include <sgi/plugins/SGISettingsDialogImpl>
 
@@ -81,6 +82,19 @@ void ImagePreviewDialog::load(const QString & filename)
 	load(img);
 }
 
+void ImagePreviewDialog::save()
+{
+    QString fileName = QFileDialog::getSaveFileName(this,
+                                    tr("Save image file"), QDir::currentPath());
+    if (!fileName.isEmpty()) {
+
+        QImageWriter writer(fileName);
+        if(_image)
+            writer.write(*_image.data());
+        else if(_pixmap)
+            writer.write(_pixmap->toImage());
+    }
+}
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, QImage::Format t)
 {
@@ -113,8 +127,13 @@ void ImagePreviewDialog::load(const QImage * img)
 	ui->imageLabel->setPixmap(QPixmap::fromImage(*img));
 
     std::stringstream ss;
-    ss << img->width() << "x" << img->height() << "x" << img->depth();
-    ss << " [format=" << img->format() << ";colors=" << img->colorCount() << "]";
+    if(img->isNull())
+        ss << "Image is null";
+    else
+    {
+        ss << img->width() << "x" << img->height() << "x" << img->depth();
+        ss << " [format=" << img->format() << ";colors=" << img->colorCount() << ";bitPlaneCount=" << img->bitPlaneCount() << "]";
+    }
 
     QString imageInfo = QString::fromStdString(ss.str());
     if(_labelText.isEmpty())
@@ -136,8 +155,13 @@ void ImagePreviewDialog::load(const QPixmap * pixmap)
     ui->imageLabel->setPixmap(*pixmap);
 
     std::stringstream ss;
-    ss << pixmap->width() << "x" << pixmap->height() << "x" << pixmap->depth();
-    ss << " [devtype=" << pixmap->devType() << ";alpha=" << pixmap->hasAlpha() << "]";
+    if(pixmap->isNull())
+        ss << "Pixmap is null";
+    else
+    {
+        ss << pixmap->width() << "x" << pixmap->height() << "x" << pixmap->depth();
+        ss << " [devtype=" << pixmap->devType() << ";alpha=" << pixmap->hasAlpha() << "]";
+    }
 
     QString imageInfo = QString::fromStdString(ss.str());
     if(_labelText.isEmpty())
@@ -208,27 +232,38 @@ void ImagePreviewDialog::createToolbar()
     QVBoxLayout * mainLayout = (QVBoxLayout *)this->layout();
     mainLayout->insertWidget(0, _toolBar);
 
+    _saveAction = new QAction(tr("&Save..."), this);
+    _saveAction->setIcon(QIcon::fromTheme("document-save"));
+    _saveAction->setShortcut(tr("Ctrl+S"));
+    _saveAction->setEnabled(false);
+    connect(_saveAction, SIGNAL(triggered()), this, SLOT(save()));
+
     _zoomInAction = new QAction(tr("Zoom &In (25%)"), this);
+    _zoomInAction->setIcon(QIcon::fromTheme("zoom-in"));
     _zoomInAction->setShortcut(tr("Ctrl++"));
     _zoomInAction->setEnabled(false);
     connect(_zoomInAction, SIGNAL(triggered()), this, SLOT(zoomIn()));
 
     _zoomOutAction = new QAction(tr("Zoom &Out (25%)"), this);
+    _zoomOutAction->setIcon(QIcon::fromTheme("zoom-out"));
     _zoomOutAction->setShortcut(tr("Ctrl+-"));
     _zoomOutAction->setEnabled(false);
     connect(_zoomOutAction, SIGNAL(triggered()), this, SLOT(zoomOut()));
 
     _normalSizeAction = new QAction(tr("&Normal Size"), this);
-    _normalSizeAction->setShortcut(tr("Ctrl+S"));
+    _normalSizeAction->setIcon(QIcon::fromTheme("zoom-original"));
+    _normalSizeAction->setShortcut(tr("Ctrl+O"));
     _normalSizeAction->setEnabled(false);
     connect(_normalSizeAction, SIGNAL(triggered()), this, SLOT(normalSize()));
 
     _fitToWindowAction = new QAction(tr("&Fit to Window"), this);
+    _fitToWindowAction->setIcon(QIcon::fromTheme("zoom-fit-best"));
     _fitToWindowAction->setEnabled(false);
     _fitToWindowAction->setCheckable(true);
     _fitToWindowAction->setShortcut(tr("Ctrl+F"));
     connect(_fitToWindowAction, SIGNAL(triggered()), this, SLOT(fitToWindow()));
 
+    _toolBar->addAction(_saveAction);
     _toolBar->addAction(_zoomInAction);
     _toolBar->addAction(_zoomOutAction);
     _toolBar->addAction(_normalSizeAction);

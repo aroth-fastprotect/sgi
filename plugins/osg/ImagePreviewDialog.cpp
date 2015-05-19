@@ -15,6 +15,7 @@
 #include <osg/Geometry>
 #include <osg/Geode>
 #include <osgViewer/View>
+#include <osgDB/WriteFile>
 
 #include <sgi/plugins/SGISettingsDialogImpl>
 #include <sgi/plugins/SGIPluginMacros.h>
@@ -359,10 +360,13 @@ void ImagePreviewDialog::open()
 
 void ImagePreviewDialog::save()
 {
+    if(!_image.valid())
+        return;
+
     QString fileName = QFileDialog::getSaveFileName(this,
                                     tr("Save image file"), QDir::currentPath());
     if (!fileName.isEmpty()) {
-
+        osgDB::writeImageFile(*_image.get(), fileName.toStdString());
     }
 }
 

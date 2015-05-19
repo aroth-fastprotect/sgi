@@ -38,6 +38,7 @@ private slots:
 	void load(const QString & filename);
 	void load(const QImage * image);
     void load(const QPixmap * pixmap);
+    void save();
 
 private:
     void init();
@@ -53,6 +54,7 @@ private:
     ISettingsDialogPtr              _interface;
     QToolBar *                      _toolBar;
     double                          _scaleFactor;
+    QAction *                       _saveAction;
     QAction *                       _zoomInAction;
     QAction *                       _zoomOutAction;
     QAction *                       _normalSizeAction;
