@@ -85,6 +85,30 @@ bool objectTreeBuildImpl<QObject>::build(IObjectTreeItem * treeItem)
                 SGIHostItemQt threadItem(const_cast<QThread*>(thread));
                 treeItem->addChild("Thread", &threadItem);
             }
+
+            while(metaObject)
+            {
+                int propertyOffset = metaObject->propertyOffset();
+                int propertyCount = metaObject->propertyCount();
+                for (int i=propertyOffset; i<propertyCount; ++i)
+                {
+                    QMetaProperty metaproperty = metaObject->property(i);
+                    const char *name = metaproperty.name();
+                    const char *typeName = metaproperty.typeName();
+                    QVariant value = object->property(name);
+
+                    bool isQObject = value.canConvert<QObject*>();
+                    if(isQObject)
+                    {
+                        std::stringstream ss;
+                        ss << metaObject->className() << "::" << name;
+                        SGIHostItemQt item(value.value<QObject*>());
+                        treeItem->addChild(ss.str(), &item);
+                    }
+                }
+                metaObject = metaObject->superClass();
+            }
+
             ret = true;
         }
         break;

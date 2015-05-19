@@ -5,6 +5,7 @@
 #include <sgi/plugins/SGIItemBase.h>
 #include <QtCore/QSharedPointer>
 #include <QtGui/QPaintDevice>
+#include <QtGui/QIcon>
 
 class QObject;
 struct QMetaObject;
