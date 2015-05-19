@@ -1144,9 +1144,8 @@ bool objectTreeBuildImpl<osgEarth::Cache>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-
-
-            treeItem->addChild("Options", cloneItem<SGIItemOsg>(SGIItemTypeOptions));
+			SGIHostItemOsgEarthConfigOptions cacheOptions(object->getCacheOptions());
+			treeItem->addChild("Options", &cacheOptions);
 
             SGIHostItemOsg defaultBin(((CacheAccess*)object)->getDefaultBin());
             if(defaultBin.hasObject())

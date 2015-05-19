@@ -111,6 +111,8 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Image)
 
 using namespace osg_helpers;
 
+extern void writePrettyHTMLImplForDriverOptions(SGIPluginHostInterface * hostInterface, std::basic_ostream<char>& os, const osgEarth::DriverConfigOptions & opts);
+
 bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& os)
 {
     osgEarth::Registry * object = static_cast<osgEarth::Registry*>(item<SGIItemOsg>()->object());
