@@ -2064,7 +2064,7 @@ bool writePrettyHTMLImpl<osg::Shader>::process(std::basic_ostream<char>& os)
         {
             os << "<b>" << object->getTypename() << ":</b><br/>";
             os << "<pre>" << std::endl;
-            os << object->getShaderSource();
+            os << helpers::html_encode(object->getShaderSource());
             os << "</pre>" << std::endl;
             ret = true;
         }

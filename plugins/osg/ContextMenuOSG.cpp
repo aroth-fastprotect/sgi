@@ -1565,12 +1565,14 @@ bool contextMenuPopulateImpl<osg::Shader>::populate(IContextMenuItem * menuItem)
     switch(itemType())
     {
     case SGIItemTypeObject:
-    case SGIItemTypeShaderSource:
         ret = callNextHandler(menuItem);
         if(ret)
         {
             menuItem->addSimpleAction(MenuActionShaderEditSource, "Edit...", _item);
         }
+        break;
+    case SGIItemTypeShaderSource:
+        menuItem->addSimpleAction(MenuActionShaderEditSource, "Edit...", _item);
         break;
     default:
         ret = callNextHandler(menuItem);

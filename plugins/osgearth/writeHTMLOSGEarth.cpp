@@ -1333,11 +1333,11 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
                 os << "<table border=\'1\' align=\'left\'>";
                 const osgEarth::VirtualProgram::ShaderEntry & entry = it->second;
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
-                os << "<tr><td>shader</td><td>" << getObjectNameAndType(entry._shader.get()) << "</td></tr>";
+                os << "<tr><td>shader</td><td>" << getObjectNameAndType(entry._shader.get(), true) << "</td></tr>";
                 os << "<tr><td>override</td><td>" << glOverrideValueName(entry._overrideValue) << "</td></tr>";
                 os << "<tr><td>accept</td><td>" << getObjectNameAndType(entry._accept.get()) << "</td></tr>";
 #else
-                os << "<tr><td>shader</td><td>" << getObjectNameAndType(entry.first.get()) << "</td></tr>";
+                os << "<tr><td>shader</td><td>" << getObjectNameAndType(entry.first.get(), true) << "</td></tr>";
                 os << "<tr><td>override</td><td>" << glOverrideValueName(entry.second) << "</td></tr>";
 #endif
                 os << "</table>";
