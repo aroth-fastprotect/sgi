@@ -1444,6 +1444,14 @@ bool contextMenuPopulateImpl<osg::Texture>::populate(IContextMenuItem * menuItem
             menuItem->addSimpleAction(MenuActionTextureBorderWidth, "Border width...", _item);
             menuItem->addSimpleAction(MenuActionTextureBorderColor, "Border color...", _item);
 
+			IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+			if (manipulateMenu)
+			{
+				manipulateMenu->addSimpleAction(MenuActionTextureDirtyTextureObject, "Dirty texture object", _item);
+				manipulateMenu->addSimpleAction(MenuActionTextureDirtyTextureParameters, "Dirty texture parameters", _item);
+				manipulateMenu->addSimpleAction(MenuActionTextureAllocateMipmapLevels, "Allocate mipmap levels", _item);
+			}
+
             IContextMenuItem * minFilterMenu = menuItem->addModeMenu(MenuActionTextureSetMinFilter, "Min filter", _item, object->getFilter(osg::Texture::MIN_FILTER));
             if(minFilterMenu)
             {

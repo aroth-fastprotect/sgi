@@ -119,6 +119,10 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureSetResizeNonPowerOfTwoHint)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureUseHardwareMipMapGeneration)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureUnRefImageDataAfterApply)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureSetImage)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureDirtyTextureObject)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureDirtyTextureParameters)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureAllocateMipmapLevels)
+
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDrawableToggleDisabled)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionGeodeAddShapeDrawable)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionGeodeRenderInfoDrawable)
@@ -1311,6 +1315,30 @@ bool actionHandlerImpl<MenuActionTextureSetImage>::execute()
         }
     }
     return true;
+}
+
+bool actionHandlerImpl<MenuActionTextureDirtyTextureObject>::execute()
+{
+	osg::Texture * object = getObject<osg::Texture,SGIItemOsg>();
+	object->dirtyTextureObject();
+	triggerRepaint();
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionTextureDirtyTextureParameters>::execute()
+{
+	osg::Texture * object = getObject<osg::Texture,SGIItemOsg>();
+	object->dirtyTextureParameters();
+	triggerRepaint();
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionTextureAllocateMipmapLevels>::execute()
+{
+	osg::Texture * object = getObject<osg::Texture,SGIItemOsg>();
+	object->allocateMipmapLevels();
+	triggerRepaint();
+	return true;
 }
 
 bool actionHandlerImpl<MenuActionGeometryDirtyDisplayList>::execute()

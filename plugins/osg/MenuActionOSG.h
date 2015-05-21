@@ -100,6 +100,9 @@ enum MenuAction {
     MenuActionTextureUseHardwareMipMapGeneration,
     MenuActionTextureUnRefImageDataAfterApply,
     MenuActionTextureSetImage,
+	MenuActionTextureDirtyTextureObject,
+	MenuActionTextureDirtyTextureParameters,
+	MenuActionTextureAllocateMipmapLevels,
     MenuActionClipNodeReset,
     MenuActionClipNodeSetState,
     MenuActionGraphicsWindowHitTest,
@@ -230,6 +233,9 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionTextureSetResizeNonPowerOfTwoHint)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextureUseHardwareMipMapGeneration)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextureUnRefImageDataAfterApply)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextureSetImage)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionTextureDirtyTextureObject)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionTextureDirtyTextureParameters)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionTextureAllocateMipmapLevels)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionDrawableToggleDisabled)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionGeodeAddShapeDrawable)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionGeodeRenderInfoDrawable)
