@@ -862,6 +862,7 @@ bool objectTreeBuildImpl<osg::Camera>::build(IObjectTreeItem * treeItem)
                         treeItem->addChild("Texture", &texture);
                 }
             }
+			ret = true;
         }
         break;
     default:

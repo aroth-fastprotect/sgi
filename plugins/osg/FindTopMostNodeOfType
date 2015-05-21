@@ -11,30 +11,39 @@ namespace details {
     /**
      * Visitor that locates a node by its type
      */
-    template<typename T>
-    class FindTopMostNodeOfTypeVisitor : public osg::NodeVisitor
-    {
-    public:
-        FindTopMostNodeOfTypeVisitor():
-          osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN),
-              _foundNode(0)
-          {}
+	template<typename T>
+	class FindTopMostNodeOfTypeVisitor : public osg::NodeVisitor
+	{
+	public:
+		FindTopMostNodeOfTypeVisitor(osg::NodeVisitor::TraversalMode mode = osg::NodeVisitor::TRAVERSE_ALL_CHILDREN, unsigned traversalMask = ~0u)
+			: osg::NodeVisitor(mode)
+			, _foundNode(NULL)
+			, _excludedNode(NULL)
+		{
+			setTraversalMask(traversalMask);
+		}
 
-          void apply(osg::Node& node)
-          {
-              T* result = dynamic_cast<T*>(&node);
-              if (result)
-              {
-                  _foundNode = result;
-              }
-              else
-              {
-                  traverse(node);
-              }
-          }
+		void apply(osg::Node& node)
+		{
+			T* result = dynamic_cast<T*>(&node);
+			if (result && result != _excludedNode)
+			{
+				_foundNode = result;
+			}
+			else
+			{
+				traverse(node);
+			}
+		}
 
-          T* _foundNode;
-    };
+		T* foundNode() const { return _foundNode; }
+		T* excludedNode() const { return _excludedNode; }
+		void setExcludedNode(T * node) { _excludedNode = node; }
+		bool found() const { return _foundNode != NULL; }
+	private:
+		T* _foundNode;
+		T* _excludedNode;
+	};
 } // namespace details
 
 /**
@@ -42,16 +51,15 @@ namespace details {
  * that matches the template parameter type.
  */
 template<typename T>
-T* findFirstParentOfType(osg::Node* node, unsigned traversalMask =~0u)
+T* findFirstParentOfType(osg::Node* node, unsigned traversalMask =~0u, T * excludedNode=NULL)
 {
     if (!node) return 0;
 
-    details::FindTopMostNodeOfTypeVisitor<T> fnotv;
-    fnotv.setTraversalMode(osg::NodeVisitor::TRAVERSE_PARENTS);
-    fnotv.setTraversalMask(traversalMask);
+    details::FindTopMostNodeOfTypeVisitor<T> fnotv(osg::NodeVisitor::TRAVERSE_PARENTS, traversalMask);
+	fnotv.setExcludedNode(excludedNode);
     node->accept(fnotv);
 
-    return fnotv._foundNode;
+    return fnotv.foundNode();
 }
 
 } // namespace sgi
