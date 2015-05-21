@@ -316,34 +316,36 @@ void ImagePreviewDialog::load(const osg::Image * img)
 
 void ImagePreviewDialog::load(const osg::Texture * texture)
 {
-    const osg::Image * img = texture->getImage(0);
     renderTextureToQImage(const_cast<osg::Texture*>(texture));
     ui->imageLabel->setText(QString());
     ui->imageLabel->setPixmap(QPixmap());
 
     std::stringstream ss;
-	if(!img)
+	if(!texture)
 		ss << "(null)";
 	else
 	{
-		ss << "osg::Texture " << img->s() << "x" << img->t() << "x" << img->r();
-		ss << " [format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(img->getPixelFormat()) << ";mipmap=" << img->getNumMipmapLevels() << "]";
+		ss << "osg::Texture " << texture->getTextureWidth() << "x" << texture->getTextureHeight() << "x" << texture->getTextureDepth();
+		ss << " [target=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(texture->getTextureTarget());
+        ss << ";format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(texture->getInternalFormatMode());
+        ss << ";srcFormat=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(texture->getSourceFormat());
+        ss << "]";
 		ss << "\r\n";
 		ss << "Qt N/A";
 	}
 
-    QString imageInfo = QString::fromStdString(ss.str());
+    QString textureInfo = QString::fromStdString(ss.str());
     if(_labelText.isEmpty())
-        ui->label->setText(imageInfo);
+        ui->label->setText(textureInfo);
     else
-        ui->label->setText(_labelText + QString("\r\n") + imageInfo);
+        ui->label->setText(_labelText + QString("\r\n") + textureInfo);
     _scaleFactor = 1.0;
 
     _fitToWindowAction->setEnabled(true);
     _saveAction->setEnabled(true);
     updateToolbar();
 
-    setWindowTitle(tr("Image Viewer - %1").arg(QString::fromStdString(getObjectNameAndType(img))));
+    setWindowTitle(tr("Image Viewer - %1").arg(QString::fromStdString(getObjectNameAndType(texture))));
 
     if (!_fitToWindowAction->isChecked())
         ui->imageLabel->adjustSize();
@@ -486,9 +488,9 @@ void ImagePreviewDialog::adjustScrollBar(QScrollBar *scrollBar, double factor)
 //! [26]
 void ImagePreviewDialog::renderTextureToQImage(osg::Texture * texture)
 {
-    const osg::Image * image = texture->getNumImages()?texture->getImage(0):NULL;
-    float width = image?image->s():0.0f;
-    float height = image?image->t():0.0f;
+    Q_ASSERT(texture != NULL);
+    float width = texture->getTextureWidth();
+    float height = texture->getTextureHeight();
     osg::ref_ptr<osg::Geometry> textureQuad = osg::createTexturedQuadGeometry(osg::Vec3(0.0f,0.0f,0.0f),
                                                                                 osg::Vec3(width,0.0f,0.0f),
                                                                                 osg::Vec3(0.0f,0.0f,height),
@@ -500,11 +502,23 @@ void ImagePreviewDialog::renderTextureToQImage(osg::Texture * texture)
 
     osg::Node * parentNode = findFirstNode(const_cast<osg::Texture*>(texture));
     osg::Camera* parentCamera = findFirstParentOfType<osg::Camera>(parentNode);
-    osg::View * parentView = parentCamera?parentCamera->getView():NULL;
+    osg::View * parentView = NULL;
+    osg::GraphicsContext * gc = NULL;
+    while(parentCamera && (!parentView || !gc))
+    {
+        if(!parentView)
+            parentView = parentCamera?parentCamera->getView():NULL;
+        if(!gc)
+            gc = parentCamera?parentCamera->getGraphicsContext():NULL;
+
+        osg::Camera * nextParentCamera = findFirstParentOfType<osg::Camera>(parentCamera);
+        if(nextParentCamera == parentCamera)
+            break;
+        parentCamera = nextParentCamera;
+    }
 
     osg::ref_ptr<osg::Camera> camera = new osg::Camera;
 
-    osg::GraphicsContext * gc = parentCamera?parentCamera->getGraphicsContext():NULL;
     camera->setGraphicsContext(gc);
 
     // set the projection matrix
@@ -539,6 +553,7 @@ void ImagePreviewDialog::renderTextureToQImage(osg::Texture * texture)
 
     if(parentView)
     {
+        _textureCameraView = parentView;
         parentView->addSlave(camera, false);
         osgViewer::View * v = dynamic_cast<osgViewer::View*>(parentView);
         if(v)
@@ -549,6 +564,14 @@ void ImagePreviewDialog::renderTextureToQImage(osg::Texture * texture)
 void ImagePreviewDialog::emitTextureRendered(QImage qimg)
 {
     emit textureRendered(qimg);
+    if(_textureCameraView.valid())
+    {
+        unsigned index = _textureCameraView->findSlaveIndexForCamera(_textureCamera.get());
+        if(index < _textureCameraView->getNumSlaves())
+            _textureCameraView->removeSlave(index);
+    }
+    _textureCamera = NULL;
+    _textureCameraView = NULL;
 }
 
 void ImagePreviewDialog::textureReady(QImage qimg)

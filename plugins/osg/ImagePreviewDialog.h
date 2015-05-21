@@ -68,6 +68,7 @@ private:
     osg::ref_ptr<osg::Image>        _image;
     osg::ref_ptr<osg::Texture>      _texture;
     osg::ref_ptr<osg::Camera>       _textureCamera;
+    osg::ref_ptr<osg::View>         _textureCameraView;
     ISettingsDialogPtr              _interface;
     QToolBar *                      _toolBar;
     double                          _scaleFactor;
