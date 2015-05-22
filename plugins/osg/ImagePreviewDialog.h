@@ -37,6 +37,7 @@ public slots:
 
 private slots:
     void open();
+    void refresh();
     void save();
     void zoomIn();
     void zoomOut();
@@ -47,12 +48,15 @@ private slots:
     void load(const osg::Image * image);
     void load(const osg::Texture * texture);
 
-    void textureReady(QImage image);
+    void onTextureReady();
+    void onTextureRendered(QImage image);
 
 signals:
+    void textureReady();
     void textureRendered(QImage image);
 
 public:
+    void emitTextureReady(osg::Image * image);
     void emitTextureRendered(QImage image);
 
 private:
@@ -72,6 +76,7 @@ private:
     ISettingsDialogPtr              _interface;
     QToolBar *                      _toolBar;
     double                          _scaleFactor;
+    QAction *                       _refreshAction;
     QAction *                       _saveAction;
     QAction *                       _zoomInAction;
     QAction *                       _zoomOutAction;
