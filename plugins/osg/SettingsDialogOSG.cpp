@@ -51,6 +51,8 @@ bool settingsDialogCreateImpl<SettingsDialogImagePreview>::execute(ISettingsDial
         qtdialog = new ImagePreviewDialog(parent(), texture);
     else if(osg::HeightField* hf = dynamic_cast<osg::HeightField*>(object))
         qtdialog = NULL;
+    else if(osg::Camera * camera = dynamic_cast<osg::Camera*>(object))
+        qtdialog = new ImagePreviewDialog(parent(), camera);
     if(qtdialog)
         dialog = qtdialog->dialogInterface();
     return true;

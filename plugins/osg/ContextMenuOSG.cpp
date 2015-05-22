@@ -918,6 +918,8 @@ bool contextMenuPopulateImpl<osg::Camera>::populate(IContextMenuItem * menuItem)
         ret = callNextHandler(menuItem);
         if(ret)
         {
+            menuItem->addSimpleAction(MenuActionImagePreview, "Preview...", _item);
+            
             SGIHostItemOsg graphicscontext(object->getGraphicsContext());
             if(graphicscontext.hasObject())
                 menuItem->addMenu("Graphics context", &graphicscontext);

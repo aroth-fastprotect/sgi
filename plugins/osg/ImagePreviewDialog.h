@@ -25,6 +25,7 @@ class ImagePreviewDialog : public QDialog
     Q_OBJECT
 
 public:
+    ImagePreviewDialog(QWidget * parent, osg::Camera * camera);
 	ImagePreviewDialog(QWidget * parent, osg::Image * image);
     ImagePreviewDialog(QWidget * parent, osg::Texture * texture);
     virtual ~ImagePreviewDialog();
@@ -45,31 +46,34 @@ private slots:
     void fitToWindow();
 	void load(const QString & filename);
 	void load(const QImage * image);
-    void load(const osg::Image * image);
-    void load(const osg::Texture * texture);
+    void load(osg::Image * image);
+    void load(osg::Texture * texture);
+    void load(osg::Camera * camera);
 
     void onTextureReady();
-    void onTextureRendered(QImage image);
 
 signals:
     void textureReady();
-    void textureRendered(QImage image);
 
 public:
     void emitTextureReady(osg::Image * image);
-    void emitTextureRendered(QImage image);
 
 private:
+    void init();
     void createToolbar();
     void updateToolbar();
     void scaleImage(double factor);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
 
-    void renderTextureToQImage(osg::Texture * texture);
+    void updateImageAndLabel();
+
+    void renderCameraToImage(osg::Camera * camera);
+    void renderTextureToImage(osg::Texture * texture);
 
 private:
     Ui_ImagePreviewDialog *         ui;
     osg::ref_ptr<osg::Image>        _image;
+    osg::ref_ptr<osg::Camera>       _camera;
     osg::ref_ptr<osg::Texture>      _texture;
     osg::ref_ptr<osg::Camera>       _textureCamera;
     osg::ref_ptr<osg::View>         _textureCameraView;

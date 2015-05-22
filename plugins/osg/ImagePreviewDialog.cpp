@@ -169,37 +169,42 @@ osg::Node * findFirstNode(osg::StateAttribute * sa)
 ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, osg::Image * image)
     : QDialog(parent)
     , _image(image)
+    , _camera()
     , _texture()
     , _interface(new SettingsDialogImpl(this))
     , _scaleFactor(1.0)
 {
-    ui = new Ui_ImagePreviewDialog;
-    ui->setupUi( this );
-
-    connect(ui->buttonBox->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(reject()));
-    connect(this, &ImagePreviewDialog::textureRendered, this, &ImagePreviewDialog::onTextureRendered);
-    connect(this, &ImagePreviewDialog::textureReady, this, &ImagePreviewDialog::onTextureReady);
-
-    ui->imageLabel->setBackgroundRole(QPalette::Base);
-    ui->scrollArea->setBackgroundRole(QPalette::Dark);
-
-	createToolbar();
-
-    refresh();
+    init();
 }
 
 ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, osg::Texture * texture)
     : QDialog(parent)
     , _image()
+    , _camera()
     , _texture(texture)
     , _interface(new SettingsDialogImpl(this))
     , _scaleFactor(1.0)
+{
+    init();
+}
+
+ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, osg::Camera * camera)
+    : QDialog(parent)
+    , _image()
+    , _camera(camera)
+    , _texture()
+    , _interface(new SettingsDialogImpl(this))
+    , _scaleFactor(1.0)
+{
+    init();
+}
+
+void ImagePreviewDialog::init()
 {
     ui = new Ui_ImagePreviewDialog;
     ui->setupUi( this );
 
     connect(ui->buttonBox->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(reject()));
-	connect(this, &ImagePreviewDialog::textureRendered, this, &ImagePreviewDialog::onTextureRendered);
     connect(this, &ImagePreviewDialog::textureReady, this, &ImagePreviewDialog::onTextureReady);
 
     ui->imageLabel->setBackgroundRole(QPalette::Base);
@@ -284,73 +289,21 @@ void ImagePreviewDialog::load(const QImage * img)
 		ui->imageLabel->adjustSize();
 }
 
-void ImagePreviewDialog::load(const osg::Image * img)
+void ImagePreviewDialog::load(osg::Image * img)
 {
-    QImage qimg;
-    osgImageToQImage(img, &qimg);
-    ui->imageLabel->setText(QString());
-    ui->imageLabel->setPixmap(QPixmap::fromImage(qimg));
-
-    std::stringstream ss;
-    ss << "osg::Image " << img->s() << "x" << img->t() << "x" << img->r();
-    ss << " [format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(img->getPixelFormat()) << ";mipmap=" << img->getNumMipmapLevels() << "]";
-    ss << "\r\n";
-    ss << "Qt " << qimg.width() << "x" << qimg.height() << "x" << qimg.depth();
-    ss << " [format=" << qimg.format() << ";colors=" << qimg.colorCount() << "]";
-
-    QString imageInfo = QString::fromStdString(ss.str());
-    if(_labelText.isEmpty())
-        ui->label->setText(imageInfo);
-    else
-        ui->label->setText(_labelText + QString("\r\n") + imageInfo);
-    _scaleFactor = 1.0;
-
-    _fitToWindowAction->setEnabled(true);
-    _saveAction->setEnabled(true);
-    updateToolbar();
-
-    setWindowTitle(tr("Image Viewer - %1").arg(QString::fromStdString(getObjectNameAndType(img))));
-
-    if (!_fitToWindowAction->isChecked())
-        ui->imageLabel->adjustSize();
+    updateImageAndLabel();
 }
 
-void ImagePreviewDialog::load(const osg::Texture * texture)
+void ImagePreviewDialog::load(osg::Texture * texture)
 {
-    renderTextureToQImage(const_cast<osg::Texture*>(texture));
-    ui->imageLabel->setText(QString());
-    ui->imageLabel->setPixmap(QPixmap());
+    renderTextureToImage(texture);
+    updateImageAndLabel();
+}
 
-    std::stringstream ss;
-	if(!texture)
-		ss << "(null)";
-	else
-	{
-		ss << "osg::Texture " << texture->getTextureWidth() << "x" << texture->getTextureHeight() << "x" << texture->getTextureDepth();
-		ss << " [target=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(texture->getTextureTarget());
-        ss << ";format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(texture->getInternalFormatMode());
-        ss << ";srcFormat=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(texture->getSourceFormat());
-        ss << "]";
-		ss << "\r\n";
-		ss << "Qt N/A";
-	}
-
-    QString textureInfo = QString::fromStdString(ss.str());
-    if(_labelText.isEmpty())
-        ui->label->setText(textureInfo);
-    else
-        ui->label->setText(_labelText + QString("\r\n") + textureInfo);
-    _scaleFactor = 1.0;
-
-    _fitToWindowAction->setEnabled(true);
-    _saveAction->setEnabled(true);
-    _refreshAction->setEnabled(true);
-    updateToolbar();
-
-    setWindowTitle(tr("Image Viewer - %1").arg(QString::fromStdString(getObjectNameAndType(texture))));
-
-    if (!_fitToWindowAction->isChecked())
-        ui->imageLabel->adjustSize();
+void ImagePreviewDialog::load(osg::Camera * camera)
+{
+    renderCameraToImage(camera);
+    updateImageAndLabel();
 }
 
 void ImagePreviewDialog::open()
@@ -495,7 +448,7 @@ void ImagePreviewDialog::adjustScrollBar(QScrollBar *scrollBar, double factor)
                             + ((factor - 1) * scrollBar->pageStep()/2)));
 }
 //! [26]
-void ImagePreviewDialog::renderTextureToQImage(osg::Texture * texture)
+void ImagePreviewDialog::renderTextureToImage(osg::Texture * texture)
 {
     Q_ASSERT(texture != NULL);
     float width = texture->getTextureWidth();
@@ -577,21 +530,30 @@ void ImagePreviewDialog::renderTextureToQImage(osg::Texture * texture)
     }
 }
 
+void ImagePreviewDialog::renderCameraToImage(osg::Camera* camera)
+{
+    osg::GraphicsContext * gc = camera->getGraphicsContext();
+    GLenum buffer = gc ? (gc->getTraits()->doubleBuffer ? GL_BACK : GL_FRONT) : GL_BACK;
+    camera->setFinalDrawCallback(new WindowCaptureCallback(buffer, this));
+
+    osgViewer::View * view = dynamic_cast<osgViewer::View *>(camera->getView());
+    if(view)
+        view->requestRedraw();
+}
+
+
 void ImagePreviewDialog::emitTextureReady(osg::Image * image)
 {
     _image = image;
     emit textureReady();
 }
 
-void ImagePreviewDialog::emitTextureRendered(QImage qimg)
-{
-	emit textureRendered(qimg);
-}
-
 void ImagePreviewDialog::onTextureReady()
 {
     if(_textureCamera.valid())
         _textureCamera->setFinalDrawCallback(NULL);
+    else if(_camera.valid())
+        _camera->setFinalDrawCallback(NULL);
 
     if (_textureCameraView.valid())
     {
@@ -602,15 +564,19 @@ void ImagePreviewDialog::onTextureReady()
     _textureCamera = NULL;
     _textureCameraView = NULL;
 
+    updateImageAndLabel();
+}
+
+void ImagePreviewDialog::updateImageAndLabel()
+{
     QImage qimg;
-    osgImageToQImage(_image.get(), &qimg);
+    if(_image.valid())
+        osgImageToQImage(_image.get(), &qimg);
     ui->imageLabel->setText(QString());
     ui->imageLabel->setPixmap(QPixmap::fromImage(qimg));
 
     std::stringstream ss;
-    if (!_texture.valid())
-        ss << "(null)";
-    else
+    if (_texture.valid())
     {
         ss << "osg::Texture " << _texture->getTextureWidth() << "x" << _texture->getTextureHeight() << "x" << _texture->getTextureDepth();
         ss << " [target=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(_texture->getTextureTarget());
@@ -618,8 +584,21 @@ void ImagePreviewDialog::onTextureReady()
         ss << ";srcFormat=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(_texture->getSourceFormat());
         ss << "]";
         ss << "\r\n";
-        ss << "Qt " << qimg.width() << "x" << qimg.height() << "x" << qimg.depth();
+    }
+    if(_image.valid())
+    {
+        ss << "osg::Image " << _image->s() << "x" << _image->t() << "x" << _image->r();
+        ss << " [format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(_image->getPixelFormat()) << ";mipmap=" << _image->getNumMipmapLevels() << "]";
+        ss << "\r\n";
+    }
+    if(!qimg.isNull())
+    {
+        ss << "QImage " << qimg.width() << "x" << qimg.height() << "x" << qimg.depth();
         ss << " [format=" << qimg.format() << ";colors=" << qimg.colorCount() << "]";
+    }
+    else
+    {
+        ss << "QImage NULL";
     }
 
     QString imageInfo = QString::fromStdString(ss.str());
@@ -634,66 +613,29 @@ void ImagePreviewDialog::onTextureReady()
     _refreshAction->setEnabled(true);
     updateToolbar();
 
-    setWindowTitle(tr("Image Viewer - %1").arg(QString::fromStdString(getObjectNameAndType(_texture.get()))));
-
-    if (!_fitToWindowAction->isChecked())
-        ui->imageLabel->adjustSize();
-
-}
-
-void ImagePreviewDialog::onTextureRendered(QImage qimg)
-{
-	if(_textureCamera.valid())
-		_textureCamera->setFinalDrawCallback(NULL);
-
-	if (_textureCameraView.valid())
-	{
-		unsigned index = _textureCameraView->findSlaveIndexForCamera(_textureCamera.get());
-		if (index < _textureCameraView->getNumSlaves())
-			_textureCameraView->removeSlave(index);
-	}
-	_textureCamera = NULL;
-	_textureCameraView = NULL;
-
-    ui->imageLabel->setText(QString());
-    ui->imageLabel->setPixmap(QPixmap::fromImage(qimg));
-
-	std::stringstream ss;
-	if (!_texture.valid())
-		ss << "(null)";
-	else
-	{
-		ss << "osg::Texture " << _texture->getTextureWidth() << "x" << _texture->getTextureHeight() << "x" << _texture->getTextureDepth();
-		ss << " [target=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(_texture->getTextureTarget());
-		ss << ";format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(_texture->getInternalFormatMode());
-		ss << ";srcFormat=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(_texture->getSourceFormat());
-		ss << "]";
-		ss << "\r\n";
-		ss << "Qt " << qimg.width() << "x" << qimg.height() << "x" << qimg.depth();
-		ss << " [format=" << qimg.format() << ";colors=" << qimg.colorCount() << "]";
-	}
-
-    QString imageInfo = QString::fromStdString(ss.str());
-    if(_labelText.isEmpty())
-        ui->label->setText(imageInfo);
+    std::string objectName;
+    if(_texture.valid())
+        objectName = getObjectNameAndType(_texture.get());
+    else if(_camera.valid())
+        objectName = getObjectNameAndType(_camera.get());
+    else if(_image.valid())
+        objectName = getObjectNameAndType(_image.get());
     else
-        ui->label->setText(_labelText + QString("\r\n") + imageInfo);
-    _scaleFactor = 1.0;
+        objectName = "NULL";
 
-    _fitToWindowAction->setEnabled(true);
-    _saveAction->setEnabled(true);
-    updateToolbar();
-
-    setWindowTitle(tr("Image Viewer - %1").arg(QString::fromStdString(getObjectNameAndType(_texture.get()))));
+    setWindowTitle(tr("Image Viewer - %1").arg(QString::fromStdString(objectName)));
 
     if (!_fitToWindowAction->isChecked())
         ui->imageLabel->adjustSize();
+
 }
 
 void ImagePreviewDialog::refresh()
 {
     if(_texture.valid())
         load(_texture.get());
+    else if(_camera.valid())
+        load(_camera.get());
     else if(_image.valid())
         load(_image.get());
     else
