@@ -596,7 +596,7 @@ bool objectTreeBuildImpl<osg::Geometry>::build(IObjectTreeItem * treeItem)
 
             unsigned numPrimitiveSets = object->getNumPrimitiveSets();
             if(numPrimitiveSets)
-                treeItem->addChild(helpers::str_plus_count("PrimitiveSets", numPrimitiveSets), cloneItem<SGIItemOsg>(SGIItemTypeDrawablePrimitiveSetList));
+                treeItem->addChild(helpers::str_plus_count("PrimitiveSets", numPrimitiveSets), cloneItem<SGIItemOsg>(SGIItemTypePrimitiveSetList));
         }
         break;
     case SGIItemTypeDrawableTexCoordsList:
@@ -611,7 +611,7 @@ bool objectTreeBuildImpl<osg::Geometry>::build(IObjectTreeItem * treeItem)
             ret = true;
         }
         break;
-    case SGIItemTypeDrawablePrimitiveSetList:
+    case SGIItemTypePrimitiveSetList:
         {
             unsigned numPrimitiveSets = object->getNumPrimitiveSets();
             for(unsigned i = 0; i < numPrimitiveSets; i++)

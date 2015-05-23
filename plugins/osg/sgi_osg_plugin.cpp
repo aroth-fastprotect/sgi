@@ -364,18 +364,8 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeStateSetTextureAttributeLists);
         SGIITEMTYPE_NAME(SGIItemTypeStateSetUniformList);
         SGIITEMTYPE_NAME(SGIItemTypeParentalNodePath);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawables);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawable);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawableColors);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawableColorIndicies);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawableNormals);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawableNormalIndicies);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawableVertices);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawableVertexIndicies);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawableTexCoords);
         SGIITEMTYPE_NAME(SGIItemTypeDrawableTexCoordsList);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawableTexCoordIndicies);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawablePrimitiveSetList);
+        SGIITEMTYPE_NAME(SGIItemTypePrimitiveSetList);
 
         SGIITEMTYPE_NAME(SGIItemTypeGraphicsContextCameras);
         SGIITEMTYPE_NAME(SGIItemTypeGraphicsContextOperations);

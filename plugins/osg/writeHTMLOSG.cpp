@@ -1584,7 +1584,7 @@ bool writePrettyHTMLImpl<osg::Geometry>::process(std::basic_ostream<char>& os)
             ret = true;
         }
         break;
-    case SGIItemTypeDrawablePrimitiveSetList:
+    case SGIItemTypePrimitiveSetList:
         {
             os << "<ol>";
             unsigned numPrimitiveSets = object->getNumPrimitiveSets();
