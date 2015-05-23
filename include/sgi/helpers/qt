@@ -137,8 +137,8 @@ private:
 QString fromLocal8Bit(const std::string & str);
 std::string toLocal8Bit(const QString & str);
 std::string getObjectTypename(const QObject * object);
-std::string getObjectName(const QObject * object);
-std::string getObjectNameAndType(const QObject * object);
+std::string getObjectName(const QObject * object, bool includeAddr=false);
+std::string getObjectNameAndType(const QObject * object, bool includeAddr=false);
 
 inline sgi::Color qtColor(const QColor & c)
 {

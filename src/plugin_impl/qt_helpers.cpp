@@ -44,28 +44,45 @@ std::string getObjectTypename(const QObject * object)
     return meta?std::string(meta->className()):"(null)";
 }
 
-std::string getObjectName(const QObject * object)
+std::string getObjectName(const QObject * object, bool includeAddr)
 {
-    std::string ret = object?toLocal8Bit(object->objectName()):std::string("(null)");
-    if(ret.empty())
+    std::string ret;
+    if(includeAddr)
     {
         std::stringstream buf;
         buf << (void*)object;
+        if(object)
+        {
+            QString name = object->objectName();
+            if(!name.isEmpty())
+                buf << ' ' << toLocal8Bit(name);
+        }
         ret = buf.str();
+    }
+    else
+    {
+        ret = object?toLocal8Bit(object->objectName()):std::string("(null)");
+        if(ret.empty())
+        {
+            std::stringstream buf;
+            buf << (void*)object;
+            ret = buf.str();
+        }
     }
     return ret;
 }
 
-std::string getObjectNameAndType(const QObject * object)
+std::string getObjectNameAndType(const QObject * object, bool includeAddr)
 {
-std::string name = object?toLocal8Bit(object->objectName()):std::string("(null)");
-    std::stringstream buf;
-    if(name.empty())
-        buf << (void*)object;
+    std::string ret;
+    if(object)
+    {
+        std::stringstream buf;
+        buf << getObjectName(object, includeAddr) << " (" << getObjectTypename(object) << ")";
+        ret = buf.str();
+    }
     else
-        buf << name;
-    buf << " (" << getObjectTypename(object) << ")";
-    std::string ret = buf.str();
+        ret = "(null)";
     return ret;
 }
 

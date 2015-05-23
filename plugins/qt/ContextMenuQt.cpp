@@ -17,6 +17,7 @@ CONTEXT_MENU_POPULATE_IMPL_REGISTER(QWidget)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(QMetaObject)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(QPaintDevice)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(QImage)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(QIcon)
 
 using namespace sgi::qt_helpers;
 
@@ -160,6 +161,22 @@ bool contextMenuPopulateImpl<QImage>::populate(IContextMenuItem * menuItem)
         break;
     default:
         ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<QIcon>::populate(IContextMenuItem * menuItem)
+{
+    QIcon * object = getObject<QIcon,SGIItemQtIcon>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        menuItem->addSimpleAction(MenuActionImagePreview, "Preview...", _item);
+        ret = true;
+        break;
+    default:
         break;
     }
     return ret;

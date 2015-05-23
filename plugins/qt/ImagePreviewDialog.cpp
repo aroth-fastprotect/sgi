@@ -12,6 +12,7 @@
 #include <QImageWriter>
 
 #include <sgi/plugins/SGISettingsDialogImpl>
+#include <sgi/helpers/qt>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -20,10 +21,13 @@
 namespace sgi {
 namespace qt_plugin {
 
+using namespace sgi::qt_helpers;
+
 ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, QImage * image)
     : QDialog(parent)
     , _image(image)
     , _pixmap()
+    , _icon()
     , _interface(new SettingsDialogImpl(this))
     , _scaleFactor(1.0)
 {
@@ -34,6 +38,18 @@ ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, QPixmap * pixmap)
     : QDialog(parent)
     , _image()
     , _pixmap(pixmap)
+    , _icon()
+    , _interface(new SettingsDialogImpl(this))
+    , _scaleFactor(1.0)
+{
+    init();
+}
+
+ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, QIcon * icon)
+    : QDialog(parent)
+    , _image()
+    , _pixmap()
+    , _icon(icon)
     , _interface(new SettingsDialogImpl(this))
     , _scaleFactor(1.0)
 {
@@ -53,12 +69,7 @@ void ImagePreviewDialog::init()
 
     createToolbar();
 
-    setWindowTitle(tr("Image Viewer"));
-
-    if(_image)
-        load(_image.data());
-    else if(_pixmap)
-        load(_pixmap.data());
+    refresh();
 }
 
 ImagePreviewDialog::~ImagePreviewDialog()
@@ -93,6 +104,20 @@ void ImagePreviewDialog::save()
             writer.write(*_image.data());
         else if(_pixmap)
             writer.write(_pixmap->toImage());
+        else if(_icon)
+        {
+            QList<QSize> availableSizes = _icon->availableSizes();
+            if(!availableSizes.isEmpty())
+            {
+                QSize biggestSize = availableSizes.front();
+                foreach(const QSize & s, availableSizes)
+                {
+                    if(s.width() > biggestSize.width() || s.height() > biggestSize.height())
+                        biggestSize = s;
+                }
+                writer.write(_icon->pixmap(biggestSize).toImage());
+            }
+        }
     }
 }
 
@@ -123,58 +148,96 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, QImage::Forma
 
 void ImagePreviewDialog::load(const QImage * img)
 {
-    ui->imageLabel->setText(QString());
-	ui->imageLabel->setPixmap(QPixmap::fromImage(*img));
-
-    std::stringstream ss;
-    if(img->isNull())
-        ss << "Image is null";
-    else
-    {
-        ss << img->width() << "x" << img->height() << "x" << img->depth();
-        ss << " [format=" << img->format() << ";colors=" << img->colorCount() << ";bitPlaneCount=" << img->bitPlaneCount() << "]";
-    }
-
-    QString imageInfo = QString::fromStdString(ss.str());
-    if(_labelText.isEmpty())
-        ui->label->setText(imageInfo);
-    else
-        ui->label->setText(_labelText + QString("; ") + imageInfo);
-	_scaleFactor = 1.0;
-
-	_fitToWindowAction->setEnabled(true);
-	updateToolbar();
-
-	if (!_fitToWindowAction->isChecked())
-		ui->imageLabel->adjustSize();
+    updateImageAndLabel();
 }
 
 void ImagePreviewDialog::load(const QPixmap * pixmap)
 {
+    updateImageAndLabel();
+}
+
+void ImagePreviewDialog::load(const QIcon * icon)
+{
+    updateImageAndLabel();
+}
+
+void ImagePreviewDialog::refresh()
+{
+    if(_image)
+        load(_image.data());
+    else if(_pixmap)
+        load(_pixmap.data());
+    else if(_icon)
+        load(_icon.data());
+    else
+        setWindowTitle(tr("Image Viewer"));
+}
+
+void ImagePreviewDialog::updateImageAndLabel()
+{
     ui->imageLabel->setText(QString());
-    ui->imageLabel->setPixmap(*pixmap);
+    if(_image)
+        ui->imageLabel->setPixmap(QPixmap::fromImage(*_image.data()));
+    else if(_pixmap)
+        ui->imageLabel->setPixmap(*_pixmap.data());
+    else if(_icon)
+    {
+        QList<QSize> availableSizes = _icon->availableSizes();
+        if(!availableSizes.isEmpty())
+        {
+            QSize biggestSize = availableSizes.front();
+            foreach(const QSize & s, availableSizes)
+            {
+                if(s.width() > biggestSize.width() || s.height() > biggestSize.height())
+                    biggestSize = s;
+            }
+            ui->imageLabel->setPixmap(_icon->pixmap(biggestSize));
+        }
+    }
 
     std::stringstream ss;
-    if(pixmap->isNull())
-        ss << "Pixmap is null";
-    else
+    if(_image)
     {
-        ss << pixmap->width() << "x" << pixmap->height() << "x" << pixmap->depth();
-        ss << " [devtype=" << pixmap->devType() << ";alpha=" << pixmap->hasAlpha() << "]";
+        ss << "QImage " << _image->width() << "x" << _image->height() << "x" << _image->depth();
+        ss << " [format=" << _image->format() << ";colors=" << _image->colorCount() << ";bitPlaneCount=" << _image->bitPlaneCount() << "]";
+    }
+    if(_pixmap)
+    {
+        ss << "QPixmap " << _pixmap->width() << "x" << _pixmap->height() << "x" << _pixmap->depth();
+        ss << " [devtype=" << _pixmap->devType() << ";alpha=" << _pixmap->hasAlpha() << "]";
+    }
+    if(_icon)
+    {
+        ss << "QIcon " << _icon->name() << "\r\n";
     }
 
     QString imageInfo = QString::fromStdString(ss.str());
     if(_labelText.isEmpty())
         ui->label->setText(imageInfo);
     else
-        ui->label->setText(_labelText + QString("; ") + imageInfo);
+        ui->label->setText(_labelText + QString("\r\n") + imageInfo);
     _scaleFactor = 1.0;
 
     _fitToWindowAction->setEnabled(true);
+    _saveAction->setEnabled(true);
+    //_refreshAction->setEnabled(true);
     updateToolbar();
+
+    ss.clear();
+    if(_image)
+        ss << (void*)_image.data();
+    else if(_pixmap)
+        ss << (void*)_pixmap.data();
+    else if(_icon)
+        ss << (void*)_icon.data() << ' ' << toLocal8Bit(_icon->name());
+    else
+        ss << "NULL";
+
+    setWindowTitle(tr("Image Viewer - %1").arg(QString::fromStdString(ss.str())));
 
     if (!_fitToWindowAction->isChecked())
         ui->imageLabel->adjustSize();
+
 }
 
 //! [1]
