@@ -78,11 +78,12 @@ public:
             osg::notify(osg::NOTICE)<<"Error: GLES unable to do glReadBuffer"<<std::endl;
 #endif
 
-            osg::ref_ptr<osg::Image> image = new osg::Image;
+            osg::ref_ptr<osg::Image> image;
             OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
             osg::GraphicsContext* gc = renderInfo.getState()->getGraphicsContext();
             if (gc->getTraits())
             {
+                image = new osg::Image;
                 GLenum pixelFormat;
 
                 if (gc->getTraits()->alpha)
@@ -105,19 +106,16 @@ public:
                     }
                  }
 #endif
-//                int width = gc->getTraits()->width;
-//                int height = gc->getTraits()->height;
+                int width = gc->getTraits()->width;
+                int height = gc->getTraits()->height;
                 osg::Viewport* viewport = renderInfo.getCurrentCamera()->getViewport();
-                int width = viewport->width();
-                int height = viewport->height();
+                if(viewport)
+                {
+                    width = viewport->width();
+                    height = viewport->height();
+                }
 
-                //std::cout<<"Capture: size="<<width<<"x"<<height<<", format="<<(pixelFormat == GL_RGBA ? "GL_RGBA":"GL_RGB")<<std::endl;
-
-
-//                GLenum err1 = glGetError();
                 image->readPixels(0, 0, width, height, pixelFormat, GL_UNSIGNED_BYTE);
-//                GLenum err = glGetError();
-//                int i = err;
             }
 /*
             if (image.valid())
@@ -170,6 +168,7 @@ ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, osg::Image * image)
     : QDialog(parent)
     , _image(image)
     , _camera()
+    , _buffer(~0u)
     , _texture()
     , _interface(new SettingsDialogImpl(this))
     , _scaleFactor(1.0)
@@ -181,6 +180,7 @@ ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, osg::Texture * texture)
     : QDialog(parent)
     , _image()
     , _camera()
+    , _buffer(~0u)
     , _texture(texture)
     , _interface(new SettingsDialogImpl(this))
     , _scaleFactor(1.0)
@@ -188,10 +188,11 @@ ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, osg::Texture * texture)
     init();
 }
 
-ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, osg::Camera * camera)
+ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, osg::Camera * camera, unsigned buffer)
     : QDialog(parent)
     , _image()
     , _camera(camera)
+    , _buffer(buffer)
     , _texture()
     , _interface(new SettingsDialogImpl(this))
     , _scaleFactor(1.0)
@@ -464,6 +465,7 @@ void ImagePreviewDialog::renderTextureToImage(osg::Texture * texture)
 
     osg::Node * parentNode = findFirstNode(const_cast<osg::Texture*>(texture));
     osg::Camera* parentCamera = findFirstParentOfType<osg::Camera>(parentNode);
+    osg::Camera* gcCamera = NULL;
 	osg::View * parentViewBasic = NULL;
 	osgViewer::View * parentView = NULL;
     osg::GraphicsContext * gc = NULL;
@@ -476,7 +478,10 @@ void ImagePreviewDialog::renderTextureToImage(osg::Texture * texture)
 				parentView = dynamic_cast<osgViewer::View*>(parentViewBasic);
 		}
         if(!gc)
-            gc = parentCamera?parentCamera->getGraphicsContext():NULL;
+        {
+            gc = parentCamera->getGraphicsContext();
+            gcCamera = parentCamera;
+        }
 
         osg::Camera * nextParentCamera = findFirstParentOfType<osg::Camera>(parentCamera, ~0u, parentCamera);
         if(nextParentCamera == parentCamera)
@@ -505,7 +510,11 @@ void ImagePreviewDialog::renderTextureToImage(osg::Texture * texture)
 
     // draw subgraph after main camera view.
     camera->setRenderOrder(osg::Camera::POST_RENDER);
-    GLenum buffer = gc ? (gc->getTraits()->doubleBuffer ? GL_BACK : GL_FRONT) : GL_BACK;
+    GLenum buffer = 0;
+    if(_buffer == ~0u)
+        buffer = gc ? (gc->getTraits()->doubleBuffer ? GL_BACK : GL_FRONT) : GL_BACK;
+    else
+        buffer = _buffer;
     camera->setDrawBuffer(buffer);
     camera->setReadBuffer(buffer);
 
@@ -525,22 +534,45 @@ void ImagePreviewDialog::renderTextureToImage(osg::Texture * texture)
     {
         _textureCameraView = parentViewBasic;
         parentViewBasic->addSlave(camera.get(), false);
-        if(parentView)
-            parentView->requestRedraw();
+        requestRedraw(gcCamera);
     }
+}
+
+void ImagePreviewDialog::requestRedraw(osg::Camera * camera)
+{
+    osg::Camera* parentCamera = camera;
+    osg::View * viewBasic = NULL;
+    osgViewer::View * view = NULL;
+    osg::GraphicsContext * gc = NULL;
+    while(parentCamera && !view)
+    {
+        if(!view)
+        {
+            viewBasic = parentCamera?parentCamera->getView():NULL;
+            if(viewBasic)
+                view = dynamic_cast<osgViewer::View*>(viewBasic);
+        }
+        osg::Camera * nextParentCamera = findFirstParentOfType<osg::Camera>(parentCamera, ~0u, parentCamera);
+        if(nextParentCamera == parentCamera)
+            break;
+        parentCamera = nextParentCamera;
+    }
+    if(view)
+        view->requestRedraw();
 }
 
 void ImagePreviewDialog::renderCameraToImage(osg::Camera* camera)
 {
     osg::GraphicsContext * gc = camera->getGraphicsContext();
-    GLenum buffer = gc ? (gc->getTraits()->doubleBuffer ? GL_BACK : GL_FRONT) : GL_BACK;
+    GLenum buffer = 0;
+    if(_buffer == ~0u)
+        buffer = gc ? (gc->getTraits()->doubleBuffer ? GL_BACK : GL_FRONT) : GL_BACK;
+    else
+        buffer = _buffer;
     camera->setFinalDrawCallback(new WindowCaptureCallback(buffer, this));
 
-    osgViewer::View * view = dynamic_cast<osgViewer::View *>(camera->getView());
-    if(view)
-        view->requestRedraw();
+    requestRedraw(camera);
 }
-
 
 void ImagePreviewDialog::emitTextureReady(osg::Image * image)
 {
@@ -615,11 +647,11 @@ void ImagePreviewDialog::updateImageAndLabel()
 
     std::string objectName;
     if(_texture.valid())
-        objectName = getObjectNameAndType(_texture.get());
+        objectName = getObjectNameAndType(_texture.get(), true);
     else if(_camera.valid())
-        objectName = getObjectNameAndType(_camera.get());
+        objectName = getObjectNameAndType(_camera.get(), true);
     else if(_image.valid())
-        objectName = getObjectNameAndType(_image.get());
+        objectName = getObjectNameAndType(_image.get(), true);
     else
         objectName = "NULL";
 

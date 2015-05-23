@@ -940,6 +940,32 @@ bool contextMenuPopulateImpl<osg::Camera>::populate(IContextMenuItem * menuItem)
             menuItem->addSimpleAction(MenuActionCameraCullSettings, "Cull settings...", _item);
         }
         break;
+    case SGIItemTypeCameaBufferAttachments:
+        {
+            const osg::Camera::BufferAttachmentMap & bufferAttachmentMap = object->getBufferAttachmentMap();
+            if(_item->number() == ~0u)
+            {
+                for(auto it = bufferAttachmentMap.begin(); it != bufferAttachmentMap.end(); ++it)
+                {
+                    const osg::Camera::BufferComponent & buffercomponent = it->first;
+                    std::stringstream ss;
+                    ss << "Preview " << buffercomponent << "...";
+                    menuItem->addSimpleAction(MenuActionImagePreview, ss.str(), _item);
+                }
+            }
+            else
+            {
+                const osg::Camera::BufferComponent buffercomponent = (osg::Camera::BufferComponent)_item->number();
+                auto it = bufferAttachmentMap.find(buffercomponent);
+                if(it != bufferAttachmentMap.end())
+                {
+                    menuItem->addSimpleAction(MenuActionImagePreview, "Preview...", _item);
+                }
+            }
+            ret = true;
+        }
+        break;
+
     default:
         ret = callNextHandler(menuItem);
         break;
@@ -1382,7 +1408,7 @@ bool contextMenuPopulateImpl<osg::HeightField>::populate(IContextMenuItem * menu
         ret = callNextHandler(menuItem);
         if(ret)
         {
-            menuItem->addSimpleAction(MenuActionHeightFieldPreview, "Preview...", _item);
+            menuItem->addSimpleAction(MenuActionImagePreview, "Preview...", _item);
         }
         break;
     default:
@@ -1441,7 +1467,7 @@ bool contextMenuPopulateImpl<osg::Texture>::populate(IContextMenuItem * menuItem
         ret = callNextHandler(menuItem);
         if(ret)
         {
-            menuItem->addSimpleAction(MenuActionTexturePreview, "Preview...", _item);
+            menuItem->addSimpleAction(MenuActionImagePreview, "Preview...", _item);
             menuItem->addSimpleAction(MenuActionTextureSetImage, "Set image...", _item);
             menuItem->addSimpleAction(MenuActionTextureBorderWidth, "Border width...", _item);
             menuItem->addSimpleAction(MenuActionTextureBorderColor, "Border color...", _item);

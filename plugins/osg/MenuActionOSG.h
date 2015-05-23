@@ -90,8 +90,6 @@ enum MenuAction {
     MenuActionGeometryColor,
     MenuActionGeometryDirtyDisplayList,
     MenuActionImagePreview,
-    MenuActionHeightFieldPreview,
-    MenuActionTexturePreview,
     MenuActionTextureBorderWidth,
     MenuActionTextureBorderColor,
     MenuActionTextureSetMinFilter,
@@ -224,7 +222,6 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionMaterialSpecular)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionMaterialEmission)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionMaterialShininess)
 
-ACTION_HANDLER_IMPL_DECLARE(MenuActionTexturePreview)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextureBorderColor)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextureBorderWidth)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextureSetMinFilter)
@@ -246,7 +243,6 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionShapeBoxHalfLength)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionGeometryColor)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionGeometryDirtyDisplayList)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionImagePreview)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionHeightFieldPreview)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionBillboardMode)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTransformReferenceFrame)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionMatrixTransformEdit)

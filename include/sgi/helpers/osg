@@ -78,6 +78,8 @@ enum osgNodeMask { };
 // extra type for GL constants
 enum GLConstant { };
 
+typedef enum GLConstant GLEnum;
+
 // extra type for GL modes values
 enum GLModeValue { };
 enum GLModeOverrideValue { };

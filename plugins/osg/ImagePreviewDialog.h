@@ -25,7 +25,7 @@ class ImagePreviewDialog : public QDialog
     Q_OBJECT
 
 public:
-    ImagePreviewDialog(QWidget * parent, osg::Camera * camera);
+    ImagePreviewDialog(QWidget * parent, osg::Camera * camera, unsigned buffer);
 	ImagePreviewDialog(QWidget * parent, osg::Image * image);
     ImagePreviewDialog(QWidget * parent, osg::Texture * texture);
     virtual ~ImagePreviewDialog();
@@ -70,10 +70,13 @@ private:
     void renderCameraToImage(osg::Camera * camera);
     void renderTextureToImage(osg::Texture * texture);
 
+    void requestRedraw(osg::Camera * camera);
+
 private:
     Ui_ImagePreviewDialog *         ui;
     osg::ref_ptr<osg::Image>        _image;
     osg::ref_ptr<osg::Camera>       _camera;
+    unsigned                        _buffer;
     osg::ref_ptr<osg::Texture>      _texture;
     osg::ref_ptr<osg::Camera>       _textureCamera;
     osg::ref_ptr<osg::View>         _textureCameraView;

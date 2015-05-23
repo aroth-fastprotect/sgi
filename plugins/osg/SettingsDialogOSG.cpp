@@ -52,7 +52,7 @@ bool settingsDialogCreateImpl<SettingsDialogImagePreview>::execute(ISettingsDial
     else if(osg::HeightField* hf = dynamic_cast<osg::HeightField*>(object))
         qtdialog = NULL;
     else if(osg::Camera * camera = dynamic_cast<osg::Camera*>(object))
-        qtdialog = new ImagePreviewDialog(parent(), camera);
+        qtdialog = new ImagePreviewDialog(parent(), camera, _item->number());
     if(qtdialog)
         dialog = qtdialog->dialogInterface();
     return true;

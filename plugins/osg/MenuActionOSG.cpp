@@ -110,7 +110,6 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialSpecular)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialEmission)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialShininess)
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTexturePreview)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureBorderColor)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureBorderWidth)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureSetMinFilter)
@@ -133,7 +132,6 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeCenter)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeRotation)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeBoxHalfLength)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionImagePreview)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionHeightFieldPreview)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionBillboardMode)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTransformReferenceFrame)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionMatrixTransformEdit)
@@ -1213,21 +1211,6 @@ bool actionHandlerImpl<MenuActionMaterialShininess>::execute()
     return true;
 }
 
-bool actionHandlerImpl<MenuActionTexturePreview>::execute()
-{
-    osg::Texture * object = getObject<osg::Texture,SGIItemOsg>();
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogImagePreview, menu()->parentWidget());
-    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-    if(ret)
-    {
-        if(dialog.valid())
-            dialog->show();
-    }
-    return ret;
-}
-
 bool actionHandlerImpl<MenuActionTextureBorderColor>::execute()
 {
     osg::Texture * object = getObject<osg::Texture,SGIItemOsg>();
@@ -1370,21 +1353,6 @@ bool actionHandlerImpl<MenuActionGeometryColor>::execute()
 bool actionHandlerImpl<MenuActionImagePreview>::execute()
 {
     osg::Image * object = getObject<osg::Image,SGIItemOsg>();
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogImagePreview, menu()->parentWidget());
-    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-    if(ret)
-    {
-        if(dialog.valid())
-            dialog->show();
-    }
-    return ret;
-}
-
-bool actionHandlerImpl<MenuActionHeightFieldPreview>::execute()
-{
-    osg::HeightField * object = getObject<osg::HeightField,SGIItemOsg>();
     ISettingsDialogPtr dialog;
     bool ret;
     ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogImagePreview, menu()->parentWidget());
