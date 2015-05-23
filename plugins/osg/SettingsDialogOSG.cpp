@@ -43,18 +43,9 @@ bool settingsDialogCreateImpl<SettingsDialogObjectLogger>::execute(ISettingsDial
 
 bool settingsDialogCreateImpl<SettingsDialogImagePreview>::execute(ISettingsDialogPtr & dialog)
 {
-    osg::Object * object = getObject<osg::Object,SGIItemOsg>();
     ImagePreviewDialog * qtdialog = NULL;
-    if(osg::Image* image = dynamic_cast<osg::Image*>(object))
-        qtdialog = new ImagePreviewDialog(parent(), image);
-    else if(osg::Texture* texture = dynamic_cast<osg::Texture*>(object))
-        qtdialog = new ImagePreviewDialog(parent(), texture);
-    else if(osg::HeightField* hf = dynamic_cast<osg::HeightField*>(object))
-        qtdialog = NULL;
-    else if(osg::Camera * camera = dynamic_cast<osg::Camera*>(object))
-        qtdialog = new ImagePreviewDialog(parent(), camera, _item->number());
-    if(qtdialog)
-        dialog = qtdialog->dialogInterface();
+    qtdialog = new ImagePreviewDialog(parent(), _item.get());
+    dialog = qtdialog->dialogInterface();
     return true;
 }
 

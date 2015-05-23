@@ -1,0 +1,151 @@
+#pragma once
+
+#include <QDialog>
+#include "SGIItemBase.h"
+
+QT_BEGIN_NAMESPACE
+class QAction;
+class QLabel;
+class QToolBar;
+class QScrollBar;
+class QIcon;
+class QShowEvent;
+class Ui_ImagePreviewDialogBase;
+QT_END_NAMESPACE
+
+namespace sgi {
+
+class ISettingsDialog;
+typedef osg::ref_ptr<ISettingsDialog> ISettingsDialogPtr;
+
+class ImagePreviewDialogBase : public QDialog
+{
+    Q_OBJECT
+
+public:
+	ImagePreviewDialogBase(QWidget * parent, SGIItemBase * item);
+    virtual ~ImagePreviewDialogBase();
+
+public:
+    ISettingsDialog *   dialogInterface() { return _interface; }
+
+public slots:
+    void setLabel(const QString & label);
+
+protected:
+    virtual void updateImageAndLabel() = 0;
+    virtual void refreshImpl();
+    virtual bool openImpl(const QString & filename);
+    virtual bool saveImpl(const QString & filename);
+
+public slots:
+    void zoomIn();
+    void zoomOut();
+    void normalSize();
+    void fitToWindow();
+    void save();
+    void open();
+    void refresh();
+
+protected:
+    virtual void showEvent(QShowEvent * event);
+    void setImage(const QImage & image, const QString & name=QString(), const QString & infoText=QString());
+    void setImage(const QPixmap & pixmap, const QString & name=QString(), const QString & infoText=QString());
+
+    template<typename T, typename ItemType>
+    inline T * getObject()
+    {
+        return getObject<T, ItemType, StaticCaster>();
+    }
+    template<typename T, typename ItemType >
+    inline const T * getObject() const
+    {
+        return getObject<T, ItemType, StaticCaster>();
+    }
+    template<typename T, typename ItemType, template<typename, typename> class CasterT>
+    T * getObject()
+    {
+        typedef typename ItemType::ObjectType ObjectType;
+        ObjectType * obj = static_cast<const ItemType*>(_item.get())->object();
+        T * ret = CasterT<T, ObjectType>::cast(obj);
+        return ret;
+    }
+    template<typename T, typename ItemType, template<typename, typename> class CasterT>
+    const T * getObject() const
+    {
+        typedef typename ItemType::ObjectType ObjectType;
+        const ObjectType * obj = static_cast<const ItemType*>(_item.get())->object();
+        const T * ret = CasterT<const T, ObjectType>::cast(obj);
+        return ret;
+    }
+    template<typename T, typename ItemTypeFirst, typename ItemTypeSecond>
+    inline T * getObjectMulti()
+    {
+        return getObjectMulti<T, ItemTypeFirst, ItemTypeSecond, StaticCaster>();
+    }
+    template<typename T, typename ItemTypeFirst, typename ItemTypeSecond>
+    inline const T * getObjectMulti() const
+    {
+        return getObjectMulti<T, ItemTypeFirst, ItemTypeSecond, StaticCaster>();
+    }
+    template<typename T, typename ItemTypeFirst, typename ItemTypeSecond, template<typename, typename> class CasterT>
+    T * getObjectMulti()
+    {
+        T * ret = NULL;
+        if(ItemTypeFirst * first = dynamic_cast<ItemTypeFirst*>(_item.get()))
+        {
+            typedef typename ItemTypeFirst::ObjectType ObjectType;
+            ObjectType * obj = first->object();
+            ret = CasterT<T, ObjectType>::cast(obj);
+        }
+        else if(ItemTypeSecond * second = dynamic_cast<ItemTypeSecond*>(_item.get()))
+        {
+            typedef typename ItemTypeSecond::ObjectType ObjectType;
+            ObjectType * obj = second->object();
+            ret = CasterT<T, ObjectType>::cast(obj);
+        }
+        return ret;
+    }
+    template<typename T, typename ItemTypeFirst, typename ItemTypeSecond, template<typename, typename> class CasterT>
+    const T * getObjectMulti() const
+    {
+        const T * ret = NULL;
+        if(const ItemTypeFirst * first = dynamic_cast<const ItemTypeFirst*>(_item.get()))
+        {
+            typedef typename ItemTypeFirst::ObjectType ObjectType;
+            const ObjectType * obj = first->object();
+            ret = CasterT<const T, ObjectType>::cast(obj);
+        }
+        else if(const ItemTypeSecond * second = dynamic_cast<const ItemTypeSecond*>(_item.get()))
+        {
+            typedef typename ItemTypeSecond::ObjectType ObjectType;
+            const ObjectType * obj = second->object();
+            ret = CasterT<const T, ObjectType>::cast(obj);
+        }
+        return ret;
+    }
+
+private:
+    void init();
+    void createToolbar();
+    void updateToolbar();
+    void scaleImage(double factor);
+    void adjustScrollBar(QScrollBar *scrollBar, double factor);
+
+protected:
+    Ui_ImagePreviewDialogBase *     ui;
+    SGIItemBasePtr                  _item;
+    ISettingsDialogPtr              _interface;
+    QToolBar *                      _toolBar;
+    double                          _scaleFactor;
+    QAction *                       _refreshAction;
+    QAction *                       _saveAction;
+    QAction *                       _zoomInAction;
+    QAction *                       _zoomOutAction;
+    QAction *                       _normalSizeAction;
+    QAction *                       _fitToWindowAction;
+    QString                         _labelText;
+    bool                            _initialRefresh;
+};
+
+} // namespace sgi
