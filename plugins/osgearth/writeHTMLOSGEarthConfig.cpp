@@ -48,10 +48,10 @@ inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const 
 {
     if(!v.isSet())
     {
-        return os << "unset(" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(v.defaultValue()) << ")";
+        return os << "unset(" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(v.defaultValue()) << ")";
     }
     else
-        return os << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(v.value());
+        return os << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(v.value());
 }
 } // namespace std
 

@@ -1807,9 +1807,9 @@ bool writePrettyHTMLImpl<osg::PrimitiveSet>::process(std::basic_ostream<char>& o
             callNextHandler(os);
 
             // add remaining PrimitiveSet properties
-            os << "<tr><td>type</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getMode()) << "</td></tr>" << std::endl;
+            os << "<tr><td>type</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getMode()) << "</td></tr>" << std::endl;
             os << "<tr><td>numInstances</td><td>" << object->getNumInstances() << "</td></tr>" << std::endl;
-            os << "<tr><td>mode</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getMode()) << "</td></tr>" << std::endl;
+            os << "<tr><td>mode</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getMode()) << "</td></tr>" << std::endl;
             os << "<tr><td>data ptr</td><td>" << (void*)object->getDataPointer() << "</td></tr>" << std::endl;
             os << "<tr><td>total data size</td><td>" << object->getTotalDataSize() << "</td></tr>" << std::endl;
             os << "<tr><td>supportsBufferObject</td><td>" << (object->supportsBufferObject()?"true":"false") << "</td></tr>" << std::endl;
@@ -2206,11 +2206,11 @@ bool writePrettyHTMLImpl<osg::Image>::process(std::basic_ostream<char>& os)
             os << "<tr><td>origin</td><td>" << object->getOrigin() << "</td></tr>" << std::endl;
 
             os << "<tr><td>rowLength</td><td>" << object->getRowLength() << "</td></tr>" << std::endl;
-            os << "<tr><td>internalTextureFormat</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getInternalTextureFormat()) << "</td></tr>" << std::endl;
+            os << "<tr><td>internalTextureFormat</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getInternalTextureFormat()) << "</td></tr>" << std::endl;
             os << "<tr><td>isCompressedInternalFormat</td><td>" << (osg::Texture::isCompressedInternalFormat(object->getInternalTextureFormat())?"true":"false") << "</td></tr>" << std::endl;
 
-            os << "<tr><td>pixelFormat</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getPixelFormat()) << "</td></tr>" << std::endl;
-            os << "<tr><td>dataType</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDataType()) << "</td></tr>" << std::endl;
+            os << "<tr><td>pixelFormat</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getPixelFormat()) << "</td></tr>" << std::endl;
+            os << "<tr><td>dataType</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getDataType()) << "</td></tr>" << std::endl;
             os << "<tr><td>packing</td><td>" << object->getPacking() << "</td></tr>" << std::endl;
             os << "<tr><td>compressed</td><td>" << (object->isCompressed()?"true":"false") << "</td></tr>" << std::endl;
 
@@ -2576,13 +2576,13 @@ bool writePrettyHTMLImpl<osg::Texture>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>internal format mode</td><td>" << object->getInternalFormatMode() << "</td></tr>" << std::endl;
             os << "<tr><td>internal format type</td><td>" << object->getInternalFormatType() << "</td></tr>" << std::endl;
-            os << "<tr><td>internal format</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getInternalFormat()) << "</td></tr>" << std::endl;
-            os << "<tr><td>source format</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getSourceFormat()) << "</td></tr>" << std::endl;
-            os << "<tr><td>source type</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getSourceType()) << "</td></tr>" << std::endl;
+            os << "<tr><td>internal format</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getInternalFormat()) << "</td></tr>" << std::endl;
+            os << "<tr><td>source format</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSourceFormat()) << "</td></tr>" << std::endl;
+            os << "<tr><td>source type</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSourceType()) << "</td></tr>" << std::endl;
 
             os << "<tr><td>shadowComparison</td><td>" << (object->getShadowComparison()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>shadow texture mode</td><td>" << object->getShadowTextureMode() << "</td></tr>" << std::endl;
-            os << "<tr><td>shadow compare function</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getShadowCompareFunc()) << "</td></tr>" << std::endl;
+            os << "<tr><td>shadow compare function</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getShadowCompareFunc()) << "</td></tr>" << std::endl;
             os << "<tr><td>shadow ambient</td><td>" << object->getShadowAmbient() << "</td></tr>" << std::endl;
 
             os << "<tr><td>areAllTextureObjectsLoaded</td><td>" << (object->areAllTextureObjectsLoaded()?"true":"false") << "</td></tr>" << std::endl;
@@ -2790,7 +2790,7 @@ bool writePrettyHTMLImpl<osg::Material>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add remaining Material properties
-            os << "<tr><td>color mode</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getColorMode()) << "</td></tr>" << std::endl;
+            os << "<tr><td>color mode</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getColorMode()) << "</td></tr>" << std::endl;
 
             osg::Material::Face faces[3] = { osg::Material::FRONT, osg::Material::BACK, osg::Material::FRONT_AND_BACK };
             const char * faceNames[3] = { "front", "back", "front+back" };
@@ -3264,12 +3264,12 @@ bool writePrettyHTMLImpl<osg::BlendFunc>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add remaining BlendFunc properties
-            os << "<tr><td>source</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getSource()) << "</td></tr>" << std::endl;
-            os << "<tr><td>source rgb</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getSourceRGB()) << "</td></tr>" << std::endl;
-            os << "<tr><td>source alpha</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getSourceAlpha()) << "</td></tr>" << std::endl;
-            os << "<tr><td>destination</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDestination()) << "</td></tr>" << std::endl;
-            os << "<tr><td>destination rgb</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDestinationRGB()) << "</td></tr>" << std::endl;
-            os << "<tr><td>destination alpha</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDestinationAlpha()) << "</td></tr>" << std::endl;
+            os << "<tr><td>source</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSource()) << "</td></tr>" << std::endl;
+            os << "<tr><td>source rgb</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSourceRGB()) << "</td></tr>" << std::endl;
+            os << "<tr><td>source alpha</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSourceAlpha()) << "</td></tr>" << std::endl;
+            os << "<tr><td>destination</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getDestination()) << "</td></tr>" << std::endl;
+            os << "<tr><td>destination rgb</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getDestinationRGB()) << "</td></tr>" << std::endl;
+            os << "<tr><td>destination alpha</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getDestinationAlpha()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -4020,7 +4020,7 @@ void writePrettyHTMLStateSetModeList(std::basic_ostream<char>& os, const SGIItem
         {
             const osg::StateAttribute::GLMode & mode = it->first;
             const osg::StateAttribute::GLModeValue & value = it->second;
-            os << "<li>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(mode) << "=" << glValueName(value) << "</li>";
+            os << "<li>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(mode) << "=" << glValueName(value) << "</li>";
         }
         os << "</ol>" << std::endl;
     }
@@ -4052,7 +4052,7 @@ void writePrettyHTMLStateSetTextureModeList(std::basic_ostream<char>& os, const 
                         const osg::StateAttribute::GLMode & mode = it2->first;
                         const osg::StateAttribute::GLModeValue & value = it2->second;
                         os << "<li>Unit #" << count << ":&nbsp;";
-                        os << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(mode) << "=" << glValueName(value);
+                        os << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(mode) << "=" << glValueName(value);
                         os << "</li>";
                     }
                 }
@@ -4544,8 +4544,8 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
             os << "<tr><td>renderOrderNum</td><td>" << object->getRenderOrderNum() << "</td></tr>" << std::endl;
             os << "<tr><td>renderTargetImpl</td><td>" << object->getRenderTargetImplementation() << "</td></tr>" << std::endl;
             os << "<tr><td>renderTargetFallback</td><td>" << object->getRenderTargetFallback() << "</td></tr>" << std::endl;
-            os << "<tr><td>drawBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDrawBuffer()) << "</td></tr>" << std::endl;
-            os << "<tr><td>readBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getReadBuffer()) << "</td></tr>" << std::endl;
+            os << "<tr><td>drawBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getDrawBuffer()) << "</td></tr>" << std::endl;
+            os << "<tr><td>readBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getReadBuffer()) << "</td></tr>" << std::endl;
             os << "<tr><td>projResizePolicy</td><td>" << object->getProjectionResizePolicy() << "</td></tr>" << std::endl;
 
             os << "<tr><td>bufferAttachmentMap</td><td><ul>";
@@ -5755,7 +5755,7 @@ bool writePrettyHTMLImpl<osg::Array>::process(std::basic_ostream<char>& os)
 
             // remaining Array properties
             os << "<tr><td>type</td><td>" << object->getType() << "</td></tr>" << std::endl;
-            os << "<tr><td>dataType</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDataType()) << "</td></tr>" << std::endl;
+            os << "<tr><td>dataType</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getDataType()) << "</td></tr>" << std::endl;
             os << "<tr><td>dataSize</td><td>" << object->getDataSize() << "</td></tr>" << std::endl;
             os << "<tr><td>totalDataSize</td><td>" << object->getTotalDataSize() << "</td></tr>" << std::endl;
             os << "<tr><td>numElements</td><td>" << object->getNumElements() << "</td></tr>" << std::endl;
@@ -5855,8 +5855,8 @@ bool writePrettyHTMLImpl<osg::BufferObject>::process(std::basic_ostream<char>& o
             // add osg::Array properties first
             callNextHandler(os);
 
-            os << "<tr><td>target</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getTarget()) << "</td></tr>" << std::endl;
-            os << "<tr><td>usage</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getUsage()) << "</td></tr>" << std::endl;
+            os << "<tr><td>target</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getTarget()) << "</td></tr>" << std::endl;
+            os << "<tr><td>usage</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getUsage()) << "</td></tr>" << std::endl;
             os << "<tr><td>size</td><td>" << object->getProfile()._size << "</td></tr>" << std::endl;
             os << "<tr><td>numBufferData</td><td>" << object->getNumBufferData() << "</td></tr>" << std::endl;
 

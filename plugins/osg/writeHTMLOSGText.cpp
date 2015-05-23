@@ -42,8 +42,8 @@ bool writePrettyHTMLImpl<osgText::Font>::process(std::basic_ostream<char>& os)
             os << "<tr><td>glyphImageMargin</td><td>" << object->getGlyphImageMargin() << "</td></tr>" << std::endl;
             os << "<tr><td>glyphImageMarginRatio</td><td>" << object->getGlyphImageMarginRatio() << "</td></tr>" << std::endl;
 
-            os << "<tr><td>minFilterHint</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getMinFilterHint()) << "</td></tr>" << std::endl;
-            os << "<tr><td>magFilterHint</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getMagFilterHint()) << "</td></tr>" << std::endl;
+            os << "<tr><td>minFilterHint</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getMinFilterHint()) << "</td></tr>" << std::endl;
+            os << "<tr><td>magFilterHint</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getMagFilterHint()) << "</td></tr>" << std::endl;
             os << "<tr><td>fontDepth</td><td>" << object->getFontDepth() << "</td></tr>" << std::endl;
             os << "<tr><td>numberCurveSamples</td><td>" << object->getNumberCurveSamples() << "</td></tr>" << std::endl;
 

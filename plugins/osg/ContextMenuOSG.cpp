@@ -154,7 +154,7 @@ namespace {
     }
     static void addStateSetModeMenu(IContextMenuItem * menuItem, osg::StateAttribute::GLMode mode, SGIItemBase * item)
     {
-        std::string name = sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(mode);
+        std::string name = sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(mode);
         StateAttributeModeValue currentMode = getStateAttributeModeFromObject(static_cast<osg::Object*>(static_cast<SGIItemOsg*>(item)->object()), mode);
         createStateAttributeModeMenu(MenuActionStateSetMode, mode, menuItem, name, item, currentMode);
     }

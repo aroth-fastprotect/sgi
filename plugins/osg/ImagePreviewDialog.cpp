@@ -611,16 +611,16 @@ void ImagePreviewDialog::updateImageAndLabel()
     if (_texture.valid())
     {
         ss << "osg::Texture " << _texture->getTextureWidth() << "x" << _texture->getTextureHeight() << "x" << _texture->getTextureDepth();
-        ss << " [target=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(_texture->getTextureTarget());
-        ss << ";format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(_texture->getInternalFormatMode());
-        ss << ";srcFormat=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(_texture->getSourceFormat());
+        ss << " [target=" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(_texture->getTextureTarget());
+        ss << ";format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(_texture->getInternalFormatMode());
+        ss << ";srcFormat=" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(_texture->getSourceFormat());
         ss << "]";
         ss << "\r\n";
     }
     if(_image.valid())
     {
         ss << "osg::Image " << _image->s() << "x" << _image->t() << "x" << _image->r();
-        ss << " [format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(_image->getPixelFormat()) << ";mipmap=" << _image->getNumMipmapLevels() << "]";
+        ss << " [format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(_image->getPixelFormat()) << ";mipmap=" << _image->getNumMipmapLevels() << "]";
         ss << "\r\n";
     }
     if(!qimg.isNull())

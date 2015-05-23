@@ -77,9 +77,9 @@ bool writePrettyHTMLImpl<osgUtil::RenderStage>::process(std::basic_ostream<char>
             callNextHandler(os);
 
             // add remaining osgUtil::RenderStage properties
-            os << "<tr><td>drawBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDrawBuffer()) << "</td></tr>" << std::endl;
+            os << "<tr><td>drawBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getDrawBuffer()) << "</td></tr>" << std::endl;
             os << "<tr><td>drawBufferApplyMask</td><td>" << (object->getDrawBufferApplyMask()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>readBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getReadBuffer()) << "</td></tr>" << std::endl;
+            os << "<tr><td>readBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getReadBuffer()) << "</td></tr>" << std::endl;
             os << "<tr><td>readBufferApplyMask</td><td>" << (object->getReadBufferApplyMask()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>clearMask</td><td>0x" << std::hex << object->getClearMask() << std::dec << "</td></tr>" << std::endl;
             os << "<tr><td>clearColor</td><td>" << vec4fToHtmlColor(object->getClearColor()) << "</td></tr>" << std::endl;
@@ -87,8 +87,8 @@ bool writePrettyHTMLImpl<osgUtil::RenderStage>::process(std::basic_ostream<char>
             os << "<tr><td>clearDepth</td><td>" << object->getClearDepth() << "</td></tr>" << std::endl;
             os << "<tr><td>clearStencil</td><td>" << object->getClearStencil() << "</td></tr>" << std::endl;
             os << "<tr><td>cameraRequiresSetUp</td><td>" << (object->getCameraRequiresSetUp()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>imageReadPixelFormat</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getImageReadPixelFormat()) << "</td></tr>" << std::endl;
-            os << "<tr><td>imageReadPixelDataType</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getImageReadPixelDataType()) << "</td></tr>" << std::endl;
+            os << "<tr><td>imageReadPixelFormat</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getImageReadPixelFormat()) << "</td></tr>" << std::endl;
+            os << "<tr><td>imageReadPixelDataType</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getImageReadPixelDataType()) << "</td></tr>" << std::endl;
             os << "<tr><td>disableFboAfterRender</td><td>" << (object->getDisableFboAfterRender()?"true":"false") << "</td></tr>" << std::endl;
 
             if(_table)

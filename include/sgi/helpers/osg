@@ -75,10 +75,8 @@ inline std::string vec4fToHtmlColor( const T& c )
 // create an empty enum for the string representation of the
 // osg::NodeMask (which is a typedef to unsigned int).
 enum osgNodeMask { };
-// extra type for GL constants
-enum GLConstant { };
-
-typedef enum GLConstant GLEnum;
+// extra type for GL enums
+enum GLEnum { };
 
 // extra type for GL modes values
 enum GLModeValue { };
