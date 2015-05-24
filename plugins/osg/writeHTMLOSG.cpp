@@ -4583,12 +4583,12 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
         break;
     case SGIItemTypeCameaBufferAttachments:
         {
-            if(_table)
-                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
             const osg::Camera::BufferAttachmentMap & bufferAttachmentMap = object->getBufferAttachmentMap();
             if(_item->number() == ~0u)
             {
+                if(_table)
+                    os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
                 for(auto it = bufferAttachmentMap.begin(); it != bufferAttachmentMap.end(); ++it)
                 {
                     const osg::Camera::BufferComponent & buffercomponent = it->first;
@@ -4605,7 +4605,9 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
             else
             {
                 const osg::Camera::BufferComponent buffercomponent = (osg::Camera::BufferComponent)_item->number();
-                os << "<tr><td>Buffer component</td><td>" << buffercomponent << "</td><td>";
+                os << buffercomponent << "<br/>";
+                if(_table)
+                    os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
                 auto it = bufferAttachmentMap.find(buffercomponent);
                 if(it != bufferAttachmentMap.end())
                 {

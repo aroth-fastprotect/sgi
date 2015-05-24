@@ -161,6 +161,7 @@ osg::Node * findFirstNode(osg::StateAttribute * sa)
 ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, SGIItemBase * item)
     : ImagePreviewDialogBase(parent, item)
 {
+    connect(this, &ImagePreviewDialog::textureReady, this, &ImagePreviewDialog::onTextureReady);
 }
 
 ImagePreviewDialog::~ImagePreviewDialog()
@@ -342,6 +343,7 @@ void ImagePreviewDialog::updateImageAndLabel()
 
     QString info;
     std::stringstream ss;
+    bool emptyText = true;
     if (texture)
     {
         ss << "osg::Texture " << texture->getTextureWidth() << "x" << texture->getTextureHeight() << "x" << texture->getTextureDepth();
@@ -349,19 +351,23 @@ void ImagePreviewDialog::updateImageAndLabel()
         ss << ";format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(texture->getInternalFormatMode());
         ss << ";srcFormat=" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(texture->getSourceFormat());
         ss << "]";
-        ss << "\r\n";
+        emptyText = false;
     }
     if(image)
     {
+        if(!emptyText)
+            ss << "\r\n";
         ss << "osg::Image " << image->s() << "x" << image->t() << "x" << image->r();
         ss << " [format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(image->getPixelFormat()) << ";mipmap=" << image->getNumMipmapLevels() << "]";
-        ss << "\r\n";
+        emptyText = false;
     }
     else if(_image.valid())
     {
+        if(!emptyText)
+            ss << "\r\n";
         ss << "osg::Image " << _image->s() << "x" << _image->t() << "x" << _image->r();
         ss << " [format=" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(_image->getPixelFormat()) << ";mipmap=" << _image->getNumMipmapLevels() << "]";
-        ss << "\r\n";
+        emptyText = false;
     }
 
     ImagePreviewDialogBase::setImage(qimg, qt_helpers::fromLocal8Bit(objectName), qt_helpers::fromLocal8Bit(ss.str()));

@@ -96,10 +96,38 @@ void ImagePreviewDialogBase::refreshImpl()
     updateImageAndLabel();
 }
 
+void ImagePreviewDialogBase::setImageInfo(const QString & name, const QString & infoText)
+{
+    if(_labelText.isEmpty())
+        ui->label->setText(infoText);
+    else
+        ui->label->setText(_labelText + QString("\r\n") + infoText);
+
+    const QPixmap * p = ui->label->pixmap();
+    int width = p?p->width():0;
+    int height = p?p->height():0;
+    ui->scrollArea->horizontalScrollBar()->setMaximum(width);
+    ui->scrollArea->verticalScrollBar()->setMaximum(height);
+    ui->scrollArea->horizontalScrollBar()->setPageStep((width/10));
+    ui->scrollArea->verticalScrollBar()->setMaximum((height/10));
+    ui->scrollArea->horizontalScrollBar()->setValue(0);
+    ui->scrollArea->verticalScrollBar()->setValue(0);
+
+    _fitToWindowAction->setEnabled(true);
+
+    if (_fitToWindowAction->isChecked())
+        fitToWindow();
+    else
+        normalSize();
+
+    updateToolbar();
+    setWindowTitle(tr("Image Viewer - %1").arg(name));
+}
+
 void ImagePreviewDialogBase::setImage(const QImage & image, const QString & name, const QString & infoText)
 {
     ui->imageLabel->setText(QString());
-    if(image.isNull())
+    if(!image.isNull())
         ui->imageLabel->setPixmap(QPixmap::fromImage(image));
     else
         ui->imageLabel->setPixmap(QPixmap());
@@ -116,30 +144,14 @@ void ImagePreviewDialogBase::setImage(const QImage & image, const QString & name
         ss << "QImage NULL";
 
     QString imageInfo = QString::fromStdString(ss.str());
-    if(_labelText.isEmpty())
-        ui->label->setText(imageInfo);
-    else
-        ui->label->setText(_labelText + QString("\r\n") + imageInfo);
-    _scaleFactor = 1.0;
-
-    _fitToWindowAction->setEnabled(true);
-    _saveAction->setEnabled(true);
-    //_refreshAction->setEnabled(true);
-
-    if (!_fitToWindowAction->isChecked())
-        ui->imageLabel->adjustSize();
-
-    updateToolbar();
-
-    if(name.isEmpty())
+    QString imageName = name;
+    if(imageName.isEmpty())
     {
         ss.clear();
         ss << (void*)&image;
-        setWindowTitle(tr("Image Viewer - %1").arg(QString::fromStdString(ss.str())));
+        imageName = QString::fromStdString(ss.str());
     }
-    else
-        setWindowTitle(tr("Image Viewer - NULL").arg(QString::fromStdString(ss.str())));
-
+    setImageInfo(imageName, imageInfo);
 }
 
 void ImagePreviewDialogBase::setImage(const QPixmap & pixmap, const QString & name, const QString & infoText)
@@ -162,30 +174,14 @@ void ImagePreviewDialogBase::setImage(const QPixmap & pixmap, const QString & na
         ss << "QPixmap NULL";
 
     QString imageInfo = QString::fromStdString(ss.str());
-    if(_labelText.isEmpty())
-        ui->label->setText(imageInfo);
-    else
-        ui->label->setText(_labelText + QString("\r\n") + imageInfo);
-    _scaleFactor = 1.0;
-
-    _fitToWindowAction->setEnabled(true);
-    _saveAction->setEnabled(true);
-    //_refreshAction->setEnabled(true);
-
-    if (!_fitToWindowAction->isChecked())
-        ui->imageLabel->adjustSize();
-
-    updateToolbar();
-
-    if(name.isEmpty())
+    QString imageName = name;
+    if(imageName.isEmpty())
     {
         ss.clear();
         ss << (void*)&pixmap;
-        setWindowTitle(tr("Image Viewer - %1").arg(QString::fromStdString(ss.str())));
+        imageName = QString::fromStdString(ss.str());
     }
-    else
-        setWindowTitle(tr("Image Viewer - NULL").arg(QString::fromStdString(ss.str())));
-
+    setImageInfo(imageName, imageInfo);
 }
 
 //! [9]
@@ -233,13 +229,13 @@ void ImagePreviewDialogBase::createToolbar()
     _refreshAction = new QAction(tr("&Refresh"), this);
     _refreshAction->setIcon(QIcon::fromTheme("view-refresh"));
     _refreshAction->setShortcut(tr("F5"));
-    _refreshAction->setEnabled(false);
+    _refreshAction->setEnabled(_item.valid());
     connect(_refreshAction, SIGNAL(triggered()), this, SLOT(refresh()));
 
     _saveAction = new QAction(tr("&Save..."), this);
     _saveAction->setIcon(QIcon::fromTheme("document-save"));
     _saveAction->setShortcut(tr("Ctrl+S"));
-    _saveAction->setEnabled(false);
+    _saveAction->setEnabled(_item.valid());
     connect(_saveAction, SIGNAL(triggered()), this, SLOT(save()));
 
     _zoomInAction = new QAction(tr("Zoom &In (25%)"), this);
