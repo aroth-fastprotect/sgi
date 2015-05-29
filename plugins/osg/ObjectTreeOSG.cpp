@@ -161,10 +161,6 @@ bool objectTreeBuildImpl<osg::Referenced>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg observerSet(object->getObserverSet());
             if(observerSet.hasObject())
                 treeItem->addChild("ObserverSet", &observerSet);
-
-            bool hasCallback = false;
-            if(objectInfo_hasCallback(_hostInterface, hasCallback, _item->rootBase()) && hasCallback)
-                treeItem->addChildIfNotExists("Callbacks", _item->rootBase()->clone<SGIItemOsg>(SGIItemTypeCallbacks));
         }
         break;
     }
@@ -265,12 +261,9 @@ bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
         {
             unsigned numParents = object->getNumParents();
             if(numParents)
-                treeItem->addChild(helpers::str_plus_count("Parents", numParents), cloneItem<SGIItemOsg>(SGIItemTypeParents));
-
-            if(numParents)
             {
-                const osg::NodePathList parentalNodePaths = object->getParentalNodePaths();
-                treeItem->addChild(helpers::str_plus_count("ParentNodePaths", parentalNodePaths.size()), cloneItem<SGIItemOsg>(SGIItemTypeParentalNodePath, ~0u));
+                treeItem->addChild(helpers::str_plus_count("Parents", numParents), cloneItem<SGIItemOsg>(SGIItemTypeParents));
+                treeItem->addChild(helpers::str_plus_count("ParentNodePaths", numParents), cloneItem<SGIItemOsg>(SGIItemTypeParentalNodePath, ~0u));
             }
 
             SGIHostItemOsg stateSet(object->getStateSet());
