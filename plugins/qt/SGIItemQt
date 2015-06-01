@@ -79,10 +79,12 @@ public:
 
     SGIItemQtMeta(const HostItemType * hostItem=NULL, SGIItemType type=SGIItemTypeInvalid, QMetaObject * object=NULL, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
         : SGIItemBase(type, flags, score, userData), _object(object) {}
-    SGIItemQtMeta(const SGIItemQtMeta & rhs)
-        : SGIItemBase(rhs), _object(rhs._object) {}
+    SGIItemQtMeta(const SGIItemQtMeta & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
+        : SGIItemBase(rhs, copyop), _object(rhs._object) {}
     ~SGIItemQtMeta()
         { }
+
+    META_Object(sgi, SGIItemQtMeta);
 
     SGIItemQtMeta & operator = (const SGIItemQtMeta & rhs)
     {
@@ -123,10 +125,12 @@ public:
 
     SGIItemQtPaintDevice(const HostItemType * hostItem=NULL, SGIItemType type=SGIItemTypeInvalid, QPaintDevice * object=NULL, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
         : SGIItemBase(type, flags, score, userData), _object(object) {}
-    SGIItemQtPaintDevice(const SGIItemQtPaintDevice & rhs)
-        : SGIItemBase(rhs), _object(rhs._object) {}
+    SGIItemQtPaintDevice(const SGIItemQtPaintDevice & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
+        : SGIItemBase(rhs, copyop), _object(rhs._object) {}
     ~SGIItemQtPaintDevice()
         { }
+
+    META_Object(sgi, SGIItemQtPaintDevice);
 
     SGIItemQtPaintDevice & operator = (const SGIItemQtPaintDevice & rhs)
     {
@@ -167,10 +171,12 @@ public:
 
     SGIItemQtIcon(const HostItemType * hostItem=NULL, SGIItemType type=SGIItemTypeInvalid, const QIcon * object=NULL, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
         : SGIItemBase(type, flags, score, userData), _object(object?*object:QIcon()) {}
-    SGIItemQtIcon(const SGIItemQtIcon & rhs)
-        : SGIItemBase(rhs), _object(rhs._object) {}
+    SGIItemQtIcon(const SGIItemQtIcon & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
+        : SGIItemBase(rhs, copyop), _object(rhs._object) {}
     ~SGIItemQtIcon()
         { }
+
+    META_Object(sgi, SGIItemQtIcon);
 
     SGIItemQtIcon & operator = (const SGIItemQtIcon & rhs)
     {
