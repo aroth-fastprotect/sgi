@@ -704,21 +704,55 @@ void TileInspectorDialog::layerChanged(int index)
     refresh();
 }
 
+namespace {
+
+	void heightFieldDump(std::basic_ostream<char>& os, const osg::HeightField * hf)
+	{
+		unsigned max_rows = hf->getNumRows();
+		unsigned max_cols = hf->getNumColumns();
+		os << std::setw(8);
+		for (unsigned col = 0; col < max_cols; ++col)
+		{
+			os << col << ' ';
+		}
+		os << std::endl;
+		for (unsigned row = 0; row < max_rows; ++row)
+		{
+			os << std::setw(3) << row << ':' << ' ';
+			os << std::setw(8);
+			for (unsigned col = 0; col < max_cols; ++col)
+			{
+				float h = hf->getHeight(col, row);
+				os << h << ' ';
+			}
+			os << std::endl;
+		}
+	}
+}
+
 void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
 {
     std::ostringstream os;
     if(item)
     {
         QImage qimage;
+		std::string previewText;
         _hostInterface->writePrettyHTML(os, item);
         const SGIItemOsg * osgitem = dynamic_cast<const SGIItemOsg *>(item);
         if(osgitem)
         {
             const osg::Image * image = dynamic_cast<const osg::Image *>(osgitem->object());
+			const osg::HeightField * hf = dynamic_cast<const osg::HeightField*>(osgitem->object());
             if(image)
             {
                 osg_helpers::osgImageToQImage(image, &qimage);
             }
+			else if (hf)
+			{
+				std::stringstream os;
+				heightFieldDump(os, hf);
+				previewText = os.str();
+			}
             else
             {
                 const TileSourceTileKey * tskey = dynamic_cast<const TileSourceTileKey *>(osgitem->object());
@@ -726,10 +760,17 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
                 {
                     const TileSourceTileKeyData & data = tskey->data();
                     const osg::Image * image = dynamic_cast<const osg::Image *>(data.tileData.get());
+					const osg::HeightField * hf = dynamic_cast<const osg::HeightField*>(data.tileData.get());
                     if(image)
                     {
                         osg_helpers::osgImageToQImage(image, &qimage);
                     }
+					else if (hf)
+					{
+						std::stringstream os;
+						heightFieldDump(os, hf);
+						previewText = os.str();
+					}
                 }
             }
         }
@@ -738,10 +779,15 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
             ui->previewImage->setText(QString());
             ui->previewImage->setPixmap(QPixmap::fromImage(qimage));
         }
+		else if (!previewText.empty())
+		{
+			ui->previewImage->setPixmap(QPixmap());
+			ui->previewImage->setText(fromLocal8Bit(previewText));
+		}
         else
         {
             ui->previewImage->setPixmap(QPixmap());
-            ui->previewImage->setText(tr("No image"));
+            ui->previewImage->setText(tr("No image/heightfield"));
         }
     }
     else
@@ -1166,8 +1212,23 @@ void TileInspectorDialog::loadData()
             {
                 TileSourceTileKeyData & data = tskey->data();
                 osgEarth::TileSource * tileSource = data.tileSource;
-                osg::Image * image = tileSource->createImage(data.tileKey);
-                data.tileData = image;
+				std::string ext = tileSource->getExtension();
+				bool isImageTileSource = true;
+				if (ext.compare("osgb"))
+					isImageTileSource = (tileSource->getPixelsPerTile() >= 64);
+				else if (ext.compare("tif"))
+					isImageTileSource = false;
+
+				if (isImageTileSource)
+				{
+					osg::Image * image = tileSource->createImage(data.tileKey);
+					data.tileData = image;
+				}
+				else
+				{
+					osg::HeightField * hf = tileSource->createHeightField(data.tileKey);
+					data.tileData = hf;
+				}
             }
         }
     }
