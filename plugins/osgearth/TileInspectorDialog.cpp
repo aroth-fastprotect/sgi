@@ -704,32 +704,6 @@ void TileInspectorDialog::layerChanged(int index)
     refresh();
 }
 
-namespace {
-
-	void heightFieldDump(std::basic_ostream<char>& os, const osg::HeightField * hf)
-	{
-		unsigned max_rows = hf->getNumRows();
-		unsigned max_cols = hf->getNumColumns();
-		os << std::setw(8);
-		for (unsigned col = 0; col < max_cols; ++col)
-		{
-			os << col << ' ';
-		}
-		os << std::endl;
-		for (unsigned row = 0; row < max_rows; ++row)
-		{
-			os << std::setw(3) << row << ':' << ' ';
-			os << std::setw(8);
-			for (unsigned col = 0; col < max_cols; ++col)
-			{
-				float h = hf->getHeight(col, row);
-				os << h << ' ';
-			}
-			os << std::endl;
-		}
-	}
-}
-
 void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
 {
     std::ostringstream os;
@@ -750,7 +724,7 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
 			else if (hf)
 			{
 				std::stringstream os;
-				heightFieldDump(os, hf);
+				osg_helpers::heightFieldDumpHTML(os, hf);
 				previewText = os.str();
 			}
             else
@@ -768,7 +742,7 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
 					else if (hf)
 					{
 						std::stringstream os;
-						heightFieldDump(os, hf);
+						osg_helpers::heightFieldDumpHTML(os, hf);
 						previewText = os.str();
 					}
                 }

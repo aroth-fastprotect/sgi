@@ -1227,6 +1227,12 @@ bool writePrettyHTMLImpl<osg::HeightField>::process(std::basic_ostream<char>& os
             ret = true;
         }
         break;
+	case SGIItemTypeArrayData:
+		{
+			osg_helpers::heightFieldDumpHTML(os, object);
+			ret = true;
+		}
+		break;
     default:
         // add Shape properties first
         callNextHandler(os);

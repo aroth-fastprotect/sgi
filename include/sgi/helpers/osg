@@ -23,6 +23,7 @@ namespace osg {
     class Matrixf;
     class Matrixd;
     class Image;
+	class HeightField;
 
     typedef std::vector< Node* > NodePath;
 
@@ -149,6 +150,9 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, Mat
 void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Drawable * refDrawable);
 
 bool osgImageToQImage(const osg::Image * image, QImage * qimage);
+
+void heightFieldDumpHTML(std::basic_ostream<char>& os, const osg::HeightField * hf);
+void heightFieldDumpPlainText(std::basic_ostream<char>& os, const osg::HeightField * hf);
 
     } // namespace osg_helpers
 } // namespace sgi

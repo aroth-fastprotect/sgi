@@ -6,6 +6,7 @@
 #include <osg/CoordinateSystemNode>
 #include <osg/ObserverNodePath>
 #include <osg/io_utils>
+#include <osg/Shape>
 
 #include <QImage>
 #include <QGLWidget>
@@ -749,6 +750,42 @@ bool osgImageToQImage(const osg::Image * image, QImage * qimage)
         ret = true;
     }
     return ret;
+}
+
+void heightFieldDumpHTML(std::basic_ostream<char>& os, const osg::HeightField * hf)
+{
+	os << "<pre>";
+	heightFieldDumpPlainText(os, hf);
+	os << "</pre>";
+}
+
+void heightFieldDumpPlainText(std::basic_ostream<char>& os, const osg::HeightField * hf)
+{
+	unsigned max_rows = hf->getNumRows();
+	unsigned max_cols = hf->getNumColumns();
+	os << std::setfill(' ') << "     ";
+	for (unsigned col = 0; col < max_cols; ++col)
+	{
+		os << std::setw(7) << col << std::setw(0) << ' ';
+	}
+	os << std::endl;
+	for (unsigned row = 0; row < max_rows; ++row)
+	{
+		os << std::setfill(' ') << std::setw(3) << row << std::setw(0) << ':' << ' ';
+		os << std::setfill(' ') << std::fixed << std::setprecision(1);
+		for (unsigned col = 0; col < max_cols; ++col)
+		{
+			float h = hf->getHeight(col, row);
+			os << std::setw(7);
+			if (h == -FLT_MAX)
+				os << "n/a";
+			else
+				os << h;
+			os << std::setw(0);
+			os << ' ';
+		}
+		os << std::endl;
+	}
 }
 
 } // namespace osg_helpers

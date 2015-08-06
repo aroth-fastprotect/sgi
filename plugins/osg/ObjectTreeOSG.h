@@ -34,6 +34,7 @@ namespace osg {
     class Geometry;
     class ShapeDrawable;
     class Image;
+	class HeightField;
     class Texture;
     class Texture1D;
     class Texture2D;
@@ -201,6 +202,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE(osg::Texture2D)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osg::Texture3D)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osg::Image)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osg::BufferData)
+OBJECT_TREE_BUILD_IMPL_DECLARE(osg::HeightField)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osg::Array)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osg::BufferObject)
 

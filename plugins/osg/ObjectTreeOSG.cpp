@@ -70,8 +70,7 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Transform)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Camera)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::View)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Program)
-OBJECT_TREE_BUILD_IMPL_DECLARE(osg::Program::PerContextProgram)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Program::PerContextProgram)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Program::PerContextProgram)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Shader)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Uniform)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::GraphicsContext)
@@ -85,6 +84,7 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Texture)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Texture2D)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Texture3D)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Image)
+OBJECT_TREE_BUILD_IMPL_REGISTER(osg::HeightField)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::BufferData)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Array)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::BufferObject)
@@ -1449,6 +1449,26 @@ bool objectTreeBuildImpl<osg::BufferData>::build(IObjectTreeItem * treeItem)
         break;
     }
     return ret;
+}
+
+bool objectTreeBuildImpl<osg::HeightField>::build(IObjectTreeItem * treeItem)
+{
+	osg::HeightField * object = dynamic_cast<osg::HeightField*>(item<SGIItemOsg>()->object());
+	bool ret;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(treeItem);
+		if (ret)
+		{
+			treeItem->addChild("Data", cloneItem<SGIItemOsg>(SGIItemTypeArrayData));
+		}
+		break;
+	default:
+		ret = callNextHandler(treeItem);
+		break;
+	}
+	return ret;
 }
 
 bool objectTreeBuildImpl<osg::Array>::build(IObjectTreeItem * treeItem)
