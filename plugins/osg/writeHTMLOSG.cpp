@@ -4410,7 +4410,11 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg::Camera::
     case osg::Camera::PIXEL_BUFFER_RTT: os << "PIXEL_BUFFER_RTT"; break;
     case osg::Camera::PIXEL_BUFFER: os << "PIXEL_BUFFER"; break;
     case osg::Camera::FRAME_BUFFER: os << "FRAME_BUFFER"; break;
+#if OSG_MIN_VERSION_REQUIRED(3,3,3)
+    case osg::Camera::SEPARATE_WINDOW: os << "SEPARATE_WINDOW"; break;
+#else
     case osg::Camera::SEPERATE_WINDOW: os << "SEPERATE_WINDOW"; break;
+#endif
     default: os << (int)t; break;
     }
     return os;
