@@ -1687,7 +1687,11 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     return os << "{left=" << t.left() << ";top=" << t.top() << ";right=" << t.right() << ";bottom=" << t.bottom() << "}";
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Angular & a)
+#else
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Angle & a)
+#endif
 {
 #if OSGEARTH_VERSION_LESS_THAN(2,7,0)
 	static osg::ref_ptr<osgEarth::Util::LatLongFormatter> s_formater(new osgEarth::Util::LatLongFormatter);
@@ -1838,15 +1842,15 @@ bool writePrettyHTMLImpl<osgEarth::Util::Controls::LabelControl>::process(std::b
             callNextHandler(os);
 
             // add remaining LabelControl properties
-            os << "<tr><td>text</td><td>" << ((object)?object->text():"&lt;null&gt;") << "</td></tr>" << std::endl;
-            os << "<tr><td>encoding</td><td>" << ((object)?object->encoding():osgText::String::ENCODING_UNDEFINED) << "</td></tr>" << std::endl;
+            os << "<tr><td>text</td><td>" << object->text() << "</td></tr>" << std::endl;
+            os << "<tr><td>encoding</td><td>" << object->encoding() << "</td></tr>" << std::endl;
 
             os << "<tr><td>font</td><td>" << getObjectNameAndType(object->font()) << "</td></tr>" << std::endl;
-            os << "<tr><td>fontSize</td><td>" << ((object)?object->fontSize():0.0f) << "</td></tr>" << std::endl;
-            os << "<tr><td>haloColor</td><td>" << ((object)?object->haloColor():osgEarth::optional<osg::Vec4f>()) << "</td></tr>" << std::endl;
-            os << "<tr><td>textBackdropType</td><td>" << ((object)?object->getTextBackdropType():osgText::Text::NONE) << "</td></tr>" << std::endl;
-            os << "<tr><td>textBackdropImplementation</td><td>" << ((object)?object->getTextBackdropImplementation():osgText::Text::POLYGON_OFFSET) << "</td></tr>" << std::endl;
-            os << "<tr><td>textBackdropOffset</td><td>" << ((object)?object->getTextBackdropOffset():0.0f) << "</td></tr>" << std::endl;
+            os << "<tr><td>fontSize</td><td>" << object->fontSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>haloColor</td><td>" << object->haloColor() << "</td></tr>" << std::endl;
+            os << "<tr><td>textBackdropType</td><td>" << object->getTextBackdropType() << "</td></tr>" << std::endl;
+            os << "<tr><td>textBackdropImplementation</td><td>" << object->getTextBackdropImplementation() << "</td></tr>" << std::endl;
+            os << "<tr><td>textBackdropOffset</td><td>" << object->getTextBackdropOffset() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
