@@ -4677,7 +4677,12 @@ namespace {
 
     protected:
         virtual void            updateNodeStats(osg::Node & node);
-        virtual void            updateCallbackStats(osg::NodeCallback * cb);
+#if OSG_VERSION_GREATER_THAN(3,3,1)
+		virtual void            updateCallbackStats(osg::Callback * cb);
+#else
+		virtual void            updateCallbackStats(osg::NodeCallback * cb);
+#endif
+
 
     protected:
         unsigned int _numInstancedPagedLOD;
@@ -4787,10 +4792,12 @@ namespace {
 
     void StatisticsVisitor::updateNodeStats(osg::Node & node)
     {
-        osg::NodeCallback * cb;
 #if OSG_VERSION_GREATER_THAN(3,3,1)
+		osg::Callback * cb;
 #else
-        cb = node.getUpdateCallback();
+		osg::NodeCallback * cb;
+#endif
+		cb = node.getUpdateCallback();
         while(cb)
         {
             _numUpdateCallbacks++;
@@ -4811,14 +4818,17 @@ namespace {
             updateCallbackStats(cb);
             cb = cb->getNestedCallback();
         }
-#endif
         if(!node.isCullingActive())
             _numCullInactive++;
         if(!node.getCullingActive())
             _numCullDisabled++;
     }
 
-    void StatisticsVisitor::updateCallbackStats(osg::NodeCallback * cb)
+#if OSG_VERSION_GREATER_THAN(3,3,1)
+	void StatisticsVisitor::updateCallbackStats(osg::Callback * cb)
+#else
+	void StatisticsVisitor::updateCallbackStats(osg::NodeCallback * cb)
+#endif
     {
         osgAnimation::AnimationManagerBase* anibase = dynamic_cast<osgAnimation::AnimationManagerBase*>(cb);
         if(anibase)
@@ -6193,16 +6203,21 @@ namespace {
     }
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
+typedef osgEarth::Picker PickerType;
+#else
+typedef osgEarth::IntersectionPicker PickerType;
+#endif
 
 
-std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Picker::Limit & t)
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const PickerType::Limit & t)
 {
     switch(t)
     {
-    case osgEarth::Picker::NO_LIMIT: os << "NO_LIMIT"; break;
-    case osgEarth::Picker::LIMIT_ONE_PER_DRAWABLE: os << "LIMIT_ONE_PER_DRAWABLE"; break;
-    case osgEarth::Picker::LIMIT_ONE: os << "LIMIT_ONE"; break;
-    case osgEarth::Picker::LIMIT_NEAREST: os << "LIMIT_NEAREST"; break;
+    case PickerType::NO_LIMIT: os << "NO_LIMIT"; break;
+    case PickerType::LIMIT_ONE_PER_DRAWABLE: os << "LIMIT_ONE_PER_DRAWABLE"; break;
+    case PickerType::LIMIT_ONE: os << "LIMIT_ONE"; break;
+    case PickerType::LIMIT_NEAREST: os << "LIMIT_NEAREST"; break;
     default: os << (int)t; break;
     }
     return os;

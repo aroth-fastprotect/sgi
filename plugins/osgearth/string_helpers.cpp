@@ -77,7 +77,8 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Viewpoint & viewpoint)
 {
-    const osgEarth::SpatialReference * srs = viewpoint.getSRS();
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
+	const osgEarth::SpatialReference * srs = viewpoint.getSRS();
     os << "{this=" << &viewpoint
         << ";name=" << viewpoint.getName()
         << ";focalPoint=" << viewpoint.getFocalPoint()
@@ -86,6 +87,15 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
         << ";range=" << viewpoint.getRange()
         << ";srs=" << ((srs)?srs->getName():"null")
         << "}";
+#else
+	os << "{this=" << &viewpoint
+		<< ";name=" << viewpoint.name()
+		<< ";focalPoint=" << viewpoint.focalPoint()
+		<< ";heading=" << viewpoint.heading()
+		<< ";pitch=" << viewpoint.pitch()
+		<< ";range=" << viewpoint.range()
+		<< "}";
+#endif
     return os;
 }
 

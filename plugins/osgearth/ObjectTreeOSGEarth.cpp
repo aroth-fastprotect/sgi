@@ -679,7 +679,13 @@ bool objectTreeBuildImpl<osgEarth::TerrainLayer>::build(IObjectTreeItem * treeIt
             if(targetProfileHint && targetProfileHint != profile)
                 treeItem->addChild("Target profile", &targetProfileItem);
 
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
             SGIHostItemOsg tileSource(access->tileSourceNoInit());
+#else
+			SGIHostItemOsg tileSource((osg::Referenced*)NULL);
+			if (access->tileSourceInitAttempted())
+				tileSource = object->getTileSource();
+#endif
             if(tileSource.hasObject())
                 treeItem->addChild("Tile source", &tileSource);
             SGIHostItemOsg dbOptions(access->dbOptions());
@@ -1111,18 +1117,28 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
             unsigned shaderNum = 0;
             for(osgEarth::VirtualProgram::ShaderMap::const_iterator it = shadermap.begin(); it != shadermap.end(); it++, shaderNum++)
             {
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
                 const std::string & name = it->first;
-                const osgEarth::VirtualProgram::ShaderEntry & entry = it->second;
+				const osgEarth::VirtualProgram::ShaderEntry & entry = it->second;
+#else
+				const auto & id = it->key();
+				const auto & entry = it->data();
+#endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
-                const osg::ref_ptr<osg::Shader> & shader = entry._shader;
-                const osg::StateAttribute::OverrideValue & overrideValue = entry._overrideValue;
+				const osg::ref_ptr<osg::Shader> & shader = entry._shader;
+				const osg::StateAttribute::OverrideValue & overrideValue = entry._overrideValue;
 #else
                 const osg::ref_ptr<osg::Shader> & shader = entry.first;
                 const osg::StateAttribute::OverrideValue & overrideValue = entry.second;
 #endif
 
                 std::stringstream ss;
-                ss << name << '(' << glOverrideValueName(overrideValue) << ')';
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
+				ss << name;
+#else
+				ss << id;
+#endif
+				ss << '(' << glOverrideValueName(overrideValue) << ')';
                 SGIHostItemOsg child(shader.get());
                 treeItem->addChild(ss.str(), &child);
             }

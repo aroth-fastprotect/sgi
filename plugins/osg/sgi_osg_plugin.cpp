@@ -197,9 +197,6 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                  osg::DisplaySettings,
                                                                  osg::GLBufferObject,
                                                                  osg::GLBufferObjectSet,
-#if OSG_VERSION_LESS_THAN(3,3,3)
-                                                                 osg::FBOExtensions,
-#endif
                                                                  osgAnimation::Channel,
                                                                  osgAnimation::Target,
                                                                  osgAnimation::Sampler,

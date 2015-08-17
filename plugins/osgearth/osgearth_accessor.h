@@ -110,12 +110,14 @@ namespace osgearth_plugin {
             (void)(0);
         }
 
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
         inline osgEarth::TileSource * tileSourceNoInit() { return _tileSource.get(); }
-        inline const osgEarth::Profile * profileNoInit() { return _profile.get(); }
+		inline bool tileSourceInitFailed() const { return _tileSourceInitFailed; }
+#endif
+		inline const osgEarth::Profile * profileNoInit() { return _profile.get(); }
         inline const osgEarth::Profile * targetProfileHintNoInit() { return _targetProfileHint.get(); }
         
         inline bool tileSourceInitAttempted() const { return _tileSourceInitAttempted; }
-        inline bool tileSourceInitFailed() const { return _tileSourceInitFailed; }
         inline unsigned tileSize() const { return _tileSize; }
         inline osgDB::Options * dbOptions() { return _dbOptions.get(); }
     };
@@ -167,8 +169,13 @@ namespace osgearth_plugin {
             {
                 // clear the program cache please
                 {
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
                     osgEarth::Threading::ScopedWriteLock exclusive(_programCacheMutex);
                     _programCache.clear();
+#else
+					osgEarth::Threading::ScopedMutexLock exclusive(_programCacheMutex);
+					_programCache.clear();
+#endif
                 }
 
                 _inheritSet = false;
@@ -247,7 +254,11 @@ namespace osgearth_plugin {
         osgEarth::Threading::ReadWriteMutex  _mutex;
     };
 
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
     typedef osgEarth::Threading::PerObjectRefMap<std::string, osgEarth::CacheBin> ThreadSafeCacheBinMap;
+#else
+	typedef osgEarth::PerObjectRefMap<std::string, osgEarth::CacheBin> ThreadSafeCacheBinMap;
+#endif
     typedef PerObjectRefMapAccessor<std::string, osgEarth::CacheBin> ThreadSafeCacheBinMapAccessor;
 
     class FeatureModelSourceAccess : public osgEarth::Features::FeatureModelSource

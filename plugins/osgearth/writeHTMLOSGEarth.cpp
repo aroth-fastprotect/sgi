@@ -569,7 +569,9 @@ bool writePrettyHTMLImpl<osgEarth::TerrainLayer>::process(std::basic_ostream<cha
 
             os << "<tr><td>enabled</td><td>" << (object->getEnabled()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>tileSourceInitAttempted</td><td>" << (access->tileSourceInitAttempted()?"true":"false") << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
             os << "<tr><td>tileSourceInitFailed</td><td>" << (access->tileSourceInitFailed()?"true":"false") << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
             os << "<tr><td>tileSize</td><td>" << access->tileSize() << "</td></tr>" << std::endl;
             os << "<tr><td>visible</td><td>" << (object->getVisible()?"true":"false") << "</td></tr>" << std::endl;
@@ -631,7 +633,9 @@ bool writePrettyHTMLImpl<osgEarth::ImageLayer>::process(std::basic_ostream<char>
             os << "</td></tr>" << std::endl;
             os << "<tr><td>opacity</td><td>" << object->getOpacity() << "</td></tr>" << std::endl;
 
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
             os << "<tr><td>LOD blending</td><td>" <<  (object->isLODBlendingEnabled()?"true":"false") << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>minVisibleRange</td><td>" << object->getMinVisibleRange() << "</td></tr>" << std::endl;
             os << "<tr><td>maxVisibleRange</td><td>" << object->getMaxVisibleRange() << "</td></tr>" << std::endl;
             os << "<tr><td>isShared</td><td>" <<  (object->isShared()?"true":"false") << "</td></tr>" << std::endl;
@@ -1129,8 +1133,13 @@ bool writePrettyHTMLImpl<osgEarth::TileSource>::process(std::basic_ostream<char>
                 os << "(null)";
             os << "</td></tr>" << std::endl;
             os << "<tr><td>nodata value</td><td>" << object->getNoDataValue() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
             os << "<tr><td>nodata min value</td><td>" << object->getNoDataMinValue() << "</td></tr>" << std::endl;
             os << "<tr><td>nodata max value</td><td>" << object->getNoDataMaxValue() << "</td></tr>" << std::endl;
+#else
+			os << "<tr><td>min valid value</td><td>" << object->getMinValidValue() << "</td></tr>" << std::endl;
+			os << "<tr><td>max valid value</td><td>" << object->getMaxValidValue() << "</td></tr>" << std::endl;
+#endif
 
             os << "<tr><td>extension</td><td>" << object->getExtension() << "</td></tr>" << std::endl;
             os << "<tr><td>isDynamic</td><td>" << (object->isDynamic()?"true":"false") << "</td></tr>" << std::endl;
@@ -1277,9 +1286,15 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
                 os << "<ul>";
                 for(osgEarth::VirtualProgram::ShaderMap::const_iterator it = shaderMap.begin(); it != shaderMap.end(); it++)
                 {
-                    const std::string & name = it->first;
-                    const osgEarth::VirtualProgram::ShaderEntry & entry = it->second;
-                    os << "<li>" << name << "</li>";
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
+					const std::string & name = it->first;
+					const osgEarth::VirtualProgram::ShaderEntry & entry = it->second;
+					os << "<li>" << name << "</li>";
+#else
+					const auto & id = it->key();
+					const auto & entry = it->data();
+					os << "<li>" << id << "</li>";
+#endif
                 }
                 os << "</ul>";
             }
@@ -1328,10 +1343,16 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
             access->getShaderMap(shaderMap);
             for(osgEarth::VirtualProgram::ShaderMap::const_iterator it = shaderMap.begin(); it != shaderMap.end(); it++)
             {
-                const std::string & name = it->first;
-                os << "<tr><td>" << name << "</td><td>";
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
+				const std::string & name = it->first;
+				const osgEarth::VirtualProgram::ShaderEntry & entry = it->second;
+				os << "<tr><td>" << name << "</td><td>";
+#else
+				const auto & id = it->key();
+				const auto & entry = it->data();
+				os << "<tr><td>" << id << "</td><td>";
+#endif
                 os << "<table border=\'1\' align=\'left\'>";
-                const osgEarth::VirtualProgram::ShaderEntry & entry = it->second;
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
                 os << "<tr><td>shader</td><td>" << getObjectNameAndType(entry._shader.get(), true) << "</td></tr>";
                 os << "<tr><td>override</td><td>" << glOverrideValueName(entry._overrideValue) << "</td></tr>";
@@ -1668,8 +1689,12 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Angular & a)
 {
-    static osg::ref_ptr<osgEarth::Util::LatLongFormatter> s_formater(new osgEarth::Util::LatLongFormatter);
-    return os << s_formater->format(a);
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
+	static osg::ref_ptr<osgEarth::Util::LatLongFormatter> s_formater(new osgEarth::Util::LatLongFormatter);
+	return os << s_formater->format(a);
+#else
+	return os << a.asString();
+#endif
 }
 
 bool writePrettyHTMLImpl<osgEarth::Util::Controls::Control>::process(std::basic_ostream<char>& os)
@@ -2309,7 +2334,9 @@ bool writePrettyHTMLImpl<osgEarth::Annotation::EllipseNode>::process(std::basic_
             os << "<tr><td>arc end</td><td>" << object->getArcEnd() << "</td></tr>" << std::endl;
             os << "<tr><td>num segments</td><td>" << object->getNumSegments() << "</td></tr>" << std::endl;
             os << "<tr><td>pie</td><td>" << (object->getPie()?"true":"false") << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
             os << "<tr><td>draped</td><td>" << (object->isDraped()?"true":"false") << "</td></tr>" << std::endl;
+#endif
 
             if(_table)
                 os << "</table>" << std::endl;

@@ -449,7 +449,9 @@ bool writePrettyHTMLImpl<osgEarth::ImageLayerOptions>::process(std::basic_ostrea
             os << "<tr><td>maxVisibleRange</td><td>" << object->maxVisibleRange() << "</td></tr>" << std::endl;
             os << "<tr><td>noDataImageFilename</td><td>" << object->noDataImageFilename() << "</td></tr>" << std::endl;
             os << "<tr><td>transparentColor</td><td>" << object->transparentColor() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
             os << "<tr><td>lodBlending</td><td>" << object->lodBlending() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>colorFilters</td><td>";
             const osgEarth::ColorFilterChain & colorFilters = object->colorFilters();
             if(colorFilters.empty())
