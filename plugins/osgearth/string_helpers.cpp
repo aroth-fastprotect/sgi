@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include <osg/Object>
+#include <osgEarth/Version>
 #include <osgEarth/Viewpoint>
 #include <osgEarth/URI>
 #include <osgEarth/TileKey>
