@@ -792,7 +792,7 @@ bool writePrettyHTMLImpl<osgEarth::Map>::process(std::basic_ostream<char>& os)
                 os << "&lt;null&gt;";
             os << "</td></tr>" << std::endl;
             os << "<tr><td>geocentric</td><td>" << (object->isGeocentric()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>cache</td><td>" << object->getCache() << "</td></tr>" << std::endl;
+            os << "<tr><td>cache</td><td>" << getObjectNameAndType(object->getCache(), true) << "</td></tr>" << std::endl;
             
             osgEarth::MapFrame mapframe(object, osgEarth::Map::ENTIRE_MODEL);
 
