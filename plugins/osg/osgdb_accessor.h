@@ -17,6 +17,8 @@ public:
 class DatabasePagerAccessor : osgDB::DatabasePager
 {
 public:
+	typedef DatabaseRequest DatabaseRequestAccess;
+
     unsigned int numberOfPagedLODs() const
     {
         return _activePagedLODList->size();
@@ -56,10 +58,6 @@ public:
     {
         return (const SetBasedPagedLODList*)_activePagedLODList.get();
     }
-
-    struct DatabaseRequestAccess : public DatabaseRequest
-    {
-    };
 
     typedef std::list< osg::ref_ptr<DatabaseRequest> > RequestList;
 

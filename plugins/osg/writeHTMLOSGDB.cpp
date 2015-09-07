@@ -7,7 +7,9 @@
 #include <osg/Version>
 #include <osgDB/Registry>
 #include <osgDB/ImagePager>
+#define protected public
 #include <osgDB/DatabasePager>
+#undef protected
 
 #include <osg/ClipNode>
 
@@ -31,6 +33,11 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgDB::FileList)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgDB::ObjectWrapper)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgDB::ObjectWrapperManager)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgDB::BaseSerializer)
+
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::DatabaseRequest)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::RequestQueue)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::ReadQueue)
+
 
 bool writePrettyHTMLImpl<osgDB::Registry>::process(std::basic_ostream<char>& os)
 {
@@ -349,13 +356,10 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager::DatabaseThread>::process(std::bas
     return ret;
 }
 
-#if 0
-WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::DatabaseRequest)
-
 bool writePrettyHTMLImpl<osgDB::DatabasePager::DatabaseRequest>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osgDB::DatabasePager::DatabaseRequest * object = getObject<osgDB::DatabasePager::DatabaseRequest,SGIItemOsg>();
+	osgDB::DatabasePager::DatabaseRequest * object = getObject<osgDB::DatabasePager::DatabaseRequest,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -366,6 +370,28 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager::DatabaseRequest>::process(std::ba
             // add object properties first
             callNextHandler(os);
 
+			os << "<tr><td>valid</td><td>" << (object->_valid ? "true" : "false") << "</td></tr>" << std::endl;
+			os << "<tr><td>fileName</td><td>" << object->_fileName << "</td></tr>" << std::endl;
+			os << "<tr><td>frame no first request</td><td>" << object->_frameNumberFirstRequest << "</td></tr>" << std::endl;
+			os << "<tr><td>timestamp first request</td><td>" << object->_timestampFirstRequest << "</td></tr>" << std::endl;
+			os << "<tr><td>priority first request</td><td>" << object->_priorityFirstRequest << "</td></tr>" << std::endl;
+
+			os << "<tr><td>frame no last request</td><td>" << object->_frameNumberLastRequest << "</td></tr>" << std::endl;
+			os << "<tr><td>timestamp last request</td><td>" << object->_timestampLastRequest << "</td></tr>" << std::endl;
+			os << "<tr><td>priority last request</td><td>" << object->_priorityLastRequest << "</td></tr>" << std::endl;
+
+			os << "<tr><td>num requests</td><td>" << object->_numOfRequests << "</td></tr>" << std::endl;
+
+			os << "<tr><td>terrain</td><td>" << osg_helpers::getObjectNameAndType(object->_terrain.get(), true) << "</td></tr>" << std::endl;
+			os << "<tr><td>group</td><td>" << osg_helpers::getObjectNameAndType(object->_group.get(), true) << "</td></tr>" << std::endl;
+
+			os << "<tr><td>loadedModel</td><td>" << osg_helpers::getObjectNameAndType(object->_loadedModel.get(), true) << "</td></tr>" << std::endl;
+			os << "<tr><td>loadOptions</td><td>" << osg_helpers::getObjectNameAndType(object->_loadOptions.get(), true) << "</td></tr>" << std::endl;
+			os << "<tr><td>objectCache</td><td>" << osg_helpers::getObjectNameAndType(object->_objectCache.get()) << "</td></tr>" << std::endl;
+
+			os << "<tr><td>ICO compile set</td><td>" << osg_helpers::getObjectNameAndType(object->_compileSet.get()) << "</td></tr>" << std::endl;
+
+			os << "<tr><td>groupExpired</td><td>" << (object->_groupExpired ? "true" : "false") << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -378,7 +404,66 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager::DatabaseRequest>::process(std::ba
     }
     return ret;
 }
-#endif // 0
+
+
+bool writePrettyHTMLImpl<osgDB::DatabasePager::RequestQueue>::process(std::basic_ostream<char>& os)
+{
+	bool ret = false;
+	osgDB::DatabasePager::RequestQueue * object = getObject<osgDB::DatabasePager::RequestQueue, SGIItemOsg>();
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+	{
+		if (_table)
+			os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+		// add object properties first
+		callNextHandler(os);
+
+		os << "<tr><td>size</td><td>" << object->size() << "</td></tr>" << std::endl;
+		os << "<tr><td>frame no last pruned</td><td>" << object->_frameNumberLastPruned << "</td></tr>" << std::endl;
+
+		if (_table)
+			os << "</table>" << std::endl;
+		ret = true;
+	}
+	break;
+	default:
+		ret = callNextHandler(os);
+		break;
+	}
+	return ret;
+}
+
+
+bool writePrettyHTMLImpl<osgDB::DatabasePager::ReadQueue>::process(std::basic_ostream<char>& os)
+{
+	bool ret = false;
+	osgDB::DatabasePager::ReadQueue * object = getObject<osgDB::DatabasePager::ReadQueue, SGIItemOsg>();
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+	{
+		if (_table)
+			os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+		// add object properties first
+		callNextHandler(os);
+
+		os << "<tr><td>name</td><td>" << object->_name << "</td></tr>" << std::endl;
+		os << "<tr><td>block</td><td>" << osg_helpers::getObjectNameAndType(object->_block.get()) << "</td></tr>" << std::endl;
+
+		if (_table)
+			os << "</table>" << std::endl;
+		ret = true;
+	}
+	break;
+	default:
+		ret = callNextHandler(os);
+		break;
+	}
+	return ret;
+}
 
 bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>& os)
 {

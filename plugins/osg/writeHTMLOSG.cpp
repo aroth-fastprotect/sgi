@@ -5280,7 +5280,7 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
                 {
                     const osg::NodePath & nodePath = *itPathList;
                     os << "<tr><td>" << std::endl;
-                    osg_helpers::writePrettyHTML(os, nodePath);
+                    osg_helpers::writePrettyHTML(os, nodePath, true);
                     os << "</td></tr>" << std::endl;
                 }
                 os << "</table>" << std::endl;
@@ -5301,7 +5301,7 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
                         if(parentalNodePathNum == numPath)
                         {
                             const osg::NodePath & nodePath = *itPathList;
-                            osg_helpers::writePrettyHTML(os, nodePath);
+                            osg_helpers::writePrettyHTML(os, nodePath, true);
                             break;
                         }
                     }

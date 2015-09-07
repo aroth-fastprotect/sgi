@@ -17,6 +17,7 @@
 #include <sgi/helpers/osg>
 
 namespace sgi {
+
     namespace osg_helpers {
 
 std::string getObjectTypename(const osg::Referenced * object)
@@ -331,7 +332,7 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::Quat & q)
     os << std::setprecision(12) << "(" << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << ")";
 }
 
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::NodePath & path)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::NodePath & path, bool includeNodeMask)
 {
     if(path.empty())
         os << "&lt;empty&gt;";
@@ -341,17 +342,21 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::NodePath & path)
         for(osg::NodePath::const_iterator it = path.begin(); it != path.end(); it++)
         {
             const osg::Node * node = *it;
-            os << "<li>" << osg_helpers::getObjectNameAndType(node, true) << "</li>" << std::endl;
+			os << "<li>";
+			os << osg_helpers::getObjectNameAndType(node, true);
+			if (includeNodeMask)
+				os << " 0x" << std::hex << node->getNodeMask() << std::dec;
+			os << "</li>" << std::endl;
         }
         os << "</ol>";
     }
 }
 
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::ObserverNodePath & path)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::ObserverNodePath & path, bool includeNodeMask)
 {
     osg::NodePath nodepath;
     if(path.getNodePath(nodepath))
-        writePrettyHTML(os, nodepath);
+        writePrettyHTML(os, nodepath, includeNodeMask);
     else
         os << "&lt;none&gt;";
 }

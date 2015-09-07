@@ -123,9 +123,9 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec2d & v);
 void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec3d & v);
 void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec4d & v);
 void writePrettyHTML(std::basic_ostream<char>& os, const osg::Quat & q);
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::NodePath & path);
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::NodePath & path, bool includeNodeMask = false);
 
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::ObserverNodePath & path);
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::ObserverNodePath & path, bool includeNodeMask = false);
 
 void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Node * refNode=NULL);
 void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Drawable * refDrawable=NULL);

@@ -64,7 +64,9 @@
 // osgDB headers
 #include <osgDB/Registry>
 #include <osgDB/ImagePager>
+#define protected public
 #include <osgDB/DatabasePager>
+#undef protected
 
 // osgFX headers
 #include <osgFX/Outline>
@@ -201,6 +203,9 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                  osgAnimation::Target,
                                                                  osgAnimation::Sampler,
                                                                  osgDB::DatabasePager::DatabaseThread,
+																 osgDB::DatabasePager::DatabaseRequest,
+																 osgDB::DatabasePager::RequestQueue,
+																 osgDB::DatabasePager::ReadQueue,
                                                                  osgDB::ImagePager::ImageThread,
                                                                  osgDB::ObjectWrapper,
                                                                  osgDB::ObjectWrapperManager,

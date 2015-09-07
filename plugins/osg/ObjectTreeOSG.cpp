@@ -18,12 +18,17 @@
 #include <osg/Texture2D>
 #include <osg/Texture3D>
 #include <osg/ShapeDrawable>
-#include <osgViewer/View>
-#include <osgViewer/Renderer>
-#include <osgQt/GraphicsWindowQt>
 
 #include <osgDB/Registry>
+#define protected public
 #include <osgDB/DatabasePager>
+#undef protected
+#include <osgDB/ImagePager>
+
+#include <osgViewer/View>
+#include <osgViewer/Renderer>
+
+#include <osgQt/GraphicsWindowQt>
 
 #include <osgTerrain/Terrain>
 #include <osgTerrain/TerrainTile>
@@ -103,6 +108,10 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(osgDB::FileCache)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgDB::FileList)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgDB::ObjectWrapper)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgDB::ObjectWrapperManager)
+
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::DatabaseRequest)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::RequestQueue)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::ReadQueue)
 
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgViewer::ViewerBase)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgViewer::View)
@@ -2407,6 +2416,97 @@ bool objectTreeBuildImpl<osgDB::DatabaseRevision>::build(IObjectTreeItem * treeI
     }
     return ret;
 }
+
+bool objectTreeBuildImpl<osgDB::DatabasePager::DatabaseRequest>::build(IObjectTreeItem * treeItem)
+{
+	osgDB::DatabasePager::DatabaseRequest * object = getObject<osgDB::DatabasePager::DatabaseRequest, SGIItemOsg>();
+	bool ret;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(treeItem);
+		if (ret)
+		{
+			osg::ref_ptr<osg::Node> terrain;
+			if (object->_terrain.lock(terrain))
+			{
+				SGIHostItemOsg item(terrain.get());
+				if (item.hasObject())
+					treeItem->addChild("Terrain", &item);
+			}
+			osg::ref_ptr<osg::Group> group;
+			if (object->_group.lock(group))
+			{
+				SGIHostItemOsg item(group.get());
+				if (item.hasObject())
+					treeItem->addChild("Group", &item);
+			}
+			SGIHostItemOsg loadedModel(object->_loadedModel.get());
+			if (loadedModel.hasObject())
+				treeItem->addChild("LoadedModel", &loadedModel);
+
+			SGIHostItemOsg options(object->_loadOptions.get());
+			if (options.hasObject())
+				treeItem->addChild("Options", &options);
+
+			SGIHostItemOsg objcache(object->_objectCache.get());
+			if (objcache.hasObject())
+				treeItem->addChild("Object cache", &objcache);
+
+			osg::ref_ptr<osgUtil::IncrementalCompileOperation::CompileSet> compileset;
+			if (object->_compileSet.lock(compileset))
+			{
+				SGIHostItemOsg item(compileset.get());
+				if (item.hasObject())
+					treeItem->addChild("ICO compile set", &item);
+			}
+		}
+		break;
+	default:
+		ret = callNextHandler(treeItem);
+		break;
+	}
+	return ret;
+}
+
+bool objectTreeBuildImpl<osgDB::DatabasePager::RequestQueue>::build(IObjectTreeItem * treeItem)
+{
+	osgDB::DatabasePager::RequestQueue * object = getObject<osgDB::DatabasePager::RequestQueue, SGIItemOsg>();
+	bool ret;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(treeItem);
+		if (ret)
+		{
+		}
+		break;
+	default:
+		ret = callNextHandler(treeItem);
+		break;
+	}
+	return ret;
+}
+
+bool objectTreeBuildImpl<osgDB::DatabasePager::ReadQueue>::build(IObjectTreeItem * treeItem)
+{
+	osgDB::DatabasePager::ReadQueue * object = getObject<osgDB::DatabasePager::ReadQueue, SGIItemOsg>();
+	bool ret;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(treeItem);
+		if (ret)
+		{
+		}
+		break;
+	default:
+		ret = callNextHandler(treeItem);
+		break;
+	}
+	return ret;
+}
+
 
 bool objectTreeBuildImpl<osgUtil::RenderBin>::build(IObjectTreeItem * treeItem)
 {
