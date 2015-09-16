@@ -207,7 +207,7 @@ namespace {
                 elev = parseElevation(parts[2], &elevOk);
             }
             if(latOk && lonOk && elevOk)
-                ret.set(osgEarth::Registry::instance()->getGlobalGeodeticProfile()->getSRS(), osg::Vec3d(lat, lon, elev), osgEarth::ALTMODE_ABSOLUTE);
+                ret.set(osgEarth::Registry::instance()->getGlobalGeodeticProfile()->getSRS(), osg::Vec3d(lon, lat, elev), osgEarth::ALTMODE_ABSOLUTE);
         }
         if(ok)
             *ok = (latOk && lonOk && elevOk);

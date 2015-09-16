@@ -91,10 +91,17 @@ std::string getObjectNameImpl<TileSourceTileKey>::process()
     const TileSourceTileKeyData object = object_ptr->data();
     std::stringstream ss;
     std::string tilesourceName;
-    SGIHostItemOsg ts(object.tileSource.get());
-    _hostInterface->getObjectName(tilesourceName, &ts);
-    ss << tilesourceName << '/' << object.tileKey.str();
-    return ss.str();
+	if (object.tileSource.valid())
+		tilesourceName = object.tileSource->getName();
+//	SGIHostItemOsg ts(object.tileSource.get());
+//	_hostInterface->getObjectName(tilesourceName, &ts);
+	if(tilesourceName.empty())
+		return object.tileKey.str();
+	else
+	{
+		ss << tilesourceName << '/' << object.tileKey.str();
+		return ss.str();
+	}
 }
 
 //--------------------------------------------------------------------------------

@@ -1575,7 +1575,8 @@ bool writePrettyHTMLImpl<TileSourceTileKey>::process(std::basic_ostream<char>& o
 
             // add remaining TileSourceTileKey properties
             os << "<tr><td>tileKey</td><td>" << object.tileKey << "</td></tr>" << std::endl;
-            os << "<tr><td>tileSource</td><td>" << getObjectNameAndType(object.tileSource.get()) << "</td></tr>" << std::endl;
+			os << "<tr><td>tileKey extents</td><td>" << object.tileKey.getExtent() << "</td></tr>" << std::endl;
+            os << "<tr><td>tileSource</td><td>" << getObjectNameAndType(object.tileSource.get(), true) << "</td></tr>" << std::endl;
             os << "<tr><td>tileData</td><td>" << getObjectNameAndType(object.tileData.get()) << "</td></tr>" << std::endl;
 
             if(_table)
