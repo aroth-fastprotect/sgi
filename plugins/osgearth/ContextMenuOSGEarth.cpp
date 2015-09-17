@@ -16,6 +16,8 @@
 #include <osgEarth/TileSource>
 #include <osgEarth/Registry>
 
+#include <osgEarthQt/TerrainProfileWidget>
+
 #include <osgEarthExtensions/mapinspector/MapInspectorExtension>
 
 //#include <osgEarth/TimeControl>
@@ -282,6 +284,75 @@ void MapNodeAccess::toggleMapInspector()
 	}
 }
 
+
+bool MapNodeAccess::isTerrainProfileActive() const
+{
+	bool ret = false;
+	const osg::Camera * camera = osgEarth::findRelativeNodeOfType<osg::Camera>(const_cast<MapNodeAccess*>(this));
+	if (camera)
+	{
+		const osgViewer::View * view = dynamic_cast<const osgViewer::View *>(camera->getView());
+		if (view)
+		{
+			for (const osg::ref_ptr<osgGA::EventHandler> & handler : view->getEventHandlers())
+			{
+				const osgEarth::QtGui::TerrainProfileMouseHandler * mousehandler = dynamic_cast<const osgEarth::QtGui::TerrainProfileMouseHandler*>(handler.get());
+				if(mousehandler)
+				{
+					ret = mousehandler->_profileWidget->isVisible();
+					break;
+				}
+			}
+		}
+	}
+	return ret;
+}
+
+void MapNodeAccess::toggleTerrainProfile(QWidget * parent)
+{
+	bool active = false;
+	osg::Camera * camera = osgEarth::findRelativeNodeOfType<osg::Camera>(this);
+	if (camera)
+	{
+		osgViewer::View * view = dynamic_cast<osgViewer::View *>(camera->getView());
+		if (view)
+		{
+			for (osg::ref_ptr<osgGA::EventHandler> & handler : view->getEventHandlers())
+			{
+				osgEarth::QtGui::TerrainProfileMouseHandler * mousehandler = dynamic_cast<osgEarth::QtGui::TerrainProfileMouseHandler*>(handler.get());
+				if(mousehandler)
+				{
+					if (mousehandler->_profileWidget)
+					{
+						if (mousehandler->_profileWidget->isVisible())
+						{
+							mousehandler->_profileWidget->close();
+							delete mousehandler->_profileWidget;
+							view->removeEventHandler(mousehandler);
+						}
+						else
+						{
+							mousehandler->_profileWidget->show();
+						}
+					}
+					active = true;
+					break;
+				}
+			}
+			if(!active)
+			{
+				osgEarth::QtGui::TerrainProfileWidget * profileWidget = new osgEarth::QtGui::TerrainProfileWidget(camera, this, parent);
+				profileWidget->setActiveView(view);
+				profileWidget->setWindowTitle(QObject::tr("Terrain profile"));
+				profileWidget->show();
+			}
+		}
+	}
+	
+}
+
+
+
 bool contextMenuPopulateImpl<osgEarth::MapNode>::populate(IContextMenuItem * menuItem)
 {
     osgEarth::MapNode * object = static_cast<osgEarth::MapNode*>(item<SGIItemOsg>()->object());
@@ -304,6 +375,7 @@ bool contextMenuPopulateImpl<osgEarth::MapNode>::populate(IContextMenuItem * men
                 if(map.hasObject())
                     menuItem->addMenu("Map", &map);
 				menuItem->addBoolAction(MenuActionMapInspector, "Map inspector", _item, access->hasMapInspector());
+				menuItem->addBoolAction(MenuActionTerrainProfile, "Terrain profile", _item, access->isTerrainProfileActive());
                 menuItem->addSimpleAction(MenuActionTileInspector, "Tile inspector...", _item);
             }
         }

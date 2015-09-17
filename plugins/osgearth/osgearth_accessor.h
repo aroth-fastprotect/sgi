@@ -10,6 +10,8 @@
 #include <osgEarthFeatures/FeatureModelSource>
 #include <osg/io_utils>
 
+class QWidget;
+
 namespace std {
 
 inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::DateTime & t)
@@ -51,6 +53,9 @@ namespace osgearth_plugin {
 
 		bool hasMapInspector() const;
 		void toggleMapInspector();
+		
+		bool isTerrainProfileActive() const;
+		void toggleTerrainProfile(QWidget * parent);
 	};
 
     class ControlCanvasAccess : public osgEarth::Util::Controls::ControlCanvas

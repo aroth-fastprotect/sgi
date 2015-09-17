@@ -23,6 +23,7 @@ enum MenuAction {
     MenuActionTileInspector,
 	MenuActionMapInspector,
 	MenuActionAddExtension,
+	MenuActionTerrainProfile,
     MenuActionTerrainLayerSetURL,
     MenuActionImageLayerCreateImage,
     MenuActionElevationLayerCreateHeightField,
@@ -89,6 +90,7 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionMapDebugImageLayer)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionMapInspector)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTileInspector)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionAddExtension)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionTerrainProfile)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTerrainLayerCacheUsage)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTerrainLayerSetURL)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionModelLayerSetURL)

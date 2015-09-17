@@ -20,6 +20,7 @@
 #else
 #include <osgEarthUtil/SkyNode>
 #endif
+#include <osgEarthQt/TerrainProfileWidget>
 
 #include "osgearth_accessor.h"
 #include "SettingsDialogOSGEarth.h"
@@ -40,6 +41,7 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionMapDebugImageLayer)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionMapInspector)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTileInspector)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionAddExtension)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionTerrainProfile)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTerrainLayerCacheUsage)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTerrainLayerSetURL)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionModelLayerSetURL)
@@ -293,6 +295,15 @@ bool actionHandlerImpl<MenuActionAddExtension>::execute()
 			object->addExtension(extension);
 		}
 	}
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionTerrainProfile>::execute()
+{
+	osgEarth::MapNode * object = static_cast<osgEarth::MapNode*>(item<SGIItemOsg>()->object());
+	MapNodeAccess * access = static_cast<MapNodeAccess*>(object);
+
+	access->toggleTerrainProfile(menu()->parentWidget());
 	return true;
 }
 
