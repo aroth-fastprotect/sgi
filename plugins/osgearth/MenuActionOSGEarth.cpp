@@ -37,7 +37,9 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionNotifyLevel)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeRegenerateShaders)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionMapCachePolicyUsage)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionMapDebugImageLayer)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionMapInspector)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTileInspector)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionAddExtension)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTerrainLayerCacheUsage)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTerrainLayerSetURL)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionModelLayerSetURL)
@@ -265,6 +267,33 @@ bool actionHandlerImpl<MenuActionTerrainLayerCacheUsage>::execute()
     newCachePolicy.usage() = (osgEarth::CachePolicy::Usage)menuAction()->mode();
     ((TerrainLayerAccessor*)object)->setCachePolicy(newCachePolicy);
     return true;
+}
+
+bool actionHandlerImpl<MenuActionMapInspector>::execute()
+{
+	osgEarth::MapNode * object = static_cast<osgEarth::MapNode*>(item<SGIItemOsg>()->object());
+	MapNodeAccess * access = static_cast<MapNodeAccess*>(object);
+
+	access->toggleMapInspector();
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionAddExtension>::execute()
+{
+	osgEarth::MapNode * object = static_cast<osgEarth::MapNode*>(item<SGIItemOsg>()->object());
+
+	std::string extensionName = "mapinspector";
+	bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), extensionName, "Extension:", "Enter name of extension to add", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+	if (gotInput)
+	{
+		osgEarth::ConfigOptions options;
+		osgEarth::Extension * extension = osgEarth::Extension::create(extensionName, options);
+		if (extension)
+		{
+			object->addExtension(extension);
+		}
+	}
+	return true;
 }
 
 bool actionHandlerImpl<MenuActionTileInspector>::execute()

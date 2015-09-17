@@ -116,6 +116,7 @@ extern void writePrettyHTMLImplForDriverOptions(SGIPluginHostInterface * hostInt
 bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& os)
 {
     osgEarth::Registry * object = static_cast<osgEarth::Registry*>(item<SGIItemOsg>()->object());
+	RegistryAccess * access = static_cast<RegistryAccess*>(object);
     bool ret = false;
     switch(itemType())
     {
@@ -128,9 +129,9 @@ bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& 
             callNextHandler(os);
 
             // add remaining Registry properties
-            os << "<tr><td>overrideCachePolicy</td><td>" << (object?object->overrideCachePolicy():osgEarth::optional<osgEarth::CachePolicy>()) << "</td></tr>" << std::endl;
-            os << "<tr><td>defaultCachePolicy</td><td>" << (object?object->defaultCachePolicy():osgEarth::optional<osgEarth::CachePolicy>()) << "</td></tr>" << std::endl;
-            os << "<tr><td>defaultTerrainEngineDriverName</td><td>" << ((object)?object->getDefaultTerrainEngineDriverName():"&lt;null&gt;") << "</td></tr>" << std::endl;
+            os << "<tr><td>overrideCachePolicy</td><td>" << object->overrideCachePolicy() << "</td></tr>" << std::endl;
+            os << "<tr><td>defaultCachePolicy</td><td>" << object->defaultCachePolicy() << "</td></tr>" << std::endl;
+            os << "<tr><td>defaultTerrainEngineDriverName</td><td>" << object->getDefaultTerrainEngineDriverName() << "</td></tr>" << std::endl;
 
             os << "<tr><td>HTTP user agent</td><td>" << osgEarth::HTTPClient::getUserAgent() << "</td></tr>" << std::endl;
             os << "<tr><td>HTTP timeout</td><td>" << osgEarth::HTTPClient::getTimeout() << "</td></tr>" << std::endl;
@@ -140,11 +141,46 @@ bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& 
 #endif
             os << "<tr><td>HTTP URL rewriter</td><td>" << osgEarth::HTTPClient::getURLRewriter() << "</td></tr>" << std::endl;
 
+			os << "<tr><td>unRefImageDataAfterApply</td><td>" << object->unRefImageDataAfterApply() << "</td></tr>" << std::endl;
+			os << "<tr><td>blacklist filenames</td><td>" << access->numBlacklistFilenames() << " entries</td></tr>" << std::endl;
+
+			os << "<tr><td>activities</td><td>";
+			std::set<std::string> activities;
+			object->getActivities(activities);
+			if (activities.empty())
+				os << "<i>none</i>";
+			else
+			{
+				os << "<ul>";
+				for (const std::string & activity : activities)
+				{
+					os << "<li>" << activity << "</li>";
+				}
+				os << "</ul>";
+			}
+			os << "</td></tr>" << std::endl;
+			
+
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
         }
         break;
+	case SGIItemTypeBlacklist:
+		{
+			std::set<std::string> filenames;
+			access->getBlacklistFilenames(filenames);
+			os << filenames.size() << " entries<br/>" << std::endl;
+			os << "<ul>";
+			for (const std::string & filename : filenames)
+			{
+				os << "<li>" << filename << "</li>" << std::endl;
+			}
+			os << "</ul>" << std::endl;
+
+			ret = true;
+		}
+		break;
     default:
         ret = callNextHandler(os);
         break;
@@ -955,12 +991,44 @@ bool writePrettyHTMLImpl<osgEarth::MapNode>::process(std::basic_ostream<char>& o
             os << "<tr><td>modelLayerGroup</td><td>" << getObjectNameAndType(object->getModelLayerGroup(), true) << "</td></tr>" << std::endl;
             os << "<tr><td>overlayDecorator</td><td>" << getObjectNameAndType(const_cast<osgEarth::MapNode *>(object)->getOverlayDecorator(), true) << "</td></tr>" << std::endl;
 
+			os << "<tr><td>extensions</td><td>";
+			const auto & extensions = object->getExtensions();
+			if (extensions.empty())
+				os << "<i>none</i>";
+			else
+			{
+				os << extensions.size() << " extensions<br/><ul>";
+				for (const auto & ext : extensions)
+				{
+					os << "<li>" << getObjectNameAndType(ext, true) << "</li>";
+				}
+				os << "</ul>";
+			}
+			os << "</td></tr>" << std::endl;
+
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
         }
         break;
-    default:
+	case SGIItemTypeExtensions:
+		{
+			const auto & extensions = object->getExtensions();
+			if (extensions.empty())
+				os << "<i>none</i>";
+			else
+			{
+				os << extensions.size() << " extensions<br/><ul>";
+				for (const auto & ext : extensions)
+				{
+					os << "<li>" << getObjectNameAndType(ext, true) << "</li>";
+				}
+				os << "</ul>";
+			}
+			ret = true;
+		}
+		break;
+	default:
         ret = callNextHandler(os);
         break;
     }

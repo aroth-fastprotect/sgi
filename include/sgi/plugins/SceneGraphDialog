@@ -5,6 +5,7 @@
 
 #include <osg/Referenced>
 #include <osg/ref_ptr>
+#include <vector>
 
 class QWidget;
 class QDialog;
@@ -16,6 +17,8 @@ class IContextMenuInfo;
 class IObjectTreeItem;
 
 class SGIItemBase;
+typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
+typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 class SGIHostItemBase;
 
 class ISceneGraphDialogInfo : public osg::Referenced
@@ -43,6 +46,8 @@ public:
     virtual IObjectTreeItem * rootItem() = 0;
     virtual void            setInfoText(const std::string & text) = 0;
     virtual ISceneGraphDialogInfo * getInfo() = 0;
+	virtual SGIItemBase *   item() const = 0;
+	virtual const SGIItemBasePtrPath & itemPath() const = 0;
 };
 
 typedef osg::ref_ptr<ISceneGraphDialog> ISceneGraphDialogPtr;

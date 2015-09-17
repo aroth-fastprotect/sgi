@@ -75,6 +75,8 @@ public:
     virtual IObjectTreeItem * rootItem() { return _dialog->rootItem(); }
     virtual void            setInfoText(const std::string & text) { return _dialog->setInfoText(text); }
     virtual ISceneGraphDialogInfo * getInfo() { return _dialog->_info; }
+	virtual SGIItemBase *   item() const { return _dialog->item(); }
+	virtual const SGIItemBasePtrPath & itemPath() const { return _dialog->itemPath(); }
 
 private:
     SceneGraphDialog * _dialog;
@@ -697,6 +699,16 @@ IObjectTreeItem * SceneGraphDialog::selectedItem()
 IObjectTreeItem * SceneGraphDialog::rootItem()
 {
     return _rootTreeItem.get();
+}
+
+SGIItemBase * SceneGraphDialog::item() const
+{
+	return _item.get();
+}
+
+const SGIItemBasePtrPath & SceneGraphDialog::itemPath() const
+{
+	return _itemPath;
 }
 
 void SceneGraphDialog::setInfoText(const std::string & text)

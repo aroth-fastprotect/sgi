@@ -31,6 +31,7 @@ SET(TARGET_H
     GUIAdapterOSGEarth.h
     string_helpers.h
     geo_helpers.h
+	osgearth_accessor.h
     )
 
 fast_configure_file(SGIItemOsgEarth ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsgEarth COPY_ONLY)

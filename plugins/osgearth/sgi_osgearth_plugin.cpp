@@ -94,6 +94,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                 ))
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(osgEarth::Cache, osgEarth::TileSource, osgEarth::ModelSource,
+															 osgEarth::Extension,
                                                              osg::Node, osg::NodeCallback, osg::StateAttribute, osg::BufferData
                                                             ))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::StateAttribute, LOKI_TYPELIST(osgEarth::VirtualProgram))

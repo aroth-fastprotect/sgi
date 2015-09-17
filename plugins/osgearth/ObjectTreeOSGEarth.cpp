@@ -244,6 +244,9 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
             treeItem->addChild("Runtime Options", &runtimeOptions);
 
 			MapNodeAccess * access = (MapNodeAccess*)object;
+			const auto & extensions = object->getExtensions();
+			if(!extensions.empty())
+				treeItem->addChild("Extensions", cloneItem<SGIItemOsg>(SGIItemTypeExtensions));
 
 			SGIHostItemOsg terrain(access->terrain());
             if(terrain.hasObject())
@@ -262,6 +265,16 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
                 treeItem->addChild("OverlayDecorator", &overlayDecorator);
         }
         break;
+	case SGIItemTypeExtensions:
+		{
+			const auto & extensions = object->getExtensions();
+			for (const auto & ext : extensions)
+			{
+				SGIHostItemOsg item(ext);
+				treeItem->addChild(std::string(), &item);
+			}
+		}
+		break;
     default:
         ret = callNextHandler(treeItem);
         break;
@@ -285,6 +298,8 @@ bool objectTreeBuildImpl<osgEarth::Registry>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg cache(object->getCache());
             if(cache.hasObject())
                 treeItem->addChild("Cache", &cache);
+
+			treeItem->addChild("Blacklist", cloneItem<SGIItemOsg>(SGIItemTypeBlacklist));
 
             SGIHostItemOsg globalGeodeticProfile(object->getGlobalGeodeticProfile());
             if(globalGeodeticProfile.hasObject())
@@ -325,6 +340,7 @@ bool objectTreeBuildImpl<osgEarth::Registry>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg capabilities(&object->getCapabilities());
             if(capabilities.hasObject())
                 treeItem->addChild("Capabilities", &capabilities);
+
         }
         break;
     case SGIItemTypeCallbacks:
@@ -1398,8 +1414,38 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
 {
     ISceneGraphDialog * object = static_cast<ISceneGraphDialog*>(item<SGIItemInternal>()->object());
 
-    SGIHostItemOsg hostItem(new SGIProxyItemT<RegistrySingleton>(_hostInterface, "osgEarth::Registry"));
-    treeItem->addChild(std::string(), &hostItem);
+	SGIHostItemOsg hostItem(new SGIProxyItemT<RegistrySingleton>(_hostInterface, "osgEarth::Registry"));
+	treeItem->addChild(std::string(), &hostItem);
+
+	SGIItemOsg * osgitem = dynamic_cast<SGIItemOsg *>(object->item());
+	if (osgitem)
+	{
+		osg::Node * node = dynamic_cast<osg::Node*>(osgitem->object());
+		if (node)
+		{
+			osgEarth::MapNode * mapNode = osgEarth::MapNode::findMapNode(node);
+			if (mapNode)
+			{
+				SGIHostItemOsg hostItem(mapNode);
+				treeItem->addChild(std::string(), &hostItem);
+			}
+
+			osg::Camera * camera = osgEarth::findRelativeNodeOfType<osg::Camera>(node);
+			if (camera)
+			{
+				osg::View* view = camera->getView();
+				if (view)
+				{
+					osgEarth::Util::Controls::ControlCanvas * canvas = osgEarth::Util::Controls::ControlCanvas::get(view);
+					if (canvas)
+					{
+						SGIHostItemOsg hostItem(canvas);
+						treeItem->addChild(std::string(), &hostItem);
+					}
+				}
+			}
+		}
+	}
     return true;
 }
 

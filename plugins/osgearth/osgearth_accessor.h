@@ -4,6 +4,7 @@
 #include <osgEarthUtil/EarthManipulator>
 #include <osgEarthUtil/AutoClipPlaneHandler>
 #include <osgEarth/MapNode>
+#include <osgEarth/Registry>
 #include <osgEarth/VirtualProgram>
 #include <osgEarth/ElevationQuery>
 #include <osgEarthFeatures/FeatureModelSource>
@@ -21,6 +22,25 @@ inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const 
 namespace sgi {
 namespace osgearth_plugin {
 
+	class RegistryAccess : public osgEarth::Registry
+	{
+	public:
+		unsigned numBlacklistFilenames()
+		{
+			unsigned ret;
+			_blacklistMutex.readLock();
+			ret = _blacklistedFilenames.size();
+			_blacklistMutex.readUnlock();
+			return ret;
+		}
+		void getBlacklistFilenames(StringSet & filenames)
+		{
+			_blacklistMutex.readLock();
+			filenames = _blacklistedFilenames;
+			_blacklistMutex.readUnlock();
+		}
+	};
+
 	class MapNodeAccess : public osgEarth::MapNode
 	{
 	public:
@@ -28,6 +48,9 @@ namespace osgearth_plugin {
 		osgEarth::TerrainEngineNode * terrainEngineNode() const { return _terrainEngine.get(); }
 		bool terrainEngineInitialized() const { return _terrainEngineInitialized; }
 		osg::Group* terrainEngineContainer() const { return _terrainEngineContainer; }
+
+		bool hasMapInspector() const;
+		void toggleMapInspector();
 	};
 
     class ControlCanvasAccess : public osgEarth::Util::Controls::ControlCanvas

@@ -15,6 +15,9 @@
 #include <osgEarthUtil/Controls>
 #include <osgEarth/TileSource>
 #include <osgEarth/Registry>
+
+#include <osgEarthExtensions/mapinspector/MapInspectorExtension>
+
 //#include <osgEarth/TimeControl>
 #include "SGIItemOsgEarth"
 
@@ -246,9 +249,43 @@ bool contextMenuPopulateImpl<osgEarth::Map>::populate(IContextMenuItem * menuIte
     return ret;
 }
 
+bool MapNodeAccess::hasMapInspector() const
+{
+	const auto & extensions = getExtensions();
+	for (const auto & ext : extensions)
+	{
+		osgEarth::MapInspector::MapInspectorExtension * inspector = dynamic_cast<osgEarth::MapInspector::MapInspectorExtension * >(ext.get());
+		if (inspector)
+			return true;
+	}
+	return false;
+}
+
+void MapNodeAccess::toggleMapInspector()
+{
+	const auto & extensions = getExtensions();
+	for (const auto & ext : extensions)
+	{
+		osgEarth::MapInspector::MapInspectorExtension * inspector = dynamic_cast<osgEarth::MapInspector::MapInspectorExtension *>(ext.get());
+		if (inspector)
+		{
+			removeExtension(inspector);
+			return;
+		}
+	}
+
+	osgEarth::ConfigOptions options;
+	osgEarth::Extension * extension = osgEarth::Extension::create("mapinspector", options);
+	if (extension)
+	{
+		addExtension(extension);
+	}
+}
+
 bool contextMenuPopulateImpl<osgEarth::MapNode>::populate(IContextMenuItem * menuItem)
 {
     osgEarth::MapNode * object = static_cast<osgEarth::MapNode*>(item<SGIItemOsg>()->object());
+	MapNodeAccess * access = static_cast<MapNodeAccess*>(object);
     bool ret = false;
     switch(itemType())
     {
@@ -257,9 +294,16 @@ bool contextMenuPopulateImpl<osgEarth::MapNode>::populate(IContextMenuItem * men
             ret = callNextHandler(menuItem);
             if(ret)
             {
+				IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+				if (manipulateMenu)
+				{
+					menuItem->addSimpleAction(MenuActionAddExtension, "Add extension...", _item);
+				}
+
                 SGIHostItemOsg map(object->getMap());
                 if(map.hasObject())
                     menuItem->addMenu("Map", &map);
+				menuItem->addBoolAction(MenuActionMapInspector, "Map inspector", _item, access->hasMapInspector());
                 menuItem->addSimpleAction(MenuActionTileInspector, "Tile inspector...", _item);
             }
         }

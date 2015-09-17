@@ -44,6 +44,8 @@ public:
     void                    setObject(SGIItemBase * item, ISceneGraphDialogInfo * info);
     IObjectTreeItem *       selectedItem();
     IObjectTreeItem *       rootItem();
+	SGIItemBase *           item() const;
+	const SGIItemBasePtrPath & itemPath() const;
     void                    setInfoText(const std::string & text);
 
 public slots:
