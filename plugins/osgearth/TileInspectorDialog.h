@@ -54,6 +54,7 @@ public:
         NUM_NEIGHBORS_NONE = 0,
         NUM_NEIGHBORS_CROSS,
         NUM_NEIGHBORS_IMMEDIATE,
+		NUM_NEIGHBORS_PARENTAL,
     };
 protected:
     void                    triggerRepaint();

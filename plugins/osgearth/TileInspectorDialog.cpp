@@ -220,7 +220,6 @@ namespace {
     void addTileKeyAndNeighbors(TileKeyList & list, const osgEarth::TileKey & tilekey, TileInspectorDialog::NUM_NEIGHBORS numNeighbors)
     {
         TileKeySet set;
-        osgEarth::TileKey orgtilekey = tilekey;
         switch(numNeighbors)
         {
             case TileInspectorDialog::NUM_NEIGHBORS_NONE:
@@ -244,54 +243,128 @@ namespace {
                 set.insert(tilekey.createNeighborKey(0,1));
                 set.insert(tilekey.createNeighborKey(-1,1));
                 break;
+			case TileInspectorDialog::NUM_NEIGHBORS_PARENTAL:
+				{
+					set.insert(tilekey);
+					osgEarth::TileKey t = tilekey.createParentKey();
+					while (t.valid())
+					{
+						set.insert(t);
+						t = t.createParentKey();
+					}
+				}
+				break;
         }
         for(TileKeySet::const_iterator it = set.begin(); it != set.end(); it++)
             list.push_back(*it);
     }
+
+	osgEarth::TileKey tileKeyFromString(const QString & input, const osgEarth::Profile * profile, int inputLod, bool * ok)
+	{
+		osgEarth::TileKey ret;
+		unsigned lod = 0;
+		unsigned x = 0;
+		unsigned y = 0;
+		int slash_char = input.indexOf('/');
+		int underscore_char = input.indexOf('_');
+		QStringList elems;
+		if(slash_char > 0)
+			elems = input.split('/');
+		else if(underscore_char > 0)
+			elems = input.split('_');
+		if (elems.size() == 3)
+		{
+			lod = elems[0].toUInt();
+			x = elems[1].toUInt();
+			y = elems[2].toUInt();
+			ret = osgEarth::TileKey(lod, x, y, profile);
+		}
+		else if (elems.size() == 2)
+		{
+			if (inputLod >= 0)
+			{
+				x = elems[0].toUInt();
+				y = elems[1].toUInt();
+				ret = osgEarth::TileKey(inputLod, x, y, profile);
+			}
+		}
+		if (ok)
+			*ok = ret.valid();
+		return ret;
+	}
     
-    TileKeyList tileKeyListfromStringOrGpsCoordinate(QString & input, const osgEarth::Profile * profile, int selectedLod, TileInspectorDialog::NUM_NEIGHBORS numNeighbors, bool * ret_ok)
+    TileKeyList tileKeyListfromStringOrGpsCoordinate(const QString & input, const osgEarth::Profile * profile, int selectedLod, TileInspectorDialog::NUM_NEIGHBORS numNeighbors, bool * ret_ok)
     {
         TileKeyList ret;
-        bool ok;
+        bool ok = false;
         osgEarth::GeoPoint geopt;
+		osgEarth::TileKey tilekey;
+		bool hasGeoPoint = false;
+		bool hasTileKey = false;
         const unsigned maximum_lod = 21;
         unsigned lod = maximum_lod;
         bool hasLOD = false;
         int at_char = input.indexOf('@');
-        if(at_char > 0)
-        {
-            QString inputgps = input.left(at_char);
-            QString inputlod = input.mid(at_char + 1);
-            geopt = GeoPointFromString(inputgps, &ok);
-            if(ok)
-            {
-                lod = inputlod.toUInt(&ok);
-                if(ok)
-                    hasLOD = true;
-            }
+		if (at_char > 0)
+		{
+			QString inputgps = input.left(at_char);
+			QString inputlod = input.mid(at_char + 1);
+			lod = inputlod.toUInt(&ok);
+			if (ok)
+				hasLOD = true;
+			if (inputgps.indexOf('/') > 0 || inputgps.indexOf('_'))
+			{
+				tilekey = tileKeyFromString(inputgps, profile, (hasLOD) ? lod : -1, &ok);
+				if (ok)
+					hasTileKey = true;
+			}
+			else
+			{
+				geopt = GeoPointFromString(inputgps, &ok);
+				if (ok)
+					hasGeoPoint = true;
+			}
         }
         else
         {
-            geopt = GeoPointFromString(input, &ok);
-        }
+			if (input.indexOf('/') > 0 || input.indexOf('_'))
+			{
+				tilekey = tileKeyFromString(input, profile, -1, &ok);
+				if (ok)
+					hasTileKey = true;
+			}
+			else
+			{
+				geopt = GeoPointFromString(input, &ok);
+				if (ok)
+					hasGeoPoint = true;
+			}
+		}
 
         if(ok)
         {
-            osgEarth::GeoPoint geoptProfile = geopt.transform(profile->getSRS());
+			if (hasGeoPoint)
+			{
+				osgEarth::GeoPoint geoptProfile = geopt.transform(profile->getSRS());
 
-            if(selectedLod == -1)
-            {
-                for(unsigned lod = 0; lod < maximum_lod; lod++)
-                {
-                    osgEarth::TileKey tilekey = profile->createTileKey( geoptProfile.x(), geoptProfile.y(), lod);
-                    addTileKeyAndNeighbors(ret, tilekey, numNeighbors);
-                }
-            }
-            else
-            {
-                osgEarth::TileKey tilekey = profile->createTileKey( geoptProfile.x(), geoptProfile.y(), selectedLod);
-                addTileKeyAndNeighbors(ret, tilekey, numNeighbors);
-            }
+				if (selectedLod == -1)
+				{
+					for (unsigned lod = 0; lod < maximum_lod; lod++)
+					{
+						osgEarth::TileKey tilekey = profile->createTileKey(geoptProfile.x(), geoptProfile.y(), lod);
+						addTileKeyAndNeighbors(ret, tilekey, (numNeighbors==TileInspectorDialog::NUM_NEIGHBORS_PARENTAL)? TileInspectorDialog::NUM_NEIGHBORS_NONE:numNeighbors);
+					}
+				}
+				else
+				{
+					osgEarth::TileKey tilekey = profile->createTileKey(geoptProfile.x(), geoptProfile.y(), selectedLod);
+					addTileKeyAndNeighbors(ret, tilekey, numNeighbors);
+				}
+			}
+			else if (hasTileKey)
+			{
+				addTileKeyAndNeighbors(ret, tilekey, numNeighbors);
+			}
         }
 
         if(ret_ok)
@@ -580,6 +653,7 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
     ui->numNeighbors->addItem(tr("None"), QVariant(NUM_NEIGHBORS_NONE) );
     ui->numNeighbors->addItem(tr("Cross (4)"), QVariant(NUM_NEIGHBORS_CROSS) );
     ui->numNeighbors->addItem(tr("Immediate (9)"), QVariant(NUM_NEIGHBORS_IMMEDIATE) );
+	ui->numNeighbors->addItem(tr("Parental"), QVariant(NUM_NEIGHBORS_PARENTAL));
 
     ui->layer->setCurrentIndex(0);
 }
