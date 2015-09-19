@@ -18,8 +18,6 @@
 
 #include <osgEarthQt/TerrainProfileWidget>
 
-#include <osgEarthExtensions/mapinspector/MapInspectorExtension>
-
 //#include <osgEarth/TimeControl>
 #include "SGIItemOsgEarth"
 
@@ -256,8 +254,7 @@ bool MapNodeAccess::hasMapInspector() const
 	const auto & extensions = getExtensions();
 	for (const auto & ext : extensions)
 	{
-		osgEarth::MapInspector::MapInspectorExtension * inspector = dynamic_cast<osgEarth::MapInspector::MapInspectorExtension * >(ext.get());
-		if (inspector)
+        if(ext->getName() == "mapinspector")
 			return true;
 	}
 	return false;
@@ -268,10 +265,9 @@ void MapNodeAccess::toggleMapInspector()
 	const auto & extensions = getExtensions();
 	for (const auto & ext : extensions)
 	{
-		osgEarth::MapInspector::MapInspectorExtension * inspector = dynamic_cast<osgEarth::MapInspector::MapInspectorExtension *>(ext.get());
-		if (inspector)
+        if(ext->getName() == "mapinspector")
 		{
-			removeExtension(inspector);
+			removeExtension(ext);
 			return;
 		}
 	}
@@ -280,6 +276,7 @@ void MapNodeAccess::toggleMapInspector()
 	osgEarth::Extension * extension = osgEarth::Extension::create("mapinspector", options);
 	if (extension)
 	{
+        extension->setName("mapinspector");
 		addExtension(extension);
 	}
 }
