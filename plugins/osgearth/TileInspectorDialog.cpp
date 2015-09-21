@@ -216,6 +216,18 @@ namespace {
 
     typedef std::list<osgEarth::TileKey> TileKeyList;
     typedef std::set<osgEarth::TileKey> TileKeySet;
+
+	void addTileKeyChilds(TileKeySet & set, const osgEarth::TileKey & tilekey)
+	{
+		if (tilekey.getLevelOfDetail() >= 24 || set.size() > 200)
+			return;
+		for (unsigned q = 0; q < 4; ++q)
+		{
+			osgEarth::TileKey qchild = tilekey.createChildKey(q);
+			set.insert(qchild);
+			addTileKeyChilds(set, qchild);
+		}
+	}
     
     void addTileKeyAndNeighbors(TileKeyList & list, const osgEarth::TileKey & tilekey, TileInspectorDialog::NUM_NEIGHBORS numNeighbors)
     {
@@ -254,7 +266,19 @@ namespace {
 					}
 				}
 				break;
-        }
+			case TileInspectorDialog::NUM_NEIGHBORS_PARENTAL_AND_CHILDS:
+				{
+					set.insert(tilekey);
+					osgEarth::TileKey t = tilekey.createParentKey();
+					while (t.valid())
+					{
+						set.insert(t);
+						t = t.createParentKey();
+					}
+					addTileKeyChilds(set, tilekey);
+				}
+				break;
+		}
         for(TileKeySet::const_iterator it = set.begin(); it != set.end(); it++)
             list.push_back(*it);
     }
@@ -352,7 +376,7 @@ namespace {
 					for (unsigned lod = 0; lod < maximum_lod; lod++)
 					{
 						osgEarth::TileKey tilekey = profile->createTileKey(geoptProfile.x(), geoptProfile.y(), lod);
-						addTileKeyAndNeighbors(ret, tilekey, (numNeighbors==TileInspectorDialog::NUM_NEIGHBORS_PARENTAL)? TileInspectorDialog::NUM_NEIGHBORS_NONE:numNeighbors);
+						addTileKeyAndNeighbors(ret, tilekey, (numNeighbors==TileInspectorDialog::NUM_NEIGHBORS_PARENTAL || numNeighbors == TileInspectorDialog::NUM_NEIGHBORS_PARENTAL_AND_CHILDS)? TileInspectorDialog::NUM_NEIGHBORS_NONE:numNeighbors);
 					}
 				}
 				else
@@ -654,6 +678,7 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
     ui->numNeighbors->addItem(tr("Cross (4)"), QVariant(NUM_NEIGHBORS_CROSS) );
     ui->numNeighbors->addItem(tr("Immediate (9)"), QVariant(NUM_NEIGHBORS_IMMEDIATE) );
 	ui->numNeighbors->addItem(tr("Parental"), QVariant(NUM_NEIGHBORS_PARENTAL));
+	ui->numNeighbors->addItem(tr("Parental&Childs"), QVariant(NUM_NEIGHBORS_PARENTAL_AND_CHILDS));
 
     ui->layer->setCurrentIndex(0);
 }

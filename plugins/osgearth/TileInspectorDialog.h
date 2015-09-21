@@ -55,6 +55,7 @@ public:
         NUM_NEIGHBORS_CROSS,
         NUM_NEIGHBORS_IMMEDIATE,
 		NUM_NEIGHBORS_PARENTAL,
+		NUM_NEIGHBORS_PARENTAL_AND_CHILDS,
     };
 protected:
     void                    triggerRepaint();
