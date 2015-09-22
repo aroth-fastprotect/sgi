@@ -13,6 +13,9 @@
 #include <QFileDialog>
 #include <QMenu>
 
+#include <osg/CoordinateSystemNode>
+#include <osgViewer/View>
+
 #include <osgEarth/Registry>
 #include <osgEarth/Viewpoint>
 #include <osgEarth/TileKey>
@@ -336,7 +339,7 @@ namespace {
 			lod = inputlod.toUInt(&ok);
 			if (ok)
 				hasLOD = true;
-			if (inputgps.indexOf('/') > 0 || inputgps.indexOf('_'))
+			if (inputgps.indexOf('/') > 0 || inputgps.indexOf('_') > 0)
 			{
 				tilekey = tileKeyFromString(inputgps, profile, (hasLOD) ? lod : -1, &ok);
 				if (ok)
@@ -351,7 +354,7 @@ namespace {
         }
         else
         {
-			if (input.indexOf('/') > 0 || input.indexOf('_'))
+			if (input.indexOf('/') > 0 || input.indexOf('_') > 0)
 			{
 				tilekey = tileKeyFromString(input, profile, -1, &ok);
 				if (ok)
@@ -681,6 +684,8 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
 	ui->numNeighbors->addItem(tr("Parental&Childs"), QVariant(NUM_NEIGHBORS_PARENTAL_AND_CHILDS));
 
     ui->layer->setCurrentIndex(0);
+
+	takePositionFromCamera();
 }
 
 TileInspectorDialog::~TileInspectorDialog()
@@ -1335,6 +1340,77 @@ void TileInspectorDialog::reloadSelectedItem()
     IObjectTreeItemPtr selectedItem = _treeRoot->selectedItem();
     if(selectedItem.valid())
         selectedItem->reload();
+}
+
+namespace {
+	osg::Camera * findCamera(SGIItemOsg * item)
+	{
+		if (!item)
+			return NULL;
+
+		osg::Node * node = dynamic_cast<osg::Node *>(item->object());
+		if (!node)
+			return NULL;
+
+		return osgEarth::findRelativeNodeOfType<osg::Camera>(node);
+	}
+	osg::Camera * findCamera(SGIItemBase * item)
+	{
+		if (!item)
+			return NULL;
+		return findCamera(dynamic_cast<SGIItemOsg*>(item));
+	}
+	osgEarth::MapNode * findMapNode(SGIItemOsg * item)
+	{
+		if (!item)
+			return NULL;
+
+		osg::Node * node = dynamic_cast<osg::Node *>(item->object());
+		if (!node)
+			return NULL;
+
+		return osgEarth::MapNode::findMapNode(node);
+	}
+	osgEarth::MapNode * findMapNode(SGIItemBase * item)
+	{
+		if (!item)
+			return NULL;
+		return findMapNode(dynamic_cast<SGIItemOsg*>(item));
+	}
+}
+
+void TileInspectorDialog::takePositionFromCamera()
+{
+	osg::Vec3d eye, center, up;
+	osg::Camera * camera = findCamera(_item.get());
+	osgViewer::View * view = NULL;
+	if (camera)
+	{
+		view = dynamic_cast<osgViewer::View*>(camera->getView());
+		camera->getViewMatrixAsLookAt(eye, center, up);
+	}
+	osgEarth::MapNode * mapnode = findMapNode(_item.get());
+	if (mapnode)
+	{
+		osg::Vec3d lookdir = center - eye;
+		lookdir.normalize();
+		osg::Vec3d start = eye;
+		osg::Vec3d end = eye + (lookdir * osg::WGS_84_RADIUS_EQUATOR * 100);
+		osg::ref_ptr<osgUtil::LineSegmentIntersector> isector = new osgUtil::LineSegmentIntersector(start, end);
+
+		osgUtil::IntersectionVisitor intersectVisitor(isector.get());
+		mapnode->accept(intersectVisitor);
+		if (isector->containsIntersections())
+		{
+			const osgUtil::LineSegmentIntersector::Intersection & first = isector->getFirstIntersection();
+			osgEarth::GeoPoint geopt;
+			geopt.fromWorld(mapnode->getMapSRS()->getECEF(), first.getWorldIntersectPoint());
+			osgEarth::GeoPoint geoptMap = geopt.transform(mapnode->getMapSRS());
+
+			ui->coordinate->setText(QString("%1,%2,%3").arg(geoptMap.y()).arg(geoptMap.x()).arg(geoptMap.z()));
+		}
+	}
+
 }
 
 } // namespace osgearth_plugin

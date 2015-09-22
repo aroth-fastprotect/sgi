@@ -44,6 +44,7 @@ public slots:
     void                        updateMetaData();
     void                        loadData();
     void                        reloadSelectedItem();
+	void                        takePositionFromCamera();
 
 public:
     void                        requestRedraw();
