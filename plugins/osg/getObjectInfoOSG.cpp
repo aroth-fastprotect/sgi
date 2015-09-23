@@ -29,6 +29,7 @@ GET_OBJECT_NAME_IMPL_REGISTER(osg::Group)
 GET_OBJECT_NAME_IMPL_REGISTER(osg::LOD)
 GET_OBJECT_NAME_IMPL_REGISTER(osg::PagedLOD)
 GET_OBJECT_NAME_IMPL_REGISTER(osg::Operation)
+GET_OBJECT_NAME_IMPL_REGISTER(osg::Image)
 GET_OBJECT_NAME_IMPL_REGISTER(osgDB::Registry)
 GET_OBJECT_NAME_IMPL_REGISTER(osgDB::BaseSerializer)
 GET_OBJECT_DISPLAYNAME_IMPL_REGISTER(osg::Referenced)
@@ -74,21 +75,20 @@ std::string getObjectNameImpl<osg::Referenced>::process()
 std::string getObjectNameImpl<osg::Object>::process()
 {
     osg::Object * object = static_cast<osg::Object*>(item<SGIItemOsg>()->object());
-
-    std::string classname = getObjectTypename(object);
-    std::string name = object->getName();
-    std::string ret;
-    if(name.empty())
-    {
-        std::stringstream ss;
-        ss << helpers::getRTTITypenameShort(object) << "(" << (void*)object << ")";
-        name = ss.str();
-    }
-    if(classname.empty())
-        ret = name;
-    else
-        ret = classname + "/" + name;
-    return ret;
+	std::string classname = getObjectTypename(object);
+	std::string name = object->getName();
+	std::string ret;
+	if (name.empty())
+	{
+		std::stringstream ss;
+		ss << helpers::getRTTITypenameShort(object) << "(" << (void*)object << ")";
+		name = ss.str();
+	}
+	if (classname.empty())
+		ret = name;
+	else
+		ret = classname + "/" + name;
+	return ret;
 }
 
 std::string getObjectNameImpl<osg::Node>::process()
@@ -145,7 +145,23 @@ std::string getObjectNameImpl<osg::PagedLOD>::process()
 std::string getObjectNameImpl<osg::Operation>::process()
 {
     osg::Operation * object = dynamic_cast<osg::Operation*>(item<SGIItemOsg>()->object());
-    return object->getName();
+    std::string ret = object->getName();
+	if (!ret.empty())
+		return ret;
+	getObjectNameImpl<osg::Referenced> f(_hostInterface, _item);
+	return f.process();
+}
+
+std::string getObjectNameImpl<osg::Image>::process()
+{
+	osg::Image * object = dynamic_cast<osg::Image*>(item<SGIItemOsg>()->object());
+	std::string ret = object->getName();
+	if (ret.empty())
+		ret = object->getFileName();
+	if (!ret.empty())
+		return ret;
+	getObjectNameImpl<osg::Node> f(_hostInterface, _item);
+	return f.process();
 }
 
 std::string getObjectNameImpl<osgDB::Registry>::process()
