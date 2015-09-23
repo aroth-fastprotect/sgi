@@ -627,7 +627,7 @@ namespace {
         return qt_gl_convertToGLFormatHelper(src_pixel, texture_format);
     }
 
-    static void convertToGLFormatHelper(QImage &dst, const QImage &img, GLenum texture_format)
+    static void convertToGLFormatHelper(QImage &dst, const QImage &img, GLenum texture_format, GLint internal_format)
     {
         Q_ASSERT(dst.depth() == 32);
         Q_ASSERT(img.depth() == 32);
@@ -682,12 +682,25 @@ namespace {
                         p -= 2 * width;
                     }
                 } else {
-                    const uint bytesPerLine = img.bytesPerLine();
-                    for (int i=0; i < height; ++i) {
-                        memcpy(q, p, bytesPerLine);
-                        q += width;
-                        p -= width;
-                    }
+					if (internal_format == GL_RGBA8) {
+						p = (const uint*)img.scanLine(0);
+						for (int i = 0; i < height; ++i) {
+							const uint *end = p + width;
+							while (p < end) {
+								*q = ((*p << 16) & 0xff0000) | ((*p >> 16) & 0xff) | (*p & 0xff00ff00);
+								p++;
+								q++;
+							}
+						}
+					}
+					else {
+						const uint bytesPerLine = img.bytesPerLine();
+						for (int i = 0; i < height; ++i) {
+							memcpy(q, p, bytesPerLine);
+							q += width;
+							p -= width;
+						}
+					}
                 }
             } else {
                 if (QSysInfo::ByteOrder == QSysInfo::BigEndian) {
@@ -715,10 +728,11 @@ namespace {
         }
     }
 
-    QImage convertToGLFormat(const QImage& img)
+    QImage convertToGLFormat(const QImage& img, GLenum pixel_format, GLint internal_format)
     {
         QImage res(img.size(), QImage::Format_ARGB32);
-        convertToGLFormatHelper(res, img.convertToFormat(QImage::Format_ARGB32), GL_BGRA);
+		// transform given image into ARGB32 (32-bits with 8 bits alpha channel)
+        convertToGLFormatHelper(res, img.convertToFormat(QImage::Format_ARGB32), GL_BGRA, internal_format);
         return res;
     }
 }
@@ -727,7 +741,9 @@ bool osgImageToQImage(const osg::Image * image, QImage * qimage)
 {
     bool ret = false;
     QImage::Format format;
-    switch(image->getPixelFormat())
+	GLenum pixel_format = image->getPixelFormat();
+	GLint internal_format = image->getInternalTextureFormat();
+    switch(pixel_format)
     {
     case GL_RGB:
         format = QImage::Format_RGB888;
@@ -750,7 +766,7 @@ bool osgImageToQImage(const osg::Image * image, QImage * qimage)
         int width = image->s();
         int height = image->t();
         *qimage = QImage(image->data(), width, height, bytesPerLine, format);
-        *qimage = convertToGLFormat(*qimage);
+        *qimage = convertToGLFormat(*qimage, pixel_format, internal_format);
         //ret = ret.mirrored(false, true);
         ret = true;
     }
