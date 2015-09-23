@@ -60,7 +60,6 @@ SET(TARGET_H
     SettingsDialogOSG.h
     GUIAdapterOSG.h
 
-    FindTopMostNodeOfType
     DrawableHelper.h
     ManipulateObject.h
     )

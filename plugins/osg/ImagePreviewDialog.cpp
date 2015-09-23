@@ -15,8 +15,6 @@
 #include <sgi/helpers/osg>
 #include <sgi/helpers/qt>
 
-#include "FindTopMostNodeOfType"
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif

@@ -37,7 +37,6 @@
 #include "osg_accessor.h"
 #include "stateset_helpers.h"
 #include "SettingsDialogOSG.h"
-#include "FindTopMostNodeOfType"
 #include "DrawableHelper.h"
 #include "ManipulateObject.h"
 

@@ -9,6 +9,7 @@
 #include <osg/Vec4f>
 #include <osg/Vec4d>
 #include <osg/Vec3>
+#include <osg/NodeVisitor>
 #include <sgi/helpers/rtti>
 
 namespace osg {
@@ -153,6 +154,203 @@ bool osgImageToQImage(const osg::Image * image, QImage * qimage);
 
 void heightFieldDumpHTML(std::basic_ostream<char>& os, const osg::HeightField * hf);
 void heightFieldDumpPlainText(std::basic_ostream<char>& os, const osg::HeightField * hf);
+
+    /**
+     * Visitor that locates a node by its type
+     */
+    template<typename T>
+    class FindTopMostNodeOfTypeVisitor : public osg::NodeVisitor
+    {
+    public:
+        FindTopMostNodeOfTypeVisitor():
+          osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN),
+              _foundNode(0)
+          {}
+
+          void apply(osg::Node& node)
+          {
+              T* result = dynamic_cast<T*>(&node);
+              if (result)
+              {
+                  _foundNode = result;
+              }
+              else
+              {
+                  traverse(node);
+              }
+          }
+          T* excludedNode() const { return _excludedNode; }
+          void setExcludedNode(T * node) { _excludedNode = node; }
+
+          T* _foundNode;
+          T* _excludedNode;
+    };
+
+    /**
+     * Collects all the nodes of type "T"
+     */
+    template<typename T>
+    struct FindNodesVisitor : public osg::NodeVisitor
+    {
+        FindNodesVisitor() : osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN) { }
+
+        void apply(osg::Node& node)
+        {
+            T* result = dynamic_cast<T*>( &node );
+            if ( result )
+                _results.push_back( result );
+            traverse(node);
+        }
+
+        std::vector<T*> _results;
+    };
+
+    /**
+     * Searchs the scene graph downward starting at [node] and returns the first node found
+     * that matches the template parameter type.
+     */
+    template<typename T>
+    T* findTopMostNodeOfType(osg::Node* node, unsigned traversalMask =~0u, T * excludedNode=NULL)
+    {
+        if (!node) return 0;
+
+        FindTopMostNodeOfTypeVisitor<T> fnotv;
+        fnotv.setTraversalMode(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN);
+        fnotv.setTraversalMask(traversalMask);
+        fnotv.setExcludedNode(excludedNode);
+        node->accept(fnotv);
+
+        return fnotv._foundNode;
+    }
+
+    /**
+     * Searchs the scene graph upward starting at [node] and returns the first node found
+     * that matches the template parameter type.
+     */
+    template<typename T>
+    T* findFirstParentOfType(osg::Node* node, unsigned traversalMask =~0u, T * excludedNode=NULL)
+    {
+        if (!node) return 0;
+
+        FindTopMostNodeOfTypeVisitor<T> fnotv;
+        fnotv.setTraversalMode(osg::NodeVisitor::TRAVERSE_PARENTS);
+        fnotv.setTraversalMask(traversalMask);
+        fnotv.setExcludedNode(excludedNode);
+        node->accept(fnotv);
+
+        return fnotv._foundNode;
+    }
+
+    /**
+     * Searchs the scene graph starting at [node] and returns the first node found
+     * that matches the template parameter type. First searched upward, then downward.
+     */
+    template<typename T>
+    T* findRelativeNodeOfType(osg::Node* node, unsigned traversalMask =~0u, T * excludedNode=NULL)
+    {
+        if ( !node ) return 0;
+        T* result = findFirstParentOfType<T>( node, traversalMask, excludedNode );
+        if ( !result )
+            result = findTopMostNodeOfType<T>( node, traversalMask, excludedNode );
+        return result;
+    }
+
+    /**
+     * Collects all the nodes of type "T" and given name
+     */
+    template<typename T>
+    struct FindNamedNodesVisitor : public osg::NodeVisitor
+    {
+        FindNamedNodesVisitor(const std::string& name)
+            : osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN)
+            , _name(name) {}
+
+        void apply(osg::Node& node)
+        {
+            T* result = dynamic_cast<T*>( &node );
+            if ( result )
+            {
+                if (node.getName()==_name)
+                    _results.push_back( result );
+            }
+            traverse(node);
+        }
+        const std::string & _name;
+        std::vector<T*> _results;
+    };
+    /**
+     * Collects all the nodes of type "T" and given name
+     */
+    template<typename T>
+    struct FindTopMostNamedNodesVisitor : public osg::NodeVisitor
+    {
+        FindTopMostNamedNodesVisitor(const std::string& name)
+            : osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN)
+            , _name(name), _foundNode(NULL) {}
+
+        void apply(osg::Node& node)
+        {
+            T* result = dynamic_cast<T*>( &node );
+            if ( result )
+            {
+                if (node.getName()==_name)
+                {
+                    _foundNode = result;
+                }
+            }
+            if(!_foundNode)
+                traverse(node);
+        }
+        const std::string & _name;
+        T* _foundNode;
+    };
+   /**
+     * Searchs the scene graph downward starting at [node] and returns the first node found
+     * that matches the template parameter type.
+     */
+    template<typename T>
+    T* findTopMostNodeByName(osg::Node* node, const std::string & name, unsigned traversalMask =~0u)
+    {
+        if (!node) return 0;
+
+        FindTopMostNamedNodesVisitor<T> fnnv(name);
+        fnnv.setTraversalMode(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN);
+        fnnv.setTraversalMask(traversalMask);
+        node->accept(fnnv);
+
+        return fnnv._foundNode;
+    }
+
+    /**
+     * Searchs the scene graph upward starting at [node] and returns the first node found
+     * that matches the template parameter type.
+     */
+    template<typename T>
+    T* findFirstParentByName(osg::Node* node, const std::string & name, unsigned traversalMask =~0u)
+    {
+        if (!node) return 0;
+
+        FindTopMostNamedNodesVisitor<T> fnnv(name);
+        fnnv.setTraversalMode(osg::NodeVisitor::TRAVERSE_PARENTS);
+        fnnv.setTraversalMask(traversalMask);
+        node->accept(fnnv);
+
+        return fnnv._foundNode;
+    }
+
+    /**
+     * Searchs the scene graph starting at [node] and returns the first node found
+     * that matches the template parameter type. First searched upward, then downward.
+     */
+    template<typename T>
+    T* findRelativeNodeByName(osg::Node* node, const std::string & name, unsigned traversalMask =~0u)
+    {
+        if ( !node ) return 0;
+        T* result = findFirstParentByName<T>( node, name, traversalMask );
+        if ( !result )
+            result = findTopMostNodeByName<T>( node, name, traversalMask );
+        return result;
+    }
 
     } // namespace osg_helpers
 } // namespace sgi

@@ -39,7 +39,6 @@
 
 #include "osgearth_accessor.h"
 #include "ElevationQueryReferenced"
-#include "../osg/FindTopMostNodeOfType"
 
 namespace sgi {
 
@@ -1423,14 +1422,14 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
 		osg::Node * node = dynamic_cast<osg::Node*>(osgitem->object());
 		if (node)
 		{
-			osgEarth::MapNode * mapNode = osgEarth::MapNode::findMapNode(node);
+			osgEarth::MapNode * mapNode = osg_helpers::findRelativeNodeOfType<osgEarth::MapNode>(node);
 			if (mapNode)
 			{
 				SGIHostItemOsg hostItem(mapNode);
 				treeItem->addChild(std::string(), &hostItem);
 			}
 
-			osg::Camera * camera = osgEarth::findRelativeNodeOfType<osg::Camera>(node);
+			osg::Camera * camera = osg_helpers::findRelativeNodeOfType<osg::Camera>(node);
 			if (camera)
 			{
 				osg::View* view = camera->getView();

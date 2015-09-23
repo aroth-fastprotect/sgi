@@ -19,10 +19,9 @@
 #include <osgUtil/UpdateVisitor>
 #include <osgGA/EventVisitor>
 
-#include "FindTopMostNodeOfType"
-
 #include <sgi/plugins/ContextMenu>
 #include <sgi/plugins/SceneGraphDialog>
+#include <sgi/helpers/osg>
 
 #include <cassert>
 
@@ -771,7 +770,7 @@ ObjectLogger * ObjectLogger::getLogger(SGIItemBase * item)
     osg::Node* object = static_cast<osg::Node*>(static_cast<const SGIItemOsg*>(item)->object());
     osg::Camera * camera = dynamic_cast<osg::Camera*>(object);
     if(!camera)
-        camera = findFirstParentOfType<osg::Camera>(object);
+        camera = osg_helpers::findFirstParentOfType<osg::Camera>(object);
 
     ObjectLogger * logger = getLoggerFromCamera(camera);
     return logger;
@@ -783,7 +782,7 @@ ObjectLogger * ObjectLogger::getOrCreateLogger(SGIItemBase * item, SGIPluginHost
     
     osg::Camera * camera = dynamic_cast<osg::Camera*>(object);
     if(!camera)
-        camera = findFirstParentOfType<osg::Camera>(object);
+        camera = osg_helpers::findFirstParentOfType<osg::Camera>(object);
 
     ObjectLogger * logger = getLoggerFromCamera(camera);
     if(!logger)

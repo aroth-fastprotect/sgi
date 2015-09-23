@@ -3405,6 +3405,54 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
 
     SGIHostItemOsg hostItem(new SGIProxyItemT<RegistrySingleton>(_hostInterface, "osgDB::Registry"));
     treeItem->addChild(std::string(), &hostItem);
+
+    SGIItemOsg * osgitem = dynamic_cast<SGIItemOsg *>(object->item());
+    if (osgitem)
+    {
+        osg::Node * node = dynamic_cast<osg::Node*>(osgitem->object());
+        if (node)
+        {
+            osg::Geode * geode = osg_helpers::findTopMostNodeByName<osg::Geode>(node, "ImageGeode");
+            if(geode)
+            {
+                bool foundImage = false;
+                for(unsigned n = 0; n < geode->getNumDrawables(); ++n)
+                {
+                    osg::Geometry * geom = geode->getDrawable(n)->asGeometry();
+                    if(geom)
+                    {
+                        osg::StateSet * stateSet = geom->getStateSet();
+                        if(stateSet)
+                        {
+                            osg::StateAttribute * attr = stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
+                            if(attr)
+                            {
+                                osg::Texture * text = attr->asTexture();
+                                if(text)
+                                {
+                                    for(unsigned imgno = 0; imgno < text->getNumImages(); ++imgno)
+                                    {
+                                        osg::Image * img = text->getImage(imgno);
+                                        if(img)
+                                        {
+                                            SGIHostItemOsg hostItem(img);
+                                            treeItem->addChild(std::string(), &hostItem);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if(!foundImage)
+                {
+                    SGIHostItemOsg hostItem(geode);
+                    treeItem->addChild(std::string(), &hostItem);
+                }
+            }
+        }
+    }
+
     return true;
 }
 
