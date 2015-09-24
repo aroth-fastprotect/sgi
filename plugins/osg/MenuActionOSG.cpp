@@ -163,6 +163,7 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseModifyText)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseDrawMode)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseAxisAlignment)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBackdropType)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBackdropImplementation)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerPause)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerAcceptNewRequests)
@@ -1833,6 +1834,13 @@ bool actionHandlerImpl<MenuActionTextBackdropType>::execute()
     osgText::Text * object = getObject<osgText::Text,SGIItemOsg>();
     object->setBackdropType((osgText::Text::BackdropType)menuAction()->mode());
     return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBackdropImplementation>::execute()
+{
+	osgText::Text * object = getObject<osgText::Text, SGIItemOsg>();
+	object->setBackdropImplementation((osgText::Text::BackdropImplementation)menuAction()->mode());
+	return true;
 }
 
 bool actionHandlerImpl<MenuActionTextBaseModifyText>::execute()
