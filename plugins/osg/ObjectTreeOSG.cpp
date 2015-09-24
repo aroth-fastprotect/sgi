@@ -3437,6 +3437,7 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
                                         {
                                             SGIHostItemOsg hostItem(img);
                                             treeItem->addChild(std::string(), &hostItem);
+                                            foundImage = true;
                                         }
                                     }
                                 }
