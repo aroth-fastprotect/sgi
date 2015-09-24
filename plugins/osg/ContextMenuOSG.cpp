@@ -1879,6 +1879,15 @@ bool contextMenuPopulateImpl<osgText::Text>::populate(IContextMenuItem * menuIte
                 backdropTypeMenu->addModeAction("Outline", osgText::Text::OUTLINE);
                 backdropTypeMenu->addModeAction("None", osgText::Text::NONE);
             }
+			IContextMenuItem * backdropImplMenu = menuItem->addModeMenu(MenuActionTextBackdropImplementation, "Backdrop Implementation", _item, object->getBackdropImplementation());
+			if (backdropImplMenu)
+			{
+				backdropImplMenu->addModeAction("POLYGON_OFFSET", osgText::Text::POLYGON_OFFSET);
+				backdropTypeMenu->addModeAction("NO_DEPTH_BUFFER", osgText::Text::NO_DEPTH_BUFFER);
+				backdropTypeMenu->addModeAction("DEPTH_RANGE", osgText::Text::DEPTH_RANGE);
+				backdropTypeMenu->addModeAction("STENCIL_BUFFER", osgText::Text::STENCIL_BUFFER);
+				backdropTypeMenu->addModeAction("DELAYED_DEPTH_WRITES", osgText::Text::DELAYED_DEPTH_WRITES);
+			}
         }
         break;
     default:

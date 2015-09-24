@@ -141,6 +141,7 @@ enum MenuAction {
     MenuActionTextBaseDrawMode,
     MenuActionTextBaseAxisAlignment,
     MenuActionTextBackdropType,
+	MenuActionTextBackdropImplementation,
 
     MenuActionAnimationManagerBaseAutomaticLink,
     MenuActionAnimationManagerBaseDirty,
@@ -275,6 +276,7 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBaseModifyText)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBaseDrawMode)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBaseAxisAlignment)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBackdropType)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBackdropImplementation)
 
 ACTION_HANDLER_IMPL_DECLARE(MenuActionDatabasePagerPause)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionDatabasePagerAcceptNewRequests)
