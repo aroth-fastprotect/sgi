@@ -140,8 +140,13 @@ enum MenuAction {
     MenuActionTextBaseModifyText,
     MenuActionTextBaseDrawMode,
     MenuActionTextBaseAxisAlignment,
+    MenuActionTextBackdropEnableDepthWrites,
+    MenuActionTextBackdropImplementation,
     MenuActionTextBackdropType,
-	MenuActionTextBackdropImplementation,
+	MenuActionTextBackdropHorizontalOffset,
+    MenuActionTextBackdropVerticalOffset,
+    MenuActionTextBackdropColor,
+    MenuActionTextBackdropColorGradientMode,
 
     MenuActionAnimationManagerBaseAutomaticLink,
     MenuActionAnimationManagerBaseDirty,
@@ -275,8 +280,13 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBaseCharacterSizeMode)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBaseModifyText)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBaseDrawMode)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBaseAxisAlignment)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBackdropEnableDepthWrites)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBackdropType)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBackdropImplementation)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBackdropHorizontalOffset)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBackdropVerticalOffset)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBackdropColor)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBackdropColorGradientMode)
 
 ACTION_HANDLER_IMPL_DECLARE(MenuActionDatabasePagerPause)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionDatabasePagerAcceptNewRequests)

@@ -162,8 +162,13 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseCharacterSizeMode)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseModifyText)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseDrawMode)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseAxisAlignment)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBackdropEnableDepthWrites)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBackdropType)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBackdropImplementation)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBackdropHorizontalOffset)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBackdropVerticalOffset)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBackdropColor)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBackdropColorGradientMode)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerPause)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerAcceptNewRequests)
@@ -1829,6 +1834,13 @@ bool actionHandlerImpl<MenuActionTextBaseAxisAlignment>::execute()
     return true;
 }
 
+bool actionHandlerImpl<MenuActionTextBackdropEnableDepthWrites>::execute()
+{
+    osgText::Text * object = getObject<osgText::Text,SGIItemOsg>();
+    object->setEnableDepthWrites(menuAction()->state());
+    return true;
+}
+
 bool actionHandlerImpl<MenuActionTextBackdropType>::execute()
 {
     osgText::Text * object = getObject<osgText::Text,SGIItemOsg>();
@@ -1838,9 +1850,61 @@ bool actionHandlerImpl<MenuActionTextBackdropType>::execute()
 
 bool actionHandlerImpl<MenuActionTextBackdropImplementation>::execute()
 {
-	osgText::Text * object = getObject<osgText::Text, SGIItemOsg>();
-	object->setBackdropImplementation((osgText::Text::BackdropImplementation)menuAction()->mode());
-	return true;
+    osgText::Text * object = getObject<osgText::Text, SGIItemOsg>();
+    object->setBackdropImplementation((osgText::Text::BackdropImplementation)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBackdropHorizontalOffset>::execute()
+{
+    osgText::Text * object = getObject<osgText::Text, SGIItemOsg>();
+    double number = object->getBackdropHorizontalOffset();
+    bool ret;
+    ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+                                             number,
+                                             "Horizontal offset:", "Set backdrop horizontal offset",
+                                             0.0, 100.0, 1,
+                                             _item
+                                            );
+    if(ret)
+        object->setBackdropOffset(number, object->getBackdropVerticalOffset());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBackdropVerticalOffset>::execute()
+{
+    osgText::Text * object = getObject<osgText::Text, SGIItemOsg>();
+    double number = object->getBackdropVerticalOffset();
+    bool ret;
+    ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+                                             number,
+                                             "Vertical offset:", "Set backdrop vertical offset",
+                                             0.0, 100.0, 1,
+                                             _item
+                                            );
+    if(ret)
+        object->setBackdropOffset(object->getBackdropHorizontalOffset(), number);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBackdropColor>::execute()
+{
+    osgText::Text * object = getObject<osgText::Text, SGIItemOsg>();
+
+    sgi::Color color = osgColor(object->getBackdropColor());
+    if(_hostInterface->inputDialogColor(menu()->parentWidget(), color, "Backdrop color", "Select backdrop color", _item))
+    {
+        object->setBackdropColor(osgColor(color));
+        triggerRepaint();
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBackdropColorGradientMode>::execute()
+{
+    osgText::Text * object = getObject<osgText::Text, SGIItemOsg>();
+    object->setColorGradientMode((osgText::Text::ColorGradientMode)menuAction()->mode());
+    return true;
 }
 
 bool actionHandlerImpl<MenuActionTextBaseModifyText>::execute()

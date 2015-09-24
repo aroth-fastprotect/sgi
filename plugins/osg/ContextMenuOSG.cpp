@@ -1865,6 +1865,7 @@ bool contextMenuPopulateImpl<osgText::Text>::populate(IContextMenuItem * menuIte
         ret = callNextHandler(menuItem);
         if(ret)
         {
+            menuItem->addBoolAction(MenuActionTextBackdropEnableDepthWrites, "Depth Writes Enabled", _item, object->getEnableDepthWrites());
             IContextMenuItem * backdropTypeMenu = menuItem->addModeMenu(MenuActionTextBackdropType, "Backdrop type", _item, object->getBackdropType());
             if(backdropTypeMenu)
             {
@@ -1888,6 +1889,9 @@ bool contextMenuPopulateImpl<osgText::Text>::populate(IContextMenuItem * menuIte
 				backdropTypeMenu->addModeAction("STENCIL_BUFFER", osgText::Text::STENCIL_BUFFER);
 				backdropTypeMenu->addModeAction("DELAYED_DEPTH_WRITES", osgText::Text::DELAYED_DEPTH_WRITES);
 			}
+            menuItem->addSimpleAction(MenuActionTextBackdropHorizontalOffset, helpers::str_plus_info("Backdrop Horz. Offset", object->getBackdropHorizontalOffset()), _item);
+            menuItem->addSimpleAction(MenuActionTextBackdropVerticalOffset, helpers::str_plus_info("Backdrop Vert. Offset", object->getBackdropVerticalOffset()), _item);
+            menuItem->addSimpleAction(MenuActionTextBackdropColor, "Backdrop color...", _item);
         }
         break;
     default:
