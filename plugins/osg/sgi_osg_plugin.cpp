@@ -219,6 +219,22 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                  sgi::ISceneGraphDialogToolsMenu
                                                                 ))
 
+#if OSG_MIN_VERSION_REQUIRED(3,4,0)
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(osg::Node, osg::Node, osg::Shape, osg::StateAttribute,
+                                                             osg::StateSet, osg::View, osg::GraphicsContext, osg::Shader, osg::UserDataContainer,
+                                                             osg::BufferData, osg::BufferObject, osg::View, osg::Uniform, osg::ShaderComposer,
+                                                             osg::NodeVisitor, osg::RenderBuffer, osg::ShaderComponent,
+                                                             osg::RefMatrixd, osg::RefMatrixf,
+                                                             osgAnimation::Animation,
+                                                             osgAnimation::AnimationUpdateCallbackBase,
+                                                             osgDB::Options, osgDB::ReaderWriter, osgDB::DatabaseRevision, osgDB::DatabaseRevisions, osgDB::FileList,
+                                                             osgViewer::ViewerBase, osgViewer::GraphicsWindow,
+                                                             osgGA::GUIEventHandler, osgGA::GUIEventAdapter,
+                                                             osgText::Font,
+                                                             osgUtil::SceneView, osgUtil::RenderBin,
+                                                             osgTerrain::Locator, osgTerrain::Layer, osgTerrain::TerrainTechnique))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Callback, LOKI_TYPELIST(osg::NodeCallback, osg::StateAttributeCallback, osg::UniformCallback))
+#else // OSG_MIN_VERSION_REQUIRED(3,4,0)
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(osg::Node, osg::NodeCallback, osg::Drawable, osg::Shape, osg::StateAttribute,
                                                              osg::StateSet, osg::View, osg::GraphicsContext, osg::Shader, osg::UserDataContainer,
                                                              osg::BufferData, osg::BufferObject, osg::View, osg::Uniform, osg::ShaderComposer,
@@ -232,6 +248,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(osg::Node, osg::Nod
                                                              osgText::Font,
                                                              osgUtil::SceneView, osgUtil::RenderBin,
                                                              osgTerrain::Locator, osgTerrain::Layer, osgTerrain::TerrainTechnique))
+#endif // OSG_MIN_VERSION_REQUIRED(3,4,0)
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::NodeVisitor::ImageRequestHandler, LOKI_TYPELIST(osgDB::ImagePager))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::NodeVisitor::DatabaseRequestHandler, LOKI_TYPELIST(osgDB::DatabasePager))
@@ -246,8 +263,14 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::BufferObject, LOKI_TYPELIST(osg::VertexBu
                                                                   ))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Drawable, LOKI_TYPELIST(osg::Geometry, osgText::TextBase, osg::ShapeDrawable, RenderInfoDrawable))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::GraphicsContext, LOKI_TYPELIST(osgViewer::GraphicsWindow))
+#if OSG_MIN_VERSION_REQUIRED(3,4,0)
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Node, LOKI_TYPELIST(osg::Group, osg::Drawable))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Group, LOKI_TYPELIST(osg::Geode, osg::Transform, osg::LOD, osg::ProxyNode, osg::CoordinateSystemNode, osgFX::Effect, osgTerrain::TerrainTile))
+#else // OSG_MIN_VERSION_REQUIRED(3,4,0)
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Node, LOKI_TYPELIST(osg::Group, osg::Geode))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Group, LOKI_TYPELIST(osg::Transform, osg::LOD, osg::ProxyNode, osg::CoordinateSystemNode, osgFX::Effect, osgTerrain::TerrainTile))
+#endif // OSG_MIN_VERSION_REQUIRED(3,4,0)
+
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::CoordinateSystemNode, LOKI_TYPELIST(osgTerrain::Terrain))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Transform, LOKI_TYPELIST(osg::Camera, osg::MatrixTransform, osg::PositionAttitudeTransform, osg::AutoTransform))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::LOD, LOKI_TYPELIST(osg::PagedLOD))

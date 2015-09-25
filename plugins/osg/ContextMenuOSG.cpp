@@ -1884,10 +1884,10 @@ bool contextMenuPopulateImpl<osgText::Text>::populate(IContextMenuItem * menuIte
 			if (backdropImplMenu)
 			{
 				backdropImplMenu->addModeAction("POLYGON_OFFSET", osgText::Text::POLYGON_OFFSET);
-				backdropTypeMenu->addModeAction("NO_DEPTH_BUFFER", osgText::Text::NO_DEPTH_BUFFER);
-				backdropTypeMenu->addModeAction("DEPTH_RANGE", osgText::Text::DEPTH_RANGE);
-				backdropTypeMenu->addModeAction("STENCIL_BUFFER", osgText::Text::STENCIL_BUFFER);
-				backdropTypeMenu->addModeAction("DELAYED_DEPTH_WRITES", osgText::Text::DELAYED_DEPTH_WRITES);
+				backdropImplMenu->addModeAction("NO_DEPTH_BUFFER", osgText::Text::NO_DEPTH_BUFFER);
+				backdropImplMenu->addModeAction("DEPTH_RANGE", osgText::Text::DEPTH_RANGE);
+				backdropImplMenu->addModeAction("STENCIL_BUFFER", osgText::Text::STENCIL_BUFFER);
+				backdropImplMenu->addModeAction("DELAYED_DEPTH_WRITES", osgText::Text::DELAYED_DEPTH_WRITES);
 			}
             menuItem->addSimpleAction(MenuActionTextBackdropHorizontalOffset, helpers::str_plus_info("Backdrop Horz. Offset", object->getBackdropHorizontalOffset()), _item);
             menuItem->addSimpleAction(MenuActionTextBackdropVerticalOffset, helpers::str_plus_info("Backdrop Vert. Offset", object->getBackdropVerticalOffset()), _item);
