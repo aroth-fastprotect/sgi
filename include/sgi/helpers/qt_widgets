@@ -1,0 +1,37 @@
+// kate: syntax C++11;
+
+#pragma once
+
+#include <QWidget>
+
+class QTimer;
+
+namespace sgi {
+namespace qt_helpers {
+
+class HighlightWidget : public QWidget
+{
+    Q_OBJECT
+
+public:
+    HighlightWidget(QWidget *parent=0);
+    HighlightWidget(unsigned interval=200, unsigned autoCloseTime=10000, QWidget *parent=0);
+    virtual ~HighlightWidget();
+
+protected:
+    void blink();
+    virtual void paintEvent(QPaintEvent* ev) override;
+
+private:
+    void init(unsigned interval, unsigned autoCloseTime);
+
+private:
+    Q_DISABLE_COPY(HighlightWidget)
+    QTimer * _timer;
+    unsigned _counter;
+    unsigned _maxCounter;
+};
+
+
+    } // namespace qt_helpers
+} // namespace sgi

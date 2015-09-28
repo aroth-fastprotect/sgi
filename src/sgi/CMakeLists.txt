@@ -46,6 +46,7 @@ SET(TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/ObjectLoggerDialog
 
 	${SGI_INCLUDE_DIR}/sgi/helpers/qt
+	${SGI_INCLUDE_DIR}/sgi/helpers/qt_widgets
 	${SGI_INCLUDE_DIR}/sgi/helpers/osg
 
     ${SGI_INCLUDE_DIR}/sgi/plugins/fallback_support.h

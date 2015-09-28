@@ -92,7 +92,13 @@ bool contextMenuPopulateImpl<QWidget>::populate(IContextMenuItem * menuItem)
         ret = callNextHandler(menuItem);
         if(ret)
         {
-            menuItem->addSimpleAction(MenuActionGrabWidget, "Grab widget", _item);
+            menuItem->addSimpleAction(MenuActionWidgetGrab, "Grab widget", _item);
+            menuItem->addSimpleAction(MenuActionWidgetHighlight, "Highlight", _item);
+            menuItem->addBoolAction(MenuActionWidgetSetVisibility, object->isVisible() ? "Hide" : "Show", _item, object->isVisible());
+            menuItem->addBoolAction(MenuActionWidgetSetEnabled, "Enabled", _item, object->isEnabled());
+            menuItem->addBoolAction(MenuActionWidgetSetAcceptDrops, "Accept drops", _item, object->acceptDrops());
+            menuItem->addBoolAction(MenuActionWidgetSetAutoFillBackground, "Auto fill background", _item, object->autoFillBackground());
+
 
 /*
             if(object->parentWidget() != object->parent())

@@ -7,6 +7,7 @@ SET(TARGET_SRC
     ObjectTreeImpl.cpp
     osg_helpers.cpp
     qt_helpers.cpp
+    widget_helpers.cpp
     string_helpers.cpp
     ImagePreviewDialogBase.cpp
     )
@@ -14,6 +15,7 @@ SET(TARGET_SRC
 SET(TARGET_MOC_H
 	ObjectTreeImplProxy.h
 	../../include/sgi/plugins/ImagePreviewDialogBase
+	../../include/sgi/helpers/qt_widgets
 	)
 
 SET(TARGET_UI

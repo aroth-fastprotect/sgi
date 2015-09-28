@@ -7,6 +7,7 @@
 #include <sgi/plugins/SettingsDialog>
 #include <sgi/plugins/SGIHostItemQt.h>
 #include <sgi/helpers/qt>
+#include <sgi/helpers/qt_widgets>
 
 #include "SettingsDialogQt.h"
 #include "ContextMenuQt.h"
@@ -20,7 +21,12 @@ namespace qt_plugin {
 ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectInfo)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDumpObjectInfo)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDumpObjectTree)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionGrabWidget)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionWidgetGrab)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionWidgetSetVisibility)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionWidgetSetEnabled)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionWidgetSetAcceptDrops)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionWidgetSetAutoFillBackground)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionWidgetHighlight)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectMethodInvoke)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionImagePreview)
 
@@ -144,7 +150,7 @@ bool actionHandlerImpl<MenuActionDumpObjectTree>::execute()
     return true;
 }
 
-bool actionHandlerImpl<MenuActionGrabWidget>::execute()
+bool actionHandlerImpl<MenuActionWidgetGrab>::execute()
 {
     QWidget * object = getObject<QWidget,SGIItemQt>();
     QPixmap * pixmap = new QPixmap(object->grab());
@@ -163,6 +169,42 @@ bool actionHandlerImpl<MenuActionGrabWidget>::execute()
             dialog->show();
     }
     return ret;
+}
+
+bool actionHandlerImpl<MenuActionWidgetSetVisibility>::execute()
+{
+    QWidget * object = getObject<QWidget,SGIItemQt>();
+    object->setVisible(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionWidgetSetEnabled>::execute()
+{
+    QWidget * object = getObject<QWidget,SGIItemQt>();
+    object->setEnabled(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionWidgetSetAcceptDrops>::execute()
+{
+    QWidget * object = getObject<QWidget,SGIItemQt>();
+    object->setAcceptDrops(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionWidgetSetAutoFillBackground>::execute()
+{
+    QWidget * object = getObject<QWidget,SGIItemQt>();
+    object->setAutoFillBackground(menuAction()->state());
+    return true;
+}
+
+
+bool actionHandlerImpl<MenuActionWidgetHighlight>::execute()
+{
+    QWidget * object = getObject<QWidget,SGIItemQt>();
+    new qt_helpers::HighlightWidget(object);
+    return true;
 }
 
 bool actionHandlerImpl<MenuActionObjectMethodInvoke>::execute()
