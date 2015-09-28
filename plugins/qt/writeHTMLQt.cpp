@@ -109,7 +109,7 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<QWidget>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    QWidget * object = getObject<QWidget, SGIItemQt>();
+	QWidget * object = getObjectMulti<QWidget, SGIItemQt, SGIItemQtPaintDevice>();
     switch(itemType())
     {
     case SGIItemTypeObject:

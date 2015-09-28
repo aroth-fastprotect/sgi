@@ -84,7 +84,7 @@ bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
 
 bool contextMenuPopulateImpl<QWidget>::populate(IContextMenuItem * menuItem)
 {
-    QWidget * object = getObject<QWidget,SGIItemQtPaintDevice>();
+    QWidget * object = getObjectMulti<QWidget, SGIItemQt,SGIItemQtPaintDevice>();
     bool ret = false;
     switch(itemType())
     {

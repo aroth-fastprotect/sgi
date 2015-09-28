@@ -136,7 +136,7 @@ bool objectTreeBuildImpl<QObject>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<QWidget>::build(IObjectTreeItem * treeItem)
 {
-    QWidget * object = getObject<QWidget, SGIItemQt>();
+	QWidget * object = getObjectMulti<QWidget, SGIItemQt, SGIItemQtPaintDevice>();
     bool ret = false;
     switch(itemType())
     {
