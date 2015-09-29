@@ -15,6 +15,7 @@ namespace osgEarth {
 
     class Config;
     class ConfigOptions;
+	class LevelDBDatabase;
 }
 
 namespace sgi {
@@ -38,6 +39,7 @@ GET_OBJECT_NAME_IMPL_DECLARE(osgEarth::MaskLayer)
 GET_OBJECT_NAME_IMPL_DECLARE(osgEarth::Registry)
 GET_OBJECT_NAME_IMPL_DECLARE(osgEarth::Config)
 GET_OBJECT_NAME_IMPL_DECLARE(osgEarth::ConfigOptions)
+GET_OBJECT_NAME_IMPL_DECLARE(osgEarth::LevelDBDatabase)
 GET_OBJECT_NAME_IMPL_DECLARE(TileKeyReferenced)
 GET_OBJECT_NAME_IMPL_DECLARE(TileSourceTileKey)
 

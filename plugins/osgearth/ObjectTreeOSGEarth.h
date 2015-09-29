@@ -27,6 +27,7 @@ namespace osgEarth {
     class Config;
     class ConfigOptions;
     class ModelLayerOptions;
+	class LevelDBDatabase;
 
     namespace Util {
         class SkyNode;
@@ -91,6 +92,8 @@ OBJECT_TREE_BUILD_IMPL_DECLARE(TileSourceTileKey)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::VirtualProgram)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::Cache)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::CacheBin)
+
+OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::LevelDBDatabase)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::Features::FeatureModelSource)
 

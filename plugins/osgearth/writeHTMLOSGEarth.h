@@ -36,6 +36,7 @@ namespace osgEarth {
     class TileKey;
     class ModelSource;
     class VirtualProgram;
+	class LevelDBDatabase;
 
     class ConfigOptions;
     class Config;
@@ -124,6 +125,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::TileSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::ModelSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::VirtualProgram)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::TileBlacklist)
+WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::LevelDBDatabase)
 WRITE_PRETTY_HTML_IMPL_DECLARE(ElevationQueryReferenced)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE(TileKeyReferenced)

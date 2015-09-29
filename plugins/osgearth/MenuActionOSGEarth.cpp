@@ -13,6 +13,7 @@
 #include <osgEarth/Registry>
 #include <osgEarth/ImageUtils>
 #include <osgEarth/TileSource>
+#include <osgEarth/LevelDBFactory>
 
 #include <osgEarthDrivers/debug/DebugOptions>
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
@@ -26,6 +27,7 @@
 #include "SettingsDialogOSGEarth.h"
 
 #include <sgi/helpers/osg>
+#include <sgi/helpers/string>
 
 namespace sgi {
 
@@ -77,6 +79,9 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionControlAbsorbEvents)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionControlVisible)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionImagePreviewRGBA)
+
+ACTION_HANDLER_IMPL_REGISTER(MenuActionLevelDBDatabaseRead)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionLevelDBDatabaseWrite)
 
 using namespace sgi::osg_helpers;
 
@@ -610,6 +615,43 @@ bool actionHandlerImpl<MenuActionImagePreviewRGBA>::execute()
         }
     }
     return true;
+}
+
+bool actionHandlerImpl<MenuActionLevelDBDatabaseRead>::execute()
+{
+	osgEarth::LevelDBDatabase * object = getObject<osgEarth::LevelDBDatabase, SGIItemOsg>();
+	std::string key = "enter key";
+	bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), key, "Key", "Enter key to read from database", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+	if (gotInput)
+	{
+		std::string value;
+		if (object->read(key, value))
+		{
+			_hostInterface->inputDialogText(menuAction()->menu()->parentWidget(), value, "Value", helpers::str_plus_info("Value", key), SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+		}
+		else
+		{
+			_hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), helpers::str_plus_info("failed to read", key), "Key", helpers::str_plus_info("Value", key), SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+		}
+	}
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionLevelDBDatabaseWrite>::execute()
+{
+	osgEarth::LevelDBDatabase * object = getObject<osgEarth::LevelDBDatabase, SGIItemOsg>();
+	std::string key = "enter key";
+	bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), key, "Key", "Enter key to write to database", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+	if (gotInput)
+	{
+		std::string value;
+		bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), value, "Value", "Enter value to write to database", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+		if(gotInput)
+		{
+			object->write(key, value);
+		}
+	}
+	return true;
 }
 
 } // namespace osgearth_plugin

@@ -24,6 +24,7 @@
 #include <osgEarth/MaskLayer>
 #include <osgEarth/ElevationQuery>
 #include <osgEarth/ImageUtils>
+#include <osgEarth/LevelDBFactory>
 
 #include <osgEarthUtil/LatLongFormatter>
 
@@ -75,6 +76,7 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::TileSource)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::ModelSource)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::VirtualProgram)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::TileBlacklist)
+WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::LevelDBDatabase)
 WRITE_PRETTY_HTML_IMPL_REGISTER(ElevationQueryReferenced)
 
 WRITE_PRETTY_HTML_IMPL_REGISTER(TileKeyReferenced)
@@ -143,8 +145,14 @@ bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& 
 
 			os << "<tr><td>unRefImageDataAfterApply</td><td>" << object->unRefImageDataAfterApply() << "</td></tr>" << std::endl;
 			os << "<tr><td>blacklist filenames</td><td>" << access->numBlacklistFilenames() << " entries</td></tr>" << std::endl;
-
 			os << "<tr><td>activities</td><td>";
+
+			{
+				std::vector<osgEarth::LevelDBDatabasePtr> databases;
+				osgEarth::LevelDBFactory::getActiveDatabases(databases);
+				os << "<tr><td>LevelDB databases</td><td>" << databases.size() << " entries</td></tr>" << std::endl;
+			}
+			
 			std::set<std::string> activities;
 			object->getActivities(activities);
 			if (activities.empty())
@@ -180,6 +188,21 @@ bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& 
 
 			ret = true;
 		}
+		break;
+	case SGIItemTypeDatabases:
+		{
+			std::vector<osgEarth::LevelDBDatabasePtr> databases;
+			osgEarth::LevelDBFactory::getActiveDatabases(databases);
+			os << databases.size() << " databases<br/>" << std::endl;
+			os << "<ul>";
+			for (const osgEarth::LevelDBDatabasePtr & db : databases)
+			{
+				os << "<li>" << (void*)db->_db << " " << db->created() << "</li>" << std::endl;
+			}
+			os << "</ul>" << std::endl;
+
+			ret = true;
+	}
 		break;
     default:
         ret = callNextHandler(os);
@@ -1173,6 +1196,18 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osgEarth::DataExtentLis
     }
 }
 
+void tileSourceMode(std::basic_ostream<char>& os, const osgEarth::TileSource::Mode & mode)
+{
+	if(mode == osgEarth::TileSource::MODE_READ)
+		os << "read";
+	else if(mode == osgEarth::TileSource::MODE_WRITE)
+		os << "write";
+	else if(mode == osgEarth::TileSource::MODE_CREATE)
+		os << "create";
+	else
+		os << "unknown " << (int)mode;
+}
+
 bool writePrettyHTMLImpl<osgEarth::TileSource>::process(std::basic_ostream<char>& os)
 {
     osgEarth::TileSource * object = dynamic_cast<osgEarth::TileSource*>(item<SGIItemOsg>()->object());
@@ -1190,6 +1225,9 @@ bool writePrettyHTMLImpl<osgEarth::TileSource>::process(std::basic_ostream<char>
             // add remaining TileSource properties
             const osgEarth::Profile * profile = object->getProfile();
 
+			os << "<tr><td>mode</td><td>";
+			tileSourceMode(os, object->getMode());
+			os << "</td></tr>" << std::endl;
             os << "<tr><td>status</td><td>" << object->getStatus() << "</td></tr>" << std::endl;
             os << "<tr><td>isOk</td><td>" << (object->isOK()?"true":"false") << "</td></tr>" << std::endl;
 
@@ -1213,6 +1251,9 @@ bool writePrettyHTMLImpl<osgEarth::TileSource>::process(std::basic_ostream<char>
             os << "<tr><td>isDynamic</td><td>" << (object->isDynamic()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>cachePolicyHint</td><td>" << object->getCachePolicyHint(profile) << "</td></tr>" << std::endl;
             os << "<tr><td>dataExtents</td><td>" << object->getDataExtents().size() << " entries" << "</td></tr>" << std::endl;
+			os << "<tr><td>dataExtentsUnion</td><td>" << object->getDataExtentsUnion() << "</td></tr>" << std::endl;
+			os << "<tr><td>lastModifiedTime</td><td>" << object->getLastModifiedTime() << "</td></tr>" << std::endl;
+			
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -1220,8 +1261,11 @@ bool writePrettyHTMLImpl<osgEarth::TileSource>::process(std::basic_ostream<char>
         }
         break;
     case SGIItemTypeDataExtents:
-        writePrettyHTML(os, object->getDataExtents(), _item->number());
-        ret = true;
+		{
+			writePrettyHTML(os, object->getDataExtents(), _item->number());
+			os << "<p>union: " << object->getDataExtentsUnion() << "</p>" << std::endl;
+			ret = true;
+		}
         break;
     default:
         ret = callNextHandler(os);
@@ -1284,6 +1328,36 @@ bool writePrettyHTMLImpl<osgEarth::ModelSource>::process(std::basic_ostream<char
     return ret;
 }
 
+
+bool writePrettyHTMLImpl<osgEarth::LevelDBDatabase>::process(std::basic_ostream<char>& os)
+{
+	osgEarth::LevelDBDatabase * object = getObject<osgEarth::LevelDBDatabase, SGIItemOsg>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		{
+			if (_table)
+				os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+			// add Object properties first
+			callNextHandler(os);
+
+			os << "<tr><td>rootPath</td><td>" << object->rootPath() << "</td></tr>" << std::endl;
+			os << "<tr><td>isDynamic</td><td>" << (object->created() ? "true" : "false") << "</td></tr>" << std::endl;
+			os << "<tr><td>database ptr</td><td>" << (void*)object->getDB() << "</td></tr>" << std::endl;
+
+			if (_table)
+				os << "</table>" << std::endl;
+			ret = true;
+		}
+		break;
+	default:
+		ret = callNextHandler(os);
+		break;
+	}
+	return ret;
+}
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::FunctionLocation & t)
 {

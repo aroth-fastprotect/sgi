@@ -63,6 +63,9 @@ enum MenuAction {
     MenuActionControlVisible,
 
     MenuActionImagePreviewRGBA,
+
+	MenuActionLevelDBDatabaseRead,
+	MenuActionLevelDBDatabaseWrite,
 };
 
 enum MapDebugImageLayer {
@@ -126,6 +129,9 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionControlAbsorbEvents)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionControlVisible)
 
 ACTION_HANDLER_IMPL_DECLARE(MenuActionImagePreviewRGBA)
+
+ACTION_HANDLER_IMPL_DECLARE(MenuActionLevelDBDatabaseRead)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionLevelDBDatabaseWrite)
 
 } // namespace osgearth_plugin
 } // namespace sgi

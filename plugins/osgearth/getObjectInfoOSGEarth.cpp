@@ -10,6 +10,7 @@
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
 #include <osgEarth/XmlUtils>
+#include <osgEarth/LevelDBFactory>
 #include "ElevationQueryReferenced"
 #include <sgi/helpers/rtti>
 
@@ -25,6 +26,7 @@ GET_OBJECT_NAME_IMPL_REGISTER(osgEarth::MaskLayer)
 GET_OBJECT_NAME_IMPL_REGISTER(osgEarth::Registry)
 GET_OBJECT_NAME_IMPL_REGISTER(osgEarth::Config)
 GET_OBJECT_NAME_IMPL_REGISTER(osgEarth::ConfigOptions)
+GET_OBJECT_NAME_IMPL_REGISTER(osgEarth::LevelDBDatabase)
 GET_OBJECT_NAME_IMPL_REGISTER(TileKeyReferenced)
 GET_OBJECT_NAME_IMPL_REGISTER(TileSourceTileKey)
 
@@ -76,6 +78,12 @@ std::string getObjectNameImpl<osgEarth::ConfigOptions>::process()
 std::string getObjectNameImpl<osgEarth::Registry>::process()
 {
     return "osgEarth::Registry";
+}
+
+std::string getObjectNameImpl<osgEarth::LevelDBDatabase>::process()
+{
+	osgEarth::LevelDBDatabase * object = static_cast<osgEarth::LevelDBDatabase*>(item<SGIItemOsg>()->object());
+	return object->rootPath().full();
 }
 
 std::string getObjectNameImpl<TileKeyReferenced>::process()

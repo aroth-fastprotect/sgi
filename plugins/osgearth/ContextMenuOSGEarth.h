@@ -19,6 +19,7 @@ namespace osgEarth {
     class TileBlacklist;
     class VirtualProgram;
     class ElevationQuery;
+	class LevelDBDatabase;
 
     namespace Util {
         class SkyNode;
@@ -98,6 +99,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::Util::Controls::ControlCanvas)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::TileSource)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::TileBlacklist)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::VirtualProgram)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::LevelDBDatabase)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(ElevationQueryReferenced)
 
 } // namespace osgearth_plugin

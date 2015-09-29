@@ -18,6 +18,7 @@
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
 #include <osgEarth/OverlayDecorator>
+#include <osgEarth/LevelDBFactory>
 
 #include <osgEarth/ImageLayer>
 #include <osgEarth/ElevationLayer>
@@ -74,6 +75,7 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::MaskLayerOptions)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::TileSourceOptions)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::ModelSourceOptions)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::CacheOptions)
+WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::LevelDBOptions)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Features::FeatureModelSourceOptions)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Features::GeometryCompilerOptions)
 
@@ -679,6 +681,36 @@ bool writePrettyHTMLImpl<osgEarth::CacheOptions>::process(std::basic_ostream<cha
         break;
     }
     return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::LevelDBOptions>::process(std::basic_ostream<char>& os)
+{
+	osgEarth::LevelDBOptions * object = getObject<osgEarth::LevelDBOptions, SGIItemEarthConfigOptions>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+	{
+		if (_table)
+			os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+		callNextHandler(os);
+
+		os << "<tr><td>rootPath</td><td>" << object->rootPath() << "</td></tr>" << std::endl;
+		os << "<tr><td>blockSize</td><td>" << object->blockSize() << "</td></tr>" << std::endl;
+		os << "<tr><td>maxOpenFiles</td><td>" << object->maxOpenFiles() << "</td></tr>" << std::endl;
+		os << "<tr><td>createIfMissing</td><td>" << object->createIfMissing() << "</td></tr>" << std::endl;
+
+		if (_table)
+			os << "</table>" << std::endl;
+		ret = true;
+	}
+	break;
+	default:
+		ret = callNextHandler(os);
+		break;
+	}
+	return ret;
 }
 
 bool writePrettyHTMLImpl<osgEarth::Features::FeatureModelSourceOptions>::process(std::basic_ostream<char>& os)

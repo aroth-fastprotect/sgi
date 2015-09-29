@@ -21,6 +21,7 @@ namespace osgEarth {
     class MaskLayerOptions;
     class TileSourceOptions;
     class ModelSourceOptions;
+	class LevelDBOptions;
     namespace Drivers {
         class TMSOptions;
         class WMSOptions;
@@ -59,6 +60,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::MaskLayerOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::TileSourceOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::ModelSourceOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::CacheOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::LevelDBOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Features::FeatureModelSourceOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Features::GeometryCompilerOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Drivers::TMSOptions)

@@ -16,6 +16,8 @@
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
 #include <osgEarth/Registry>
+#include <osgEarth/LevelDBFactory>
+
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 #include <osgEarthUtil/Sky>
 #else
@@ -69,6 +71,7 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::TileSource)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::TileBlacklist)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::ModelSource)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::MaskSource)
+OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::LevelDBDatabase)
 OBJECT_TREE_BUILD_IMPL_REGISTER(ElevationQueryReferenced)
 OBJECT_TREE_BUILD_IMPL_REGISTER(TileKeyReferenced)
 OBJECT_TREE_BUILD_IMPL_REGISTER(TileSourceTileKey)
@@ -340,7 +343,13 @@ bool objectTreeBuildImpl<osgEarth::Registry>::build(IObjectTreeItem * treeItem)
             if(capabilities.hasObject())
                 treeItem->addChild("Capabilities", &capabilities);
 
-        }
+			{
+				std::vector<osgEarth::LevelDBDatabasePtr> databases;
+				osgEarth::LevelDBFactory::getActiveDatabases(databases);
+				if (!databases.empty())
+					treeItem->addChild(helpers::str_plus_count("LevelDB", databases.size()), cloneItem<SGIItemOsg>(SGIItemTypeDatabases));
+			}
+		}
         break;
     case SGIItemTypeCallbacks:
         {
@@ -354,6 +363,19 @@ bool objectTreeBuildImpl<osgEarth::Registry>::build(IObjectTreeItem * treeItem)
             ret = true;
         }
         break;
+	case SGIItemTypeDatabases:
+		{
+			std::vector<osgEarth::LevelDBDatabasePtr> databases;
+			osgEarth::LevelDBFactory::getActiveDatabases(databases);
+			for(const osgEarth::LevelDBDatabasePtr & db : databases)
+			{
+				SGIHostItemOsg item(db.get());
+				osgEarth::URI uri = db->rootPath();
+				treeItem->addChild(uri.full(), &item);
+			}
+			ret = true;
+		}
+		break;
     default:
         ret = callNextHandler(treeItem);
         break;
@@ -1278,6 +1300,27 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureModelSource>::build(IObjectT
         break;
     }
     return ret;
+}
+
+bool objectTreeBuildImpl<osgEarth::LevelDBDatabase>::build(IObjectTreeItem * treeItem)
+{
+	osgEarth::LevelDBDatabase * object = static_cast<osgEarth::LevelDBDatabase*>(item<SGIItemOsg>()->object());
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(treeItem);
+		if (ret)
+		{
+			SGIHostItemOsgEarthConfigOptions options(object->getOptions());
+			treeItem->addChild("Options", &options);
+		}
+		break;
+	default:
+		ret = callNextHandler(treeItem);
+		break;
+	}
+	return ret;
 }
 
 bool objectTreeBuildImpl<osgEarth::Config>::build(IObjectTreeItem * treeItem)

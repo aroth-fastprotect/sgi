@@ -36,7 +36,8 @@ enum SGIItemType_osgearth
     SGIItemTypeShaderComposerShaderMap,
     SGIItemTypeShaderComposerProgramFunctions,
 	SGIItemTypeBlacklist,
-	SGIItemTypeExtensions
+	SGIItemTypeExtensions,
+	SGIItemTypeDatabases,
 };
 
 class SGIItemEarthConfig : public SGIItemBase

@@ -24,6 +24,7 @@
 #include <osgEarth/Capabilities>
 #include <osgEarth/OverlayDecorator>
 #include <osgEarth/VirtualProgram>
+#include <osgEarth/LevelDBFactory>
 
 #include <osgEarth/Version>
 
@@ -88,6 +89,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                  osgEarth::TileBlacklist, osgEarth::Util::Controls::ControlEventHandler,
                                                                  osgEarth::Annotation::Decoration,
                                                                  osgEarth::StateSetCache,
+																 osgEarth::LevelDBDatabase,
                                                                  ElevationQueryReferenced,
                                                                  TileKeyReferenced,
                                                                  TileSourceTileKey
@@ -153,6 +155,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Config, ::Loki::NullType)
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::ConfigOptions, LOKI_TYPELIST(osgEarth::TerrainLayerOptions, osgEarth::ModelLayerOptions, osgEarth::MapOptions,
                                                                          osgEarth::MapNodeOptions, osgEarth::ProfileOptions, osgEarth::DriverConfigOptions,
+																		 osgEarth::LevelDBOptions,
                                                                          osgEarth::Features::GeometryCompilerOptions
                                                                         ))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::TerrainLayerOptions, LOKI_TYPELIST(osgEarth::ImageLayerOptions, osgEarth::ElevationLayerOptions))

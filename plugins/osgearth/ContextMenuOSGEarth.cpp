@@ -15,6 +15,7 @@
 #include <osgEarthUtil/Controls>
 #include <osgEarth/TileSource>
 #include <osgEarth/Registry>
+#include <osgEarth/LevelDBFactory>
 
 #include <osgEarthQt/TerrainProfileWidget>
 
@@ -51,6 +52,7 @@ CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgEarth::Util::Controls::ControlCanvas)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgEarth::TileSource)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgEarth::TileBlacklist)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgEarth::VirtualProgram)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgEarth::LevelDBDatabase)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(ElevationQueryReferenced)
 
 bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
@@ -377,8 +379,11 @@ bool contextMenuPopulateImpl<osgEarth::MapNode>::populate(IContextMenuItem * men
             }
         }
         break;
-    }
-    return ret;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
 }
 
 bool contextMenuPopulateImpl<osgEarth::Layer>::populate(IContextMenuItem * menuItem)
@@ -398,8 +403,11 @@ bool contextMenuPopulateImpl<osgEarth::Layer>::populate(IContextMenuItem * menuI
             */
         }
         break;
-    }
-    return ret;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
 }
 
 bool contextMenuPopulateImpl<osgEarth::TerrainLayer>::populate(IContextMenuItem * menuItem)
@@ -439,10 +447,12 @@ bool contextMenuPopulateImpl<osgEarth::TerrainLayer>::populate(IContextMenuItem 
 
             menuItem->addSimpleAction(MenuActionTileInspector, "Tile inspector...", _item);
         }
-
         break;
-    }
-    return ret;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
 }
 
 bool contextMenuPopulateImpl<osgEarth::ImageLayer>::populate(IContextMenuItem * menuItem)
@@ -458,8 +468,11 @@ bool contextMenuPopulateImpl<osgEarth::ImageLayer>::populate(IContextMenuItem * 
             menuItem->addSimpleAction(MenuActionImageLayerCreateImage, "Create image...", _item);
         }
         break;
-    }
-    return ret;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
 }
 
 bool contextMenuPopulateImpl<osgEarth::ElevationLayer>::populate(IContextMenuItem * menuItem)
@@ -475,8 +488,11 @@ bool contextMenuPopulateImpl<osgEarth::ElevationLayer>::populate(IContextMenuIte
             menuItem->addSimpleAction(MenuActionElevationLayerCreateHeightField, "Create height field...", _item);
         }
         break;
-    }
-    return ret;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
 }
 
 bool contextMenuPopulateImpl<osgEarth::ModelLayer>::populate(IContextMenuItem * menuItem)
@@ -508,8 +524,11 @@ bool contextMenuPopulateImpl<osgEarth::ModelLayer>::populate(IContextMenuItem * 
             }
         }
         break;
-    }
-    return ret;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
 }
 
 bool contextMenuPopulateImpl<osgEarth::MaskLayer>::populate(IContextMenuItem * menuItem)
@@ -537,8 +556,32 @@ bool contextMenuPopulateImpl<osgEarth::MaskLayer>::populate(IContextMenuItem * m
             }
         }
         break;
-    }
-    return ret;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
+}
+
+bool contextMenuPopulateImpl<osgEarth::LevelDBDatabase>::populate(IContextMenuItem * menuItem)
+{
+	osgEarth::LevelDBDatabase * object = static_cast<osgEarth::LevelDBDatabase*>(item<SGIItemOsg>()->object());
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(menuItem);
+		if (ret)
+		{
+			menuItem->addSimpleAction(MenuActionLevelDBDatabaseRead, "Read...", _item);
+			menuItem->addSimpleAction(MenuActionLevelDBDatabaseWrite, "Write...", _item);
+		}
+		break;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
 }
 
 bool contextMenuPopulateImpl<osgEarth::Util::SkyNode>::populate(IContextMenuItem * menuItem)
