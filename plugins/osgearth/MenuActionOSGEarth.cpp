@@ -631,7 +631,8 @@ bool actionHandlerImpl<MenuActionLevelDBDatabaseRead>::execute()
 		}
 		else
 		{
-			_hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), helpers::str_plus_info("failed to read", key), "Key", helpers::str_plus_info("Value", key), SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+            std::string msg = helpers::str_plus_info("failed to read", key);
+			_hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), msg, "Key", helpers::str_plus_info("Value", key), SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
 		}
 	}
 	return true;
