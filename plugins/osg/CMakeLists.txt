@@ -49,6 +49,8 @@ SET(TARGET_H
 
     osg_accessor.h
     osgdb_accessor.h
+	osgtext_accessor.h
+	osganimation_accessor.h
     stateset_helpers.h
     std_ostream_osgtext.h
 

@@ -10,6 +10,7 @@
 
 #include <sgi/helpers/osg>
 #include "std_ostream_osgtext.h"
+#include "osgtext_accessor.h"
 
 namespace sgi {
 namespace osg_plugin {
@@ -34,6 +35,8 @@ bool writePrettyHTMLImpl<osgText::Font>::process(std::basic_ostream<char>& os)
             // add object properties first
             callNextHandler(os);
 
+			os << "<tr><td>texEnv</td><td>" << getObjectNameAndType(object->getTexEnv()) << "</td></tr>" << std::endl;
+			os << "<tr><td>stateSet</td><td>" << getObjectNameAndType(object->getStateSet()) << "</td></tr>" << std::endl;
             os << "<tr><td>filename</td><td>" << object->getFileName() << "</td></tr>" << std::endl;
             os << "<tr><td>textureWidthHint</td><td>" << object->getTextureWidthHint() << "</td></tr>" << std::endl;
             os << "<tr><td>textureHeightHint</td><td>" << object->getTextureHeightHint() << "</td></tr>" << std::endl;
@@ -46,6 +49,7 @@ bool writePrettyHTMLImpl<osgText::Font>::process(std::basic_ostream<char>& os)
             os << "<tr><td>magFilterHint</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getMagFilterHint()) << "</td></tr>" << std::endl;
             os << "<tr><td>fontDepth</td><td>" << object->getFontDepth() << "</td></tr>" << std::endl;
             os << "<tr><td>numberCurveSamples</td><td>" << object->getNumberCurveSamples() << "</td></tr>" << std::endl;
+			os << "<tr><td>implementation</td><td>" << getObjectNameAndType(object->getImplementation()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -137,6 +141,7 @@ bool writePrettyHTMLImpl<osgText::TextBase>::process(std::basic_ostream<char>& o
 bool writePrettyHTMLImpl<osgText::Text>::process(std::basic_ostream<char>& os)
 {
     osgText::Text * object = static_cast<osgText::Text*>(item<SGIItemOsg>()->object());
+	osgTextAccess * access = static_cast<osgTextAccess *>(object);
     bool ret = false;
     switch(itemType())
     {
@@ -147,6 +152,9 @@ bool writePrettyHTMLImpl<osgText::Text>::process(std::basic_ostream<char>& os)
 
             // add drawable properties first
             callNextHandler(os);
+
+			osg::Camera * camera = osg_helpers::findTopMostNodeOfType<osg::Camera>(object);
+
 
             os << "<tr><td>enableDepthWrites</td><td>" << (object->getEnableDepthWrites()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>backdropType</td><td>" << object->getBackdropType() << "</td></tr>" << std::endl;
@@ -169,6 +177,20 @@ bool writePrettyHTMLImpl<osgText::Text>::process(std::basic_ostream<char>& os)
             os << "<tr><td>colorGradientTopRight</td><td>"
                 << vec4fToHtmlColor(object->getColorGradientTopRight())
                 << "</td></tr>" << std::endl;
+
+			os << "<tr><td>textBB</td><td>";
+			writePrettyHTML(os, access->textBB(), object);
+			os << "</td></tr>" << std::endl;
+
+			unsigned contextId = 0;
+			if (camera)
+			{
+				osg::GraphicsContext * ctx = camera->getGraphicsContext();
+				if (ctx)
+					contextId = ctx->getState()->getContextID();
+			}
+			os << "<tr><td>contextId</td><td>" << contextId << "</td></tr>" << std::endl;
+			os << "<tr><td>modelSpaceHeight</td><td>" << access->modelSpaceHeight(contextId) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
