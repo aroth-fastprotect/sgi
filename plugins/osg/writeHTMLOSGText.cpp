@@ -182,7 +182,7 @@ bool writePrettyHTMLImpl<osgText::Text>::process(std::basic_ostream<char>& os)
 			writePrettyHTML(os, access->textBB(), object);
 			os << "</td></tr>" << std::endl;
 
-			unsigned contextId = 0;
+			unsigned contextId = ~0u;
 			if (camera)
 			{
 				osg::GraphicsContext * ctx = camera->getGraphicsContext();
@@ -190,7 +190,12 @@ bool writePrettyHTMLImpl<osgText::Text>::process(std::basic_ostream<char>& os)
 					contextId = ctx->getState()->getContextID();
 			}
 			os << "<tr><td>contextId</td><td>" << contextId << "</td></tr>" << std::endl;
-			os << "<tr><td>modelSpaceHeight</td><td>" << access->modelSpaceHeight(contextId) << "</td></tr>" << std::endl;
+			os << "<tr><td>modelSpaceHeight</td><td>";
+			if (contextId != ~0u)
+				os << access->modelSpaceHeight(contextId);
+			else
+				os << "N/A";
+			os << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
