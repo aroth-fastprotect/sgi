@@ -63,6 +63,8 @@
 #include <osgAnimation/Skeleton>
 #include <osgAnimation/Bone>
 
+#include <osgText/Text>
+
 #include <osgUtil/Statistics>
 
 #include <sgi/helpers/osg>
@@ -4671,6 +4673,8 @@ namespace {
         virtual void apply(osg::Uniform & uniform);
         virtual void apply(osg::BufferData& buffer);
 
+		virtual void apply(osgText::TextBase & text);
+
 
     public:
         void printHTML(std::ostream& out);
@@ -4704,6 +4708,8 @@ namespace {
         unsigned int _estimatedMemory;
         unsigned int _numInstancedAnimationSkeleton;
         unsigned int _numInstancedAnimationBone;
+		unsigned int _numInstancedTextBase;
+
 
         enum { MaxStateAttributeType = osg::StateAttribute::FRAME_BUFFER_OBJECT };
 
@@ -4720,6 +4726,7 @@ namespace {
         UniformSet          _uniformSet;
         NodeSet             _animationSkeletonSet;
         NodeSet             _animationBoneSet;
+		NodeSet             _textBaseSet;
     };
     StatisticsVisitor::StatisticsVisitor()
         : osgUtil::StatsVisitor()
@@ -4741,6 +4748,7 @@ namespace {
         , _estimatedMemory(0)
         , _numInstancedAnimationSkeleton(0)
         , _numInstancedAnimationBone(0)
+		, _numInstancedTextBase(0)
     {
         for(int n = 0; n < MaxStateAttributeType; n++)
             _numInstancedSA[n] = 0;
@@ -4762,6 +4770,7 @@ namespace {
         _numInstancedSceneGraphNode = 0;
         _numInstancedAnimationSkeleton = 0;
         _numInstancedAnimationBone = 0;
+		_numInstancedTextBase = 0;
 
         _numUpdateCallbacks = 0;
         _numEventCallbacks = 0;
@@ -4788,6 +4797,7 @@ namespace {
         _uniformSet.clear();
         _animationSkeletonSet.clear();
         _animationBoneSet.clear();
+		_textBaseSet.clear();
     }
 
     void StatisticsVisitor::updateNodeStats(osg::Node & node)
@@ -4893,6 +4903,10 @@ namespace {
                 apply(*primset.get());
             }
         }
+		else if (osgText::TextBase * textbase = dynamic_cast<osgText::TextBase *>(&node))
+		{
+			apply(*textbase);
+		}
     }
 
     void StatisticsVisitor::apply(osg::PagedLOD& node)
@@ -5108,6 +5122,12 @@ namespace {
         }
     }
 
+	void StatisticsVisitor::apply(osgText::TextBase & text)
+	{
+		++_numInstancedTextBase;
+		_textBaseSet.insert(&text);
+	}
+
     void StatisticsVisitor::printHTML(std::ostream& out)
     {
         // automatically call the update to gets the unique vertices and primitives
@@ -5155,6 +5175,7 @@ namespace {
         out << "<tr><td>Geode</td><td>" << _geodeSet.size() << "</td><td>" << _numInstancedGeode << "</td></tr>" << std::endl;
         out << "<tr><td>Drawable</td><td>" << _drawableSet.size() << "</td><td>" << _numInstancedDrawable << "</td></tr>" << std::endl;
         out << "<tr><td>Geometry</td><td>" << _geometrySet.size() << "</td><td>" << _numInstancedGeometry << "</td></tr>" << std::endl;
+		out << "<tr><td>Text base</td><td>" << _textBaseSet.size() << "</td><td>" << _numInstancedTextBase << "</td></tr>" << std::endl;
         out << "<tr><td>Fast geom.</td><td>" << _fastGeometrySet.size() << "</td><td>" << _numInstancedFastGeometry << "</td></tr>" << std::endl;
         out << "<tr><td>Vertices</td><td>" << _uniqueStats._vertexCount << "</td><td>" << _instancedStats._vertexCount << "</td></tr>" << std::endl;
         out << "<tr><td>Primitives</td><td>" << unique_primitives << "</td><td>" << instanced_primitives << "</td></tr>" << std::endl;
