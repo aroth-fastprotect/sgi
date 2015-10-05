@@ -10,13 +10,15 @@ namespace sgi {
 HighlightWidget::HighlightWidget(QWidget *parent)
     : QWidget(parent)
     , _timer(new QTimer(this))
+	, _counter(0)
 {
-    init(200, 10000);
+    init(330, 10000);
 }
 
 HighlightWidget::HighlightWidget(unsigned interval, unsigned autoCloseTime, QWidget *parent)
     : QWidget(parent)
     , _timer(new QTimer(this))
+	, _counter(0)
 {
     init(interval, autoCloseTime);
 }
@@ -49,6 +51,20 @@ void HighlightWidget::init(unsigned interval, unsigned autoCloseTime)
                     | Qt::BypassGraphicsProxyWidget
         );
 #endif
+	QRect r = parentWidget()->geometry();
+#ifdef _WIN32
+	// On Win32 the m_overlayWidget is created a parent-less window and the
+	// position and size is absolute to the screen/global
+	r.moveTo(parentWidget()->mapToGlobal(QPoint(0, 0)));
+#else
+	// On Linux the m_overlayWidget is created as a child of the main window,
+	// so position and size is relative to the main window
+	//r.moveTo(QPoint(0,0));
+	r.moveTo(parentWidget()->mapToGlobal(QPoint(0, 0)));
+#endif
+	setGeometry(r);
+
+	show();
 }
 
 void HighlightWidget::blink()
@@ -72,7 +88,7 @@ void HighlightWidget::paintEvent(QPaintEvent* ev)
         QPoint(0, 0)
     };
 
-    QPen pen((_counter % 2) ? Qt::blue : Qt::darkBlue, 10, Qt::SolidLine, Qt::SquareCap);
+    QPen pen((_counter % 2) ? Qt::blue : Qt::red, 10, Qt::SolidLine, Qt::SquareCap);
     QPainter painter(this);
     painter.setPen(pen);
     painter.drawPolyline(points, 5);
