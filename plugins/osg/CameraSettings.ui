@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>539</width>
-    <height>316</height>
+    <width>325</width>
+    <height>215</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,9 +19,13 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QFormLayout" name="formLayout">
-     <property name="fieldGrowthPolicy">
-      <enum>QFormLayout::ExpandingFieldsGrow</enum>
-     </property>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Compute near/far mode</string>
+       </property>
+      </widget>
+     </item>
      <item row="0" column="1">
       <widget class="QComboBox" name="computeNearFarMode">
        <property name="sizePolicy">
@@ -53,7 +57,7 @@
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="label_4">
+      <widget class="QCheckBox" name="nearClippingCheckBox">
        <property name="text">
         <string>Near clipping</string>
        </property>
@@ -99,7 +103,7 @@
       </layout>
      </item>
      <item row="2" column="0">
-      <widget class="QLabel" name="label_3">
+      <widget class="QCheckBox" name="farClippingCheckBox">
        <property name="text">
         <string>Far clipping</string>
        </property>
@@ -136,6 +140,49 @@
          </property>
          <property name="singleStep">
           <double>0.500000000000000</double>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>Near/far ratio</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <widget class="QSlider" name="nearFarRatio">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>20000</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="nearFarRatioSpin">
+         <property name="suffix">
+          <string>x</string>
+         </property>
+         <property name="decimals">
+          <number>5</number>
+         </property>
+         <property name="minimum">
+          <double>0.000010000000000</double>
+         </property>
+         <property name="maximum">
+          <double>2.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.005000000000000</double>
          </property>
         </widget>
        </item>
@@ -185,7 +232,7 @@
       </layout>
      </item>
      <item row="5" column="0">
-      <widget class="QLabel" name="label_2">
+      <widget class="QCheckBox" name="smallFeatureCheckBox">
        <property name="text">
         <string>Small Feature</string>
        </property>
@@ -227,56 +274,6 @@
        </item>
       </layout>
      </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="label_5">
-       <property name="text">
-        <string>Compute near/far mode</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout_5">
-       <item>
-        <widget class="QSlider" name="nearFarRatio">
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>20000</number>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QDoubleSpinBox" name="nearFarRatioSpin">
-         <property name="suffix">
-          <string>x</string>
-         </property>
-         <property name="decimals">
-          <number>5</number>
-         </property>
-         <property name="minimum">
-          <double>0.000010000000000</double>
-         </property>
-         <property name="maximum">
-          <double>2.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.005000000000000</double>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_6">
-       <property name="text">
-        <string>Near/far ratio</string>
-       </property>
-      </widget>
-     </item>
     </layout>
    </item>
    <item>
@@ -287,7 +284,7 @@
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>31</height>
+       <height>7</height>
       </size>
      </property>
     </spacer>
@@ -479,6 +476,54 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>smallFeatureCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>CameraSettings</receiver>
+   <slot>smallFeatureEnable(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>53</x>
+     <y>156</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>162</x>
+     <y>107</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>farClippingCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>CameraSettings</receiver>
+   <slot>farClippingEnable(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>48</x>
+     <y>72</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>162</x>
+     <y>107</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>nearClippingCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>CameraSettings</receiver>
+   <slot>farClippingEnable(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>51</x>
+     <y>44</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>162</x>
+     <y>107</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>changeLODScale(int)</slot>
@@ -492,5 +537,8 @@
   <slot>changeComputeNearFarMode(int)</slot>
   <slot>changeNearFarRatio(int)</slot>
   <slot>changeNearFarRatio(double)</slot>
+  <slot>nearClippingEnable(bool)</slot>
+  <slot>farClippingEnable(bool)</slot>
+  <slot>smallFeatureEnable(bool)</slot>
  </slots>
 </ui>

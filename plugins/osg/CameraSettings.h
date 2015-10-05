@@ -49,6 +49,11 @@ public slots:
 
     void                changeComputeNearFarMode(int value);
 
+	void				farClippingEnable(bool enable);
+	void				nearClippingEnable(bool enable);
+	void				smallFeatureEnable(bool enable);
+
+
 protected:
 	void				apply(bool save);
 

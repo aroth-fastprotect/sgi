@@ -66,6 +66,20 @@ void CameraSettings::load()
     double fovy, aspectRatio, zNear, zFar;
     _camera->getProjectionMatrixAsPerspective(fovy, aspectRatio, zNear, zFar);
 
+	int cullingMode = _camera->getCullingMode();
+	
+	ui->nearClippingCheckBox->blockSignals(true);
+	ui->nearClippingCheckBox->setChecked(cullingMode & osg::Camera::NEAR_PLANE_CULLING);
+	ui->nearClippingCheckBox->blockSignals(false);
+
+	ui->farClippingCheckBox->blockSignals(true);
+	ui->farClippingCheckBox->setChecked(cullingMode & osg::Camera::FAR_PLANE_CULLING);
+	ui->farClippingCheckBox->blockSignals(false);
+
+	ui->smallFeatureCheckBox->blockSignals(true);
+	ui->smallFeatureCheckBox->setChecked(cullingMode & osg::Camera::SMALL_FEATURE_CULLING);
+	ui->smallFeatureCheckBox->blockSignals(false);
+
     ui->lodScaleSpin->blockSignals(true);
     ui->lodScale->blockSignals(true);
 	ui->lodScaleSpin->setValue(scale);
@@ -208,6 +222,22 @@ void CameraSettings::changeComputeNearFarMode(int value)
     apply();
 }
 
+
+void CameraSettings::farClippingEnable(bool enable)
+{
+	apply();
+}
+
+void CameraSettings::nearClippingEnable(bool enable)
+{
+	apply();
+}
+
+void CameraSettings::smallFeatureEnable(bool enable)
+{
+	apply();
+}
+
 void CameraSettings::save()
 {
 	apply(true);
@@ -238,6 +268,24 @@ void CameraSettings::apply(bool save)
     _camera->setComputeNearFarMode((osg::Camera::ComputeNearFarMode)ui->computeNearFarMode->currentIndex());
 
     _camera->setNearFarRatio(ui->nearFarRatioSpin->value());
+
+	int cullingMode = _camera->getCullingMode();
+	if (ui->nearClippingCheckBox->isChecked())
+		cullingMode |= osg::Camera::NEAR_PLANE_CULLING;
+	else
+		cullingMode &= ~osg::Camera::NEAR_PLANE_CULLING;
+
+	if (ui->farClippingCheckBox->isChecked())
+		cullingMode |= osg::Camera::FAR_PLANE_CULLING;
+	else
+		cullingMode &= ~osg::Camera::FAR_PLANE_CULLING;
+
+	if (ui->smallFeatureCheckBox->isChecked())
+		cullingMode |= osg::Camera::SMALL_FEATURE_CULLING;
+	else
+		cullingMode &= ~osg::Camera::SMALL_FEATURE_CULLING;
+
+	_camera->setCullingMode(cullingMode);
 
     osgViewer::View* view = dynamic_cast<osgViewer::View*>(_camera->getView());
     if(view)
