@@ -66,224 +66,122 @@ protected:
     virtual void copyStateFromOriginal() = 0;
 
 public:
-    virtual void apply(osg::Node& node)
-    {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
-    virtual void apply(osg::Geode& node)
-    {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+#define NodeVisitorHook_apply() \
+    assert(_original.valid()); \
+	_operation.preApply(this, node); \
+	copyStateToOriginal(); \
+	_original->apply(node); \
+	copyStateFromOriginal(); \
+	_operation.postApply(this, node);
 
-    virtual void apply(osg::Billboard& node)
+    virtual void apply(osg::Node& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
+		NodeVisitorHook_apply();
     }
+    virtual void apply(osg::Geode& node) override
+    {
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::Group& node)
+    virtual void apply(osg::Billboard& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::ProxyNode& node)
+    virtual void apply(osg::Group& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::Projection& node)
+    virtual void apply(osg::ProxyNode& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::CoordinateSystemNode& node)
+    virtual void apply(osg::Projection& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
+
+    virtual void apply(osg::CoordinateSystemNode& node) override
+    {
+		NodeVisitorHook_apply();
+	}
 
 
-    virtual void apply(osg::ClipNode& node)
+    virtual void apply(osg::ClipNode& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::TexGenNode& node)
+    virtual void apply(osg::TexGenNode& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::LightSource& node)
+    virtual void apply(osg::LightSource& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::Transform& node)
+    virtual void apply(osg::Transform& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::Camera& node)
+    virtual void apply(osg::Camera& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::CameraView& node)
+    virtual void apply(osg::CameraView& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::MatrixTransform& node)
+    virtual void apply(osg::MatrixTransform& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::PositionAttitudeTransform& node)
+    virtual void apply(osg::PositionAttitudeTransform& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
-    virtual void apply(osg::Switch& node)
+		NodeVisitorHook_apply();
+	}
+    virtual void apply(osg::Switch& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::Sequence& node)
+    virtual void apply(osg::Sequence& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::LOD& node)
+    virtual void apply(osg::LOD& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::PagedLOD& node)
+    virtual void apply(osg::PagedLOD& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::ClearNode& node)
+    virtual void apply(osg::ClearNode& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::OccluderNode& node)
+    virtual void apply(osg::OccluderNode& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::OcclusionQueryNode& node)
+    virtual void apply(osg::OcclusionQueryNode& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
 protected:
     osg::ref_ptr<BASE> _original;
@@ -464,12 +362,12 @@ protected:
 
         }
     };
-    virtual void copyStateToOriginal()
+    virtual void copyStateToOriginal() override
     {
         // properties from osgUtil::CullVisitor
         reinterpret_cast<CopyCullVisitorState*>(this)->copyStateTo(* reinterpret_cast<CopyCullVisitorState*>(_Base::_original.get()));
     }
-    virtual void copyStateFromOriginal()
+    virtual void copyStateFromOriginal() override
     {
         // properties from osgUtil::CullVisitor
         reinterpret_cast<CopyCullVisitorState*>(this)->copyStateFrom(* reinterpret_cast<CopyCullVisitorState*>(_Base::_original.get()));
@@ -516,10 +414,10 @@ public:
         _Base::release();
     }
 protected:
-    virtual void copyStateToOriginal()
+    virtual void copyStateToOriginal() override
     {
     }
-    virtual void copyStateFromOriginal()
+    virtual void copyStateFromOriginal() override
     {
     }
 protected:
@@ -563,10 +461,10 @@ public:
         _Base::release();
     }
 protected:
-    virtual void copyStateToOriginal()
+    virtual void copyStateToOriginal() override
     {
     }
-    virtual void copyStateFromOriginal()
+    virtual void copyStateFromOriginal() override
     {
     }
 protected:

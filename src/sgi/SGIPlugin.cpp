@@ -1425,7 +1425,7 @@ public:
             if(et.bitmask)
             {
                 std::stringstream ss;
-                if(value == 0)
+                if((unsigned)value == 0u)
                 {
                     NamedEnumValues::const_iterator itv = et.values.find(0);
                     if((itv != et.values.end()))
@@ -1433,9 +1433,9 @@ public:
                     else
                         ss << "zero";
                 }
-                else if(value == ~0)
+                else if((unsigned)value == ~0u)
                 {
-                    NamedEnumValues::const_iterator itv = et.values.find(~0);
+                    NamedEnumValues::const_iterator itv = et.values.find((int)(~0u));
                     if((itv != et.values.end()))
                         ss << itv->second;
                     else
@@ -1446,12 +1446,12 @@ public:
                     bool first = true;
                     for(unsigned n = 0; n < 32; n++)
                     {
-                        int bitfield_value = (1 << n);
-                        if(value & bitfield_value)
+						unsigned bitfield_value = (1 << n);
+                        if(((unsigned)value) & bitfield_value)
                         {
                             if(!first)
                                 ss << '|';
-                            NamedEnumValues::const_iterator itv = et.values.find(bitfield_value);
+                            NamedEnumValues::const_iterator itv = et.values.find((int)bitfield_value);
                             if((itv != et.values.end()))
                                 ss << itv->second;
                             else

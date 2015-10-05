@@ -198,23 +198,23 @@ void ObjectLoggerDialog::init()
     mainLayout->insertWidget(0, _toolBar);
 
     _actionReload = new QAction(tr("Reload"), this);
-    connect(_actionReload, SIGNAL(triggered()), this, SLOT(reload()));
+    connect(_actionReload, &QAction::triggered, this, &ObjectLoggerDialog::reload);
 
     _spinBoxRefreshTime = new QSpinBox(_toolBar);
     _spinBoxRefreshTime->setMinimum(0);
     _spinBoxRefreshTime->setMaximum(600);
     _spinBoxRefreshTime->setPrefix("Refresh ");
     _spinBoxRefreshTime->setSuffix("s");
-    connect(_spinBoxRefreshTime, SIGNAL(valueChanged(int)), this, SLOT(refreshTimeChanged(int)));
+    connect(_spinBoxRefreshTime, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &ObjectLoggerDialog::refreshTimeChanged);
 
     _toolBar->addAction(_actionReload);
     _toolBar->addWidget(_spinBoxRefreshTime);
 
-    QObject::connect(this, SIGNAL(triggerOnObjectChanged()), this, SLOT(onObjectChanged()), Qt::QueuedConnection);
-    QObject::connect(this, SIGNAL(triggerShow()), this, SLOT(show()), Qt::QueuedConnection);
-    QObject::connect(this, SIGNAL(triggerHide()), this, SLOT(hide()), Qt::QueuedConnection);
+    connect(this, &ObjectLoggerDialog::triggerOnObjectChanged, this, &ObjectLoggerDialog::onObjectChanged, Qt::QueuedConnection);
+    connect(this, &ObjectLoggerDialog::triggerShow, this, &ObjectLoggerDialog::show, Qt::QueuedConnection);
+    connect(this, &ObjectLoggerDialog::triggerHide, this, &ObjectLoggerDialog::hide, Qt::QueuedConnection);
 
-    QObject::connect(this, SIGNAL(triggerUpdateLog()), this, SLOT(updateLog()), Qt::QueuedConnection);
+    connect(this, &ObjectLoggerDialog::triggerUpdateLog, this, &ObjectLoggerDialog::updateLog, Qt::QueuedConnection);
 
     reload();
 }
@@ -226,6 +226,17 @@ void ObjectLoggerDialog::onObjectChanged()
 
 void ObjectLoggerDialog::reload()
 {
+	if (_item.valid())
+	{
+		std::string displayName;
+		SGIPlugins::instance()->getObjectDisplayName(displayName, _item);
+		setWindowTitle(tr("Log of %1").arg(fromLocal8Bit(displayName)));
+	}
+	else
+	{
+		setWindowTitle(tr("No Log available"));
+	}
+
     reloadTree();
     reloadLog();
 }
@@ -314,7 +325,7 @@ void ObjectLoggerDialog::reloadLog()
                 headerItems << QString("Field#%1").arg(column);
         }
         ui->tableWidget->setColumnCount(headerItems.size());
-        ui->tableWidget->setVerticalHeaderLabels(headerItems);
+        ui->tableWidget->setHorizontalHeaderLabels(headerItems);
         ui->tableWidget->resizeColumnToContents(numFields);
 
         // adjust the number of row to include all log entries
@@ -362,21 +373,36 @@ void ObjectLoggerDialog::onItemExpanded(QTreeWidgetItem * item)
 void ObjectLoggerDialog::onItemCollapsed(QTreeWidgetItem * item)
 {
     QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-    //setNodeInfo(itemData.item());
+    setNodeInfo(itemData.item());
 }
 
 void ObjectLoggerDialog::onItemClicked(QTreeWidgetItem * item, int column)
 {
     QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-    //setNodeInfo(itemData.item());
+    setNodeInfo(itemData.item());
 }
 
 void ObjectLoggerDialog::onItemActivated(QTreeWidgetItem * item, int column)
 {
     QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-    //setNodeInfo(itemData.item());
+    setNodeInfo(itemData.item());
 }
 
+void ObjectLoggerDialog::onItemSelectionChanged()
+{
+	QTreeWidgetItem * item = ui->treeWidget->currentItem();
+	if (item)
+	{
+		QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
+		//_selectedTreeItem = new ObjectTreeItem(item);
+		setNodeInfo(itemData.item());
+	}
+	else
+	{
+		//_selectedTreeItem = NULL;
+		setNodeInfo(NULL);
+	}
+}
 bool ObjectLoggerDialog::buildTree(ObjectTreeItem * treeItem, SGIItemBase * item)
 {
     bool ret = SGIPlugins::instance()->objectTreeBuildTree(treeItem, item);
@@ -439,7 +465,7 @@ void ObjectLoggerDialog::refreshTimeChanged ( int n )
     if(!_refreshTimer)
     {
         _refreshTimer = new QTimer(this);
-        connect(_refreshTimer, SIGNAL(timeout()), this, SLOT(refreshTimerExpired()));
+        connect(_refreshTimer, &QTimer::timeout, this, &ObjectLoggerDialog::refreshTimerExpired);
     }
     if(n > 0)
         _refreshTimer->start(n * 1000);
@@ -453,7 +479,7 @@ void ObjectLoggerDialog::refreshTimerExpired()
     if(item)
     {
         QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-        //setNodeInfo(itemData.item());
+        setNodeInfo(itemData.item());
     }
 }
 
@@ -560,6 +586,20 @@ bool ObjectLoggerDialog::removeLogItem(SGIDataItemBase * item, bool first)
     return true;
 }
 
+void ObjectLoggerDialog::setNodeInfo(const SGIItemBase * item)
+{
+	std::ostringstream os;
+	if (item)
+		SGIPlugins::instance()->writePrettyHTML(os, item);
+	else
+	{
+		os << "<b>item is <i>NULL</i></b>";
+	}
+	ui->textEdit->blockSignals(true);
+	ui->textEdit->setHtml(fromLocal8Bit(os.str()));
+	ui->textEdit->blockSignals(false);
+}
+
 void ObjectLoggerDialog::updateLog()
 {
     while(!_queuedOperations->empty())
@@ -570,19 +610,22 @@ void ObjectLoggerDialog::updateLog()
         case QueuedOperation::TypeAddLogItem:
             {
                 SGIDataItemBase * dataItem = op.dataItem();
-                unsigned row = ui->tableWidget->rowCount();
-                ui->tableWidget->setRowCount(row + 1);
-                size_t numFields = dataItem->numFields();
-                for(unsigned column = 0; column < numFields; column++)
-                {
-                    SGIDataFieldBase * field = dataItem->getField(column);
-                    QTableWidgetItem * tableItem = new QTableWidgetItem;
-                    QtTableSGIItem data(dataItem, column);
-                    tableItem->setText(fromLocal8Bit(field->toString(_hostInterface)));
-                    tableItem->setData(Qt::UserRole, QVariant::fromValue(data));
+				if (dataItem)
+				{
+					unsigned row = ui->tableWidget->rowCount();
+					ui->tableWidget->setRowCount(row + 1);
+					size_t numFields = dataItem->numFields();
+					for (unsigned column = 0; column < numFields; column++)
+					{
+						SGIDataFieldBase * field = dataItem->getField(column);
+						QTableWidgetItem * tableItem = new QTableWidgetItem;
+						QtTableSGIItem data(dataItem, column);
+						tableItem->setText(fromLocal8Bit(field->toString(_hostInterface)));
+						tableItem->setData(Qt::UserRole, QVariant::fromValue(data));
 
-                    ui->tableWidget->setItem(row, column, tableItem);
-                }
+						ui->tableWidget->setItem(row, column, tableItem);
+					}
+				}
             }
             break;
         case QueuedOperation::TypeRemoveFirstLogItem:

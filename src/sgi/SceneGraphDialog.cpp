@@ -320,16 +320,16 @@ void SceneGraphDialog::reload()
 {
     setCursor(Qt::WaitCursor);
 
-    if(_item.valid())
-    {
-        std::string displayName;
-        SGIPlugins::instance()->getObjectDisplayName(displayName, _item);
-        setWindowTitle(tr("Information about %1").arg(fromLocal8Bit(displayName)));
-    }
-    else
-    {
-        setWindowTitle(tr("No Information available"));
-    }
+	if (_item.valid())
+	{
+		std::string displayName;
+		SGIPlugins::instance()->getObjectDisplayName(displayName, _item);
+		setWindowTitle(tr("Information about %1").arg(fromLocal8Bit(displayName)));
+	}
+	else
+	{
+		setWindowTitle(tr("No Information available"));
+	}
 
     ui->treeWidget->blockSignals(true);
 	ui->treeWidget->clear();
@@ -496,7 +496,7 @@ void SceneGraphDialog::onItemSelectionChanged()
 bool SceneGraphDialog::buildTree(ObjectTreeItem * treeItem, SGIItemBase * item)
 {
     bool ret = SGIPlugins::instance()->objectTreeBuildTree(treeItem, item);
-    // in any case mark the item as populated and add the interal item as well.
+    // in any case mark the item as populated and add the internal item as well.
     // We ignore the result from any plugin here, because some plugin be not be
     // functioning as expected or no plugin might be available for this item. The
     // internal item is useful especially in these cases to investigate why the

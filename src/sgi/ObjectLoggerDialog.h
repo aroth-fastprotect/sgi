@@ -48,6 +48,7 @@ public slots:
     void                    onItemClicked(QTreeWidgetItem * item, int column);
     void                    onItemActivated(QTreeWidgetItem * item, int column);
     void                    onItemContextMenu(QPoint pt);
+	void                    onItemSelectionChanged();
     void                    reload();
     void                    reloadTree();
     void                    reloadLog();
@@ -79,6 +80,8 @@ protected:
 
     bool                    newInstance(SGIItemBase * item);
     bool                    newInstance(const SGIHostItemBase * item);
+
+	void					setNodeInfo(const SGIItemBase * item);
 
 private:
     void                    init();
