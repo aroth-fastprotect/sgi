@@ -1973,6 +1973,7 @@ bool objectTreeBuildImpl<osgDB::Registry>::build(IObjectTreeItem * treeItem)
 
             treeItem->addChild("Readers/Writers", cloneItem<SGIItemOsg>(SGIItemTypeReadersWriters));
             treeItem->addChild("Image processors", cloneItem<SGIItemOsg>(SGIItemTypeImageProcessors));
+			treeItem->addChild("Graphics contexts", cloneItem<SGIItemOsg>(SGIItemTypeGraphicsContexts));
 
             SGIHostItemOsg fileCache(object->getFileCache());
             if(fileCache.hasObject())
@@ -2035,6 +2036,18 @@ bool objectTreeBuildImpl<osgDB::Registry>::build(IObjectTreeItem * treeItem)
             ret = true;
         }
         break;
+	case SGIItemTypeGraphicsContexts:
+		{
+			const osg::GraphicsContext::GraphicsContexts & list = osg::GraphicsContext::getAllRegisteredGraphicsContexts();
+			for (osg::GraphicsContext::GraphicsContexts::const_iterator it = list.begin(); it != list.end(); it++)
+			{
+				SGIHostItemOsg ctx((*it));
+				if (ctx.hasObject())
+					treeItem->addChild(std::string(), &ctx);
+			}
+			ret = true;
+		}
+		break;
     default:
         ret = callNextHandler(treeItem);
         break;

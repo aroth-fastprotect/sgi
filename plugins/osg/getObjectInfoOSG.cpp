@@ -30,6 +30,7 @@ GET_OBJECT_NAME_IMPL_REGISTER(osg::LOD)
 GET_OBJECT_NAME_IMPL_REGISTER(osg::PagedLOD)
 GET_OBJECT_NAME_IMPL_REGISTER(osg::Operation)
 GET_OBJECT_NAME_IMPL_REGISTER(osg::Image)
+GET_OBJECT_NAME_IMPL_REGISTER(osg::GraphicsContext)
 GET_OBJECT_NAME_IMPL_REGISTER(osgDB::Registry)
 GET_OBJECT_NAME_IMPL_REGISTER(osgDB::BaseSerializer)
 GET_OBJECT_DISPLAYNAME_IMPL_REGISTER(osg::Referenced)
@@ -160,7 +161,27 @@ std::string getObjectNameImpl<osg::Image>::process()
 		ret = object->getFileName();
 	if (!ret.empty())
 		return ret;
-	getObjectNameImpl<osg::Node> f(_hostInterface, _item);
+	getObjectNameImpl<osg::Object> f(_hostInterface, _item);
+	return f.process();
+}
+
+std::string getObjectNameImpl<osg::GraphicsContext>::process()
+{
+	osg::GraphicsContext * object = dynamic_cast<osg::GraphicsContext*>(item<SGIItemOsg>()->object());
+	std::string ret = object->getName();
+	if (ret.empty())
+	{
+		osg::State * state = object->getState();
+		if (state)
+		{
+			std::stringstream ss;
+			ss << "Ctx" << state->getContextID() << " " << helpers::getRTTITypenameShort(object) << "(" << (void*)object << ")";
+			ret = ss.str();
+		}
+	}
+	if (!ret.empty())
+		return ret;
+	getObjectNameImpl<osg::Object> f(_hostInterface, _item);
 	return f.process();
 }
 

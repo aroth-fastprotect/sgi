@@ -153,8 +153,7 @@ bool writePrettyHTMLImpl<osgText::Text>::process(std::basic_ostream<char>& os)
             // add drawable properties first
             callNextHandler(os);
 
-			osg::Camera * camera = osg_helpers::findTopMostNodeOfType<osg::Camera>(object);
-
+			osg::Camera * camera = osg_helpers::findFirstParentOfType<osg::Camera>(object);
 
             os << "<tr><td>enableDepthWrites</td><td>" << (object->getEnableDepthWrites()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>backdropType</td><td>" << object->getBackdropType() << "</td></tr>" << std::endl;
@@ -185,9 +184,13 @@ bool writePrettyHTMLImpl<osgText::Text>::process(std::basic_ostream<char>& os)
 			unsigned contextId = ~0u;
 			if (camera)
 			{
+				os << "<tr><td>camera</td><td>" << getObjectNameAndType(camera) << "</td></tr>" << std::endl;
 				osg::GraphicsContext * ctx = camera->getGraphicsContext();
 				if (ctx)
+				{
+					os << "<tr><td>graphicsContext</td><td>" << getObjectNameAndType(ctx) << "</td></tr>" << std::endl;
 					contextId = ctx->getState()->getContextID();
+				}
 			}
 			os << "<tr><td>contextId</td><td>" << contextId << "</td></tr>" << std::endl;
 			os << "<tr><td>modelSpaceHeight</td><td>";

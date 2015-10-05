@@ -149,6 +149,19 @@ bool writePrettyHTMLImpl<osgDB::Registry>::process(std::basic_ostream<char>& os)
             ret = true;
         }
         break;
+	case SGIItemTypeGraphicsContexts:
+		{
+			os << "<ul>";
+			const osg::GraphicsContext::GraphicsContexts & list = osg::GraphicsContext::getAllRegisteredGraphicsContexts();
+			for (osg::GraphicsContext::GraphicsContexts::const_iterator it = list.begin(); it != list.end(); it++)
+			{
+				os << "<li>" << osg_helpers::getObjectNameAndType(*it) << "</li>";
+			}
+			os << "</ul>";
+			ret = true;
+		}
+		break;
+
     default:
         ret = callNextHandler(os);
         break;

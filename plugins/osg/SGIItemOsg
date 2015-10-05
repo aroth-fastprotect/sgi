@@ -22,6 +22,7 @@ enum SGIItemType_osg
     SGIItemTypeParentalNodePath,
     SGIItemTypeDrawableTexCoordsList,
     SGIItemTypePrimitiveSetList,
+	SGIItemTypeGraphicsContexts,
     SGIItemTypeGraphicsContextCameras,
     SGIItemTypeGraphicsContextOperations,
     SGIItemTypeGraphicsContextGLExtensions,
