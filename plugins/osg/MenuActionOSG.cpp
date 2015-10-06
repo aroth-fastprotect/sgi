@@ -125,12 +125,12 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionDrawableToggleDisabled)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionGeodeAddShapeDrawable)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionGeodeRenderInfoDrawable)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeDrawableColor)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionDrawableUseDisplayList)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionDrawableSupportsDisplayList)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionDrawableDirtyDisplayList)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionDrawableUseVBO)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionGeometryColor)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionGeometryUseDisplayList)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionGeometrySupportsDisplayList)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionGeometryDirtyDisplayList)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionGeometryUseVBO)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeCenter)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeRotation)
@@ -164,6 +164,8 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseAutoRotateToScreen)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseCharacterHeight)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseCharacterAspectRatio)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseCharacterSizeMode)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseSetFontWidth)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseSetFontHeight)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseModifyText)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseDrawMode)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseAxisAlignment)
@@ -1334,30 +1336,38 @@ bool actionHandlerImpl<MenuActionTextureAllocateMipmapLevels>::execute()
 	return true;
 }
 
-bool actionHandlerImpl<MenuActionGeometryUseDisplayList>::execute()
+bool actionHandlerImpl<MenuActionDrawableUseDisplayList>::execute()
 {
-	osg::Geometry * object = getObject<osg::Geometry, SGIItemOsg>();
+	osg::Drawable * object = getObject<osg::Drawable, SGIItemOsg>();
 	object->setUseDisplayList(menuAction()->state());
 	object->dirtyDisplayList();
 	triggerRepaint();
 	return true;
 }
 
-bool actionHandlerImpl<MenuActionGeometrySupportsDisplayList>::execute()
+bool actionHandlerImpl<MenuActionDrawableSupportsDisplayList>::execute()
 {
-	osg::Geometry * object = getObject<osg::Geometry, SGIItemOsg>();
+	osg::Drawable * object = getObject<osg::Drawable, SGIItemOsg>();
 	object->setSupportsDisplayList(menuAction()->state());
 	object->dirtyDisplayList();
 	triggerRepaint();
 	return true;
 }
 
-bool actionHandlerImpl<MenuActionGeometryDirtyDisplayList>::execute()
+bool actionHandlerImpl<MenuActionDrawableDirtyDisplayList>::execute()
 {
-    osg::Geometry * object = getObject<osg::Geometry,SGIItemOsg>();
-    object->dirtyDisplayList();
-    triggerRepaint();
-    return true;
+	osg::Drawable * object = getObject<osg::Drawable, SGIItemOsg>();
+	object->dirtyDisplayList();
+	triggerRepaint();
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionDrawableUseVBO>::execute()
+{
+	osg::Drawable * object = getObject<osg::Drawable, SGIItemOsg>();
+	object->setUseVertexBufferObjects(menuAction()->state());
+	triggerRepaint();
+	return true;
 }
 
 bool actionHandlerImpl<MenuActionGeometryColor>::execute()
@@ -1376,14 +1386,6 @@ bool actionHandlerImpl<MenuActionGeometryColor>::execute()
         }
     }
     return true;
-}
-
-bool actionHandlerImpl<MenuActionGeometryUseVBO>::execute()
-{
-	osg::Geometry * object = getObject<osg::Geometry, SGIItemOsg>();
-	object->setUseVertexBufferObjects(menuAction()->state());
-	triggerRepaint();
-	return true;
 }
 
 bool actionHandlerImpl<MenuActionImagePreview>::execute()
@@ -1849,6 +1851,38 @@ bool actionHandlerImpl<MenuActionTextBaseCharacterSizeMode>::execute()
     osgText::TextBase * object = getObject<osgText::TextBase,SGIItemOsg>();
     object->setCharacterSizeMode((osgText::TextBase::CharacterSizeMode)menuAction()->mode());
     return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBaseSetFontWidth>::execute()
+{
+	osgText::Text * object = getObject<osgText::Text, SGIItemOsg>();
+	double number = object->getFontWidth();
+	bool ret;
+	ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+		number,
+		"Font width:", "Set font width (resolution)",
+		0.0, 100.0, 1,
+		_item
+		);
+	if (ret)
+		object->setFontResolution(number, object->getFontHeight());
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBaseSetFontHeight>::execute()
+{
+	osgText::Text * object = getObject<osgText::Text, SGIItemOsg>();
+	double number = object->getFontHeight();
+	bool ret;
+	ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+		number,
+		"Font height:", "Set font height (resolution)",
+		0.0, 100.0, 1,
+		_item
+		);
+	if (ret)
+		object->setFontResolution(object->getFontWidth(), number);
+	return true;
 }
 
 bool actionHandlerImpl<MenuActionTextBaseDrawMode>::execute()

@@ -214,6 +214,8 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                  osgUtil::StateGraph, osgUtil::RenderLeaf,
                                                                  osgViewer::Scene,
                                                                  osgText::Font::FontImplementation,
+																 osgText::Glyph3D,
+																 osgText::GlyphGeometry,
                                                                  ReferencedSetViewNodeLookAt,
                                                                  sgi::ReferencedPickerBase,
                                                                  sgi::ISceneGraphDialogToolsMenu
@@ -257,6 +259,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::DrawElements, LOKI_TYPELIST(osg::DrawElem
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::PrimitiveSet, LOKI_TYPELIST(osg::DrawElements))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Array, LOKI_TYPELIST(osg::IndexArray))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::BufferData, LOKI_TYPELIST(osg::PrimitiveSet, osg::Image, osg::Array))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Image, LOKI_TYPELIST(osgText::Glyph))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::BufferObject, LOKI_TYPELIST(osg::VertexBufferObject, osg::ElementBufferObject,
                                                                    osg::PixelBufferObject, osg::PixelDataBufferObject,
                                                                    osg::UniformBufferObject, osg::AtomicCounterBufferObject
@@ -287,6 +290,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Shape, LOKI_TYPELIST(osg::Sphere, osg::Bo
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::TriangleMesh, LOKI_TYPELIST(osg::ConvexHull))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::View, LOKI_TYPELIST(osgViewer::View))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Texture, LOKI_TYPELIST(osg::Texture1D, osg::Texture2D, osg::Texture3D, osg::TextureRectangle))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Texture2D, LOKI_TYPELIST(osgText::GlyphTexture))
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Operation, LOKI_TYPELIST(osg::GraphicsOperation, osg::BarrierOperation))
 

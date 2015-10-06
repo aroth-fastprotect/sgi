@@ -66,6 +66,7 @@ enum SGIItemType_osg
     SGIItemTypeDBPagerDataToMerge,
     SGIItemTypeColorLayers,
     SGIItemTypeCameaBufferAttachments,
+	SGIItemTypeFontTextureList,
 };
 
 class SGIItemOsg : public SGIItemBase

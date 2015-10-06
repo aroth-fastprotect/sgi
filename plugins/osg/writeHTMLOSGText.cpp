@@ -100,6 +100,18 @@ bool writePrettyHTMLImpl<osgText::Font>::process(std::basic_ostream<char>& os)
             ret = true;
         }
         break;
+	case SGIItemTypeFontTextureList:
+		{
+			const osgText::Font::GlyphTextureList & textureList = object->getGlyphTextureList();
+			os << "<ul>";
+			for(const auto & texture : textureList)
+			{
+				os << "<li>" << getObjectNameAndType(texture.get()) << "</li>" << std::endl;
+			}
+			os << "</ul>";
+			ret = true;
+		}
+		break;
     default:
         ret = callNextHandler(os);
         break;
@@ -222,15 +234,13 @@ bool writePrettyHTMLImpl<osgText::Text>::process(std::basic_ostream<char>& os)
                 << "</td></tr>" << std::endl;
 
 			unsigned contextId = ~0u;
+			os << "<tr><td>camera</td><td>" << getObjectNameAndType(camera) << "</td></tr>" << std::endl;
 			if (camera)
 			{
-				os << "<tr><td>camera</td><td>" << getObjectNameAndType(camera) << "</td></tr>" << std::endl;
 				osg::GraphicsContext * ctx = camera->getGraphicsContext();
+				os << "<tr><td>graphicsContext</td><td>" << getObjectNameAndType(ctx) << "</td></tr>" << std::endl;
 				if (ctx)
-				{
-					os << "<tr><td>graphicsContext</td><td>" << getObjectNameAndType(ctx) << "</td></tr>" << std::endl;
 					contextId = ctx->getState()->getContextID();
-				}
 			}
 			os << "<tr><td>contextId</td><td>" << contextId << "</td></tr>" << std::endl;
 

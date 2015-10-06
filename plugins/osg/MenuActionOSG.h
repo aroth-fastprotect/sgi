@@ -86,12 +86,12 @@ enum MenuAction {
     MenuActionPagedLODDisableExternalChildrenPaging,
     MenuActionPagedLODNumChildrenThatCannotBeExpired,
     MenuActionPagedLODFrameNumberOfLastTraversal,
-    MenuActionShapeDrawableColor,
+	MenuActionDrawableUseDisplayList,
+	MenuActionDrawableSupportsDisplayList,
+	MenuActionDrawableDirtyDisplayList,
+	MenuActionDrawableUseVBO,
+	MenuActionShapeDrawableColor,
     MenuActionGeometryColor,
-	MenuActionGeometryUseDisplayList,
-	MenuActionGeometrySupportsDisplayList,
-    MenuActionGeometryDirtyDisplayList,
-	MenuActionGeometryUseVBO,
     MenuActionImagePreview,
     MenuActionTextureBorderWidth,
     MenuActionTextureBorderColor,
@@ -140,6 +140,8 @@ enum MenuAction {
     MenuActionTextBaseCharacterHeight,
     MenuActionTextBaseCharacterAspectRatio,
     MenuActionTextBaseCharacterSizeMode,
+	MenuActionTextBaseSetFontWidth,
+	MenuActionTextBaseSetFontHeight,
     MenuActionTextBaseModifyText,
     MenuActionTextBaseDrawMode,
     MenuActionTextBaseAxisAlignment,
@@ -250,10 +252,10 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionShapeCenter)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionShapeRotation)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionShapeBoxHalfLength)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionGeometryColor)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionGeometryUseDisplayList)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionGeometrySupportsDisplayList)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionGeometryDirtyDisplayList)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionGeometryUseVBO)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionDrawableUseDisplayList)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionDrawableSupportsDisplayList)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionDrawableDirtyDisplayList)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionDrawableUseVBO)
 
 ACTION_HANDLER_IMPL_DECLARE(MenuActionImagePreview)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionBillboardMode)
@@ -284,6 +286,8 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBaseAutoRotateToScreen)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBaseCharacterHeight)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBaseCharacterAspectRatio)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBaseCharacterSizeMode)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBaseSetFontWidth)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBaseSetFontHeight)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBaseModifyText)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBaseDrawMode)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBaseAxisAlignment)

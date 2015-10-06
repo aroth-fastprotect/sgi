@@ -2996,8 +2996,22 @@ bool objectTreeBuildImpl<osgText::Font>::build(IObjectTreeItem * treeItem)
             if(implementation.hasObject())
                 treeItem->addChild("Implementation", &implementation);
 
+			const osgText::Font::GlyphTextureList & textureList = object->getGlyphTextureList();
+			if (!textureList.empty())
+				treeItem->addChild(helpers::str_plus_count("TextureList", textureList.size()), cloneItem<SGIItemOsg>(SGIItemTypeFontTextureList));
         }
         break;
+	case SGIItemTypeFontTextureList:
+		{
+			const osgText::Font::GlyphTextureList & textureList = object->getGlyphTextureList();
+			for(const auto & texture : textureList)
+			{
+				SGIHostItemOsg item(texture.get());
+				treeItem->addChild(std::string(), &item);
+			}
+			ret = true;
+		}
+		break;
     default:
         ret = callNextHandler(treeItem);
         break;
@@ -3015,7 +3029,13 @@ bool objectTreeBuildImpl<osgText::TextBase>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-        }
+			SGIHostItemOsg font(object->getFont());
+			if (font.hasObject())
+				treeItem->addChild("Font", &font);
+			SGIHostItemOsg style(object->getStyle());
+			if (style.hasObject())
+				treeItem->addChild("Style", &style);
+		}
         break;
     default:
         ret = callNextHandler(treeItem);

@@ -1174,6 +1174,15 @@ bool contextMenuPopulateImpl<osg::Drawable>::populate(IContextMenuItem * menuIte
             if(stateSet.hasObject())
                 menuItem->addMenu("StateSet", &stateSet);
 
+			IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+			if (manipulateMenu)
+			{
+				manipulateMenu->addBoolAction(MenuActionDrawableUseDisplayList, "Use display list", _item, object->getUseDisplayList());
+				manipulateMenu->addBoolAction(MenuActionDrawableSupportsDisplayList, "Supports display list", _item, object->getSupportsDisplayList());
+				manipulateMenu->addSimpleAction(MenuActionDrawableDirtyDisplayList, "Dirty display list", _item);
+				manipulateMenu->addBoolAction(MenuActionDrawableUseVBO, "Use VBO", _item, object->getUseVertexBufferObjects());
+			}
+
             SGIHostItemOsg shape(object->getShape());
             if(shape.hasObject())
                 menuItem->addMenu("Shape", &shape);
@@ -1222,10 +1231,6 @@ bool contextMenuPopulateImpl<osg::Geometry>::populate(IContextMenuItem * menuIte
             if(manipulateMenu)
             {
                 manipulateMenu->addSimpleAction(MenuActionGeometryColor, "Color...", _item);
-				manipulateMenu->addBoolAction(MenuActionGeometryUseDisplayList, "Use display list", _item, object->getUseDisplayList());
-				manipulateMenu->addBoolAction(MenuActionGeometrySupportsDisplayList, "Supports display list", _item, object->getSupportsDisplayList());
-                manipulateMenu->addSimpleAction(MenuActionGeometryDirtyDisplayList, "Dirty display list", _item);
-				manipulateMenu->addBoolAction(MenuActionGeometryUseVBO, "Use VBO", _item, object->getUseVertexBufferObjects());
             }
         }
         break;
@@ -1814,9 +1819,18 @@ bool contextMenuPopulateImpl<osgText::TextBase>::populate(IContextMenuItem * men
         ret = callNextHandler(menuItem);
         if(ret)
         {
+			SGIHostItemOsg font(object->getFont());
+			if (font.hasObject())
+				menuItem->addMenu("Font", &font);
+			SGIHostItemOsg style(object->getStyle());
+			if (style.hasObject())
+				menuItem->addMenu("Style", &style);
+
             menuItem->addBoolAction(MenuActionTextBaseAutoRotateToScreen, "Auto rotate to screen", _item, object->getAutoRotateToScreen());
             menuItem->addSimpleAction(MenuActionTextBaseCharacterHeight, helpers::str_plus_info("Character height", object->getCharacterHeight()), _item);
             menuItem->addSimpleAction(MenuActionTextBaseCharacterAspectRatio, helpers::str_plus_info("Character aspect ratio", object->getCharacterAspectRatio()), _item);
+			menuItem->addSimpleAction(MenuActionTextBaseSetFontWidth, helpers::str_plus_info("Set font width", object->getFontWidth()), _item);
+			menuItem->addSimpleAction(MenuActionTextBaseSetFontHeight, helpers::str_plus_info("Set font height", object->getFontHeight()), _item);
 
             IContextMenuItem * characterSizeMenu = menuItem->addModeMenu(MenuActionTextBaseCharacterSizeMode, "Character size mode", _item, object->getCharacterSizeMode());
             if(characterSizeMenu)
@@ -1828,13 +1842,15 @@ bool contextMenuPopulateImpl<osgText::TextBase>::populate(IContextMenuItem * men
             IContextMenuItem * drawModeMenu = menuItem->addModeMenu(MenuActionTextBaseDrawMode, "Draw mode", _item, object->getDrawMode());
             if(drawModeMenu)
             {
-                drawModeMenu->addModeAction("Text", osgText::Text::TEXT);
-                drawModeMenu->addModeAction("BoundingBox", osgText::Text::BOUNDINGBOX);
-                drawModeMenu->addModeAction("FilledBoundingBox", osgText::Text::FILLEDBOUNDINGBOX);
-                drawModeMenu->addModeAction("Alignment", osgText::Text::ALIGNMENT);
-                drawModeMenu->addModeAction("Text+BBox", osgText::Text::TEXT|osgText::Text::BOUNDINGBOX);
-                drawModeMenu->addModeAction("Text+FilledBBox", osgText::Text::TEXT|osgText::Text::FILLEDBOUNDINGBOX);
-            }
+				drawModeMenu->addModeAction("Text", osgText::Text::TEXT);
+				drawModeMenu->addModeAction("BoundingBox", osgText::Text::BOUNDINGBOX);
+				drawModeMenu->addModeAction("FilledBoundingBox", osgText::Text::FILLEDBOUNDINGBOX);
+				drawModeMenu->addModeAction("Alignment", osgText::Text::ALIGNMENT);
+				drawModeMenu->addModeAction("Text+BBox", osgText::Text::TEXT | osgText::Text::BOUNDINGBOX);
+				drawModeMenu->addModeAction("Text+BBox+Align", osgText::Text::TEXT | osgText::Text::BOUNDINGBOX | osgText::Text::ALIGNMENT);
+				drawModeMenu->addModeAction("Text+FilledBBox", osgText::Text::TEXT | osgText::Text::FILLEDBOUNDINGBOX);
+				drawModeMenu->addModeAction("Text+FilledBBox+Align", osgText::Text::TEXT | osgText::Text::FILLEDBOUNDINGBOX | osgText::Text::ALIGNMENT);
+			}
             IContextMenuItem * axisAlignmentMenu = menuItem->addModeMenu(MenuActionTextBaseAxisAlignment, "Axis alignment", _item, object->getAxisAlignment());
             if(axisAlignmentMenu)
             {
