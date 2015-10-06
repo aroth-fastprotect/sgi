@@ -53,6 +53,13 @@ namespace osgEarth {
     struct ReadResult;
 }
 
+namespace sgi {
+	namespace osg_helpers {
+		template<typename T>
+		inline std::string vec4fToHtmlColor(const T& c);
+	} // namespace osg_helpers
+} // namespace sgi
+
 namespace std {
 
 template<typename T>
@@ -71,6 +78,15 @@ inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const 
         return os << "unset(" << (v.defaultValue()?"true":"false") << ")";
     else
         return os << (v.value()?"true":"false");
+}
+
+template<>
+inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::optional<osg::Vec4> & v)
+{
+	if (!v.isSet())
+		return os << "unset(" << sgi::osg_helpers::vec4fToHtmlColor(v.defaultValue()) << ")";
+	else
+		return os << sgi::osg_helpers::vec4fToHtmlColor(v.value());
 }
 
 template<typename T>

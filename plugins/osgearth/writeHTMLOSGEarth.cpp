@@ -1884,9 +1884,9 @@ bool writePrettyHTMLImpl<osgEarth::Util::Controls::Control>::process(std::basic_
             os << "<tr><td>absorbEvents</td><td>" << (object->getAbsorbEvents()?"true":"false") << "</td></tr>" << std::endl;
 
             os << "<tr><td>foreColor</td><td>" << object->foreColor() << "</td></tr>" << std::endl;
-            os << "<tr><td>backColor</td><td>" << object->foreColor() << "</td></tr>" << std::endl;
-            os << "<tr><td>activeColor</td><td>" << object->foreColor() << "</td></tr>" << std::endl;
-            os << "<tr><td>borderColor</td><td>" << object->foreColor() << "</td></tr>" << std::endl;
+            os << "<tr><td>backColor</td><td>" << object->backColor() << "</td></tr>" << std::endl;
+            os << "<tr><td>activeColor</td><td>" << object->activeColor() << "</td></tr>" << std::endl;
+            os << "<tr><td>borderColor</td><td>" << object->borderColor() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
