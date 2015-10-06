@@ -1222,7 +1222,10 @@ bool contextMenuPopulateImpl<osg::Geometry>::populate(IContextMenuItem * menuIte
             if(manipulateMenu)
             {
                 manipulateMenu->addSimpleAction(MenuActionGeometryColor, "Color...", _item);
+				manipulateMenu->addBoolAction(MenuActionGeometryUseDisplayList, "Use display list", _item, object->getUseDisplayList());
+				manipulateMenu->addBoolAction(MenuActionGeometrySupportsDisplayList, "Supports display list", _item, object->getSupportsDisplayList());
                 manipulateMenu->addSimpleAction(MenuActionGeometryDirtyDisplayList, "Dirty display list", _item);
+				manipulateMenu->addBoolAction(MenuActionGeometryUseVBO, "Use VBO", _item, object->getUseVertexBufferObjects());
             }
         }
         break;

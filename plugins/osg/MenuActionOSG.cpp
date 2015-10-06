@@ -125,8 +125,13 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionDrawableToggleDisabled)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionGeodeAddShapeDrawable)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionGeodeRenderInfoDrawable)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeDrawableColor)
+
 ACTION_HANDLER_IMPL_REGISTER(MenuActionGeometryColor)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionGeometryUseDisplayList)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionGeometrySupportsDisplayList)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionGeometryDirtyDisplayList)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionGeometryUseVBO)
+
 ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeCenter)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeRotation)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeBoxHalfLength)
@@ -1329,6 +1334,24 @@ bool actionHandlerImpl<MenuActionTextureAllocateMipmapLevels>::execute()
 	return true;
 }
 
+bool actionHandlerImpl<MenuActionGeometryUseDisplayList>::execute()
+{
+	osg::Geometry * object = getObject<osg::Geometry, SGIItemOsg>();
+	object->setUseDisplayList(menuAction()->state());
+	object->dirtyDisplayList();
+	triggerRepaint();
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionGeometrySupportsDisplayList>::execute()
+{
+	osg::Geometry * object = getObject<osg::Geometry, SGIItemOsg>();
+	object->setSupportsDisplayList(menuAction()->state());
+	object->dirtyDisplayList();
+	triggerRepaint();
+	return true;
+}
+
 bool actionHandlerImpl<MenuActionGeometryDirtyDisplayList>::execute()
 {
     osg::Geometry * object = getObject<osg::Geometry,SGIItemOsg>();
@@ -1353,6 +1376,14 @@ bool actionHandlerImpl<MenuActionGeometryColor>::execute()
         }
     }
     return true;
+}
+
+bool actionHandlerImpl<MenuActionGeometryUseVBO>::execute()
+{
+	osg::Geometry * object = getObject<osg::Geometry, SGIItemOsg>();
+	object->setUseVertexBufferObjects(menuAction()->state());
+	triggerRepaint();
+	return true;
 }
 
 bool actionHandlerImpl<MenuActionImagePreview>::execute()
