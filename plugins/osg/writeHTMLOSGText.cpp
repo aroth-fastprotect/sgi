@@ -7,6 +7,7 @@
 // osgText headers
 #include <osgText/Font>
 #include <osgText/Text>
+#include <osg/io_utils>
 
 #include <sgi/helpers/osg>
 #include "std_ostream_osgtext.h"
@@ -20,6 +21,49 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgText::TextBase)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgText::Text)
 
 using namespace sgi::osg_helpers;
+
+void osgTextAccess::writeAutoTransformCache(std::basic_ostream<char>& os, unsigned int contextID)
+{
+	os << "<tr><td>textBB</td><td>";
+	writePrettyHTML(os, _textBB, this);
+	os << "</td></tr>" << std::endl;
+
+	os << "<tr><td>offset</td><td>";
+	writePrettyPositionHTML(os, _offset, this);
+	os << "</td></tr>" << std::endl;
+
+	os << "<tr><td>normal</td><td>" << _normal << "</td></tr>" << std::endl;
+
+	AutoTransformCache * atc = (contextID < _autoTransformCache.size()) ? &_autoTransformCache[contextID] : NULL;
+	os << "<tr><td>AutoTransformCache</td><td>" << (void*)atc << "</td></tr>" << std::endl;
+
+	if (atc)
+	{
+		const osg::Matrixd & matrix = atc->_matrix;
+		osg::Vec3d topLeft = osg::Vec3d(_textBB.xMin(), _textBB.yMin(), _textBB.zMin())*matrix;
+		osg::Vec3d bottomLeft = osg::Vec3d(_textBB.xMin(), _textBB.yMax(), _textBB.zMin())*matrix;
+
+		float modelSpaceHeight = (bottomLeft - topLeft).length();
+		os << "<tr><td>modelSpaceHeight</td><td>" << modelSpaceHeight << "</td></tr>" << std::endl;
+
+		os << "<tr><td>transformedPosition</td><td>";
+		writePrettyPositionHTML(os, atc->_transformedPosition, this);
+		os << "</td></tr>" << std::endl;
+
+		os << "<tr><td>matrix</td><td>";
+		writePrettyHTML(os, matrix, MatrixUsageTypeGeneric, this);
+		os << "</td></tr>" << std::endl;
+
+		os << "<tr><td>projection</td><td>";
+		writePrettyHTML(os, atc->_projection, MatrixUsageTypePerspective, this);
+		os << "</td></tr>" << std::endl;
+
+		os << "<tr><td>modelview</td><td>";
+		writePrettyHTML(os, atc->_modelview, MatrixUsageTypeModelView, this);
+		os << "</td></tr>" << std::endl;
+	}
+}
+
 
 bool writePrettyHTMLImpl<osgText::Font>::process(std::basic_ostream<char>& os)
 {
@@ -177,10 +221,6 @@ bool writePrettyHTMLImpl<osgText::Text>::process(std::basic_ostream<char>& os)
                 << vec4fToHtmlColor(object->getColorGradientTopRight())
                 << "</td></tr>" << std::endl;
 
-			os << "<tr><td>textBB</td><td>";
-			writePrettyHTML(os, access->textBB(), object);
-			os << "</td></tr>" << std::endl;
-
 			unsigned contextId = ~0u;
 			if (camera)
 			{
@@ -193,12 +233,8 @@ bool writePrettyHTMLImpl<osgText::Text>::process(std::basic_ostream<char>& os)
 				}
 			}
 			os << "<tr><td>contextId</td><td>" << contextId << "</td></tr>" << std::endl;
-			os << "<tr><td>modelSpaceHeight</td><td>";
-			if (contextId != ~0u)
-				os << access->modelSpaceHeight(contextId);
-			else
-				os << "N/A";
-			os << "</td></tr>" << std::endl;
+
+			access->writeAutoTransformCache(os, contextId);
 
             if(_table)
                 os << "</table>" << std::endl;
