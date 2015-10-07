@@ -17,7 +17,7 @@ class ImagePreviewDialog : public ImagePreviewDialogBase
     Q_OBJECT
 
 public:
-    ImagePreviewDialog(QWidget * parent, SGIItemBase * item);
+    ImagePreviewDialog(SGIPluginHostInterface * hostInterface, SGIItemBase * item, QWidget * parent = NULL);
     virtual ~ImagePreviewDialog();
 
 private slots:

@@ -20,13 +20,14 @@ namespace sgi {
 
 class ISettingsDialog;
 typedef osg::ref_ptr<ISettingsDialog> ISettingsDialogPtr;
+class SGIPluginHostInterface;
 
 class ImagePreviewDialogBase : public QDialog
 {
     Q_OBJECT
 
 public:
-	ImagePreviewDialogBase(QWidget * parent, SGIItemBase * item);
+	ImagePreviewDialogBase(SGIPluginHostInterface * hostInterface, SGIItemBase * item, QWidget * parent=NULL);
     virtual ~ImagePreviewDialogBase();
 
 public:
@@ -123,6 +124,7 @@ protected:
     class ImagePreviewDialogBasePrivate;
     ImagePreviewDialogBasePrivate * _priv;
     SGIItemBasePtr                  _item;
+	SGIPluginHostInterface *        _hostInterface;
     ISettingsDialogPtr              _interface;
 };
 

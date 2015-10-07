@@ -156,8 +156,8 @@ osg::Node * findFirstNode(osg::StateAttribute * sa)
 
 } // namespace
 
-ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, SGIItemBase * item)
-    : ImagePreviewDialogBase(parent, item)
+ImagePreviewDialog::ImagePreviewDialog(SGIPluginHostInterface * hostInterface, SGIItemBase * item, QWidget * parent)
+    : ImagePreviewDialogBase(hostInterface, item, parent)
 {
     connect(this, &ImagePreviewDialog::textureReady, this, &ImagePreviewDialog::onTextureReady);
 }

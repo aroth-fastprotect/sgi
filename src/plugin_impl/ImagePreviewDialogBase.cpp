@@ -41,6 +41,7 @@ public:
     void flipVertical();
 
     void applyFlip();
+	void setNodeInfo(const SGIItemBase * item);
 
 
     ImagePreviewDialogBase *        owner;
@@ -86,6 +87,12 @@ ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::ImagePreviewDialogBasePri
 	ui->scrollArea->setBackgroundRole(QPalette::Dark);
 
 	createToolbar();
+
+	int w = ui->splitter->width();
+	QList<int> sizes = QList<int>() << (w * 3 / 4) << (w / 4);
+	ui->splitter->setSizes(sizes);
+
+	ui->tabWidget->setCurrentIndex(0);
 }
 
 ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::~ImagePreviewDialogBasePrivate()
@@ -95,6 +102,7 @@ ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::~ImagePreviewDialogBasePr
 
 void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::refresh()
 {
+	setNodeInfo(owner->_item.get());
 	owner->refreshImpl();
 }
 
@@ -310,9 +318,27 @@ void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::save()
 	}
 }
 
-ImagePreviewDialogBase::ImagePreviewDialogBase(QWidget * parent, SGIItemBase * item)
+
+void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::setNodeInfo(const SGIItemBase * item)
+{
+	std::ostringstream os;
+	if (item)
+	{
+		owner->_hostInterface->writePrettyHTML(os, item);
+	}
+	else
+	{
+		os << "<b>item is <i>NULL</i></b>";
+	}
+	ui->textEdit->blockSignals(true);
+	ui->textEdit->setHtml(QString::fromStdString(os.str()));
+	ui->textEdit->blockSignals(false);
+}
+
+ImagePreviewDialogBase::ImagePreviewDialogBase(SGIPluginHostInterface * hostInterface, SGIItemBase * item, QWidget * parent)
     : QDialog(parent)
     , _item(item)
+	, _hostInterface(hostInterface)
     , _interface(new SettingsDialogImpl(this))
     , _priv(new ImagePreviewDialogBasePrivate(this))
 {

@@ -10,8 +10,8 @@
 namespace sgi {
 namespace qt_plugin {
 
-ImagePreviewDialog::ImagePreviewDialog(QWidget * parent, SGIItemBase * item)
-    : ImagePreviewDialogBase(parent, item)
+ImagePreviewDialog::ImagePreviewDialog(SGIPluginHostInterface * hostInterface, SGIItemBase * item, QWidget * parent)
+    : ImagePreviewDialogBase(hostInterface, item, parent)
 {
 }
 
