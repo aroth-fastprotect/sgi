@@ -445,14 +445,17 @@ bool objectTreeBuildImpl<osg::Geode>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
+#if OSG_VERSION_LESS_THAN(3,4,0)
             unsigned numDrawables = object->getNumDrawables();
             if(numDrawables)
                 treeItem->addChild(helpers::str_plus_count("Drawables", numDrawables), cloneItem<SGIItemOsg>(SGIItemTypeChilds));
+#endif
         }
         break;
-    case SGIItemTypeChilds:
+#if OSG_VERSION_LESS_THAN(3,4,0)
+	case SGIItemTypeChilds:
         {
-            unsigned numDrawables = object->getNumDrawables();
+			unsigned numDrawables = object->getNumDrawables();
             for(unsigned i = 0; i < numDrawables; i++)
             {
                 osg::Drawable * drawable = object->getDrawable(i);
@@ -462,7 +465,8 @@ bool objectTreeBuildImpl<osg::Geode>::build(IObjectTreeItem * treeItem)
             ret = true;
         }
         break;
-    default:
+#endif
+	default:
         ret = callNextHandler(treeItem);
         break;
     }

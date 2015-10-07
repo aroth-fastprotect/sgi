@@ -4333,7 +4333,8 @@ bool writePrettyHTMLImpl<osg::Geode>::process(std::basic_ostream<char>& os)
             // add node properties first
             callNextHandler(os);
 
-            // add remaining geode properties
+#if OSG_VERSION_LESS_THAN(3,4,0)
+			// add remaining geode properties
             os << "<tr><td>drawables</td><td>";
             os << "<ol>" << std::endl;
             unsigned numDrawables = object->getNumDrawables();
@@ -4343,12 +4344,15 @@ bool writePrettyHTMLImpl<osg::Geode>::process(std::basic_ostream<char>& os)
                 os << "<li>" << osg_helpers::getObjectName(drawable) << " (" << osg_helpers::getObjectTypename(drawable) << ")</li>" << std::endl;
             }
             os << "</ol></td></tr>" << std::endl;
+#endif // OSG_VERSION_LESS_THAN(3,4,0)
+
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
         }
         break;
-    case SGIItemTypeChilds:
+#if OSG_VERSION_LESS_THAN(3,4,0)
+	case SGIItemTypeChilds:
         {
             os << "<ol>";
 
@@ -4362,7 +4366,8 @@ bool writePrettyHTMLImpl<osg::Geode>::process(std::basic_ostream<char>& os)
             ret = true;
         }
         break;
-    default:
+#endif // OSG_VERSION_LESS_THAN(3,4,0)
+	default:
         ret = callNextHandler(os);
         break;
     }
