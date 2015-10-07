@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ImagePreviewDialogBase</class>
- <widget class="QDialog" name="ImagePreviewDialogBase">
+ <class>ImagePreviewDialog</class>
+ <widget class="QDialog" name="ImagePreviewDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -165,7 +165,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>ImagePreviewDialogBase</receiver>
+   <receiver>ImagePreviewDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -181,7 +181,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>ImagePreviewDialogBase</receiver>
+   <receiver>ImagePreviewDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

@@ -1,0 +1,50 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include <osg/Object>
+
+class QWidget;
+class QDialog;
+
+namespace sgi {
+
+class Image;
+typedef osg::ref_ptr<Image> ImagePtr;
+typedef osg::ref_ptr<const Image> ConstImagePtr;
+class IContextMenu;
+class IContextMenuInfo;
+class SGIItemBase;
+class SGIHostItemBase;
+typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
+
+
+class IImagePreviewDialogInfo : public osg::Referenced
+{
+public:
+    virtual IContextMenu *  contextMenu(QWidget * parent, const SGIItemBase * item, IContextMenuInfo * info) = 0;
+    virtual bool            showSceneGraphDialog(SGIItemBase * item) = 0;
+    virtual bool            showObjectLoggerDialog(SGIItemBase * item) = 0;
+    virtual void            triggerRepaint() = 0;
+    virtual SGIItemBase *   getView() = 0;
+};
+
+class IImagePreviewDialog : public osg::Referenced
+{
+public:
+    virtual QDialog *       getDialog() = 0;
+    virtual void            setObject(SGIItemBase * item, IImagePreviewDialogInfo * info=NULL) = 0;
+    virtual void            setObject(const SGIHostItemBase * item, IImagePreviewDialogInfo * info=NULL) = 0;
+    virtual void            setObject(SGIItemBase * item, const sgi::Image * image, const std::string & description, IImagePreviewDialogInfo * info=NULL) = 0;
+    virtual void            setImage(const sgi::Image * image) = 0;
+    virtual void            setDescription(const std::string & description) = 0;
+    virtual void            show() = 0;
+    virtual void            hide() = 0;
+    virtual bool            isVisible() = 0;
+};
+
+typedef osg::ref_ptr<IImagePreviewDialog> IImagePreviewDialogPtr;
+typedef osg::ref_ptr<IImagePreviewDialogInfo> IImagePreviewDialogInfoPtr;
+
+} // namespace sgi

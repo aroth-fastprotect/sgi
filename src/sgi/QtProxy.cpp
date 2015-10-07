@@ -7,6 +7,7 @@
 #include "SceneGraphDialog.h"
 #include "ContextMenu.h"
 #include "ObjectLoggerDialog.h"
+#include "ImagePreviewDialog.h"
 #include <sgi/helpers/qt>
 
 namespace sgi {
@@ -154,6 +155,22 @@ void QtProxy::implCreateContextMenuQt(JobCreateContextMenuQt * job)
 {
     ContextMenuQt * qtmenu = new ContextMenuQt(job->item, job->info, job->parent);
     job->retval = qtmenu->menuInterface();
+}
+
+IImagePreviewDialog * QtProxy::showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IImagePreviewDialogInfo * info)
+{
+    JobShowImagePreviewDialog job(parent, item, info);
+    if(QThread::currentThread() == thread())
+        implShowImagePreviewDialog(&job);
+    else
+        emit triggerShowImagePreviewDialog(&job);
+    return job.retval;
+}
+
+void QtProxy::implShowImagePreviewDialog(JobShowImagePreviewDialog * job)
+{
+    ImagePreviewDialog * qtdialog = new ImagePreviewDialog(job->item, job->info, job->parent);
+    job->retval = qtdialog->dialogInterface();
 }
 
 } // namespace sgi

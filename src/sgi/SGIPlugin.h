@@ -139,6 +139,9 @@ public:
     IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IContextMenuInfo * info=NULL);
     IContextMenuQt * createContextMenu(QWidget *parent, QObject * item, IContextMenuInfoQt * info=NULL);
 
+    IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IImagePreviewDialogInfo * info);
+    IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IImagePreviewDialogInfo * info);
+
     bool objectTreeBuildTree(IObjectTreeItem * treeItem, SGIItemBase * item);
     bool objectTreeBuildRootTree(IObjectTreeItem * treeItem, SGIItemBase * item);
     bool contextMenuPopulate(IContextMenuItem * menuItem, SGIItemBase * item, bool onlyRootItem);

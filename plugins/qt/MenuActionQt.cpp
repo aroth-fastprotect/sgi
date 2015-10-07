@@ -4,6 +4,7 @@
 
 #include <sgi/plugins/ContextMenu>
 #include <sgi/plugins/SceneGraphDialog>
+#include <sgi/plugins/ImagePreviewDialog>
 #include <sgi/plugins/SettingsDialog>
 #include <sgi/plugins/SGIHostItemQt.h>
 #include <sgi/helpers/qt>
@@ -218,16 +219,12 @@ bool actionHandlerImpl<MenuActionObjectMethodInvoke>::execute()
 
 bool actionHandlerImpl<MenuActionImagePreview>::execute()
 {
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogImagePreview, menu()->parentWidget());
-    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-    if(ret)
-    {
-        if(dialog.valid())
-            dialog->show();
-    }
-    return ret;
+    IImagePreviewDialogPtr dialog = _hostInterface->showImagePreviewDialog(menu()->parentWidget(), _item.get(), NULL);
+
+    if(dialog.valid())
+        dialog->show();
+
+    return true;
 }
 
 } // namespace qt_plugin

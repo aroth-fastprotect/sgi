@@ -44,6 +44,11 @@ class ISettingsDialogInfo;
 typedef osg::ref_ptr<ISettingsDialog> ISettingsDialogPtr;
 typedef osg::ref_ptr<ISettingsDialogInfo> ISettingsDialogInfoPtr;
 
+class IImagePreviewDialog;
+class IImagePreviewDialogInfo;
+typedef osg::ref_ptr<IImagePreviewDialog> IImagePreviewDialogPtr;
+typedef osg::ref_ptr<IImagePreviewDialogInfo> IImagePreviewDialogInfoPtr;
+
 class IObjectTreeItem;
 typedef osg::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
 typedef std::vector<IObjectTreeItemPtr> IObjectTreeItemPtrList;
@@ -142,6 +147,9 @@ public:
     virtual IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IObjectLoggerDialogInfo * info=NULL) = 0;
     virtual IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IObjectLoggerDialogInfo * info=NULL) = 0;
     virtual IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IObjectLoggerDialogInfo * info=NULL) = 0;
+
+    virtual IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IImagePreviewDialogInfo * info=NULL) = 0;
+    virtual IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IImagePreviewDialogInfo * info=NULL) = 0;
 
     virtual bool objectTreeBuildTree(IObjectTreeItem * treeItem, SGIItemBase * item) = 0;
     virtual bool objectTreeBuildRootTree(IObjectTreeItem * treeItem, SGIItemBase * item) = 0;

@@ -44,6 +44,7 @@ SET(TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/ContextMenu
     ${SGI_INCLUDE_DIR}/sgi/SceneGraphDialog
     ${SGI_INCLUDE_DIR}/sgi/ObjectLoggerDialog
+    #${SGI_INCLUDE_DIR}/sgi/ImagePreviewDialog
 
 	${SGI_INCLUDE_DIR}/sgi/helpers/qt
 	${SGI_INCLUDE_DIR}/sgi/helpers/qt_widgets
@@ -71,6 +72,12 @@ SET(TARGET_H
 
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIHostItemGenerator
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIHostSupport
+
+    ${SGI_INCLUDE_DIR}/sgi/plugins/ContextMenu
+    ${SGI_INCLUDE_DIR}/sgi/plugins/SceneGraphDialog
+    ${SGI_INCLUDE_DIR}/sgi/plugins/ObjectLoggerDialog
+    ${SGI_INCLUDE_DIR}/sgi/plugins/ImagePreviewDialog
+
 	)
 
 SET(TARGET_UI
@@ -78,7 +85,8 @@ SET(TARGET_UI
 	ObjectLoggerDialog.ui
 	QTextDialog.ui
 	DoubleInputDialog.ui
-	)
+    ImagePreviewDialog.ui
+    )
 
 SET(TARGET_MOC_H
 	SceneGraphDialog.h
@@ -87,6 +95,7 @@ SET(TARGET_MOC_H
 	QtProxy.h
 	QTextDialog.h
 	DoubleInputDialog.h
+	ImagePreviewDialog.h
 )
 
 # CHECK-IT:
@@ -102,6 +111,7 @@ SET(TARGET_SRC
 	QtProxy.cpp
 	QTextDialog.cpp
 	DoubleInputDialog.cpp
+	ImagePreviewDialog.cpp
 )
 
 SET(TARGET_LIBRARIES_VARS

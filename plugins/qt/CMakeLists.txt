@@ -8,7 +8,6 @@ SET(TARGET_SRC
     ObjectTreeQt.cpp
     ContextMenuQt.cpp
     MenuActionQt.cpp
-    ImagePreviewDialog.cpp
     SettingsDialogQt.cpp
     )
 
@@ -24,10 +23,6 @@ SET(TARGET_H
     )
 
 fast_configure_file(SGIItemQt ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemQt COPY_ONLY)
-
-SET(TARGET_MOC_H
-    ImagePreviewDialog.h
-)
 
 SET(TARGET_UI
 )

@@ -9,18 +9,12 @@ SET(TARGET_SRC
     qt_helpers.cpp
     widget_helpers.cpp
     string_helpers.cpp
-    ImagePreviewDialogBase.cpp
     )
 
 SET(TARGET_MOC_H
 	ObjectTreeImplProxy.h
-	../../include/sgi/plugins/ImagePreviewDialogBase
 	../../include/sgi/helpers/qt_widgets
 	)
-
-SET(TARGET_UI
-    ImagePreviewDialogBase.ui
-    )
 
 SET(TARGET_VERSION ${SGI_VERSION})
 SET(TARGET_SOVERSION ${SGI_SOVERSION})

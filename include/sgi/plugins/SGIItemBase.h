@@ -47,6 +47,10 @@ typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrVector;
 class SGIPluginInfo;
 
+class Image;
+typedef osg::ref_ptr<Image> ImagePtr;
+typedef osg::ref_ptr<const Image> ConstImagePtr;
+
 class ISGIPluginInfo
 {
 public:
@@ -430,6 +434,7 @@ public:
         ImageFormatInvalid = -1,
         ImageFormatRGB = 0,
         ImageFormatARGB,
+        ImageFormatGray,
         ImageFormatFloat
     };
     Image(ImageFormat format=ImageFormatInvalid, void * data=NULL, size_t length=0, unsigned width=0, unsigned height=0, unsigned depth=0)

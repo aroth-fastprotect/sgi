@@ -1,11 +1,11 @@
 #pragma once
 
-#include <sgi/plugins/ImagePreviewDialogBase>
+#include <sgi/plugins/ImagePreviewDialog>
 
 namespace sgi {
 namespace qt_plugin {
 
-class ImagePreviewDialog : public ImagePreviewDialogBase
+class ImagePreviewDialog : public ImagePreviewDialog
 {
     Q_OBJECT
 

@@ -8,7 +8,7 @@
 #include <osg/Shape>
 
 #include "CameraSettings.h"
-#include "ImagePreviewDialog.h"
+//#include "ImagePreviewDialog.h"
 
 namespace sgi {
 namespace osg_plugin {
@@ -43,9 +43,11 @@ bool settingsDialogCreateImpl<SettingsDialogObjectLogger>::execute(ISettingsDial
 
 bool settingsDialogCreateImpl<SettingsDialogImagePreview>::execute(ISettingsDialogPtr & dialog)
 {
+    /*
     ImagePreviewDialog * qtdialog = NULL;
 	qtdialog = new ImagePreviewDialog(_hostInterface, _item.get(), parent());
     dialog = qtdialog->dialogInterface();
+    */
     return true;
 }
 

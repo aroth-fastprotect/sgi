@@ -15,6 +15,8 @@ class IContextMenu;
 class IContextMenuInfo;
 class IContextMenuQt;
 class IContextMenuInfoQt;
+class IImagePreviewDialog;
+class IImagePreviewDialogInfo;
 
 class QtProxy : public QObject
 {
@@ -31,6 +33,7 @@ public:
     IObjectLoggerDialog *   showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IObjectLoggerDialogInfo * info);
     IContextMenu *          createContextMenu(QWidget *parent, SGIItemBase * item, IContextMenuInfo * info);
     IContextMenuQt *        createContextMenu(QWidget *parent, QObject * item, IContextMenuInfoQt * info);
+    IImagePreviewDialog *   showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IImagePreviewDialogInfo * info);
 
 private:
     struct JobShowSceneGraphDialog
@@ -78,6 +81,15 @@ private:
         QObject * item;
         IContextMenuInfoQt * info;
     };
+    struct JobShowImagePreviewDialog
+    {
+        JobShowImagePreviewDialog(QWidget *parent_, SGIItemBase * item_, IImagePreviewDialogInfo * info_)
+            : retval(NULL), parent(parent_), item(item_), info(info_) {}
+        IImagePreviewDialog * retval;
+        QWidget *parent;
+        SGIItemBase * item;
+        IImagePreviewDialogInfo * info;
+    };
 
 signals:
     void triggerShowSceneGraphDialog(JobShowSceneGraphDialog * job);
@@ -85,6 +97,7 @@ signals:
     void triggerShowObjectLoggerDialogForLogger(JobShowObjectLoggerDialogForLogger * job);
     void triggerCreateContextMenu(JobCreateContextMenu * job);
     void triggerCreateContextMenuQt(JobCreateContextMenuQt * job);
+    void triggerShowImagePreviewDialog(JobShowImagePreviewDialog * job);
 
 protected slots:
     void implShowSceneGraphDialog(JobShowSceneGraphDialog * job);
@@ -92,6 +105,7 @@ protected slots:
     void implShowObjectLoggerDialogForLogger(JobShowObjectLoggerDialogForLogger * job);
     void implCreateContextMenu(JobCreateContextMenu * job);
     void implCreateContextMenuQt(JobCreateContextMenuQt * job);
+    void implShowImagePreviewDialog(JobShowImagePreviewDialog * job);
 };
 
 } // namespace sgi

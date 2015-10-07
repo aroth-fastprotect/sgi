@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sgi/plugins/ImagePreviewDialogBase>
+#include <sgi/plugins/ImagePreviewDialog>
 
 namespace osg {
     class Texture;
@@ -12,7 +12,7 @@ namespace osg {
 namespace sgi {
 namespace osg_plugin {
 
-class ImagePreviewDialog : public ImagePreviewDialogBase
+class ImagePreviewDialog : public ImagePreviewDialog
 {
     Q_OBJECT
 

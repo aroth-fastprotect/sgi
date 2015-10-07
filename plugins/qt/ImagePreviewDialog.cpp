@@ -11,7 +11,7 @@ namespace sgi {
 namespace qt_plugin {
 
 ImagePreviewDialog::ImagePreviewDialog(SGIPluginHostInterface * hostInterface, SGIItemBase * item, QWidget * parent)
-    : ImagePreviewDialogBase(hostInterface, item, parent)
+    : ImagePreviewDialog(hostInterface, item, parent)
 {
 }
 
@@ -28,9 +28,9 @@ void ImagePreviewDialog::updateImageAndLabel()
     QIcon * icon = iconItem?iconItem->object():NULL;
 
     if(image)
-        ImagePreviewDialogBase::setImage(*image);
+        ImagePreviewDialog::setImage(*image);
     else if(pixmap)
-        ImagePreviewDialogBase::setImage(*pixmap);
+        ImagePreviewDialog::setImage(*pixmap);
     else if(icon)
     {
         QList<QSize> availableSizes = icon->availableSizes();
@@ -42,7 +42,7 @@ void ImagePreviewDialog::updateImageAndLabel()
                 if(s.width() > biggestSize.width() || s.height() > biggestSize.height())
                     biggestSize = s;
             }
-            ImagePreviewDialogBase::setImage(icon->pixmap(biggestSize));
+            ImagePreviewDialog::setImage(icon->pixmap(biggestSize));
         }
     }
 }

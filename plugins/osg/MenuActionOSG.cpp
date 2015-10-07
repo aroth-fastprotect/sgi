@@ -9,6 +9,7 @@
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/ObjectLoggerDialog>
 #include <sgi/plugins/SettingsDialog>
+#include <sgi/plugins/ImagePreviewDialog>
 #include <sgi/SGIItemInternal>
 #include <sgi/helpers/string>
 
@@ -1388,19 +1389,34 @@ bool actionHandlerImpl<MenuActionGeometryColor>::execute()
     return true;
 }
 
+namespace {
+    const sgi::Image * convertImage(osg::Image * image)
+    {
+        sgi::Image::ImageFormat imageFormat;
+        switch(image->getPixelFormat())
+        {
+        case GL_RGB: imageFormat = sgi::Image::ImageFormatRGB; break;
+        case GL_RGBA:imageFormat = sgi::Image::ImageFormatARGB; break;
+        case GL_LUMINANCE: imageFormat = sgi::Image::ImageFormatGray; break;
+        default: imageFormat = sgi::Image::ImageFormatInvalid; break;
+        }
+        sgi::Image * ret = new sgi::Image(imageFormat, image->data(), image->getTotalDataSize(), image->r(), image->s(), image->t());
+        return ret;
+    }
+}
+
 bool actionHandlerImpl<MenuActionImagePreview>::execute()
 {
     osg::Image * object = getObject<osg::Image,SGIItemOsg>();
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogImagePreview, menu()->parentWidget());
-    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-    if(ret)
+    IImagePreviewDialogPtr dialog = _hostInterface->showImagePreviewDialog(menu()->parentWidget(), _item.get(), NULL);
+
+    if(dialog.valid())
     {
-        if(dialog.valid())
-            dialog->show();
+        dialog->setObject(_item.get(), convertImage(object), std::string(), NULL);
+        dialog->show();
     }
-    return ret;
+
+    return true;
 }
 
 bool actionHandlerImpl<MenuActionDrawableToggleDisabled>::execute()

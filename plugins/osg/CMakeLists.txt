@@ -29,7 +29,6 @@ SET(TARGET_SRC
 
     SettingsDialogOSG.cpp
     CameraSettings.cpp
-    ImagePreviewDialog.cpp
     )
 
 SET(TARGET_H
@@ -69,7 +68,6 @@ fast_configure_file(SGIItemOsg ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsg COPY_ON
 
 SET(TARGET_MOC_H
     CameraSettings.h
-    ImagePreviewDialog.h
     )
 SET(TARGET_UI
     CameraSettings.ui

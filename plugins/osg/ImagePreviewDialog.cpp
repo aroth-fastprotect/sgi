@@ -157,7 +157,7 @@ osg::Node * findFirstNode(osg::StateAttribute * sa)
 } // namespace
 
 ImagePreviewDialog::ImagePreviewDialog(SGIPluginHostInterface * hostInterface, SGIItemBase * item, QWidget * parent)
-    : ImagePreviewDialogBase(hostInterface, item, parent)
+    : ImagePreviewDialog(hostInterface, item, parent)
 {
     connect(this, &ImagePreviewDialog::textureReady, this, &ImagePreviewDialog::onTextureReady);
 }
@@ -368,7 +368,7 @@ void ImagePreviewDialog::updateImageAndLabel()
         emptyText = false;
     }
 
-    ImagePreviewDialogBase::setImage(qimg, qt_helpers::fromLocal8Bit(objectName), qt_helpers::fromLocal8Bit(ss.str()));
+    ImagePreviewDialog::setImage(qimg, qt_helpers::fromLocal8Bit(objectName), qt_helpers::fromLocal8Bit(ss.str()));
 }
 
 void ImagePreviewDialog::refreshImpl()

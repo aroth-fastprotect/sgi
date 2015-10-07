@@ -236,6 +236,14 @@ public:
         {
             return _impl->contextMenuExecute(menuAction, item);
         }
+        IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IImagePreviewDialogInfo * info)
+        {
+            return _impl->showImagePreviewDialog(parent, item, info);
+        }
+        IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IImagePreviewDialogInfo * info)
+        {
+            return _impl->showImagePreviewDialog(parent, object, info);
+        }
         bool openSettingsDialog(osg::ref_ptr<ISettingsDialog> & dialog, const SGIHostItemBase * object, ISettingsDialogInfo * info)
         {
             return _impl->openSettingsDialog(dialog, object, info);
@@ -836,6 +844,20 @@ public:
     {
         return QtProxy::instance()->showObjectLoggerDialog(parent, logger, info);
     }
+
+    IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IImagePreviewDialogInfo * info)
+    {
+        return QtProxy::instance()->showImagePreviewDialog(parent, item, info);
+    }
+    IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IImagePreviewDialogInfo * info)
+    {
+        osg::ref_ptr<SGIItemBase> item;
+        if(generateItem(item, object))
+            return showImagePreviewDialog(parent, item, info);
+        else
+            return NULL;
+    }
+
 
     bool objectTreeBuildTree(IObjectTreeItem * treeItem, SGIItemBase * item)
     {
@@ -1692,6 +1714,17 @@ IContextMenuQt * SGIPlugins::createContextMenu(QWidget *parent, QObject * item, 
 {
     return _impl->createContextMenu(parent, item, info);
 }
+
+IImagePreviewDialog * SGIPlugins::showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IImagePreviewDialogInfo * info)
+{
+    return _impl->showImagePreviewDialog(parent, item, info);
+}
+
+IImagePreviewDialog * SGIPlugins::showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IImagePreviewDialogInfo * info)
+{
+    return _impl->showImagePreviewDialog(parent, object, info);
+}
+
 
 bool SGIPlugins::objectTreeBuildTree(IObjectTreeItem * treeItem, SGIItemBase * item)
 {
