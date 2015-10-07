@@ -56,7 +56,7 @@ namespace osgEarth {
 namespace sgi {
 	namespace osg_helpers {
 		template<typename T>
-		inline std::string vec4fToHtmlColor(const T& c);
+		std::string vec4fToHtmlColor(const T& c);
 	} // namespace osg_helpers
 } // namespace sgi
 

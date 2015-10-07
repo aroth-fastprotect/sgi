@@ -41,15 +41,6 @@ protected:
     virtual bool openImpl(const QString & filename);
     virtual bool saveImpl(const QString & filename);
 
-public slots:
-    void zoomIn();
-    void zoomOut();
-    void normalSize();
-    void fitToWindow();
-    void save();
-    void open();
-    void refresh();
-
 protected:
     virtual void showEvent(QShowEvent * event);
     void setImage(const QImage & image, const QString & name=QString(), const QString & infoText=QString());
@@ -128,28 +119,11 @@ protected:
         return ret;
     }
 
-private:
-    void init();
-    void createToolbar();
-    void updateToolbar();
-    void scaleImage(double factor);
-    void adjustScrollBar(QScrollBar *scrollBar, double factor);
-    void setImageInfo(const QString & name, const QString & infoText);
-
 protected:
-    Ui_ImagePreviewDialogBase *     ui;
+    class ImagePreviewDialogBasePrivate;
+    ImagePreviewDialogBasePrivate * _priv;
     SGIItemBasePtr                  _item;
     ISettingsDialogPtr              _interface;
-    QToolBar *                      _toolBar;
-    double                          _scaleFactor;
-    QAction *                       _refreshAction;
-    QAction *                       _saveAction;
-    QAction *                       _zoomInAction;
-    QAction *                       _zoomOutAction;
-    QAction *                       _normalSizeAction;
-    QAction *                       _fitToWindowAction;
-    QString                         _labelText;
-    bool                            _initialRefresh;
 };
 
 } // namespace sgi

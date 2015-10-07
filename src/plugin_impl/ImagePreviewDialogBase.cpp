@@ -18,23 +18,78 @@
 
 namespace sgi {
 
+class ImagePreviewDialogBase::ImagePreviewDialogBasePrivate : public QObject
+{
+public:
+    ImagePreviewDialogBasePrivate(ImagePreviewDialogBase * owner_)
+        : owner(owner_)
+        , ui(NULL)
+        , toolBar(NULL)
+        , refreshAction(NULL)
+        , saveAction(NULL)
+        , zoomInAction(NULL)
+        , zoomOutAction(NULL)
+        , normalSizeAction(NULL)
+        , fitToWindowAction(NULL)
+        , flipHorizontalAction(NULL)
+        , flipVerticalAction(NULL)
+        , labelText()
+        , scaleFactor(1.0)
+        , initialRefresh(true)
+        {}
+
+    void init();
+    void createToolbar();
+    void updateToolbar();
+    void scaleImage(double factor);
+    static void adjustScrollBar(QScrollBar *scrollBar, double factor);
+    void setImageInfo(const QString & name, const QString & infoText);
+
+    // Actions
+    void zoomIn();
+    void zoomOut();
+    void normalSize();
+    void fitToWindow();
+    void save();
+    void open();
+    void refresh();
+    void flipHorizontal();
+    void flipVertical();
+
+    void applyFlip();
+
+
+    ImagePreviewDialogBase *        owner;
+    Ui_ImagePreviewDialogBase *     ui;
+    QToolBar *                      toolBar;
+    QAction *                       refreshAction;
+    QAction *                       saveAction;
+    QAction *                       zoomInAction;
+    QAction *                       zoomOutAction;
+    QAction *                       normalSizeAction;
+    QAction *                       fitToWindowAction;
+    QAction *                       flipHorizontalAction;
+    QAction *                       flipVerticalAction;
+    QString                         labelText;
+    double                          scaleFactor;
+    bool                            initialRefresh;
+};
+
 ImagePreviewDialogBase::ImagePreviewDialogBase(QWidget * parent, SGIItemBase * item)
     : QDialog(parent)
     , _item(item)
     , _interface(new SettingsDialogImpl(this))
-    , _scaleFactor(1.0)
-    , _initialRefresh(true)
+    , _priv(new ImagePreviewDialogBasePrivate(this))
 {
-    init();
 }
 
-void ImagePreviewDialogBase::init()
+void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::init()
 {
     ui = new Ui_ImagePreviewDialogBase;
-    ui->setupUi( this );
+    ui->setupUi( owner );
 
-    //connect(ui->buttonBox->button(QDialogButtonBox::Save), SIGNAL(clicked()), this, SLOT(save()));
-    connect(ui->buttonBox->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(reject()));
+    connect(ui->buttonBox->button(QDialogButtonBox::Save), &QPushButton::clicked, this, &ImagePreviewDialogBasePrivate::save);
+    connect(ui->buttonBox->button(QDialogButtonBox::Close), &QPushButton::clicked, owner, &ImagePreviewDialogBase::reject);
 
     ui->imageLabel->setBackgroundRole(QPalette::Base);
     ui->scrollArea->setBackgroundRole(QPalette::Dark);
@@ -48,17 +103,17 @@ ImagePreviewDialogBase::~ImagePreviewDialogBase()
 
 void ImagePreviewDialogBase::showEvent(QShowEvent * event)
 {
-    if(_initialRefresh)
+    if(_priv->initialRefresh)
     {
-        _initialRefresh = false;
-        refresh();
+        _priv->initialRefresh = false;
+        _priv->refresh();
     }
     QDialog::showEvent(event);
 }
 
 void ImagePreviewDialogBase::setLabel(const QString & label)
 {
-    _labelText = label;
+    _priv->labelText = label;
 }
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, QImage::Format t)
@@ -86,9 +141,9 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, QImage::Forma
     return os;
 }
 
-void ImagePreviewDialogBase::refresh()
+void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::refresh()
 {
-    refreshImpl();
+    owner->refreshImpl();
 }
 
 void ImagePreviewDialogBase::refreshImpl()
@@ -96,12 +151,12 @@ void ImagePreviewDialogBase::refreshImpl()
     updateImageAndLabel();
 }
 
-void ImagePreviewDialogBase::setImageInfo(const QString & name, const QString & infoText)
+void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::setImageInfo(const QString & name, const QString & infoText)
 {
-    if(_labelText.isEmpty())
+    if(labelText.isEmpty())
         ui->label->setText(infoText);
     else
-        ui->label->setText(_labelText + QString("\r\n") + infoText);
+        ui->label->setText(labelText + QString("\r\n") + infoText);
 
     const QPixmap * p = ui->label->pixmap();
     int width = p?p->width():0;
@@ -113,24 +168,24 @@ void ImagePreviewDialogBase::setImageInfo(const QString & name, const QString & 
     ui->scrollArea->horizontalScrollBar()->setValue(0);
     ui->scrollArea->verticalScrollBar()->setValue(0);
 
-    _fitToWindowAction->setEnabled(true);
+    fitToWindowAction->setEnabled(true);
 
-    if (_fitToWindowAction->isChecked())
+    if (fitToWindowAction->isChecked())
         fitToWindow();
     else
         normalSize();
 
     updateToolbar();
-    setWindowTitle(tr("Image Viewer - %1").arg(name));
+    owner->setWindowTitle(tr("Image Viewer - %1").arg(name));
 }
 
 void ImagePreviewDialogBase::setImage(const QImage & image, const QString & name, const QString & infoText)
 {
-    ui->imageLabel->setText(QString());
+    _priv->ui->imageLabel->setText(QString());
     if(!image.isNull())
-        ui->imageLabel->setPixmap(QPixmap::fromImage(image));
+        _priv->ui->imageLabel->setPixmap(QPixmap::fromImage(image));
     else
-        ui->imageLabel->setPixmap(QPixmap());
+        _priv->ui->imageLabel->setPixmap(QPixmap());
 
     std::stringstream ss;
     if(!infoText.isEmpty())
@@ -151,16 +206,16 @@ void ImagePreviewDialogBase::setImage(const QImage & image, const QString & name
         ss << (void*)&image;
         imageName = QString::fromStdString(ss.str());
     }
-    setImageInfo(imageName, imageInfo);
+    _priv->setImageInfo(imageName, imageInfo);
 }
 
 void ImagePreviewDialogBase::setImage(const QPixmap & pixmap, const QString & name, const QString & infoText)
 {
-    ui->imageLabel->setText(QString());
+    _priv->ui->imageLabel->setText(QString());
     if(pixmap.isNull())
-        ui->imageLabel->setPixmap(pixmap);
+        _priv->ui->imageLabel->setPixmap(pixmap);
     else
-        ui->imageLabel->setPixmap(QPixmap());
+        _priv->ui->imageLabel->setPixmap(QPixmap());
 
     std::stringstream ss;
     if(!infoText.isEmpty())
@@ -181,35 +236,35 @@ void ImagePreviewDialogBase::setImage(const QPixmap & pixmap, const QString & na
         ss << (void*)&pixmap;
         imageName = QString::fromStdString(ss.str());
     }
-    setImageInfo(imageName, imageInfo);
+    _priv->setImageInfo(imageName, imageInfo);
 }
 
 //! [9]
-void ImagePreviewDialogBase::zoomIn()
+void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::zoomIn()
 //! [9] //! [10]
 {
     scaleImage(1.25);
 }
 
-void ImagePreviewDialogBase::zoomOut()
+void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::zoomOut()
 {
     scaleImage(0.8);
 }
 
 //! [10] //! [11]
-void ImagePreviewDialogBase::normalSize()
+void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::normalSize()
 //! [11] //! [12]
 {
     ui->imageLabel->adjustSize();
-    _scaleFactor = 1.0;
+    scaleFactor = 1.0;
 }
 //! [12]
 
 //! [13]
-void ImagePreviewDialogBase::fitToWindow()
+void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::fitToWindow()
 //! [13] //! [14]
 {
-    bool fitToWindow = _fitToWindowAction->isChecked();
+    bool fitToWindow = fitToWindowAction->isChecked();
     ui->scrollArea->setWidgetResizable(fitToWindow);
     if (!fitToWindow) {
         normalSize();
@@ -219,93 +274,128 @@ void ImagePreviewDialogBase::fitToWindow()
 //! [14]
 
 //! [19]
-void ImagePreviewDialogBase::createToolbar()
+void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::createToolbar()
 //! [19] //! [20]
 {
-    _toolBar = new QToolBar;
-    QVBoxLayout * mainLayout = (QVBoxLayout *)this->layout();
-    mainLayout->insertWidget(0, _toolBar);
+    toolBar = new QToolBar;
+    QVBoxLayout * mainLayout = (QVBoxLayout *)owner->layout();
+    mainLayout->insertWidget(0, toolBar);
 
-    _refreshAction = new QAction(tr("&Refresh"), this);
-    _refreshAction->setIcon(QIcon::fromTheme("view-refresh"));
-    _refreshAction->setShortcut(tr("F5"));
-    _refreshAction->setEnabled(_item.valid());
-    connect(_refreshAction, SIGNAL(triggered()), this, SLOT(refresh()));
+    refreshAction = new QAction(tr("&Refresh"), owner);
+    refreshAction->setIcon(QIcon::fromTheme("view-refresh"));
+    refreshAction->setShortcut(tr("F5"));
+    refreshAction->setEnabled(owner->_item.valid());
+    connect(refreshAction, &QAction::triggered, this, &ImagePreviewDialogBasePrivate::refresh);
 
-    _saveAction = new QAction(tr("&Save..."), this);
-    _saveAction->setIcon(QIcon::fromTheme("document-save"));
-    _saveAction->setShortcut(tr("Ctrl+S"));
-    _saveAction->setEnabled(_item.valid());
-    connect(_saveAction, SIGNAL(triggered()), this, SLOT(save()));
+    saveAction = new QAction(tr("&Save..."), owner);
+    saveAction->setIcon(QIcon::fromTheme("document-save"));
+    saveAction->setShortcut(tr("Ctrl+S"));
+    saveAction->setEnabled(owner->_item.valid());
+    connect(saveAction, &QAction::triggered, this, &ImagePreviewDialogBasePrivate::save);
 
-    _zoomInAction = new QAction(tr("Zoom &In (25%)"), this);
-    _zoomInAction->setIcon(QIcon::fromTheme("zoom-in"));
-    _zoomInAction->setShortcut(tr("Ctrl++"));
-    _zoomInAction->setEnabled(false);
-    connect(_zoomInAction, SIGNAL(triggered()), this, SLOT(zoomIn()));
+    zoomInAction = new QAction(tr("Zoom &In (25%)"), owner);
+    zoomInAction->setIcon(QIcon::fromTheme("zoom-in"));
+    zoomInAction->setShortcut(tr("Ctrl++"));
+    zoomInAction->setEnabled(false);
+    connect(zoomInAction, &QAction::triggered, this, &ImagePreviewDialogBasePrivate::zoomIn);
 
-    _zoomOutAction = new QAction(tr("Zoom &Out (25%)"), this);
-    _zoomOutAction->setIcon(QIcon::fromTheme("zoom-out"));
-    _zoomOutAction->setShortcut(tr("Ctrl+-"));
-    _zoomOutAction->setEnabled(false);
-    connect(_zoomOutAction, SIGNAL(triggered()), this, SLOT(zoomOut()));
+    zoomOutAction = new QAction(tr("Zoom &Out (25%)"), owner);
+    zoomOutAction->setIcon(QIcon::fromTheme("zoom-out"));
+    zoomOutAction->setShortcut(tr("Ctrl+-"));
+    zoomOutAction->setEnabled(false);
+    connect(zoomOutAction, &QAction::triggered, this, &ImagePreviewDialogBasePrivate::zoomOut);
 
-    _normalSizeAction = new QAction(tr("&Normal Size"), this);
-    _normalSizeAction->setIcon(QIcon::fromTheme("zoom-original"));
-    _normalSizeAction->setShortcut(tr("Ctrl+O"));
-    _normalSizeAction->setEnabled(false);
-    connect(_normalSizeAction, SIGNAL(triggered()), this, SLOT(normalSize()));
+    normalSizeAction = new QAction(tr("&Normal Size"), owner);
+    normalSizeAction->setIcon(QIcon::fromTheme("zoom-original"));
+    normalSizeAction->setShortcut(tr("Ctrl+O"));
+    normalSizeAction->setEnabled(false);
+    connect(normalSizeAction, &QAction::triggered, this, &ImagePreviewDialogBasePrivate::normalSize);
 
-    _fitToWindowAction = new QAction(tr("&Fit to Window"), this);
-    _fitToWindowAction->setIcon(QIcon::fromTheme("zoom-fit-best"));
-    _fitToWindowAction->setEnabled(false);
-    _fitToWindowAction->setCheckable(true);
-    _fitToWindowAction->setShortcut(tr("Ctrl+F"));
-    connect(_fitToWindowAction, SIGNAL(triggered()), this, SLOT(fitToWindow()));
+    fitToWindowAction = new QAction(tr("&Fit to Window"), owner);
+    fitToWindowAction->setIcon(QIcon::fromTheme("zoom-fit-best"));
+    fitToWindowAction->setEnabled(false);
+    fitToWindowAction->setCheckable(true);
+    fitToWindowAction->setShortcut(tr("Ctrl+F"));
+    connect(fitToWindowAction, &QAction::triggered, this, &ImagePreviewDialogBasePrivate::fitToWindow);
 
-    _toolBar->addAction(_refreshAction);
-    _toolBar->addAction(_saveAction);
-    _toolBar->addAction(_zoomInAction);
-    _toolBar->addAction(_zoomOutAction);
-    _toolBar->addAction(_normalSizeAction);
-    _toolBar->addAction(_fitToWindowAction);
+    flipHorizontalAction = new QAction(tr("Flip &horizontal"), owner);
+    flipHorizontalAction->setIcon(QIcon::fromTheme("object-flip-horizontal"));
+    flipHorizontalAction->setEnabled(false);
+    flipHorizontalAction->setCheckable(true);
+    connect(flipHorizontalAction, &QAction::triggered, this, &ImagePreviewDialogBasePrivate::flipHorizontal);
+
+    flipVerticalAction = new QAction(tr("Flip &vertical"), owner);
+    flipVerticalAction->setIcon(QIcon::fromTheme("object-flip-vertical"));
+    flipVerticalAction->setEnabled(false);
+    flipVerticalAction->setCheckable(true);
+    connect(flipVerticalAction, &QAction::triggered, this, &ImagePreviewDialogBasePrivate::flipVertical);
+
+    toolBar->addAction(refreshAction);
+    toolBar->addAction(saveAction);
+    toolBar->addAction(zoomInAction);
+    toolBar->addAction(zoomOutAction);
+    toolBar->addAction(normalSizeAction);
+    toolBar->addAction(fitToWindowAction);
+    toolBar->addAction(flipHorizontalAction);
+    toolBar->addAction(flipVerticalAction);
 }
 //! [20]
 
 //! [21]
-void ImagePreviewDialogBase::updateToolbar()
+void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::updateToolbar()
 //! [21] //! [22]
 {
-    _zoomInAction->setEnabled(!_fitToWindowAction->isChecked());
-    _zoomOutAction->setEnabled(!_fitToWindowAction->isChecked());
-    _normalSizeAction->setEnabled(!_fitToWindowAction->isChecked());
+    zoomInAction->setEnabled(!fitToWindowAction->isChecked());
+    zoomOutAction->setEnabled(!fitToWindowAction->isChecked());
+    normalSizeAction->setEnabled(!fitToWindowAction->isChecked());
 }
 //! [22]
 
 //! [23]
-void ImagePreviewDialogBase::scaleImage(double factor)
+void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::scaleImage(double factor)
 //! [23] //! [24]
 {
     Q_ASSERT(ui->imageLabel->pixmap());
-    _scaleFactor *= factor;
-    ui->imageLabel->resize(_scaleFactor * ui->imageLabel->pixmap()->size());
+    scaleFactor *= factor;
+    ui->imageLabel->resize(scaleFactor * ui->imageLabel->pixmap()->size());
 
     adjustScrollBar(ui->scrollArea->horizontalScrollBar(), factor);
     adjustScrollBar(ui->scrollArea->verticalScrollBar(), factor);
 
-    _zoomInAction->setEnabled(_scaleFactor < 3.0);
-    _zoomOutAction->setEnabled(_scaleFactor > 0.333);
+    zoomInAction->setEnabled(scaleFactor < 3.0);
+    zoomOutAction->setEnabled(scaleFactor > 0.333);
 }
 //! [24]
 
 //! [25]
-void ImagePreviewDialogBase::adjustScrollBar(QScrollBar *scrollBar, double factor)
+void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::adjustScrollBar(QScrollBar *scrollBar, double factor)
 //! [25] //! [26]
 {
     scrollBar->setValue(int(factor * scrollBar->value()
                             + ((factor - 1) * scrollBar->pageStep()/2)));
 }
 //! [26]
+
+void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::applyFlip()
+{
+    const QPixmap * pixmap = ui->imageLabel->pixmap();
+    if(pixmap)
+    {
+        QImage img = pixmap->toImage();
+        QImage mirroredImage = img.mirrored(flipHorizontalAction->isChecked(), flipVerticalAction->isChecked());
+        ui->imageLabel->setPixmap(QPixmap::fromImage(mirroredImage));
+    }
+}
+
+void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::flipHorizontal()
+{
+    applyFlip();
+}
+
+void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::flipVertical()
+{
+    applyFlip();
+}
 
 bool ImagePreviewDialogBase::openImpl(const QString & filename)
 {
@@ -318,19 +408,22 @@ bool ImagePreviewDialogBase::openImpl(const QString & filename)
     return ret;
 }
 
-void ImagePreviewDialogBase::open()
+void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::open()
 {
-    QString fileName = QFileDialog::getOpenFileName(this,
-                                    tr("Open image file"), QDir::currentPath());
-    if (!fileName.isEmpty()) {
-        openImpl(fileName);
+    static QString lastDir = QDir::currentPath();
+    QString fileName = QFileDialog::getOpenFileName(owner,
+                                    tr("Open image file"), lastDir);
+    if (!fileName.isEmpty())
+    {
+        lastDir = fileName;
+        owner->openImpl(fileName);
     }
 }
 
 bool ImagePreviewDialogBase::saveImpl(const QString & filename)
 {
     bool ret = false;
-    const QPixmap * pixmap = ui->imageLabel->pixmap();
+    const QPixmap * pixmap = _priv->ui->imageLabel->pixmap();
     if(pixmap)
     {
         QImageWriter writer(filename);
@@ -339,13 +432,15 @@ bool ImagePreviewDialogBase::saveImpl(const QString & filename)
     return ret;
 }
 
-void ImagePreviewDialogBase::save()
+void ImagePreviewDialogBase::ImagePreviewDialogBasePrivate::save()
 {
-    QString fileName = QFileDialog::getSaveFileName(this,
-                                    tr("Save image file"), QDir::currentPath());
+    static QString lastDir = QDir::currentPath();
+    QString fileName = QFileDialog::getSaveFileName(owner,
+                                    tr("Save image file"), lastDir);
     if (!fileName.isEmpty())
     {
-        saveImpl(fileName);
+        lastDir = fileName;
+        owner->saveImpl(fileName);
     }
 }
 

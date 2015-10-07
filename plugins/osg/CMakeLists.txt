@@ -73,7 +73,6 @@ SET(TARGET_MOC_H
     )
 SET(TARGET_UI
     CameraSettings.ui
-    ImagePreviewDialog.ui
     )
 
 SET(TARGET_LIBRARIES_VARS
