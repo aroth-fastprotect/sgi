@@ -198,6 +198,7 @@ void ObjectLoggerDialog::init()
     mainLayout->insertWidget(0, _toolBar);
 
     _actionReload = new QAction(tr("Reload"), this);
+	_actionReload->setIcon(QIcon::fromTheme("view-refresh"));
     connect(_actionReload, &QAction::triggered, this, &ObjectLoggerDialog::reload);
 
     _spinBoxRefreshTime = new QSpinBox(_toolBar);

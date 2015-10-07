@@ -149,15 +149,19 @@ void SceneGraphDialog::init()
     connect(_comboBoxPath, SIGNAL(activated(int)), this, SLOT(selectItemFromPath(int)));
 
     _actionReloadSelected = new QAction(tr("Reload"), this);
+	_actionReloadSelected->setIcon(QIcon::fromTheme("view-refresh"));
     connect(_actionReloadSelected, SIGNAL(triggered()), this, SLOT(reloadSelectedItem()));
 
     _actionReload = new QAction(tr("Reload All"), this);
-    connect(_actionReload, SIGNAL(triggered()), this, SLOT(reload()));
+	_actionReload->setIcon(QIcon::fromTheme("system-reboot"));
+	connect(_actionReload, SIGNAL(triggered()), this, SLOT(reload()));
 
     _actionItemPrevious = new QAction(tr("Previous"), this);
+	_actionItemPrevious->setIcon(QIcon::fromTheme("arrow-left"));
     connect(_actionItemPrevious, SIGNAL(triggered()), this, SLOT(itemPrevious()));
     _actionItemNext = new QAction(tr("Next"), this);
-    connect(_actionItemNext, SIGNAL(triggered()), this, SLOT(itemNext()));
+	_actionItemNext->setIcon(QIcon::fromTheme("arrow-right"));
+	connect(_actionItemNext, SIGNAL(triggered()), this, SLOT(itemNext()));
 
     _spinBoxRefreshTime = new QSpinBox(_toolBar);
     _spinBoxRefreshTime->setMinimum(0);
