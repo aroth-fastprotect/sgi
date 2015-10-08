@@ -21,6 +21,134 @@
 
 namespace sgi {
 
+class ImagePreviewDialog::Histogram
+{
+public:
+	typedef std::vector<int> ColorChannel;
+	Histogram()
+	{
+		minAlpha = INT_MAX; maxAlpha = INT_MIN;
+		minRed = INT_MAX; maxRed = INT_MIN;
+		minGreen = INT_MAX; maxGreen = INT_MIN;
+		minBlue = INT_MAX; maxBlue = INT_MIN;
+		minGray = INT_MAX; maxGray = INT_MIN;
+		avgAlpha = 0;
+		avgRed = 0;
+		avgGreen = 0;
+		avgBlue = 0;
+		avgGray = 0;
+	}
+
+	void calculate(const QImage & image);
+
+private:
+	ColorChannel _alpha;
+	ColorChannel _red;
+	ColorChannel _green;
+	ColorChannel _blue;
+	ColorChannel _gray;
+
+public:
+	int minAlpha, maxAlpha;
+	int minRed, maxRed;
+	int minGreen, maxGreen;
+	int minBlue, maxBlue;
+	int minGray, maxGray;
+	float avgAlpha;
+	float avgRed;
+	float avgGreen;
+	float avgBlue;
+	float avgGray;
+	float avgLuma;
+};
+
+namespace {
+	inline void calcMinMax(int & minIdx, int & maxIdx, int & minVal, int & maxVal, unsigned index, const std::vector<int> & data)
+	{
+		const int & v = data[index];
+		if (v < minVal)
+		{
+			minVal = v;
+			minIdx = index;
+		}
+		if (v > maxVal)
+		{
+			maxVal = v;
+			maxIdx = index;
+		}
+	}
+}
+void ImagePreviewDialog::Histogram::calculate(const QImage & image)
+{
+	_alpha = ColorChannel(256);
+	_red = ColorChannel(256);
+	_green = ColorChannel(256);
+	_blue = ColorChannel(256);
+	_gray = ColorChannel(256);
+
+	unsigned totalAlpha = 0;
+	unsigned totalRed = 0;
+	unsigned totalGreen = 0;
+	unsigned totalBlue = 0;
+	unsigned totalGray = 0;
+	unsigned totalPixels = image.width() * image.height();
+	double totalLuma = 0;
+	for (int y = 0; y < image.height(); y++) {
+		for (int x = 0; x < image.width(); x++) {
+			QRgb value = image.pixel(x, y);
+			
+			int valueAlpha = qAlpha(value) & 0xff;
+			int valueRed = qRed(value) & 0xff;
+			int valueGreen = qGreen(value) & 0xff;
+			int valueBlue = qBlue(value) & 0xff;
+			int valueGray = qGray(value) & 0xff;
+
+			totalAlpha += valueAlpha;
+			totalRed += valueRed;
+			totalGreen += valueGreen;
+			totalBlue += valueBlue;
+			totalGray += valueGray;
+
+			double luma = 0.2126f * (valueRed / 256.0f) + 0.7152 * (valueGreen / 256.0f) + 0.0722 * (valueBlue / 256.0f);
+			totalLuma += luma;
+			
+
+			++_alpha[valueAlpha];
+			++_red[valueRed];
+			++_green[valueGreen];
+			++_blue[valueBlue];
+			++_gray[valueGray];
+		}
+	}
+
+	avgAlpha = (float)totalAlpha / (float)totalPixels;
+	avgRed = (float)totalRed / (float)totalPixels;
+	avgGreen = (float)totalGreen / (float)totalPixels;
+	avgBlue = (float)totalBlue / (float)totalPixels;
+	avgGray = (float)totalGray / (float)totalPixels;
+
+	int minAlphaValue = INT_MAX, maxAlphaValue = INT_MIN;
+	int minRedValue = INT_MAX, maxRedValue = INT_MIN;
+	int minGreenValue = INT_MAX, maxGreenValue = INT_MIN;
+	int minBlueValue = INT_MAX, maxBlueValue = INT_MIN;
+	int minGrayValue = INT_MAX, maxGrayValue = INT_MIN;
+
+	minAlpha = INT_MAX; maxAlpha = INT_MIN;
+	minRed = INT_MAX; maxRed = INT_MIN;
+	minGreen = INT_MAX; maxGreen = INT_MIN;
+	minBlue = INT_MAX; maxBlue = INT_MIN;
+	minGray = INT_MAX; maxGray = INT_MIN;
+
+	for (unsigned i = 0; i < 256; i++)
+	{
+		calcMinMax(minAlpha, maxAlpha, minAlphaValue, maxAlphaValue, i, _alpha);
+		calcMinMax(minRed, maxRed, minRedValue, maxRedValue, i, _red);
+		calcMinMax(minGreen, maxGreen, minGreenValue, maxGreenValue, i, _green);
+		calcMinMax(minBlue, maxBlue, minBlueValue, maxBlueValue, i, _blue);
+		calcMinMax(minGray, maxGray, minGrayValue, maxGrayValue, i, _gray);
+	}
+};
+
 class ImagePreviewDialog::ImagePreviewDialogImpl : public QObject, public IImagePreviewDialog
 {
 public:
@@ -75,6 +203,8 @@ public:
     QString                         labelText;
     double                          scaleFactor;
     bool                            initialRefresh;
+	Histogram						histogram;
+	bool							histogramReady;
 };
 
 ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewDialog * dialog_)
@@ -92,6 +222,8 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
 	, labelText()
 	, scaleFactor(1.0)
 	, initialRefresh(true)
+	, histogram()
+	, histogramReady(false)
 {
 	ui = new Ui_ImagePreviewDialog;
 	ui->setupUi(_dialog);
@@ -535,6 +667,44 @@ QImage convertToQImage(const sgi::Image * image)
     return ret;
 }
 
+namespace {
+	QTreeWidgetItem * addStatisticsValueImpl(QTreeWidgetItem * root, const QString & name, const QString & value)
+	{
+		QTreeWidgetItem * ret = new QTreeWidgetItem;
+		ret->setText(0, name);
+		ret->setText(1, value);
+		root->addChild(ret);
+		return ret;
+	}
+
+	template<typename T>
+	inline QTreeWidgetItem * addStatisticsValue(QTreeWidgetItem * root, const QString & name, const T & value)
+	{
+		return addStatisticsValueImpl(root, name, QString("%1").arg(value));
+	}
+	template<>
+	inline QTreeWidgetItem * addStatisticsValue<QString>(QTreeWidgetItem * root, const QString & name, const QString & value)
+	{
+		return addStatisticsValueImpl(root, name, value);
+	}
+}
+
+void ImagePreviewDialog::refreshStatistics(const QImage & image)
+{
+	_priv->histogram.calculate(image);
+
+	_priv->ui->statistics->clear();
+	_priv->ui->statistics->setHeaderLabels(QStringList() << tr("Name") << tr("Value"));
+
+	QTreeWidgetItem * root = _priv->ui->statistics->invisibleRootItem();
+	addStatisticsValue(root, tr("Alpha"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minAlpha).arg(_priv->histogram.maxAlpha).arg(_priv->histogram.avgAlpha));
+	addStatisticsValue(root, tr("Red"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minRed).arg(_priv->histogram.maxRed).arg(_priv->histogram.avgRed));
+	addStatisticsValue(root, tr("Green"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minGreen).arg(_priv->histogram.maxGreen).arg(_priv->histogram.avgGreen));
+	addStatisticsValue(root, tr("Blue"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minBlue).arg(_priv->histogram.maxBlue).arg(_priv->histogram.avgBlue));
+	addStatisticsValue(root, tr("Gray"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minGray).arg(_priv->histogram.maxGray).arg(_priv->histogram.avgGray));
+	
+}
+
 void ImagePreviewDialog::refreshImpl()
 {
     if (_item.valid())
@@ -549,6 +719,8 @@ void ImagePreviewDialog::refreshImpl()
     }
 
     QImage qimg = convertToQImage(_image.get());
+
+	refreshStatistics(qimg);
 
     _priv->ui->imageLabel->setText(QString());
     _priv->originalImage = qimg;

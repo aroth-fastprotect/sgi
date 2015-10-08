@@ -1392,7 +1392,8 @@ bool actionHandlerImpl<MenuActionGeometryColor>::execute()
 namespace {
     const sgi::Image * convertImage(osg::Image * image)
     {
-        sgi::Image::ImageFormat imageFormat;
+		sgi::Image * ret = NULL;
+		sgi::Image::ImageFormat imageFormat;
         switch(image->getPixelFormat())
         {
         case GL_RGB: imageFormat = sgi::Image::ImageFormatRGB24; break;
@@ -1400,11 +1401,23 @@ namespace {
         case GL_LUMINANCE: imageFormat = sgi::Image::ImageFormatMono; break;
         default: imageFormat = sgi::Image::ImageFormatInvalid; break;
         }
-        sgi::Image::Origin origin = (image->getOrigin() == osg::Image::TOP_LEFT) ? sgi::Image::OriginTopLeft : sgi::Image::OriginBottomLeft;
-        sgi::Image * ret = new sgi::Image(imageFormat, origin,
-                                          image->data(), image->getTotalDataSize(),
-                                          image->s(), image->t(), image->r(), image->getRowStepInBytes(),
-                                          image);
+		sgi::Image::Origin origin = (image->getOrigin() == osg::Image::TOP_LEFT) ? sgi::Image::OriginTopLeft : sgi::Image::OriginBottomLeft;
+		if(imageFormat != sgi::Image::ImageFormatInvalid)
+		{
+			ret = new sgi::Image(imageFormat, origin,
+								image->data(), image->getTotalDataSize(),
+								image->s(), image->t(), image->r(), image->getRowStepInBytes(),
+								image);
+		}
+		else
+		{
+			QImage * qimage = new QImage;
+			osgImageToQImage(image, qimage);
+			ret = new sgi::Image(imageFormat, origin,
+				image->data(), image->getTotalDataSize(),
+				image->s(), image->t(), image->r(), image->getRowStepInBytes(),
+				qimage);
+		}
         return ret;
     }
 }

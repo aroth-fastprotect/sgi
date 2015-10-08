@@ -9,11 +9,15 @@ SET(TARGET_SRC
     qt_helpers.cpp
     widget_helpers.cpp
     string_helpers.cpp
+	qt_dds_reader.cpp
     )
 
 SET(TARGET_MOC_H
 	ObjectTreeImplProxy.h
 	../../include/sgi/helpers/qt_widgets
+	)
+SET(TARGET_H
+	qt_dds_reader.h
 	)
 
 SET(TARGET_VERSION ${SGI_VERSION})

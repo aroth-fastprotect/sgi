@@ -16,6 +16,8 @@
 #include <sgi/helpers/rtti>
 #include <sgi/helpers/osg>
 
+extern QImage decodeDDSImage(const osg::Image * image);
+
 namespace sgi {
 
     namespace osg_helpers {
@@ -743,6 +745,7 @@ bool osgImageToQImage(const osg::Image * image, QImage * qimage)
     QImage::Format format;
 	GLenum pixel_format = image->getPixelFormat();
 	GLint internal_format = image->getInternalTextureFormat();
+	bool run_convert = true;
     switch(pixel_format)
     {
     case GL_RGB:
@@ -755,12 +758,21 @@ bool osgImageToQImage(const osg::Image * image, QImage * qimage)
     case GL_LUMINANCE:
         format = QImage::Format_Indexed8;
         break;
-    default:
+	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+	case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+	case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+		format = QImage::Format_Invalid;
+		*qimage = decodeDDSImage(image);
+		run_convert = false;
+		ret = true;
+		break;
+	default:
         format = QImage::Format_Invalid;
         break;
     }
 
-    if(format != QImage::Format_Invalid)
+    if(format != QImage::Format_Invalid && run_convert)
     {
         int bytesPerLine = image->getRowSizeInBytes();
         int width = image->s();

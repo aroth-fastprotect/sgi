@@ -59,6 +59,7 @@ signals:
 
 protected:
     void refreshImpl();
+	void refreshStatistics(const QImage & image);
     bool openImpl(const QString & filename);
     bool saveImpl(const QString & filename);
 
@@ -78,6 +79,7 @@ private:
 protected:
     class ContextMenuCallback;
     class ImagePreviewDialogImpl;
+	class Histogram;
 
 protected:
     SGIItemBasePtr                  _item;
