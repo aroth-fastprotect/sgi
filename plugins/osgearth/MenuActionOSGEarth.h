@@ -25,8 +25,6 @@ enum MenuAction {
 	MenuActionAddExtension,
 	MenuActionTerrainProfile,
     MenuActionTerrainLayerSetURL,
-    MenuActionImageLayerCreateImage,
-    MenuActionElevationLayerCreateHeightField,
     MenuActionModelLayerSetURL,
     MenuActionModelLayerEnable,
     MenuActionModelLayerVisible,
@@ -111,8 +109,6 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionAutoClipPlaneCullCallbackMaxNearFarRatio)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionAutoClipPlaneCullCallbackHeightThreshold)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionAutoClipPlaneCullCallbackClampFarClipPlane)
 
-ACTION_HANDLER_IMPL_DECLARE(MenuActionTileSourceCreateImage)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionTileSourceCreateHeightField)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTileSourceUpdateMetaData)
 
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTileBlacklistClear)

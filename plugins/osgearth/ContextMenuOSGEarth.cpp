@@ -465,7 +465,6 @@ bool contextMenuPopulateImpl<osgEarth::ImageLayer>::populate(IContextMenuItem * 
         ret = callNextHandler(menuItem);
         if(ret)
         {
-            menuItem->addSimpleAction(MenuActionImageLayerCreateImage, "Create image...", _item);
         }
         break;
 	default:
@@ -485,7 +484,6 @@ bool contextMenuPopulateImpl<osgEarth::ElevationLayer>::populate(IContextMenuIte
         ret = callNextHandler(menuItem);
         if(ret)
         {
-            menuItem->addSimpleAction(MenuActionElevationLayerCreateHeightField, "Create height field...", _item);
         }
         break;
 	default:

@@ -54,8 +54,6 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionModelLayerEnable)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionModelLayerVisible)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionModelLayerLighting)
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTileSourceCreateImage)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTileSourceCreateHeightField)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTileSourceUpdateMetaData)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTileBlacklistClear)
@@ -408,18 +406,6 @@ bool actionHandlerImpl<MenuActionModelLayerLighting>::execute()
 {
     osgEarth::ModelLayer * object = static_cast<osgEarth::ModelLayer*>(item<SGIItemOsg>()->object());
     object->setLightingEnabled(menuAction()->state());
-    return true;
-}
-
-bool actionHandlerImpl<MenuActionTileSourceCreateImage>::execute()
-{
-    osgEarth::TileSource * object = getObject<osgEarth::TileSource,SGIItemOsg,DynamicCaster>();
-    return true;
-}
-
-bool actionHandlerImpl<MenuActionTileSourceCreateHeightField>::execute()
-{
-    osgEarth::TileSource * object = getObject<osgEarth::TileSource,SGIItemOsg,DynamicCaster>();
     return true;
 }
 
