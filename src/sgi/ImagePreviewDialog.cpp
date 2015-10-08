@@ -508,24 +508,29 @@ QImage convertToQImage(const sgi::Image * image)
     QImage ret;
     if(image)
     {
-        QImage::Format qt_format = QImage::Format_Invalid;
-        switch(image->format())
-        {
-        case Image::ImageFormatRGB24: qt_format = QImage::Format_RGB888; break;
-        case Image::ImageFormatRGB32: qt_format = QImage::Format_RGB32; break;
-        case Image::ImageFormatARGB32: qt_format = QImage::Format_ARGB32; break;
-        case Image::ImageFormatARGB32_Premultiplied: qt_format = QImage::Format_ARGB32_Premultiplied; break;
-        case Image::ImageFormatMono: qt_format = QImage::Format_Mono; break;
-        case Image::ImageFormatMonoLSB: qt_format = QImage::Format_MonoLSB; break;
-        case Image::ImageFormatIndexed8: qt_format = QImage::Format_Indexed8; break;
-        case Image::ImageFormatFloat:
-        case Image::ImageFormatInvalid:
-        default: qt_format = QImage::Format_Invalid; break;
-        }
+		if (image->originalImageQt())
+			ret = *image->originalImageQt();
+		else
+		{
+			QImage::Format qt_format = QImage::Format_Invalid;
+			switch (image->format())
+			{
+			case Image::ImageFormatRGB24: qt_format = QImage::Format_RGB888; break;
+			case Image::ImageFormatRGB32: qt_format = QImage::Format_RGB32; break;
+			case Image::ImageFormatARGB32: qt_format = QImage::Format_ARGB32; break;
+			case Image::ImageFormatARGB32_Premultiplied: qt_format = QImage::Format_ARGB32_Premultiplied; break;
+			case Image::ImageFormatMono: qt_format = QImage::Format_Mono; break;
+			case Image::ImageFormatMonoLSB: qt_format = QImage::Format_MonoLSB; break;
+			case Image::ImageFormatIndexed8: qt_format = QImage::Format_Indexed8; break;
+			case Image::ImageFormatFloat:
+			case Image::ImageFormatInvalid:
+			default: qt_format = QImage::Format_Invalid; break;
+			}
 
-        ret = QImage((uchar*)image->data(), (int)image->width(), (int)image->height(), (int)image->bytesPerLine(), qt_format);
-        if(image->origin() == Image::OriginBottomLeft)
-            ret.mirrored(false, true);
+			ret = QImage((uchar*)image->data(), (int)image->width(), (int)image->height(), (int)image->bytesPerLine(), qt_format);
+			if (image->origin() == Image::OriginBottomLeft)
+				ret.mirrored(false, true);
+		}
     }
     return ret;
 }

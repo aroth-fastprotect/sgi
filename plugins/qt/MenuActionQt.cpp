@@ -217,13 +217,92 @@ bool actionHandlerImpl<MenuActionObjectMethodInvoke>::execute()
     return true;
 }
 
+namespace {
+	const sgi::Image * convertImage(QImage * image)
+	{
+		if (!image)
+			return NULL;
+		sgi::Image::ImageFormat imageFormat;
+		switch (image->format())
+		{
+		case QImage::Format_Mono: imageFormat = sgi::Image::ImageFormatMono; break;
+		case QImage::Format_MonoLSB: imageFormat = sgi::Image::ImageFormatMonoLSB; break;
+		case QImage::Format_Indexed8: imageFormat = sgi::Image::ImageFormatIndexed8; break;
+		case QImage::Format_RGB32: imageFormat = sgi::Image::ImageFormatRGB32; break;
+		case QImage::Format_ARGB32: imageFormat = sgi::Image::ImageFormatARGB32; break;
+		case QImage::Format_ARGB32_Premultiplied: imageFormat = sgi::Image::ImageFormatARGB32_Premultiplied; break;
+		case QImage::Format_RGB888: imageFormat = sgi::Image::ImageFormatRGB32; break;
+		case QImage::Format_RGB16:
+		case QImage::Format_ARGB8565_Premultiplied:
+		case QImage::Format_RGB666:
+		case QImage::Format_ARGB6666_Premultiplied:
+		case QImage::Format_Invalid:
+		case QImage::Format_RGB555:
+		case QImage::Format_ARGB8555_Premultiplied:
+		case QImage::Format_RGB444:
+		case QImage::Format_ARGB4444_Premultiplied:
+		case QImage::Format_RGBX8888:
+		case QImage::Format_RGBA8888:
+		case QImage::Format_RGBA8888_Premultiplied:
+		case QImage::Format_BGR30:
+		case QImage::Format_A2BGR30_Premultiplied:
+		case QImage::Format_RGB30:
+		case QImage::Format_A2RGB30_Premultiplied:
+			imageFormat = sgi::Image::ImageFormatInvalid; 
+			break;
+		}
+		sgi::Image::Origin origin = sgi::Image::OriginTopLeft;
+		sgi::Image * ret = new sgi::Image(imageFormat, origin,
+			image->bits(), image->byteCount(),
+			image->width(), image->height(), 1, image->bytesPerLine(),
+			image);
+		return ret;
+	}
+	const sgi::Image * convertImage(QPixmap * image)
+	{
+		if (!image)
+			return NULL;
+		QImage qimg = image->toImage();
+		return convertImage(&qimg);
+	}
+	const sgi::Image * convertImage(QIcon * image)
+	{
+		if (!image)
+			return NULL;
+		QList<QSize> sizes = image->availableSizes();
+		if (sizes.empty())
+			return NULL;
+		QPixmap pixmap = image->pixmap(sizes.front());
+		return convertImage(&pixmap);
+	}
+
+}
+
 bool actionHandlerImpl<MenuActionImagePreview>::execute()
 {
     IImagePreviewDialogPtr dialog = _hostInterface->showImagePreviewDialog(menu()->parentWidget(), _item.get(), NULL);
+	
+	if (dialog.valid())
+	{
+		SGIItemQtPaintDevice * qpaintdevItem = dynamic_cast<SGIItemQtPaintDevice *>(_item.get());
+		SGIItemQtIcon * qiconItem = dynamic_cast<SGIItemQtIcon *>(_item.get());
+		if (qpaintdevItem)
+		{
+			QImage * qimage = dynamic_cast<QImage *>(qpaintdevItem->object());
+			QPixmap * qpixmap = dynamic_cast<QPixmap *>(qpaintdevItem->object());
+			if(qimage)
+				dialog->setObject(_item.get(), convertImage(qimage), std::string(), NULL);
+			else if(qpixmap)
+				dialog->setObject(_item.get(), convertImage(qpixmap), std::string(), NULL);
+		}
+		if (qiconItem)
+		{
+			QIcon * qicon = dynamic_cast<QIcon *>(qiconItem->object());
+			dialog->setObject(_item.get(), convertImage(qicon), std::string(), NULL);
+		}
 
-    if(dialog.valid())
-        dialog->show();
-
+		dialog->show();
+	}
     return true;
 }
 

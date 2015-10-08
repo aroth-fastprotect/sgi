@@ -8,6 +8,8 @@
 #include <vector>
 #include <typeinfo>
 
+class QImage;
+
 namespace sgi {
 
 enum SGIItemType
@@ -455,11 +457,17 @@ public:
           osg::Referenced * originalImage=NULL)
         : _format(format), _origin(origin), _data(data), _length(length)
         , _width(width), _height(height), _depth(depth), _bytesPerLine(bytesPerLine)
-        , _originalImage(originalImage) {}
-    Image(const Image & rhs)
+        , _originalImage(originalImage), _originalImageQt(NULL) {}
+	Image(ImageFormat format = ImageFormatInvalid, Origin origin = OriginDefault, void * data = NULL, size_t length = 0,
+		unsigned width = 0, unsigned height = 0, unsigned depth = 0, unsigned bytesPerLine = 0,
+		QImage * originalImage = NULL)
+		: _format(format), _origin(origin), _data(data), _length(length)
+		, _width(width), _height(height), _depth(depth), _bytesPerLine(bytesPerLine)
+		, _originalImage(NULL), _originalImageQt(originalImage) {}
+	Image(const Image & rhs)
         : _format(rhs._format), _origin(rhs._origin), _data(rhs._data), _length(rhs._length)
         , _width(rhs._width), _height(rhs._height), _depth(rhs._depth), _bytesPerLine(rhs._bytesPerLine)
-        , _originalImage(rhs._originalImage) {}
+        , _originalImage(rhs._originalImage), _originalImageQt(rhs._originalImageQt) {}
     Image & operator=(const Image & rhs)
         {
             _format = rhs._format;
@@ -471,6 +479,7 @@ public:
             _depth = rhs._depth;
             _bytesPerLine = rhs._bytesPerLine;
             _originalImage = rhs._originalImage;
+			_originalImageQt = rhs._originalImageQt;
             return *this;
         }
 
@@ -483,6 +492,7 @@ public:
     unsigned depth() const { return _depth; }
     unsigned bytesPerLine() const { return _bytesPerLine; }
     osg::Referenced * originalImage() const { return _originalImage.get(); }
+	QImage * originalImageQt() const { return _originalImageQt; }
     Origin origin() const { return _origin; }
 
 protected:
@@ -495,6 +505,7 @@ protected:
     unsigned _depth;
     unsigned _bytesPerLine;
     osg::ref_ptr<osg::Referenced> _originalImage;
+	QImage * _originalImageQt;
 };
 
 } // namespace sgi
