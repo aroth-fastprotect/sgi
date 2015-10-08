@@ -2,6 +2,7 @@
 // SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
 
 #include <sgi/plugins/SGIItemBase.h>
+#include <sstream>
 
 namespace sgi {
 // some method implementations from SGIItemBase which are only
@@ -101,7 +102,7 @@ bool SGIItemBase::isListValid() const
     {
         if(foundItems.find(cur) != foundItems.end())
         {
-            // found re-occuring item
+            // found re-occurring item
             ret = false;
         }
         foundItems.insert(cur);
@@ -115,6 +116,49 @@ bool SGIItemBase::isListValid() const
             }
         }
         cur = next;
+    }
+    return ret;
+}
+
+std::string Image::imageFormatToString(ImageFormat format)
+{
+    std::string ret;
+    switch(format)
+    {
+    case ImageFormatInvalid: ret = "Invalid"; break;
+    case ImageFormatRGB24: ret = "RGB24"; break;
+    case ImageFormatRGB32: ret = "RGB32"; break;
+    case ImageFormatARGB32: ret = "ARGB32"; break;
+    case ImageFormatARGB32_Premultiplied: ret = "ARGB32_Premultiplied"; break;
+    case ImageFormatMono: ret = "Mono"; break;
+    case ImageFormatMonoLSB: ret = "MonoLSB"; break;
+    case ImageFormatIndexed8: ret = "Indexed8"; break;
+    case ImageFormatFloat: ret = "Float"; break;
+    default:
+        {
+            std::stringstream ss;
+            ss << "Unknown(" << (int)format << ')';
+            ret = ss.str();
+        }
+        break;
+    }
+    return ret;
+}
+
+std::string Image::originToString(Origin o)
+{
+    std::string ret;
+    switch(o)
+    {
+    case OriginBottomLeft: ret = "bottom-left"; break;
+    case OriginTopLeft: ret = "top-left"; break;
+    default:
+        {
+            std::stringstream ss;
+            ss << "Unknown(" << (int)o << ')';
+            ret = ss.str();
+        }
+        break;
     }
     return ret;
 }

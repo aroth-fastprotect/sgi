@@ -5,6 +5,7 @@
 #include <QToolBar>
 #include <QScrollBar>
 #include <QGLWidget>
+#include <QDesktopWidget>
 #include <QImageWriter>
 #include <QImageReader>
 
@@ -29,7 +30,7 @@ public:
     void updateToolbar();
     void scaleImage(double factor);
     static void adjustScrollBar(QScrollBar *scrollBar, double factor);
-    void setImageInfo(const QString & name, const QString & infoText);
+    void setImageInfo(const std::string & infoText);
 
     // Actions
     void zoomIn();
@@ -121,12 +122,12 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::refresh()
 	_dialog->refreshImpl();
 }
 
-void ImagePreviewDialog::ImagePreviewDialogImpl::setImageInfo(const QString & name, const QString & infoText)
+void ImagePreviewDialog::ImagePreviewDialogImpl::setImageInfo(const std::string & infoText)
 {
 	if (labelText.isEmpty())
-		ui->label->setText(infoText);
+		ui->label->setText(qt_helpers::fromLocal8Bit(infoText));
 	else
-		ui->label->setText(labelText + QString("\r\n") + infoText);
+		ui->label->setText(labelText + QString("\r\n") + qt_helpers::fromLocal8Bit(infoText));
 
 	const QPixmap * p = ui->label->pixmap();
 	int width = p ? p->width() : 0;
@@ -146,7 +147,6 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::setImageInfo(const QString & na
 		normalSize();
 
 	updateToolbar();
-	_dialog->setWindowTitle(tr("Image Viewer - %1").arg(name));
 }
 
 //! [9]
@@ -384,6 +384,7 @@ ImagePreviewDialog::ImagePreviewDialog(QWidget *parent, Qt::WindowFlags f)
     , _hostInterface(SGIPlugins::instance()->hostInterface())
     , _priv(new ImagePreviewDialogImpl(this))
     , _interface()
+    , _firstShow(true)
 {
     init();
 }
@@ -394,6 +395,7 @@ ImagePreviewDialog::ImagePreviewDialog(SGIItemBase * item, IImagePreviewDialogIn
 	, _hostInterface(SGIPlugins::instance()->hostInterface())
     , _priv(new ImagePreviewDialogImpl(this))
     , _interface()
+    , _firstShow(true)
 {
     init();
 }
@@ -406,6 +408,10 @@ void ImagePreviewDialog::init()
         | Qt::WindowMaximizeButtonHint
         | Qt::WindowCloseButtonHint;
     this->setWindowFlags(flags);
+
+    QObject::connect(this, SIGNAL(triggerOnObjectChanged()), this, SLOT(onObjectChanged()), Qt::QueuedConnection);
+    QObject::connect(this, SIGNAL(triggerShow()), this, SLOT(showBesideParent()), Qt::QueuedConnection);
+    QObject::connect(this, SIGNAL(triggerHide()), this, SLOT(hide()), Qt::QueuedConnection);
 }
 
 ImagePreviewDialog::~ImagePreviewDialog()
@@ -420,6 +426,51 @@ void ImagePreviewDialog::showEvent(QShowEvent * event)
         _priv->refresh();
     }
     QDialog::showEvent(event);
+}
+
+
+void ImagePreviewDialog::showBesideParent()
+{
+    QWidget::show();
+    if(_firstShow)
+    {
+        _firstShow = false;
+
+        QDesktopWidget * dw = QApplication::desktop();
+        QWidget * parent = parentWidget();
+        if(parent)
+        {
+            int numScreens = dw->screenCount();
+            int parentScreen = dw->screenNumber(parent);
+            int currentScreen = dw->screenNumber(this);
+
+            if(parentScreen == currentScreen)
+            {
+                int targetScreen = (currentScreen + 1) % numScreens;
+                if(targetScreen != currentScreen)
+                {
+                    QRect geom = frameGeometry();
+                    QRect currentScreenRect = dw->screenGeometry(currentScreen);
+                    QRect targetScreenRect = dw->screenGeometry(targetScreen);
+                    QPoint currentTopLeft = parent->mapToGlobal(geom.topLeft());
+                    QPoint currentBottomRight = parent->mapToGlobal(geom.bottomRight());
+                    QPoint screenOffset = currentTopLeft - currentScreenRect.topLeft();
+                    QPoint targetTopLeft = targetScreenRect.topLeft() + screenOffset;
+                    QPoint targetBottomRight(targetTopLeft.x() + geom.width(), targetTopLeft.y() + geom.height());
+                    if (targetScreenRect.contains(targetTopLeft))
+                    {
+                        targetTopLeft = parent->mapFromGlobal(targetTopLeft);
+                        move(targetTopLeft);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void ImagePreviewDialog::onObjectChanged()
+{
+    refreshImpl();
 }
 
 void ImagePreviewDialog::setLabel(const QString & label)
@@ -452,15 +503,69 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, QImage::Forma
     return os;
 }
 
+QImage convertToQImage(const sgi::Image * image)
+{
+    QImage ret;
+    if(image)
+    {
+        QImage::Format qt_format = QImage::Format_Invalid;
+        switch(image->format())
+        {
+        case Image::ImageFormatRGB24: qt_format = QImage::Format_RGB888; break;
+        case Image::ImageFormatRGB32: qt_format = QImage::Format_RGB32; break;
+        case Image::ImageFormatARGB32: qt_format = QImage::Format_ARGB32; break;
+        case Image::ImageFormatARGB32_Premultiplied: qt_format = QImage::Format_ARGB32_Premultiplied; break;
+        case Image::ImageFormatMono: qt_format = QImage::Format_Mono; break;
+        case Image::ImageFormatMonoLSB: qt_format = QImage::Format_MonoLSB; break;
+        case Image::ImageFormatIndexed8: qt_format = QImage::Format_Indexed8; break;
+        case Image::ImageFormatFloat:
+        case Image::ImageFormatInvalid:
+        default: qt_format = QImage::Format_Invalid; break;
+        }
+
+        ret = QImage((uchar*)image->data(), (int)image->width(), (int)image->height(), (int)image->bytesPerLine(), qt_format);
+        if(image->origin() == Image::OriginBottomLeft)
+            ret.mirrored(false, true);
+    }
+    return ret;
+}
+
 void ImagePreviewDialog::refreshImpl()
 {
-    updateImageAndLabel();
+    if (_item.valid())
+    {
+        std::string displayName;
+        SGIPlugins::instance()->getObjectDisplayName(displayName, _item);
+        setWindowTitle(tr("Image Viewer - %1").arg(qt_helpers::fromLocal8Bit(displayName)));
+    }
+    else
+    {
+        setWindowTitle(tr("Image Viewer - No image available"));
+    }
+
+    QImage qimg = convertToQImage(_image.get());
+
+    _priv->ui->imageLabel->setText(QString());
+    _priv->originalImage = qimg;
+    if(!qimg.isNull())
+        _priv->ui->imageLabel->setPixmap(QPixmap::fromImage(qimg));
+    else
+        _priv->ui->imageLabel->setPixmap(QPixmap());
+
+    std::stringstream ss;
+    if(!_priv->labelText.isEmpty())
+        ss << _priv->labelText + QString("\r\n");
+    if(!qimg.isNull())
+    {
+        ss << "QImage " << qimg.width() << "x" << qimg.height() << "x" << qimg.depth();
+        ss << " [format=" << qimg.format() << ";colors=" << qimg.colorCount() << ";bitPlaneCount=" << qimg.bitPlaneCount() << "]";
+    }
+    else
+        ss << "QImage NULL";
+    _priv->setImageInfo(ss.str());
 }
 
-void ImagePreviewDialog::updateImageAndLabel()
-{
-}
-
+#if 0
 void ImagePreviewDialog::setImage(const QImage & image, const QString & name, const QString & infoText)
 {
     _priv->ui->imageLabel->setText(QString());
@@ -489,7 +594,7 @@ void ImagePreviewDialog::setImage(const QImage & image, const QString & name, co
         ss << (void*)&image;
         imageName = QString::fromStdString(ss.str());
     }
-    _priv->setImageInfo(imageName, imageInfo);
+    _priv->setImageInfo(imageInfo);
 }
 
 void ImagePreviewDialog::setImage(const QPixmap & pixmap, const QString & name, const QString & infoText)
@@ -522,6 +627,7 @@ void ImagePreviewDialog::setImage(const QPixmap & pixmap, const QString & name, 
     }
     _priv->setImageInfo(imageName, imageInfo);
 }
+#endif
 
 bool ImagePreviewDialog::openImpl(const QString & filename)
 {
@@ -530,7 +636,9 @@ bool ImagePreviewDialog::openImpl(const QString & filename)
     QImage image = reader.read();
     ret = !image.isNull();
     if(ret)
-        setImage(image);
+    {
+        //setImage(image);
+    }
     return ret;
 }
 
@@ -621,13 +729,14 @@ void ImagePreviewDialog::setObject(SGIItemBase * item, const sgi::Image * image,
 void ImagePreviewDialog::setImage(const sgi::Image * image)
 {
     _image = image;
+    emit triggerOnObjectChanged();
 }
 
 void ImagePreviewDialog::setDescription(const std::string & description)
 {
     _priv->labelText = qt_helpers::fromLocal8Bit(description);
+    emit triggerOnObjectChanged();
 }
-
 
 SGIItemBase * ImagePreviewDialog::item() const
 {

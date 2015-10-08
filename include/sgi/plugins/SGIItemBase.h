@@ -432,23 +432,45 @@ class Image : public osg::Referenced
 public:
     enum ImageFormat {
         ImageFormatInvalid = -1,
-        ImageFormatRGB = 0,
-        ImageFormatARGB,
-        ImageFormatGray,
+        ImageFormatRGB24 = 0,
+        ImageFormatRGB32,
+        ImageFormatARGB32,
+        ImageFormatARGB32_Premultiplied,
+        ImageFormatMono,
+        ImageFormatMonoLSB,
+        ImageFormatIndexed8,
         ImageFormatFloat
     };
-    Image(ImageFormat format=ImageFormatInvalid, void * data=NULL, size_t length=0, unsigned width=0, unsigned height=0, unsigned depth=0)
-        : _format(format), _data(data), _length(length), _width(width), _height(height), _depth(depth) {}
+    static std::string imageFormatToString(ImageFormat format);
+
+    enum Origin {
+        OriginBottomLeft,
+        OriginTopLeft,
+        OriginDefault = OriginBottomLeft
+    };
+    static std::string originToString(Origin o);
+
+    Image(ImageFormat format=ImageFormatInvalid, Origin origin=OriginDefault, void * data=NULL, size_t length=0,
+          unsigned width=0, unsigned height=0, unsigned depth=0, unsigned bytesPerLine=0,
+          osg::Referenced * originalImage=NULL)
+        : _format(format), _origin(origin), _data(data), _length(length)
+        , _width(width), _height(height), _depth(depth), _bytesPerLine(bytesPerLine)
+        , _originalImage(originalImage) {}
     Image(const Image & rhs)
-        : _format(rhs._format), _data(rhs._data), _length(rhs._length), _width(rhs._width), _height(rhs._height), _depth(rhs._depth) {}
+        : _format(rhs._format), _origin(rhs._origin), _data(rhs._data), _length(rhs._length)
+        , _width(rhs._width), _height(rhs._height), _depth(rhs._depth), _bytesPerLine(rhs._bytesPerLine)
+        , _originalImage(rhs._originalImage) {}
     Image & operator=(const Image & rhs)
         {
             _format = rhs._format;
+            _origin = rhs._origin;
             _data = rhs._data;
             _length = rhs._length;
             _width = rhs._width;
             _height = rhs._height;
             _depth = rhs._depth;
+            _bytesPerLine = rhs._bytesPerLine;
+            _originalImage = rhs._originalImage;
             return *this;
         }
 
@@ -459,14 +481,27 @@ public:
     unsigned width() const { return _width; }
     unsigned height() const { return _height; }
     unsigned depth() const { return _depth; }
+    unsigned bytesPerLine() const { return _bytesPerLine; }
+    osg::Referenced * originalImage() const { return _originalImage.get(); }
+    Origin origin() const { return _origin; }
 
 protected:
     ImageFormat _format;
+    Origin _origin;
     void * _data;
     size_t _length;
     unsigned _width;
     unsigned _height;
     unsigned _depth;
+    unsigned _bytesPerLine;
+    osg::ref_ptr<osg::Referenced> _originalImage;
 };
 
 } // namespace sgi
+
+namespace std {
+inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, sgi::Image::ImageFormat f)
+{
+    return os << sgi::Image::imageFormatToString(f);
+}
+} // namespace std

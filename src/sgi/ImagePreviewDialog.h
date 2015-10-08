@@ -49,6 +49,8 @@ public:
 
 public slots:
     void setLabel(const QString & label);
+    void showBesideParent();
+    void onObjectChanged();
 
 signals:
     void                    triggerOnObjectChanged();
@@ -56,7 +58,6 @@ signals:
     void                    triggerHide();
 
 protected:
-    void updateImageAndLabel();
     void refreshImpl();
     bool openImpl(const QString & filename);
     bool saveImpl(const QString & filename);
@@ -68,8 +69,8 @@ protected:
 
 protected:
     virtual void showEvent(QShowEvent * event);
-    void setImage(const QImage & image, const QString & name=QString(), const QString & infoText=QString());
-    void setImage(const QPixmap & pixmap, const QString & name=QString(), const QString & infoText=QString());
+    //void setImage(const QImage & image, const QString & name=QString(), const QString & infoText=QString());
+    //void setImage(const QPixmap & pixmap, const QString & name=QString(), const QString & infoText=QString());
 
 private:
     void init();
@@ -87,6 +88,7 @@ protected:
     osg::ref_ptr<IImagePreviewDialogInfo> _info;
     osg::ref_ptr<IContextMenu>          _contextMenu;
     osg::ref_ptr<ContextMenuCallback>   _contextMenuCallback;
+    bool                            _firstShow;
 
 };
 

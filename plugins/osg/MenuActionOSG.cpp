@@ -1395,12 +1395,16 @@ namespace {
         sgi::Image::ImageFormat imageFormat;
         switch(image->getPixelFormat())
         {
-        case GL_RGB: imageFormat = sgi::Image::ImageFormatRGB; break;
-        case GL_RGBA:imageFormat = sgi::Image::ImageFormatARGB; break;
-        case GL_LUMINANCE: imageFormat = sgi::Image::ImageFormatGray; break;
+        case GL_RGB: imageFormat = sgi::Image::ImageFormatRGB24; break;
+        case GL_RGBA:imageFormat = sgi::Image::ImageFormatARGB32; break;
+        case GL_LUMINANCE: imageFormat = sgi::Image::ImageFormatMono; break;
         default: imageFormat = sgi::Image::ImageFormatInvalid; break;
         }
-        sgi::Image * ret = new sgi::Image(imageFormat, image->data(), image->getTotalDataSize(), image->r(), image->s(), image->t());
+        sgi::Image::Origin origin = (image->getOrigin() == osg::Image::TOP_LEFT) ? sgi::Image::OriginTopLeft : sgi::Image::OriginBottomLeft;
+        sgi::Image * ret = new sgi::Image(imageFormat, origin,
+                                          image->data(), image->getTotalDataSize(),
+                                          image->s(), image->t(), image->r(), image->getRowStepInBytes(),
+                                          image);
         return ret;
     }
 }
@@ -1449,7 +1453,7 @@ bool actionHandlerImpl<MenuActionGeodeAddShapeDrawable>::execute()
         newShape = new osg::Cylinder;
         break;
     case MenuActionAddShapeCapsule:
-        newShape = new osg::Cylinder;
+        newShape = new osg::Capsule;
         break;
     }
     if(newShape.valid())
