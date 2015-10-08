@@ -37,6 +37,9 @@
 
 #include <osgViewer/ViewerEventHandlers>
 
+#include <QtCore/QMutex>
+
+
 #include "osg_accessor.h"
 #include "stateset_helpers.h"
 #include "SettingsDialogOSG.h"
