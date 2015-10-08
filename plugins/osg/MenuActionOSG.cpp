@@ -35,6 +35,8 @@
 #include <osgDB/ReadFile>
 #include <osgAnimation/AnimationManagerBase>
 
+#include <osgViewer/ViewerEventHandlers>
+
 #include "osg_accessor.h"
 #include "stateset_helpers.h"
 #include "SettingsDialogOSG.h"
@@ -196,6 +198,8 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionToolEffectiveStateSet)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindCamera)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindView)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionToolDistanceToCamera)
+
+ACTION_HANDLER_IMPL_REGISTER(MenuActionViewCaptureScreenshot)
 
 using namespace sgi::osg_helpers;
 
@@ -1392,6 +1396,9 @@ bool actionHandlerImpl<MenuActionGeometryColor>::execute()
 namespace {
     const sgi::Image * convertImage(osg::Image * image)
     {
+		if (!image)
+			return NULL;
+
 		sgi::Image * ret = NULL;
 		sgi::Image::ImageFormat imageFormat;
         switch(image->getPixelFormat())
@@ -2826,6 +2833,78 @@ bool actionHandlerImpl<MenuActionToolFindView>::execute()
         }
     }
     return true;
+}
+
+class CaptureImage : public osgViewer::ScreenCaptureHandler::CaptureOperation
+{
+public:
+	CaptureImage()
+		: _image()
+	{
+		_mutex.lock();
+	}
+	osg::Image * takeImage() { return _image.release(); }
+public:
+	virtual void operator()(const osg::Image& image, const unsigned int context_id) override
+	{
+		_image = static_cast<osg::Image*>(image.clone(osg::CopyOp::DEEP_COPY_ALL));
+		_mutex.unlock();
+	}
+	void wait()
+	{
+		_mutex.lock();
+	}
+protected:
+	osg::ref_ptr<osg::Image> _image;
+	QMutex _mutex;
+};
+
+bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
+{
+	SGIItemOsg * osgitem = static_cast<SGIItemOsg*>(_item.get());
+
+	osgViewer::ViewerBase * viewerbase = dynamic_cast<osgViewer::ViewerBase *>(osgitem->object());
+	if(!viewerbase)
+	{
+		osgViewer::View * view = dynamic_cast<osgViewer::View*>(osgitem->object());
+		if(view)
+			viewerbase = view->getViewerBase();
+		else if (osg::Camera * camera = dynamic_cast<osg::Camera*>(osgitem->object()))
+		{
+			view = dynamic_cast<osgViewer::View*>(camera->getView());
+			if(view)
+				viewerbase = view->getViewerBase();
+		}
+	}
+	
+	if(viewerbase)
+	{
+		osg::ref_ptr<osgViewer::ScreenCaptureHandler> capture = new osgViewer::ScreenCaptureHandler;
+		capture->setFramesToCapture(1);
+		osg::ref_ptr<CaptureImage> handler = new CaptureImage;
+		capture->setCaptureOperation(handler);
+		capture->captureNextFrame(*viewerbase);
+
+		osgViewer::ViewerBase::Views views;
+		viewerbase->getViews(views);
+		if (!views.empty())
+		{
+			views.front()->requestRedraw();
+			handler->wait();
+			osg::ref_ptr<osg::Image> image = handler->takeImage();
+			if (image.valid())
+			{
+				IImagePreviewDialogPtr dialog = _hostInterface->showImagePreviewDialog(menu()->parentWidget(), _item.get(), NULL);
+
+				if (dialog.valid())
+				{
+					dialog->setObject(_item.get(), convertImage(image), std::string(), NULL);
+					dialog->show();
+				}
+			}
+		}
+	}
+	return true;
 }
 
 } // namespace osg_plugin

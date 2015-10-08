@@ -109,6 +109,7 @@ namespace osgGA {
 
 namespace osgViewer {
     class View;
+	class ViewerBase;
     class GraphicsWindow;
     class Scene;
 }
@@ -196,6 +197,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgGA::CameraManipulator)
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgViewer::View)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgViewer::Scene)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgViewer::ViewerBase)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgViewer::GraphicsWindow)
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgQt::GraphicsWindowQt)

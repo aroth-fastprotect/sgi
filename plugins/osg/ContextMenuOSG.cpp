@@ -32,6 +32,7 @@
 #include <osgDB/Registry>
 
 #include <osgViewer/View>
+#include <osgViewer/ViewerBase>
 #include <osgQt/GraphicsWindowQt>
 #include <osgText/Text>
 #include <osgAnimation/AnimationManagerBase>
@@ -104,6 +105,7 @@ CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgGA::CameraManipulator)
 
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgViewer::View)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgViewer::Scene)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgViewer::ViewerBase)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgViewer::GraphicsWindow)
 
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgQt::GraphicsWindowQt)
@@ -918,8 +920,8 @@ bool contextMenuPopulateImpl<osg::Camera>::populate(IContextMenuItem * menuItem)
         ret = callNextHandler(menuItem);
         if(ret)
         {
-            menuItem->addSimpleAction(MenuActionImagePreview, "Preview...", _item);
-            
+			menuItem->addSimpleAction(MenuActionViewCaptureScreenshot, "Capture screenshot", _item);
+
             SGIHostItemOsg graphicscontext(object->getGraphicsContext());
             if(graphicscontext.hasObject())
                 menuItem->addMenu("Graphics context", &graphicscontext);
@@ -1005,6 +1007,8 @@ bool contextMenuPopulateImpl<osgViewer::View>::populate(IContextMenuItem * menuI
             SGIHostItemOsg camera(object->getCamera());
             if(camera.hasObject())
                 menuItem->addMenu("Camera", &camera);
+
+			menuItem->addSimpleAction(MenuActionViewCaptureScreenshot, "Capture screenshot", _item);
 
             SGIHostItemOsg cameraManipulator(object->getCameraManipulator());
             if(cameraManipulator.hasObject())
@@ -1623,6 +1627,26 @@ bool contextMenuPopulateImpl<osg::Shader>::populate(IContextMenuItem * menuItem)
         break;
     }
     return ret;
+}
+
+bool contextMenuPopulateImpl<osgViewer::ViewerBase>::populate(IContextMenuItem * menuItem)
+{
+	osgViewer::ViewerBase * object = dynamic_cast<osgViewer::ViewerBase*>(item<SGIItemOsg>()->object());
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(menuItem);
+		if (ret)
+		{
+			menuItem->addSimpleAction(MenuActionViewCaptureScreenshot, "Capture screenshot", _item);
+		}
+		break;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
 }
 
 bool contextMenuPopulateImpl<osgViewer::GraphicsWindow>::populate(IContextMenuItem * menuItem)

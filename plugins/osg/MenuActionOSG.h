@@ -156,6 +156,8 @@ enum MenuAction {
     MenuActionAnimationManagerBaseAutomaticLink,
     MenuActionAnimationManagerBaseDirty,
 
+	MenuActionViewCaptureScreenshot,
+
     MenuActionToolFindUpdateNodes,
     MenuActionToolFindEventNodes,
     MenuActionToolFindNaNNodes,
@@ -318,6 +320,8 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionToolEffectiveStateSet)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionToolFindCamera)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionToolFindView)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionToolDistanceToCamera)
+
+ACTION_HANDLER_IMPL_DECLARE(MenuActionViewCaptureScreenshot)
 
 class ComputeLocalToWorldMatrixVisitor : public osg::NodeVisitor
 {
