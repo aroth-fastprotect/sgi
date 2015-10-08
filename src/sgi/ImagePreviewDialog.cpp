@@ -109,9 +109,8 @@ void ImagePreviewDialog::Histogram::calculate(const QImage & image)
 			totalBlue += valueBlue;
 			totalGray += valueGray;
 
-			double luma = 0.2126f * (valueRed / 256.0f) + 0.7152 * (valueGreen / 256.0f) + 0.0722 * (valueBlue / 256.0f);
+			double luma = 0.2126f * valueRed + 0.7152 * valueGreen + 0.0722 * valueBlue;
 			totalLuma += luma;
-			
 
 			++_alpha[valueAlpha];
 			++_red[valueRed];
@@ -126,6 +125,7 @@ void ImagePreviewDialog::Histogram::calculate(const QImage & image)
 	avgGreen = (float)totalGreen / (float)totalPixels;
 	avgBlue = (float)totalBlue / (float)totalPixels;
 	avgGray = (float)totalGray / (float)totalPixels;
+	avgLuma = (float)(totalLuma / (double)totalPixels);
 
 	int minAlphaValue = INT_MAX, maxAlphaValue = INT_MIN;
 	int minRedValue = INT_MAX, maxRedValue = INT_MIN;
@@ -702,7 +702,7 @@ void ImagePreviewDialog::refreshStatistics(const QImage & image)
 	addStatisticsValue(root, tr("Green"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minGreen).arg(_priv->histogram.maxGreen).arg(_priv->histogram.avgGreen));
 	addStatisticsValue(root, tr("Blue"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minBlue).arg(_priv->histogram.maxBlue).arg(_priv->histogram.avgBlue));
 	addStatisticsValue(root, tr("Gray"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minGray).arg(_priv->histogram.maxGray).arg(_priv->histogram.avgGray));
-	
+	addStatisticsValue(root, tr("Luma"), QString("avg %1").arg(_priv->histogram.avgLuma));
 }
 
 void ImagePreviewDialog::refreshImpl()
