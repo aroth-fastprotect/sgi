@@ -5,6 +5,8 @@
 
 #if !defined(SGI_NO_HOSTITEM_GENERATOR)
 #include "plugins/SGIHostItemGenerator"
+#else
+#include "plugins/SGIItemBase.h"
 #endif
 
 namespace sgi {
