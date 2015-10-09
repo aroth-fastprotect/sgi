@@ -75,6 +75,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 	OPTION(SGI_PLUGIN_OSGEARTH "Enable osgEarth plugin" ${OSGEARTH_FOUND})
 	OPTION(SGI_PLUGIN_QT "Enable Qt plugin" ON)
 	OPTION(SGI_PLUGIN_LOG4CPLUS "Enable log4cplus plugin" ${LOG4CPLUS_FOUND})
+    OPTION(SGI_UNITTESTS "Enable SGI unitests" OFF)
 
 	SET(SGI_PLUGIN_IMPL_LIBRARY osgSGI-plugin-impl)
 
@@ -100,7 +101,10 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 	ADD_SUBDIRECTORY(plugins)
 
 	add_subdirectory(applications)
-	
+    if(SGI_UNITTESTS)
+        add_subdirectory(tests)
+    endif()
+
 	FAST_PROJECT_PACKAGE()
 
 ENDIF(NOT SGI_IS_SYSTEM_LIB)
