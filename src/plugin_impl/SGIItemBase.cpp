@@ -52,7 +52,9 @@ void SGIItemBase::insertByScore(SGIItemBase * item, SGIItemBasePtr & front)
         {
             if(insertionPoint->_score == itemToInsert->_score)
             {
-                if(insertionPoint->_pluginInfo->pluginScore() > itemToInsert->_pluginInfo->pluginScore())
+                if( insertionPoint->_pluginInfo &&
+                    itemToInsert->_pluginInfo &&
+                    insertionPoint->_pluginInfo->pluginScore() > itemToInsert->_pluginInfo->pluginScore())
                 {
                     if(insertionPoint->_next.valid())
                         insertionPoint = insertionPoint->_next;
@@ -72,7 +74,9 @@ void SGIItemBase::insertByScore(SGIItemBase * item, SGIItemBasePtr & front)
         }
         if(itemToInsert->_score == insertionPoint->_score)
         {
-            if(itemToInsert->_pluginInfo->pluginScore() > insertionPoint->_pluginInfo->pluginScore())
+            if( insertionPoint->_pluginInfo &&
+                itemToInsert->_pluginInfo &&
+                itemToInsert->_pluginInfo->pluginScore() > insertionPoint->_pluginInfo->pluginScore())
             {
                 insertionPoint->insertBefore(itemToInsert);
                 if(insertionPoint == front)
