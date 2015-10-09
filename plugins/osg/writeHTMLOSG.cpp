@@ -3847,7 +3847,7 @@ bool writePrettyHTMLImpl<osg::GraphicsContext>::process(std::basic_ostream<char>
             for(osg::GraphicsContext::Cameras::const_iterator it = cameras.begin(); it != cameras.end(); it++)
             {
                 osg::Camera * camera = *it;
-                os << "<li>" << osg_helpers::getObjectNameAndType(camera) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(camera, true) << "</li>" << std::endl;
             }
             os << "<ul></td></tr>" << std::endl;
             os << "<tr><td>traits</td><td>" << osg_helpers::getObjectNameAndType(object->getTraits()) << "</td></tr>" << std::endl;

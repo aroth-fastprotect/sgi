@@ -37,6 +37,7 @@ public:
 		avgGreen = 0;
 		avgBlue = 0;
 		avgGray = 0;
+        numTransparentPixels = 0;
 	}
 
 	void calculate(const QImage & image);
@@ -54,6 +55,7 @@ public:
 	int minGreen, maxGreen;
 	int minBlue, maxBlue;
 	int minGray, maxGray;
+    unsigned numTransparentPixels;
 	float avgAlpha;
 	float avgRed;
 	float avgGreen;
@@ -80,6 +82,8 @@ namespace {
 }
 void ImagePreviewDialog::Histogram::calculate(const QImage & image)
 {
+    if(image.isNull())
+        return;
 	_alpha = ColorChannel(256);
 	_red = ColorChannel(256);
 	_green = ColorChannel(256);
@@ -92,6 +96,7 @@ void ImagePreviewDialog::Histogram::calculate(const QImage & image)
 	unsigned totalBlue = 0;
 	unsigned totalGray = 0;
 	unsigned totalPixels = image.width() * image.height();
+    numTransparentPixels = 0;
 	double totalLuma = 0;
 	for (int y = 0; y < image.height(); y++) {
 		for (int x = 0; x < image.width(); x++) {
@@ -111,6 +116,9 @@ void ImagePreviewDialog::Histogram::calculate(const QImage & image)
 
 			double luma = 0.2126f * valueRed + 0.7152 * valueGreen + 0.0722 * valueBlue;
 			totalLuma += luma;
+
+            if(totalAlpha < 255)
+                ++numTransparentPixels;
 
 			++_alpha[valueAlpha];
 			++_red[valueRed];
@@ -697,12 +705,23 @@ void ImagePreviewDialog::refreshStatistics(const QImage & image)
 	_priv->ui->statistics->setHeaderLabels(QStringList() << tr("Name") << tr("Value"));
 
 	QTreeWidgetItem * root = _priv->ui->statistics->invisibleRootItem();
-	addStatisticsValue(root, tr("Alpha"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minAlpha).arg(_priv->histogram.maxAlpha).arg(_priv->histogram.avgAlpha));
+    addStatisticsValue(root, tr("Width"), image.width());
+    addStatisticsValue(root, tr("Height"), image.height());
+    addStatisticsValue(root, tr("Depth"), image.depth());
+    addStatisticsValue(root, tr("Device pixel ratio"), image.devicePixelRatio());
+    addStatisticsValue(root, tr("Color count"), image.colorCount());
+    addStatisticsValue(root, tr("Bit plance count"), image.bitPlaneCount());
+    if(image.hasAlphaChannel())
+        addStatisticsValue(root, tr("Alpha"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minAlpha).arg(_priv->histogram.maxAlpha).arg(_priv->histogram.avgAlpha));
 	addStatisticsValue(root, tr("Red"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minRed).arg(_priv->histogram.maxRed).arg(_priv->histogram.avgRed));
 	addStatisticsValue(root, tr("Green"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minGreen).arg(_priv->histogram.maxGreen).arg(_priv->histogram.avgGreen));
 	addStatisticsValue(root, tr("Blue"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minBlue).arg(_priv->histogram.maxBlue).arg(_priv->histogram.avgBlue));
 	addStatisticsValue(root, tr("Gray"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minGray).arg(_priv->histogram.maxGray).arg(_priv->histogram.avgGray));
 	addStatisticsValue(root, tr("Luma"), QString("avg %1").arg(_priv->histogram.avgLuma));
+    if(image.hasAlphaChannel())
+        addStatisticsValue(root, tr("Transparency"), QString("%1 pixels").arg(_priv->histogram.numTransparentPixels));
+    else
+        addStatisticsValue(root, tr("Transparency"), tr("N/A"));
 }
 
 void ImagePreviewDialog::refreshImpl()
@@ -734,11 +753,11 @@ void ImagePreviewDialog::refreshImpl()
         ss << _priv->labelText + QString("\r\n");
     if(!qimg.isNull())
     {
-        ss << "QImage " << qimg.width() << "x" << qimg.height() << "x" << qimg.depth();
-        ss << " [format=" << qimg.format() << ";colors=" << qimg.colorCount() << ";bitPlaneCount=" << qimg.bitPlaneCount() << "]";
+        ss << qimg.width() << "x" << qimg.height() << "x" << qimg.depth() << std::endl;
+        ss << "format=" << qimg.format() << " colors=" << qimg.colorCount() << " bitPlaneCount=" << qimg.bitPlaneCount();
     }
     else
-        ss << "QImage NULL";
+        ss << "No image";
     _priv->setImageInfo(ss.str());
 }
 

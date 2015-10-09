@@ -3436,12 +3436,26 @@ struct RegistrySingleton
     }
 };
 
+struct DefaultFontSingleton
+{
+    SGIItemBase * operator()(SGIPluginHostInterface * hostInterface)
+    {
+        SGIItemBasePtr item;
+        SGIHostItemOsg hostItem(osgText::Font::getDefaultFont());
+        hostInterface->generateItem(item, &hostItem);
+        return item.release();
+    }
+};
+
 bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeItem)
 {
     ISceneGraphDialog * object = static_cast<ISceneGraphDialog*>(item<SGIItemInternal>()->object());
 
-    SGIHostItemOsg hostItem(new SGIProxyItemT<RegistrySingleton>(_hostInterface, "osgDB::Registry"));
-    treeItem->addChild(std::string(), &hostItem);
+    SGIHostItemOsg dbRegistryHostItem(new SGIProxyItemT<RegistrySingleton>(_hostInterface, "osgDB::Registry"));
+    treeItem->addChild(std::string(), &dbRegistryHostItem);
+
+    SGIHostItemOsg defaultFontHostItem(new SGIProxyItemT<DefaultFontSingleton>(_hostInterface, "osgText::DefaultFont"));
+    treeItem->addChild(std::string(), &defaultFontHostItem);
 
     SGIItemOsg * osgitem = dynamic_cast<SGIItemOsg *>(object->item());
     if (osgitem)
