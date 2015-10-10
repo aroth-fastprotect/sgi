@@ -46,6 +46,7 @@ SGI_EXPORT sgi::IContextMenu * sgi_createContextMenu(QWidget *parent, const sgi:
 SGI_EXPORT sgi::IContextMenu * sgi_createContextMenuItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IContextMenuInfo * info);
 SGI_EXPORT sgi::IContextMenuQt * sgi_createContextMenuItemQt(QWidget *parent, QObject * item, sgi::IContextMenuInfoQt * info);
 SGI_EXPORT void sgi_writePrettyHTML(std::basic_ostream<char>& os, const sgi::SGIHostItemBase * object, bool table);
+SGI_EXPORT void sgi_writePrettyHTMLItem(std::basic_ostream<char>& os, const sgi::SGIItemBase * item, bool table);
 SGI_EXPORT bool sgi_getObjectName(std::string & name, const sgi::SGIHostItemBase * object, bool full);
 SGI_EXPORT bool sgi_getObjectDisplayName(std::string & name, const sgi::SGIHostItemBase * object);
 SGI_EXPORT bool sgi_getObjectTypename(std::string & name, const sgi::SGIHostItemBase * object, bool full);

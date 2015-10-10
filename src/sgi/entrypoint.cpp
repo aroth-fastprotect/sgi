@@ -82,6 +82,11 @@ void sgi_writePrettyHTML(std::basic_ostream<char>& os, const sgi::SGIHostItemBas
     sgi::SGIPlugins::instance()->writePrettyHTML(os, object, table);
 }
 
+void sgi_writePrettyHTMLItem(std::basic_ostream<char>& os, const sgi::SGIItemBase * item, bool table)
+{
+    sgi::SGIPlugins::instance()->writePrettyHTML(os, item, table);
+}
+
 bool sgi_getObjectName(std::string & name, const sgi::SGIHostItemBase * object, bool full)
 {
     return sgi::SGIPlugins::instance()->getObjectName(name, object, full);

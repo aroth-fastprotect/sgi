@@ -63,30 +63,15 @@ public:
 class SGIItemBase : public osg::Object
 {
 public:
-    SGIItemBase(SGIItemType type=SGIItemTypeInvalid, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
-        : osg::Object(), _type(type), _flags(flags), _score(score), _type_info(NULL)
-        , _pluginInfo(NULL), _next(NULL), _prev(), _number(0), _userData(userData) {}
-    SGIItemBase(const SGIItemBase & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : osg::Object(rhs, copyop), _type(rhs._type), _flags(rhs._flags), _score(rhs._score), _type_info(rhs._type_info)
-        , _pluginInfo(rhs._pluginInfo), _next(rhs._next), _prev(rhs._prev), _number(rhs._number), _userData(rhs._userData) {}
-    ~SGIItemBase()
-        { }
+    static unsigned getTotalItemCount();
+public:
+    SGIItemBase(SGIItemType type=SGIItemTypeInvalid, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL);
+    SGIItemBase(const SGIItemBase & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
+    virtual ~SGIItemBase();
 
     META_Object(sgi, SGIItemBase);
 
-    SGIItemBase & operator = (const SGIItemBase & rhs)
-    {
-        _type = rhs._type;
-        _flags = rhs._flags;
-        _score = rhs._score;
-        _type_info = rhs._type_info;
-        _pluginInfo = rhs._pluginInfo;
-        _next = rhs._next;
-        _prev = rhs._prev;
-        _number = rhs._number;
-        _userData = rhs._userData;
-        return *this;
-    }
+    SGIItemBase & operator = (const SGIItemBase & rhs);
     bool operator == (const SGIItemBase & rhs) const
     {
         return compare(rhs) == 0;
@@ -120,42 +105,9 @@ public:
     const ISGIPluginInfo * pluginInfo() const { return _pluginInfo; }
     void setPluginInfo(const ISGIPluginInfo * pluginInfo);
 
-    SGIItemBase * rootBase() const
-    {
-        SGIItemBasePtr current = const_cast<SGIItemBase *>(this);
-        SGIItemBasePtr parent;
-        do
-        {
-            if(current->_prev.lock(parent) && parent.valid())
-                current = parent;
-        }
-        while(parent.valid());
-        return current.release();
-    }
-    void insertAfter(SGIItemBase * item)
-    {
-        SGIItemBasePtr next_prev;
-        if(_next.valid())
-        {
-            next_prev = _next->_prev;
-            _next->_prev = item;
-        }
-        item->_next = this->_next;
-        item->_prev = this;
-        this->_next = item;
-    }
-    void insertBefore(SGIItemBase * item)
-    {
-        SGIItemBasePtr prev_next;
-        if(_prev.valid())
-        {
-            prev_next = _prev->_next;
-            _prev->_next = item;
-        }
-        item->_prev = this->_prev;
-        item->_next = this;
-        this->_prev = item;
-    }
+    SGIItemBase * rootBase() const;
+    void insertAfter(SGIItemBase * item);
+    void insertBefore(SGIItemBase * item);
     void insertByScore(SGIItemBase * item, SGIItemBasePtr & front);
     bool isListValid() const;
     size_t listSize() const;
@@ -221,60 +173,13 @@ public:
     template<typename ANOTHER_ITEMTYPE>
     ANOTHER_ITEMTYPE * clone(SGIItemType newType, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
     {
-        SGIItemBasePtr ret;
-        SGIItemBasePtr previous_cloned;
-        SGIItemBasePtr current = this;
-        while(current.valid())
-        {
-            SGIItemBasePtr clonedItem = (SGIItemBase*)current->clone(copyop);
-            if(newType!=SGIItemTypeInvalid)
-                clonedItem->setType(newType);
-            clonedItem->setUserData(userData);
-            if(!ret.valid())
-            {
-                // we always return the first cloned item
-                ret = clonedItem;
-            }
-            if(previous_cloned.valid())
-            {
-                previous_cloned->_next = clonedItem;
-                clonedItem->_prev = previous_cloned;
-            }
-            // remember the item cloned in the last loop
-            previous_cloned = clonedItem;
-            current = current->nextBase();
-        }
-        return static_cast<ANOTHER_ITEMTYPE *>(ret.release());
+        return static_cast<ANOTHER_ITEMTYPE *>(cloneImpl(newType, userData, copyop));
     }
 
     template<typename ANOTHER_ITEMTYPE>
     ANOTHER_ITEMTYPE * clone(SGIItemType newType, unsigned number, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
     {
-        SGIItemBasePtr ret;
-        SGIItemBasePtr previous_cloned;
-        SGIItemBasePtr current = this;
-        while(current.valid())
-        {
-            SGIItemBasePtr clonedItem = (SGIItemBase*)current->clone(copyop);
-            if(newType!=SGIItemTypeInvalid)
-                clonedItem->setType(newType);
-            clonedItem->setNumber(number);
-            clonedItem->setUserData(userData);
-            if(!ret.valid())
-            {
-                // we always return the first cloned item
-                ret = clonedItem;
-            }
-            if(previous_cloned.valid())
-            {
-                previous_cloned->_next = clonedItem;
-                clonedItem->_prev = previous_cloned;
-            }
-            // remember the item cloned in the last loop
-            previous_cloned = clonedItem;
-            current = current->nextBase();
-        }
-        return static_cast<ANOTHER_ITEMTYPE *>(ret.release());
+        return static_cast<ANOTHER_ITEMTYPE *>(cloneImpl(newType, number, userData, copyop));
     }
 
     SGIItemBase * previousBase() const { return _prev.get(); }
@@ -309,15 +214,10 @@ public:
     }
 
 protected:
-    virtual int compare(const SGIItemBase & rhs) const
-    {
-        if(rhs._type == _type)
-            return 0;
-        else if(rhs._type < _type)
-            return -1;
-        else
-            return 1;
-    }
+    virtual int compare(const SGIItemBase & rhs) const;
+
+    SGIItemBase * cloneImpl(SGIItemType newType, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY);
+    SGIItemBase * cloneImpl(SGIItemType newType, unsigned number, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY);
 
 protected:
     SGIItemType             _type;
@@ -455,34 +355,12 @@ public:
 
     Image(ImageFormat format=ImageFormatInvalid, Origin origin=OriginDefault, void * data=NULL, size_t length=0,
           unsigned width=0, unsigned height=0, unsigned depth=0, unsigned bytesPerLine=0,
-          osg::Referenced * originalImage=NULL)
-        : _format(format), _origin(origin), _data(data), _length(length)
-        , _width(width), _height(height), _depth(depth), _bytesPerLine(bytesPerLine)
-        , _originalImage(originalImage), _originalImageQt(NULL) {}
+          osg::Referenced * originalImage=NULL);
 	Image(ImageFormat format = ImageFormatInvalid, Origin origin = OriginDefault, void * data = NULL, size_t length = 0,
 		unsigned width = 0, unsigned height = 0, unsigned depth = 0, unsigned bytesPerLine = 0,
-		QImage * originalImage = NULL)
-		: _format(format), _origin(origin), _data(data), _length(length)
-		, _width(width), _height(height), _depth(depth), _bytesPerLine(bytesPerLine)
-		, _originalImage(NULL), _originalImageQt(originalImage) {}
-	Image(const Image & rhs)
-        : _format(rhs._format), _origin(rhs._origin), _data(rhs._data), _length(rhs._length)
-        , _width(rhs._width), _height(rhs._height), _depth(rhs._depth), _bytesPerLine(rhs._bytesPerLine)
-        , _originalImage(rhs._originalImage), _originalImageQt(rhs._originalImageQt) {}
-    Image & operator=(const Image & rhs)
-        {
-            _format = rhs._format;
-            _origin = rhs._origin;
-            _data = rhs._data;
-            _length = rhs._length;
-            _width = rhs._width;
-            _height = rhs._height;
-            _depth = rhs._depth;
-            _bytesPerLine = rhs._bytesPerLine;
-            _originalImage = rhs._originalImage;
-			_originalImageQt = rhs._originalImageQt;
-            return *this;
-        }
+		QImage * originalImage = NULL);
+	Image(const Image & rhs);
+    Image & operator=(const Image & rhs);
 
     ImageFormat format() const { return _format; }
     const void * data() const { return _data; }

@@ -17,6 +17,7 @@ namespace sgi {
     {
     public:
         typedef void * PROC_ADDRESS;
+    protected:
         Qt()
         {
 #ifdef _WIN32
@@ -30,9 +31,12 @@ namespace sgi {
             QString libfile = QCoreApplication::applicationDirPath() + QString::fromLatin1("/../lib/" SGI_LIBRARY_NAME);
             _library = new QLibrary(libfile);
 #endif
+            if(!_library->load())
+                _error = _library->errorString().toStdString();
         }
         ~Qt()
         {
+            _library->unload();
             delete _library;
         }
         QLibrary * library()
@@ -41,16 +45,24 @@ namespace sgi {
         }
         PROC_ADDRESS getProcAddress(const char* procName)
         {
-            return (_library)?(PROC_ADDRESS)_library->resolve(procName):NULL;
+            PROC_ADDRESS ret = NULL;
+            if(_library)
+            {
+                ret = (PROC_ADDRESS)_library->resolve(procName);
+                if(!ret)
+                    _error = _library->errorString().toStdString();
+            }
+            return ret;
         }
         std::string libraryFilename() const
         {
             return (_library)?_library->fileName().toStdString():NULL;
         }
-        std::string libraryError() const
+        const std::string & libraryError() const
         {
-            return (_library)?_library->errorString().toStdString():std::string("Unknown");
+            return _error;
         }
+    public:
         typedef helpers::SingletonT<Qt> Singleton;
         typedef Singleton::InstanceAction InstanceAction;
         static Singleton::value_type * instance(InstanceAction action=Singleton::InstanceActionGetOrCreate)
@@ -58,7 +70,6 @@ namespace sgi {
             static Singleton s_singleton;
             return s_singleton.instance(action);
         }
-
         static inline QLibrary * sgiLibrary()
         {
             return Qt::instance()->library();
@@ -83,6 +94,10 @@ namespace sgi {
         {
             return Qt::instance()->libraryFilename();
         }
+        static inline std::string sgiLibraryError()
+        {
+            return Qt::instance()->libraryError();
+        }
         static inline bool sgiLibraryLoaded()
         {
             Qt * inst = Qt::instance(Singleton::InstanceActionGet);
@@ -98,6 +113,7 @@ namespace sgi {
 
     private:
         QLibrary * _library;
+        std::string _error;
     };
 
 

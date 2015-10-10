@@ -18,12 +18,23 @@ inline void writePrettyHTMLImpl(std::basic_ostream<char>& os, const SGIHostItemB
         func(os, object, table);
 }
 
+template<typename AUTOLOADCLASS>
+inline void writePrettyHTML(std::basic_ostream<char>& os, const SGIItemBase * item, bool table=true)
+{
+    typedef void (*pfn)(std::basic_ostream<char>& os, const SGIItemBase * item, bool table);
+    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_writePrettyHTMLItem");
+    if(func)
+        func(os, item, table);
+}
+
+#if !defined(SGI_NO_HOSTITEM_GENERATOR)
 template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
 inline void writePrettyHTML(std::basic_ostream<char>& os, OBJECT_TYPE * object, bool table=true)
 {
     osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
     writePrettyHTMLImpl<AUTOLOADCLASS>(os, hostitem.get(), table);
 }
+#endif // !defined(SGI_NO_HOSTITEM_GENERATOR)
 
 template<typename AUTOLOADCLASS>
 inline void writePrettyHTML(std::basic_ostream<char>& os, const SGIHostItemBase * item, bool table=true)

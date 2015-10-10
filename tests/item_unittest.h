@@ -10,4 +10,9 @@ private slots:
     void insertItemSingle();
     void insertItemTwoChains();
     void insertItemSameScore();
+
+    void autoLoadOsg();
+    void autoLoadQt();
+
+    void write_html();
 };
