@@ -10,6 +10,9 @@ namespace sgi {
     class IObjectLoggerDialogInfo;
     class IObjectLoggerDialog;
 
+    class IImagePreviewDialog;
+    class IImagePreviewDialogInfo;
+
     class IContextMenu;
     class IContextMenuInfo;
     class IContextMenuQt;
@@ -42,6 +45,8 @@ SGI_EXPORT sgi::ISceneGraphDialog * sgi_showSceneGraphDialog(QWidget *parent, co
 SGI_EXPORT sgi::ISceneGraphDialog * sgi_showSceneGraphDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::ISceneGraphDialogInfo * info);
 SGI_EXPORT sgi::IObjectLoggerDialog* sgi_showObjectLoggerDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IObjectLoggerDialogInfo * info);
 SGI_EXPORT sgi::IObjectLoggerDialog* sgi_showObjectLoggerDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IObjectLoggerDialogInfo * info);
+SGI_EXPORT sgi::IImagePreviewDialog * sgi_showImagePreviewDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IImagePreviewDialogInfo * info);
+SGI_EXPORT sgi::IImagePreviewDialog * sgi_showImagePreviewDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IImagePreviewDialogInfo * info);
 SGI_EXPORT sgi::IContextMenu * sgi_createContextMenu(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IContextMenuInfo * info);
 SGI_EXPORT sgi::IContextMenu * sgi_createContextMenuItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IContextMenuInfo * info);
 SGI_EXPORT sgi::IContextMenuQt * sgi_createContextMenuItemQt(QWidget *parent, QObject * item, sgi::IContextMenuInfoQt * info);

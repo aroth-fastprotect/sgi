@@ -62,6 +62,16 @@ sgi::IObjectLoggerDialog* sgi_showObjectLoggerDialogItem(QWidget *parent, sgi::S
     return sgi::SGIPlugins::instance()->showObjectLoggerDialog(parent, item, info);
 }
 
+sgi::IImagePreviewDialog * sgi_showImagePreviewDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IImagePreviewDialogInfo * info)
+{
+    return sgi::SGIPlugins::instance()->showImagePreviewDialog(parent, object, info);
+}
+
+sgi::IImagePreviewDialog * sgi_showImagePreviewDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IImagePreviewDialogInfo * info)
+{
+    return sgi::SGIPlugins::instance()->showImagePreviewDialog(parent, item, info);
+}
+
 sgi::IContextMenu * sgi_createContextMenu(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IContextMenuInfo * info)
 {
     return sgi::SGIPlugins::instance()->createContextMenu(parent, object, info);

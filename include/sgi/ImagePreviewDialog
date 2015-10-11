@@ -1,0 +1,63 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#if !defined(SGI_NO_HOSTITEM_GENERATOR)
+#include "plugins/SGIHostItemGenerator"
+#endif
+#include "plugins/ImagePreviewDialog"
+
+namespace sgi {
+
+template<typename AUTOLOADCLASS>
+inline IImagePreviewDialog * showImagePreviewDialogImpl(QWidget *parent, const SGIHostItemBase * object, IImagePreviewDialogInfo * info=NULL)
+{
+    IImagePreviewDialog * ret;
+    typedef IImagePreviewDialog * (*pfn)(QWidget *parent, const SGIHostItemBase * object, IImagePreviewDialogInfo * info);
+    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_showImagePreviewDialog");
+    if(func)
+        ret = func(parent, object, info);
+    else
+        ret = NULL;
+    return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline IImagePreviewDialog * showImagePreviewDialogImpl(QWidget *parent, SGIItemBase * item, IImagePreviewDialogInfo * info=NULL)
+{
+    IImagePreviewDialog * ret;
+    typedef IImagePreviewDialog * (*pfn)(QWidget *parent, const SGIItemBase * item, IImagePreviewDialogInfo * info);
+    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_showImagePreviewDialogItem");
+    if(func)
+        ret = func(parent, item, info);
+    else
+        ret = NULL;
+    return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IImagePreviewDialogInfo * info=NULL)
+{
+    IImagePreviewDialog * ret = showImagePreviewDialogImpl<AUTOLOADCLASS>(parent, item, info);
+    return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * item, IImagePreviewDialogInfo * info=NULL)
+{
+    IImagePreviewDialog * ret = showImagePreviewDialogImpl<AUTOLOADCLASS>(parent, item, info);
+    return ret;
+}
+
+#if !defined(SGI_NO_HOSTITEM_GENERATOR)
+template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
+inline IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, OBJECT_TYPE * object, IImagePreviewDialogInfo * info=NULL)
+{
+    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    IImagePreviewDialog * ret = showImagePreviewDialogImpl<AUTOLOADCLASS>(parent, hostitem.get(), info);
+    return ret;
+}
+#endif // !defined(SGI_NO_HOSTITEM_GENERATOR)
+
+} // namespace sgi
