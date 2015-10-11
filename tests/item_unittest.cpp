@@ -10,6 +10,7 @@
 #include <sgi/WritePrettyHTML>
 #include <sgi/SceneGraphDialog>
 #include <sgi/ContextMenu>
+#include <sgi/ImagePreviewDialog>
 #include <sgi/AutoLoadOsg>
 #include <sgi/AutoLoadQt>
 #include <sgi/plugins/SGIHostItemQt.h>
@@ -259,7 +260,8 @@ void item_unittest::sceneGraphDialog()
     sgi::ISceneGraphDialogPtr dlgIface = sgi::showSceneGraphDialog<sgi::autoload::Qt>(NULL, item);
     QVERIFY(dlgIface != NULL);
     QDialog * dlg = dlgIface->getDialog();
-    dlg->exec();
+    dlg->show();
+    dlg->close();
 
     dlgIface = NULL;
     item = NULL;
@@ -295,7 +297,32 @@ void item_unittest::contextMenu()
     sgi::autoload::Qt::sgiLibraryUnload();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
     QCOMPARE(TestItem::getTotalItemCount(), 0u);
+}
 
+void item_unittest::imagePreviewDialog()
+{
+    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
+
+    auto lib = sgi::autoload::Qt::sgiLibrary();
+    QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), true);
+
+    SGIItemBasePtr item;
+    SGIHostItemQt hostItem(lib);
+    sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
+    QVERIFY(item.valid());
+    sgi::IImagePreviewDialogPtr dlgIface = sgi::showImagePreviewDialog<sgi::autoload::Qt>(NULL, item);
+    QVERIFY(dlgIface != NULL);
+    QDialog * dlg = dlgIface->getDialog();
+    dlg->show();
+    dlg->close();
+
+    dlgIface = NULL;
+    item = NULL;
+
+    sgi::autoload::Qt::sgiLibraryUnload();
+    QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
+    QCOMPARE(TestItem::getTotalItemCount(), 0u);
 }
 
 QTEST_MAIN(item_unittest)
