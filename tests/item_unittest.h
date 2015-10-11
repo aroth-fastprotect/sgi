@@ -6,6 +6,9 @@ class item_unittest : public QObject
 {
     Q_OBJECT
 private slots:
+    void initTestCase();
+    void cleanupTestCase();
+
     void verifyRefPtr();
     void insertItemSingle();
     void insertItemTwoChains();
@@ -14,5 +17,8 @@ private slots:
     void autoLoadOsg();
     void autoLoadQt();
 
-    void write_html();
+    void writePrettyHTML();
+
+    void sceneGraphDialog();
+    void contextMenu();
 };

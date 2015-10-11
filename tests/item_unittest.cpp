@@ -1,11 +1,15 @@
 #include "item_unittest.h"
 #include "item_unittest.moc"
 
-#include <QtCore/QDebug>
+#include <QDebug>
+#include <QDialog>
+#include <QMenu>
 
 #define SGI_NO_HOSTITEM_GENERATOR
 #include <sgi/GenerateItem>
 #include <sgi/WritePrettyHTML>
+#include <sgi/SceneGraphDialog>
+#include <sgi/ContextMenu>
 #include <sgi/AutoLoadOsg>
 #include <sgi/AutoLoadQt>
 #include <sgi/plugins/SGIHostItemQt.h>
@@ -31,6 +35,14 @@ public:
     {
     }
 };
+
+void item_unittest::initTestCase()
+{
+}
+
+void item_unittest::cleanupTestCase()
+{
+}
 
 void item_unittest::verifyRefPtr()
 {
@@ -202,7 +214,7 @@ void item_unittest::autoLoadQt()
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
 }
 
-void item_unittest::write_html()
+void item_unittest::writePrettyHTML()
 {
     QCOMPARE(TestItem::getTotalItemCount(), 0u);
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
@@ -225,8 +237,65 @@ void item_unittest::write_html()
     QVERIFY(!ss.str().empty());
     //qDebug() << ss.str();
 
+    item = NULL;
+
     sgi::autoload::Qt::sgiLibraryUnload();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
+    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+}
+
+void item_unittest::sceneGraphDialog()
+{
+    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
+
+    auto lib = sgi::autoload::Qt::sgiLibrary();
+    QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), true);
+
+    SGIItemBasePtr item;
+    SGIHostItemQt hostItem(lib);
+    sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
+    QVERIFY(item.valid());
+    sgi::ISceneGraphDialogPtr dlgIface = sgi::showSceneGraphDialog<sgi::autoload::Qt>(NULL, item);
+    QVERIFY(dlgIface != NULL);
+    QDialog * dlg = dlgIface->getDialog();
+    dlg->exec();
+
+    dlgIface = NULL;
+    item = NULL;
+
+    sgi::autoload::Qt::sgiLibraryUnload();
+    QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
+    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+}
+
+void item_unittest::contextMenu()
+{
+    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
+
+    auto lib = sgi::autoload::Qt::sgiLibrary();
+    QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), true);
+
+    SGIItemBasePtr item;
+    SGIHostItemQt hostItem(lib);
+    sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
+    QVERIFY(item.valid());
+    sgi::IContextMenuPtr ctxIface = sgi::createContextMenu<sgi::autoload::Qt>(NULL, item);
+    QVERIFY(ctxIface != NULL);
+    QMenu * menu = ctxIface->getMenu();
+    menu->exec();
+    ctxIface->setObject((SGIItemBase*)NULL);
+
+    QCOMPARE(getRefCount(ctxIface.get()), 1u);
+    // release the menu
+    ctxIface = NULL;
+    item = NULL;
+
+    sgi::autoload::Qt::sgiLibraryUnload();
+    QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
+    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+
 }
 
 QTEST_MAIN(item_unittest)
