@@ -6,9 +6,9 @@
 
 namespace sgi {
 
-    namespace qt_helpers {
-        class QtSGIItem;
-    }
+namespace qt_helpers {
+    class QtSGIItem;
+}
 
 class SGIItemBase;
 class SGIHostItemBase;
@@ -38,6 +38,7 @@ protected:
 
 protected slots:
     void                            slotPopulateItemMenu();
+    void                            slotClearItemMenu();
     void                            slotSimpleItemAction();
     void                            slotBoolItemAction(bool newState);
     void                            slotActionGroup(QAction * action);
@@ -55,7 +56,8 @@ protected:
     class ContextMenuImpl;
 
 protected:
-    IContextMenuPtr      _interface;
+    // use a simple raw-ptr to the interface to avoid a circular ref-ptr
+    IContextMenu *       _interface;
     SGIItemBasePtr       _item;
     IContextMenuInfoPtr  _info;
     bool                 _onlyRootItem;
@@ -79,7 +81,8 @@ protected:
     class ContextMenuQtImpl;
 
 protected:
-    IContextMenuQtPtr       _interface;
+    // use a simple raw-ptr to the interface to avoid a circular ref-ptr
+    IContextMenuQt *        _interface;
     SGIItemBasePtr          _item;
     QObject *               _qobject;
     IContextMenuInfoQtPtr   _info;

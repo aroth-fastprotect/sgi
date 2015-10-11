@@ -11,6 +11,8 @@
 #include <QDesktopWidget>
 #include <QTimer>
 
+#include <QDebug>
+
 #include "sgi/plugins/SGIPluginInterface.h"
 #include "sgi/plugins/SGIProxyItem.h"
 
@@ -205,6 +207,29 @@ void SceneGraphDialog::init()
 
     updatePathComboBox();
     reload();
+}
+
+void SceneGraphDialog::closeEvent(QCloseEvent * event)
+{
+    delete _comboBoxPath;
+    delete ui->treeWidget;
+    delete ui->textEdit;
+
+    _toolsMenu->setObject((SGIItemBase*)NULL);
+    delete _toolsMenu;
+    _itemSelf = NULL;
+    _interface = NULL;
+    _item = NULL;
+    _itemPath.clear();
+    _info = NULL;
+    _contextMenu = NULL;
+    _contextMenuCallback = NULL;
+    _toolsMenuInterface = NULL;
+    _itemToolsMenu = NULL;
+    _rootTreeItem = NULL;
+    _selectedTreeItem = NULL;
+
+    QDialog::closeEvent(event);
 }
 
 void SceneGraphDialog::showBesideParent()

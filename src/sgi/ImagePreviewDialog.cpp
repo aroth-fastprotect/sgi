@@ -254,6 +254,7 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
 ImagePreviewDialog::ImagePreviewDialogImpl::~ImagePreviewDialogImpl()
 {
 	delete ui;
+    delete _dialog;
 }
 
 void ImagePreviewDialog::ImagePreviewDialogImpl::refresh()

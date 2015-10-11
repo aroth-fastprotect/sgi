@@ -15,6 +15,8 @@ QT_END_NAMESPACE
 namespace sgi {
 
 class IContextMenuItem;
+class IContextMenu;
+typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
 class IObjectTreeItem;
 class ObjectTreeItem;
 class ContextMenu;
@@ -96,6 +98,8 @@ protected:
 
     void                    selectItemInPathBox();
 
+    virtual void            closeEvent(QCloseEvent * event) override;
+
 private:
     void                    init();
     void                    updatePathComboBox();
@@ -105,7 +109,8 @@ private:
 
 protected:  // for now
 	SGIItemBasePtr                      _itemSelf;
-    ISceneGraphDialogPtr                _interface;
+    // use a simple raw-ptr to the interface to avoid a circular ref-ptr
+    ISceneGraphDialog *                 _interface;
     SGIItemBasePtr                      _item;
     SGIItemBasePtrPath                  _itemPath;
 	osg::ref_ptr<ISceneGraphDialogInfo> _info;
@@ -115,7 +120,7 @@ protected:  // for now
     QAction *                           _actionItemPrevious;
     QAction *                           _actionItemNext;
     QComboBox *                         _comboBoxPath;
-    osg::ref_ptr<IContextMenu>          _contextMenu;
+    IContextMenuPtr                     _contextMenu;
     osg::ref_ptr<ContextMenuCallback>   _contextMenuCallback;
     QSpinBox *                          _spinBoxRefreshTime;
     QTimer *                            _refreshTimer;

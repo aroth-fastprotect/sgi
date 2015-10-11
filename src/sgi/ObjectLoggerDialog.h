@@ -17,6 +17,8 @@ namespace sgi {
 class SGIPluginHostInterface;
 class ObjectTreeItem;
 class IObjectLogger;
+class IContextMenu;
+typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
 
 class ObjectLoggerDialog : public QDialog
 {
@@ -92,7 +94,7 @@ private:
 private:
     Ui_ObjectLoggerDialog *             ui;
     SGIPluginHostInterface *            _hostInterface;
-    IObjectLoggerDialogPtr              _interface;
+    IObjectLoggerDialog *               _interface;
     IObjectLoggerPtr                    _logger;
     SGIItemBasePtr                      _item;
     IObjectLoggerDialogInfoPtr          _info;
@@ -100,7 +102,7 @@ private:
     QAction *                           _actionReload;
     QSpinBox *                          _spinBoxRefreshTime;
     QTimer *                            _refreshTimer;
-    osg::ref_ptr<IContextMenu>          _contextMenu;
+    IContextMenuPtr                     _contextMenu;
     osg::ref_ptr<ContextMenuCallback>   _contextMenuCallback;
     osg::ref_ptr<SceneGraphDialogInfo>  _sceneGraphDialogInfo;
     OperationQueue *                    _queuedOperations;

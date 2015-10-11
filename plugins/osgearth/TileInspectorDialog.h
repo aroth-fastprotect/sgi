@@ -22,6 +22,8 @@ typedef osg::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
 
 class IObjectTreeImpl;
 typedef osg::ref_ptr<IObjectTreeImpl> IObjectTreeImplPtr;
+class IContextMenu;
+typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
 
 namespace osgearth_plugin {
 
@@ -83,7 +85,7 @@ private:
     ISettingsDialogInfoPtr          _info;
     IObjectTreeItemPtr              _treeRoot;
     IObjectTreeImplPtr              _treeImpl;
-    osg::ref_ptr<IContextMenu>          _contextMenu;
+    IContextMenuPtr                 _contextMenu;
     osg::ref_ptr<ContextMenuCallback>   _contextMenuCallback;
     osg::ref_ptr<SGIItemOsg>        _item;
     SGIItemBasePtrVector            _tiles;

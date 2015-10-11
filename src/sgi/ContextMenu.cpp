@@ -25,15 +25,19 @@ public:
     {
     }
     ContextMenuItem(const ContextMenuItem & item)
-        : _contextMenu(item._contextMenu), _menu(item._menu), _actionGroup(item._actionGroup)
+        : _contextMenu(item._contextMenu), _menu(item._menu), _actionGroup(item._actionGroup), _childs(item._childs)
     {
     }
 
     virtual ~ContextMenuItem()
     {
-        _childs.clear();
     }
 
+    void clear()
+    {
+        _menu->clear();
+        _childs.clear();
+    }
     void addSeparator()
     {
         _menu->addSeparator();
@@ -162,7 +166,8 @@ protected:
 
         newMenu->setTitle(itemText);
         newMenu->menuAction()->setData(QVariant::fromValue(itemData));
-        connect(newMenu, SIGNAL(aboutToShow()), _contextMenu, SLOT(slotPopulateItemMenu()));
+        connect(newMenu, &QMenu::aboutToShow, _contextMenu, &ContextMenu::slotPopulateItemMenu);
+        connect(newMenu, &QMenu::aboutToHide, _contextMenu, &ContextMenu::slotClearItemMenu);
         // ... and finally add the new sub-menu to the menu
         _menu->addMenu(newMenu);
         return addChild(new ContextMenuItem(_contextMenu, newMenu));
@@ -309,6 +314,8 @@ class ContextMenu::ContextMenuImpl : public IContextMenu
 public:
     ContextMenuImpl(ContextMenu * menu)
         : _menu(menu) {}
+    ~ContextMenuImpl()
+        { delete _menu; }
 
     virtual QWidget *               parentWidget() { return _menu->parentWidget(); }
     virtual QMenu *                 getMenu() { return _menu; }
@@ -327,7 +334,8 @@ ContextMenu::ContextMenu(bool onlyRootItem, QWidget * parent)
     , _info(NULL)
     , _onlyRootItem(onlyRootItem)
 {
-    connect(this, SIGNAL(aboutToShow()), this, SLOT(slotPopulateItemMenu()));
+    connect(this, &QMenu::aboutToShow, this, &ContextMenu::slotPopulateItemMenu);
+    connect(this, &QMenu::aboutToHide, this, &ContextMenu::slotClearItemMenu);
 }
 
 ContextMenu::ContextMenu(SGIItemBase * item, IContextMenuInfo* info, bool onlyRootItem, QWidget *parent)
@@ -338,7 +346,8 @@ ContextMenu::ContextMenu(SGIItemBase * item, IContextMenuInfo* info, bool onlyRo
     , _onlyRootItem(onlyRootItem)
 {
     populate();
-    connect(this, SIGNAL(aboutToShow()), this, SLOT(slotPopulateItemMenu()));
+    connect(this, &QMenu::aboutToShow, this, &ContextMenu::slotPopulateItemMenu);
+    connect(this, &QMenu::aboutToHide, this, &ContextMenu::slotClearItemMenu);
 }
 
 ContextMenu::~ContextMenu()
@@ -355,14 +364,17 @@ void ContextMenu::showSceneGraphDialog(SGIItemBase * item)
 
 void ContextMenu::populate()
 {
-    if(!_item.valid())
-        return;
-    std::string displayName;
-    SGIPlugins::instance()->getObjectDisplayName(displayName, _item.get());
-    setTitle(fromLocal8Bit(displayName));
+    if(_item.valid())
+    {
+        std::string displayName;
+        SGIPlugins::instance()->getObjectDisplayName(displayName, _item.get());
+        setTitle(fromLocal8Bit(displayName));
 
-    QtMenuSGIItem data(_item);
-    menuAction()->setData(QVariant::fromValue(data));
+        QtMenuSGIItem data(_item);
+        menuAction()->setData(QVariant::fromValue(data));
+    }
+    else
+        menuAction()->setData(QVariant());
 }
 
 IContextMenuInfo * ContextMenu::getInfo()
@@ -385,6 +397,20 @@ void ContextMenu::slotPopulateItemMenu()
             bool onlyRootItem = (menu == this)?_onlyRootItem:true;
             SGIPlugins::instance()->contextMenuPopulate(&menuItem, itemData.item(), onlyRootItem);
             menu->blockSignals(false);
+        }
+    }
+}
+
+void ContextMenu::slotClearItemMenu()
+{
+    QMenu * menu = qobject_cast<QMenu *>(sender());
+    if(menu)
+    {
+        QAction * action = menu->menuAction();
+        QtMenuSGIItem itemData = action->data().value<QtMenuSGIItem>();
+        if(itemData.hasItem())
+        {
+            menu->clear();
         }
     }
 }
@@ -443,6 +469,8 @@ class ContextMenuQt::ContextMenuQtImpl : public IContextMenuQt
 public:
     ContextMenuQtImpl(ContextMenuQt * menu)
         : _menu(menu) {}
+    virtual ~ContextMenuQtImpl()
+        { delete _menu;}
 
     virtual QWidget *               parentWidget() { return _menu->parentWidget(); }
     virtual QMenu *                 getMenu() { return _menu->getMenu(); }

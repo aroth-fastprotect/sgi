@@ -66,7 +66,8 @@ private:
 private:
 	Ui_CameraSettings *	        ui;
     osg::ref_ptr<osg::Camera>   _camera;
-    ISettingsDialogPtr _interface;
+    // use a simple raw-ptr to the interface to avoid a circular ref-ptr
+    ISettingsDialog * _interface;
     QTimer * _timer;
 };
 

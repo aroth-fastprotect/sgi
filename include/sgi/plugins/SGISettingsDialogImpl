@@ -28,6 +28,8 @@ class SettingsDialogImplT : public ISettingsDialog
 public:
     SettingsDialogImplT(DIALOG_CLASS * dialog)
         : _dialog(dialog), _setObject(dialog) {}
+    virtual ~SettingsDialogImplT()
+        { delete _dialog; }
 
     virtual void            setObject(SGIItemBase * item, ISettingsDialogInfo * info=NULL) { _setObject.setObject(item, info); }
     virtual void            setObject(const SGIHostItemBase * item, ISettingsDialogInfo * info=NULL) { _setObject.setObject(item, info); }

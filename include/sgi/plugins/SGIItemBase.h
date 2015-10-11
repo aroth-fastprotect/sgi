@@ -115,59 +115,13 @@ public:
     template<typename ANOTHER_ITEMTYPE>
     ANOTHER_ITEMTYPE * clone(SGIItemType newType=SGIItemTypeInvalid, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
     {
-        SGIItemBasePtr ret;
-        SGIItemBasePtr previous_cloned;
-        SGIItemBasePtr current = this;
-        SGIItemBasePtr safe_this = this;
-        while(current.valid())
-        {
-            SGIItemBasePtr clonedItem = (SGIItemBase*)current->clone(copyop);
-            if(newType!=SGIItemTypeInvalid)
-                clonedItem->setType(newType);
-            if(!ret.valid())
-            {
-                // we always return the first cloned item
-                ret = clonedItem;
-            }
-            if(previous_cloned.valid())
-            {
-                previous_cloned->_next = clonedItem;
-                clonedItem->_prev = previous_cloned;
-            }
-            // remember the item cloned in the last loop
-            previous_cloned = clonedItem;
-            current = current->nextBase();
-        }
-        return static_cast<ANOTHER_ITEMTYPE *>(ret.release());
+        return static_cast<ANOTHER_ITEMTYPE *>(cloneImpl(newType, copyop));
     }
 
     template<typename ANOTHER_ITEMTYPE>
     ANOTHER_ITEMTYPE * clone(SGIItemType newType, unsigned number, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
     {
-        SGIItemBasePtr ret;
-        SGIItemBasePtr previous_cloned;
-        SGIItemBasePtr current = this;
-        while(current.valid())
-        {
-            SGIItemBasePtr clonedItem = (SGIItemBase*)current->clone(copyop);
-            if(newType!=SGIItemTypeInvalid)
-                clonedItem->setType(newType);
-            clonedItem->setNumber(number);
-            if(!ret.valid())
-            {
-                // we always return the first cloned item
-                ret = clonedItem;
-            }
-            if(previous_cloned.valid())
-            {
-                previous_cloned->_next = clonedItem;
-                clonedItem->_prev = previous_cloned;
-            }
-            // remember the item cloned in the last loop
-            previous_cloned = clonedItem;
-            current = current->nextBase();
-        }
-        return static_cast<ANOTHER_ITEMTYPE *>(ret.release());
+        return static_cast<ANOTHER_ITEMTYPE *>(cloneImpl(newType, number, copyop));
     }
 
     template<typename ANOTHER_ITEMTYPE>
@@ -216,8 +170,10 @@ public:
 protected:
     virtual int compare(const SGIItemBase & rhs) const;
 
-    SGIItemBase * cloneImpl(SGIItemType newType, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY);
-    SGIItemBase * cloneImpl(SGIItemType newType, unsigned number, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY);
+    SGIItemBase * cloneImpl(SGIItemType newType, const osg::CopyOp & copyop);
+    SGIItemBase * cloneImpl(SGIItemType newType, unsigned number, const osg::CopyOp & copyop);
+    SGIItemBase * cloneImpl(SGIItemType newType, osg::Referenced * userData, const osg::CopyOp & copyop);
+    SGIItemBase * cloneImpl(SGIItemType newType, unsigned number, osg::Referenced * userData, const osg::CopyOp & copyop);
 
 protected:
     SGIItemType             _type;
@@ -231,6 +187,18 @@ private:
     unsigned                _number;
     osg::ref_ptr<osg::Referenced> _userData;
 };
+
+namespace internal {
+    class ReferencedAccess : public osg::Referenced {
+    public:
+        unsigned getRefCount() const { return _refCount; }
+    };
+}
+
+template<typename T>
+unsigned getRefCount(const T * ref) {
+    return static_cast<const internal::ReferencedAccess*>(static_cast<const osg::Referenced*>(ref))->getRefCount();
+}
 
 template<typename T>
 class ReferencedDataT : public osg::Referenced

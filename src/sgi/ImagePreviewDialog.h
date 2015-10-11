@@ -21,6 +21,8 @@ namespace sgi {
 class Image;
 typedef osg::ref_ptr<Image> ImagePtr;
 class SGIPluginHostInterface;
+class IContextMenu;
+typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
 
 class ImagePreviewDialog : public QDialog
 {
@@ -86,9 +88,10 @@ protected:
     ConstImagePtr                   _image;
     SGIPluginHostInterface *        _hostInterface;
     ImagePreviewDialogImpl *        _priv;
-    IImagePreviewDialogPtr          _interface;
+    // use a simple raw-ptr to the interface to avoid a circular ref-ptr
+    IImagePreviewDialog *           _interface;
     osg::ref_ptr<IImagePreviewDialogInfo> _info;
-    osg::ref_ptr<IContextMenu>          _contextMenu;
+    IContextMenuPtr                 _contextMenu;
     osg::ref_ptr<ContextMenuCallback>   _contextMenuCallback;
     bool                            _firstShow;
 
