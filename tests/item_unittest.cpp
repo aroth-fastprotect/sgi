@@ -286,7 +286,8 @@ void item_unittest::contextMenu()
     sgi::IContextMenuPtr ctxIface = sgi::createContextMenu<sgi::autoload::Qt>(NULL, item);
     QVERIFY(ctxIface != NULL);
     QMenu * menu = ctxIface->getMenu();
-    menu->exec();
+    menu->show();
+    menu->hide();
     ctxIface->setObject((SGIItemBase*)NULL);
 
     QCOMPARE(getRefCount(ctxIface.get()), 1u);
@@ -307,15 +308,21 @@ void item_unittest::imagePreviewDialog()
     auto lib = sgi::autoload::Qt::sgiLibrary();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), true);
 
+    QPixmap * pm = new QPixmap(QLatin1String("/usr/share/pixmaps/putty.png"));
+
     SGIItemBasePtr item;
+    //SGIHostItemQtPaintDevice hostItem(pm);
+    //sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
     SGIHostItemQt hostItem(lib);
     sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
+
     QVERIFY(item.valid());
     sgi::IImagePreviewDialogPtr dlgIface = sgi::showImagePreviewDialog<sgi::autoload::Qt>(NULL, item);
     QVERIFY(dlgIface != NULL);
     QDialog * dlg = dlgIface->getDialog();
     dlg->show();
     dlg->close();
+    //dlg->exec();
 
     dlgIface = NULL;
     item = NULL;
