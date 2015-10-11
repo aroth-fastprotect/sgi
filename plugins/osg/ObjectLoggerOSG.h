@@ -27,15 +27,15 @@ public:
     META_Object(sgi, ObjectLogger);
 
 public:
-    static ObjectLogger * getLogger(SGIItemBase * item);
-    static ObjectLogger * getOrCreateLogger(SGIItemBase * item, SGIPluginHostInterface * hostInterface);
+    static ObjectLogger *   getLogger(SGIItemBase * item);
+    static ObjectLogger *   getOrCreateLogger(SGIItemBase * item, SGIPluginHostInterface * hostInterface);
 
-    virtual bool                addItem(SGIItemBase * item, bool alsoChilds);
-    virtual bool                removeItem(SGIItemBase * item);
+    bool                    addItem(SGIItemBase * item, bool alsoChilds) override;
+    bool                    removeItem(SGIItemBase * item) override;
 
-    bool                isNodeActive(osg::Node * node) const;
+    bool                    isNodeActive(osg::Node * node) const;
 
-    virtual IObjectLoggerDialog * getOrCreateDialog(QWidget *parent, IObjectLoggerDialogInfo * info);
+    IObjectLoggerDialog *   getOrCreateDialog(QWidget *parent, IHostCallback * callback) override;
 
 protected:
     static ObjectLogger * getLoggerFromCamera(osg::Camera * camera);

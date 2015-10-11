@@ -15,6 +15,7 @@ namespace sgi {
 
 class SGIItemBase;
 class SGIPluginHostInterface;
+class IHostCallback;
 
 namespace details {
     template<bool value_>
@@ -371,6 +372,11 @@ public:
         return ret;
     }
 
+    IHostCallback * hostCallback() const
+    {
+        return _hostCallback;
+    }
+
     SGIItemType itemType() const
     {
         return _item->type();
@@ -382,6 +388,7 @@ public:
 
 protected:
     SGIPluginHostInterface * _hostInterface;
+    IHostCallback * _hostCallback;
     SGIItemBasePtr _item;
 };
 

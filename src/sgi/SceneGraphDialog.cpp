@@ -33,30 +33,12 @@ namespace sgi {
 
 using namespace qt_helpers;
 
-class SceneGraphDialog::ContextMenuCallback : public IContextMenuInfo
+
+class SceneGraphDialog::HostCallback : public HostCallbackFilterT<ISceneGraphDialog>
 {
 public:
-    ContextMenuCallback(SceneGraphDialog * dialog)
-        : _dialog(dialog) {}
-public:
-    virtual SGIItemBase * getView()
-    {
-        return _dialog->getView();
-    }
-    virtual void            triggerRepaint()
-    {
-        _dialog->triggerRepaint();
-    }
-    virtual bool            showSceneGraphDialog(SGIItemBase * item)
-    {
-        return _dialog->newInstance(item);
-    }
-    virtual bool            showObjectLoggerDialog(SGIItemBase * item)
-    {
-        return _dialog->showObjectLoggerDialog(item);
-    }
-private:
-    SceneGraphDialog * _dialog;
+   HostCallback(IHostCallback * original, SceneGraphDialog * dialog)
+        : HostCallbackFilterT<ISceneGraphDialog>(original, dialog->_interface) {}
 };
 
 class SceneGraphDialog::SceneGraphDialogImpl : public ISceneGraphDialog
@@ -66,9 +48,10 @@ public:
         : _dialog(dialog) {}
     virtual                 ~SceneGraphDialogImpl() {}
     virtual QDialog *       getDialog() { return _dialog; }
+    virtual IHostCallback * getHostCallback() { return _dialog->_hostCallback; }
     virtual IContextMenu *  toolsMenu() { return _dialog->toolsMenu(); }
-    virtual void            setObject(SGIItemBase * item, ISceneGraphDialogInfo * info=NULL) { _dialog->setObject(item, info); }
-    virtual void            setObject(const SGIHostItemBase * item, ISceneGraphDialogInfo * info=NULL) { _dialog->setObject(item, info); }
+    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=NULL) { _dialog->setObject(item, callback); }
+    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=NULL) { _dialog->setObject(item, callback); }
     virtual void            show() { emit _dialog->triggerShow(); }
     virtual void            hide() { emit _dialog->triggerHide(); }
     virtual bool            isVisible() { return _dialog->isVisible(); }
@@ -76,7 +59,6 @@ public:
     virtual IObjectTreeItem * selectedItem() { return _dialog->selectedItem(); }
     virtual IObjectTreeItem * rootItem() { return _dialog->rootItem(); }
     virtual void            setInfoText(const std::string & text) { return _dialog->setInfoText(text); }
-    virtual ISceneGraphDialogInfo * getInfo() { return _dialog->_info; }
 	virtual SGIItemBase *   item() const { return _dialog->item(); }
 	virtual const SGIItemBasePtrPath & itemPath() const { return _dialog->itemPath(); }
 
@@ -97,19 +79,18 @@ private:
     SceneGraphDialog * _dialog;
 };
 
-SceneGraphDialog::SceneGraphDialog(SGIItemBase * item, ISceneGraphDialogInfo * info, QWidget *parent, Qt::WindowFlags f)
+SceneGraphDialog::SceneGraphDialog(SGIItemBase * item, IHostCallback * callback, QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
 	, ui(NULL)
     , _interface(new SceneGraphDialogImpl(this))
     , _item(item)
-	, _info(info)
+	, _hostCallback(new HostCallback(callback, this))
     , _toolBar(NULL)
     , _actionReload(NULL)
     , _actionReloadSelected(NULL)
     , _actionItemPrevious(NULL)
     , _actionItemNext(NULL)
     , _contextMenu()
-    , _contextMenuCallback()
     , _spinBoxRefreshTime(NULL)
     , _refreshTimer(NULL)
     , _toolsMenu()
@@ -221,9 +202,8 @@ void SceneGraphDialog::closeEvent(QCloseEvent * event)
     _interface = NULL;
     _item = NULL;
     _itemPath.clear();
-    _info = NULL;
+    _hostCallback = NULL;
     _contextMenu = NULL;
-    _contextMenuCallback = NULL;
     _toolsMenuInterface = NULL;
     _itemToolsMenu = NULL;
     _rootTreeItem = NULL;
@@ -283,18 +263,18 @@ IContextMenu * SceneGraphDialog::toolsMenu()
     return _toolsMenu->menuInterface();
 }
 
-void SceneGraphDialog::setObject(const SGIHostItemBase * hostitem, ISceneGraphDialogInfo * info)
+void SceneGraphDialog::setObject(const SGIHostItemBase * hostitem, IHostCallback * callback)
 {
     SGIItemBasePtr item;
     if(SGIPlugins::instance()->generateItem(item, hostitem))
-        setObject(item.get(), info);
+        setObject(item.get(), callback);
 }
 
-void SceneGraphDialog::setObject(SGIItemBase * item, ISceneGraphDialogInfo * info)
+void SceneGraphDialog::setObject(SGIItemBase * item, IHostCallback * callback)
 {
     _item = item;
-	if(info)
-		_info = info;
+	if(callback)
+		_hostCallback = callback;
     emit triggerOnObjectChanged();
 }
 
@@ -573,52 +553,47 @@ void SceneGraphDialog::onItemContextMenu(QPoint pt)
     {
         itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
 
-        QMenu * contextMenu = NULL;
-        if (!_contextMenuCallback)
-            _contextMenuCallback = new ContextMenuCallback(this);
-
-        IContextMenu * objectMenu = NULL;
-        if (_info)
-            objectMenu = _info->contextMenu(this, itemData.item(), _contextMenuCallback);
+        QMenu * contextQMenu = NULL;
+        IContextMenuPtr objectMenu = _hostCallback->contextMenu(this, itemData.item());
         if (!objectMenu)
         {
             if (_contextMenu)
             {
-                _contextMenu->setObject(itemData.item(), _contextMenuCallback);
+                _contextMenu->setObject(itemData.item());
                 objectMenu = _contextMenu;
             }
             else
             {
-                objectMenu = SGIPlugins::instance()->createContextMenu(this, itemData.item(), _contextMenuCallback);
+                objectMenu = SGIPlugins::instance()->createContextMenu(this, itemData.item(), _hostCallback);
             }
         }
 
         if (objectMenu)
-            contextMenu = objectMenu->getMenu();
+            contextQMenu = objectMenu->getMenu();
 
         _contextMenu = objectMenu;
 
-        if (contextMenu)
+        if (contextQMenu)
         {
             pt.ry() += ui->treeWidget->header()->height();
             QPoint globalPos = ui->treeWidget->mapToGlobal(pt);
-            contextMenu->popup(globalPos);
+            contextQMenu->popup(globalPos);
         }
     }
 }
 
 SGIItemBase * SceneGraphDialog::getView()
 {
-    if(_info)
-        return _info->getView();
+    if(_hostCallback)
+        return _hostCallback->getView();
     else
         return NULL;
 }
 
 void SceneGraphDialog::triggerRepaint()
 {
-    if(_info)
-        _info->triggerRepaint();
+    if(_hostCallback)
+        _hostCallback->triggerRepaint();
 }
 
 bool SceneGraphDialog::newInstance(SGIItemBase * item)
@@ -627,7 +602,7 @@ bool SceneGraphDialog::newInstance(SGIItemBase * item)
     // only open a new instance when the object is different
     if(_item != item && *_item.get() != *item)
     {
-        ISceneGraphDialog * dlg = SGIPlugins::instance()->showSceneGraphDialog(parentWidget(), item, _info);
+        ISceneGraphDialog * dlg = SGIPlugins::instance()->showSceneGraphDialog(parentWidget(), item, _hostCallback);
         if(dlg)
             dlg->show();
         ret = (dlg != NULL);
@@ -654,7 +629,7 @@ bool SceneGraphDialog::newInstance(const SGIHostItemBase * hostitem)
 
 bool SceneGraphDialog::showObjectLoggerDialog(SGIItemBase * item)
 {
-    return _info->showObjectLoggerDialog(item);
+    return _hostCallback->showObjectLoggerDialog(this, item);
 }
 
 bool SceneGraphDialog::showObjectLoggerDialog(const SGIHostItemBase * hostitem)

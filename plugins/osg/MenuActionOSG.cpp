@@ -208,9 +208,9 @@ using namespace sgi::osg_helpers;
 
 bool actionHandlerImpl<MenuActionObjectInfo>::execute()
 {
-    IContextMenuInfo * info = menuInfo();
-    if(info)
-        info->showSceneGraphDialog(_item->rootBase());
+    IHostCallback * callback = hostCallback();
+    if(callback)
+        callback->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());
     else
     {
         ISceneGraphDialog * dlg = _hostInterface->showSceneGraphDialog(menu()->parentWidget(), _item->rootBase());
@@ -349,9 +349,9 @@ bool actionHandlerImpl<MenuActionNodeLookAt>::execute()
     SGIHostItemOsg viewpointItem(new ReferencedSetViewNodeLookAt(SetViewNodeLookAt(object, mode)));
 
     SGIItemBasePtr view;
-    IContextMenuInfo * info = menuAction()->menu()->getInfo();
-    if(info)
-        view = info->getView();
+    IHostCallback * callback = hostCallback();
+    if(callback)
+        view = callback->getView();
     _hostInterface->setView(view, &viewpointItem);
     return true;
 }
@@ -436,9 +436,9 @@ bool actionHandlerImpl<MenuActionNodeStripTextures>::execute()
 
 bool actionHandlerImpl<MenuActionObjectLogger>::execute()
 {
-    IContextMenuInfo * info = menuInfo();
-    if(info)
-        info->showObjectLoggerDialog(_item->rootBase());
+    IHostCallback * callback = hostCallback();
+    if(callback)
+        callback->showObjectLoggerDialog(menu()->parentWidget(), _item->rootBase());
     else
     {
         IObjectLoggerDialogPtr dialog = _hostInterface->showObjectLoggerDialog(menu()->parentWidget(), _item->rootBase());
@@ -486,7 +486,7 @@ bool actionHandlerImpl<MenuActionObjectLoggerActive>::execute()
     }
     else
     {
-        menuInfo()->showObjectLoggerDialog(_item->rootBase());
+        hostCallback()->showObjectLoggerDialog(menu()->parentWidget(), _item->rootBase());
     }
     return true;
 }
@@ -855,7 +855,7 @@ bool actionHandlerImpl<MenuActionCameraCullSettings>::execute()
 {
     ISettingsDialogPtr dialog;
     bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogCamera, menu()->parentWidget());
+    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogCamera, menu()->parentWidget(), _hostCallback);
     ret = _hostInterface->openSettingsDialog(dialog, _item, info);
     if(ret)
     {

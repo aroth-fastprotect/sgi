@@ -42,49 +42,49 @@ void sgi_shutdown()
     sgi::SGIPlugins::instance(true);
 }
 
-sgi::ISceneGraphDialog * sgi_showSceneGraphDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::ISceneGraphDialogInfo * info)
+sgi::ISceneGraphDialog * sgi_showSceneGraphDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IHostCallback * callback)
 {
-    return sgi::SGIPlugins::instance()->showSceneGraphDialog(parent, object, info);
+    return sgi::SGIPlugins::instance()->showSceneGraphDialog(parent, object, callback);
 }
 
-sgi::ISceneGraphDialog * sgi_showSceneGraphDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::ISceneGraphDialogInfo * info)
+sgi::ISceneGraphDialog * sgi_showSceneGraphDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IHostCallback * callback)
 {
-    return sgi::SGIPlugins::instance()->showSceneGraphDialog(parent, item, info);
+    return sgi::SGIPlugins::instance()->showSceneGraphDialog(parent, item, callback);
 }
 
-sgi::IObjectLoggerDialog* sgi_showObjectLoggerDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IObjectLoggerDialogInfo * info)
+sgi::IObjectLoggerDialog* sgi_showObjectLoggerDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IHostCallback * callback)
 {
-    return sgi::SGIPlugins::instance()->showObjectLoggerDialog(parent, object, info);
+    return sgi::SGIPlugins::instance()->showObjectLoggerDialog(parent, object, callback);
 }
 
-sgi::IObjectLoggerDialog* sgi_showObjectLoggerDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IObjectLoggerDialogInfo * info)
+sgi::IObjectLoggerDialog* sgi_showObjectLoggerDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IHostCallback * callback)
 {
-    return sgi::SGIPlugins::instance()->showObjectLoggerDialog(parent, item, info);
+    return sgi::SGIPlugins::instance()->showObjectLoggerDialog(parent, item, callback);
 }
 
-sgi::IImagePreviewDialog * sgi_showImagePreviewDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IImagePreviewDialogInfo * info)
+sgi::IImagePreviewDialog * sgi_showImagePreviewDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IHostCallback * callback)
 {
-    return sgi::SGIPlugins::instance()->showImagePreviewDialog(parent, object, info);
+    return sgi::SGIPlugins::instance()->showImagePreviewDialog(parent, object, callback);
 }
 
-sgi::IImagePreviewDialog * sgi_showImagePreviewDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IImagePreviewDialogInfo * info)
+sgi::IImagePreviewDialog * sgi_showImagePreviewDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IHostCallback * callback)
 {
-    return sgi::SGIPlugins::instance()->showImagePreviewDialog(parent, item, info);
+    return sgi::SGIPlugins::instance()->showImagePreviewDialog(parent, item, callback);
 }
 
-sgi::IContextMenu * sgi_createContextMenu(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IContextMenuInfo * info)
+sgi::IContextMenu * sgi_createContextMenu(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IHostCallback * callback)
 {
-    return sgi::SGIPlugins::instance()->createContextMenu(parent, object, info);
+    return sgi::SGIPlugins::instance()->createContextMenu(parent, object, callback);
 }
 
-sgi::IContextMenu * sgi_createContextMenuItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IContextMenuInfo * info)
+sgi::IContextMenu * sgi_createContextMenuItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IHostCallback * callback)
 {
-    return sgi::SGIPlugins::instance()->createContextMenu(parent, item, info);
+    return sgi::SGIPlugins::instance()->createContextMenu(parent, item, callback);
 }
 
-sgi::IContextMenuQt * sgi_createContextMenuItemQt(QWidget *parent, QObject * item, sgi::IContextMenuInfoQt * info)
+sgi::IContextMenuQt * sgi_createContextMenuItemQt(QWidget *parent, QObject * item, sgi::IHostCallback * callback)
 {
-    return sgi::SGIPlugins::instance()->createContextMenu(parent, item, info);
+    return sgi::SGIPlugins::instance()->createContextMenu(parent, item, callback);
 }
 
 void sgi_writePrettyHTML(std::basic_ostream<char>& os, const sgi::SGIHostItemBase * object, bool table)

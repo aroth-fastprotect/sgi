@@ -544,56 +544,7 @@ namespace {
 			return NULL;
 		return findMapNode(dynamic_cast<SGIItemOsg*>(item));
 	}
-}
-
-
-class TileInspectorDialog::ContextMenuCallback : public IContextMenuInfo
-{
-public:
-    ContextMenuCallback(TileInspectorDialog * dialog)
-        : _dialog(dialog) {}
-public:
-    virtual SGIItemBase * getView()
-    {
-        return _dialog->getView();
-    }
-    virtual void            triggerRepaint()
-    {
-        _dialog->triggerRepaint();
-    }
-    virtual bool            showSceneGraphDialog(SGIItemBase * item)
-    {
-        return _dialog->showSceneGraphDialog(item);
-    }
-    virtual bool            showObjectLoggerDialog(SGIItemBase * item)
-    {
-        return _dialog->newInstance(item);
-    }
-private:
-    TileInspectorDialog * _dialog;
-};
-
-class TileInspectorDialog::SceneGraphDialogInfo : public ISceneGraphDialogInfo
-{
-public:
-    SceneGraphDialogInfo(TileInspectorDialog * dialog)
-        : _dialog(dialog) {}
-public:
-    virtual IContextMenu *  contextMenu(QWidget * parent, const SGIItemBase * item, IContextMenuInfo * info)
-    {
-        return NULL;
-    }
-    virtual SGIItemBase * getView()
-    {
-        return _dialog->getView();
-    }
-    virtual void            triggerRepaint()
-    {
-        _dialog->triggerRepaint();
-    }
-private:
-    TileInspectorDialog * _dialog;
-};
+} // namespace
 
 class TileInspectorDialog::ObjectTreeImpl : public IObjectTreeImpl
 {
@@ -795,38 +746,6 @@ void TileInspectorDialog::triggerRepaint()
 {
     if(_info)
         _info->triggerRepaint();
-}
-
-bool TileInspectorDialog::showSceneGraphDialog(SGIItemBase * item)
-{
-    return false;
-}
-
-bool TileInspectorDialog::showSceneGraphDialog(const SGIHostItemBase * hostitem)
-{
-    bool ret;
-    osg::ref_ptr<SGIItemBase> item;
-    if(_hostInterface->generateItem(item, hostitem))
-        ret = showSceneGraphDialog(item.get());
-    else
-        ret = false;
-    return ret;
-}
-
-bool TileInspectorDialog::newInstance(SGIItemBase * item)
-{
-    return false;
-}
-
-bool TileInspectorDialog::newInstance(const SGIHostItemBase * hostitem)
-{
-    bool ret;
-    osg::ref_ptr<SGIItemBase> item;
-    if(_hostInterface->generateItem(item, hostitem))
-        ret = newInstance(item.get());
-    else
-        ret = false;
-    return ret;
 }
 
 void TileInspectorDialog::layerChanged(int index)
@@ -1358,19 +1277,16 @@ void TileInspectorDialog::itemContextMenu(IObjectTreeItem * treeItem, IContextMe
 {
     SGIItemBasePtr item = treeItem->item();
 
-    if (!_contextMenuCallback)
-        _contextMenuCallback = new ContextMenuCallback(this);
-
     if (!contextMenu)
     {
         if (_contextMenu)
         {
-            _contextMenu->setObject(item, _contextMenuCallback);
+            _contextMenu->setObject(item, _info);
             contextMenu = _contextMenu;
         }
         else
         {
-            contextMenu = _hostInterface->createContextMenu(this, item, _contextMenuCallback);
+            contextMenu = _hostInterface->createContextMenu(this, item, _info);
             _contextMenu = contextMenu;
         }
     }

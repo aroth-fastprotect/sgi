@@ -164,21 +164,21 @@ public:
         {
             return _impl->writeObjectFile(result, item, filename, options);
         }
-        IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IContextMenuInfo * info)
+        IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
         {
-            return _impl->createContextMenu(parent, object, info);
+            return _impl->createContextMenu(parent, object, callback);
         }
-        IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IContextMenuInfo * info)
+        IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
         {
-            return _impl->createContextMenu(parent, item, info);
+            return _impl->createContextMenu(parent, item, callback);
         }
-        ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, ISceneGraphDialogInfo * info)
+        ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
         {
-            return _impl->showSceneGraphDialog(parent, object, info);
+            return _impl->showSceneGraphDialog(parent, object, callback);
         }
-        ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, ISceneGraphDialogInfo * info)
+        ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
         {
-            return _impl->showSceneGraphDialog(parent, item, info);
+            return _impl->showSceneGraphDialog(parent, item, callback);
         }
         bool createObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object)
         {
@@ -204,17 +204,17 @@ public:
         {
             return _impl->getOrCreateObjectLogger(logger, item);
         }
-        IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IObjectLoggerDialogInfo * info)
+        IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback)
         {
-            return _impl->showObjectLoggerDialog(parent, logger, info);
+            return _impl->showObjectLoggerDialog(parent, logger, callback);
         }
-        IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IObjectLoggerDialogInfo * info)
+        IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
         {
-            return _impl->showObjectLoggerDialog(parent, object, info);
+            return _impl->showObjectLoggerDialog(parent, object, callback);
         }
-        IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IObjectLoggerDialogInfo * info)
+        IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
         {
-            return _impl->showObjectLoggerDialog(parent, item, info);
+            return _impl->showObjectLoggerDialog(parent, item, callback);
         }
         bool objectTreeBuildTree(IObjectTreeItem * treeItem, SGIItemBase * item)
         {
@@ -236,13 +236,13 @@ public:
         {
             return _impl->contextMenuExecute(menuAction, item);
         }
-        IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IImagePreviewDialogInfo * info)
+        IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
         {
-            return _impl->showImagePreviewDialog(parent, item, info);
+            return _impl->showImagePreviewDialog(parent, item, callback);
         }
-        IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IImagePreviewDialogInfo * info)
+        IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
         {
-            return _impl->showImagePreviewDialog(parent, object, info);
+            return _impl->showImagePreviewDialog(parent, object, callback);
         }
         bool openSettingsDialog(osg::ref_ptr<ISettingsDialog> & dialog, const SGIHostItemBase * object, ISettingsDialogInfo * info)
         {
@@ -799,61 +799,61 @@ public:
         return ret;
     }
 
-    IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IContextMenuInfo * info)
+    IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
     {
         osg::ref_ptr<SGIItemBase> item;
         if(generateItem(item, object))
-            return createContextMenu(parent, item, info);
+            return createContextMenu(parent, item, callback);
         else
             return NULL;
     }
-    IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IContextMenuInfo * info)
+    IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->createContextMenu(parent, item, info);
+        return QtProxy::instance()->createContextMenu(parent, item, true, callback);
     }
-    IContextMenuQt * createContextMenu(QWidget *parent, QObject * item, IContextMenuInfoQt * info)
+    IContextMenuQt * createContextMenu(QWidget *parent, QObject * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->createContextMenu(parent, item, info);
+        return QtProxy::instance()->createContextMenu(parent, item, true, callback);
     }
 
-    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, ISceneGraphDialogInfo * info)
+    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
     {
         osg::ref_ptr<SGIItemBase> item;
         if(generateItem(item, object))
-            return showSceneGraphDialog(parent, item, info);
+            return showSceneGraphDialog(parent, item, callback);
         else
             return NULL;
     }
-    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, ISceneGraphDialogInfo * info)
+    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->showSceneGraphDialog(parent, item, info);
+        return QtProxy::instance()->showSceneGraphDialog(parent, item, callback);
     }
-    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IObjectLoggerDialogInfo * info)
+    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
     {
         osg::ref_ptr<SGIItemBase> item;
         if(generateItem(item, object))
-            return showObjectLoggerDialog(parent, item, info);
+            return showObjectLoggerDialog(parent, item, callback);
         else
             return NULL;
     }
-    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IObjectLoggerDialogInfo * info)
+    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->showObjectLoggerDialog(parent, item, info);
+        return QtProxy::instance()->showObjectLoggerDialog(parent, item, callback);
     }
-    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IObjectLoggerDialogInfo * info)
+    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback)
     {
-        return QtProxy::instance()->showObjectLoggerDialog(parent, logger, info);
+        return QtProxy::instance()->showObjectLoggerDialog(parent, logger, callback);
     }
 
-    IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IImagePreviewDialogInfo * info)
+    IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->showImagePreviewDialog(parent, item, info);
+        return QtProxy::instance()->showImagePreviewDialog(parent, item, callback);
     }
-    IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IImagePreviewDialogInfo * info)
+    IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
     {
         osg::ref_ptr<SGIItemBase> item;
         if(generateItem(item, object))
-            return showImagePreviewDialog(parent, item, info);
+            return showImagePreviewDialog(parent, item, callback);
         else
             return NULL;
     }
@@ -1645,14 +1645,14 @@ bool SGIPlugins::getObjectPath(SGIItemBasePtrPath & path, const SGIItemBase * it
     return _impl->getObjectPath(path, item);
 }
 
-ISceneGraphDialog * SGIPlugins::showSceneGraphDialog(QWidget *parent, SGIItemBase * item, ISceneGraphDialogInfo * info)
+ISceneGraphDialog * SGIPlugins::showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
 {
-    return _impl->showSceneGraphDialog(parent, item, info);
+    return _impl->showSceneGraphDialog(parent, item, callback);
 }
 
-ISceneGraphDialog * SGIPlugins::showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, ISceneGraphDialogInfo * info)
+ISceneGraphDialog * SGIPlugins::showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
 {
-    return _impl->showSceneGraphDialog(parent, object, info);
+    return _impl->showSceneGraphDialog(parent, object, callback);
 }
 
 bool SGIPlugins::createObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object)
@@ -1685,44 +1685,44 @@ bool SGIPlugins::getOrCreateObjectLogger(IObjectLoggerPtr & logger, SGIItemBase 
     return _impl->getOrCreateObjectLogger(logger, item);
 }
 
-IObjectLoggerDialog * SGIPlugins::showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IObjectLoggerDialogInfo * info)
+IObjectLoggerDialog * SGIPlugins::showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
 {
-    return _impl->showObjectLoggerDialog(parent, object, info);
+    return _impl->showObjectLoggerDialog(parent, object, callback);
 }
 
-IObjectLoggerDialog * SGIPlugins::showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IObjectLoggerDialogInfo * info)
+IObjectLoggerDialog * SGIPlugins::showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback)
 {
-    return _impl->showObjectLoggerDialog(parent, logger, info);
+    return _impl->showObjectLoggerDialog(parent, logger, callback);
 }
 
-IObjectLoggerDialog * SGIPlugins::showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IObjectLoggerDialogInfo * info)
+IObjectLoggerDialog * SGIPlugins::showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
 {
-    return _impl->showObjectLoggerDialog(parent, item, info);
+    return _impl->showObjectLoggerDialog(parent, item, callback);
 }
 
-IContextMenu * SGIPlugins::createContextMenu(QWidget *parent, const SGIHostItemBase * object, IContextMenuInfo * info)
+IContextMenu * SGIPlugins::createContextMenu(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
 {
-    return _impl->createContextMenu(parent, object, info);
+    return _impl->createContextMenu(parent, object, callback);
 }
 
-IContextMenu * SGIPlugins::createContextMenu(QWidget *parent, SGIItemBase * item, IContextMenuInfo * info)
+IContextMenu * SGIPlugins::createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
 {
-    return _impl->createContextMenu(parent, item, info);
+    return _impl->createContextMenu(parent, item, callback);
 }
 
-IContextMenuQt * SGIPlugins::createContextMenu(QWidget *parent, QObject * item, IContextMenuInfoQt * info)
+IContextMenuQt * SGIPlugins::createContextMenu(QWidget *parent, QObject * item, IHostCallback * callback)
 {
-    return _impl->createContextMenu(parent, item, info);
+    return _impl->createContextMenu(parent, item, callback);
 }
 
-IImagePreviewDialog * SGIPlugins::showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IImagePreviewDialogInfo * info)
+IImagePreviewDialog * SGIPlugins::showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
 {
-    return _impl->showImagePreviewDialog(parent, item, info);
+    return _impl->showImagePreviewDialog(parent, item, callback);
 }
 
-IImagePreviewDialog * SGIPlugins::showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IImagePreviewDialogInfo * info)
+IImagePreviewDialog * SGIPlugins::showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
 {
-    return _impl->showImagePreviewDialog(parent, object, info);
+    return _impl->showImagePreviewDialog(parent, object, callback);
 }
 
 

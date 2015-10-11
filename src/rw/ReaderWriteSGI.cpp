@@ -36,8 +36,10 @@
 
 #define SGI_NO_HOSTITEM_GENERATOR
 #include <sgi/InspectorHandler>
+#include <sgi/ContextMenu>
 #include <sgi/SceneGraphDialog>
 #include <sgi/ObjectLoggerDialog>
+#include <sgi/ImagePreviewDialog>
 #include <sgi/ContextMenu>
 #include <sgi/AutoLoadOsg>
 #include <sgi/GenerateItem>
@@ -85,13 +87,11 @@ public:
     DefaultSGIProxy(osg::Camera * camera)
         : _parent(NULL)
         , _view(NULL)
-        , _inspectorInfo(new SceneGraphInspectorHandlerInfo(this))
-        , _dialogInfo(new SceneGraphDialogInfo(this))
-        , _loggerDialogInfo(new ObjectLoggerDialogInfo(this))
+        , _hostCallback(new HostCallbackImpl(this))
     {
         _view = dynamic_cast<osgViewer::View*>(camera->getView());
         if(_view)
-            _view->addEventHandler(new sgi::SceneGraphInspectorHandler(_inspectorInfo));
+            _view->addEventHandler(new sgi::SceneGraphInspectorHandler(_hostCallback));
 
         osg::GraphicsContext * ctx = camera->getGraphicsContext();
         if(ctx)
@@ -117,19 +117,37 @@ public:
                 //_parent = QWidget::find(gwx11->getWindow());
             }
 #endif
+            OSG_NOTICE << LC << "DefaultSGIProxy parent " << _parent << std::endl;
         }
     }
     virtual ~DefaultSGIProxy()
     {
     }
 public:
+    IContextMenu * contextMenu(const SGIHostItemBase * item)
+    {
+        OSG_NOTICE << LC << "contextMenu hostitem " << item << " parent " << _parent << std::endl;
+        if(!_contextMenu.valid())
+            _contextMenu = sgi::createContextMenu<autoload::Osg>(_parent, item, _hostCallback);
+        else
+            _contextMenu->setObject(item);
+        return _contextMenu.get();
+    }
+    IContextMenu * contextMenu(const SGIItemBase * item)
+    {
+        OSG_NOTICE << LC << "contextMenu item " << item << std::endl;
+        bool ret = _contextMenu.valid();
+        if(ret)
+            _contextMenu->setObject(const_cast<SGIItemBase*>(item));
+        return _contextMenu.get();
+    }
     bool showSceneGraphDialog(osg::Node * node, bool show=true)
     {
         OSG_NOTICE << LC << "showSceneGraphDialog node " << node << std::endl;
         if(!_dialog.valid())
         {
             SGIHostItemOsg item(node);
-            _dialog = sgi::showSceneGraphDialogImpl<autoload::Osg>(_parent, &item, _dialogInfo);
+            _dialog = sgi::showSceneGraphDialogImpl<autoload::Osg>(_parent, &item, _hostCallback);
         }
         else
         {
@@ -140,18 +158,18 @@ public:
             _dialog->show();
         return _dialog.valid();
     }
-    bool showSceneGraphDialog(const SGIHostItemBase * item, bool show=true)
+    ISceneGraphDialog * showSceneGraphDialog(const SGIHostItemBase * item, bool show=true)
     {
         OSG_NOTICE << LC << "showSceneGraphDialog hostitem " << item << std::endl;
         if(!_dialog.valid())
-            _dialog = sgi::showSceneGraphDialog<autoload::Osg>(_parent, item, _dialogInfo);
+            _dialog = sgi::showSceneGraphDialog<autoload::Osg>(_parent, item, _hostCallback);
         else
             _dialog->setObject(item);
         if(_dialog.valid() && show)
             _dialog->show();
-        return _dialog.valid();
+        return _dialog.get();
     }
-    bool showSceneGraphDialog(SGIItemBase * item)
+    ISceneGraphDialog * showSceneGraphDialog(SGIItemBase * item)
     {
         OSG_NOTICE << LC << "showSceneGraphDialog item " << item << std::endl;
         bool ret = _dialog.valid();
@@ -160,24 +178,44 @@ public:
             _dialog->setObject(item);
             _dialog->show();
         }
-        return ret;
+        return _dialog.get();
     }
-    bool showObjectLoggerDialog(const SGIHostItemBase * item, bool show=true)
+    IObjectLoggerDialog * showObjectLoggerDialog(const SGIHostItemBase * item, bool show=true)
     {
         OSG_NOTICE << LC << "showObjectLoggerDialog hostitem " << item << std::endl;
         if(!_loggerDialog.valid())
-            _loggerDialog = sgi::showObjectLoggerDialog<autoload::Osg>(_parent, item, _loggerDialogInfo);
+            _loggerDialog = sgi::showObjectLoggerDialog<autoload::Osg>(_parent, item, _hostCallback);
         if(_loggerDialog.valid() && show)
             _loggerDialog->show();
-        return _loggerDialog.valid();
+        return _loggerDialog.get();
     }
-    bool showObjectLoggerDialog(SGIItemBase * item)
+    IObjectLoggerDialog * showObjectLoggerDialog(SGIItemBase * item)
     {
         OSG_NOTICE << LC << "showObjectLoggerDialog item " << item << std::endl;
         bool ret = _loggerDialog.valid();
         if(ret)
             _loggerDialog->show();
-        return ret;
+        return _loggerDialog.get();
+    }
+    IImagePreviewDialog * showImagePreviewDialog(const SGIHostItemBase * item, bool show=true)
+    {
+        OSG_NOTICE << LC << "showImagePreviewDialog hostitem " << item << std::endl;
+        if(!_imagePreviewDialog.valid())
+            _imagePreviewDialog = sgi::showImagePreviewDialog<autoload::Osg>(_parent, item, _hostCallback);
+        if(_imagePreviewDialog.valid() && show)
+            _imagePreviewDialog->show();
+        return _imagePreviewDialog.get();
+    }
+    IImagePreviewDialog * showImagePreviewDialog(SGIItemBase * item)
+    {
+        OSG_NOTICE << LC << "showImagePreviewDialog item " << item << std::endl;
+        bool ret = _imagePreviewDialog.valid();
+        if(ret)
+        {
+            _imagePreviewDialog->setObject(item);
+            _imagePreviewDialog->show();
+        }
+        return _imagePreviewDialog.get();
     }
     SGIItemBase * getView()
     {
@@ -188,69 +226,43 @@ public:
         }
         return _viewPtr.get();
     }
-    class SceneGraphDialogInfo : public ISceneGraphDialogInfo
+
+    class HostCallbackImpl : public IHostCallback
     {
     public:
-        SceneGraphDialogInfo(DefaultSGIProxy * parent)
+        HostCallbackImpl(DefaultSGIProxy * parent)
             : _parent(parent) {}
-
-        virtual IContextMenu * contextMenu(QWidget * /*parent*/, const SGIItemBase* /*item*/, IContextMenuInfo * /*info*/)
+        virtual IContextMenu * contextMenu(QWidget * /*parent*/, const SGIItemBase* item) override
         {
-            return NULL;
+            return _parent->contextMenu(item);
         }
-        virtual SGIItemBase * getView()
+        virtual IContextMenu * contextMenu(QWidget * /*parent*/, const SGIHostItemBase * item) override
         {
-            return _parent->getView();
+            return _parent->contextMenu(item);
         }
-        virtual void            triggerRepaint()
-        {
-            _parent->_view->requestRedraw();
-        }
-        virtual bool            showObjectLoggerDialog(SGIItemBase * item)
-        {
-            return _parent->showObjectLoggerDialog(item);
-        }
-    private:
-        DefaultSGIProxy * _parent;
-    };
-    class ObjectLoggerDialogInfo : public IObjectLoggerDialogInfo
-    {
-    public:
-        ObjectLoggerDialogInfo(DefaultSGIProxy * parent)
-            : _parent(parent) {}
-
-        virtual IContextMenu * contextMenu(QWidget * /*parent*/, const SGIItemBase* /*item*/, IContextMenuInfo * /*info*/)
-        {
-            return NULL;
-        }
-        virtual SGIItemBase * getView()
-        {
-            return _parent->getView();
-        }
-        virtual void            triggerRepaint()
-        {
-            _parent->_view->requestRedraw();
-        }
-        virtual bool            showSceneGraphDialog(SGIItemBase * item)
+        virtual ISceneGraphDialog * showSceneGraphDialog(QWidget * /*parent*/, SGIItemBase * item) override
         {
             return _parent->showSceneGraphDialog(item);
         }
-    private:
-        DefaultSGIProxy * _parent;
-    };
-    class SceneGraphInspectorHandlerInfo : public ISceneGraphInspectorHandlerInfo
-    {
-    public:
-        SceneGraphInspectorHandlerInfo(DefaultSGIProxy * parent)
-            : _parent(parent) {}
-
-        virtual bool            showSceneGraphDialog(const SGIHostItemBase * item)
+        virtual ISceneGraphDialog * showSceneGraphDialog(QWidget * /*parent*/, const SGIHostItemBase * item) override
         {
             return _parent->showSceneGraphDialog(item);
         }
-        virtual bool            showObjectLoggerDialog(const SGIHostItemBase * item)
+        virtual IObjectLoggerDialog * showObjectLoggerDialog(QWidget * /*parent*/, SGIItemBase * item) override
         {
             return _parent->showObjectLoggerDialog(item);
+        }
+        virtual IObjectLoggerDialog * showObjectLoggerDialog(QWidget * /*parent*/, const SGIHostItemBase * item) override
+        {
+            return _parent->showObjectLoggerDialog(item);
+        }
+        virtual IImagePreviewDialog * showImagePreviewDialog(QWidget * /*parent*/, SGIItemBase * item) override
+        {
+            return _parent->showImagePreviewDialog(item);
+        }
+        virtual IImagePreviewDialog * showImagePreviewDialog(QWidget * /*parent*/, const SGIHostItemBase * item) override
+        {
+            return _parent->showImagePreviewDialog(item);
         }
         virtual ReferencedPickerBase * createPicker(PickerType type, float x, float y)
         {
@@ -261,14 +273,22 @@ public:
 
             switch(type)
             {
-            case ISceneGraphInspectorHandlerInfo::PickerTypeLine:
+            case PickerTypeLine:
                 ret = new ReferencedLinePicker(osg::Vec2f(x,y), _parent->_view, root, traversalMask);
                 break;
-            case ISceneGraphInspectorHandlerInfo::PickerTypeDefault:
+            case PickerTypeDefault:
                 ret = new ReferencedPicker(osg::Vec2f(x,y), _parent->_view, root, traversalMask, buffer);
                 break;
             }
             return ret;
+        }
+        virtual SGIItemBase * getView() override
+        {
+            return _parent->getView();
+        }
+        virtual void triggerRepaint() override
+        {
+            _parent->_view->requestRedraw();
         }
 
     private:
@@ -279,11 +299,11 @@ private:
     QWidget * _parent;
     osgViewer::View * _view;
     SGIItemBasePtr _viewPtr;
+    sgi::IContextMenuPtr _contextMenu;
     sgi::ISceneGraphDialogPtr _dialog;
     sgi::IObjectLoggerDialogPtr _loggerDialog;
-    osg::ref_ptr<SceneGraphInspectorHandlerInfo> _inspectorInfo;
-    osg::ref_ptr<SceneGraphDialogInfo> _dialogInfo;
-    osg::ref_ptr<ObjectLoggerDialogInfo> _loggerDialogInfo;
+    sgi::IImagePreviewDialogPtr _imagePreviewDialog;
+    IHostCallbackPtr _hostCallback;
 };
 } // namespace sgi
 

@@ -33,11 +33,8 @@ SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced,
                                   LOKI_TYPELIST(SGIPlugins,
                                                 ISceneGraphDialog,
-                                                ISceneGraphDialogInfo,
                                                 IContextMenu,
-                                                IContextMenuInfo,
                                                 IObjectLoggerDialog,
-                                                IObjectLoggerDialogInfo,
                                                 ISettingsDialog,
                                                 ISettingsDialogInfo,
                                                 ReferencedInternalItemData,
@@ -231,7 +228,7 @@ bool writePrettyHTMLImpl<SceneGraphInspectorHandler>::process(std::basic_ostream
 
             callNextHandler(os);
 
-            os << "<tr><td>info</td><td>" << (void*)object->info() << "</td></tr>" << std::endl;
+            os << "<tr><td>host callback</td><td>" << (void*)object->getHostCallback() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -357,7 +354,6 @@ OBJECT_TREE_BUILD_IMPL_TEMPLATE()
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
-OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialogInfo)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 
 bool objectTreeBuildImpl<ReferencedInternalItemData>::build(IObjectTreeItem * treeItem)
@@ -426,28 +422,6 @@ bool objectTreeBuildImpl<SGIProxyItemBase>::build(IObjectTreeItem * treeItem)
     return ret;
 }
 
-bool objectTreeBuildImpl<ISceneGraphDialogInfo>::build(IObjectTreeItem * treeItem)
-{
-    ISceneGraphDialogInfo * object = getObject<ISceneGraphDialogInfo,SGIItemInternal>();
-    bool ret = false;
-    switch(itemType())
-    {
-    case SGIItemTypeObject:
-        {
-            callNextHandler(treeItem);
-
-            SGIItemBasePtr view = object->getView();
-            if(view.valid())
-                treeItem->addChild("View", view.get());
-            ret = true;
-        }
-        break;
-    default:
-        break;
-    }
-    return ret;
-}
-
 bool objectTreeBuildImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeItem)
 {
     ISceneGraphDialog * object = getObject<ISceneGraphDialog,SGIItemInternal>();
@@ -461,10 +435,6 @@ bool objectTreeBuildImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeItem)
             SGIHostItemQt dialog(object->getDialog());
             if(dialog.hasObject())
                 treeItem->addChild("Dialog", &dialog);
-
-            SGIHostItemInternal info(object->getInfo());
-            if(info.hasObject())
-                treeItem->addChild("Info", &info);
             ret = true;
         }
         break;

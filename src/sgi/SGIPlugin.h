@@ -12,8 +12,6 @@ namespace osgDB {
 
 namespace sgi {
 
-class IContextMenuInfoQt;
-
 class SGIHostItemBase;
 class SGIItemBase;
 
@@ -21,16 +19,13 @@ typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 
 class ISceneGraphDialog;
-class ISceneGraphDialogInfo;
 class IObjectLoggerDialog;
-class IObjectLoggerDialogInfo;
 class IContextMenu;
-class IContextMenuInfo;
 class IContextMenuQt;
-class IContextMenuInfoQt;
 class IObjectTreeItem;
 class IContextMenuItem;
 class IContextMenuAction;
+class IHostCallback;
 class ISettingsDialog;
 class ISettingsDialogInfo;
 
@@ -121,8 +116,8 @@ public:
     bool getObjectPath(SGIItemBasePtrPath & path, const SGIHostItemBase * object);
     bool getObjectPath(SGIItemBasePtrPath & path, const SGIItemBase * item);
 
-    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * item, ISceneGraphDialogInfo * info=NULL);
-    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, ISceneGraphDialogInfo * info=NULL);
+    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * item, IHostCallback * callback=NULL);
+    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL);
 
     bool createObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object);
     bool createObjectLogger(IObjectLoggerPtr & logger, SGIItemBase * item);
@@ -131,16 +126,16 @@ public:
     bool getOrCreateObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object);
     bool getOrCreateObjectLogger(IObjectLoggerPtr & logger, SGIItemBase * item);
 
-    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * item, IObjectLoggerDialogInfo * info=NULL);
-    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IObjectLoggerDialogInfo * info=NULL);
-    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IObjectLoggerDialogInfo * info=NULL);
+    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * item, IHostCallback * callback=NULL);
+    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback=NULL);
+    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL);
 
-    IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IContextMenuInfo * info=NULL);
-    IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IContextMenuInfo * info=NULL);
-    IContextMenuQt * createContextMenu(QWidget *parent, QObject * item, IContextMenuInfoQt * info=NULL);
+    IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=NULL);
+    IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL);
+    IContextMenuQt * createContextMenu(QWidget *parent, QObject * item, IHostCallback * callback=NULL);
 
-    IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IImagePreviewDialogInfo * info);
-    IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IImagePreviewDialogInfo * info);
+    IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback);
+    IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback);
 
     bool objectTreeBuildTree(IObjectTreeItem * treeItem, SGIItemBase * item);
     bool objectTreeBuildRootTree(IObjectTreeItem * treeItem, SGIItemBase * item);

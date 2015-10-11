@@ -9,6 +9,7 @@
 #include <QTimer>
 
 #include "SGIPlugin.h"
+#include <sgi/plugins/HostCallback>
 #include <sgi/plugins/ContextMenu>
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SGIPluginInterface.h>
@@ -27,52 +28,13 @@ namespace sgi {
 
 using namespace qt_helpers;
 
-class ObjectLoggerDialog::ContextMenuCallback : public IContextMenuInfo
-{
-public:
-    ContextMenuCallback(ObjectLoggerDialog * dialog)
-        : _dialog(dialog) {}
-public:
-    virtual SGIItemBase * getView()
-    {
-        return _dialog->getView();
-    }
-    virtual void            triggerRepaint()
-    {
-        _dialog->triggerRepaint();
-    }
-    virtual bool            showSceneGraphDialog(SGIItemBase * item)
-    {
-        return _dialog->showSceneGraphDialog(item);
-    }
-    virtual bool            showObjectLoggerDialog(SGIItemBase * item)
-    {
-        return _dialog->newInstance(item);
-    }
-private:
-    ObjectLoggerDialog * _dialog;
-};
 
-class ObjectLoggerDialog::SceneGraphDialogInfo : public ISceneGraphDialogInfo
+
+class ObjectLoggerDialog::HostCallback : public HostCallbackFilterT<IObjectLoggerDialog>
 {
 public:
-    SceneGraphDialogInfo(ObjectLoggerDialog * dialog)
-        : _dialog(dialog) {}
-public:
-    virtual IContextMenu *  contextMenu(QWidget * parent, const SGIItemBase * item, IContextMenuInfo * info)
-    {
-        return NULL;
-    }
-    virtual SGIItemBase * getView()
-    {
-        return _dialog->getView();
-    }
-    virtual void            triggerRepaint()
-    {
-        _dialog->triggerRepaint();
-    }
-private:
-    ObjectLoggerDialog * _dialog;
+   HostCallback(IHostCallback * original, ObjectLoggerDialog * dialog)
+        : HostCallbackFilterT<IObjectLoggerDialog>(original, dialog->_interface) {}
 };
 
 class ObjectLoggerDialog::ObjectLoggerDialogImpl : public IObjectLoggerDialog
@@ -81,19 +43,19 @@ public:
     ObjectLoggerDialogImpl(ObjectLoggerDialog * dialog)
         : _dialog(dialog) {}
 
-    virtual QDialog *       getDialog() { return _dialog; }
-    virtual bool            addItem(SGIItemBase * item, bool alsoChilds=true) { return _dialog->addItem(item, alsoChilds); }
-    virtual bool            addItems(const SGIItemBasePtrPath & path) { return _dialog->addItems(path); }
-    virtual bool            removeItem(SGIItemBase * item) { return _dialog->removeItem(item); }
-    virtual bool            removeItems(const SGIItemBasePtrPath & path) { return _dialog->removeItems(path); }
+    virtual QDialog *       getDialog() override { return _dialog; }
+    virtual IHostCallback * getHostCallback() override { return _dialog->getHostCallback(); }
+    virtual bool            addItem(SGIItemBase * item, bool alsoChilds=true) override { return _dialog->addItem(item, alsoChilds); }
+    virtual bool            addItems(const SGIItemBasePtrPath & path) override { return _dialog->addItems(path); }
+    virtual bool            removeItem(SGIItemBase * item) override { return _dialog->removeItem(item); }
+    virtual bool            removeItems(const SGIItemBasePtrPath & path) override { return _dialog->removeItems(path); }
 
-    virtual bool            addLogItem(SGIDataItemBase * item) { return _dialog->addLogItem(item); }
-    virtual bool            removeLogItem(SGIDataItemBase * item, bool first) { return _dialog->removeLogItem(item, first); }
+    virtual bool            addLogItem(SGIDataItemBase * item) override { return _dialog->addLogItem(item); }
+    virtual bool            removeLogItem(SGIDataItemBase * item, bool first) override { return _dialog->removeLogItem(item, first); }
 
-    virtual void            show() { emit _dialog->triggerShow(); }
-    virtual void            hide() { emit _dialog->triggerHide(); }
-    virtual bool            isVisible() { return _dialog->isVisible(); }
-    virtual int             showModal() { return _dialog->exec(); }
+    virtual void            show() override { emit _dialog->triggerShow(); }
+    virtual void            hide() override { emit _dialog->triggerHide(); }
+    virtual bool            isVisible() override { return _dialog->isVisible(); }
 
 private:
     ObjectLoggerDialog * _dialog;
@@ -127,18 +89,17 @@ public:
 
 };
 
-ObjectLoggerDialog::ObjectLoggerDialog(SGIItemBase * item, IObjectLoggerDialogInfo * info, QWidget *parent, Qt::WindowFlags f)
+ObjectLoggerDialog::ObjectLoggerDialog(SGIItemBase * item, IHostCallback * callback, QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
     , ui(NULL)
     , _hostInterface(SGIPlugins::instance()->hostInterface())
     , _interface(new ObjectLoggerDialogImpl(this))
     , _logger(NULL)
     , _item(item)
-    , _info(info)
+    , _hostCallback(callback)
     , _toolBar(NULL)
     , _actionReload(NULL)
     , _contextMenu(NULL)
-    , _contextMenuCallback(NULL)
     , _spinBoxRefreshTime(NULL)
     , _refreshTimer(NULL)
     , _queuedOperations(new OperationQueue)
@@ -146,18 +107,17 @@ ObjectLoggerDialog::ObjectLoggerDialog(SGIItemBase * item, IObjectLoggerDialogIn
     init();
 }
 
-ObjectLoggerDialog::ObjectLoggerDialog(IObjectLogger * logger, IObjectLoggerDialogInfo * info, QWidget *parent, Qt::WindowFlags f)
+ObjectLoggerDialog::ObjectLoggerDialog(IObjectLogger * logger, IHostCallback * callback, QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
     , ui(NULL)
     , _hostInterface(SGIPlugins::instance()->hostInterface())
     , _interface(new ObjectLoggerDialogImpl(this))
     , _logger(logger)
     , _item(NULL)
-    , _info(info)
+    , _hostCallback(callback)
     , _toolBar(NULL)
     , _actionReload(NULL)
     , _contextMenu(NULL)
-    , _contextMenuCallback(NULL)
     , _spinBoxRefreshTime(NULL)
     , _refreshTimer(NULL)
     , _queuedOperations(new OperationQueue)
@@ -167,10 +127,6 @@ ObjectLoggerDialog::ObjectLoggerDialog(IObjectLogger * logger, IObjectLoggerDial
 
 ObjectLoggerDialog::~ObjectLoggerDialog()
 {
-    if(_contextMenuCallback)
-        delete _contextMenuCallback;
-    if(_sceneGraphDialogInfo)
-        delete _sceneGraphDialogInfo;
     if (ui)
     {
         delete ui;
@@ -428,36 +384,31 @@ void ObjectLoggerDialog::onItemContextMenu(QPoint pt)
     if(item)
         itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
 
-    QMenu * contextMenu = NULL;
-    if(!_contextMenuCallback)
-        _contextMenuCallback = new ContextMenuCallback(this);
-
-    IContextMenu * objectMenu = NULL;
-    if(_info)
-        objectMenu = _info->contextMenu(this, itemData.item(), _contextMenuCallback);
+    QMenu * contextQMenu = NULL;
+    IContextMenuPtr objectMenu = _hostCallback->contextMenu(this, itemData.item());
     if(!objectMenu)
     {
         if(_contextMenu)
         {
-            _contextMenu->setObject(itemData.item(), _contextMenuCallback);
+            _contextMenu->setObject(itemData.item());
             objectMenu = _contextMenu;
         }
         else
         {
-            objectMenu = SGIPlugins::instance()->createContextMenu(this, itemData.item(), _contextMenuCallback);
+            objectMenu = SGIPlugins::instance()->createContextMenu(this, itemData.item(), _hostCallback);
         }
     }
 
     if(objectMenu)
-        contextMenu = objectMenu->getMenu();
+        contextQMenu = objectMenu->getMenu();
 
     _contextMenu = objectMenu;
 
-    if(contextMenu)
+    if(contextQMenu)
     {
         pt.ry() += ui->treeWidget->header()->height();
         QPoint globalPos = ui->treeWidget->mapToGlobal(pt);
-        contextMenu->popup(globalPos);
+        contextQMenu->popup(globalPos);
     }
 }
 
@@ -486,21 +437,21 @@ void ObjectLoggerDialog::refreshTimerExpired()
 
 SGIItemBase * ObjectLoggerDialog::getView()
 {
-    if(_info)
-        return _info->getView();
+    if(_hostCallback)
+        return _hostCallback->getView();
     else
         return NULL;
 }
 
 void ObjectLoggerDialog::triggerRepaint()
 {
-    if(_info)
-        _info->triggerRepaint();
+    if(_hostCallback)
+        _hostCallback->triggerRepaint();
 }
 
 bool ObjectLoggerDialog::showSceneGraphDialog(SGIItemBase * item)
 {
-    return _info->showSceneGraphDialog(item);
+    return _hostCallback->showSceneGraphDialog(this, item);
 }
 
 bool ObjectLoggerDialog::showSceneGraphDialog(const SGIHostItemBase * hostitem)

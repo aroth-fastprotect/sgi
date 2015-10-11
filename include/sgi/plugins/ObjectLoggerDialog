@@ -12,7 +12,6 @@ class QDialog;
 namespace sgi {
 
 class IContextMenu;
-class IContextMenuInfo;
 class SGIItemBase;
 class SGIHostItemBase;
 class SGIDataItemBase;
@@ -21,20 +20,13 @@ typedef osg::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
 typedef std::list<SGIDataItemBasePtr> SGIDataItemBasePtrList;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrVector;
-
-class IObjectLoggerDialogInfo : public osg::Referenced
-{
-public:
-    virtual IContextMenu *  contextMenu(QWidget * parent, const SGIItemBase * item, IContextMenuInfo * info) = 0;
-    virtual bool            showSceneGraphDialog(SGIItemBase * item) = 0;
-    virtual void            triggerRepaint() = 0;
-    virtual SGIItemBase *   getView() = 0;
-};
+class IHostCallback;
 
 class IObjectLoggerDialog : public osg::Referenced
 {
 public:
     virtual QDialog *       getDialog() = 0;
+    virtual IHostCallback * getHostCallback() = 0;
     virtual bool            addItem(SGIItemBase * item, bool alsoChilds=true) = 0;
     virtual bool            addItems(const SGIItemBasePtrPath & path) = 0;
     virtual bool            removeItem(SGIItemBase * item) = 0;
@@ -48,7 +40,6 @@ public:
 };
 
 typedef osg::ref_ptr<IObjectLoggerDialog> IObjectLoggerDialogPtr;
-typedef osg::ref_ptr<IObjectLoggerDialogInfo> IObjectLoggerDialogInfoPtr;
 
 class IObjectLogger : public osg::Object
 {
@@ -67,7 +58,7 @@ public:
     virtual bool                addLogItem(SGIDataItemBase * item) = 0;
 
     virtual IObjectLoggerDialog * getDialog() = 0;
-    virtual IObjectLoggerDialog * getOrCreateDialog(QWidget *parent, IObjectLoggerDialogInfo * info) = 0;
+    virtual IObjectLoggerDialog * getOrCreateDialog(QWidget *parent, IHostCallback * callback) = 0;
 };
 
 typedef osg::ref_ptr<IObjectLogger> IObjectLoggerPtr;

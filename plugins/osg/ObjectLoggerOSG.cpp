@@ -691,10 +691,10 @@ ObjectLogger * ObjectLogger::getOrCreateLogger(SGIItemBase * item, SGIPluginHost
     return logger;
 }
 
-IObjectLoggerDialog * ObjectLogger::getOrCreateDialog(QWidget *parent, IObjectLoggerDialogInfo * info)
+IObjectLoggerDialog * ObjectLogger::getOrCreateDialog(QWidget *parent, IHostCallback * callback)
 {
     if(!_dialog.valid())
-        _dialog = _hostInterface->showObjectLoggerDialog(parent, this, info);
+        _dialog = _hostInterface->showObjectLoggerDialog(parent, this, callback);
     return _dialog.get();
 }
 

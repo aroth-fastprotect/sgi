@@ -22,22 +22,16 @@ typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 
 class ISceneGraphDialog;
-class ISceneGraphDialogInfo;
 typedef osg::ref_ptr<ISceneGraphDialog> ISceneGraphDialogPtr;
-typedef osg::ref_ptr<ISceneGraphDialogInfo> ISceneGraphDialogInfoPtr;
 
 class IContextMenu;
-class IContextMenuInfo;
-typedef osg::ref_ptr<IContextMenuInfo> IContextMenuInfoPtr;
 typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
 
 class IObjectLogger;
 class IObjectLoggerDialog;
-class IObjectLoggerDialogInfo;
 
 typedef osg::ref_ptr<IObjectLogger> IObjectLoggerPtr;
 typedef osg::ref_ptr<IObjectLoggerDialog> IObjectLoggerDialogPtr;
-typedef osg::ref_ptr<IObjectLoggerDialogInfo> IObjectLoggerDialogInfoPtr;
 
 class ISettingsDialog;
 class ISettingsDialogInfo;
@@ -45,13 +39,14 @@ typedef osg::ref_ptr<ISettingsDialog> ISettingsDialogPtr;
 typedef osg::ref_ptr<ISettingsDialogInfo> ISettingsDialogInfoPtr;
 
 class IImagePreviewDialog;
-class IImagePreviewDialogInfo;
 typedef osg::ref_ptr<IImagePreviewDialog> IImagePreviewDialogPtr;
-typedef osg::ref_ptr<IImagePreviewDialogInfo> IImagePreviewDialogInfoPtr;
 
 class IObjectTreeItem;
 typedef osg::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
 typedef std::vector<IObjectTreeItemPtr> IObjectTreeItemPtrList;
+
+class IHostCallback;
+typedef osg::ref_ptr<IHostCallback> IHostCallbackPtr;
 
 class IObjectTreeItem : public osg::Referenced
 {
@@ -131,11 +126,11 @@ public:
     virtual bool writeObjectFile(bool & result, const SGIHostItemBase * object, const std::string & filename, const SGIItemBase* options) = 0;
     virtual bool writeObjectFile(bool & result, SGIItemBase * item, const std::string & filename, const SGIItemBase* options) = 0;
 
-    virtual IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IContextMenuInfo * info=NULL) = 0;
-    virtual IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IContextMenuInfo * info=NULL) = 0;
+    virtual IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=NULL) = 0;
+    virtual IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL) = 0;
 
-    virtual ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, ISceneGraphDialogInfo * info=NULL) = 0;
-    virtual ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, ISceneGraphDialogInfo * info=NULL) = 0;
+    virtual ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=NULL) = 0;
+    virtual ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL) = 0;
 
     virtual bool createObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object) = 0;
     virtual bool createObjectLogger(IObjectLoggerPtr & logger, SGIItemBase * item) = 0;
@@ -144,12 +139,12 @@ public:
     virtual bool getOrCreateObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object) = 0;
     virtual bool getOrCreateObjectLogger(IObjectLoggerPtr & logger, SGIItemBase * item) = 0;
 
-    virtual IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IObjectLoggerDialogInfo * info=NULL) = 0;
-    virtual IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IObjectLoggerDialogInfo * info=NULL) = 0;
-    virtual IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IObjectLoggerDialogInfo * info=NULL) = 0;
+    virtual IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback=NULL) = 0;
+    virtual IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=NULL) = 0;
+    virtual IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL) = 0;
 
-    virtual IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IImagePreviewDialogInfo * info=NULL) = 0;
-    virtual IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IImagePreviewDialogInfo * info=NULL) = 0;
+    virtual IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=NULL) = 0;
+    virtual IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL) = 0;
 
     virtual bool objectTreeBuildTree(IObjectTreeItem * treeItem, SGIItemBase * item) = 0;
     virtual bool objectTreeBuildRootTree(IObjectTreeItem * treeItem, SGIItemBase * item) = 0;

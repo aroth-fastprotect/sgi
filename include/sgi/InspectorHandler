@@ -8,12 +8,14 @@
 #include "plugins/SGIHostItemOsg.h"
 #include "plugins/SGIHostItemInternal.h"
 #include "plugins/InspectorHandler"
+#include "plugins/HostCallback"
+#include "plugins/ContextMenu"
 #include "SGIItemInternal"
 
 namespace sgi {
 
-inline SceneGraphInspectorHandler::SceneGraphInspectorHandler(ISceneGraphInspectorHandlerInfo * info)
-: _info(info)
+inline SceneGraphInspectorHandler::SceneGraphInspectorHandler(IHostCallback * callback)
+: _hostCallback(callback)
 , _picker()
 , _inspectorHitTestKey('i')
 , _inspectorEventKey('e')
@@ -24,6 +26,9 @@ inline SceneGraphInspectorHandler::SceneGraphInspectorHandler(ISceneGraphInspect
 , _inspectorHitTestMouseButton(osgGA::GUIEventAdapter::MIDDLE_MOUSE_BUTTON)
 , _inspectorHitTestMouseLeftModMask(osgGA::GUIEventAdapter::MODKEY_LEFT_CTRL|osgGA::GUIEventAdapter::MODKEY_LEFT_SHIFT)
 , _inspectorHitTestMouseRightModMask(osgGA::GUIEventAdapter::MODKEY_RIGHT_CTRL|osgGA::GUIEventAdapter::MODKEY_RIGHT_SHIFT)
+, _inspectorContextMenuMouseButton(osgGA::GUIEventAdapter::RIGHT_MOUSE_BUTTON)
+, _inspectorContextMenuMouseLeftModMask(osgGA::GUIEventAdapter::MODKEY_LEFT_CTRL|osgGA::GUIEventAdapter::MODKEY_LEFT_SHIFT)
+, _inspectorContextMenuMouseRightModMask(osgGA::GUIEventAdapter::MODKEY_RIGHT_CTRL|osgGA::GUIEventAdapter::MODKEY_RIGHT_SHIFT)
 {
 }
 
@@ -33,12 +38,20 @@ inline SceneGraphInspectorHandler::~SceneGraphInspectorHandler()
 
 inline bool SceneGraphInspectorHandler::showSceneGraphDialog(const SGIHostItemOsg * item)
 {
-    return _info->showSceneGraphDialog(item);
+    return _hostCallback->showSceneGraphDialog(NULL, item) != NULL;
 }
 
 inline bool SceneGraphInspectorHandler::showObjectLoggerDialog(const SGIHostItemOsg * item)
 {
-    return _info->showObjectLoggerDialog(item);
+    return _hostCallback->showObjectLoggerDialog(NULL, item) != NULL;
+}
+
+inline bool SceneGraphInspectorHandler::contextMenu(const SGIHostItemOsg * item, float x, float y)
+{
+    IContextMenu * contextMenu = _hostCallback->contextMenu(NULL, item);
+    if(contextMenu)
+        contextMenu->popup(NULL, x, y);
+    return (contextMenu != NULL);
 }
 
 inline bool SceneGraphInspectorHandler::handle( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa )
@@ -47,12 +60,12 @@ inline bool SceneGraphInspectorHandler::handle( const osgGA::GUIEventAdapter& ea
     {
         if(_inspectorHitTestKey != 0 && ea.getKey() == _inspectorHitTestKey)
         {
-            ISceneGraphInspectorHandlerInfo::PickerType pickerType;
+            IHostCallback::PickerType pickerType;
             if(ea.getModKeyMask() & (osgGA::GUIEventAdapter::MODKEY_LEFT_SHIFT|osgGA::GUIEventAdapter::MODKEY_RIGHT_SHIFT))
-                pickerType = ISceneGraphInspectorHandlerInfo::PickerTypeLine;
+                pickerType = IHostCallback::PickerTypeLine;
             else
-                pickerType = ISceneGraphInspectorHandlerInfo::PickerTypeDefault;
-            _picker = _info->createPicker(pickerType, ea.getX(), ea.getY());
+                pickerType = IHostCallback::PickerTypeDefault;
+            _picker = _hostCallback->createPicker(pickerType, ea.getX(), ea.getY());
             if(_picker.valid() && _picker->result())
             {
                 SGIHostItemOsg itemPicker(_picker);
@@ -92,7 +105,30 @@ inline bool SceneGraphInspectorHandler::handle( const osgGA::GUIEventAdapter& ea
         {
             SGIHostItemOsg itemEa(&ea);
             showSceneGraphDialog(&itemEa);
+            // avoid further processing
+            return true;
         }
+        else if(_inspectorContextMenuMouseButton != 0 &&
+                ea.getButton() == _inspectorContextMenuMouseButton &&
+            ( ((ea.getModKeyMask() & _inspectorContextMenuMouseRightModMask) == _inspectorContextMenuMouseRightModMask) ||
+              ((ea.getModKeyMask() & _inspectorContextMenuMouseLeftModMask) == _inspectorContextMenuMouseLeftModMask) )
+            )
+        {
+            float x = ea.getX();
+            float y = ea.getY();
+            osg::Camera * camera = aa.asView()->getCamera();
+            if(camera)
+            {
+                osg::Viewport * viewport = camera->getViewport();
+                if(viewport)
+                    y = viewport->height() - y;
+            }
+            SGIHostItemOsg itemEa(&ea);
+            contextMenu(&itemEa, x, y);
+            // avoid further processing
+            return true;
+        }
+
     }
     return false;
 }

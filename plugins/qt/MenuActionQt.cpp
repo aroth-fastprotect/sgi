@@ -35,9 +35,9 @@ using namespace sgi::qt_helpers;
 
 bool actionHandlerImpl<MenuActionObjectInfo>::execute()
 {
-    IContextMenuInfo * info = menuInfo();
-    if(info)
-        info->showSceneGraphDialog(_item->rootBase());
+    IHostCallback * callback = hostCallback();
+    if(callback)
+        callback->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());
     else
     {
         ISceneGraphDialog * dlg = _hostInterface->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());
@@ -162,7 +162,7 @@ bool actionHandlerImpl<MenuActionWidgetGrab>::execute()
 
     ISettingsDialogPtr dialog;
     bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogImagePreview, menu()->parentWidget());
+    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogImagePreview, menu()->parentWidget(), _hostCallback);
     ret = _hostInterface->openSettingsDialog(dialog, pixmapItem, info);
     if(ret)
     {

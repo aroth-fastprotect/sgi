@@ -63,19 +63,12 @@ public:
 protected:
     void                    triggerRepaint();
     SGIItemBase *           getView();
-    bool                    showSceneGraphDialog(SGIItemBase * item);
-    bool                    showSceneGraphDialog(const SGIHostItemBase * item);
 
     void                    setNodeInfo(const SGIItemBase * item);
-
-    bool                    newInstance(SGIItemBase * item);
-    bool                    newInstance(const SGIHostItemBase * item);
 
     void                    itemContextMenu(IObjectTreeItem * treeItem, IContextMenuPtr & contextMenu);
 
 protected:
-    class ContextMenuCallback;
-    class SceneGraphDialogInfo;
     class ObjectTreeImpl;
 
 private:
@@ -86,7 +79,6 @@ private:
     IObjectTreeItemPtr              _treeRoot;
     IObjectTreeImplPtr              _treeImpl;
     IContextMenuPtr                 _contextMenu;
-    osg::ref_ptr<ContextMenuCallback>   _contextMenuCallback;
     osg::ref_ptr<SGIItemOsg>        _item;
     SGIItemBasePtrVector            _tiles;
 };

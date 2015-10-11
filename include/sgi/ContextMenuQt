@@ -11,43 +11,35 @@ class QMenu;
 
 namespace sgi {
 
-class IContextMenuInfoQt : public QObject
-{
-public:
-    virtual                 ~IContextMenuInfoQt() {}
-    virtual bool            showSceneGraphDialog(QObject * item) = 0;
-    virtual bool            showObjectLoggerDialog(QObject * item) = 0;
-    virtual void            triggerRepaint() = 0;
-};
-typedef QPointer<IContextMenuInfoQt> IContextMenuInfoQtPtr;
+class IHostCallback;
 
 class IContextMenuQt : public QObject
 {
 public:
     virtual                 ~IContextMenuQt() {}
-    virtual void            setObject(QObject * item, IContextMenuInfoQt * info=NULL) = 0;
+    virtual void            setObject(QObject * item, IHostCallback * callback=NULL) = 0;
     virtual QWidget *       parentWidget() = 0;
     virtual QMenu *         getMenu() = 0;
-    virtual IContextMenuInfoQt * getInfo() = 0;
+    virtual IHostCallback * getHostCallback() = 0;
 };
 typedef QPointer<IContextMenuQt> IContextMenuQtPtr;
 
 template<typename AUTOLOADCLASS>
-inline IContextMenuQt * createContextMenuQtImpl(QWidget *parent, QObject * item, IContextMenuInfoQt * info=NULL)
+inline IContextMenuQt * createContextMenuQtImpl(QWidget *parent, QObject * item, IHostCallback * callback=NULL)
 {
     IContextMenuQt * ret;
-    typedef IContextMenuQt * (*pfn)(QWidget *parent, QObject * item, IContextMenuInfoQt * info);
+    typedef IContextMenuQt * (*pfn)(QWidget *parent, QObject * item, IHostCallback * callback);
     pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_createContextMenuItemQt");
     if(func)
-        ret = func(parent, item, info);
+        ret = func(parent, item, callback);
     else
         ret = NULL;
     return ret;
 }
 
-inline IContextMenuQt * createContextMenuQt(QWidget *parent, QObject * item, IContextMenuInfoQt * info)
+inline IContextMenuQt * createContextMenuQt(QWidget *parent, QObject * item, IHostCallback * callback)
 {
-    IContextMenuQt * ret = createContextMenuQtImpl<autoload::Qt>(parent, item, info);
+    IContextMenuQt * ret = createContextMenuQtImpl<autoload::Qt>(parent, item, callback);
     return ret;
 }
 

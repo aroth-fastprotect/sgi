@@ -7,38 +7,28 @@
 
 namespace sgi {
 
+class IHostCallback;
+typedef osg::ref_ptr<IHostCallback> IHostCallbackPtr;
 class ReferencedPickerBase;
 typedef osg::ref_ptr<ReferencedPickerBase> ReferencedPickerBasePtr;
-
-class ISceneGraphInspectorHandlerInfo : public osg::Referenced
-{
-public:
-    enum PickerType {
-        PickerTypeDefault,
-        PickerTypeLine,
-        PickerTypePolytope
-    };
-    virtual bool            showSceneGraphDialog(const SGIHostItemBase * item) = 0;
-    virtual bool            showObjectLoggerDialog(const SGIHostItemBase * item) = 0;
-    virtual ReferencedPickerBase * createPicker(PickerType type, float x, float y) = 0;
-};
 
 class SceneGraphInspectorHandler : public osgGA::GUIEventHandler
 {
 public:
-    SceneGraphInspectorHandler(ISceneGraphInspectorHandlerInfo * info);
+    SceneGraphInspectorHandler(IHostCallback * callback);
     virtual ~SceneGraphInspectorHandler();
 
     virtual bool handle( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa );
 
-    ISceneGraphInspectorHandlerInfo * info() { return _info; }
+    IHostCallback * getHostCallback() { return _hostCallback.get(); }
 
 protected:
     bool                showSceneGraphDialog(const SGIHostItemOsg * item);
     bool                showObjectLoggerDialog(const SGIHostItemOsg * item);
+    bool                contextMenu(const SGIHostItemOsg * item, float x, float y);
 
 protected:
-    osg::ref_ptr<ISceneGraphInspectorHandlerInfo> _info;
+    IHostCallbackPtr    _hostCallback;
     ReferencedPickerBasePtr _picker;
     int                 _inspectorHitTestKey;
     int                 _inspectorEventKey;
@@ -49,6 +39,9 @@ protected:
     int                 _inspectorHitTestMouseButton;
     int                 _inspectorHitTestMouseLeftModMask;
     int                 _inspectorHitTestMouseRightModMask;
+    int                 _inspectorContextMenuMouseButton;
+    int                 _inspectorContextMenuMouseLeftModMask;
+    int                 _inspectorContextMenuMouseRightModMask;
 };
 
 
