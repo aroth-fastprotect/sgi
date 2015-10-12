@@ -280,7 +280,7 @@ namespace {
 
 bool actionHandlerImpl<MenuActionImagePreview>::execute()
 {
-    IImagePreviewDialogPtr dialog = _hostInterface->showImagePreviewDialog(menu()->parentWidget(), _item.get(), NULL);
+    IImagePreviewDialogPtr dialog = _hostInterface->showImagePreviewDialog(menu()->parentWidget(), _item.get(), hostCallback());
 	
 	if (dialog.valid())
 	{
@@ -291,14 +291,14 @@ bool actionHandlerImpl<MenuActionImagePreview>::execute()
 			QImage * qimage = dynamic_cast<QImage *>(qpaintdevItem->object());
 			QPixmap * qpixmap = dynamic_cast<QPixmap *>(qpaintdevItem->object());
 			if(qimage)
-				dialog->setObject(_item.get(), convertImage(qimage), std::string(), NULL);
+				dialog->setObject(_item.get(), convertImage(qimage), std::string(), hostCallback());
 			else if(qpixmap)
-				dialog->setObject(_item.get(), convertImage(qpixmap), std::string(), NULL);
+				dialog->setObject(_item.get(), convertImage(qpixmap), std::string(), hostCallback());
 		}
 		if (qiconItem)
 		{
 			QIcon * qicon = dynamic_cast<QIcon *>(qiconItem->object());
-			dialog->setObject(_item.get(), convertImage(qicon), std::string(), NULL);
+			dialog->setObject(_item.get(), convertImage(qicon), std::string(), hostCallback());
 		}
 
 		dialog->show();

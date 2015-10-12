@@ -9,6 +9,8 @@
 #include <QImageWriter>
 #include <QImageReader>
 
+#include <QDebug>
+
 #include <sgi/plugins/SGISettingsDialogImpl>
 #include <sgi/plugins/SGIPluginInterface.h>
 
@@ -190,7 +192,7 @@ public:
         { _dialog->setObject(item, image, description, callback); }
     virtual void            setImage(const sgi::Image * image) { _dialog->setImage(image); }
     virtual void            setDescription(const std::string & description) { _dialog->setDescription(description); }
-    virtual void            show() { emit _dialog->triggerShow(); }
+    virtual void            show() { qDebug() << "show"; emit _dialog->triggerShow(); }
     virtual void            hide() { emit _dialog->triggerHide(); }
     virtual bool            isVisible() { return _dialog->isVisible(); }
     virtual int             showModal() { return _dialog->exec(); }
@@ -530,12 +532,14 @@ void ImagePreviewDialog::init()
     this->setWindowFlags(flags);
 
     connect(this, &ImagePreviewDialog::triggerOnObjectChanged, this, &ImagePreviewDialog::onObjectChanged, Qt::QueuedConnection);
-    connect(this, &ImagePreviewDialog::triggerShow, this, &ImagePreviewDialog::showBesideParent, Qt::QueuedConnection);
+    bool res = connect(this, &ImagePreviewDialog::triggerShow, this, &ImagePreviewDialog::showBesideParent, Qt::QueuedConnection);
+    qDebug() << "ImagePreviewDialog::init" << res;
     connect(this, &ImagePreviewDialog::triggerHide, this, &ImagePreviewDialog::hide, Qt::QueuedConnection);
 }
 
 ImagePreviewDialog::~ImagePreviewDialog()
 {
+	qDebug() << "~ImagePreviewDialog";
 }
 
 void ImagePreviewDialog::showEvent(QShowEvent * event)
@@ -552,6 +556,7 @@ void ImagePreviewDialog::showEvent(QShowEvent * event)
 void ImagePreviewDialog::showBesideParent()
 {
     QWidget::show();
+    qDebug() << "showBesideParent";
     if(_firstShow)
     {
         _firstShow = false;

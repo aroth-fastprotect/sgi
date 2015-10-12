@@ -432,7 +432,7 @@ public:
     }
     IImagePreviewDialog * showImagePreviewDialog(const SGIHostItemBase * item, bool show=true)
     {
-        OSG_NOTICE << LC << "showImagePreviewDialog hostitem " << item << std::endl;
+        OSG_FATAL << LC << "showImagePreviewDialog hostitem " << item << std::endl;
         if(!_imagePreviewDialog.valid())
             _imagePreviewDialog = sgi::showImagePreviewDialog<autoload::Osg>(_parent, item, _hostCallback);
         if(_imagePreviewDialog.valid() && show)
@@ -441,7 +441,7 @@ public:
     }
     IImagePreviewDialog * showImagePreviewDialog(SGIItemBase * item)
     {
-        OSG_NOTICE << LC << "showImagePreviewDialog item " << item << std::endl;
+        OSG_FATAL << LC << "showImagePreviewDialog item " << item << std::endl;
 		if (!_imagePreviewDialog.valid())
 			_imagePreviewDialog = sgi::showImagePreviewDialog<autoload::Osg>(_parent, item, _hostCallback);
 		if (_imagePreviewDialog.valid())

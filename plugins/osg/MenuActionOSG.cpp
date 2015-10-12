@@ -1435,11 +1435,11 @@ namespace {
 bool actionHandlerImpl<MenuActionImagePreview>::execute()
 {
     osg::Image * object = getObject<osg::Image,SGIItemOsg>();
-    IImagePreviewDialogPtr dialog = _hostInterface->showImagePreviewDialog(menu()->parentWidget(), _item.get(), NULL);
+    IImagePreviewDialogPtr dialog = _hostInterface->showImagePreviewDialog(menu()->parentWidget(), _item.get(), hostCallback());
 
     if(dialog.valid())
     {
-        dialog->setObject(_item.get(), convertImage(object), std::string(), NULL);
+        dialog->setObject(_item.get(), convertImage(object), std::string(), hostCallback());
         dialog->show();
     }
 
@@ -2902,11 +2902,11 @@ bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
 			osg::ref_ptr<osg::Image> image = handler->takeImage();
 			if (image.valid())
 			{
-				IImagePreviewDialogPtr dialog = _hostInterface->showImagePreviewDialog(menu()->parentWidget(), _item.get(), NULL);
+				IImagePreviewDialogPtr dialog = _hostInterface->showImagePreviewDialog(menu()->parentWidget(), _item.get(), hostCallback());
 
 				if (dialog.valid())
 				{
-					dialog->setObject(_item.get(), convertImage(image), std::string(), NULL);
+					dialog->setObject(_item.get(), convertImage(image), std::string(), hostCallback());
 					dialog->show();
 				}
 			}

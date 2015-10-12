@@ -32,62 +32,12 @@ public:
     IImagePreviewDialog *   showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback);
 
 private:
-    struct JobShowSceneGraphDialog
-    {
-        JobShowSceneGraphDialog(QWidget *parent_, SGIItemBase * item_, IHostCallback * callback_)
-            : retval(NULL), parent(parent_), item(item_), callback(callback_) {}
-        ISceneGraphDialog * retval;
-        QWidget *parent;
-        SGIItemBase * item;
-        IHostCallback * callback;
-    };
-    struct JobShowObjectLoggerDialog
-    {
-        JobShowObjectLoggerDialog(QWidget *parent_, SGIItemBase * item_, IHostCallback * callback_)
-            : retval(NULL), parent(parent_), item(item_), callback(callback_) {}
-        IObjectLoggerDialog * retval;
-        QWidget *parent;
-        SGIItemBase * item;
-        IHostCallback * callback;
-    };
-    struct JobShowObjectLoggerDialogForLogger
-    {
-        JobShowObjectLoggerDialogForLogger(QWidget *parent_, IObjectLogger * logger_, IHostCallback * callback_)
-            : retval(NULL), parent(parent_), logger(logger_), callback(callback_) {}
-        IObjectLoggerDialog * retval;
-        QWidget *parent;
-        IObjectLogger * logger;
-        IHostCallback * callback;
-    };
-    struct JobCreateContextMenu
-    {
-        JobCreateContextMenu(QWidget *parent_, SGIItemBase * item_, bool onlyRootItem_, IHostCallback * callback_)
-            : retval(NULL), parent(parent_), item(item_), onlyRootItem(onlyRootItem_), callback(callback_) {}
-        IContextMenu * retval;
-        QWidget *parent;
-        SGIItemBase * item;
-        bool onlyRootItem;
-        IHostCallback * callback;
-    };
-    struct JobCreateContextMenuQt
-    {
-        JobCreateContextMenuQt(QWidget *parent_, QObject * item_, bool onlyRootItem_, IHostCallback * callback_)
-            : retval(NULL), parent(parent_), item(item_), onlyRootItem(onlyRootItem_), callback(callback_) {}
-        IContextMenuQt * retval;
-        QWidget *parent;
-        QObject * item;
-        bool onlyRootItem;
-        IHostCallback * callback;
-    };
-    struct JobShowImagePreviewDialog
-    {
-        JobShowImagePreviewDialog(QWidget *parent_, SGIItemBase * item_, IHostCallback * callback_)
-            : retval(NULL), parent(parent_), item(item_), callback(callback_) {}
-        IImagePreviewDialog * retval;
-        QWidget *parent;
-        SGIItemBase * item;
-        IHostCallback * callback;
-    };
+    struct JobShowSceneGraphDialog;
+    struct JobShowObjectLoggerDialog;
+    struct JobShowObjectLoggerDialogForLogger;
+    struct JobCreateContextMenu;
+    struct JobCreateContextMenuQt;
+    struct JobShowImagePreviewDialog;
 
 signals:
     void triggerShowSceneGraphDialog(JobShowSceneGraphDialog * job);
