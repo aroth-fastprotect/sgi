@@ -23,6 +23,7 @@ namespace internal_plugin {
 
 GENERATE_IMPL_TEMPLATE()
 GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
+GENERATE_IMPL_NO_ACCEPT(osg::Object)
 
 SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced,
@@ -35,6 +36,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced,
                                                 ReferencedInternalItemData,
                                                 ReferencedInternalInfoData,
                                                 osg::Object))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(SGIItemBase))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(SGIItemBase, LOKI_TYPELIST(SGIProxyItemBase))
 
 WRITE_PRETTY_HTML_IMPL_TEMPLATE()
