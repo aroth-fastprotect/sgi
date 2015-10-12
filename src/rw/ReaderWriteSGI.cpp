@@ -253,6 +253,7 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
 		{
 			SGIHostItemOsg itemEa(&ea);
 			showSceneGraphDialog(&itemEa);
+			ea.setHandled(true);
 			// avoid further processing
 			return true;
 		}
@@ -290,6 +291,7 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
 				hostItem = &hostItemOsg;
 			}
 			contextMenu(hostItem, x, y);
+			ea.setHandled(true);
 			// avoid further processing
 			return true;
 		}
