@@ -47,7 +47,7 @@ public:
     SGIPluginsImpl()
         : _pluginsLoaded(false)
         , _hostInterface(this)
-		, _defaultHostCallback(this)
+		, _defaultHostCallback(new DefaultHostCallback(this))
     {
         {
             const std::string& value_type = details::StaticTypeName<sgi::SGIItemType>::name();
@@ -86,7 +86,7 @@ public:
     }
 	IHostCallback * defaultHostCallback()
 	{
-		return &_defaultHostCallback;
+		return _defaultHostCallback.get();
 	}
 	IHostCallback * hostCallback()
 	{
@@ -952,11 +952,11 @@ public:
     }
     IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->createContextMenu(parent, item, true, callback);
+        return QtProxy::instance()->createContextMenu(parent, item, true, callback?callback:_defaultHostCallback.get());
     }
     IContextMenuQt * createContextMenu(QWidget *parent, QObject * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->createContextMenu(parent, item, true, callback);
+        return QtProxy::instance()->createContextMenu(parent, item, true, callback?callback:_defaultHostCallback.get());
     }
 
     ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
@@ -969,7 +969,7 @@ public:
     }
     ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->showSceneGraphDialog(parent, item, callback);
+        return QtProxy::instance()->showSceneGraphDialog(parent, item, callback?callback:_defaultHostCallback.get());
     }
     IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
     {
@@ -981,16 +981,16 @@ public:
     }
     IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->showObjectLoggerDialog(parent, item, callback);
+        return QtProxy::instance()->showObjectLoggerDialog(parent, item, callback?callback:_defaultHostCallback.get());
     }
     IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback)
     {
-        return QtProxy::instance()->showObjectLoggerDialog(parent, logger, callback);
+        return QtProxy::instance()->showObjectLoggerDialog(parent, logger, callback?callback:_defaultHostCallback.get());
     }
 
     IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->showImagePreviewDialog(parent, item, callback);
+        return QtProxy::instance()->showImagePreviewDialog(parent, item, callback?callback:_defaultHostCallback.get());
     }
     IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
     {
@@ -1664,7 +1664,7 @@ private:
     PluginMap   _plugins;
     osg::ref_ptr<osgDB::Options> _pluginLoadOpts;
     HostInterface _hostInterface;
-	DefaultHostCallback _defaultHostCallback;
+	IHostCallbackPtr _defaultHostCallback;
 	IHostCallbackPtr _hostCallback;
     NamedEnumType _namedEnums;
 };
