@@ -3460,7 +3460,12 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
     SGIItemOsg * osgitem = dynamic_cast<SGIItemOsg *>(object->item());
     if (osgitem)
     {
-        osg::Node * node = dynamic_cast<osg::Node*>(osgitem->object());
+        osg::Node * node = NULL;
+        osg::View * view = dynamic_cast<osg::View*>(osgitem->object());
+        if(view)
+            node = view->getCamera();
+        else
+            node = dynamic_cast<osg::Node*>(osgitem->object());
         if (node)
         {
             osg::Geode * geode = osg_helpers::findTopMostNodeByName<osg::Geode>(node, "ImageGeode");
