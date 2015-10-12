@@ -30,14 +30,14 @@ class ImagePreviewDialog : public QDialog
 
 public:
                             ImagePreviewDialog(QWidget *parent = 0, Qt::WindowFlags f = 0);
-                            ImagePreviewDialog(SGIItemBase * item, IImagePreviewDialogInfo * info=NULL, QWidget *parent = 0, Qt::WindowFlags f = 0);
+                            ImagePreviewDialog(SGIItemBase * item, IHostCallback * callback=NULL, QWidget *parent = 0, Qt::WindowFlags f = 0);
     virtual                 ~ImagePreviewDialog();
 
 public:
     IImagePreviewDialog *   dialogInterface() { return _interface; }
-    void                    setObject(const SGIHostItemBase * hostitem, IImagePreviewDialogInfo * info);
-    void                    setObject(SGIItemBase * item, IImagePreviewDialogInfo * info);
-    void                    setObject(SGIItemBase * item, const sgi::Image * image, const std::string & description, IImagePreviewDialogInfo * info);
+    void                    setObject(const SGIHostItemBase * hostitem, IHostCallback * callback);
+    void                    setObject(SGIItemBase * item, IHostCallback * callback);
+    void                    setObject(SGIItemBase * item, const sgi::Image * image, const std::string & description, IHostCallback * callback);
     void                    setImage(const sgi::Image * image);
     void                    setDescription(const std::string & description);
 
@@ -79,7 +79,7 @@ private:
     void init();
 
 protected:
-    class ContextMenuCallback;
+    class HostCallback;
     class ImagePreviewDialogImpl;
 	class Histogram;
 
@@ -90,11 +90,8 @@ protected:
     ImagePreviewDialogImpl *        _priv;
     // use a simple raw-ptr to the interface to avoid a circular ref-ptr
     IImagePreviewDialog *           _interface;
-    osg::ref_ptr<IImagePreviewDialogInfo> _info;
-    IContextMenuPtr                 _contextMenu;
-    osg::ref_ptr<ContextMenuCallback>   _contextMenuCallback;
+    IHostCallbackPtr                _hostCallback;
     bool                            _firstShow;
-
 };
 
 } // namespace sgi

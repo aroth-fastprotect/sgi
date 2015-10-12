@@ -4,19 +4,12 @@
 
 class QWidget;
 namespace sgi {
-    class ISceneGraphDialogInfo;
     class ISceneGraphDialog;
-
-    class IObjectLoggerDialogInfo;
     class IObjectLoggerDialog;
-
     class IImagePreviewDialog;
-    class IImagePreviewDialogInfo;
-
     class IContextMenu;
-    class IContextMenuInfo;
     class IContextMenuQt;
-    class IContextMenuInfoQt;
+    class IHostCallback;
 
     class SGIHostItemBase;
     class SGIItemBase;
@@ -37,19 +30,21 @@ SGI_EXPORT const char* sgiGetVersion();
 SGI_EXPORT const char* sgiGetSOVersion();
 SGI_EXPORT const char* sgiGetLibraryName();
 
+SGI_EXPORT sgi::IHostCallback * sgi_defaultHostCallback();
+SGI_EXPORT void sgi_setHostCallback(sgi::IHostCallback * callback);
 SGI_EXPORT void sgi_shutdown();
 SGI_EXPORT bool sgi_generateItem(osg::ref_ptr<sgi::SGIItemBase> & item, const sgi::SGIHostItemBase * object);
 SGI_EXPORT bool sgi_parentWidget(sgi::QWidgetPtr & widget, const sgi::SGIHostItemBase * object);
 SGI_EXPORT bool sgi_parentWidgetItem(sgi::QWidgetPtr & widget, sgi::SGIItemBase * item);
-SGI_EXPORT sgi::ISceneGraphDialog * sgi_showSceneGraphDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::ISceneGraphDialogInfo * info);
-SGI_EXPORT sgi::ISceneGraphDialog * sgi_showSceneGraphDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::ISceneGraphDialogInfo * info);
-SGI_EXPORT sgi::IObjectLoggerDialog* sgi_showObjectLoggerDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IObjectLoggerDialogInfo * info);
-SGI_EXPORT sgi::IObjectLoggerDialog* sgi_showObjectLoggerDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IObjectLoggerDialogInfo * info);
-SGI_EXPORT sgi::IImagePreviewDialog * sgi_showImagePreviewDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IImagePreviewDialogInfo * info);
-SGI_EXPORT sgi::IImagePreviewDialog * sgi_showImagePreviewDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IImagePreviewDialogInfo * info);
-SGI_EXPORT sgi::IContextMenu * sgi_createContextMenu(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IContextMenuInfo * info);
-SGI_EXPORT sgi::IContextMenu * sgi_createContextMenuItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IContextMenuInfo * info);
-SGI_EXPORT sgi::IContextMenuQt * sgi_createContextMenuItemQt(QWidget *parent, QObject * item, sgi::IContextMenuInfoQt * info);
+SGI_EXPORT sgi::ISceneGraphDialog * sgi_showSceneGraphDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IHostCallback * callback);
+SGI_EXPORT sgi::ISceneGraphDialog * sgi_showSceneGraphDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IHostCallback * callback);
+SGI_EXPORT sgi::IObjectLoggerDialog* sgi_showObjectLoggerDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IHostCallback * callback);
+SGI_EXPORT sgi::IObjectLoggerDialog* sgi_showObjectLoggerDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IHostCallback * callback);
+SGI_EXPORT sgi::IImagePreviewDialog * sgi_showImagePreviewDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IHostCallback * callback);
+SGI_EXPORT sgi::IImagePreviewDialog * sgi_showImagePreviewDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IHostCallback * callback);
+SGI_EXPORT sgi::IContextMenu * sgi_createContextMenu(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IHostCallback * callback);
+SGI_EXPORT sgi::IContextMenu * sgi_createContextMenuItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IHostCallback * callback);
+SGI_EXPORT sgi::IContextMenuQt * sgi_createContextMenuItemQt(QWidget *parent, QObject * item, sgi::IHostCallback * callback);
 SGI_EXPORT void sgi_writePrettyHTML(std::basic_ostream<char>& os, const sgi::SGIHostItemBase * object, bool table);
 SGI_EXPORT void sgi_writePrettyHTMLItem(std::basic_ostream<char>& os, const sgi::SGIItemBase * item, bool table);
 SGI_EXPORT bool sgi_getObjectName(std::string & name, const sgi::SGIHostItemBase * object, bool full);

@@ -3,8 +3,7 @@
 
 #pragma once
 
-#include <osg/Referenced>
-#include <osg/ref_ptr>
+#include "HostCallback"
 #include <vector>
 
 class QWidget;
@@ -12,8 +11,8 @@ class QDialog;
 
 namespace sgi {
 
+class IHostCallback;
 class IContextMenu;
-class IContextMenuInfo;
 class IObjectTreeItem;
 
 class SGIItemBase;
@@ -21,31 +20,21 @@ typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 class SGIHostItemBase;
 
-class ISceneGraphDialogInfo : public osg::Referenced
-{
-public:
-    virtual                 ~ISceneGraphDialogInfo() {}
-    virtual IContextMenu *  contextMenu(QWidget * parent, const SGIItemBase * item, IContextMenuInfo * info) = 0;
-    virtual bool            showObjectLoggerDialog(SGIItemBase * item) = 0;
-    virtual void            triggerRepaint() = 0;
-    virtual SGIItemBase *   getView() = 0;
-};
-
 class ISceneGraphDialog : public osg::Referenced
 {
 public:
     virtual                 ~ISceneGraphDialog() {}
     virtual QDialog *       getDialog() = 0;
+    virtual IHostCallback * getHostCallback() = 0;
     virtual IContextMenu *  toolsMenu() = 0;
-    virtual void            setObject(SGIItemBase * item, ISceneGraphDialogInfo * info=NULL) = 0;
-    virtual void            setObject(const SGIHostItemBase * item, ISceneGraphDialogInfo * info=NULL) = 0;
+    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=NULL) = 0;
+    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=NULL) = 0;
     virtual void            show() = 0;
     virtual void            hide() = 0;
     virtual bool            isVisible() = 0;
     virtual IObjectTreeItem * selectedItem() = 0;
     virtual IObjectTreeItem * rootItem() = 0;
     virtual void            setInfoText(const std::string & text) = 0;
-    virtual ISceneGraphDialogInfo * getInfo() = 0;
 	virtual SGIItemBase *   item() const = 0;
 	virtual const SGIItemBasePtrPath & itemPath() const = 0;
 };

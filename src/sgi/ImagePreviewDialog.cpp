@@ -183,17 +183,17 @@ public:
 	void setNodeInfo(const SGIItemBase * item);
 
     virtual QDialog *       getDialog() { return _dialog; }
-    virtual void            setObject(SGIItemBase * item, IImagePreviewDialogInfo * info=NULL) { _dialog->setObject(item, info); }
-    virtual void            setObject(const SGIHostItemBase * item, IImagePreviewDialogInfo * info=NULL) { _dialog->setObject(item, info); }
-    virtual void            setObject(SGIItemBase * item, const sgi::Image * image, const std::string & description, IImagePreviewDialogInfo * info=NULL)
-        { _dialog->setObject(item, image, description, info); }
+    virtual IHostCallback * getHostCallback() { return _dialog->_hostCallback; }
+    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=NULL) { _dialog->setObject(item, callback); }
+    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=NULL) { _dialog->setObject(item, callback); }
+    virtual void            setObject(SGIItemBase * item, const sgi::Image * image, const std::string & description, IHostCallback * callback=NULL)
+        { _dialog->setObject(item, image, description, callback); }
     virtual void            setImage(const sgi::Image * image) { _dialog->setImage(image); }
     virtual void            setDescription(const std::string & description) { _dialog->setDescription(description); }
     virtual void            show() { emit _dialog->triggerShow(); }
     virtual void            hide() { emit _dialog->triggerHide(); }
     virtual bool            isVisible() { return _dialog->isVisible(); }
     virtual int             showModal() { return _dialog->exec(); }
-    virtual IImagePreviewDialogInfo * getInfo() { return _dialog->_info; }
     virtual SGIItemBase *   item() const { return _dialog->item(); }
 
     ImagePreviewDialog *        _dialog;
@@ -491,33 +491,12 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::setNodeInfo(const SGIItemBase *
 	ui->textEdit->blockSignals(false);
 }
 
-
-class ImagePreviewDialog::ContextMenuCallback : public IContextMenuInfo
+class ImagePreviewDialog::HostCallback : public HostCallbackFilterT<IImagePreviewDialog>
 {
 public:
-    ContextMenuCallback(ImagePreviewDialog * dialog)
-        : _dialog(dialog) {}
-public:
-    virtual SGIItemBase * getView()
-    {
-        return _dialog->getView();
-    }
-    virtual void            triggerRepaint()
-    {
-        _dialog->triggerRepaint();
-    }
-    virtual bool            showSceneGraphDialog(SGIItemBase * item)
-    {
-        return _dialog->showSceneGraphDialog(item);
-    }
-    virtual bool            showObjectLoggerDialog(SGIItemBase * item)
-    {
-        return _dialog->showObjectLoggerDialog(item);
-    }
-private:
-    ImagePreviewDialog * _dialog;
+   HostCallback(IHostCallback * original, ImagePreviewDialog * dialog)
+        : HostCallbackFilterT<IImagePreviewDialog>(original, dialog->_interface) {}
 };
-
 
 ImagePreviewDialog::ImagePreviewDialog(QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
@@ -530,7 +509,7 @@ ImagePreviewDialog::ImagePreviewDialog(QWidget *parent, Qt::WindowFlags f)
     init();
 }
 
-ImagePreviewDialog::ImagePreviewDialog(SGIItemBase * item, IImagePreviewDialogInfo * info, QWidget *parent, Qt::WindowFlags f)
+ImagePreviewDialog::ImagePreviewDialog(SGIItemBase * item, IHostCallback * callback, QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
     , _item(item)
 	, _hostInterface(SGIPlugins::instance()->hostInterface())
@@ -854,21 +833,21 @@ bool ImagePreviewDialog::saveImpl(const QString & filename)
 
 SGIItemBase * ImagePreviewDialog::getView()
 {
-    if(_info)
-        return _info->getView();
+    if(_hostCallback)
+        return _hostCallback->getView();
     else
         return NULL;
 }
 
 void ImagePreviewDialog::triggerRepaint()
 {
-    if(_info)
-        _info->triggerRepaint();
+    if(_hostCallback)
+        _hostCallback->triggerRepaint();
 }
 
 bool ImagePreviewDialog::showSceneGraphDialog(SGIItemBase * item)
 {
-    return _info->showSceneGraphDialog(item);
+    return _hostCallback->showSceneGraphDialog(this, item);
 }
 
 bool ImagePreviewDialog::showSceneGraphDialog(const SGIHostItemBase * hostitem)
@@ -884,7 +863,7 @@ bool ImagePreviewDialog::showSceneGraphDialog(const SGIHostItemBase * hostitem)
 
 bool ImagePreviewDialog::showObjectLoggerDialog(SGIItemBase * item)
 {
-    return _info->showObjectLoggerDialog(item);
+    return _hostCallback->showObjectLoggerDialog(this, item);
 }
 
 bool ImagePreviewDialog::showObjectLoggerDialog(const SGIHostItemBase * hostitem)
@@ -898,28 +877,28 @@ bool ImagePreviewDialog::showObjectLoggerDialog(const SGIHostItemBase * hostitem
     return ret;
 }
 
-void ImagePreviewDialog::setObject(const SGIHostItemBase * hostitem, IImagePreviewDialogInfo * info)
+void ImagePreviewDialog::setObject(const SGIHostItemBase * hostitem, IHostCallback * callback)
 {
     SGIItemBasePtr item;
     if(SGIPlugins::instance()->generateItem(item, hostitem))
-        setObject(item.get(), info);
+        setObject(item.get(), callback);
 }
 
-void ImagePreviewDialog::setObject(SGIItemBase * item, IImagePreviewDialogInfo * info)
+void ImagePreviewDialog::setObject(SGIItemBase * item, IHostCallback * callback)
 {
     _item = item;
-    if(info)
-        _info = info;
+    if(callback)
+        _hostCallback = callback;
     emit triggerOnObjectChanged();
 }
 
-void ImagePreviewDialog::setObject(SGIItemBase * item, const sgi::Image * image, const std::string & description, IImagePreviewDialogInfo * info)
+void ImagePreviewDialog::setObject(SGIItemBase * item, const sgi::Image * image, const std::string & description, IHostCallback * callback)
 {
     _item = item;
     _image = image;
     _priv->labelText = qt_helpers::fromLocal8Bit(description);
-    if(info)
-        _info = info;
+    if(callback)
+        _hostCallback = callback;
     emit triggerOnObjectChanged();
 }
 

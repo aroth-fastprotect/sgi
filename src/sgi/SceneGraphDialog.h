@@ -36,14 +36,14 @@ class SceneGraphDialog : public QDialog
 
 public:
 							SceneGraphDialog(QWidget *parent = 0, Qt::WindowFlags f = 0);
-							SceneGraphDialog(SGIItemBase * item, ISceneGraphDialogInfo * info=NULL, QWidget *parent = 0, Qt::WindowFlags f = 0);
+							SceneGraphDialog(SGIItemBase * item, IHostCallback * callback=NULL, QWidget *parent = 0, Qt::WindowFlags f = 0);
 	virtual					~SceneGraphDialog();
 
 public:
     ISceneGraphDialog *     dialogInterface() { return _interface; }
     IContextMenu *          toolsMenu();
-    void                    setObject(const SGIHostItemBase * hostitem, ISceneGraphDialogInfo * info);
-    void                    setObject(SGIItemBase * item, ISceneGraphDialogInfo * info);
+    void                    setObject(const SGIHostItemBase * hostitem, IHostCallback * callback);
+    void                    setObject(SGIItemBase * item, IHostCallback * callback);
     IObjectTreeItem *       selectedItem();
     IObjectTreeItem *       rootItem();
 	SGIItemBase *           item() const;
@@ -77,7 +77,7 @@ signals:
     void                    triggerHide();
 
 protected:
-    class ContextMenuCallback;
+    class HostCallback;
     class SceneGraphDialogImpl;
     class ToolsMenuImpl;
 
@@ -113,7 +113,7 @@ protected:  // for now
     ISceneGraphDialog *                 _interface;
     SGIItemBasePtr                      _item;
     SGIItemBasePtrPath                  _itemPath;
-	osg::ref_ptr<ISceneGraphDialogInfo> _info;
+	IHostCallbackPtr                    _hostCallback;
     QToolBar *                          _toolBar;
     QAction *                           _actionReload;
     QAction *                           _actionReloadSelected;
@@ -121,7 +121,6 @@ protected:  // for now
     QAction *                           _actionItemNext;
     QComboBox *                         _comboBoxPath;
     IContextMenuPtr                     _contextMenu;
-    osg::ref_ptr<ContextMenuCallback>   _contextMenuCallback;
     QSpinBox *                          _spinBoxRefreshTime;
     QTimer *                            _refreshTimer;
     ContextMenu *                       _toolsMenu;

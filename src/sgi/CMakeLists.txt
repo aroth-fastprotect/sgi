@@ -32,10 +32,11 @@ SET(TARGET_H
 	stdafx.h
 	SGIPlugin.h
 	entrypoint.h
+	ReferencedPicker.h
 	sgi_internal.h
 )
 
-SET(TARGET_H
+LIST(APPEND TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/Export
     ${SGI_INCLUDE_DIR}/sgi/AutoLoadOsg
     ${SGI_INCLUDE_DIR}/sgi/AutoLoadQt
@@ -44,7 +45,7 @@ SET(TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/ContextMenu
     ${SGI_INCLUDE_DIR}/sgi/SceneGraphDialog
     ${SGI_INCLUDE_DIR}/sgi/ObjectLoggerDialog
-    #${SGI_INCLUDE_DIR}/sgi/ImagePreviewDialog
+    ${SGI_INCLUDE_DIR}/sgi/ImagePreviewDialog
 
 	${SGI_INCLUDE_DIR}/sgi/helpers/qt
 	${SGI_INCLUDE_DIR}/sgi/helpers/qt_widgets

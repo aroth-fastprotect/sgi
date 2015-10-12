@@ -1,0 +1,208 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+#include <osg/Referenced>
+#include <osg/ref_ptr>
+#include <type_traits>
+
+class QWidget;
+
+namespace sgi {
+
+class SGIItemBase;
+class SGIHostItemBase;
+class IContextMenu;
+class ISceneGraphDialog;
+class IObjectLoggerDialog;
+class IImagePreviewDialog;
+class ReferencedPickerBase;
+
+class IHostCallback : public osg::Referenced
+{
+public:
+    virtual IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) = 0;
+    virtual IContextMenu *          contextMenu(QWidget * parent, const SGIHostItemBase * item) = 0;
+    virtual ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, SGIItemBase * item) = 0;
+    virtual ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, const SGIHostItemBase * item) = 0;
+    virtual IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, SGIItemBase * item) = 0;
+    virtual IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, const SGIHostItemBase * item) = 0;
+    virtual IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, SGIItemBase * item) = 0;
+    virtual IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, const SGIHostItemBase * item) = 0;
+
+    enum PickerType {
+        PickerTypeDefault,
+        PickerTypeLine,
+        PickerTypePolytope
+    };
+    virtual ReferencedPickerBase *  createPicker(PickerType type, float x, float y) = 0;
+
+    virtual void                    triggerRepaint() = 0;
+    virtual SGIItemBase *           getView() = 0;
+};
+typedef osg::ref_ptr<IHostCallback> IHostCallbackPtr;
+
+class HostCallbackBase : public IHostCallback
+{
+public:
+	HostCallbackBase(IHostCallback * original)
+		: _original(original) {}
+
+	IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) override
+	{
+		return _original->contextMenu(parent, item);
+	}
+	IContextMenu *          contextMenu(QWidget * parent, const SGIHostItemBase * item) override
+	{
+		return _original->contextMenu(parent, item);
+	}
+	ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, SGIItemBase * item) override
+	{
+		return _original->showSceneGraphDialog(parent, item);
+	}
+	ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, const SGIHostItemBase * item) override
+	{
+		return _original->showSceneGraphDialog(parent, item);
+	}
+	IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, SGIItemBase * item) override
+	{
+		return _original->showObjectLoggerDialog(parent, item);
+	}
+	IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, const SGIHostItemBase * item) override
+	{
+		return _original->showObjectLoggerDialog(parent, item);
+	}
+	IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, SGIItemBase * item) override
+	{
+		return _original->showImagePreviewDialog(parent, item);
+	}
+	IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, const SGIHostItemBase * item) override
+	{
+		return _original->showImagePreviewDialog(parent, item);
+	}
+	virtual ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
+	{
+		return _original->createPicker(type, x, y);
+	}
+	void triggerRepaint() override
+	{
+		return _original->triggerRepaint();
+	}
+	SGIItemBase * getView() override
+	{
+		return _original->getView();
+	}
+
+private:
+	IHostCallbackPtr _original;
+};
+
+template<typename T>
+class HostCallbackFilterT : public IHostCallback
+{
+public:
+    HostCallbackFilterT(IHostCallback * original, T * impl)
+        : _original(original), _impl(impl) {}
+
+    IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) override
+    {
+        if(std::is_same<T, IContextMenu>::value)
+            return (IContextMenu*)_impl;
+        else
+            return _original->contextMenu(parent, item);
+    }
+    IContextMenu *          contextMenu(QWidget * parent, const SGIHostItemBase * item) override
+    {
+        if(std::is_same<T, IContextMenu>::value)
+            return (IContextMenu*)_impl;
+        else
+            return _original->contextMenu(parent, item);
+    }
+    ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, SGIItemBase * item) override
+    {
+        if(std::is_same<T, ISceneGraphDialog>::value)
+            return (ISceneGraphDialog*)_impl;
+        else
+            return _original->showSceneGraphDialog(parent, item);
+    }
+    ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, const SGIHostItemBase * item) override
+    {
+        if(std::is_same<T, ISceneGraphDialog>::value)
+            return (ISceneGraphDialog*)_impl;
+        else
+            return _original->showSceneGraphDialog(parent, item);
+    }
+    IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, SGIItemBase * item) override
+    {
+        if(std::is_same<T, IObjectLoggerDialog>::value)
+            return (IObjectLoggerDialog*)_impl;
+        else
+            return _original->showObjectLoggerDialog(parent, item);
+    }
+    IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, const SGIHostItemBase * item) override
+    {
+        if(std::is_same<T, IObjectLoggerDialog>::value)
+            return (IObjectLoggerDialog*)_impl;
+        else
+            return _original->showObjectLoggerDialog(parent, item);
+    }
+    IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, SGIItemBase * item) override
+    {
+        if(std::is_same<T, IImagePreviewDialog>::value)
+            return (IImagePreviewDialog*)_impl;
+        else
+            return _original->showImagePreviewDialog(parent, item);
+    }
+    IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, const SGIHostItemBase * item) override
+    {
+        if(std::is_same<T, IImagePreviewDialog>::value)
+            return (IImagePreviewDialog*)_impl;
+        else
+            return _original->showImagePreviewDialog(parent, item);
+    }
+    virtual ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
+    {
+        return _original->createPicker(type, x, y);
+    }
+    void triggerRepaint() override
+    {
+        return _original->triggerRepaint();
+    }
+    SGIItemBase * getView() override
+    {
+        return _original->getView();
+    }
+
+private:
+    IHostCallbackPtr _original;
+    T * _impl;
+};
+
+template<typename AUTOLOADCLASS>
+inline IHostCallback * defaultHostCallback()
+{
+	IHostCallback * ret;
+	typedef IHostCallback * (*pfn)();
+	pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_defaultHostCallback");
+	if (func)
+		ret = func();
+	else
+		ret = NULL;
+	return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline bool setHostCallback(IHostCallback * callback)
+{
+	bool ret = false;
+	typedef void (*pfn)(IHostCallback * callback);
+	pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_setHostCallback");
+	if (func)
+	{
+		func(callback);
+		ret = true;
+	}
+	return ret;
+}
+
+} // namespace sgi

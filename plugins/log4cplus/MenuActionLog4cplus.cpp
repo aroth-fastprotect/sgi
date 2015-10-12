@@ -17,9 +17,9 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionLoggerLogLevel)
 
 bool actionHandlerImpl<MenuActionObjectInfo>::execute()
 {
-    IContextMenuInfo * info = menuInfo();
-    if(info)
-        info->showSceneGraphDialog(_item->rootBase());
+    IHostCallback * callback = hostCallback();
+    if(callback)
+        callback->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());
     else
     {
         ISceneGraphDialog * dlg = _hostInterface->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());

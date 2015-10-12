@@ -71,16 +71,11 @@ public:
     {
         return _menuAction->menu();
     }
-    IContextMenuInfo * menuInfo()
-    {
-        IContextMenu * m = _menuAction->menu();
-        return (m != NULL)?m->getInfo():NULL;
-    }
     void triggerRepaint()
     {
-        IContextMenuInfo * mi = menuInfo();
-        if(mi)
-            mi->triggerRepaint();
+        IHostCallback * cb = hostCallback();
+        if(cb)
+            cb->triggerRepaint();
     }
     template<typename ACTION_ID_TYPE>
     ACTION_ID_TYPE actionId() const

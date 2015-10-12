@@ -317,11 +317,12 @@ public:
     ~ContextMenuImpl()
         { delete _menu; }
 
-    virtual QWidget *               parentWidget() { return _menu->parentWidget(); }
-    virtual QMenu *                 getMenu() { return _menu; }
-    virtual void                    setObject(SGIItemBase * item, IContextMenuInfo * info=NULL) { _menu->setObject(item, info); }
-    virtual void                    setObject(const SGIHostItemBase * item, IContextMenuInfo * info=NULL) { _menu->setObject(item, info); }
-    virtual IContextMenuInfo *      getInfo() { return _menu->getInfo(); }
+    virtual QWidget *               parentWidget() override { return _menu->parentWidget(); }
+    virtual QMenu *                 getMenu() override { return _menu; }
+    virtual void                    setObject(SGIItemBase * item, IHostCallback * callback=NULL) override { _menu->setObject(item, callback); }
+    virtual void                    setObject(const SGIHostItemBase * item, IHostCallback * callback=NULL) override { _menu->setObject(item, callback); }
+    virtual IHostCallback *         getHostCallback() override { return _menu->getHostCallback(); }
+    virtual void                    popup(QWidget * parent, int x, int y) { emit _menu->triggerPopup(parent, x, y); }
 
 private:
     ContextMenu * _menu;
@@ -331,23 +332,27 @@ ContextMenu::ContextMenu(bool onlyRootItem, QWidget * parent)
     : QMenu(parent)
     , _interface(new ContextMenuImpl(this))
     , _item()
-    , _info(NULL)
+    , _hostCallback(NULL)
     , _onlyRootItem(onlyRootItem)
 {
     connect(this, &QMenu::aboutToShow, this, &ContextMenu::slotPopulateItemMenu);
     connect(this, &QMenu::aboutToHide, this, &ContextMenu::slotClearItemMenu);
+	connect(this, &ContextMenu::triggerPopup, this, &ContextMenu::popup);
+	connect(this, &ContextMenu::triggerUpdateMenu, this, &ContextMenu::updateMenu);
 }
 
-ContextMenu::ContextMenu(SGIItemBase * item, IContextMenuInfo* info, bool onlyRootItem, QWidget *parent)
+ContextMenu::ContextMenu(SGIItemBase * item, IHostCallback* callback, bool onlyRootItem, QWidget *parent)
     : QMenu(parent)
     , _interface(new ContextMenuImpl(this))
     , _item(item)
-    , _info(info)
+    , _hostCallback(callback)
     , _onlyRootItem(onlyRootItem)
 {
     populate();
     connect(this, &QMenu::aboutToShow, this, &ContextMenu::slotPopulateItemMenu);
     connect(this, &QMenu::aboutToHide, this, &ContextMenu::slotClearItemMenu);
+	connect(this, &ContextMenu::triggerPopup, this, &ContextMenu::popup);
+	connect(this, &ContextMenu::triggerUpdateMenu, this, &ContextMenu::updateMenu);
 }
 
 ContextMenu::~ContextMenu()
@@ -356,8 +361,8 @@ ContextMenu::~ContextMenu()
 
 void ContextMenu::showSceneGraphDialog(SGIItemBase * item)
 {
-    if(_info)
-        _info->showSceneGraphDialog(item);
+    if(_hostCallback)
+        _hostCallback->showSceneGraphDialog(parentWidget(), item);
     else
         SGIPlugins::instance()->showSceneGraphDialog(parentWidget(), item, NULL);
 }
@@ -377,9 +382,9 @@ void ContextMenu::populate()
         menuAction()->setData(QVariant());
 }
 
-IContextMenuInfo * ContextMenu::getInfo()
+IHostCallback * ContextMenu::getHostCallback()
 {
-    return _info;
+    return _hostCallback;
 }
 
 void ContextMenu::slotPopulateItemMenu()
@@ -403,6 +408,7 @@ void ContextMenu::slotPopulateItemMenu()
 
 void ContextMenu::slotClearItemMenu()
 {
+	return;
     QMenu * menu = qobject_cast<QMenu *>(sender());
     if(menu)
     {
@@ -447,22 +453,39 @@ void ContextMenu::slotActionGroup(QAction * action)
     }
 }
 
-void ContextMenu::setObject(SGIItemBase * item, IContextMenuInfo * info)
+void ContextMenu::updateMenu()
 {
-    _item = item;
-    _info = info;
-    clear();
-    populate();
+	clear();
+	populate();
 }
 
-void ContextMenu::setObject(const SGIHostItemBase * hostitem, IContextMenuInfo * info)
+void ContextMenu::setObject(SGIItemBase * item, IHostCallback * callback)
+{
+    _item = item;
+    _hostCallback = callback;
+	emit triggerUpdateMenu();
+}
+
+void ContextMenu::setObject(const SGIHostItemBase * hostitem, IHostCallback * callback)
 {
     SGIItemBasePtr item;
     if(SGIPlugins::instance()->generateItem(item, hostitem))
-        setObject(item.get(), info);
+        setObject(item.get(), callback);
 }
 
-
+void ContextMenu::popup(QWidget * parent, int x, int y)
+{
+    QPoint globalPos(x,y);
+    if(parent)
+    {
+        globalPos = parent->mapToGlobal(globalPos);
+    }
+    else if(parentWidget())
+    {
+        globalPos = parentWidget()->mapToGlobal(globalPos);
+    }
+    QMenu::popup(globalPos);
+}
 
 class ContextMenuQt::ContextMenuQtImpl : public IContextMenuQt
 {
@@ -472,21 +495,21 @@ public:
     virtual ~ContextMenuQtImpl()
         { delete _menu;}
 
-    virtual QWidget *               parentWidget() { return _menu->parentWidget(); }
-    virtual QMenu *                 getMenu() { return _menu->getMenu(); }
-    virtual void                    setObject(QObject * item, IContextMenuInfoQt * info=NULL) { _menu->setObject(item, info); }
-    virtual IContextMenuInfoQt *    getInfo() { return _menu->getInfo(); }
+    virtual QWidget *               parentWidget() override { return _menu->parentWidget(); }
+    virtual QMenu *                 getMenu() override { return _menu->getMenu(); }
+    virtual void                    setObject(QObject * item, IHostCallback * callback=NULL) override { _menu->setObject(item, callback); }
+    virtual IHostCallback *         getHostCallback() override { return _menu->getHostCallback(); }
 
 private:
     ContextMenuQt * _menu;
 };
 
-ContextMenuQt::ContextMenuQt(QObject * qobject, IContextMenuInfoQt* info, bool onlyRootItem, QWidget *parent)
+ContextMenuQt::ContextMenuQt(QObject * qobject, IHostCallback * callback, bool onlyRootItem, QWidget *parent)
     : QObject(parent)
     , _interface(new ContextMenuQtImpl(this))
     , _item()
     , _qobject(qobject)
-    , _info(info)
+    , _hostCallback(callback)
     , _onlyRootItem(onlyRootItem)
 {
     SGIHostItemQt hostItem(qobject);
@@ -499,9 +522,9 @@ ContextMenuQt::~ContextMenuQt()
 {
 }
 
-IContextMenuInfoQt * ContextMenuQt::getInfo()
+IHostCallback * ContextMenuQt::getHostCallback()
 {
-    return _info;
+    return _hostCallback;
 }
 
 QWidget * ContextMenuQt::parentWidget()
@@ -514,11 +537,11 @@ QMenu * ContextMenuQt::getMenu()
     return _realMenu->getMenu();
 }
 
-void ContextMenuQt::setObject(QObject * qobject, IContextMenuInfoQt * info)
+void ContextMenuQt::setObject(QObject * qobject, IHostCallback * callback)
 {
     SGIHostItemQt hostItem(qobject);
     SGIPlugins::instance()->generateItem(_item, &hostItem);
-    _info = info;
+    _hostCallback = callback;
     _realMenu->setObject(_item, NULL);
 }
 

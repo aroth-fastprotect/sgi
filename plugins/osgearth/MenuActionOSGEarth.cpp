@@ -219,9 +219,9 @@ bool setDebugImageLayer(osgEarth::Map * object, MapDebugImageLayer mode)
 
 bool actionHandlerImpl<MenuActionObjectInfo>::execute()
 {
-    IContextMenuInfo * info = menuInfo();
-    if(info)
-        info->showSceneGraphDialog(_item->rootBase());
+    IHostCallback * callback = hostCallback();
+    if(callback)
+        callback->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());
     else
     {
         ISceneGraphDialog * dlg = _hostInterface->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());
@@ -314,7 +314,7 @@ bool actionHandlerImpl<MenuActionTileInspector>::execute()
 {
     ISettingsDialogPtr dialog;
     bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoForMenu(SettingsDialogTileInspector, menu()->parentWidget(), menuInfo());
+    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogTileInspector, menu()->parentWidget(), hostCallback());
     ret = _hostInterface->openSettingsDialog(dialog, _item, info);
     if(ret)
     {
@@ -439,7 +439,7 @@ bool actionHandlerImpl<MenuActionAutoClipPlaneCullCallbackSetup>::execute()
 {
     ISettingsDialogPtr dialog;
     bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoForMenu(SettingsDialogAutoClipPlaneCullCallback, menu()->parentWidget(), menuInfo());
+    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogAutoClipPlaneCullCallback, menu()->parentWidget(), hostCallback());
     ret = _hostInterface->openSettingsDialog(dialog, _item, info);
     if(ret)
     {
@@ -534,7 +534,7 @@ bool actionHandlerImpl<MenuActionElevationQueryCustom>::execute()
 {
     ISettingsDialogPtr dialog;
     bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogRetrieveElevation, menu()->parentWidget());
+    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogRetrieveElevation, menu()->parentWidget(), hostCallback());
     ret = _hostInterface->openSettingsDialog(dialog, _item.get(), info);
     if(ret)
     {
@@ -592,7 +592,7 @@ bool actionHandlerImpl<MenuActionImagePreviewRGBA>::execute()
     {
         ISettingsDialogPtr dialog;
         bool ret;
-        ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(2, menu()->parentWidget());
+        ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(2, menu()->parentWidget(), hostCallback());
         ret = _hostInterface->openSettingsDialog(dialog, item, info);
         if(ret)
         {

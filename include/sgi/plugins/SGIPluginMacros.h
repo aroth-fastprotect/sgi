@@ -15,6 +15,7 @@ namespace sgi {
 
 class SGIItemBase;
 class SGIPluginHostInterface;
+class IHostCallback;
 
 namespace details {
     template<bool value_>
@@ -369,6 +370,11 @@ public:
         const std::string& value_type = details::StaticTypeName<T>::name();
         _hostInterface->namedEnumValueToString(value_type, ret, (int)value);
         return ret;
+    }
+
+    IHostCallback * hostCallback() const
+    {
+        return _hostInterface->hostCallback();
     }
 
     SGIItemType itemType() const
