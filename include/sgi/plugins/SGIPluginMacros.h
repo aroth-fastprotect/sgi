@@ -374,7 +374,7 @@ public:
 
     IHostCallback * hostCallback() const
     {
-        return _hostCallback;
+        return _hostInterface->hostCallback();
     }
 
     SGIItemType itemType() const
@@ -388,7 +388,6 @@ public:
 
 protected:
     SGIPluginHostInterface * _hostInterface;
-    IHostCallback * _hostCallback;
     SGIItemBasePtr _item;
 };
 

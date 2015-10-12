@@ -43,6 +43,7 @@
 #include <sgi/ContextMenu>
 #include <sgi/AutoLoadOsg>
 #include <sgi/GenerateItem>
+#include <sgi/Shutdown>
 
 #define LC "[ReaderWriteSGI] "
 
@@ -267,11 +268,14 @@ public:
         return _viewPtr.get();
     }
 
-    class HostCallbackImpl : public IHostCallback
+    class HostCallbackImpl : public HostCallbackBase
     {
     public:
         HostCallbackImpl(DefaultSGIProxy * parent, IHostCallback * callback)
-            : _parent(parent) {}
+            : HostCallbackBase(callback), _parent(parent) 
+		{
+			sgi::setHostCallback<autoload::Osg>(this);
+		}
         virtual IContextMenu * contextMenu(QWidget * /*parent*/, const SGIItemBase* item) override
         {
             return _parent->contextMenu(item);
@@ -328,7 +332,8 @@ public:
         }
         virtual void triggerRepaint() override
         {
-            _parent->_view->requestRedraw();
+			if(_parent->_view)
+				_parent->_view->requestRedraw();
         }
 
     private:
@@ -339,10 +344,10 @@ private:
     QWidget * _parent;
     osgViewer::View * _view;
     SGIItemBasePtr _viewPtr;
-    sgi::IContextMenuPtr _contextMenu;
-    sgi::ISceneGraphDialogPtr _dialog;
-    sgi::IObjectLoggerDialogPtr _loggerDialog;
-    sgi::IImagePreviewDialogPtr _imagePreviewDialog;
+	sgi::IContextMenuPtr _contextMenu;
+	sgi::ISceneGraphDialogPtr _dialog;
+	sgi::IObjectLoggerDialogPtr _loggerDialog;
+	sgi::IImagePreviewDialogPtr _imagePreviewDialog;
     IHostCallbackPtr _hostCallback;
     sgi::SGIOptions _options;
 };
@@ -351,18 +356,27 @@ private:
 class SGIInstallNode : public osg::Node
 {
 public:
+	static unsigned numInstances;
     SGIInstallNode(const osgDB::Options * options=NULL)
         : osg::Node()
         , _options(options)
         , _installed(false)
     {
+		++numInstances;
     }
     SGIInstallNode(const SGIInstallNode & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
         : osg::Node(rhs, copyop)
         , _options(rhs._options)
         , _installed(false)
     {
+		++numInstances;
     }
+	~SGIInstallNode()
+	{
+		--numInstances;
+		if(numInstances == 0)
+			sgi::shutdown<sgi::autoload::Osg>();
+	}
 
     virtual osg::Object* cloneType() const { return new SGIInstallNode (); }
     virtual osg::Object* clone(const osg::CopyOp& copyop) const { return new SGIInstallNode (*this,copyop); }
@@ -408,6 +422,8 @@ private:
     bool _installed;
 };
 
+unsigned SGIInstallNode::numInstances = 0;
+
 
 class ReaderWriteSGI : public osgDB::ReaderWriter
 {
@@ -416,6 +432,9 @@ public:
     {
         supportsExtension( "sgi_loader", "SGI loader" );
     }
+	~ReaderWriteSGI()
+	{
+	}
 
     virtual const char* className()
     {

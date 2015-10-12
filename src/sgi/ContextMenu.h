@@ -32,12 +32,17 @@ public:
     void                            setObject(SGIItemBase * item, IHostCallback * callback=NULL);
     void                            setObject(const SGIHostItemBase * item, IHostCallback * callback=NULL);
     IHostCallback *                 getHostCallback();
-    void                            popup(QWidget * parent, int x, int y);
+
+signals:
+	void                            triggerPopup(QWidget * parent, int x, int y);
+	void							triggerUpdateMenu();
 
 protected:
     void                            populateMenu(QMenu * menu, const SGIItemBase * item);
 
 protected slots:
+	void                            popup(QWidget * parent, int x, int y);
+	void							updateMenu();
     void                            slotPopulateItemMenu();
     void                            slotClearItemMenu();
     void                            slotSimpleItemAction();

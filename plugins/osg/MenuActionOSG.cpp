@@ -855,7 +855,7 @@ bool actionHandlerImpl<MenuActionCameraCullSettings>::execute()
 {
     ISettingsDialogPtr dialog;
     bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogCamera, menu()->parentWidget(), _hostCallback);
+    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogCamera, menu()->parentWidget(), hostCallback());
     ret = _hostInterface->openSettingsDialog(dialog, _item, info);
     if(ret)
     {

@@ -42,6 +42,60 @@ public:
 };
 typedef osg::ref_ptr<IHostCallback> IHostCallbackPtr;
 
+class HostCallbackBase : public IHostCallback
+{
+public:
+	HostCallbackBase(IHostCallback * original)
+		: _original(original) {}
+
+	IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) override
+	{
+		return _original->contextMenu(parent, item);
+	}
+	IContextMenu *          contextMenu(QWidget * parent, const SGIHostItemBase * item) override
+	{
+		return _original->contextMenu(parent, item);
+	}
+	ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, SGIItemBase * item) override
+	{
+		return _original->showSceneGraphDialog(parent, item);
+	}
+	ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, const SGIHostItemBase * item) override
+	{
+		return _original->showSceneGraphDialog(parent, item);
+	}
+	IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, SGIItemBase * item) override
+	{
+		return _original->showObjectLoggerDialog(parent, item);
+	}
+	IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, const SGIHostItemBase * item) override
+	{
+		return _original->showObjectLoggerDialog(parent, item);
+	}
+	IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, SGIItemBase * item) override
+	{
+		return _original->showImagePreviewDialog(parent, item);
+	}
+	IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, const SGIHostItemBase * item) override
+	{
+		return _original->showImagePreviewDialog(parent, item);
+	}
+	virtual ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
+	{
+		return _original->createPicker(type, x, y);
+	}
+	void triggerRepaint() override
+	{
+		return _original->triggerRepaint();
+	}
+	SGIItemBase * getView() override
+	{
+		return _original->getView();
+	}
+
+private:
+	IHostCallbackPtr _original;
+};
 
 template<typename T>
 class HostCallbackFilterT : public IHostCallback
@@ -123,5 +177,32 @@ private:
     IHostCallbackPtr _original;
     T * _impl;
 };
+
+template<typename AUTOLOADCLASS>
+inline IHostCallback * defaultHostCallback()
+{
+	IHostCallback * ret;
+	typedef IHostCallback * (*pfn)();
+	pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_defaultHostCallback");
+	if (func)
+		ret = func();
+	else
+		ret = NULL;
+	return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline bool setHostCallback(IHostCallback * callback)
+{
+	bool ret = false;
+	typedef void (*pfn)(IHostCallback * callback);
+	pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_setHostCallback");
+	if (func)
+	{
+		func(callback);
+		ret = true;
+	}
+	return ret;
+}
 
 } // namespace sgi

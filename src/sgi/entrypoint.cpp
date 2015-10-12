@@ -21,6 +21,16 @@ const char* sgiGetLibraryName()
     return "SGI Library";
 }
 
+sgi::IHostCallback * sgi_defaultHostCallback()
+{
+	return sgi::SGIPlugins::instance()->defaultHostCallback();
+}
+
+void sgi_setHostCallback(sgi::IHostCallback * callback)
+{
+	sgi::SGIPlugins::instance()->setHostCallback(callback);
+}
+
 bool sgi_generateItem(osg::ref_ptr<sgi::SGIItemBase> & item, const sgi::SGIHostItemBase * object)
 {
     return sgi::SGIPlugins::instance()->generateItem(item, object);

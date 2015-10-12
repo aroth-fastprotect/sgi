@@ -104,6 +104,10 @@ typedef QWidget * QWidgetPtr;
 class SGIPluginHostInterface
 {
 public:
+	virtual IHostCallback * defaultHostCallback() = 0;
+	virtual IHostCallback * hostCallback() = 0;
+	virtual void setHostCallback(IHostCallback * callback) = 0;
+
     virtual bool generateItem(osg::ref_ptr<SGIItemBase> & item, const SGIHostItemBase * object) = 0;
 
     virtual bool writePrettyHTML(std::basic_ostream<char>& os, const SGIHostItemBase * object, bool table=true) = 0;

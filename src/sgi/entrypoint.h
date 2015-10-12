@@ -30,6 +30,8 @@ SGI_EXPORT const char* sgiGetVersion();
 SGI_EXPORT const char* sgiGetSOVersion();
 SGI_EXPORT const char* sgiGetLibraryName();
 
+SGI_EXPORT sgi::IHostCallback * sgi_defaultHostCallback();
+SGI_EXPORT void sgi_setHostCallback(sgi::IHostCallback * callback);
 SGI_EXPORT void sgi_shutdown();
 SGI_EXPORT bool sgi_generateItem(osg::ref_ptr<sgi::SGIItemBase> & item, const sgi::SGIHostItemBase * object);
 SGI_EXPORT bool sgi_parentWidget(sgi::QWidgetPtr & widget, const sgi::SGIHostItemBase * object);

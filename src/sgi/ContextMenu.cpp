@@ -322,7 +322,7 @@ public:
     virtual void                    setObject(SGIItemBase * item, IHostCallback * callback=NULL) override { _menu->setObject(item, callback); }
     virtual void                    setObject(const SGIHostItemBase * item, IHostCallback * callback=NULL) override { _menu->setObject(item, callback); }
     virtual IHostCallback *         getHostCallback() override { return _menu->getHostCallback(); }
-    virtual void                    popup(QWidget * parent, int x, int y) { return _menu->popup(parent, x, y); }
+    virtual void                    popup(QWidget * parent, int x, int y) { emit _menu->triggerPopup(parent, x, y); }
 
 private:
     ContextMenu * _menu;
@@ -337,6 +337,8 @@ ContextMenu::ContextMenu(bool onlyRootItem, QWidget * parent)
 {
     connect(this, &QMenu::aboutToShow, this, &ContextMenu::slotPopulateItemMenu);
     connect(this, &QMenu::aboutToHide, this, &ContextMenu::slotClearItemMenu);
+	connect(this, &ContextMenu::triggerPopup, this, &ContextMenu::popup);
+	connect(this, &ContextMenu::triggerUpdateMenu, this, &ContextMenu::updateMenu);
 }
 
 ContextMenu::ContextMenu(SGIItemBase * item, IHostCallback* callback, bool onlyRootItem, QWidget *parent)
@@ -349,6 +351,8 @@ ContextMenu::ContextMenu(SGIItemBase * item, IHostCallback* callback, bool onlyR
     populate();
     connect(this, &QMenu::aboutToShow, this, &ContextMenu::slotPopulateItemMenu);
     connect(this, &QMenu::aboutToHide, this, &ContextMenu::slotClearItemMenu);
+	connect(this, &ContextMenu::triggerPopup, this, &ContextMenu::popup);
+	connect(this, &ContextMenu::triggerUpdateMenu, this, &ContextMenu::updateMenu);
 }
 
 ContextMenu::~ContextMenu()
@@ -404,6 +408,7 @@ void ContextMenu::slotPopulateItemMenu()
 
 void ContextMenu::slotClearItemMenu()
 {
+	return;
     QMenu * menu = qobject_cast<QMenu *>(sender());
     if(menu)
     {
@@ -448,12 +453,17 @@ void ContextMenu::slotActionGroup(QAction * action)
     }
 }
 
+void ContextMenu::updateMenu()
+{
+	clear();
+	populate();
+}
+
 void ContextMenu::setObject(SGIItemBase * item, IHostCallback * callback)
 {
     _item = item;
     _hostCallback = callback;
-    clear();
-    populate();
+	emit triggerUpdateMenu();
 }
 
 void ContextMenu::setObject(const SGIHostItemBase * hostitem, IHostCallback * callback)

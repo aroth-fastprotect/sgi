@@ -15,6 +15,10 @@
 #include "sgi_internal.h"
 #include "QTextDialog.h"
 #include "DoubleInputDialog.h"
+#include <sgi/plugins/ImagePreviewDialog>
+#include <sgi/plugins/ObjectLoggerDialog>
+#include <sgi/plugins/SceneGraphDialog>
+#include <sgi/plugins/ContextMenu>
 #include <sgi/helpers/qt>
 
 using namespace sgi;
@@ -43,6 +47,7 @@ public:
     SGIPluginsImpl()
         : _pluginsLoaded(false)
         , _hostInterface(this)
+		, _defaultHostCallback(this)
     {
         {
             const std::string& value_type = details::StaticTypeName<sgi::SGIItemType>::name();
@@ -79,6 +84,21 @@ public:
     {
         return &_hostInterface;
     }
+	IHostCallback * defaultHostCallback()
+	{
+		return &_defaultHostCallback;
+	}
+	IHostCallback * hostCallback()
+	{
+		return _hostCallback.get();
+	}
+	void setHostCallback(IHostCallback * callback)
+	{
+		if (callback)
+			_hostCallback = callback;
+		else
+			_hostCallback = NULL;
+	}
 
     class HostInterface : public SGIPluginHostInterface
     {
@@ -87,7 +107,18 @@ public:
             : _impl(impl)
             {
             }
-
+		IHostCallback * defaultHostCallback() 
+		{
+			return _impl->defaultHostCallback();
+		}
+		IHostCallback * hostCallback()
+		{
+			return _impl->hostCallback();
+		}
+		void setHostCallback(IHostCallback * callback)
+		{
+			return _impl->setHostCallback(callback);
+		}
         bool generateItem(osg::ref_ptr<SGIItemBase> & item, const SGIHostItemBase * object)
         {
             return _impl->generateItem(item, object);
@@ -320,6 +351,118 @@ public:
     private:
         SGIPluginsImpl * _impl;
     };
+
+	class DefaultHostCallback : public IHostCallback
+	{
+	public:
+		DefaultHostCallback(SGIPluginsImpl * impl)
+			: _impl(impl) {}
+
+		IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) override
+		{
+			if (_contextMenu.valid())
+			{
+				_contextMenu->setObject(const_cast<SGIItemBase*>(item));
+			}
+			else
+				_contextMenu = _impl->createContextMenu(parent, const_cast<SGIItemBase*>(item), this);
+			return _contextMenu.get();
+		}
+		IContextMenu *          contextMenu(QWidget * parent, const SGIHostItemBase * item) override
+		{
+			if (_contextMenu.valid())
+			{
+				_contextMenu->setObject(item);
+			}
+			else
+				_contextMenu = _impl->createContextMenu(parent, item, this);
+			return _contextMenu.get();
+		}
+		ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, SGIItemBase * item) override
+		{
+			if (_dialog.valid())
+			{
+				_dialog->setObject(item);
+				_dialog->show();
+			}
+			else
+				_dialog = _impl->showSceneGraphDialog(parent, item, this);
+			return _dialog.get();
+		}
+		ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, const SGIHostItemBase * item) override
+		{
+			if (_dialog.valid())
+			{
+				_dialog->setObject(item);
+				_dialog->show();
+			}
+			else
+				_dialog = _impl->showSceneGraphDialog(parent, item, this);
+			return _dialog.get();
+		}
+		IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, SGIItemBase * item) override
+		{
+			if (_loggerDialog.valid())
+			{
+				//_loggerDialog->setObject(item);
+				_loggerDialog->show();
+			}
+			else
+				_loggerDialog = _impl->showObjectLoggerDialog(parent, item, this);
+			return _loggerDialog.get();
+		}
+		IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, const SGIHostItemBase * item) override
+		{
+			if (_loggerDialog.valid())
+			{
+				//_loggerDialog->setObject(item);
+				_loggerDialog->show();
+			}
+			else
+				_loggerDialog = _impl->showObjectLoggerDialog(parent, item, this);
+			return _loggerDialog.get();
+		}
+		IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, SGIItemBase * item) override
+		{
+			if (_imagePreviewDialog.valid())
+			{
+				_imagePreviewDialog->setObject(item);
+				_imagePreviewDialog->show();
+			}
+			else
+				_imagePreviewDialog = _impl->showImagePreviewDialog(parent, item, this);
+			return _imagePreviewDialog.get();
+		}
+		IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, const SGIHostItemBase * item) override
+		{
+			if (_imagePreviewDialog.valid())
+			{
+				_imagePreviewDialog->setObject(item);
+				_imagePreviewDialog->show();
+			}
+			else
+				_imagePreviewDialog = _impl->showImagePreviewDialog(parent, item, this);
+			return _imagePreviewDialog.get();
+		}
+		virtual ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
+		{
+			return NULL;
+		}
+		void triggerRepaint() override
+		{
+			/* NOP */
+		}
+		SGIItemBase * getView() override
+		{
+			return NULL;
+		}
+	private:
+		SGIPluginsImpl * _impl;
+		sgi::IContextMenuPtr _contextMenu;
+		sgi::ISceneGraphDialogPtr _dialog;
+		sgi::IObjectLoggerDialogPtr _loggerDialog;
+		sgi::IImagePreviewDialogPtr _imagePreviewDialog;
+	};
 
     static std::string createLibraryNameForPlugin(const std::string& name)
     {
@@ -1393,10 +1536,11 @@ public:
             if(pluginInfo.pluginInterface)
                 pluginInfo.pluginInterface->shutdown();
         }
-        _plugins.clear();
+		_plugins.clear();
         _pluginsLoaded = false;
         _namedEnums.clear();
-    }
+		_hostCallback = NULL;
+	}
 
     bool registerNamedEnum(const std::string & enumname, const std::string & description, bool bitmask)
     {
@@ -1520,6 +1664,8 @@ private:
     PluginMap   _plugins;
     osg::ref_ptr<osgDB::Options> _pluginLoadOpts;
     HostInterface _hostInterface;
+	DefaultHostCallback _defaultHostCallback;
+	IHostCallbackPtr _hostCallback;
     NamedEnumType _namedEnums;
 };
 
@@ -1558,6 +1704,21 @@ void SGIPlugins::destruct()
 SGIPluginHostInterface * SGIPlugins::hostInterface()
 {
     return _impl->hostInterface();
+}
+
+IHostCallback * SGIPlugins::defaultHostCallback()
+{
+	return _impl->defaultHostCallback();
+}
+
+IHostCallback * SGIPlugins::hostCallback()
+{
+	return _impl->hostCallback();
+}
+
+void SGIPlugins::setHostCallback(IHostCallback * callback)
+{
+	_impl->setHostCallback(callback);
 }
 
 bool SGIPlugins::generateItem(osg::ref_ptr<SGIItemBase> & item, const SGIHostItemBase * object)

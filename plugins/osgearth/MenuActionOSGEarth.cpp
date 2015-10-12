@@ -534,7 +534,7 @@ bool actionHandlerImpl<MenuActionElevationQueryCustom>::execute()
 {
     ISettingsDialogPtr dialog;
     bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogRetrieveElevation, menu()->parentWidget(), _hostCallback);
+    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogRetrieveElevation, menu()->parentWidget(), hostCallback());
     ret = _hostInterface->openSettingsDialog(dialog, _item.get(), info);
     if(ret)
     {
@@ -592,7 +592,7 @@ bool actionHandlerImpl<MenuActionImagePreviewRGBA>::execute()
     {
         ISettingsDialogPtr dialog;
         bool ret;
-        ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(2, menu()->parentWidget(), _hostCallback);
+        ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(2, menu()->parentWidget(), hostCallback());
         ret = _hostInterface->openSettingsDialog(dialog, item, info);
         if(ret)
         {

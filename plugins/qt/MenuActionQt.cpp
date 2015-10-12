@@ -162,7 +162,7 @@ bool actionHandlerImpl<MenuActionWidgetGrab>::execute()
 
     ISettingsDialogPtr dialog;
     bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogImagePreview, menu()->parentWidget(), _hostCallback);
+    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogImagePreview, menu()->parentWidget(), hostCallback());
     ret = _hostInterface->openSettingsDialog(dialog, pixmapItem, info);
     if(ret)
     {
