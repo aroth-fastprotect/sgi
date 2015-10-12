@@ -50,47 +50,78 @@ public:
 
 	IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) override
 	{
-		return _original->contextMenu(parent, item);
+		if(_original.valid())
+			return _original->contextMenu(parent, item);
+		else
+			return NULL;
 	}
 	IContextMenu *          contextMenu(QWidget * parent, const SGIHostItemBase * item) override
 	{
-		return _original->contextMenu(parent, item);
+		if (_original.valid())
+			return _original->contextMenu(parent, item);
+		else
+			return NULL;
 	}
 	ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, SGIItemBase * item) override
 	{
-		return _original->showSceneGraphDialog(parent, item);
+		if (_original.valid())
+			return _original->showSceneGraphDialog(parent, item);
+		else
+			return NULL;
 	}
 	ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, const SGIHostItemBase * item) override
 	{
-		return _original->showSceneGraphDialog(parent, item);
+		if (_original.valid())
+			return _original->showSceneGraphDialog(parent, item);
+		else
+			return NULL;
 	}
 	IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, SGIItemBase * item) override
 	{
-		return _original->showObjectLoggerDialog(parent, item);
+		if (_original.valid())
+			return _original->showObjectLoggerDialog(parent, item);
+		else
+			return NULL;
 	}
 	IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, const SGIHostItemBase * item) override
 	{
-		return _original->showObjectLoggerDialog(parent, item);
+		if (_original.valid())
+			return _original->showObjectLoggerDialog(parent, item);
+		else
+			return NULL;
 	}
 	IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, SGIItemBase * item) override
 	{
-		return _original->showImagePreviewDialog(parent, item);
+		if (_original.valid())
+			return _original->showImagePreviewDialog(parent, item);
+		else
+			return NULL;
 	}
 	IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, const SGIHostItemBase * item) override
 	{
-		return _original->showImagePreviewDialog(parent, item);
+		if (_original.valid())
+			return _original->showImagePreviewDialog(parent, item);
+		else
+			return NULL;
 	}
 	virtual ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
 	{
-		return _original->createPicker(type, x, y);
+		if (_original.valid())
+			return _original->createPicker(type, x, y);
+		else
+			return NULL;
 	}
 	void triggerRepaint() override
 	{
-		return _original->triggerRepaint();
+		if (_original.valid())
+			_original->triggerRepaint();
 	}
 	SGIItemBase * getView() override
 	{
-		return _original->getView();
+		if (_original.valid())
+			return _original->getView();
+		else
+			return NULL;
 	}
 
 private:
@@ -108,69 +139,92 @@ public:
     {
         if(std::is_same<T, IContextMenu>::value)
             return (IContextMenu*)_impl;
-        else
+        else if(_original.valid())
             return _original->contextMenu(parent, item);
-    }
+		else
+			return NULL;
+	}
     IContextMenu *          contextMenu(QWidget * parent, const SGIHostItemBase * item) override
     {
         if(std::is_same<T, IContextMenu>::value)
             return (IContextMenu*)_impl;
-        else
-            return _original->contextMenu(parent, item);
-    }
+		else if (_original.valid())
+			return _original->contextMenu(parent, item);
+		else
+			return NULL;
+	}
     ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, SGIItemBase * item) override
     {
         if(std::is_same<T, ISceneGraphDialog>::value)
             return (ISceneGraphDialog*)_impl;
-        else
-            return _original->showSceneGraphDialog(parent, item);
-    }
+		else if (_original.valid())
+			return _original->showSceneGraphDialog(parent, item);
+		else
+			return NULL;
+	}
     ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, const SGIHostItemBase * item) override
     {
         if(std::is_same<T, ISceneGraphDialog>::value)
             return (ISceneGraphDialog*)_impl;
-        else
-            return _original->showSceneGraphDialog(parent, item);
-    }
+		else if (_original.valid())
+			return _original->showSceneGraphDialog(parent, item);
+		else
+			return NULL;
+	}
     IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, SGIItemBase * item) override
     {
         if(std::is_same<T, IObjectLoggerDialog>::value)
             return (IObjectLoggerDialog*)_impl;
-        else
-            return _original->showObjectLoggerDialog(parent, item);
-    }
+		else if (_original.valid())
+			return _original->showObjectLoggerDialog(parent, item);
+		else
+			return NULL;
+	}
     IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, const SGIHostItemBase * item) override
     {
         if(std::is_same<T, IObjectLoggerDialog>::value)
             return (IObjectLoggerDialog*)_impl;
-        else
-            return _original->showObjectLoggerDialog(parent, item);
-    }
+		else if (_original.valid())
+			return _original->showObjectLoggerDialog(parent, item);
+		else
+			return NULL;
+	}
     IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, SGIItemBase * item) override
     {
         if(std::is_same<T, IImagePreviewDialog>::value)
             return (IImagePreviewDialog*)_impl;
-        else
-            return _original->showImagePreviewDialog(parent, item);
-    }
+		else if (_original.valid())
+			return _original->showImagePreviewDialog(parent, item);
+		else
+			return NULL;
+	}
     IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, const SGIHostItemBase * item) override
     {
         if(std::is_same<T, IImagePreviewDialog>::value)
             return (IImagePreviewDialog*)_impl;
-        else
-            return _original->showImagePreviewDialog(parent, item);
-    }
+		else if (_original.valid())
+			return _original->showImagePreviewDialog(parent, item);
+		else
+			return NULL;
+	}
     virtual ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
     {
-        return _original->createPicker(type, x, y);
-    }
+		if (_original.valid())
+			return _original->createPicker(type, x, y);
+		else
+			return NULL;
+	}
     void triggerRepaint() override
     {
-        return _original->triggerRepaint();
+		if (_original.valid())
+			_original->triggerRepaint();
     }
     SGIItemBase * getView() override
     {
-        return _original->getView();
+		if (_original.valid())
+			return _original->getView();
+		else
+			return NULL;
     }
 
 private:

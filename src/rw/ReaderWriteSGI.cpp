@@ -204,6 +204,9 @@ bool SceneGraphInspectorHandler::contextMenu(const SGIHostItemBase * item, float
 
 bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa)
 {
+	if (ea.getHandled())
+		return false;
+
 	if (ea.getEventType() == ea.KEYDOWN)
 	{
 		if (_inspectorHitTestKey != 0 && ea.getKey() == _inspectorHitTestKey)
@@ -253,9 +256,6 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
 		{
 			SGIHostItemOsg itemEa(&ea);
 			showSceneGraphDialog(&itemEa);
-			ea.setHandled(true);
-			// avoid further processing
-			return true;
 		}
 		else if (_inspectorContextMenuMouseButton != 0 &&
 			ea.getButton() == _inspectorContextMenuMouseButton &&
@@ -291,9 +291,6 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
 				hostItem = &hostItemOsg;
 			}
 			contextMenu(hostItem, x, y);
-			ea.setHandled(true);
-			// avoid further processing
-			return true;
 		}
 
 	}
