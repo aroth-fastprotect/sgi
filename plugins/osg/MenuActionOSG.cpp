@@ -2846,6 +2846,11 @@ public:
 	{
 		_mutex.lock();
 	}
+    ~CaptureImage()
+    {
+        // avoid Qt warning
+        _mutex.unlock();
+    }
 	osg::Image * takeImage() { return _image.release(); }
 public:
 	virtual void operator()(const osg::Image& image, const unsigned int context_id) override
