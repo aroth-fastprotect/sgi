@@ -81,13 +81,44 @@ namespace {
 
 }
 
+struct SGIOptions
+{
+    static bool string_to_bool(const std::string & s, bool defaultValue=false)
+    {
+        if(s.compare("1") == 0 || s.compare("on") == 0 || s.compare("true") == 0)
+            return true;
+        else if(s.compare("0") == 0 || s.compare("off") == 0 || s.compare("false") == 0)
+            return false;
+        else
+            return defaultValue;
+    }
+    static bool getBoolOption(const osgDB::Options * options, const std::string & key, bool defaultValue=false)
+    {
+        if(!options)
+            return defaultValue;
+        std::string val = options->getPluginStringData(key);
+        if(val.empty())
+            return defaultValue;
+        return string_to_bool(val, defaultValue);
+    }
+    SGIOptions(const osgDB::Options * options=NULL)
+    {
+        const void * host_callback_plugin_data = options?options->getPluginData("sgi_host_callback"):NULL;
+        hostCallback = static_cast<sgi::IHostCallback*>(const_cast<void*>(host_callback_plugin_data));
+        showSceneGraphDialog = getBoolOption(options, "showSceneGraphDialog");
+    }
+    osg::ref_ptr<sgi::IHostCallback> hostCallback;
+    bool showSceneGraphDialog;
+};
+
 class DefaultSGIProxy : public osg::Referenced
 {
 public:
-    DefaultSGIProxy(osg::Camera * camera)
+    DefaultSGIProxy(osg::Camera * camera, const SGIOptions & options)
         : _parent(NULL)
         , _view(NULL)
-        , _hostCallback(new HostCallbackImpl(this))
+        , _hostCallback(new HostCallbackImpl(this, options.hostCallback))
+        , _options(options)
     {
         _view = dynamic_cast<osgViewer::View*>(camera->getView());
         if(_view)
@@ -118,6 +149,15 @@ public:
             }
 #endif
             OSG_NOTICE << LC << "DefaultSGIProxy parent " << _parent << std::endl;
+
+            if(_parent)
+            {
+                if(_options.showSceneGraphDialog)
+                {
+                    SGIHostItemOsg viewItem(_view);
+                    showSceneGraphDialog(&viewItem, true);
+                }
+            }
         }
     }
     virtual ~DefaultSGIProxy()
@@ -230,7 +270,7 @@ public:
     class HostCallbackImpl : public IHostCallback
     {
     public:
-        HostCallbackImpl(DefaultSGIProxy * parent)
+        HostCallbackImpl(DefaultSGIProxy * parent, IHostCallback * callback)
             : _parent(parent) {}
         virtual IContextMenu * contextMenu(QWidget * /*parent*/, const SGIItemBase* item) override
         {
@@ -304,19 +344,22 @@ private:
     sgi::IObjectLoggerDialogPtr _loggerDialog;
     sgi::IImagePreviewDialogPtr _imagePreviewDialog;
     IHostCallbackPtr _hostCallback;
+    sgi::SGIOptions _options;
 };
 } // namespace sgi
 
 class SGIInstallNode : public osg::Node
 {
 public:
-    SGIInstallNode()
+    SGIInstallNode(const osgDB::Options * options=NULL)
         : osg::Node()
+        , _options(options)
         , _installed(false)
     {
     }
     SGIInstallNode(const SGIInstallNode & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
         : osg::Node(rhs, copyop)
+        , _options(rhs._options)
         , _installed(false)
     {
     }
@@ -356,12 +399,13 @@ public:
 private:
     void installToCamera(osg::Camera * camera)
     {
-        sgi::DefaultSGIProxy * proxy = new sgi::DefaultSGIProxy(camera);
+        sgi::DefaultSGIProxy * proxy = new sgi::DefaultSGIProxy(camera, _options);
     }
 
 private:
-    bool _installed;
     OpenThreads::Mutex _mutex;
+    sgi::SGIOptions _options;
+    bool _installed;
 };
 
 
@@ -387,7 +431,6 @@ public:
     {
         return readNode( fileName, options );
     }
-
     virtual ReadResult readNode(const std::string& fileName, const osgDB::Options* options) const
     {
         std::string ext = osgDB::getFileExtension( fileName );
@@ -396,7 +439,7 @@ public:
 
         OSG_NOTICE << LC << "readNode " << fileName << std::endl;
 
-        return ReadResult(new SGIInstallNode);
+        return ReadResult(new SGIInstallNode(options));
     }
 };
 
