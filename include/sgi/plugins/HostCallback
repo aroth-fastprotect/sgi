@@ -41,6 +41,7 @@ public:
 
     virtual void                    triggerRepaint() = 0;
     virtual SGIItemBase *           getView() = 0;
+    virtual QWidget *               getFallbackParentWidget() = 0;
 };
 typedef osg::ref_ptr<IHostCallback> IHostCallbackPtr;
 
@@ -132,6 +133,13 @@ public:
 		else
 			return NULL;
 	}
+    virtual QWidget * getFallbackParentWidget() override
+    {
+        if (_original.valid())
+            return _original->getFallbackParentWidget();
+        else
+            return NULL;
+    }
 
 private:
 	IHostCallbackPtr _original;
@@ -243,6 +251,13 @@ public:
 			return _original->getView();
 		else
 			return NULL;
+    }
+    virtual QWidget * getFallbackParentWidget() override
+    {
+        if (_original.valid())
+            return _original->getFallbackParentWidget();
+        else
+            return NULL;
     }
 
 private:

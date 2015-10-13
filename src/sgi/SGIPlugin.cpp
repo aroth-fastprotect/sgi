@@ -467,6 +467,10 @@ public:
 		{
 			return NULL;
 		}
+        virtual QWidget * getFallbackParentWidget() override
+        {
+            return NULL;
+        }
 	private:
 		SGIPluginsImpl * _impl;
 		sgi::IContextMenuPtr _contextMenu;

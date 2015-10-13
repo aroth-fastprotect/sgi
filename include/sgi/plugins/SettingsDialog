@@ -76,7 +76,10 @@ public:
     {
         return _hostCallback->getView();
     }
-
+    virtual QWidget * getFallbackParentWidget() override
+    {
+        return _parent;
+    }
 
 protected:
     // hide it to force allocation on heap (using ref_ptr)

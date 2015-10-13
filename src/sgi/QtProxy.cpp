@@ -10,6 +10,8 @@
 #include "ImagePreviewDialog.h"
 #include <sgi/helpers/qt>
 
+#include <cassert>
+
 namespace sgi {
 
 using namespace qt_helpers;
@@ -136,6 +138,10 @@ QtProxy * QtProxy::instance(bool erase)
 
 ISceneGraphDialog * QtProxy::showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
 {
+    assert(callback);
+    if(!parent)
+        parent = callback->getFallbackParentWidget();
+
     JobShowSceneGraphDialog job(parent, item, callback);
     if(QThread::currentThread() == thread())
         implShowSceneGraphDialog(&job);
@@ -152,6 +158,10 @@ void QtProxy::implShowSceneGraphDialog(JobShowSceneGraphDialog * job)
 
 IObjectLoggerDialog * QtProxy::showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
 {
+    assert(callback);
+    if(!parent)
+        parent = callback->getFallbackParentWidget();
+
     JobShowObjectLoggerDialog job(parent, item, callback);
     if(QThread::currentThread() == thread())
         implShowObjectLoggerDialog(&job);
@@ -168,6 +178,10 @@ void QtProxy::implShowObjectLoggerDialog(JobShowObjectLoggerDialog * job)
 
 IObjectLoggerDialog * QtProxy::showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback)
 {
+    assert(callback);
+    if(!parent)
+        parent = callback->getFallbackParentWidget();
+
     JobShowObjectLoggerDialogForLogger job(parent, logger, callback);
     if(QThread::currentThread() == thread())
         implShowObjectLoggerDialogForLogger(&job);
@@ -184,6 +198,10 @@ void QtProxy::implShowObjectLoggerDialogForLogger(JobShowObjectLoggerDialogForLo
 
 IContextMenu * QtProxy::createContextMenu(QWidget *parent, SGIItemBase * item, bool onlyRootItem, IHostCallback * callback)
 {
+    assert(callback);
+    if(!parent)
+        parent = callback->getFallbackParentWidget();
+
     JobCreateContextMenu job(parent, item, onlyRootItem, callback);
     if(QThread::currentThread() == thread())
         implCreateContextMenu(&job);
@@ -200,6 +218,10 @@ void QtProxy::implCreateContextMenu(JobCreateContextMenu * job)
 
 IContextMenuQt * QtProxy::createContextMenu(QWidget *parent, QObject * item, bool onlyRootItem, IHostCallback * callback)
 {
+    assert(callback);
+    if(!parent)
+        parent = callback->getFallbackParentWidget();
+
     JobCreateContextMenuQt job(parent, item, onlyRootItem, callback);
     if(QThread::currentThread() == thread())
         implCreateContextMenuQt(&job);
@@ -216,6 +238,10 @@ void QtProxy::implCreateContextMenuQt(JobCreateContextMenuQt * job)
 
 IImagePreviewDialog * QtProxy::showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
 {
+    assert(callback);
+    if(!parent)
+        parent = callback->getFallbackParentWidget();
+
     JobShowImagePreviewDialog job(parent, item, callback);
     if(QThread::currentThread() == thread())
         implShowImagePreviewDialog(&job);
