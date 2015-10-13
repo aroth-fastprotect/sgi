@@ -14,6 +14,7 @@
 #include "ContextMenuQt.h"
 
 #include <iostream>
+#include <cassert>
 #include <QMetaProperty>
 
 namespace sgi {
@@ -36,14 +37,8 @@ using namespace sgi::qt_helpers;
 bool actionHandlerImpl<MenuActionObjectInfo>::execute()
 {
     IHostCallback * callback = hostCallback();
-    if(callback)
-        callback->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());
-    else
-    {
-        ISceneGraphDialog * dlg = _hostInterface->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());
-        if(dlg)
-            dlg->show();
-    }
+    assert(callback);
+    callback->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());
     return true;
 }
 
@@ -138,7 +133,8 @@ bool actionHandlerImpl<MenuActionDumpObjectInfo>::execute()
     QObject* object = getObject<QObject,SGIItemQt>();
     CaptureQtMessageHandler handler;
     object->dumpObjectInfo();
-    std::cout << handler.messageText();
+    std::string text = handler.messageText();
+    _hostInterface->inputDialogText(menu()->parentWidget(), text, "Object info", "Object info", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item.get());
     return true;
 }
 
@@ -147,7 +143,8 @@ bool actionHandlerImpl<MenuActionDumpObjectTree>::execute()
     QObject* object = getObject<QObject,SGIItemQt>();
     CaptureQtMessageHandler handler;
     object->dumpObjectTree();
-    std::cout << handler.messageText();
+    std::string text = handler.messageText();
+    _hostInterface->inputDialogText(menu()->parentWidget(), text, "Object tree", "Object tree", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item.get());
     return true;
 }
 
@@ -280,8 +277,7 @@ namespace {
 
 bool actionHandlerImpl<MenuActionImagePreview>::execute()
 {
-    IImagePreviewDialogPtr dialog = _hostInterface->showImagePreviewDialog(menu()->parentWidget(), _item.get(), hostCallback());
-	
+    IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), _item.get());
 	if (dialog.valid())
 	{
 		SGIItemQtPaintDevice * qpaintdevItem = dynamic_cast<SGIItemQtPaintDevice *>(_item.get());

@@ -422,6 +422,17 @@ public:
 				_loggerDialog = _impl->showObjectLoggerDialog(parent, item, this);
 			return _loggerDialog.get();
 		}
+        IObjectLoggerDialog *   showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger) override
+        {
+            if (_loggerDialog.valid())
+            {
+                //_loggerDialog->setObject(item);
+                _loggerDialog->show();
+            }
+            else
+                _loggerDialog = _impl->showObjectLoggerDialog(parent, logger, this);
+            return _loggerDialog.get();
+        }
 		IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, SGIItemBase * item) override
 		{
 			if (_imagePreviewDialog.valid())

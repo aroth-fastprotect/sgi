@@ -52,6 +52,10 @@ public:
     {
         return _hostCallback->showObjectLoggerDialog(parent, item);
     }
+    IObjectLoggerDialog *   showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger) override
+    {
+        return _hostCallback->showObjectLoggerDialog(parent, logger);
+    }
     IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, SGIItemBase * item) override
     {
         return _hostCallback->showImagePreviewDialog(parent, item);

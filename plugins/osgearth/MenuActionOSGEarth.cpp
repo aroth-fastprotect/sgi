@@ -6,6 +6,7 @@
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/ContextMenu>
 #include <sgi/plugins/SettingsDialog>
+#include <sgi/plugins/ImagePreviewDialog>
 
 #include <osgEarth/Version>
 #include <osgEarth/MapNode>
@@ -28,6 +29,8 @@
 
 #include <sgi/helpers/osg>
 #include <sgi/helpers/string>
+
+#include <cassert>
 
 namespace sgi {
 
@@ -220,14 +223,8 @@ bool setDebugImageLayer(osgEarth::Map * object, MapDebugImageLayer mode)
 bool actionHandlerImpl<MenuActionObjectInfo>::execute()
 {
     IHostCallback * callback = hostCallback();
-    if(callback)
-        callback->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());
-    else
-    {
-        ISceneGraphDialog * dlg = _hostInterface->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());
-        if(dlg)
-            dlg->show();
-    }
+    assert(callback);
+    callback->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());
     return true;
 }
 
@@ -590,14 +587,12 @@ bool actionHandlerImpl<MenuActionImagePreviewRGBA>::execute()
     osg::ref_ptr<SGIItemBase> item;
     if(_hostInterface->generateItem(item, &hostItem))
     {
-        ISettingsDialogPtr dialog;
-        bool ret;
-        ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(2, menu()->parentWidget(), hostCallback());
-        ret = _hostInterface->openSettingsDialog(dialog, item, info);
-        if(ret)
+        IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), item.get());
+
+        if(dialog.valid())
         {
-            if(dialog.valid())
-                dialog->show();
+            dialog->setObject(item.get(), osg_helpers::convertImage(object), std::string(), hostCallback());
+            dialog->show();
         }
     }
     return true;

@@ -694,7 +694,12 @@ ObjectLogger * ObjectLogger::getOrCreateLogger(SGIItemBase * item, SGIPluginHost
 IObjectLoggerDialog * ObjectLogger::getOrCreateDialog(QWidget *parent, IHostCallback * callback)
 {
     if(!_dialog.valid())
-        _dialog = _hostInterface->showObjectLoggerDialog(parent, this, callback);
+    {
+        if(callback)
+            _dialog = callback->showObjectLoggerDialog(parent, this);
+        else
+            _dialog = _hostInterface->showObjectLoggerDialog(parent, this, callback);
+    }
     return _dialog.get();
 }
 

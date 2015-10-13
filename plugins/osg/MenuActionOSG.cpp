@@ -38,7 +38,7 @@
 #include <osgViewer/ViewerEventHandlers>
 
 #include <QtCore/QMutex>
-
+#include <cassert>
 
 #include "osg_accessor.h"
 #include "stateset_helpers.h"
@@ -209,14 +209,8 @@ using namespace sgi::osg_helpers;
 bool actionHandlerImpl<MenuActionObjectInfo>::execute()
 {
     IHostCallback * callback = hostCallback();
-    if(callback)
-        callback->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());
-    else
-    {
-        ISceneGraphDialog * dlg = _hostInterface->showSceneGraphDialog(menu()->parentWidget(), _item->rootBase());
-        if(dlg)
-            dlg->show();
-    }
+    assert(callback);
+    callback->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());
     return true;
 }
 
@@ -437,14 +431,8 @@ bool actionHandlerImpl<MenuActionNodeStripTextures>::execute()
 bool actionHandlerImpl<MenuActionObjectLogger>::execute()
 {
     IHostCallback * callback = hostCallback();
-    if(callback)
-        callback->showObjectLoggerDialog(menu()->parentWidget(), _item->rootBase());
-    else
-    {
-        IObjectLoggerDialogPtr dialog = _hostInterface->showObjectLoggerDialog(menu()->parentWidget(), _item->rootBase());
-        if(dialog)
-            dialog->show();
-    }
+    assert(callback);
+    callback->showObjectLoggerDialog(menu()->parentWidget(), _item->rootBase());
     return true;
 }
 
@@ -1396,50 +1384,14 @@ bool actionHandlerImpl<MenuActionGeometryColor>::execute()
     return true;
 }
 
-namespace {
-    const sgi::Image * convertImage(osg::Image * image)
-    {
-		if (!image)
-			return NULL;
-
-		sgi::Image * ret = NULL;
-		sgi::Image::ImageFormat imageFormat;
-        switch(image->getPixelFormat())
-        {
-        case GL_RGB: imageFormat = sgi::Image::ImageFormatRGB24; break;
-        case GL_RGBA:imageFormat = sgi::Image::ImageFormatARGB32; break;
-        case GL_LUMINANCE: imageFormat = sgi::Image::ImageFormatMono; break;
-        default: imageFormat = sgi::Image::ImageFormatInvalid; break;
-        }
-		sgi::Image::Origin origin = (image->getOrigin() == osg::Image::TOP_LEFT) ? sgi::Image::OriginTopLeft : sgi::Image::OriginBottomLeft;
-		if(imageFormat != sgi::Image::ImageFormatInvalid)
-		{
-			ret = new sgi::Image(imageFormat, origin,
-								image->data(), image->getTotalDataSize(),
-								image->s(), image->t(), image->r(), image->getRowStepInBytes(),
-								image);
-		}
-		else
-		{
-			QImage * qimage = new QImage;
-			osgImageToQImage(image, qimage);
-			ret = new sgi::Image(imageFormat, origin,
-				image->data(), image->getTotalDataSize(),
-				image->s(), image->t(), image->r(), image->getRowStepInBytes(),
-				qimage);
-		}
-        return ret;
-    }
-}
-
 bool actionHandlerImpl<MenuActionImagePreview>::execute()
 {
     osg::Image * object = getObject<osg::Image,SGIItemOsg>();
-    IImagePreviewDialogPtr dialog = _hostInterface->showImagePreviewDialog(menu()->parentWidget(), _item.get(), hostCallback());
+    IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), _item.get());
 
     if(dialog.valid())
     {
-        dialog->setObject(_item.get(), convertImage(object), std::string(), hostCallback());
+        dialog->setObject(_item.get(), osg_helpers::convertImage(object), std::string(), hostCallback());
         dialog->show();
     }
 
@@ -2902,8 +2854,7 @@ bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
 			osg::ref_ptr<osg::Image> image = handler->takeImage();
 			if (image.valid())
 			{
-				IImagePreviewDialogPtr dialog = _hostInterface->showImagePreviewDialog(menu()->parentWidget(), _item.get(), hostCallback());
-
+				IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), _item.get());
 				if (dialog.valid())
 				{
 					dialog->setObject(_item.get(), convertImage(image), std::string(), hostCallback());

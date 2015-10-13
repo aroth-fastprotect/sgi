@@ -43,12 +43,6 @@ public:
 
     SGIItemBase *           item() const;
 
-    bool                    showSceneGraphDialog(SGIItemBase * item);
-    bool                    showSceneGraphDialog(const SGIHostItemBase * hostitem);
-
-    bool                    showObjectLoggerDialog(SGIItemBase * item);
-    bool                    showObjectLoggerDialog(const SGIHostItemBase * hostitem);
-
 public slots:
     void setLabel(const QString & label);
     void showBesideParent();
