@@ -90,7 +90,10 @@ public:
 	}
 	IHostCallback * hostCallback()
 	{
-		return _hostCallback.get();
+		if (_hostCallback.valid())
+			return _hostCallback.get();
+		else
+			return _defaultHostCallback.get();
 	}
 	void setHostCallback(IHostCallback * callback)
 	{
