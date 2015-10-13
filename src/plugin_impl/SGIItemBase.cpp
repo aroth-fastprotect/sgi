@@ -338,16 +338,16 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, unsigned number, osg::
 
 
 
-Image::Image(ImageFormat format, Origin origin, void * data, size_t length,
+Image::Image(ImageFormat format, Origin origin, const void * data, size_t length,
         unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
-        osg::Referenced * originalImage)
+        const osg::Referenced * originalImage)
     : _format(format), _origin(origin), _data(data), _length(length)
     , _width(width), _height(height), _depth(depth), _bytesPerLine(bytesPerLine)
     , _originalImage(originalImage), _originalImageQt(NULL)
 {
 
 }
-Image::Image(ImageFormat format, Origin origin, void * data, size_t length,
+Image::Image(ImageFormat format, Origin origin, const void * data, size_t length,
     unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
     QImage * originalImage)
     : _format(format), _origin(origin), _data(data), _length(length)

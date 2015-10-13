@@ -56,7 +56,9 @@ namespace osg {
 class QImage;
 
 namespace sgi {
-    namespace osg_helpers {
+
+class Image;
+namespace osg_helpers {
 
 /** Makes an HTML color ("#rrggbb" or "#rrggbbaa") from an OSG color. */
 template<typename T>
@@ -151,6 +153,7 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, Mat
 void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Drawable * refDrawable);
 
 bool osgImageToQImage(const osg::Image * image, QImage * qimage);
+const sgi::Image * convertImage(const osg::Image * image);
 
 void heightFieldDumpHTML(std::basic_ostream<char>& os, const osg::HeightField * hf);
 void heightFieldDumpPlainText(std::basic_ostream<char>& os, const osg::HeightField * hf);
