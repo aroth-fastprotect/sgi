@@ -106,8 +106,8 @@ struct SGIOptions
             return defaultValue;
         return string_to_bool(val, defaultValue);
     }
-    SGIOptions(const osgDB::Options * options=NULL)
-		: qtObject(NULL)
+    SGIOptions(const std::string & filename_=std::string(), const osgDB::Options * options=NULL)
+		: qtObject(NULL), filename(filename_)
     {
         const void * host_callback_plugin_data = options?options->getPluginData("sgi_host_callback"):NULL;
         hostCallback = static_cast<sgi::IHostCallback*>(const_cast<void*>(host_callback_plugin_data));
@@ -119,10 +119,29 @@ struct SGIOptions
 		const void * sgi_qt_object_data = options ? options->getPluginData("sgi_qt_object") : NULL;
 		qtObject = static_cast<QObject*>(const_cast<void*>(sgi_qt_object_data));
 	}
+    SGIHostItemBase * getHostItem() const
+    {
+        SGIHostItemBase * ret = NULL;
+        if(!filename.empty())
+        {
+            if(filename == "qapp")
+                ret = new SGIHostItemQt(qApp);
+        }
+        if(!ret)
+        {
+            if (osgReferenced.valid())
+                ret = new SGIHostItemOsg(osgReferenced.get());
+            else if (qtObject)
+                ret = new SGIHostItemQt(qtObject);
+        }
+        return ret;
+    }
+
     osg::ref_ptr<sgi::IHostCallback> hostCallback;
     bool showSceneGraphDialog;
 	QObject * qtObject;
 	osg::ref_ptr<osg::Referenced> osgReferenced;
+    std::string filename;
 };
 
 class SceneGraphInspectorHandler : public osgGA::GUIEventHandler
@@ -205,6 +224,7 @@ bool SceneGraphInspectorHandler::contextMenu(const SGIHostItemBase * item, float
 	return contextMenu.valid();
 }
 
+
 bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa)
 {
 	if (ea.getHandled())
@@ -275,24 +295,10 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
 				if (viewport)
 					y = viewport->height() - y;
 			}
-			SGIHostItemOsg hostItemOsg((osg::Referenced*)NULL);
-			SGIHostItemQt hostItemQt((QObject*)NULL);
-			SGIHostItemBase * hostItem = NULL;
-			if (_options.osgReferenced.valid())
-			{
-				hostItemOsg = SGIHostItemOsg(_options.osgReferenced.get());
-				hostItem = &hostItemOsg;
-			}
-			else if (_options.qtObject)
-			{
-				hostItemQt = SGIHostItemQt(_options.qtObject);
-				hostItem = &hostItemQt;
-			}
-			else
-			{
-				hostItemOsg = SGIHostItemOsg(&ea);
-				hostItem = &hostItemOsg;
-			}
+
+			SGIHostItemBasePtr hostItem = _options.getHostItem();
+            if(!hostItem.valid())
+                hostItem = new SGIHostItemOsg(&ea);
 			contextMenu(hostItem, x, y);
 		}
 
@@ -423,9 +429,9 @@ class SGIInstallNode : public osg::Node
 {
 public:
 	static unsigned numInstances;
-    SGIInstallNode(const osgDB::Options * options=NULL)
+    SGIInstallNode(const std::string & filename=std::string(), const osgDB::Options * options=NULL)
         : osg::Node()
-        , _options(options)
+        , _options(filename, options)
         , _installed(false)
     {
 		++numInstances;
@@ -524,7 +530,7 @@ public:
 
         OSG_NOTICE << LC << "readNode " << fileName << std::endl;
 
-        return ReadResult(new SGIInstallNode(options));
+        return ReadResult(new SGIInstallNode(osgDB::getNameLessExtension(fileName), options));
     }
 };
 
