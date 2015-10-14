@@ -249,6 +249,14 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
                 lookAtMenu->addSimpleAction(MenuActionNodeLookAt, "From behind", _item, new ReferencedDataInt(NodeLookAtFromBehind));
                 lookAtMenu->addSimpleAction(MenuActionNodeLookAt, "Top view", _item, new ReferencedDataInt(NodeLookAtTopView));
             }
+			IContextMenuItem * optimizerMenu = manipulateMenu->addModeMenu(MenuActionNodeOptimizerRun, "Optimizer", _item, MenuActionOptimizerRunModeInvalid);
+			if (optimizerMenu)
+			{
+				optimizerMenu->addModeAction("Check", MenuActionOptimizerRunModeCheck);
+				optimizerMenu->addModeAction("Default", MenuActionOptimizerRunModeDefault);
+				optimizerMenu->addModeAction("Fast geometry", MenuActionOptimizerRunModeFastGeometry);
+				optimizerMenu->addModeAction("All", MenuActionOptimizerRunModeAll);
+			}
 
             SGIHostItemOsg eventCallback(object->getEventCallback());
             if(eventCallback.hasObject())

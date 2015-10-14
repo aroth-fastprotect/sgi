@@ -23,6 +23,14 @@ enum MenuActionAddChildType {
     MenuActionAddChildBoundingBox
 };
 
+enum MenuActionOptimizerRunMode {
+	MenuActionOptimizerRunModeInvalid = -1,
+	MenuActionOptimizerRunModeDefault,
+	MenuActionOptimizerRunModeAll,
+	MenuActionOptimizerRunModeCheck,
+	MenuActionOptimizerRunModeFastGeometry,
+};
+
 enum MenuAction {
     MenuActionNone = -1,
     MenuActionObjectInfo,
@@ -38,6 +46,7 @@ enum MenuAction {
     MenuActionNodeLookAt,
     MenuActionNodeCreateStateSet,
     MenuActionNodeStripTextures,
+	MenuActionNodeOptimizerRun,
     MenuActionObjectLogger,
     MenuActionObjectLoggerVisible,
     MenuActionObjectLoggerActive,
@@ -184,6 +193,7 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionNodeCullingActive)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionNodeLookAt)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionNodeCreateStateSet)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionNodeStripTextures)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionNodeOptimizerRun)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionObjectLogger)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionObjectLoggerVisible)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionObjectLoggerActive)

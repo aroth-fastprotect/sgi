@@ -30,6 +30,7 @@
 #include <osgViewer/View>
 #include <osgText/Text>
 #include <osgUtil/CullVisitor>
+#include <osgUtil/Optimizer>
 #include <osg/io_utils>
 #include <osg/ComputeBoundsVisitor>
 #include <osgDB/ReadFile>
@@ -65,6 +66,7 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeCullingActive)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeLookAt)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeCreateStateSet)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeStripTextures)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeOptimizerRun)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectLogger)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectLoggerVisible)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectLoggerActive)
@@ -426,6 +428,45 @@ bool actionHandlerImpl<MenuActionNodeStripTextures>::execute()
     osg::Node * object = getObject<osg::Node, SGIItemOsg>();
     manipulateObject<StripTextures>(object);
     return true;
+}
+
+namespace {
+	class OptimizerRun
+	{
+	public:
+		OptimizerRun(MenuActionOptimizerRunMode mode)
+			: _mode(mode) {}
+		void operator()(osg::Node * object, osg::NodeVisitor* nv)
+		{
+			osgUtil::Optimizer optimizer;
+			switch(_mode)
+			{
+			case MenuActionOptimizerRunModeAll:
+				optimizer.optimize(object, osgUtil::Optimizer::ALL_OPTIMIZATIONS);
+				break;
+			case MenuActionOptimizerRunModeDefault:
+				optimizer.optimize(object, osgUtil::Optimizer::DEFAULT_OPTIMIZATIONS);
+				break;
+			case MenuActionOptimizerRunModeCheck:
+				optimizer.optimize(object, osgUtil::Optimizer::CHECK_GEOMETRY);
+				break;
+			case MenuActionOptimizerRunModeFastGeometry:
+				optimizer.optimize(object, osgUtil::Optimizer::MAKE_FAST_GEOMETRY);
+				break;
+			}
+		}
+	private:
+		MenuActionOptimizerRunMode _mode;
+	};
+
+}
+
+bool actionHandlerImpl<MenuActionNodeOptimizerRun>::execute()
+{
+	osg::Node * object = getObject<osg::Node, SGIItemOsg>();
+	MenuActionOptimizerRunMode mode = (MenuActionOptimizerRunMode)menuAction()->mode();
+	manipulateObject<OptimizerRun>(object, mode);
+	return true;
 }
 
 bool actionHandlerImpl<MenuActionObjectLogger>::execute()

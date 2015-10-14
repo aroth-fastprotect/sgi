@@ -172,6 +172,7 @@ void SceneGraphDialog::init()
     QToolButton * toolsMenuButton = new QToolButton(this);
     toolsMenuButton->setMenu(_toolsMenu);
     toolsMenuButton->setText(tr("Tools"));
+	toolsMenuButton->setIcon(QIcon::fromTheme("applications-system"));
     toolsMenuButton->setPopupMode(QToolButton::MenuButtonPopup);
 
     _toolBar->addWidget(toolsMenuButton);

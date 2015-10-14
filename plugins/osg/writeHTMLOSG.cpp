@@ -1546,6 +1546,8 @@ bool writePrettyHTMLImpl<osg::Geometry>::process(std::basic_ostream<char>& os)
             // add drawable properties first
             callNextHandler(os);
 
+			os << "<tr><td>contains deprecated data</td><td>" << (object->containsDeprecatedData() ? "true" : "false") << "</td></tr>" << std::endl;
+
             os << "<tr><td>vertices</td><td>";
             writePrettyHTMLGeometryVertices(os, object, true);
             os << "</td></tr>" << std::endl;
@@ -4714,7 +4716,7 @@ namespace {
         unsigned int _numInstancedAnimationSkeleton;
         unsigned int _numInstancedAnimationBone;
 		unsigned int _numInstancedTextBase;
-
+		unsigned int _numDeprecatedDataGeometries;
 
         enum { MaxStateAttributeType = osg::StateAttribute::FRAME_BUFFER_OBJECT };
 
@@ -4754,6 +4756,7 @@ namespace {
         , _numInstancedAnimationSkeleton(0)
         , _numInstancedAnimationBone(0)
 		, _numInstancedTextBase(0)
+		, _numDeprecatedDataGeometries(0)
     {
         for(int n = 0; n < MaxStateAttributeType; n++)
             _numInstancedSA[n] = 0;
@@ -4776,6 +4779,7 @@ namespace {
         _numInstancedAnimationSkeleton = 0;
         _numInstancedAnimationBone = 0;
 		_numInstancedTextBase = 0;
+		_numDeprecatedDataGeometries = 0;
 
         _numUpdateCallbacks = 0;
         _numEventCallbacks = 0;
@@ -4892,6 +4896,9 @@ namespace {
         osg::Geometry* geometry = node.asGeometry();
         if (geometry)
         {
+			if (geometry->containsDeprecatedData())
+				++_numDeprecatedDataGeometries;
+
             osg::Geometry::ArrayList arrays;
             if(geometry->getArrayList(arrays))
             {
@@ -5182,6 +5189,8 @@ namespace {
         out << "<tr><td>Geometry</td><td>" << _geometrySet.size() << "</td><td>" << _numInstancedGeometry << "</td></tr>" << std::endl;
 		out << "<tr><td>Text base</td><td>" << _textBaseSet.size() << "</td><td>" << _numInstancedTextBase << "</td></tr>" << std::endl;
         out << "<tr><td>Fast geom.</td><td>" << _fastGeometrySet.size() << "</td><td>" << _numInstancedFastGeometry << "</td></tr>" << std::endl;
+		out << "<tr><td>Deprecated data geom.</td><td>" << "N/A" << "</td><td>" << _numDeprecatedDataGeometries << "</td></tr>" << std::endl;
+		
         out << "<tr><td>Vertices</td><td>" << _uniqueStats._vertexCount << "</td><td>" << _instancedStats._vertexCount << "</td></tr>" << std::endl;
         out << "<tr><td>Primitives</td><td>" << unique_primitives << "</td><td>" << instanced_primitives << "</td></tr>" << std::endl;
 
