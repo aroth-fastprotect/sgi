@@ -1,0 +1,18 @@
+LIST(APPEND TARGET_SRC
+        main.cpp
+        )
+
+LIST(APPEND TARGET_MOC_H
+    main.h
+    )
+
+#OTHER_FILES += sgi_loader.json
+LIST(APPEND TARGET_LIBRARIES_VARS
+    QT_QTCORE_LIBRARY
+    QT_QTGUI_LIBRARY
+    )
+IF ( Qt5Widgets_FOUND )
+    LIST(APPEND TARGET_LIBRARIES_VARS QT_QTWIDGETS_LIBRARY )
+ENDIF()
+
+FAST_PLUGIN(qsgi_loader PLUGINTYPE imageformats )
