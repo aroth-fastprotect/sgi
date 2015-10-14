@@ -383,79 +383,66 @@ public:
 		}
 		ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, SGIItemBase * item) override
 		{
-			if (_dialog.valid())
-			{
-				_dialog->setObject(item);
-				_dialog->show();
-			}
-			else
-				_dialog = _impl->showSceneGraphDialog(parent, item, this);
-			return _dialog.get();
+            if (_dialog.valid())
+                _dialog->setObject(item);
+            else
+                _dialog = _impl->showSceneGraphDialog(parent, item, this);
+            if (_dialog.valid())
+                _dialog->show();
+            return _dialog.get();
 		}
 		ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, const SGIHostItemBase * item) override
 		{
-			if (_dialog.valid())
-			{
-				_dialog->setObject(item);
-				_dialog->show();
-			}
-			else
-				_dialog = _impl->showSceneGraphDialog(parent, item, this);
-			return _dialog.get();
+            if (_dialog.valid())
+                _dialog->setObject(item);
+            else
+                _dialog = _impl->showSceneGraphDialog(parent, item, this);
+            if (_dialog.valid())
+                _dialog->show();
+            return _dialog.get();
 		}
 		IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, SGIItemBase * item) override
 		{
-			if (_loggerDialog.valid())
-			{
-				//_loggerDialog->setObject(item);
-				_loggerDialog->show();
-			}
-			else
-				_loggerDialog = _impl->showObjectLoggerDialog(parent, item, this);
-			return _loggerDialog.get();
+            if (!_loggerDialog.valid())
+                _loggerDialog = _impl->showObjectLoggerDialog(parent, item, this);
+            if (!_loggerDialog.valid())
+                _loggerDialog->show();
+            return _loggerDialog.get();
 		}
 		IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, const SGIHostItemBase * item) override
 		{
-			if (_loggerDialog.valid())
-			{
-				//_loggerDialog->setObject(item);
-				_loggerDialog->show();
-			}
-			else
-				_loggerDialog = _impl->showObjectLoggerDialog(parent, item, this);
-			return _loggerDialog.get();
+            if (!_loggerDialog.valid())
+                _loggerDialog = _impl->showObjectLoggerDialog(parent, item, this);
+            if (!_loggerDialog.valid())
+                _loggerDialog->show();
+            return _loggerDialog.get();
 		}
         IObjectLoggerDialog *   showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger) override
         {
-            if (_loggerDialog.valid())
-            {
-                //_loggerDialog->setObject(item);
-                _loggerDialog->show();
-            }
-            else
+            if (!_loggerDialog.valid())
                 _loggerDialog = _impl->showObjectLoggerDialog(parent, logger, this);
+            if (!_loggerDialog.valid())
+                _loggerDialog->show();
             return _loggerDialog.get();
         }
 		IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, SGIItemBase * item) override
 		{
-			if (_imagePreviewDialog.valid())
-			{
-				_imagePreviewDialog->setObject(item);
-				_imagePreviewDialog->show();
-			}
-			else
-				_imagePreviewDialog = _impl->showImagePreviewDialog(parent, item, this);
+            if (_imagePreviewDialog.valid())
+                _imagePreviewDialog->setObject(item);
+            else
+                _imagePreviewDialog = _impl->showImagePreviewDialog(parent, item, this);
+            if(_imagePreviewDialog.valid())
+                _imagePreviewDialog->show();
 			return _imagePreviewDialog.get();
 		}
 		IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, const SGIHostItemBase * item) override
 		{
 			if (_imagePreviewDialog.valid())
-			{
 				_imagePreviewDialog->setObject(item);
-				_imagePreviewDialog->show();
-			}
 			else
 				_imagePreviewDialog = _impl->showImagePreviewDialog(parent, item, this);
+            if(_imagePreviewDialog.valid())
+                _imagePreviewDialog->show();
 			return _imagePreviewDialog.get();
 		}
 		virtual ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
