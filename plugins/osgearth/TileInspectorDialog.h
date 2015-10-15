@@ -74,8 +74,9 @@ protected:
 private:
 	Ui_TileInspectorDialog *	    ui;
     SGIPluginHostInterface *        _hostInterface;
-    ISettingsDialogPtr              _interface;
-    ISettingsDialogInfoPtr          _info;
+	// use a simple raw-ptr to the interface to avoid a circular ref-ptr
+	ISettingsDialog *				_interface;
+	ISettingsDialogInfoPtr          _info;
     IObjectTreeItemPtr              _treeRoot;
     IObjectTreeImplPtr              _treeImpl;
     IContextMenuPtr                 _contextMenu;
