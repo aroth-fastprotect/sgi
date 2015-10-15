@@ -127,6 +127,7 @@ struct SGIOptions
 	osg::ref_ptr<osg::Referenced> osgReferenced;
     std::string filename;
     unsigned pickerNodeMask;
+    osg::ref_ptr<osg::Node> pickerRoot;
 };
 
 template<>
@@ -149,6 +150,7 @@ SGIOptions::SGIOptions(const std::string & filename_, const osgDB::Options * opt
     qtObject = getObjectOption<QObject>(options, "sgi_qt_object");
     parentWidget = getObjectOption<QWidget>(options, "parentWidget");
     pickerNodeMask = getOption<unsigned>(options, "pickerNodeMask", ~0u);
+    pickerRoot = getObjectOption<osg::Node>(options, "pickerRoot");
 }
 
 SGIHostItemBase * SGIOptions::getHostItem() const
@@ -441,10 +443,13 @@ public:
 		}
         virtual ReferencedPickerBase * createPicker(PickerType type, float x, float y)
         {
+            if(!_parent->_view)
+                return NULL;
+
             ReferencedPickerBase * ret = NULL;
-            osg::Node * root = NULL;
+            osg::Node * root = _parent->_options.pickerRoot.get();
             float buffer = 1.0f;
-            unsigned traversalMask = ~0u;
+            unsigned traversalMask = _parent->_options.pickerNodeMask;
 
             switch(type)
             {
