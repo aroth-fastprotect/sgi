@@ -97,52 +97,76 @@ struct SGIOptions
         else
             return defaultValue;
     }
-    static bool getBoolOption(const osgDB::Options * options, const std::string & key, bool defaultValue=false)
+    template<typename T>
+    static T * getObjectOption(const osgDB::Options * options, const std::string & key, T * defaultValue=NULL)
     {
         if(!options)
             return defaultValue;
-        std::string val = options->getPluginStringData(key);
-        if(val.empty())
+        const void * data = options->getPluginData(key);
+        if(!data)
             return defaultValue;
-        return string_to_bool(val, defaultValue);
+        return static_cast<T*>(const_cast<void*>(data));
     }
-    SGIOptions(const std::string & filename_=std::string(), const osgDB::Options * options=NULL)
-		: qtObject(NULL), filename(filename_)
+    template<typename T>
+    static T getOption(const osgDB::Options * options, const std::string & key, const T & defaultValue=T())
     {
-        const void * host_callback_plugin_data = options?options->getPluginData("sgi_host_callback"):NULL;
-        hostCallback = static_cast<sgi::IHostCallback*>(const_cast<void*>(host_callback_plugin_data));
-        showSceneGraphDialog = getBoolOption(options, "showSceneGraphDialog");
-
-		const void * sgi_osg_referenced_data = options ? options->getPluginData("sgi_osg_referenced") : NULL;
-		osgReferenced = static_cast<osg::Referenced*>(const_cast<void*>(sgi_osg_referenced_data));
-
-		const void * sgi_qt_object_data = options ? options->getPluginData("sgi_qt_object") : NULL;
-		qtObject = static_cast<QObject*>(const_cast<void*>(sgi_qt_object_data));
-	}
-    SGIHostItemBase * getHostItem() const
-    {
-        SGIHostItemBase * ret = NULL;
-        if(!filename.empty())
-        {
-            if(filename == "qapp")
-                ret = new SGIHostItemQt(qApp);
-        }
-        if(!ret)
-        {
-            if (osgReferenced.valid())
-                ret = new SGIHostItemOsg(osgReferenced.get());
-            else if (qtObject)
-                ret = new SGIHostItemQt(qtObject);
-        }
-        return ret;
+        if(!options)
+            return defaultValue;
+        const void * data = options->getPluginData(key);
+        if(!data)
+            return defaultValue;
+        return *static_cast<const T*>(data);
     }
+    SGIOptions(const std::string & filename_=std::string(), const osgDB::Options * options=NULL);
+    SGIHostItemBase * getHostItem() const;
 
     osg::ref_ptr<sgi::IHostCallback> hostCallback;
     bool showSceneGraphDialog;
 	QObject * qtObject;
 	osg::ref_ptr<osg::Referenced> osgReferenced;
     std::string filename;
+    unsigned pickerNodeMask;
 };
+
+template<>
+bool SGIOptions::getOption<bool>(const osgDB::Options * options, const std::string & key, const bool & defaultValue)
+{
+    if(!options)
+        return defaultValue;
+    std::string val = options->getPluginStringData(key);
+    if(val.empty())
+        return defaultValue;
+    return string_to_bool(val, defaultValue);
+}
+
+SGIOptions::SGIOptions(const std::string & filename_, const osgDB::Options * options)
+        : qtObject(NULL), filename(filename_), pickerNodeMask(~0u)
+{
+    hostCallback = getObjectOption<sgi::IHostCallback>(options, "sgi_host_callback");
+    showSceneGraphDialog = getOption<bool>(options, "showSceneGraphDialog");
+    osgReferenced = getObjectOption<osg::Referenced>(options, "sgi_osg_referenced");
+    qtObject = getObjectOption<QObject>(options, "sgi_qt_object");
+    pickerNodeMask = getOption<unsigned>(options, "pickerNodeMask", ~0u);
+}
+
+SGIHostItemBase * SGIOptions::getHostItem() const
+{
+    SGIHostItemBase * ret = NULL;
+    if(!filename.empty())
+    {
+        if(filename == "qapp")
+            ret = new SGIHostItemQt(qApp);
+    }
+    if(!ret)
+    {
+        if (osgReferenced.valid())
+            ret = new SGIHostItemOsg(osgReferenced.get());
+        else if (qtObject)
+            ret = new SGIHostItemQt(qtObject);
+    }
+    return ret;
+}
+
 
 class SceneGraphInspectorHandler : public osgGA::GUIEventHandler
 {
@@ -230,80 +254,108 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
 	if (ea.getHandled())
 		return false;
 
-	if (ea.getEventType() == ea.KEYDOWN)
-	{
-		if (_inspectorHitTestKey != 0 && ea.getKey() == _inspectorHitTestKey)
-		{
-			IHostCallback::PickerType pickerType;
-			if (ea.getModKeyMask() & (osgGA::GUIEventAdapter::MODKEY_LEFT_SHIFT | osgGA::GUIEventAdapter::MODKEY_RIGHT_SHIFT))
-				pickerType = IHostCallback::PickerTypeLine;
-			else
-				pickerType = IHostCallback::PickerTypeDefault;
-			_picker = _hostCallback->createPicker(pickerType, ea.getX(), ea.getY());
-			if (_picker.valid() && _picker->result())
-			{
-				SGIHostItemOsg itemPicker(_picker);
-				showSceneGraphDialog(&itemPicker);
-			}
-			else
-			{
-				showSceneGraphDialog(NULL);
-			}
-		}
-		else if (_inspectorInfoKey != 0 && ea.getKey() == _inspectorInfoKey &&
-			ea.getModKeyMask() & (_inspectorInfoKeyModMask))
-		{
-			ReferencedInternalInfoData * info = new ReferencedInternalInfoData(InternalInfoData::CommandIdAbout);
-			SGIHostItemInternal itemAbout(info);
-			showSceneGraphDialog(&itemAbout);
-		}
-		else if (_inspectorEventKey != 0 && ea.getKey() == _inspectorEventKey)
-		{
-			SGIHostItemOsg itemEa(&ea);
-			showSceneGraphDialog(&itemEa);
-		}
-		else if (_inspectorLoggerKey != 0 && ea.getKey() == _inspectorLoggerKey &&
-			ea.getModKeyMask() & (_inspectorLoggerModMask))
-		{
-			SGIHostItemOsg itemEa(&ea);
-			showObjectLoggerDialog(&itemEa);
-		}
-	}
-	else if (ea.getEventType() == ea.PUSH)
-	{
-		if (_inspectorHitTestMouseButton != 0 &&
-			ea.getButton() == _inspectorHitTestMouseButton &&
-			(((ea.getModKeyMask() & _inspectorHitTestMouseRightModMask) == _inspectorHitTestMouseRightModMask) ||
-				((ea.getModKeyMask() & _inspectorHitTestMouseLeftModMask) == _inspectorHitTestMouseLeftModMask))
-			)
-		{
-			SGIHostItemOsg itemEa(&ea);
-			showSceneGraphDialog(&itemEa);
-		}
-		else if (_inspectorContextMenuMouseButton != 0 &&
-			ea.getButton() == _inspectorContextMenuMouseButton &&
-			(((ea.getModKeyMask() & _inspectorContextMenuMouseRightModMask) == _inspectorContextMenuMouseRightModMask) ||
-				((ea.getModKeyMask() & _inspectorContextMenuMouseLeftModMask) == _inspectorContextMenuMouseLeftModMask))
-			)
-		{
-			float x = ea.getX();
-			float y = ea.getY();
-			osg::Camera * camera = aa.asView()->getCamera();
-			if (camera)
-			{
-				osg::Viewport * viewport = camera->getViewport();
-				if (viewport)
-					y = viewport->height() - y;
-			}
+    bool ret = false;
+    switch(ea.getEventType())
+    {
+    case osgGA::GUIEventAdapter::KEYDOWN:
+        {
+            if (_inspectorHitTestKey != 0 && ea.getKey() == _inspectorHitTestKey)
+            {
+                IHostCallback::PickerType pickerType;
+                if (ea.getModKeyMask() & (osgGA::GUIEventAdapter::MODKEY_LEFT_SHIFT | osgGA::GUIEventAdapter::MODKEY_RIGHT_SHIFT))
+                    pickerType = IHostCallback::PickerTypeLine;
+                else
+                    pickerType = IHostCallback::PickerTypeDefault;
+                _picker = _hostCallback->createPicker(pickerType, ea.getX(), ea.getY());
+                if (_picker.valid() && _picker->result())
+                {
+                    SGIHostItemOsg itemPicker(_picker);
+                    ret = showSceneGraphDialog(&itemPicker);
+                }
+                else
+                {
+                    ret = showSceneGraphDialog(NULL);
+                }
+            }
+            else if (_inspectorInfoKey != 0 && ea.getKey() == _inspectorInfoKey &&
+                ea.getModKeyMask() & (_inspectorInfoKeyModMask))
+            {
+                ReferencedInternalInfoData * info = new ReferencedInternalInfoData(InternalInfoData::CommandIdAbout);
+                SGIHostItemInternal itemAbout(info);
+                ret = showSceneGraphDialog(&itemAbout);
+            }
+            else if (_inspectorEventKey != 0 && ea.getKey() == _inspectorEventKey)
+            {
+                SGIHostItemOsg itemEa(&ea);
+                ret = showSceneGraphDialog(&itemEa);
+            }
+            else if (_inspectorLoggerKey != 0 && ea.getKey() == _inspectorLoggerKey &&
+                ea.getModKeyMask() & (_inspectorLoggerModMask))
+            {
+                SGIHostItemOsg itemEa(&ea);
+                ret = showObjectLoggerDialog(&itemEa);
+            }
+        }
+        break;
+    case osgGA::GUIEventAdapter::RELEASE:
+        {
+            if (_inspectorHitTestMouseButton != 0 &&
+                ea.getButton() == _inspectorHitTestMouseButton &&
+                (((ea.getModKeyMask() & _inspectorHitTestMouseRightModMask) == _inspectorHitTestMouseRightModMask) ||
+                    ((ea.getModKeyMask() & _inspectorHitTestMouseLeftModMask) == _inspectorHitTestMouseLeftModMask))
+                )
+            {
+                SGIHostItemOsg itemEa(&ea);
+                ret = showSceneGraphDialog(&itemEa);
+            }
+            else if (_inspectorContextMenuMouseButton != 0 &&
+                ea.getButton() == _inspectorContextMenuMouseButton &&
+                (((ea.getModKeyMask() & _inspectorContextMenuMouseRightModMask) == _inspectorContextMenuMouseRightModMask) ||
+                    ((ea.getModKeyMask() & _inspectorContextMenuMouseLeftModMask) == _inspectorContextMenuMouseLeftModMask))
+                )
+            {
+                float x = ea.getX();
+                float y = ea.getY();
+                osg::Camera * camera = aa.asView()->getCamera();
+                if (camera)
+                {
+                    osg::Viewport * viewport = camera->getViewport();
+                    if (viewport)
+                        y = viewport->height() - y;
+                }
 
-			SGIHostItemBasePtr hostItem = _options.getHostItem();
-            if(!hostItem.valid())
-                hostItem = new SGIHostItemOsg(&ea);
-			contextMenu(hostItem, x, y);
-		}
+                SGIHostItemBasePtr hostItem = _options.getHostItem();
+                if(!hostItem.valid())
+                    hostItem = new SGIHostItemOsg(&ea);
+                ret = contextMenu(hostItem, x, y);
+            }
 
-	}
-	return false;
+        }
+        break;
+    case osgGA::GUIEventAdapter::PUSH:
+    case osgGA::GUIEventAdapter::MOVE:
+    case osgGA::GUIEventAdapter::DRAG:
+        {
+            if (_inspectorHitTestMouseButton != 0 &&
+                ea.getButton() == _inspectorHitTestMouseButton &&
+                (((ea.getModKeyMask() & _inspectorHitTestMouseRightModMask) == _inspectorHitTestMouseRightModMask) ||
+                    ((ea.getModKeyMask() & _inspectorHitTestMouseLeftModMask) == _inspectorHitTestMouseLeftModMask))
+                )
+            {
+                ret = true;
+            }
+            else if (_inspectorContextMenuMouseButton != 0 &&
+                ea.getButton() == _inspectorContextMenuMouseButton &&
+                (((ea.getModKeyMask() & _inspectorContextMenuMouseRightModMask) == _inspectorContextMenuMouseRightModMask) ||
+                    ((ea.getModKeyMask() & _inspectorContextMenuMouseLeftModMask) == _inspectorContextMenuMouseLeftModMask))
+                )
+            {
+                ret = true;
+            }
+        }
+        break;
+    }
+	return ret;
 }
 
 
