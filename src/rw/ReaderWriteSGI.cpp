@@ -123,6 +123,7 @@ struct SGIOptions
     osg::ref_ptr<sgi::IHostCallback> hostCallback;
     bool showSceneGraphDialog;
 	QObject * qtObject;
+    QWidget * parentWidget;
 	osg::ref_ptr<osg::Referenced> osgReferenced;
     std::string filename;
     unsigned pickerNodeMask;
@@ -146,6 +147,7 @@ SGIOptions::SGIOptions(const std::string & filename_, const osgDB::Options * opt
     showSceneGraphDialog = getOption<bool>(options, "showSceneGraphDialog");
     osgReferenced = getObjectOption<osg::Referenced>(options, "sgi_osg_referenced");
     qtObject = getObjectOption<QObject>(options, "sgi_qt_object");
+    parentWidget = getObjectOption<QWidget>(options, "parentWidget");
     pickerNodeMask = getOption<unsigned>(options, "pickerNodeMask", ~0u);
 }
 
@@ -377,25 +379,30 @@ public:
         {
             ensure_QApplication();
 
-            if(osgQt::GraphicsWindowQt * gwqt = dynamic_cast<osgQt::GraphicsWindowQt*>(ctx))
-                _parent = gwqt->getGLWidget();
+            if(options.parentWidget)
+                _parent = options.parentWidget;
+            else
+            {
+                if(osgQt::GraphicsWindowQt * gwqt = dynamic_cast<osgQt::GraphicsWindowQt*>(ctx))
+                    _parent = gwqt->getGLWidget();
 #if defined(_WIN32)
-            else if(osgViewer::GraphicsWindowWin32 * gwwin = dynamic_cast<osgViewer::GraphicsWindowWin32*>(ctx))
-            {
+                else if(osgViewer::GraphicsWindowWin32 * gwwin = dynamic_cast<osgViewer::GraphicsWindowWin32*>(ctx))
+                {
 #if QT_VERSION < 0x050000
-                _parent = QWidget::find(gwwin->getHWND());
+                    _parent = QWidget::find(gwwin->getHWND());
 #endif // QT_VERSION < 0x050000
-            }
+                }
 #elif defined(__APPLE__)
-            else if(osgViewer::GraphicsWindowCarbon * gwcarbon = dynamic_cast<osgViewer::GraphicsWindowCarbon*>(ctx))
-            {
-            }
+                else if(osgViewer::GraphicsWindowCarbon * gwcarbon = dynamic_cast<osgViewer::GraphicsWindowCarbon*>(ctx))
+                {
+                }
 #else
-            else if(osgViewer::GraphicsWindowX11 * gwx11 = dynamic_cast<osgViewer::GraphicsWindowX11*>(ctx))
-            {
-                //_parent = QWidget::find(gwx11->getWindow());
-            }
+                else if(osgViewer::GraphicsWindowX11 * gwx11 = dynamic_cast<osgViewer::GraphicsWindowX11*>(ctx))
+                {
+                    //_parent = QWidget::find(gwx11->getWindow());
+                }
 #endif
+            }
             OSG_NOTICE << LC << "DefaultSGIProxy parent " << _parent << std::endl;
 
             if(_parent)
