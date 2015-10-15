@@ -33,6 +33,7 @@
 #include <sgi/plugins/ObjectTreeImpl>
 
 #include "ElevationQueryReferenced"
+#include "string_helpers.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -45,177 +46,6 @@ namespace osgearth_plugin {
 using namespace sgi::qt_helpers;
 
 namespace {
-
-    double parseCoordinate(const QString & txt, const char positiveChar, const char negativeChar, bool * ok)
-    {
-        double result = 0.0;
-
-        bool is_negative = false;
-        QString tmp = txt.trimmed();
-        if (tmp.at(0) == '-')
-            is_negative = true;
-
-        QStringList elems = tmp.split(' ');
-        int size = elems.size();
-        if (size == 1)
-        {
-            bool degreesOk = false;
-            double degrees = elems[0].toDouble(&degreesOk);
-            if(degreesOk)
-            {
-                if(ok) *ok = true;
-                result = degrees;
-            }
-            else
-            {
-                if(ok) *ok = false;
-                result = 0.0;
-            }
-        }
-        else if (size == 2)
-        {
-            bool degreesOk = false;
-            bool minutesOk = false;
-            double degrees = elems[0].toDouble(&degreesOk);
-            double minutes = elems[1].toDouble(&minutesOk);
-
-            if(degreesOk && minutesOk)
-            {
-                if(ok) *ok = true;
-                result = degrees + (minutes/60.0);
-            }
-            else if(degreesOk)
-            {
-                QString s = elems[1].toUpper().trimmed();
-                if (s[0] == positiveChar && s.length() == 1)
-                {
-                    if(ok) *ok = true;
-                    result = std::abs(degrees);
-                }
-                else if (s[0] == negativeChar && s.length() == 1)
-                {
-                    if(ok) *ok = true;
-                    result = -1.0 * std::abs(degrees);
-                }
-                else if (s.length() > 0)
-                {
-                    if(ok) *ok = false;
-                    result = 0;
-                }
-            }
-            else
-                result = 0.0;
-        }
-        else if (size > 2)
-        {
-            bool degreesOk = false;
-            bool minutesOk = false;
-            bool secondsOk = false;
-            double degrees = elems[0].toDouble(&degreesOk);
-            double minutes = elems[1].toDouble(&minutesOk);
-            double seconds = elems[2].toDouble(&secondsOk);
-
-            if(degreesOk && minutesOk && secondsOk)
-            {
-                result = degrees + (minutes/60.0) + (seconds/3600.0);
-                if (size > 3) {
-                    QString s = elems[3].toUpper().trimmed();
-                    if (s[0] == positiveChar && s.length() == 1)
-                    {
-                        if(ok) *ok = true;
-                        result = std::abs(degrees);
-                    }
-                    else if (s[0] == negativeChar && s.length() == 1)
-                    {
-                        if(ok) *ok = true;
-                        result = -1.0 * std::abs(degrees);
-                    }
-                    else if (s.length() > 0)
-                    {
-                        if(ok) *ok = false;
-                        result = 0;
-                    }
-                }
-                else {
-                    if(ok) *ok = true;
-                }
-
-            }
-            else if(degreesOk && minutesOk)
-            {
-                result = degrees + (minutes/60.0);
-                QString s = elems[2].toUpper().trimmed();
-                if (s[0] == positiveChar && s.length() == 1)
-                {
-                    if(ok) *ok = true;
-                    result = std::abs(degrees);
-                }
-                else if (s[0] == negativeChar && s.length() == 1)
-                {
-                    if(ok) *ok = true;
-                    result = -1.0 * std::abs(degrees);
-                }
-                else if (s.length() > 0)
-                {
-                    if(ok) *ok = false;
-                    result = 0;
-                }
-            }
-        }
-
-        if (is_negative)
-            result = -std::abs(result);
-
-        return result;
-    }
-
-    double parseLatitude(const QString & txt, bool * ok)
-    {
-        return parseCoordinate(txt, 'N', 'S', ok);
-    }
-
-    double parseLongitude(const QString & txt, bool * ok)
-    {
-        return parseCoordinate(txt, 'E', 'W', ok);
-    }
-
-    double parseElevation(const QString & txt, bool * ok)
-    {
-        double ret;
-        ret = txt.toDouble(ok);
-        return ret;
-    }
-
-    osgEarth::GeoPoint GeoPointFromString(const QString & str, bool * ok)
-    {
-        osgEarth::GeoPoint ret;
-
-        bool latOk = false, lonOk = false, elevOk = false;
-
-        if(!str.isEmpty())
-        {
-            double lat = 0.0, lon = 0.0, elev = 0.0;
-            QStringList parts = str.split(',', QString::SkipEmptyParts);
-            if(parts.size() == 2)
-            {
-                lat = parseLatitude(parts[0], &latOk);
-                lon = parseLongitude(parts[1], &lonOk);
-                elevOk = true;
-                elev = 0;
-            }
-            else if(parts.size() >= 3)
-            {
-                lat = parseLatitude(parts[0], &latOk);
-                lon = parseLongitude(parts[1], &lonOk);
-                elev = parseElevation(parts[2], &elevOk);
-            }
-            if(latOk && lonOk && elevOk)
-                ret.set(osgEarth::Registry::instance()->getGlobalGeodeticProfile()->getSRS(), osg::Vec3d(lon, lat, elev), osgEarth::ALTMODE_ABSOLUTE);
-        }
-        if(ok)
-            *ok = (latOk && lonOk && elevOk);
-        return ret;
-    }
 
     typedef std::list<osgEarth::TileKey> TileKeyList;
     typedef std::set<osgEarth::TileKey> TileKeySet;
@@ -286,93 +116,19 @@ namespace {
             list.push_back(*it);
     }
 
-	osgEarth::TileKey tileKeyFromString(const QString & input, const osgEarth::Profile * profile, int inputLod, bool * ok)
-	{
-		osgEarth::TileKey ret;
-		unsigned lod = 0;
-		unsigned x = 0;
-		unsigned y = 0;
-		int slash_char = input.indexOf('/');
-		int underscore_char = input.indexOf('_');
-		QStringList elems;
-		if(slash_char > 0)
-			elems = input.split('/');
-		else if(underscore_char > 0)
-			elems = input.split('_');
-		if (elems.size() == 3)
-		{
-			lod = elems[0].toUInt();
-			x = elems[1].toUInt();
-			y = elems[2].toUInt();
-			ret = osgEarth::TileKey(lod, x, y, profile);
-		}
-		else if (elems.size() == 2)
-		{
-			if (inputLod >= 0)
-			{
-				x = elems[0].toUInt();
-				y = elems[1].toUInt();
-				ret = osgEarth::TileKey(inputLod, x, y, profile);
-			}
-		}
-		if (ok)
-			*ok = ret.valid();
-		return ret;
-	}
     
-    TileKeyList tileKeyListfromStringOrGpsCoordinate(const QString & input, const osgEarth::Profile * profile, int selectedLod, TileInspectorDialog::NUM_NEIGHBORS numNeighbors, bool * ret_ok)
+    TileKeyList tileKeyListfromStringOrGpsCoordinate(QLineEdit * lineEdit, const osgEarth::Profile * profile, int selectedLod, TileInspectorDialog::NUM_NEIGHBORS numNeighbors, bool * ret_ok)
     {
         TileKeyList ret;
-        bool ok = false;
-        osgEarth::GeoPoint geopt;
-		osgEarth::TileKey tilekey;
-		bool hasGeoPoint = false;
-		bool hasTileKey = false;
-        const unsigned maximum_lod = 21;
-        unsigned lod = maximum_lod;
-        bool hasLOD = false;
-        int at_char = input.indexOf('@');
-		if (at_char > 0)
-		{
-			QString inputgps = input.left(at_char);
-			QString inputlod = input.mid(at_char + 1);
-			lod = inputlod.toUInt(&ok);
-			if (ok)
-				hasLOD = true;
-			if (inputgps.indexOf('/') > 0 || inputgps.indexOf('_') > 0)
-			{
-				tilekey = tileKeyFromString(inputgps, profile, (hasLOD) ? lod : -1, &ok);
-				if (ok)
-					hasTileKey = true;
-			}
-			else
-			{
-				geopt = GeoPointFromString(inputgps, &ok);
-				if (ok)
-					hasGeoPoint = true;
-			}
-        }
-        else
-        {
-			if (input.indexOf('/') > 0 || input.indexOf('_') > 0)
-			{
-				tilekey = tileKeyFromString(input, profile, -1, &ok);
-				if (ok)
-					hasTileKey = true;
-			}
-			else
-			{
-				geopt = GeoPointFromString(input, &ok);
-				if (ok)
-					hasGeoPoint = true;
-			}
-		}
+		bool ok = false;
+		CoordinateResult coordResult = coordinateFromString(lineEdit, profile, selectedLod, &ok);
 
         if(ok)
         {
-			if (hasGeoPoint)
+			const unsigned maximum_lod = 21;
+			if (coordResult.geoPoint.isValid())
 			{
-				osgEarth::GeoPoint geoptProfile = geopt.transform(profile->getSRS());
+				osgEarth::GeoPoint geoptProfile = coordResult.geoPoint.transform(profile->getSRS());
 
 				if (selectedLod == -1)
 				{
@@ -388,9 +144,9 @@ namespace {
 					addTileKeyAndNeighbors(ret, tilekey, numNeighbors);
 				}
 			}
-			else if (hasTileKey)
+			else if (coordResult.tileKey.valid())
 			{
-				addTileKeyAndNeighbors(ret, tilekey, numNeighbors);
+				addTileKeyAndNeighbors(ret, coordResult.tileKey, numNeighbors);
 			}
         }
 
@@ -865,7 +621,7 @@ void TileInspectorDialog::refresh()
 
         bool ok = false;
         QString input = ui->coordinate->text();
-        TileKeyList tilekeylist = tileKeyListfromStringOrGpsCoordinate(input, profile, lod, numNeighbors, &ok);
+        TileKeyList tilekeylist = tileKeyListfromStringOrGpsCoordinate(ui->coordinate, profile, lod, numNeighbors, &ok);
         if(ok && !tilekeylist.empty())
         {
             std::string baseurl;
@@ -1096,7 +852,7 @@ void TileInspectorDialog::proxySaveScript()
 
         bool ok = false;
         QString input = ui->coordinate->text();
-        TileKeyList tilekeylist = tileKeyListfromStringOrGpsCoordinate(input, profile, lod, numNeighbors, &ok);
+        TileKeyList tilekeylist = tileKeyListfromStringOrGpsCoordinate(ui->coordinate, profile, lod, numNeighbors, &ok);
         if(ok && !tilekeylist.empty())
         {
             std::string baseurl;

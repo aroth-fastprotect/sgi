@@ -15,6 +15,7 @@
 
 #include "ElevationQueryReferenced"
 #include "osgearth_accessor.h"
+#include "string_helpers.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -31,177 +32,6 @@ namespace {
         SGIItemOsg* osgitem = dynamic_cast<SGIItemOsg*>(item);
         if(osgitem)
             ret = dynamic_cast<ElevationQueryReferenced*>(osgitem->object());
-        return ret;
-    }
-
-    double parseCoordinate(const QString & txt, const char positiveChar, const char negativeChar, bool * ok)
-    {
-        double result = 0.0;
-
-        bool is_negative = false;
-        QString tmp = txt.trimmed();
-        if (tmp.at(0) == '-')
-            is_negative = true;
-
-        QStringList elems = tmp.split(' ');
-        int size = elems.size();
-        if (size == 1)
-        {
-            bool degreesOk = false;
-            double degrees = elems[0].toDouble(&degreesOk);
-            if(degreesOk)
-            {
-                if(ok) *ok = true;
-                result = degrees;
-            }
-            else
-            {
-                if(ok) *ok = false;
-                result = 0.0;
-            }
-        }
-        else if (size == 2)
-        {
-            bool degreesOk = false;
-            bool minutesOk = false;
-            double degrees = elems[0].toDouble(&degreesOk);
-            double minutes = elems[1].toDouble(&minutesOk);
-
-            if(degreesOk && minutesOk)
-            {
-                if(ok) *ok = true;
-                result = degrees + (minutes/60.0);
-            }
-            else if(degreesOk)
-            {
-                QString s = elems[1].toUpper().trimmed();
-                if (s[0] == positiveChar && s.length() == 1)
-                {
-                    if(ok) *ok = true;
-                    result = fabs(degrees);
-                }
-                else if (s[0] == negativeChar && s.length() == 1)
-                {
-                    if(ok) *ok = true;
-                    result = -1.0 * fabs(degrees);
-                }
-                else if (s.length() > 0)
-                {
-                    if(ok) *ok = false;
-                    result = 0;
-                }
-            }
-            else
-                result = 0.0;
-        }
-        else if (size > 2)
-        {
-            bool degreesOk = false;
-            bool minutesOk = false;
-            bool secondsOk = false;
-            double degrees = elems[0].toDouble(&degreesOk);
-            double minutes = elems[1].toDouble(&minutesOk);
-            double seconds = elems[2].toDouble(&secondsOk);
-
-            if(degreesOk && minutesOk && secondsOk)
-            {
-                result = degrees + (minutes/60.0) + (seconds/3600.0);
-                if (size > 3) {
-                    QString s = elems[3].toUpper().trimmed();
-                    if (s[0] == positiveChar && s.length() == 1)
-                    {
-                        if(ok) *ok = true;
-                        result = fabs(degrees);
-                    }
-                    else if (s[0] == negativeChar && s.length() == 1)
-                    {
-                        if(ok) *ok = true;
-                        result = -1.0 * fabs(degrees);
-                    }
-                    else if (s.length() > 0)
-                    {
-                        if(ok) *ok = false;
-                        result = 0;
-                    }
-                }
-                else {
-                    if(ok) *ok = true;
-                }
-
-            }
-            else if(degreesOk && minutesOk)
-            {
-                result = degrees + (minutes/60.0);
-                QString s = elems[2].toUpper().trimmed();
-                if (s[0] == positiveChar && s.length() == 1)
-                {
-                    if(ok) *ok = true;
-                    result = fabs(degrees);
-                }
-                else if (s[0] == negativeChar && s.length() == 1)
-                {
-                    if(ok) *ok = true;
-                    result = -1.0 * fabs(degrees);
-                }
-                else if (s.length() > 0)
-                {
-                    if(ok) *ok = false;
-                    result = 0;
-                }
-            }
-        }
-
-        if (is_negative)
-            result = -fabs(result);
-
-        return result;
-    }
-
-    double parseLatitude(const QString & txt, bool * ok)
-    {
-        return parseCoordinate(txt, 'N', 'S', ok);
-    }
-
-    double parseLongitude(const QString & txt, bool * ok)
-    {
-        return parseCoordinate(txt, 'E', 'W', ok);
-    }
-
-    double parseElevation(const QString & txt, bool * ok)
-    {
-        double ret;
-        ret = txt.toDouble(ok);
-        return ret;
-    }
-
-    osgEarth::GeoPoint GeoPointFromString(const osgEarth::SpatialReference* srs, const QString & str, bool * ok)
-    {
-        osgEarth::GeoPoint ret;
-
-        bool latOk = false, lonOk = false, elevOk = false;
-
-        if(!str.isEmpty())
-        {
-            double lat = 0.0, lon = 0.0, elev = 0.0;
-            QStringList parts = str.split(',', QString::SkipEmptyParts);
-            if(parts.size() == 2)
-            {
-                lat = parseLatitude(parts[0], &latOk);
-                lon = parseLongitude(parts[1], &lonOk);
-                elevOk = true;
-                elev = 0;
-            }
-            else if(parts.size() >= 3)
-            {
-                lat = parseLatitude(parts[0], &latOk);
-                lon = parseLongitude(parts[1], &lonOk);
-                elev = parseElevation(parts[2], &elevOk);
-            }
-            if(latOk && lonOk && elevOk)
-                ret.set(srs, lon, lat, elev, osgEarth::ALTMODE_ABSOLUTE);
-        }
-        if(ok)
-            *ok = (latOk && lonOk && elevOk);
         return ret;
     }
 
@@ -301,11 +131,14 @@ bool RetrieveElevationDialog::getQueryPoint(osgEarth::GeoPoint & point)
         if(mapInfo.getProfile())
         {
             bool ok = false;
-            osgEarth::GeoPoint tmppoint = GeoPointFromString(mapInfo.getSRS(), ui->coordinate->text(), &ok);
+			CoordinateResult coordResult = coordinateFromString(ui->coordinate, mapInfo.getProfile(), 0, &ok);
             if(ok)
             {
-                point = tmppoint;
-                ret = true;
+				if (coordResult.geoPoint.isValid())
+				{
+					point = coordResult.geoPoint;
+					ret = true;
+				}
             }
         }
     }
