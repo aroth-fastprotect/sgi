@@ -1462,8 +1462,13 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
 	SGIItemOsg * osgitem = dynamic_cast<SGIItemOsg *>(object->item());
 	if (osgitem)
 	{
-		osg::Node * node = dynamic_cast<osg::Node*>(osgitem->object());
-		if (node)
+        osg::Node * node = NULL;
+        osg::View * view = dynamic_cast<osg::View*>(osgitem->object());
+        if(view)
+            node = view->getCamera();
+        else
+            node = dynamic_cast<osg::Node*>(osgitem->object());
+        if (node)
 		{
 			osgEarth::MapNode * mapNode = osg_helpers::findRelativeNodeOfType<osgEarth::MapNode>(node);
 			if (mapNode)
@@ -1472,20 +1477,21 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
 				treeItem->addChild(std::string(), &hostItem);
 			}
 
-			osg::Camera * camera = osg_helpers::findRelativeNodeOfType<osg::Camera>(node);
-			if (camera)
-			{
-				osg::View* view = camera->getView();
-				if (view)
-				{
-					osgEarth::Util::Controls::ControlCanvas * canvas = osgEarth::Util::Controls::ControlCanvas::get(view);
-					if (canvas)
-					{
-						SGIHostItemOsg hostItem(canvas);
-						treeItem->addChild(std::string(), &hostItem);
-					}
-				}
-			}
+			if(!view)
+            {
+                osg::Camera * camera = osg_helpers::findRelativeNodeOfType<osg::Camera>(node);
+                if (camera)
+                    view = camera->getView();
+            }
+            if (view)
+            {
+                osgEarth::Util::Controls::ControlCanvas * canvas = osgEarth::Util::Controls::ControlCanvas::get(view);
+                if (canvas)
+                {
+                    SGIHostItemOsg hostItem(canvas);
+                    treeItem->addChild(std::string(), &hostItem);
+                }
+            }
 		}
 	}
     return true;
