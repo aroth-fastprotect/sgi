@@ -20,6 +20,17 @@
 #include <QProgressDialog>
 #include <QColorDialog>
 #include <QPicture>
+#include <QWindow>
+#include <QPaintDeviceWindow>
+#include <QSurface>
+#include <QOffscreenSurface>
+#include <QPagedPaintDevice>
+#include <QRasterWindow>
+
+#include <QOpenGLWidget>
+#include <QOpenGLWindow>
+#include <QOpenGLPaintDevice>
+
 #include <QGLWidget>
 #include <QGLFramebufferObject>
 #include <QGLPixelBuffer>
@@ -40,19 +51,26 @@ GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
 
 SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QObject, LOKI_TYPELIST(QWidget, QThread, QCoreApplication));
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QObject, LOKI_TYPELIST(QWindow, QWidget, QThread, QCoreApplication));
+//SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QWindow, LOKI_TYPELIST(QPaintDeviceWindow, QQuickWindow));
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QWindow, LOKI_TYPELIST(QPaintDeviceWindow));
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QPaintDeviceWindow, LOKI_TYPELIST(QOpenGLWindow, QRasterWindow));
+
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QSurface, LOKI_TYPELIST(QWindow, QOffscreenSurface));
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QCoreApplication, LOKI_TYPELIST(QApplication));
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QWidget, LOKI_TYPELIST(QDialog, QGLWidget));
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QDialog, LOKI_TYPELIST(QFileDialog, QMessageBox, QInputDialog, QProgressDialog, QColorDialog));
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QMetaObject, ::Loki::NullType);
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QPaintDevice, LOKI_TYPELIST(QGLFramebufferObject, QGLPixelBuffer, QImage, QPicture, QPixmap, QWidget))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QPaintDevice, LOKI_TYPELIST(QGLFramebufferObject, QGLPixelBuffer, QImage, QPicture, QPixmap,
+                                                              QOpenGLPaintDevice, QPagedPaintDevice, QPaintDeviceWindow,
+                                                              QWidget))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QIcon, ::Loki::NullType);
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(ISceneGraphDialog))
 
 
-typedef SGIPluginImplementationT< LOKI_TYPELIST(SGIItemQt, SGIItemQtMeta, SGIItemQtPaintDevice, SGIItemQtIcon),
+typedef SGIPluginImplementationT< LOKI_TYPELIST(SGIItemQt, SGIItemQtMeta, SGIItemQtPaintDevice, SGIItemQtSurface, SGIItemQtIcon),
                                         call_function_for_object_type,
                                         generateItemImpl,
                                         writePrettyHTMLImpl,

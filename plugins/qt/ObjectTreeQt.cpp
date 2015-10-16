@@ -6,6 +6,8 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QWidget>
+#include <QWindow>
+#include <QSurface>
 #include <QDesktopWidget>
 
 #include "ObjectTreeQt.h"
@@ -24,6 +26,8 @@ namespace qt_plugin {
 OBJECT_TREE_BUILD_IMPL_REGISTER(QMetaObject)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QObject)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QWidget)
+OBJECT_TREE_BUILD_IMPL_REGISTER(QWindow)
+OBJECT_TREE_BUILD_IMPL_REGISTER(QSurface)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QCoreApplication)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QApplication)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QPaintDevice)
@@ -150,6 +154,10 @@ bool objectTreeBuildImpl<QWidget>::build(IObjectTreeItem * treeItem)
                 if(parentWidget.hasObject())
                     treeItem->addChild("ParentWidget", &parentWidget);
             }
+
+            SGIHostItemQt windowHandle(object->windowHandle());
+            if(windowHandle.hasObject())
+                treeItem->addChild("WindowHandle", &windowHandle);
         }
         break;
     default:
@@ -158,6 +166,47 @@ bool objectTreeBuildImpl<QWidget>::build(IObjectTreeItem * treeItem)
     }
     return ret;
 }
+
+bool objectTreeBuildImpl<QWindow>::build(IObjectTreeItem * treeItem)
+{
+    QWindow * object = getObjectMulti<QWindow, SGIItemQt, SGIItemQtSurface>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            treeItem->addChild("Format", cloneItem<SGIItemQt>(SGIItemTypeSurfaceFormat));
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<QSurface>::build(IObjectTreeItem * treeItem)
+{
+    QSurface * object = getObject<QSurface, SGIItemQtSurface>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            treeItem->addChild("Format", cloneItem<SGIItemQt>(SGIItemTypeSurfaceFormat));
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
 
 bool objectTreeBuildImpl<QCoreApplication>::build(IObjectTreeItem * treeItem)
 {

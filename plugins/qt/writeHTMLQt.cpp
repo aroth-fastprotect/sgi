@@ -3,6 +3,9 @@
 #include <QThread>
 #include <QDialog>
 #include <QGLWidget>
+#include <QSurfaceFormat>
+#include <QWindow>
+#include <QSurface>
 #include <QMetaProperty>
 #include "writeHTMLQt.h"
 #include "SGIItemQt"
@@ -19,11 +22,63 @@ namespace sgi {
 namespace qt_plugin {
 WRITE_PRETTY_HTML_IMPL_REGISTER(QObject)
 WRITE_PRETTY_HTML_IMPL_REGISTER(QWidget)
+WRITE_PRETTY_HTML_IMPL_REGISTER(QWindow)
+WRITE_PRETTY_HTML_IMPL_REGISTER(QSurface)
 WRITE_PRETTY_HTML_IMPL_REGISTER(QDialog)
 WRITE_PRETTY_HTML_IMPL_REGISTER(QThread)
 WRITE_PRETTY_HTML_IMPL_REGISTER(QGLWidget)
 
+
 extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaMethod & method);
+
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurfaceFormat::SwapBehavior t)
+{
+    switch(t)
+    {
+    case QSurfaceFormat::DefaultSwapBehavior: os << "default"; break;
+    case QSurfaceFormat::SingleBuffer: os << "single buffer"; break;
+    case QSurfaceFormat::DoubleBuffer: os << "double buffer"; break;
+    case QSurfaceFormat::TripleBuffer: os << "tripple"; break;
+    default: os << (int)t; break;
+    }
+    return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurfaceFormat::FormatOptions & o)
+{
+    if(o.testFlag(QSurfaceFormat::StereoBuffers))
+        os << "stereo";
+    if(o.testFlag(QSurfaceFormat::DebugContext))
+        os << "debug";
+    if(o.testFlag(QSurfaceFormat::DeprecatedFunctions))
+        os << "deprecated functions";
+    return os;
+}
+
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurfaceFormat & format)
+{
+    os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+    os << "<tr><td>depthBufferSize</td><td>" << format.depthBufferSize() << "</td></tr>" << std::endl;
+    os << "<tr><td>redBufferSize</td><td>" << format.redBufferSize() << "</td></tr>" << std::endl;
+    os << "<tr><td>greenBufferSize</td><td>" << format.greenBufferSize() << "</td></tr>" << std::endl;
+    os << "<tr><td>blueBufferSize</td><td>" << format.blueBufferSize() << "</td></tr>" << std::endl;
+    os << "<tr><td>alphaBufferSize</td><td>" << format.alphaBufferSize() << "</td></tr>" << std::endl;
+    os << "<tr><td>stencilBufferSize</td><td>" << format.stencilBufferSize() << "</td></tr>" << std::endl;
+    os << "<tr><td>samples</td><td>" << format.samples() << "</td></tr>" << std::endl;
+    os << "<tr><td>swapInterval</td><td>" << format.swapInterval() << "</td></tr>" << std::endl;
+    os << "<tr><td>swapBehavior</td><td>" << format.swapBehavior() << "</td></tr>" << std::endl;
+    os << "<tr><td>alpha</td><td>" << (format.hasAlpha()?"true":"false") << "</td></tr>" << std::endl;
+    os << "<tr><td>renderableType</td><td>" << format.renderableType() << "</td></tr>" << std::endl;
+    os << "<tr><td>options</td><td>" << format.options() << "</td></tr>" << std::endl;
+    os << "<tr><td>stereo</td><td>" << (format.stereo()?"true":"false") << "</td></tr>" << std::endl;
+    os << "<tr><td>version</td><td>" << format.majorVersion() << "." << format.minorVersion() << "</td></tr>" << std::endl;
+    os << "<tr><td>profile</td><td>" << format.profile() << "</td></tr>" << std::endl;
+    os << "</table>" << std::endl;
+    return os;
+}
+
 
 bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
 {
@@ -124,6 +179,72 @@ bool writePrettyHTMLImpl<QWidget>::process(std::basic_ostream<char>& os)
 
             if(_table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+
+bool writePrettyHTMLImpl<QWindow>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    QWindow * object = getObjectMulti<QWindow, SGIItemQt, SGIItemQtSurface>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add QObject properties first
+            callNextHandler(os);
+
+            // add QWindow properties
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeSurfaceFormat:
+        {
+            os << object->format();
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<QSurface>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    QSurface * object = getObject<QSurface, SGIItemQtSurface>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add QSurface properties
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeSurfaceFormat:
+        {
+            os << object->format();
             ret = true;
         }
         break;

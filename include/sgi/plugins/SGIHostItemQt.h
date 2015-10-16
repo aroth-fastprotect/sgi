@@ -7,6 +7,7 @@
 class QObject;
 struct QMetaObject;
 class QPaintDevice;
+class QSurface;
 
 namespace osg {
     class Referenced;
@@ -47,6 +48,17 @@ public:
         {}
 };
 
+class SGIHostItemQtSurface : public SGIHostItemImpl<QSurface>
+{
+public:
+    SGIHostItemQtSurface(QSurface * object, osg::Referenced * userData=NULL, unsigned flags=0)
+        : SGIHostItemImpl<QSurface>(object, userData, flags)
+        {}
+    SGIHostItemQtSurface(const QSurface * object, osg::Referenced * userData=NULL, unsigned flags=0)
+        : SGIHostItemImpl<QSurface>(const_cast<QSurface*>(object), userData, flags)
+        {}
+};
+
 class SGIHostItemQtIcon : public SGIHostItemImpl<QIcon>
 {
 public:
@@ -66,6 +78,7 @@ public:
 typedef support::SGIHostItemQt SGIHostItemQt;
 typedef support::SGIHostItemQtMeta SGIHostItemQtMeta;
 typedef support::SGIHostItemQtPaintDevice SGIHostItemQtPaintDevice;
+typedef support::SGIHostItemQtSurface SGIHostItemQtSurface;
 typedef support::SGIHostItemQtIcon SGIHostItemQtIcon;
 
 } // namespace sgi

@@ -19,6 +19,7 @@
 #include <QDateTime>
 #include <QLocale>
 #include <QEasingCurve>
+#include <QSizePolicy>
 
 namespace sgi {
     namespace qt_helpers {
@@ -247,6 +248,25 @@ namespace std {
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QUrl & url)
     {
-        return os  << url.toString();
+        return os << url.toString();
+    }
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSizePolicy::Policy & p)
+    {
+        switch(p)
+        {
+        case QSizePolicy::Fixed: os << "Fixed"; break;
+        case QSizePolicy::Minimum: os << "Minimum"; break;
+        case QSizePolicy::Maximum: os << "Maximum"; break;
+        case QSizePolicy::Preferred: os << "Preferred"; break;
+        case QSizePolicy::MinimumExpanding: os << "MinimumExpanding"; break;
+        case QSizePolicy::Expanding: os << "Expanding"; break;
+        case QSizePolicy::Ignored: os << "Ignored"; break;
+        default: os << (int)p; break;
+        }
+        return os;
+    }
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSizePolicy & sp)
+    {
+        return os << "(" << sp.horizontalPolicy() << ", " << sp.verticalPolicy() << ")";
     }
 }

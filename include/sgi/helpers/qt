@@ -173,6 +173,7 @@ namespace std {
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPointF & p);
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QChar & c);
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QUrl & url);
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSizePolicy & sp);
 
     template<typename T>
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QList<T> & list)
