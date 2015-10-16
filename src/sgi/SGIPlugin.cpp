@@ -33,6 +33,29 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const SGIItem
         << '}';
 }
 
+namespace {
+	class DisableLibraryLoadErrors 
+	{
+	public:
+		DisableLibraryLoadErrors()
+		{
+#ifdef _WIN32
+			_oldErrorMode = ::SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
+#endif
+		}
+		~DisableLibraryLoadErrors()
+		{
+#ifdef _WIN32
+			::SetErrorMode(_oldErrorMode);
+#endif
+		}
+	private:
+#ifdef _WIN32
+		unsigned _oldErrorMode;
+#endif
+	};
+}
+
 class SGIPlugins::SGIPluginsImpl
 {
 public:
@@ -527,8 +550,11 @@ public:
             }
 
             std::string pluginFilename = createLibraryNameForPlugin(name);
-            osgDB::ReaderWriter::ReadResult result = osgDB::Registry::instance()->readObject(pluginFilename, _pluginLoadOpts.get(), false);
-            info.pluginInterface = (SGIPluginInterface*)result.getObject();
+			{
+				DisableLibraryLoadErrors disable_load_errors;
+				osgDB::ReaderWriter::ReadResult result = osgDB::Registry::instance()->readObject(pluginFilename, _pluginLoadOpts.get(), false);
+				info.pluginInterface = (SGIPluginInterface*)result.getObject();
+			}
             if (info.pluginInterface)
             {
                 info.pluginFilename = filename;
@@ -553,8 +579,12 @@ public:
         bool ret = false;
         if(!info.pluginUIInterface)
         {
-            osgDB::ReaderWriter::ReadResult result = osgDB::Registry::instance()->readObject(createLibraryNameForPluginUI(info.pluginName), _pluginLoadOpts.get(), false);
-            info.pluginUIInterface = (SGIPluginInterface*)result.getObject();
+			std::string pluginFilename = createLibraryNameForPluginUI(info.pluginName);
+			{
+				DisableLibraryLoadErrors disable_load_errors;
+				osgDB::ReaderWriter::ReadResult result = osgDB::Registry::instance()->readObject(pluginFilename, _pluginLoadOpts.get(), false);
+				info.pluginUIInterface = (SGIPluginInterface*)result.getObject();
+			}
             if (info.pluginUIInterface)
             {
                 info.settingsDialogInterface = info.pluginUIInterface->getSettingsDialog();
