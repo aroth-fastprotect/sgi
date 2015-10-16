@@ -13,6 +13,7 @@
 #include "SGIItemOsg"
 
 #include <sgi/helpers/osg>
+#include <sgi/helpers/string>
 
 namespace sgi {
 namespace osg_plugin {
@@ -34,6 +35,76 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osgUtil::Scen
     default: os << (int)t; break;
     }
     return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgGA::GUIEventAdapter::KeySymbol & k)
+{
+	switch (k)
+	{
+	case 0: os << "zero"; break;
+	case osgGA::GUIEventAdapter::KEY_Space: os << "Space"; break;
+	default: os << "0x" << std::hex << (int)k; break;
+	}
+	return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgGA::GUIEventAdapter::MouseButtonMask & m)
+{
+	if(m == 0)
+		os << "zero";
+	else
+	{
+		std::vector<std::string> buttons;
+		bool needComma = false;
+		if (m & osgGA::GUIEventAdapter::LEFT_MOUSE_BUTTON)
+			buttons.push_back("left");
+		if (m & osgGA::GUIEventAdapter::MIDDLE_MOUSE_BUTTON)
+			buttons.push_back("middle");
+		if (m & osgGA::GUIEventAdapter::RIGHT_MOUSE_BUTTON)
+			buttons.push_back("right");
+		os << helpers::joinStrings(buttons, ',');
+	}
+	return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgGA::GUIEventAdapter::ModKeyMask & m)
+{
+	if (m == 0)
+		os << "zero";
+	else
+	{
+		std::vector<std::string> mods;
+		if (m & osgGA::GUIEventAdapter::MODKEY_LEFT_SHIFT)
+			mods.push_back("left-shift");
+		if (m & osgGA::GUIEventAdapter::MODKEY_RIGHT_SHIFT)
+			mods.push_back("right-shift");
+		if (m & osgGA::GUIEventAdapter::MODKEY_LEFT_CTRL)
+			mods.push_back("left-ctrl");
+		if (m & osgGA::GUIEventAdapter::MODKEY_RIGHT_CTRL)
+			mods.push_back("right-ctrl");
+		if (m & osgGA::GUIEventAdapter::MODKEY_LEFT_ALT)
+			mods.push_back("left-alt");
+		if (m & osgGA::GUIEventAdapter::MODKEY_RIGHT_ALT)
+			mods.push_back("right-alt");
+		if (m & osgGA::GUIEventAdapter::MODKEY_LEFT_META)
+			mods.push_back("left-meta");
+		if (m & osgGA::GUIEventAdapter::MODKEY_RIGHT_META)
+			mods.push_back("right-meta");
+		if (m & osgGA::GUIEventAdapter::MODKEY_LEFT_SUPER)
+			mods.push_back("left-super");
+		if (m & osgGA::GUIEventAdapter::MODKEY_RIGHT_SUPER)
+			mods.push_back("right-super");
+		if (m & osgGA::GUIEventAdapter::MODKEY_LEFT_HYPER)
+			mods.push_back("left-hyper");
+		if (m & osgGA::GUIEventAdapter::MODKEY_RIGHT_HYPER)
+			mods.push_back("right-hyper");
+		if (m & osgGA::GUIEventAdapter::MODKEY_NUM_LOCK)
+			mods.push_back("num-lock");
+		if (m & osgGA::GUIEventAdapter::MODKEY_CAPS_LOCK)
+			mods.push_back("caps-lock");
+		os << helpers::joinStrings(mods, ',');
+	}
+	return os;
 }
 
 
@@ -115,42 +186,48 @@ bool writePrettyHTMLImpl<osgGA::GUIEventAdapter>::process(std::basic_ostream<cha
             // add osg::NodeCallback properties first
             callNextHandler(os);
 
-            os << "<tr><td>type</td><td>" << (object?object->getEventType():osgGA::GUIEventAdapter::NONE) << "</td></tr>" << std::endl;
-            os << "<tr><td>time</td><td>" << (object?object->getTime():0.0) << "</td></tr>" << std::endl;
-            os << "<tr><td>handled</td><td>" << (object?(object->getHandled()?"true":"false"):"&lt;null&gt;") << "</td></tr>" << std::endl;
+            os << "<tr><td>type</td><td>" << object->getEventType() << "</td></tr>" << std::endl;
+            os << "<tr><td>time</td><td>" << object->getTime() << "</td></tr>" << std::endl;
+            os << "<tr><td>handled</td><td>" << (object->getHandled()?"true":"false") << "</td></tr>" << std::endl;
+			os << "<tr><td>multi touch event</td><td>" << (object->isMultiTouchEvent() ? "true" : "false") << "</td></tr>" << std::endl;
+			os << "<tr><td>num pointer data</td><td>" << object->getNumPointerData() << "</td></tr>" << std::endl;
 
             switch(object->getEventType())
             {
             case osgGA::GUIEventAdapter::NONE:
                 break;
-            case osgGA::GUIEventAdapter::PUSH:
+			case osgGA::GUIEventAdapter::SCROLL:
+				os << "<tr><td>scrollingMotion</td><td>" << object->getScrollingMotion() << "</td></tr>" << std::endl;
+				os << "<tr><td>scrollingDelta</td><td>" << object->getScrollingDeltaX() << "," << object->getScrollingDeltaY() << "</td></tr>" << std::endl;
+				// fall through
+			case osgGA::GUIEventAdapter::PUSH:
             case osgGA::GUIEventAdapter::RELEASE:
             case osgGA::GUIEventAdapter::DOUBLECLICK:
             case osgGA::GUIEventAdapter::DRAG:
             case osgGA::GUIEventAdapter::MOVE:
-            case osgGA::GUIEventAdapter::SCROLL:
-                os << "<tr><td>button</td><td>" << (object?object->getButton():0) << "</td></tr>" << std::endl;
-                os << "<tr><td>buttonmask</td><td>" << (object?(osgGA::GUIEventAdapter::MouseButtonMask)object->getButtonMask():(osgGA::GUIEventAdapter::MouseButtonMask)0) << "</td></tr>" << std::endl;
-                os << "<tr><td>modkeymask</td><td>" << (object?(osgGA::GUIEventAdapter::ModKeyMask)object->getModKeyMask():(osgGA::GUIEventAdapter::ModKeyMask)0) << "</td></tr>" << std::endl;
-                os << "<tr><td>x</td><td>" << (object?object->getX():0.0f) << " min=" << (object?object->getXmin():0.0f) << " max=" << (object?object->getXmax():0.0f) << "</td></tr>" << std::endl;
-                os << "<tr><td>y</td><td>" << (object?object->getY():0.0f) << " min=" << (object?object->getYmin():0.0f) << " max=" << (object?object->getYmax():0.0f) << "</td></tr>" << std::endl;
+                os << "<tr><td>button</td><td>" << (osgGA::GUIEventAdapter::MouseButtonMask)object->getButton() << "</td></tr>" << std::endl;
+                os << "<tr><td>buttonmask</td><td>" << (osgGA::GUIEventAdapter::MouseButtonMask)object->getButtonMask() << "</td></tr>" << std::endl;
+                os << "<tr><td>modkeymask</td><td>" << (osgGA::GUIEventAdapter::ModKeyMask)object->getModKeyMask() << "</td></tr>" << std::endl;
+                os << "<tr><td>x</td><td>" << object->getX() << " min=" << object->getXmin() << " max=" << object->getXmax() << "</td></tr>" << std::endl;
+                os << "<tr><td>y</td><td>" << object->getY() << " min=" << object->getYmin() << " max=" << object->getYmax() << "</td></tr>" << std::endl;
                 break;
             case osgGA::GUIEventAdapter::KEYDOWN:
             case osgGA::GUIEventAdapter::KEYUP:
-                os << "<tr><td>modkeymask</td><td>" << (object?(osgGA::GUIEventAdapter::ModKeyMask)object->getModKeyMask():(osgGA::GUIEventAdapter::ModKeyMask)0) << "</td></tr>" << std::endl;
-                os << "<tr><td>key</td><td>" << (object?(osgGA::GUIEventAdapter::KeySymbol)object->getKey():(osgGA::GUIEventAdapter::KeySymbol)0) << "</td></tr>" << std::endl;
+                os << "<tr><td>modkeymask</td><td>" << (osgGA::GUIEventAdapter::ModKeyMask)object->getModKeyMask() << "</td></tr>" << std::endl;
+                os << "<tr><td>key</td><td>" << (osgGA::GUIEventAdapter::KeySymbol)object->getKey() << "</td></tr>" << std::endl;
                 break;
             case osgGA::GUIEventAdapter::RESIZE:
-                os << "<tr><td>windowX</td><td>" << (object?object->getWindowX():0) << "</td></tr>" << std::endl;
-                os << "<tr><td>windowY</td><td>" << (object?object->getWindowY():0) << "</td></tr>" << std::endl;
-                os << "<tr><td>windowWidth</td><td>" << (object?object->getWindowWidth():0) << "</td></tr>" << std::endl;
-                os << "<tr><td>windowHeight</td><td>" << (object?object->getWindowHeight():0) << "</td></tr>" << std::endl;
+                os << "<tr><td>windowX</td><td>" << object->getWindowX() << "</td></tr>" << std::endl;
+                os << "<tr><td>windowY</td><td>" << object->getWindowY() << "</td></tr>" << std::endl;
+                os << "<tr><td>windowWidth</td><td>" << object->getWindowWidth() << "</td></tr>" << std::endl;
+                os << "<tr><td>windowHeight</td><td>" << object->getWindowHeight() << "</td></tr>" << std::endl;
                 break;
-            case osgGA::GUIEventAdapter::FRAME:
-            case osgGA::GUIEventAdapter::PEN_PRESSURE:
-            case osgGA::GUIEventAdapter::PEN_ORIENTATION:
-            case osgGA::GUIEventAdapter::PEN_PROXIMITY_ENTER:
-            case osgGA::GUIEventAdapter::PEN_PROXIMITY_LEAVE:
+			case osgGA::GUIEventAdapter::PEN_PRESSURE:
+			case osgGA::GUIEventAdapter::PEN_ORIENTATION:
+			case osgGA::GUIEventAdapter::PEN_PROXIMITY_ENTER:
+			case osgGA::GUIEventAdapter::PEN_PROXIMITY_LEAVE:
+				break;
+			case osgGA::GUIEventAdapter::FRAME:
             case osgGA::GUIEventAdapter::CLOSE_WINDOW:
             case osgGA::GUIEventAdapter::QUIT_APPLICATION:
             case osgGA::GUIEventAdapter::USER:

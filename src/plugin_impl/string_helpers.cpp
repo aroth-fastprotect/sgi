@@ -40,5 +40,19 @@ void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size)
     }
 }
 
+std::string joinStrings(const std::vector<std::string>& input, char delim)
+{
+	std::stringstream buf;
+	for (std::vector<std::string>::const_iterator i = input.begin(); i != input.end(); ++i)
+	{
+		buf << *i;
+		if ((i + 1) != input.end()) buf << delim;
+	}
+	std::string result;
+	result = buf.str();
+	return result;
+}
+
+
 } // namespace helpers
 } // namespace sgi

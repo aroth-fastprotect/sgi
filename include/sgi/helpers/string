@@ -2,6 +2,7 @@
 #pragma once
 
 #include <sstream>
+#include <vector>
 
 namespace sgi {
 namespace helpers {
@@ -82,6 +83,7 @@ inline void str_append(std::string & str, const INT_TYPE & n, const char seperat
 }
 
 void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size);
+std::string joinStrings(const std::vector<std::string>& input, char delim);
 
 } // namespace helpers
 } // namespace sgi
