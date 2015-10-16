@@ -160,14 +160,7 @@ void SceneGraphDialog::init()
     _toolBar->addAction(_actionItemNext);
     _toolBar->addWidget(_spinBoxRefreshTime);
 
-    SGIHostItemInternal hostItemSelf(_interface);
-    SGIPlugins::instance()->generateItem(_itemSelf, &hostItemSelf);
-
-    SGIHostItemInternal hostItemToolsMenu(_toolsMenuInterface);
-    SGIPlugins::instance()->generateItem(_itemToolsMenu, &hostItemToolsMenu);
-
     _toolsMenu = new ContextMenu(false, this);
-    _toolsMenu->setObject(_itemToolsMenu);
 
     QToolButton * toolsMenuButton = new QToolButton(this);
     toolsMenuButton->setMenu(_toolsMenu);
@@ -177,28 +170,31 @@ void SceneGraphDialog::init()
 
     _toolBar->addWidget(toolsMenuButton);
 
-    QTreeWidgetItem * root = ui->treeWidget->invisibleRootItem();
-    QtSGIItem nodeDataRoot(SGIItemTypeTreeRoot, NULL, true);
-    // set dummy data into the second column (type)
-    root->setData(0, Qt::UserRole, QVariant::fromValue(nodeDataRoot));
-    _rootTreeItem = new ObjectTreeItem(root);
-
-    QObject::connect(this, SIGNAL(triggerOnObjectChanged()), this, SLOT(onObjectChanged()), Qt::QueuedConnection);
-    QObject::connect(this, SIGNAL(triggerShow()), this, SLOT(showBesideParent()), Qt::QueuedConnection);
-    QObject::connect(this, SIGNAL(triggerHide()), this, SLOT(hide()), Qt::QueuedConnection);
-
-    updatePathComboBox();
-    reload();
+    connect(this, &SceneGraphDialog::triggerOnObjectChanged, this, &SceneGraphDialog::onObjectChanged, Qt::QueuedConnection);
+    connect(this, &SceneGraphDialog::triggerShow, this, &SceneGraphDialog::showBesideParent, Qt::QueuedConnection);
+    connect(this, &SceneGraphDialog::triggerHide, this, &SceneGraphDialog::hide, Qt::QueuedConnection);
 }
 
 void SceneGraphDialog::closeEvent(QCloseEvent * event)
 {
+    ui->treeWidget->clear();
+    ui->textEdit->clear();
+    _comboBoxPath->clear();
+    _toolsMenu->setObject((SGIItemBase*)NULL);
+    _contextMenu = NULL;
+    _rootTreeItem = NULL;
+    _selectedTreeItem = NULL;
+    /*
     delete _comboBoxPath;
+    _comboBoxPath = NULL;
     delete ui->treeWidget;
+    ui->treeWidget = NULL;
     delete ui->textEdit;
+    ui->textEdit = NULL;
 
     _toolsMenu->setObject((SGIItemBase*)NULL);
     delete _toolsMenu;
+    _toolsMenu = NULL;
     _itemSelf = NULL;
     _interface = NULL;
     _item = NULL;
@@ -209,9 +205,33 @@ void SceneGraphDialog::closeEvent(QCloseEvent * event)
     _itemToolsMenu = NULL;
     _rootTreeItem = NULL;
     _selectedTreeItem = NULL;
+    */
 
     QDialog::closeEvent(event);
 }
+
+void SceneGraphDialog::showEvent(QShowEvent * event)
+{
+    QDialog::showEvent(event);
+
+    if(!_comboBoxPath->count())
+        updatePathComboBox();
+
+    if(!_itemSelf.valid())
+    {
+        SGIHostItemInternal hostItemSelf(_interface);
+        SGIPlugins::instance()->generateItem(_itemSelf, &hostItemSelf);
+    }
+    if(!_itemToolsMenu.valid())
+    {
+        SGIHostItemInternal hostItemToolsMenu(_toolsMenuInterface);
+        SGIPlugins::instance()->generateItem(_itemToolsMenu, &hostItemToolsMenu);
+        _toolsMenu->setObject(_itemToolsMenu);
+    }
+    if(!_rootTreeItem.valid())
+        reload();
+}
+
 
 void SceneGraphDialog::showBesideParent()
 {
@@ -329,6 +349,15 @@ void SceneGraphDialog::updatePathComboBox()
 void SceneGraphDialog::reload()
 {
     setCursor(Qt::WaitCursor);
+
+    if(!_rootTreeItem.valid())
+    {
+        QTreeWidgetItem * root = ui->treeWidget->invisibleRootItem();
+        QtSGIItem nodeDataRoot(SGIItemTypeTreeRoot, NULL, true);
+        // set dummy data into the second column (type)
+        root->setData(0, Qt::UserRole, QVariant::fromValue(nodeDataRoot));
+        _rootTreeItem = new ObjectTreeItem(root);
+    }
 
 	if (_item.valid())
 	{

@@ -99,6 +99,7 @@ protected:
     void                    selectItemInPathBox();
 
     virtual void            closeEvent(QCloseEvent * event) override;
+    virtual void            showEvent(QShowEvent * event) override;
 
 private:
     void                    init();
