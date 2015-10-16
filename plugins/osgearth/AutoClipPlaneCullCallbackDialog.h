@@ -52,8 +52,7 @@ private:
 private:
 	Ui_AutoClipPlaneCullCallbackDialog *	        ui;
     osg::ref_ptr<osgEarth::Util::AutoClipPlaneCullCallback>   _callback;
-    // use a simple raw-ptr to the interface to avoid a circular ref-ptr
-    ISettingsDialog * _interface;
+    ISettingsDialogPtr _interface;
     ISettingsDialogInfoPtr _info;
 };
 

@@ -49,8 +49,7 @@ private:
 private:
 	Ui_RetrieveElevationDialog *    ui;
     SGIPluginHostInterface *        _hostInterface;
-    // use a simple raw-ptr to the interface to avoid a circular ref-ptr
-    ISettingsDialog *               _interface;
+    ISettingsDialogPtr _interface;
     ISettingsDialogInfoPtr          _info;
     SGIItemBasePtr                  _item;
 };
