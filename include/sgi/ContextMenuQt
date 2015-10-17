@@ -4,25 +4,13 @@
 #pragma once
 
 #include "AutoLoadQt"
-#include <QtCore/QPointer>
+#include "plugins/ContextMenuQt"
 
 class QWidget;
 class QMenu;
 
 namespace sgi {
 
-class IHostCallback;
-
-class IContextMenuQt : public QObject
-{
-public:
-    virtual                 ~IContextMenuQt() {}
-    virtual void            setObject(QObject * item, IHostCallback * callback=NULL) = 0;
-    virtual QWidget *       parentWidget() = 0;
-    virtual QMenu *         getMenu() = 0;
-    virtual IHostCallback * getHostCallback() = 0;
-};
-typedef QPointer<IContextMenuQt> IContextMenuQtPtr;
 
 template<typename AUTOLOADCLASS>
 inline IContextMenuQt * createContextMenuQtImpl(QWidget *parent, QObject * item, IHostCallback * callback=NULL)
