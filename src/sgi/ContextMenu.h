@@ -71,6 +71,8 @@ protected:
 
 class ContextMenuQt : public QObject
 {
+    Q_OBJECT
+
 public:
     ContextMenuQt(QObject * item, IHostCallback * callback, bool onlyRootItem=true, QWidget *parent=0);
     virtual ~ContextMenuQt();
@@ -82,6 +84,7 @@ public:
 
     QWidget *                       parentWidget();
     QMenu *                         getMenu();
+    void                            popup(QWidget * parent, int x, int y);
 
 protected:
     class ContextMenuQtImpl;

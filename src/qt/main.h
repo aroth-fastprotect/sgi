@@ -7,6 +7,10 @@
 class QCoreApplication;
 
 namespace sgi {
+
+    class IContextMenuQt;
+    typedef QPointer<IContextMenuQt> IContextMenuQtPtr;
+
     namespace qt_loader {
 
 class ApplicationEventFilter : public QObject
@@ -16,14 +20,20 @@ public:
     static void install();
 protected:
     ApplicationEventFilter(QCoreApplication * parent=NULL);
+    ~ApplicationEventFilter();
 
     bool eventFilter(QObject *obj, QEvent *event) override;
+    void uninstall();
+
+    bool contextMenu(QWidget * widget, QObject * item, float x, float y);
+    bool loadSGI();
 
 private:
     static ApplicationEventFilter * s_instance;
 
-    int                 _inspectorContextMenuMouseButton;
-    int                 _inspectorContextMenuMouseModifier;
+    int                     _inspectorContextMenuMouseButton;
+    int                     _inspectorContextMenuMouseModifier;
+    sgi::IContextMenuQtPtr  _contextMenu;
 };
 
 class sgi_loader_plugin : public QImageIOPlugin

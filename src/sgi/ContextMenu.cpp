@@ -9,6 +9,8 @@
 #include <sgi/plugins/SGIHostItemQt.h>
 #include <sgi/helpers/qt>
 
+#include <QDebug>
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -493,14 +495,14 @@ public:
     ContextMenuQtImpl(ContextMenuQt * menu)
         : _menu(menu) {}
     virtual ~ContextMenuQtImpl()
-        { delete _menu;}
+        { qDebug() << "ContextMenuQtImpl::dtor"; delete _menu;}
 
-    virtual QWidget *               parentWidget() override { return _menu->parentWidget(); }
     virtual QMenu *                 getMenu() override { return _menu->getMenu(); }
-    virtual void                    setObject(QObject * item, IHostCallback * callback=NULL) override { _menu->setObject(item, callback); }
     virtual IHostCallback *         getHostCallback() override { return _menu->getHostCallback(); }
+    virtual void                    setObject(QObject * item, IHostCallback * callback=NULL) override { _menu->setObject(item, callback); }
+    virtual QWidget *               parentWidget() override { return _menu->parentWidget(); }
+    virtual void                    popup(QWidget * parent, int x, int y) override { emit _menu->popup(parent, x, y); }
 
-private:
     ContextMenuQt * _menu;
 };
 
@@ -513,13 +515,14 @@ ContextMenuQt::ContextMenuQt(QObject * qobject, IHostCallback * callback, bool o
     , _onlyRootItem(onlyRootItem)
 {
     SGIHostItemQt hostItem(qobject);
-    SGIPlugins::instance()->generateItem(_item, &hostItem);
-    ContextMenu * realMenu = new ContextMenu(_item.get(), NULL, onlyRootItem, parent);
-    _realMenu = realMenu->menuInterface();
+    _realMenu = callback->contextMenu(parent, &hostItem);
 }
 
 ContextMenuQt::~ContextMenuQt()
 {
+    _realMenu = NULL;
+    static_cast<ContextMenuQtImpl*>(_interface)->_menu = NULL;
+    delete _interface;
 }
 
 IHostCallback * ContextMenuQt::getHostCallback()
@@ -540,10 +543,14 @@ QMenu * ContextMenuQt::getMenu()
 void ContextMenuQt::setObject(QObject * qobject, IHostCallback * callback)
 {
     SGIHostItemQt hostItem(qobject);
-    SGIPlugins::instance()->generateItem(_item, &hostItem);
     _hostCallback = callback;
-    _realMenu->setObject(_item, NULL);
+    _realMenu->setObject(&hostItem, NULL);
 }
 
+void ContextMenuQt::popup(QWidget * parent, int x, int y)
+{
+    qDebug() << "ContextMenuQt::popup" << parent << x << y;
+    _realMenu->popup(parent, x, y);
+}
 
 } // namespace sgi

@@ -3,8 +3,13 @@
 
 #include "main.h"
 #include "main.moc"
-#include <QCoreApplication>
+#include <QApplication>
 #include <QMouseEvent>
+#include <QWidget>
+
+#include <sgi/ContextMenuQt>
+
+#include <QDebug>
 
 #include <iostream>
 
@@ -19,7 +24,18 @@ ApplicationEventFilter::ApplicationEventFilter(QCoreApplication * parent)
     , _inspectorContextMenuMouseModifier(Qt::ControlModifier|Qt::ShiftModifier)
 {
     s_instance = this;
+    connect(parent, &QCoreApplication::aboutToQuit, this, &ApplicationEventFilter::uninstall);
     parent->installEventFilter(this);
+}
+
+ApplicationEventFilter::~ApplicationEventFilter()
+{
+    qDebug() << "ApplicationEventFilter dtor";
+}
+
+bool ApplicationEventFilter::loadSGI()
+{
+    return true;
 }
 
 void ApplicationEventFilter::install()
@@ -30,39 +46,99 @@ void ApplicationEventFilter::install()
     }
 }
 
+void ApplicationEventFilter::uninstall()
+{
+    qDebug() << "ApplicationEventFilter uninstall";
+    _contextMenu = NULL;
+    s_instance = NULL;
+    deleteLater();
+}
+
+bool ApplicationEventFilter::contextMenu(QWidget * widget, QObject * obj, float x, float y)
+{
+    bool ret = false;
+    if(_contextMenu.isNull())
+        _contextMenu = sgi::createContextMenuQt(widget, obj, NULL);
+    else
+        _contextMenu->setObject(obj);
+    if(widget)
+    {
+        _contextMenu->popup(widget, x, y);
+        ret = true;
+    }
+    return ret;
+}
+
 bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
 {
-    if (event->type() == QEvent::MouseButtonRelease)
+    bool ret = false;
+    switch(event->type())
     {
-        QMouseEvent * mouseEvent = static_cast<QMouseEvent *>(event);
-        if(mouseEvent->button() == _inspectorContextMenuMouseButton &&
-            (mouseEvent->modifiers() & _inspectorContextMenuMouseModifier) != 0)
+    case QEvent::MouseButtonRelease:
         {
-            std::cout << "ApplicationEventFilter " << std::endl;
-            return true;
+            QMouseEvent * mouseEvent = static_cast<QMouseEvent *>(event);
+            if(mouseEvent->button() == _inspectorContextMenuMouseButton &&
+                (mouseEvent->modifiers() & _inspectorContextMenuMouseModifier) != 0)
+            {
+                int x = mouseEvent->screenPos().x();
+                int y = mouseEvent->screenPos().y();
+                QWidget* widget = dynamic_cast<QWidget*>(obj);
+                if(widget)
+                {
+                    x = mouseEvent->x();
+                    y = mouseEvent->y();
+                }
+                else
+                {
+                    QPoint pt;
+                    widget = QApplication::activeWindow();
+                    if(widget)
+                        pt = widget->mapFromGlobal(mouseEvent->screenPos().toPoint());
+                    else
+                        pt = mouseEvent->screenPos().toPoint();
+                    x = pt.x();
+                    y = pt.y();
+                }
+                qDebug() << "ApplicationEventFilter" << widget << obj;
+                contextMenu(widget, obj, x, y);
+                ret = true;
+            }
         }
+        break;
+    case QEvent::MouseButtonPress:
+        {
+            QMouseEvent * mouseEvent = static_cast<QMouseEvent *>(event);
+            if(mouseEvent->button() == _inspectorContextMenuMouseButton &&
+                (mouseEvent->modifiers() & _inspectorContextMenuMouseModifier) != 0)
+            {
+                ret = true;
+            }
+        }
+        break;
     }
 
     // standard event processing
-    return QObject::eventFilter(obj, event);
+    if(!ret)
+        return QObject::eventFilter(obj, event);
+    else
+        return true;
 }
 
 QImageIOPlugin::Capabilities sgi_loader_plugin::capabilities(QIODevice *device, const QByteArray &format) const
 {
     if (format == "sgi_loader")
-        return Capabilities(CanRead | CanWrite);
-    if (!format.isEmpty())
+    {
+        qDebug() << "sgi_loader_plugin::capabilities" << format;
+        ApplicationEventFilter::install();
+        return Capabilities(CanRead);
+    }
+    else
         return 0;
-    Capabilities cap;
-    if (device->isReadable())
-        cap |= CanRead;
-    if (device->isWritable())
-        cap |= CanWrite;
-    return cap;
 }
 
 QImageIOHandler *sgi_loader_plugin::create(QIODevice *device, const QByteArray &format) const
 {
+    qDebug() << "sgi_loader_plugin::create" << format;
     ApplicationEventFilter::install();
     return NULL;
 }
