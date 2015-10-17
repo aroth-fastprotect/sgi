@@ -381,7 +381,6 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
 
 	ui = new Ui_TileInspectorDialog;
 	ui->setupUi( this );
-    ObjectTreeItem::s_hostInterface = _hostInterface;
 
     _treeRoot = new ObjectTreeItem(ui->treeWidget, _treeImpl.get(), _hostInterface);
 

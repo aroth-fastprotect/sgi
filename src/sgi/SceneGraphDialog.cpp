@@ -122,8 +122,6 @@ void SceneGraphDialog::init()
         | Qt::WindowCloseButtonHint;
     this->setWindowFlags(flags);
 
-    ObjectTreeItem::s_hostInterface = SGIPlugins::instance()->hostInterface();
-    
     _toolBar = new QToolBar;
     QVBoxLayout * mainLayout = (QVBoxLayout *)this->layout();
     mainLayout->insertWidget(0, _toolBar);
@@ -356,7 +354,7 @@ void SceneGraphDialog::reload()
         QtSGIItem nodeDataRoot(SGIItemTypeTreeRoot, NULL, true);
         // set dummy data into the second column (type)
         root->setData(0, Qt::UserRole, QVariant::fromValue(nodeDataRoot));
-        _rootTreeItem = new ObjectTreeItem(root);
+        _rootTreeItem = new ObjectTreeItem(root, SGIPlugins::instance()->hostInterface());
     }
 
 	if (_item.valid())
@@ -476,7 +474,7 @@ void SceneGraphDialog::reloadSelectedItem()
                 delete child;
             }
         }
-        ObjectTreeItem treeItem(item);
+        ObjectTreeItem treeItem(item, SGIPlugins::instance()->hostInterface());
         buildTree(&treeItem, itemData.item());
     }
 }
@@ -493,7 +491,7 @@ void SceneGraphDialog::onItemExpanded(QTreeWidgetItem * item)
         {
             delete child;
         }
-        ObjectTreeItem treeItem(item);
+        ObjectTreeItem treeItem(item, SGIPlugins::instance()->hostInterface());
         buildTree(&treeItem, itemData.item());
 	}
 }
@@ -522,7 +520,7 @@ void SceneGraphDialog::onItemSelectionChanged()
     if(item)
     {
         QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-        _selectedTreeItem = new ObjectTreeItem(item);
+        _selectedTreeItem = new ObjectTreeItem(item, SGIPlugins::instance()->hostInterface());
         setNodeInfo(itemData.item());
     }
     else

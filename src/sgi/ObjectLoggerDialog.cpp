@@ -146,8 +146,6 @@ void ObjectLoggerDialog::init()
         | Qt::WindowMaximizeButtonHint
         | Qt::WindowCloseButtonHint;
     this->setWindowFlags(flags);
-    
-    ObjectTreeItem::s_hostInterface = SGIPlugins::instance()->hostInterface();
 
     _toolBar = new QToolBar;
     QVBoxLayout * mainLayout = (QVBoxLayout *)this->layout();
@@ -218,7 +216,7 @@ void ObjectLoggerDialog::reloadTree()
     ui->treeWidget->setColumnWidth(0, 3 * total_width / 4);
     ui->treeWidget->setColumnWidth(1, total_width / 4);
 
-    ObjectTreeItem objectTreeRootItem(ui->treeWidget->invisibleRootItem());
+    ObjectTreeItem objectTreeRootItem(ui->treeWidget->invisibleRootItem(), SGIPlugins::instance()->hostInterface());
 
     ObjectTreeItem * firstTreeItem = NULL;
 
@@ -322,7 +320,7 @@ void ObjectLoggerDialog::onItemExpanded(QTreeWidgetItem * item)
         {
             delete child;
         }
-        ObjectTreeItem treeItem(item);
+        ObjectTreeItem treeItem(item, SGIPlugins::instance()->hostInterface());
         buildTree(&treeItem, itemData.item());
     }
 }

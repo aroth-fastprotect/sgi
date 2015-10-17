@@ -27,7 +27,7 @@ public:
     static SGIPluginHostInterface * s_hostInterface;
 
     ObjectTreeItem (QTreeWidget * widget, IObjectTreeImpl * impl, SGIPluginHostInterface * hostInterface);
-    ObjectTreeItem (QTreeWidgetItem * item);
+    ObjectTreeItem (QTreeWidgetItem * item, SGIPluginHostInterface * hostInterface);
     ObjectTreeItem(const ObjectTreeItem & item);
     virtual ~ObjectTreeItem();
 

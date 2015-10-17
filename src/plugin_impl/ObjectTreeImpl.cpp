@@ -19,8 +19,6 @@ namespace sgi {
 
 using namespace qt_helpers;
 
-SGIPluginHostInterface * ObjectTreeItem::s_hostInterface = NULL;
-
 ObjectTreeImplProxyPrivate::ObjectTreeImplProxyPrivate(QTreeWidget * widget, IObjectTreeImpl * impl, SGIPluginHostInterface * hostInterface)
     : _widget(widget)
     , _impl(impl)
@@ -97,13 +95,13 @@ void ObjectTreeImplProxy::onItemExpanded(QTreeWidgetItem * item)
         {
             delete child;
         }
-        ObjectTreeItem treeItem(item);
+        ObjectTreeItem treeItem(item, d->_hostInterface);
         buildTree(&treeItem, itemData.item());
         d->_impl->itemExpanded(&treeItem);
     }
     else
     {
-        ObjectTreeItem treeItem(item);
+        ObjectTreeItem treeItem(item, d->_hostInterface);
         d->_impl->itemExpanded(&treeItem);
     }
 }
@@ -111,21 +109,21 @@ void ObjectTreeImplProxy::onItemExpanded(QTreeWidgetItem * item)
 void ObjectTreeImplProxy::onItemCollapsed(QTreeWidgetItem * item)
 {
     Q_D(ObjectTreeImplProxy);
-    ObjectTreeItem treeItem(item);
+    ObjectTreeItem treeItem(item, d->_hostInterface);
     d->_impl->itemCollapsed(&treeItem);
 }
 
 void ObjectTreeImplProxy::onItemClicked(QTreeWidgetItem * item, int column)
 {
     Q_D(ObjectTreeImplProxy);
-    ObjectTreeItem treeItem(item);
+    ObjectTreeItem treeItem(item, d->_hostInterface);
     d->_impl->itemClicked(&treeItem);
 }
 
 void ObjectTreeImplProxy::onItemActivated(QTreeWidgetItem * item, int column)
 {
     Q_D(ObjectTreeImplProxy);
-    ObjectTreeItem treeItem(item);
+    ObjectTreeItem treeItem(item, d->_hostInterface);
     d->_impl->itemActivated(&treeItem);
 }
 
@@ -139,7 +137,7 @@ void ObjectTreeImplProxy::onItemContextMenu(const QPoint & pt)
         itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
 
         QMenu * contextMenu = NULL;
-        ObjectTreeItem treeItem(item);
+        ObjectTreeItem treeItem(item, d->_hostInterface);
 
         IContextMenuPtr objectMenu;
         d->_impl->itemContextMenu(&treeItem, objectMenu);
@@ -165,7 +163,7 @@ void ObjectTreeImplProxy::onItemSelectionChanged()
     if(item)
     {
         QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-        d->_selectedTreeItem = new ObjectTreeItem(item);
+        d->_selectedTreeItem = new ObjectTreeItem(item, d_ptr->_hostInterface);
     }
     else
         d->_selectedTreeItem = NULL;
@@ -189,26 +187,29 @@ void ObjectTreeImplProxy::reloadSelectedItem()
                 delete child;
             }
         }
-        ObjectTreeItem treeItem(item);
+        ObjectTreeItem treeItem(item, d->_hostInterface);
         buildTree(&treeItem, itemData.item());
     }
 }
 
 ObjectTreeItem::ObjectTreeItem (QTreeWidget * widget, IObjectTreeImpl * impl, SGIPluginHostInterface * hostInterface)
-    : _hostInterface(hostInterface)
+    : IObjectTreeItem()
+    , _hostInterface(hostInterface)
     , _item(widget->invisibleRootItem())
 {
     new ObjectTreeImplProxy(widget, impl, hostInterface);
 }
 
-ObjectTreeItem::ObjectTreeItem (QTreeWidgetItem * item)
-    : _hostInterface(s_hostInterface)
+ObjectTreeItem::ObjectTreeItem (QTreeWidgetItem * item, SGIPluginHostInterface * hostInterface)
+    : IObjectTreeItem()
+    , _hostInterface(hostInterface)
     , _item(item)
 {
 }
 
 ObjectTreeItem::ObjectTreeItem(const ObjectTreeItem & item)
-    : _hostInterface(s_hostInterface)
+    : IObjectTreeItem(item)
+    , _hostInterface(item._hostInterface)
     , _item(item._item)
 {
 }
@@ -222,7 +223,7 @@ IObjectTreeItem * ObjectTreeItem::root()
 {
     QTreeWidget * widget = _item->treeWidget();
     if(widget)
-        return new ObjectTreeItem(widget->invisibleRootItem());
+        return new ObjectTreeItem(widget->invisibleRootItem(), _hostInterface);
     else
         return NULL;
 }
@@ -231,7 +232,7 @@ IObjectTreeItem * ObjectTreeItem::parent()
 {
     QTreeWidgetItem * parent = _item->parent();
     if(parent)
-        return new ObjectTreeItem(parent);
+        return new ObjectTreeItem(parent, _hostInterface);
     else
         return NULL;
 }
@@ -251,7 +252,7 @@ IObjectTreeItem * ObjectTreeItem::addChild(const std::string & name, SGIItemBase
 IObjectTreeItem * ObjectTreeItem::addChild(const std::string & name, const SGIHostItemBase * hostitem)
 {
     osg::ref_ptr<SGIItemBase> item;
-    if(s_hostInterface->generateItem(item, hostitem))
+    if(_hostInterface->generateItem(item, hostitem))
         return addChildImpl(name, item.get());
     else
         return NULL;
@@ -267,7 +268,7 @@ IObjectTreeItem * ObjectTreeItem::findChild(const std::string & name)
             retitem = child;
     }
     if(retitem)
-        return new ObjectTreeItem(retitem);
+        return new ObjectTreeItem(retitem, _hostInterface);
     else
         return NULL;
 }
@@ -324,7 +325,7 @@ IObjectTreeItem * ObjectTreeItem::addChildImpl(const std::string & name, SGIItem
     if(name.empty() && item)
     {
         std::string displayName;
-        s_hostInterface->getObjectDisplayName(displayName, item);
+        _hostInterface->getObjectDisplayName(displayName, item);
         itemText = fromLocal8Bit(displayName);
     }
     else
@@ -332,7 +333,7 @@ IObjectTreeItem * ObjectTreeItem::addChildImpl(const std::string & name, SGIItem
     std::string typeName;
     if(item)
     {
-        s_hostInterface->getObjectTypename(typeName, item);
+        _hostInterface->getObjectTypename(typeName, item);
         itemTypeText = fromLocal8Bit(typeName);
     }
 
@@ -353,7 +354,7 @@ IObjectTreeItem * ObjectTreeItem::addChildImpl(const std::string & name, SGIItem
     }
     // ... and finally add the new item to the tree
     _item->addChild(newItem);
-    return new ObjectTreeItem(newItem);
+    return new ObjectTreeItem(newItem, _hostInterface);
 }
 
 void ObjectTreeItem::addDummyChild(QTreeWidgetItem * itemParent)
@@ -372,7 +373,7 @@ void ObjectTreeItem::children(IObjectTreeItemPtrList & children)
     for(int i = 0; i < numChilds; i++)
     {
         QTreeWidgetItem * child = _item->child(i);
-        children[i] = new ObjectTreeItem(child);
+        children[i] = new ObjectTreeItem(child, _hostInterface);
     }
 }
 
@@ -381,7 +382,7 @@ IObjectTreeItem * ObjectTreeItem::selectedItem()
     if(!_item)
         return NULL;
     QTreeWidgetItem * selitem = _item->treeWidget()->currentItem();
-    return new ObjectTreeItem(selitem);
+    return new ObjectTreeItem(selitem, _hostInterface);
 }
 
 void ObjectTreeItem::reload()
