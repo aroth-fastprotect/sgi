@@ -11,7 +11,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-                        MainWindow(QWidget * parent=NULL);
+                        MainWindow(QImage * image, QWidget * parent=NULL);
     virtual             ~MainWindow();
 
 public slots:

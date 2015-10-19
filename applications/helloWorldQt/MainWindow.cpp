@@ -2,17 +2,19 @@
 #include <QApplication>
 #include <QDir>
 #include <QDebug>
+#include <QBuffer>
 
 #include <QImageReader>
 
 #include <ui_MainWindow.h>
 
-MainWindow::MainWindow(QWidget * parent)
+MainWindow::MainWindow(QImage * image, QWidget * parent)
     : QMainWindow(parent)
 {
     ui = new Ui::MainWindow;
     ui->setupUi( this );
 
+    ui->image->setPixmap(QPixmap::fromImage(*image));
 }
 
 MainWindow::~MainWindow()
@@ -34,7 +36,8 @@ int main(int argc, char **argv)
     qDebug() << "addLibraryPath " << path;
     QCoreApplication::addLibraryPath(path);
     QImage load_sgi;
-    if(load_sgi.load(QStringLiteral("qapp.sgi_loader"), "sgi_loader"))
+    QBuffer dummyMem;
+    if(load_sgi.load(&dummyMem, "sgi_loader"))
         qDebug() << "sgi loaded.";
     else
         qDebug() << "failed to load sgi.";
@@ -45,7 +48,7 @@ int main(int argc, char **argv)
     }
 
 
-    MainWindow window;
+    MainWindow window(&load_sgi);
     window.show();
 
     return app.exec();
