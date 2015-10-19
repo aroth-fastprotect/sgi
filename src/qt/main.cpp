@@ -128,7 +128,6 @@ QImageIOPlugin::Capabilities sgi_loader_plugin::capabilities(QIODevice *device, 
 {
     if (format == "sgi_loader")
     {
-        qDebug() << "sgi_loader_plugin::capabilities" << format;
         ApplicationEventFilter::install();
         return Capabilities(CanRead);
     }
@@ -138,8 +137,7 @@ QImageIOPlugin::Capabilities sgi_loader_plugin::capabilities(QIODevice *device, 
 
 QImageIOHandler *sgi_loader_plugin::create(QIODevice *device, const QByteArray &format) const
 {
-    qDebug() << "sgi_loader_plugin::create" << format;
-    ApplicationEventFilter::install();
+    //ApplicationEventFilter::install();
     return NULL;
 }
 
