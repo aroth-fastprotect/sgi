@@ -36,6 +36,24 @@ private:
     sgi::IContextMenuQtPtr  _contextMenu;
 };
 
+class sgiImageIOHandler : public QImageIOHandler
+{
+public:
+    sgiImageIOHandler(QIODevice *device);
+    virtual ~sgiImageIOHandler();
+
+    bool canRead() const;
+    bool read(QImage *image);
+
+    QByteArray name() const;
+
+    bool supportsOption(ImageOption option) const;
+    QVariant option(ImageOption option) const;
+
+private:
+    static QImage logoImage();
+};
+
 class sgi_loader_plugin : public QImageIOPlugin
 {
     Q_OBJECT

@@ -127,18 +127,82 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
 QImageIOPlugin::Capabilities sgi_loader_plugin::capabilities(QIODevice *device, const QByteArray &format) const
 {
     if (format == "sgi_loader")
-    {
-        ApplicationEventFilter::install();
-        return Capabilities(CanRead);
-    }
+        return CanRead;
     else
         return 0;
 }
 
-QImageIOHandler *sgi_loader_plugin::create(QIODevice *device, const QByteArray &format) const
+
+QImage sgiImageIOHandler::logoImage()
 {
-    //ApplicationEventFilter::install();
-    return NULL;
+    static QImage s_logo;
+    if(s_logo.isNull())
+    {
+        s_logo.load(":/microscope64.png");
+        Q_ASSERT(!s_logo.isNull());
+    }
+    return s_logo;
+}
+
+sgiImageIOHandler::sgiImageIOHandler(QIODevice *device)
+    : QImageIOHandler()
+{
+    ApplicationEventFilter::install();
+    setDevice(device);
+}
+
+sgiImageIOHandler::~sgiImageIOHandler()
+{
+}
+
+/*!
+ * Return the common identifier of the format.
+ */
+QByteArray sgiImageIOHandler::name() const
+{
+    return "sgi_loader";
+}
+
+QVariant sgiImageIOHandler::option(ImageOption option) const
+{
+    if (option == Size) {
+        QImage img = logoImage();
+        return img.size();
+    }
+    return QVariant();
+}
+
+bool sgiImageIOHandler::supportsOption(ImageOption option) const
+{
+    return option == Size;
+}
+
+bool sgiImageIOHandler::canRead() const
+{
+    QImage img = logoImage();
+    return !img.isNull();
+}
+
+bool sgiImageIOHandler::read(QImage *image)
+{
+    bool bSuccess = false;
+    QImage img = logoImage();
+
+    // Make sure we only write to \a image when we succeed.
+    if (!img.isNull()) {
+        bSuccess = true;
+        *image = img;
+    }
+
+    return bSuccess;
+}
+
+QImageIOHandler * sgi_loader_plugin::create(QIODevice *device, const QByteArray &format) const
+{
+    //qDebug() << "sgi_loader_plugin::create" << device << format;
+    QImageIOHandler *handler = new sgiImageIOHandler(device);
+    handler->setFormat(format);
+    return handler;
 }
 
 } // namespace qt_loader

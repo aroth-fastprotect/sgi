@@ -6,6 +6,10 @@ LIST(APPEND TARGET_MOC_H
     main.h
     )
 
+LIST(APPEND TARGET_QRC
+        sgi_logo.qrc
+        )
+
 #OTHER_FILES += sgi_loader.json
 LIST(APPEND TARGET_LIBRARIES_VARS
     QT_QTCORE_LIBRARY
