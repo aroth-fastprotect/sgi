@@ -8,6 +8,8 @@
 #include <QWidget>
 
 #include <sgi/ContextMenuQt>
+#include <sgi/Shutdown>
+#include <sgi/AutoLoadQt>
 
 #include <QDebug>
 
@@ -51,6 +53,7 @@ void ApplicationEventFilter::uninstall()
     qDebug() << "ApplicationEventFilter uninstall";
     _contextMenu = NULL;
     s_instance = NULL;
+    sgi::shutdown<sgi::autoload::Qt>();
     deleteLater();
 }
 
