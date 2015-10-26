@@ -83,28 +83,32 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
             if(mouseEvent->button() == _inspectorContextMenuMouseButton &&
                 (mouseEvent->modifiers() & _inspectorContextMenuMouseModifier) != 0)
             {
-                int x = mouseEvent->screenPos().x();
-                int y = mouseEvent->screenPos().y();
-                QWidget* widget = dynamic_cast<QWidget*>(obj);
-                if(widget)
-                {
-                    x = mouseEvent->x();
-                    y = mouseEvent->y();
-                }
-                else
-                {
-                    QPoint pt;
-                    widget = QApplication::activeWindow();
-                    if(widget)
-                        pt = widget->mapFromGlobal(mouseEvent->screenPos().toPoint());
-                    else
-                        pt = mouseEvent->screenPos().toPoint();
-                    x = pt.x();
-                    y = pt.y();
-                }
-                qDebug() << "ApplicationEventFilter" << widget << obj;
-                contextMenu(widget, obj, x, y);
-                ret = true;
+				bool sgi_skip_object = obj->property("sgi_skip_object").toBool();
+				if (!sgi_skip_object)
+				{
+					int x = mouseEvent->screenPos().x();
+					int y = mouseEvent->screenPos().y();
+					QWidget* widget = dynamic_cast<QWidget*>(obj);
+					if (widget)
+					{
+						x = mouseEvent->x();
+						y = mouseEvent->y();
+					}
+					else
+					{
+						QPoint pt;
+						widget = QApplication::activeWindow();
+						if (widget)
+							pt = widget->mapFromGlobal(mouseEvent->screenPos().toPoint());
+						else
+							pt = mouseEvent->screenPos().toPoint();
+						x = pt.x();
+						y = pt.y();
+					}
+					qDebug() << "ApplicationEventFilter" << widget << obj;
+					contextMenu(widget, obj, x, y);
+					ret = true;
+				}
             }
         }
         break;
@@ -114,7 +118,11 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
             if(mouseEvent->button() == _inspectorContextMenuMouseButton &&
                 (mouseEvent->modifiers() & _inspectorContextMenuMouseModifier) != 0)
             {
-                ret = true;
+				bool sgi_skip_object = obj->property("sgi_skip_object").toBool();
+				if (!sgi_skip_object)
+				{
+					ret = true;
+				}
             }
         }
         break;

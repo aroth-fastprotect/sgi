@@ -1704,16 +1704,38 @@ private:
     NamedEnumType _namedEnums;
 };
 
-
 SGIPlugins* SGIPlugins::instance(bool erase)
 {
-    static osg::ref_ptr<SGIPlugins> s_plugins = new SGIPlugins;
-    if (erase)
-    {
-        s_plugins->destruct();
-        s_plugins = 0;
-    }
-    return s_plugins.get(); // will return NULL on erase
+	return instanceImpl(erase);
+}
+
+SGIPlugins * SGIPlugins::instanceImpl(bool erase, bool autoCreate)
+{
+	static osg::ref_ptr<SGIPlugins> s_plugins = NULL;
+	if (erase)
+	{
+		if(s_plugins.valid())
+			s_plugins->destruct();
+		s_plugins = 0;
+	}
+	else if (autoCreate)
+	{
+		if (!s_plugins.valid())
+			s_plugins = new SGIPlugins;
+	}
+	return s_plugins.get(); // will return NULL on erase
+}
+
+void SGIPlugins::shutdown()
+{
+	// check for an existing SGIPlugins  instance
+	SGIPlugins * p = instanceImpl(false, false);
+	if (p)
+	{
+		p->_impl->shutdown();
+	}
+	// now erase the SGIPlugins instance (if any)
+	instanceImpl(true, false);
 }
 
 SGIPlugins::SGIPlugins()
@@ -1975,9 +1997,4 @@ bool SGIPlugins::parentWidget(QWidgetPtr & widget, const SGIHostItemBase * item)
 bool SGIPlugins::parentWidget(QWidgetPtr & widget, SGIItemBase * item)
 {
     return _impl->parentWidget(widget, item);
-}
-
-void SGIPlugins::shutdown()
-{
-    _impl->shutdown();
 }

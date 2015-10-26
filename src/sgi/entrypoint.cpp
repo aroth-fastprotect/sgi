@@ -48,8 +48,7 @@ bool sgi_parentWidgetItem(sgi::QWidgetPtr & widget, sgi::SGIItemBase * item)
 
 void sgi_shutdown()
 {
-    sgi::SGIPlugins::instance()->shutdown();
-    sgi::SGIPlugins::instance(true);
+    sgi::SGIPlugins::shutdown();
 }
 
 sgi::ISceneGraphDialog * sgi_showSceneGraphDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IHostCallback * callback)
