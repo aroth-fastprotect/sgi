@@ -7,6 +7,7 @@
 
 #include <osgUtil/RenderStage>
 #include <osgUtil/RenderLeaf>
+#include <osgUtil/IncrementalCompileOperation>
 
 #include "SGIItemOsg"
 #include <sgi/helpers/osg>
@@ -17,6 +18,7 @@ namespace osg_plugin {
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgUtil::RenderBin)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgUtil::RenderStage)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgUtil::RenderLeaf)
+WRITE_PRETTY_HTML_IMPL_REGISTER(osgUtil::IncrementalCompileOperation)
 
 using namespace sgi::osg_helpers;
 
@@ -102,6 +104,7 @@ bool writePrettyHTMLImpl<osgUtil::RenderStage>::process(std::basic_ostream<char>
     }
     return ret;
 }
+
 bool writePrettyHTMLImpl<osgUtil::RenderLeaf>::process(std::basic_ostream<char>& os)
 {
     osgUtil::RenderLeaf * object = getObject<osgUtil::RenderLeaf,SGIItemOsg>();
@@ -148,6 +151,41 @@ bool writePrettyHTMLImpl<osgUtil::RenderLeaf>::process(std::basic_ostream<char>&
     return ret;
 }
 
+bool writePrettyHTMLImpl<osgUtil::IncrementalCompileOperation>::process(std::basic_ostream<char>& os)
+{
+	osgUtil::IncrementalCompileOperation * object = getObject<osgUtil::IncrementalCompileOperation, SGIItemOsg, DynamicCaster>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+	{
+		if (_table)
+			os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+		// add referenced properties first
+		callNextHandler(os);
+
+		// add remaining osgUtil::IncrementalCompileOperation properties
+		os << "<tr><td>target frame rate</td><td>" << object->getTargetFrameRate() << "</td></tr>" << std::endl;
+		os << "<tr><td>current frame no</td><td>" << object->getCurrentFrameNumber() << "</td></tr>" << std::endl;
+		os << "<tr><td>compile all til frame no</td><td>" << object->getCompileAllTillFrameNumber() << "</td></tr>" << std::endl;
+		os << "<tr><td>marker object</td><td>" << getObjectNameAndType(object->getMarkerObject()) << "</td></tr>" << std::endl;
+		os << "<tr><td>min time avail</td><td>" << object->getMinimumTimeAvailableForGLCompileAndDeletePerFrame() << "</td></tr>" << std::endl;
+		os << "<tr><td>max num objects</td><td>" << object->getMaximumNumOfObjectsToCompilePerFrame() << "</td></tr>" << std::endl;
+		os << "<tr><td>flush time ratio</td><td>" << object->getFlushTimeRatio() << "</td></tr>" << std::endl;
+		os << "<tr><td>conservative time ratio</td><td>" << object->getConservativeTimeRatio() << "</td></tr>" << std::endl;
+
+		if (_table)
+			os << "</table>" << std::endl;
+		ret = true;
+	}
+	break;
+	default:
+		ret = callNextHandler(os);
+		break;
+	}
+	return ret;
+}
 
 } // namespace osg_plugin
 } // namespace sgi

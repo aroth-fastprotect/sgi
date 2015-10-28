@@ -289,6 +289,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::BufferObject, LOKI_TYPELIST(osg::VertexBu
                                                                   ))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Drawable, LOKI_TYPELIST(osg::Geometry, osgText::TextBase, osg::ShapeDrawable, RenderInfoDrawable))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::GraphicsContext, LOKI_TYPELIST(osgViewer::GraphicsWindow))
+
 #if OSG_MIN_VERSION_REQUIRED(3,4,0)
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Node, LOKI_TYPELIST(osg::Group, osg::Drawable))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Group, LOKI_TYPELIST(osg::Geode, osg::Transform, osg::LOD, osg::ProxyNode, osg::CoordinateSystemNode, osgFX::Effect, osgTerrain::TerrainTile))
@@ -317,7 +318,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Texture2D, LOKI_TYPELIST(osgText::GlyphTe
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Operation, LOKI_TYPELIST(osg::GraphicsOperation, osg::BarrierOperation))
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::GraphicsOperation, LOKI_TYPELIST(osgViewer::Renderer))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::GraphicsOperation, LOKI_TYPELIST(osgViewer::Renderer, osgUtil::IncrementalCompileOperation))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::NodeCallback, LOKI_TYPELIST(osgGA::GUIEventHandler, osg::ClusterCullingCallback,
                                                                    osg::AnimationPathCallback,
                                                                    osgAnimation::AnimationManagerBase,

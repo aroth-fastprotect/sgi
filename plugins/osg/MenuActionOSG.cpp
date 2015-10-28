@@ -35,6 +35,7 @@
 #include <osg/ComputeBoundsVisitor>
 #include <osgDB/ReadFile>
 #include <osgAnimation/AnimationManagerBase>
+#include <osgUtil/IncrementalCompileOperation>
 
 #include <osgViewer/ViewerEventHandlers>
 
@@ -162,6 +163,10 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionAutoTransformSetAutoScaleTransitionWidthR
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionCameraManipulatorAutoComputeHome)
 
+ACTION_HANDLER_IMPL_REGISTER(MenuActionViewerBaseMaxFrameRate)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionViewerBaseMaxRunFrameScheme)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionViewerBaseIncrementalCompileOperation)
+
 ACTION_HANDLER_IMPL_REGISTER(MenuActionShaderEditSource)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDepthFunction)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDepthWriteMask)
@@ -190,8 +195,15 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerAcceptNewRequests)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerDoPreCompile)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerDeleteSubgraphsInDBThread)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerTargetPageLODNumber)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerIncrementalCompileOperation)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionAnimationManagerBaseAutomaticLink)
+
+ACTION_HANDLER_IMPL_REGISTER(MenuActionIncrementalCompileOperationTargetFrameRate)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionIncrementalCompileOperationMinimumTimeAvailableForGLCompileAndDeletePerFrame)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionIncrementalCompileOperationMaximumNumOfObjectsToCompilePerFrame)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionIncrementalCompileOperationFlushTimeRatio)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionIncrementalCompileOperationConservativeTimeRatio)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindUpdateNodes)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindEventNodes)
@@ -1774,6 +1786,13 @@ bool actionHandlerImpl<MenuActionDatabasePagerTargetPageLODNumber>::execute()
     return true;
 }
 
+bool actionHandlerImpl<MenuActionDatabasePagerIncrementalCompileOperation>::execute()
+{
+	osgDB::DatabasePager * object = getObject<osgDB::DatabasePager, SGIItemOsg>();
+	object->setIncrementalCompileOperation(new osgUtil::IncrementalCompileOperation);
+	return true;
+}
+
 bool actionHandlerImpl<MenuActionCameraManipulatorAutoComputeHome>::execute()
 {
     osgGA::CameraManipulator * object = getObject<osgGA::CameraManipulator,SGIItemOsg, DynamicCaster>();
@@ -1795,6 +1814,36 @@ bool actionHandlerImpl<MenuActionShaderEditSource>::execute()
     if(ret)
         object->setShaderSource(source);
     return true;
+}
+
+bool actionHandlerImpl<MenuActionViewerBaseMaxFrameRate>::execute()
+{
+	osgViewer::ViewerBase * object = getObject<osgViewer::ViewerBase, SGIItemOsg, DynamicCaster>();
+	double number = object->getRunMaxFrameRate();
+	bool ret;
+	ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+		number,
+		"Number:", "Set target maximum number of PageLODs",
+		0, 120.0, 1,
+		_item
+		);
+	if (ret)
+		object->setRunMaxFrameRate(number);
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionViewerBaseMaxRunFrameScheme>::execute()
+{
+	osgViewer::ViewerBase * object = getObject<osgViewer::ViewerBase, SGIItemOsg, DynamicCaster>();
+	object->setRunFrameScheme((osgViewer::ViewerBase::FrameScheme)menuAction()->mode());
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionViewerBaseIncrementalCompileOperation>::execute()
+{
+	osgViewer::ViewerBase * object = getObject<osgViewer::ViewerBase, SGIItemOsg, DynamicCaster>();
+	object->setIncrementalCompileOperation(new osgUtil::IncrementalCompileOperation);
+	return true;
 }
 
 bool actionHandlerImpl<MenuActionDepthFunction>::execute()
@@ -2036,6 +2085,86 @@ bool actionHandlerImpl<MenuActionAnimationManagerBaseDirty>::execute()
     osgAnimation::AnimationManagerBase * object = getObject<osgAnimation::AnimationManagerBase, SGIItemOsg, DynamicCaster>();
     object->dirty();
     return true;
+}
+
+bool actionHandlerImpl<MenuActionIncrementalCompileOperationTargetFrameRate>::execute()
+{
+	osgUtil::IncrementalCompileOperation * object = getObject<osgUtil::IncrementalCompileOperation, SGIItemOsg, DynamicCaster>();
+	double number = object->getTargetFrameRate();
+	bool ret;
+	ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+		number,
+		"Frame rate:", "Set target frame rate",
+		0.0, 120.0, 1,
+		_item
+		);
+	if (ret)
+		object->setTargetFrameRate(number);
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionIncrementalCompileOperationMinimumTimeAvailableForGLCompileAndDeletePerFrame>::execute()
+{
+	osgUtil::IncrementalCompileOperation * object = getObject<osgUtil::IncrementalCompileOperation, SGIItemOsg, DynamicCaster>();
+	double number = object->getMinimumTimeAvailableForGLCompileAndDeletePerFrame();
+	bool ret;
+	ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+		number,
+		"Time:", "Set minimum time available for GL compile and delete per frame",
+		0.0, 600.0, 1,
+		_item
+		);
+	if (ret)
+		object->setMinimumTimeAvailableForGLCompileAndDeletePerFrame(number);
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionIncrementalCompileOperationMaximumNumOfObjectsToCompilePerFrame>::execute()
+{
+	osgUtil::IncrementalCompileOperation * object = getObject<osgUtil::IncrementalCompileOperation, SGIItemOsg, DynamicCaster>();
+	int number = object->getMaximumNumOfObjectsToCompilePerFrame();
+	bool ret;
+	ret = _hostInterface->inputDialogInteger(menu()->parentWidget(),
+		number,
+		"Number:", "Set maximum number of objects to compile per frame",
+		0, 1000, 1,
+		_item
+		);
+	if (ret)
+		object->setMaximumNumOfObjectsToCompilePerFrame(number);
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionIncrementalCompileOperationFlushTimeRatio>::execute()
+{
+	osgUtil::IncrementalCompileOperation * object = getObject<osgUtil::IncrementalCompileOperation, SGIItemOsg, DynamicCaster>();
+	double number = object->getFlushTimeRatio();
+	bool ret;
+	ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+		number,
+		"Time ratio:", "Set flush time ratio",
+		0.0, 100.0, 1,
+		_item
+		);
+	if (ret)
+		object->setFlushTimeRatio(number);
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionIncrementalCompileOperationConservativeTimeRatio>::execute()
+{
+	osgUtil::IncrementalCompileOperation * object = getObject<osgUtil::IncrementalCompileOperation, SGIItemOsg, DynamicCaster>();
+	double number = object->getConservativeTimeRatio();
+	bool ret;
+	ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+		number,
+		"Time ratio:", "Set convervative time ratio",
+		0.0, 100.0, 1,
+		_item
+		);
+	if (ret)
+		object->setConservativeTimeRatio(number);
+	return true;
 }
 
 namespace {

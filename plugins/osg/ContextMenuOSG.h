@@ -124,6 +124,10 @@ namespace osgQt {
     class GraphicsWindowQt;
 }
 
+namespace osgUtil {
+	class IncrementalCompileOperation;
+}
+
 namespace osgText {
     class TextBase;
     class Text;
@@ -204,6 +208,8 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgQt::GraphicsWindowQt)
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgText::TextBase)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgText::Text)
+
+CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgUtil::IncrementalCompileOperation)
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgAnimation::AnimationManagerBase)
 

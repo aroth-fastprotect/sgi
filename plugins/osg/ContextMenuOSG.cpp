@@ -36,6 +36,7 @@
 #include <osgQt/GraphicsWindowQt>
 #include <osgText/Text>
 #include <osgAnimation/AnimationManagerBase>
+#include <osgUtil/IncrementalCompileOperation>
 
 #include "MenuActionOSG.h"
 #include "stateset_helpers.h"
@@ -112,6 +113,8 @@ CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgQt::GraphicsWindowQt)
 
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgText::TextBase)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgText::Text)
+
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgUtil::IncrementalCompileOperation)
 
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgAnimation::AnimationManagerBase)
 
@@ -1648,6 +1651,30 @@ bool contextMenuPopulateImpl<osgViewer::ViewerBase>::populate(IContextMenuItem *
 		if (ret)
 		{
 			menuItem->addSimpleAction(MenuActionViewCaptureScreenshot, "Capture screenshot", _item);
+
+			menuItem->addSimpleAction(MenuActionViewerBaseMaxFrameRate, helpers::str_plus_count("Max frame rate", object->getRunMaxFrameRate()), _item);
+
+			IContextMenuItem * runFrameSchemeMenu = menuItem->addModeMenu(MenuActionViewerBaseMaxRunFrameScheme, "Run frame scheme", _item, object->getRunFrameScheme());
+			if (runFrameSchemeMenu)
+			{
+				runFrameSchemeMenu->addModeAction("On demand", osgViewer::ViewerBase::ON_DEMAND);
+				runFrameSchemeMenu->addModeAction("Continuous", osgViewer::ViewerBase::CONTINUOUS);
+			}
+			
+			menuItem->addSimpleAction(MenuActionViewerBaseMaxFrameRate, helpers::str_plus_count("Max frame rate", object->getRunMaxFrameRate()), _item);
+
+			SGIHostItemOsg ico(object->getIncrementalCompileOperation());
+			if (ico.hasObject())
+				menuItem->addMenu("Incremental compile operation", &ico);
+			else
+			{
+				IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+				if (manipulateMenu)
+				{
+					manipulateMenu->addSimpleAction(MenuActionViewerBaseIncrementalCompileOperation, "Create Incremental compile operation", _item);
+				}
+			}
+
 		}
 		break;
 	default:
@@ -1763,8 +1790,18 @@ bool contextMenuPopulateImpl<osgDB::DatabasePager>::populate(IContextMenuItem * 
             menuItem->addBoolAction(MenuActionDatabasePagerAcceptNewRequests, "Accept new requests", _item, object->getAcceptNewDatabaseRequests());
             menuItem->addBoolAction(MenuActionDatabasePagerDoPreCompile, "Do pre-compile", _item, object->getDoPreCompile());
             menuItem->addBoolAction(MenuActionDatabasePagerDeleteSubgraphsInDBThread, "Delete Subgraphs in DB thread", _item, object->getDeleteRemovedSubgraphsInDatabaseThread());
-
             menuItem->addSimpleAction(MenuActionDatabasePagerTargetPageLODNumber, helpers::str_plus_count("Target PagedLOD number",object->getTargetMaximumNumberOfPageLOD()), _item);
+
+			SGIHostItemOsg ico(object->getIncrementalCompileOperation());
+			if (ico.hasObject())
+				menuItem->addMenu("Incremental compile operation", &ico);
+			else
+			{
+				IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+				if (manipulateMenu)
+					manipulateMenu->addSimpleAction(MenuActionDatabasePagerIncrementalCompileOperation, "Create Incremental compile operation", _item);
+			}
+
         }
         break;
     default:
@@ -1950,6 +1987,30 @@ bool contextMenuPopulateImpl<osgText::Text>::populate(IContextMenuItem * menuIte
         break;
     }
     return ret;
+}
+
+bool contextMenuPopulateImpl<osgUtil::IncrementalCompileOperation>::populate(IContextMenuItem * menuItem)
+{
+	osgUtil::IncrementalCompileOperation * object = getObject<osgUtil::IncrementalCompileOperation, SGIItemOsg, DynamicCaster>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(menuItem);
+		if (ret)
+		{
+			menuItem->addSimpleAction(MenuActionIncrementalCompileOperationTargetFrameRate, helpers::str_plus_info("Target frame rate", object->getTargetFrameRate()), _item);
+			menuItem->addSimpleAction(MenuActionIncrementalCompileOperationMinimumTimeAvailableForGLCompileAndDeletePerFrame, helpers::str_plus_info("Min time for GL compile and delete", object->getMinimumTimeAvailableForGLCompileAndDeletePerFrame()), _item);
+			menuItem->addSimpleAction(MenuActionIncrementalCompileOperationMaximumNumOfObjectsToCompilePerFrame, helpers::str_plus_info("Max # of objects to compile", object->getMaximumNumOfObjectsToCompilePerFrame()), _item);
+			menuItem->addSimpleAction(MenuActionIncrementalCompileOperationFlushTimeRatio, helpers::str_plus_info("Flush time ratio", object->getFlushTimeRatio()), _item);
+			menuItem->addSimpleAction(MenuActionIncrementalCompileOperationConservativeTimeRatio, helpers::str_plus_info("Conservative time ratio", object->getConservativeTimeRatio()), _item);
+		}
+		break;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
 }
 
 bool contextMenuPopulateImpl<osgAnimation::AnimationManagerBase>::populate(IContextMenuItem * menuItem)
