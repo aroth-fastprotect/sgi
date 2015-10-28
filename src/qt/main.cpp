@@ -6,6 +6,7 @@
 #include <QApplication>
 #include <QMouseEvent>
 #include <QWidget>
+#include <QtWidgets/private/qwidgetwindow_p.h>
 
 #include <sgi/ContextMenuQt>
 #include <sgi/Shutdown>
@@ -89,10 +90,19 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
 					int x = mouseEvent->screenPos().x();
 					int y = mouseEvent->screenPos().y();
 					QWidget* widget = dynamic_cast<QWidget*>(obj);
+					if (!widget)
+					{
+						QWidgetWindow* w = dynamic_cast<QWidgetWindow*>(obj);
+						if (w)
+							widget = w->widget();
+					}
 					if (widget)
 					{
 						x = mouseEvent->x();
 						y = mouseEvent->y();
+						QWidget * child = widget->childAt(x, y);
+						if(child)
+							sgi_skip_object = child->property("sgi_skip_object").toBool();
 					}
 					else
 					{
@@ -105,9 +115,12 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
 						x = pt.x();
 						y = pt.y();
 					}
-					qDebug() << "ApplicationEventFilter" << widget << obj;
-					contextMenu(widget, obj, x, y);
-					ret = true;
+					if (!sgi_skip_object)
+					{
+						qDebug() << "ApplicationEventFilter" << widget << obj;
+						contextMenu(widget, obj, x, y);
+						ret = true;
+					}
 				}
             }
         }

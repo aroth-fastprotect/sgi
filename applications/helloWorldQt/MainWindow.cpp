@@ -14,6 +14,7 @@ MainWindow::MainWindow(QImage * image, QWidget * parent)
     ui = new Ui::MainWindow;
     ui->setupUi( this );
 
+	ui->noSGIButton->setProperty("sgi_skip_object", QVariant::fromValue(true));
     ui->image->setPixmap(QPixmap::fromImage(*image));
 }
 
