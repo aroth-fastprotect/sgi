@@ -100,9 +100,13 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
 					{
 						x = mouseEvent->x();
 						y = mouseEvent->y();
-						QWidget * child = widget->childAt(x, y);
-						if(child)
-							sgi_skip_object = child->property("sgi_skip_object").toBool();
+						sgi_skip_object = widget->property("sgi_skip_object").toBool();
+						if (!sgi_skip_object)
+						{
+							QWidget * child = widget->childAt(x, y);
+							if (child)
+								sgi_skip_object = child->property("sgi_skip_object").toBool();
+						}
 					}
 					else
 					{
@@ -132,6 +136,28 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
                 (mouseEvent->modifiers() & _inspectorContextMenuMouseModifier) != 0)
             {
 				bool sgi_skip_object = obj->property("sgi_skip_object").toBool();
+				if (!sgi_skip_object)
+				{
+					QWidget* widget = dynamic_cast<QWidget*>(obj);
+					if (!widget)
+					{
+						QWidgetWindow* w = dynamic_cast<QWidgetWindow*>(obj);
+						if (w)
+							widget = w->widget();
+					}
+					if (widget)
+					{
+						int x = mouseEvent->x();
+						int y = mouseEvent->y();
+						sgi_skip_object = widget->property("sgi_skip_object").toBool();
+						if (!sgi_skip_object)
+						{
+							QWidget * child = widget->childAt(x, y);
+							if (child)
+								sgi_skip_object = child->property("sgi_skip_object").toBool();
+						}
+					}
+				}
 				if (!sgi_skip_object)
 				{
 					ret = true;
