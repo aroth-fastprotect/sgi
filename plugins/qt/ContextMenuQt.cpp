@@ -5,6 +5,7 @@
 #include "MenuActionQt.h"
 #include <QMetaClassInfo>
 #include <QWidget>
+#include <QtWidgets/private/qwidgetwindow_p.h>
 #include <sgi/helpers/string>
 #include <sgi/helpers/qt>
 
@@ -14,6 +15,7 @@ namespace qt_plugin {
 
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(QObject)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(QWidget)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(QWidgetWindow)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(QMetaObject)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(QPaintDevice)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(QImage)
@@ -114,6 +116,28 @@ bool contextMenuPopulateImpl<QWidget>::populate(IContextMenuItem * menuItem)
         break;
     }
     return ret;
+}
+
+bool contextMenuPopulateImpl<QWidgetWindow>::populate(IContextMenuItem * menuItem)
+{
+	QWidgetWindow * object = getObjectMulti<QWidgetWindow, SGIItemQt, SGIItemQtSurface>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(menuItem);
+		if (ret)
+		{
+			SGIHostItemQt widget(object->widget());
+			if(widget.hasObject())
+				menuItem->addMenu("Widget", &widget);
+		}
+		break;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
 }
 
 bool contextMenuPopulateImpl<QMetaObject>::populate(IContextMenuItem * menuItem)

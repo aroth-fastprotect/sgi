@@ -21,6 +21,7 @@
 #include <QColorDialog>
 #include <QPicture>
 #include <QWindow>
+#include <QtWidgets/private/qwidgetwindow_p.h>
 #include <QPaintDeviceWindow>
 #include <QSurface>
 #include <QOffscreenSurface>
@@ -53,7 +54,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QObject, LOKI_TYPELIST(QWindow, QWidget, QThread, QCoreApplication));
 //SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QWindow, LOKI_TYPELIST(QPaintDeviceWindow, QQuickWindow));
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QWindow, LOKI_TYPELIST(QPaintDeviceWindow));
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QWindow, LOKI_TYPELIST(QPaintDeviceWindow, QWidgetWindow));
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QPaintDeviceWindow, LOKI_TYPELIST(QOpenGLWindow, QRasterWindow));
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QSurface, LOKI_TYPELIST(QWindow, QOffscreenSurface));

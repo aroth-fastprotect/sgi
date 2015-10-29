@@ -9,6 +9,7 @@
 #include <QWindow>
 #include <QSurface>
 #include <QDesktopWidget>
+#include <QtWidgets/private/qwidgetwindow_p.h>
 
 #include "ObjectTreeQt.h"
 #include "SGIItemQt"
@@ -27,6 +28,7 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(QMetaObject)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QObject)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QWidget)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QWindow)
+OBJECT_TREE_BUILD_IMPL_REGISTER(QWidgetWindow)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QSurface)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QCoreApplication)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QApplication)
@@ -185,6 +187,28 @@ bool objectTreeBuildImpl<QWindow>::build(IObjectTreeItem * treeItem)
         break;
     }
     return ret;
+}
+
+bool objectTreeBuildImpl<QWidgetWindow>::build(IObjectTreeItem * treeItem)
+{
+	QWidgetWindow * object = getObjectMulti<QWidgetWindow, SGIItemQt, SGIItemQtSurface>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(treeItem);
+		if (ret)
+		{
+			SGIHostItemQt widget(object->widget());
+			if (widget.hasObject())
+				treeItem->addChild("Widget", &widget);
+		}
+		break;
+	default:
+		ret = callNextHandler(treeItem);
+		break;
+	}
+	return ret;
 }
 
 bool objectTreeBuildImpl<QSurface>::build(IObjectTreeItem * treeItem)

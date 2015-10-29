@@ -5,6 +5,7 @@
 #include <QGLWidget>
 #include <QSurfaceFormat>
 #include <QWindow>
+#include <QtWidgets/private/qwidgetwindow_p.h>
 #include <QSurface>
 #include <QMetaProperty>
 #include "writeHTMLQt.h"
@@ -23,6 +24,7 @@ namespace qt_plugin {
 WRITE_PRETTY_HTML_IMPL_REGISTER(QObject)
 WRITE_PRETTY_HTML_IMPL_REGISTER(QWidget)
 WRITE_PRETTY_HTML_IMPL_REGISTER(QWindow)
+WRITE_PRETTY_HTML_IMPL_REGISTER(QWidgetWindow)
 WRITE_PRETTY_HTML_IMPL_REGISTER(QSurface)
 WRITE_PRETTY_HTML_IMPL_REGISTER(QDialog)
 WRITE_PRETTY_HTML_IMPL_REGISTER(QThread)
@@ -222,6 +224,35 @@ bool writePrettyHTMLImpl<QWindow>::process(std::basic_ostream<char>& os)
         break;
     }
     return ret;
+}
+
+bool writePrettyHTMLImpl<QWidgetWindow>::process(std::basic_ostream<char>& os)
+{
+	bool ret = false;
+	QWidgetWindow * object = getObjectMulti<QWidgetWindow, SGIItemQt, SGIItemQtSurface>();
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		{
+			if (_table)
+				os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+			// add QWindow properties first
+			callNextHandler(os);
+
+			// add properties
+			os << "<tr><td>widget</td><td>" << qt_helpers::getObjectNameAndType(object->widget()) << "</td></tr>" << std::endl;
+
+			if (_table)
+				os << "</table>" << std::endl;
+			ret = true;
+		}
+		break;
+	default:
+		ret = callNextHandler(os);
+		break;
+	}
+	return ret;
 }
 
 bool writePrettyHTMLImpl<QSurface>::process(std::basic_ostream<char>& os)

@@ -6,6 +6,7 @@ class QObject;
 struct QMetaObject;
 class QWidget;
 class QWindow;
+class QWidgetWindow;
 class QSurface;
 class QGLWidget;
 class QCoreApplication;
@@ -19,6 +20,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE(QMetaObject)
 OBJECT_TREE_BUILD_IMPL_DECLARE(QObject)
 OBJECT_TREE_BUILD_IMPL_DECLARE(QWidget)
 OBJECT_TREE_BUILD_IMPL_DECLARE(QWindow)
+OBJECT_TREE_BUILD_IMPL_DECLARE(QWidgetWindow)
 OBJECT_TREE_BUILD_IMPL_DECLARE(QSurface)
 OBJECT_TREE_BUILD_IMPL_DECLARE(QCoreApplication)
 OBJECT_TREE_BUILD_IMPL_DECLARE(QApplication)
