@@ -5,13 +5,13 @@
 #include <QGLWidget>
 #include <QSurfaceFormat>
 #include <QWindow>
-#include <QtWidgets/private/qwidgetwindow_p.h>
 #include <QSurface>
 #include <QMetaProperty>
 #include "writeHTMLQt.h"
 #include "SGIItemQt"
 
 #include <sgi/helpers/qt>
+#include <sgi/helpers/qt_widgetwindow>
 #include <sgi/helpers/html>
 #include <sgi/helpers/rtti>
 

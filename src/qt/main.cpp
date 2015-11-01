@@ -6,11 +6,11 @@
 #include <QApplication>
 #include <QMouseEvent>
 #include <QWidget>
-#include <QtWidgets/private/qwidgetwindow_p.h>
 
 #include <sgi/ContextMenuQt>
 #include <sgi/Shutdown>
 #include <sgi/AutoLoadQt>
+#include <sgi/helpers/qt_widgetwindow>
 
 #include <QDebug>
 

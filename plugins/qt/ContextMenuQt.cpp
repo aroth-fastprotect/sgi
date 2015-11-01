@@ -5,9 +5,9 @@
 #include "MenuActionQt.h"
 #include <QMetaClassInfo>
 #include <QWidget>
-#include <QtWidgets/private/qwidgetwindow_p.h>
 #include <sgi/helpers/string>
 #include <sgi/helpers/qt>
+#include <sgi/helpers/qt_widgetwindow>
 
 namespace sgi {
 

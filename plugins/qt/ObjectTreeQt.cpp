@@ -9,7 +9,6 @@
 #include <QWindow>
 #include <QSurface>
 #include <QDesktopWidget>
-#include <QtWidgets/private/qwidgetwindow_p.h>
 
 #include "ObjectTreeQt.h"
 #include "SGIItemQt"
@@ -20,6 +19,7 @@
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/helpers/string>
 #include <sgi/helpers/qt>
+#include <sgi/helpers/qt_widgetwindow>
 
 namespace sgi {
 namespace qt_plugin {
