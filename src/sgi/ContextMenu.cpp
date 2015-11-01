@@ -317,7 +317,14 @@ public:
     ContextMenuImpl(ContextMenu * menu)
         : _menu(menu) {}
     ~ContextMenuImpl()
-        { delete _menu; }
+        {
+            qDebug() << "ContextMenuImpl dtor" << _menu;
+            if(_menu)
+            {
+                _menu->_interface = NULL;
+                delete _menu;
+            }
+        }
 
     virtual QWidget *               parentWidget() override { return _menu->parentWidget(); }
     virtual QMenu *                 getMenu() override { return _menu; }
@@ -326,7 +333,6 @@ public:
     virtual IHostCallback *         getHostCallback() override { return _menu->getHostCallback(); }
     virtual void                    popup(QWidget * parent, int x, int y) { emit _menu->triggerPopup(parent, x, y); }
 
-private:
     ContextMenu * _menu;
 };
 
@@ -359,6 +365,14 @@ ContextMenu::ContextMenu(SGIItemBase * item, IHostCallback* callback, bool onlyR
 
 ContextMenu::~ContextMenu()
 {
+    qDebug() << "ContextMenu dtor" << _interface;
+    if(_interface)
+    {
+        // tell interface that this instance is already gone, so no need to
+        // delete again
+        static_cast<ContextMenuImpl*>(_interface)->_menu = NULL;
+        _interface = NULL;
+    }
 }
 
 void ContextMenu::showSceneGraphDialog(SGIItemBase * item)
@@ -495,7 +509,7 @@ public:
     ContextMenuQtImpl(ContextMenuQt * menu)
         : _menu(menu) {}
     virtual ~ContextMenuQtImpl()
-        { qDebug() << "ContextMenuQtImpl::dtor"; delete _menu;}
+        { qDebug() << "ContextMenuQtImpl::dtor" << _menu; delete _menu;}
 
     virtual QMenu *                 getMenu() override { return _menu->getMenu(); }
     virtual IHostCallback *         getHostCallback() override { return _menu->getHostCallback(); }
@@ -520,8 +534,13 @@ ContextMenuQt::ContextMenuQt(QObject * qobject, IHostCallback * callback, bool o
 
 ContextMenuQt::~ContextMenuQt()
 {
+    qDebug() << "ContextMenuQt dtor" << _interface;
+    // release the real-menu @a ContextMenu object
     _realMenu = NULL;
+    // tell interface that this instance is already gone, so no need to
+    // delete again
     static_cast<ContextMenuQtImpl*>(_interface)->_menu = NULL;
+    qDebug() << "ContextMenuQt dtor delete " << _interface;
     delete _interface;
 }
 
