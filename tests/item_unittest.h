@@ -21,5 +21,6 @@ private slots:
 
     void sceneGraphDialog();
     void contextMenu();
+	void contextMenuQt();
     void imagePreviewDialog();
 };

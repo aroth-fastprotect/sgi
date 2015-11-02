@@ -10,6 +10,7 @@
 #include <sgi/WritePrettyHTML>
 #include <sgi/SceneGraphDialog>
 #include <sgi/ContextMenu>
+#include <sgi/ContextMenuQt>
 #include <sgi/ImagePreviewDialog>
 #include <sgi/Shutdown>
 #include <sgi/AutoLoadOsg>
@@ -305,6 +306,36 @@ void item_unittest::contextMenu()
     sgi::autoload::Qt::sgiLibraryUnload();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
     QCOMPARE(TestItem::getTotalItemCount(), 0u);
+}
+
+void item_unittest::contextMenuQt()
+{
+	QCOMPARE(TestItem::getTotalItemCount(), 0u);
+	QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
+
+	auto lib = sgi::autoload::Qt::sgiLibrary();
+	QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), true);
+
+	SGIItemBasePtr item;
+	SGIHostItemQt hostItem(lib);
+	sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
+	QVERIFY(item.valid());
+	sgi::IContextMenuQt * ctxIface = sgi::createContextMenuQt(NULL, lib);
+	QVERIFY(ctxIface != NULL);
+	QMenu * menu = ctxIface->getMenu();
+	menu->show();
+	menu->hide();
+	ctxIface->setObject(NULL);
+
+	// release the menu
+	ctxIface = NULL;
+	item = NULL;
+
+	sgi::shutdown<sgi::autoload::Qt>();
+
+	sgi::autoload::Qt::sgiLibraryUnload();
+	QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
+	QCOMPARE(TestItem::getTotalItemCount(), 0u);
 }
 
 void item_unittest::imagePreviewDialog()

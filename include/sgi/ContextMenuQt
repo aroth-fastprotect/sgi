@@ -25,7 +25,7 @@ inline IContextMenuQt * createContextMenuQtImpl(QWidget *parent, QObject * item,
     return ret;
 }
 
-inline IContextMenuQt * createContextMenuQt(QWidget *parent, QObject * item, IHostCallback * callback)
+inline IContextMenuQt * createContextMenuQt(QWidget *parent, QObject * item, IHostCallback * callback=NULL)
 {
     IContextMenuQt * ret = createContextMenuQtImpl<autoload::Qt>(parent, item, callback);
     return ret;

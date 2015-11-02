@@ -571,9 +571,14 @@ QMenu * ContextMenuQt::getMenu()
 
 void ContextMenuQt::setObject(QObject * qobject, IHostCallback * callback)
 {
-    SGIHostItemQt hostItem(qobject);
     _hostCallback = callback;
-    _realMenu->setObject(&hostItem, NULL);
+	if (qobject)
+	{
+		SGIHostItemQt hostItem(qobject);
+		_realMenu->setObject(&hostItem, callback);
+	}
+	else
+		_realMenu->setObject((SGIItemBase*)NULL, callback);
 }
 
 void ContextMenuQt::popup(QWidget * parent, int x, int y)
