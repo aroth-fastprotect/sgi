@@ -383,6 +383,10 @@ public:
 	public:
 		DefaultHostCallback(SGIPluginsImpl * impl)
 			: _impl(impl) {}
+		~DefaultHostCallback()
+		{
+
+		}
 
 		IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) override
 		{
@@ -484,6 +488,14 @@ public:
         {
             return NULL;
         }
+		virtual void shutdown() override
+		{
+			_contextMenu = NULL;
+			_dialog = NULL;
+			_loggerDialog = NULL;
+			_imagePreviewDialog = NULL;
+		}
+
 	private:
 		SGIPluginsImpl * _impl;
 		sgi::IContextMenuPtr _contextMenu;
@@ -1574,7 +1586,11 @@ public:
 		_plugins.clear();
         _pluginsLoaded = false;
         _namedEnums.clear();
-		_hostCallback = NULL;
+		if (_hostCallback.valid())
+			_hostCallback->shutdown();
+		if(_defaultHostCallback.valid())
+			_defaultHostCallback->shutdown();
+		_defaultHostCallback = NULL;
 	}
 
     bool registerNamedEnum(const std::string & enumname, const std::string & description, bool bitmask)

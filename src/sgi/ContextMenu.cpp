@@ -366,6 +366,7 @@ ContextMenu::ContextMenu(SGIItemBase * item, IHostCallback* callback, bool onlyR
 
 ContextMenu::~ContextMenu()
 {
+	_hostCallback = NULL;
     qDebug() << "ContextMenu dtor" << _interface;
     if(_interface)
     {
@@ -510,7 +511,11 @@ public:
     ContextMenuQtImpl(ContextMenuQt * menu)
         : _menu(menu) {}
     virtual ~ContextMenuQtImpl()
-        { qDebug() << "ContextMenuQtImpl::dtor" << _menu; delete _menu;}
+        { 
+			qDebug() << "ContextMenuQtImpl::dtor" << _menu; 
+			_menu->_interface = NULL;
+			delete _menu;
+		}
 
     virtual QMenu *                 getMenu() override { return _menu->getMenu(); }
     virtual IHostCallback *         getHostCallback() override { return _menu->getHostCallback(); }
@@ -538,11 +543,15 @@ ContextMenuQt::~ContextMenuQt()
     qDebug() << "ContextMenuQt dtor" << _interface;
     // release the real-menu @a ContextMenu object
     _realMenu = NULL;
-    // tell interface that this instance is already gone, so no need to
-    // delete again
-    static_cast<ContextMenuQtImpl*>(_interface)->_menu = NULL;
-    qDebug() << "ContextMenuQt dtor delete " << _interface;
-    delete _interface;
+	_hostCallback = NULL;
+	if (_interface)
+	{
+		// tell interface that this instance is already gone, so no need to
+		// delete again
+		static_cast<ContextMenuQtImpl*>(_interface)->_menu = NULL;
+		qDebug() << "ContextMenuQt dtor delete " << _interface;
+		delete _interface;
+	}
 }
 
 IHostCallback * ContextMenuQt::getHostCallback()

@@ -52,7 +52,8 @@ void ApplicationEventFilter::install()
 void ApplicationEventFilter::uninstall()
 {
     qDebug() << "ApplicationEventFilter uninstall";
-    _contextMenu = NULL;
+	if (!_contextMenu.isNull())
+		delete _contextMenu;
     s_instance = NULL;
     sgi::shutdown<sgi::autoload::Qt>();
     deleteLater();
