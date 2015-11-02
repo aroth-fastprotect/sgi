@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include <osg/Camera>
 #include "CameraSettings.h"
+#include "CameraSettings.moc"
 
 #include <QPushButton>
 #include <QTimer>

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "ContextMenu.h"
+#include "ContextMenu.moc"
 
 #include "sgi/plugins/ContextMenu"
 #include "sgi/plugins/SGIPluginInterface.h"

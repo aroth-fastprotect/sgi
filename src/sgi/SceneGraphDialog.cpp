@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include "SceneGraphDialog.h"
+#include "SceneGraphDialog.moc"
 #include <ui_SceneGraphDialog.h>
 
 #include <iostream>

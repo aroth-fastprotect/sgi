@@ -8,6 +8,7 @@
 #include <QImageWriter>
 #include <QImageReader>
 
+#include "ImagePreviewDialog.moc"
 #include "ImagePreviewDialog.h"
 #include "ui_ImagePreviewDialog.h"
 #include "SGIPlugin.h"

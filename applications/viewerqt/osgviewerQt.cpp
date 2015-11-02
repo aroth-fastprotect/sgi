@@ -1,4 +1,5 @@
 #include "osgviewerQt.h"
+#include "osgviewerQt.moc"
 #include <QTimer>
 #include <QApplication>
 #include <QHBoxLayout>

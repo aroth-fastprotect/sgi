@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "TileInspectorDialog.h"
+#include "TileInspectorDialog.moc"
 #include <sgi/plugins/SGIItemOsg>
 
 #include "ui_TileInspectorDialog.h"

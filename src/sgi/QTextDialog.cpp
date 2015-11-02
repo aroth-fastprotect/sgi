@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "QTextDialog.h"
+#include "QTextDialog.moc"
 
 #include <ui_QTextDialog.h>
 
