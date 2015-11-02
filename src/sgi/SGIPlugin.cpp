@@ -93,13 +93,14 @@ public:
 
     static SGIPluginsImpl* instance(bool erase=false)
     {
-        static SGIPluginsImpl* s_impl = new SGIPluginsImpl;
+		static SGIPluginsImpl* s_impl = NULL;
         if (erase)
         {
             delete s_impl;
             s_impl = 0;
         }
-
+		else if(!s_impl)
+			s_impl = new SGIPluginsImpl;
         return s_impl; // will return NULL on erase
     }
 

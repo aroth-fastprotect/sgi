@@ -11,6 +11,7 @@
 #include <sgi/SceneGraphDialog>
 #include <sgi/ContextMenu>
 #include <sgi/ImagePreviewDialog>
+#include <sgi/Shutdown>
 #include <sgi/AutoLoadOsg>
 #include <sgi/AutoLoadQt>
 #include <sgi/plugins/SGIHostItemQt.h>
@@ -240,6 +241,8 @@ void item_unittest::writePrettyHTML()
 
     item = NULL;
 
+	sgi::shutdown<sgi::autoload::Qt>();
+
     sgi::autoload::Qt::sgiLibraryUnload();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
     QCOMPARE(TestItem::getTotalItemCount(), 0u);
@@ -265,6 +268,8 @@ void item_unittest::sceneGraphDialog()
 
     dlgIface = NULL;
     item = NULL;
+
+	sgi::shutdown<sgi::autoload::Qt>();
 
     sgi::autoload::Qt::sgiLibraryUnload();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
@@ -294,6 +299,8 @@ void item_unittest::contextMenu()
     // release the menu
     ctxIface = NULL;
     item = NULL;
+
+	sgi::shutdown<sgi::autoload::Qt>();
 
     sgi::autoload::Qt::sgiLibraryUnload();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
@@ -326,6 +333,8 @@ void item_unittest::imagePreviewDialog()
 
     dlgIface = NULL;
     item = NULL;
+
+	sgi::shutdown<sgi::autoload::Qt>();
 
     sgi::autoload::Qt::sgiLibraryUnload();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
