@@ -27,13 +27,14 @@ ApplicationEventFilter::ApplicationEventFilter(QCoreApplication * parent)
     , _inspectorContextMenuMouseModifier(Qt::ControlModifier|Qt::ShiftModifier)
 {
     s_instance = this;
+    qDebug() << "ApplicationEventFilter ctor" << this;
     connect(parent, &QCoreApplication::aboutToQuit, this, &ApplicationEventFilter::uninstall);
     parent->installEventFilter(this);
 }
 
 ApplicationEventFilter::~ApplicationEventFilter()
 {
-    qDebug() << "ApplicationEventFilter dtor";
+    qDebug() << "ApplicationEventFilter dtor" << this;
 }
 
 bool ApplicationEventFilter::loadSGI()
@@ -51,7 +52,7 @@ void ApplicationEventFilter::install()
 
 void ApplicationEventFilter::uninstall()
 {
-    qDebug() << "ApplicationEventFilter uninstall";
+    qDebug() << "ApplicationEventFilter uninstall" << this;
 	if (!_contextMenu.isNull())
 		delete _contextMenu;
     s_instance = NULL;
