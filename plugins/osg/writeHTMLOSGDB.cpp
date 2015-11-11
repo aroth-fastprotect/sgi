@@ -93,7 +93,7 @@ bool writePrettyHTMLImpl<osgDB::Registry>::process(std::basic_ostream<char>& os)
             os << "</ol></td></tr>" << std::endl;
 
             RegistryAccessor * access = (RegistryAccessor *)object;
-            os << "<tr><td>archiveExtensions</td><td><ul>";
+            os << "<tr><td>dynamic libraries</td><td><ul>";
             const RegistryAccessor::DynamicLibraryList & dllist = access->getDynamicLibraryList();
             for(RegistryAccessor::DynamicLibraryList::const_iterator it = dllist.begin(); it != dllist.end(); it++)
             {
