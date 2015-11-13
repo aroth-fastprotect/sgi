@@ -116,6 +116,13 @@ void CameraSettings::load()
     ui->nearFarRatioSpin->blockSignals(false);
     ui->nearFarRatio->blockSignals(false);
 
+	ui->fovySpin->blockSignals(true);
+	ui->fovy->blockSignals(true);
+	ui->fovySpin->setValue(fovy);
+	ui->fovy->setValue(fovy * 10);
+	ui->fovySpin->blockSignals(false);
+	ui->fovy->blockSignals(false);
+
     ui->computeNearFarMode->blockSignals(true);
     ui->computeNearFarMode->setCurrentIndex((int)_camera->getComputeNearFarMode());
     ui->computeNearFarMode->blockSignals(false);
@@ -239,6 +246,23 @@ void CameraSettings::smallFeatureEnable(bool enable)
 	apply();
 }
 
+
+void CameraSettings::changeFovy(int value)
+{
+	ui->fovySpin->blockSignals(true);
+	ui->fovySpin->setValue((double)value / 10.0);
+	ui->fovySpin->blockSignals(false);
+	apply();
+}
+
+void CameraSettings::changeFovy(double value)
+{
+	ui->fovy->blockSignals(true);
+	ui->fovy->setValue(value * 10);
+	ui->fovy->blockSignals(false);
+	apply();
+}
+
 void CameraSettings::save()
 {
 	apply(true);
@@ -263,6 +287,7 @@ void CameraSettings::apply(bool save)
 
     zNear = ui->nearClippingSpin->value();
     zFar = ui->farClippingSpin->value();
+	fovy = ui->fovySpin->value();
 
     _camera->setProjectionMatrixAsPerspective(fovy, aspectRatio, zNear, zFar);
 

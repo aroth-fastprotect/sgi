@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>325</width>
-    <height>215</height>
+    <width>360</width>
+    <height>243</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -274,6 +274,49 @@
        </item>
       </layout>
      </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>FOV</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_6">
+       <item>
+        <widget class="QSlider" name="fovy">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>1790</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="fovySpin">
+         <property name="suffix">
+          <string>degree</string>
+         </property>
+         <property name="decimals">
+          <number>1</number>
+         </property>
+         <property name="minimum">
+          <double>0.100000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>179.900000000000006</double>
+         </property>
+         <property name="singleStep">
+          <double>0.050000000000000</double>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
     </layout>
    </item>
    <item>
@@ -524,6 +567,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>fovy</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>CameraSettings</receiver>
+   <slot>changeFovy(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>172</x>
+     <y>190</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>200</x>
+     <y>174</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>fovySpin</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>CameraSettings</receiver>
+   <slot>changeFovy(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>247</x>
+     <y>190</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>200</x>
+     <y>174</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>changeLODScale(int)</slot>
@@ -540,5 +615,7 @@
   <slot>nearClippingEnable(bool)</slot>
   <slot>farClippingEnable(bool)</slot>
   <slot>smallFeatureEnable(bool)</slot>
+  <slot>changeFovy(int)</slot>
+  <slot>changeFovy(double)</slot>
  </slots>
 </ui>

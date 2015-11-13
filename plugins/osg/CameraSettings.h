@@ -53,6 +53,8 @@ public slots:
 	void				nearClippingEnable(bool enable);
 	void				smallFeatureEnable(bool enable);
 
+	void				changeFovy(int value);
+	void				changeFovy(double value);
 
 protected:
 	void				apply(bool save);
