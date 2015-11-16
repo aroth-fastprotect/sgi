@@ -18,6 +18,7 @@
 #include <osg/Texture2D>
 #include <osg/Texture3D>
 #include <osg/ShapeDrawable>
+#include <osg/ValueObject>
 
 #include <osgDB/Registry>
 #define protected public
@@ -3447,6 +3448,30 @@ struct DefaultFontSingleton
     }
 };
 
+
+class FindTreeItemNodeVisitor : public osg::NodeVisitor
+{
+public:
+    FindTreeItemNodeVisitor(TraversalMode tm=TRAVERSE_ALL_CHILDREN)
+        : osg::NodeVisitor(tm) {}
+    const osg::NodeList &   results() const
+        { return _nodes; }
+
+    virtual void apply(osg::Node& node)
+    {
+        bool sgi_tree_item = false;
+        if(node.getUserValue<bool>("sgi_tree_item", sgi_tree_item))
+        {
+            std::cout << "found node with sgi_tree_item value" << &node << std::endl;
+            if(sgi_tree_item)
+                _nodes.push_back(&node);
+        }
+        traverse(node);
+    }
+protected:
+    osg::NodeList _nodes;
+};
+
 bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeItem)
 {
     ISceneGraphDialog * object = static_cast<ISceneGraphDialog*>(item<SGIItemInternal>()->object());
@@ -3468,6 +3493,13 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
             node = dynamic_cast<osg::Node*>(osgitem->object());
         if (node)
         {
+            FindTreeItemNodeVisitor ftinv;
+            node->accept(ftinv);
+            for(osg::NodeList::const_iterator it = ftinv.results().begin(); it != ftinv.results().end(); ++it)
+            {
+                SGIHostItemOsg hostItem(*it);
+                treeItem->addChild(std::string(), &hostItem);
+            }
             osg::Geode * geode = osg_helpers::findTopMostNodeByName<osg::Geode>(node, "ImageGeode");
             if(geode)
             {
