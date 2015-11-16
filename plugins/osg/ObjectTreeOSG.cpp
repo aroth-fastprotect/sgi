@@ -3497,7 +3497,8 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
             for(osg::NodeList::const_iterator it = ftinv.results().begin(); it != ftinv.results().end(); ++it)
             {
                 SGIHostItemOsg hostItem(*it);
-                treeItem->addChild(std::string(), &hostItem);
+                if(hostItem.hasObject())
+                    treeItem->addChild(std::string(), &hostItem);
             }
             osg::Geode * geode = osg_helpers::findTopMostNodeByName<osg::Geode>(node, "ImageGeode");
             if(geode)

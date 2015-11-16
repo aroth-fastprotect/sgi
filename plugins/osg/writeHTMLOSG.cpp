@@ -5677,7 +5677,7 @@ bool writePrettyHTMLImpl<osg::Referenced>::process(std::basic_ostream<char>& os)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
             os << "<tr><td>this</td><td>" << std::hex << (void*)object << std::dec << "</td></tr>" << std::endl;
             os << "<tr><td>typename</td><td>" << helpers::getRTTITypename_html(object) << "</td></tr>" << std::endl;
-            os << "<tr><td>refCount</td><td>" << object->referenceCount() << "</td></tr>" << std::endl;
+            os << "<tr><td>refCount</td><td>" << (object?object->referenceCount():0) << "</td></tr>" << std::endl;
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
