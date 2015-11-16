@@ -3462,7 +3462,6 @@ public:
         bool sgi_tree_item = false;
         if(node.getUserValue<bool>("sgi_tree_item", sgi_tree_item))
         {
-            std::cout << "found node with sgi_tree_item value" << &node << std::endl;
             if(sgi_tree_item)
                 _nodes.push_back(&node);
         }
