@@ -411,8 +411,17 @@ public:
             {
                 if(_options.showSceneGraphDialog)
                 {
-                    SGIHostItemOsg viewItem(_view);
-                    ISceneGraphDialogPtr dialog = _hostCallback->showSceneGraphDialog(_parent, &viewItem);
+                    ISceneGraphDialogPtr dialog;
+                    if(_view)
+                    {
+                        SGIHostItemOsg viewItem(_view);
+                        dialog = _hostCallback->showSceneGraphDialog(_parent, &viewItem);
+                    }
+                    else
+                    {
+                        SGIHostItemOsg cameraItem(camera);
+                        dialog = _hostCallback->showSceneGraphDialog(_parent, &cameraItem);
+                    }
                     if(dialog.valid())
                         dialog->show();
                 }
@@ -498,6 +507,7 @@ public:
         , _options(filename, options)
         , _installed(false)
     {
+        setDataVariance(DYNAMIC);
 		++numInstances;
     }
     SGIInstallNode(const SGIInstallNode & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
@@ -505,6 +515,7 @@ public:
         , _options(rhs._options)
         , _installed(false)
     {
+        setDataVariance(DYNAMIC);
 		++numInstances;
     }
 	~SGIInstallNode()
@@ -537,7 +548,7 @@ public:
                         osgUtil::CullVisitor * cv = dynamic_cast<osgUtil::CullVisitor *>(&nv);
                         if(cv)
                         {
-                            installToCamera(cv->getCurrentCamera());
+                            _proxy = new sgi::DefaultSGIProxy(cv->getCurrentCamera(), _options);
                             _installed = true;
                         }
                     }
@@ -546,20 +557,15 @@ public:
             nv.popFromNodePath();
         }
     }
-private:
-    void installToCamera(osg::Camera * camera)
-    {
-        sgi::DefaultSGIProxy * proxy = new sgi::DefaultSGIProxy(camera, _options);
-    }
 
 private:
     OpenThreads::Mutex _mutex;
     sgi::SGIOptions _options;
+    osg::ref_ptr<sgi::DefaultSGIProxy> _proxy;
     bool _installed;
 };
 
 unsigned SGIInstallNode::numInstances = 0;
-
 
 class ReaderWriteSGI : public osgDB::ReaderWriter
 {
