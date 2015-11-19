@@ -1787,6 +1787,9 @@ bool contextMenuPopulateImpl<osgDB::DatabasePager>::populate(IContextMenuItem * 
         if(ret)
         {
             menuItem->addBoolAction(MenuActionDatabasePagerPause, "Pause", _item, object->getDatabasePagerThreadPause());
+			menuItem->addSimpleAction(MenuActionDatabasePagerDatabaseThreads, helpers::str_plus_count("Database threads", object->getNumDatabaseThreads()), _item);
+
+			
             menuItem->addBoolAction(MenuActionDatabasePagerAcceptNewRequests, "Accept new requests", _item, object->getAcceptNewDatabaseRequests());
             menuItem->addBoolAction(MenuActionDatabasePagerDoPreCompile, "Do pre-compile", _item, object->getDoPreCompile());
             menuItem->addBoolAction(MenuActionDatabasePagerDeleteSubgraphsInDBThread, "Delete Subgraphs in DB thread", _item, object->getDeleteRemovedSubgraphsInDatabaseThread());

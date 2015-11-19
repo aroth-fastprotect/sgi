@@ -191,6 +191,7 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBackdropColor)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBackdropColorGradientMode)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerPause)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerDatabaseThreads)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerAcceptNewRequests)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerDoPreCompile)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerDeleteSubgraphsInDBThread)
@@ -1747,6 +1748,24 @@ bool actionHandlerImpl<MenuActionDatabasePagerPause>::execute()
     osgDB::DatabasePager * object = getObject<osgDB::DatabasePager,SGIItemOsg>();
     object->setDatabasePagerThreadPause(menuAction()->state());
     return true;
+}
+
+bool actionHandlerImpl<MenuActionDatabasePagerDatabaseThreads>::execute()
+{
+	osgDB::DatabasePager * object = getObject<osgDB::DatabasePager, SGIItemOsg>();
+	int number = (int)object->getNumDatabaseThreads();
+
+	int defaultNumThreads = OpenThreads::GetNumberOfProcessors();
+	bool ret;
+	ret = _hostInterface->inputDialogInteger(menu()->parentWidget(),
+		number,
+		"Number:", helpers::str_plus_count("Set number of database threads", defaultNumThreads),
+		0, 64, 1,
+		_item
+		);
+	if (ret)
+		object->setUpThreads((unsigned)number, 0);
+	return true;
 }
 
 bool actionHandlerImpl<MenuActionDatabasePagerAcceptNewRequests>::execute()

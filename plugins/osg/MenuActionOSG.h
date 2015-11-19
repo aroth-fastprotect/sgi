@@ -117,6 +117,7 @@ enum MenuAction {
     MenuActionClipNodeSetState,
     MenuActionGraphicsWindowHitTest,
     MenuActionDatabasePagerPause,
+	MenuActionDatabasePagerDatabaseThreads,
     MenuActionDatabasePagerAcceptNewRequests,
     MenuActionDatabasePagerDoPreCompile,
     MenuActionDatabasePagerDeleteSubgraphsInDBThread,
@@ -327,6 +328,7 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBackdropColor)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTextBackdropColorGradientMode)
 
 ACTION_HANDLER_IMPL_DECLARE(MenuActionDatabasePagerPause)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionDatabasePagerDatabaseThreads)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionDatabasePagerAcceptNewRequests)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionDatabasePagerDoPreCompile)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionDatabasePagerDeleteSubgraphsInDBThread)
