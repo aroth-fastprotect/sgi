@@ -137,6 +137,13 @@ void CameraSettings::restoreDefaults()
     double fovy, aspectRatio, zNear, zFar;
     _camera->getProjectionMatrixAsPerspective(fovy, aspectRatio, zNear, zFar);
 
+	osg::ref_ptr<osg::Viewport> vp = _camera->getViewport();
+	if (vp)
+		aspectRatio = vp->width() / vp->height();
+	else
+		aspectRatio = 1.0;
+
+	fovy = 30.0;
     zNear = 0.001;
     zFar = 10000.0;
 
