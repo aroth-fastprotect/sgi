@@ -49,6 +49,9 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionAddExtension)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTerrainProfile)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTerrainLayerCacheUsage)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTerrainLayerSetURL)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionImageLayerOpacity)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionImageLayerMinVisibleRange)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionImageLayerMaxVisibleRange)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionModelLayerSetURL)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionMaskLayerSetURL)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTerrainLayerEnable)
@@ -319,6 +322,48 @@ bool actionHandlerImpl<MenuActionTileInspector>::execute()
             dialog->show();
     }
     return ret;
+}
+
+bool actionHandlerImpl<MenuActionImageLayerOpacity>::execute()
+{
+	osgEarth::ImageLayer * object = static_cast<osgEarth::ImageLayer*>(item<SGIItemOsg>()->object());
+
+	double value = object->getOpacity();
+	bool gotInput = _hostInterface->inputDialogDouble(menuAction()->menu()->parentWidget(), value, "Opacity", "Set opacity", 0.0, 1.0, 6, _item);
+	if (gotInput)
+	{
+		object->setOpacity(value);
+		triggerRepaint();
+	}
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionImageLayerMinVisibleRange>::execute()
+{
+	osgEarth::ImageLayer * object = static_cast<osgEarth::ImageLayer*>(item<SGIItemOsg>()->object());
+
+	double value = object->getMinVisibleRange();
+	bool gotInput = _hostInterface->inputDialogDouble(menuAction()->menu()->parentWidget(), value, "Range", "Set minimum visible range", 0.0, 10000000.0, 1, _item);
+	if (gotInput)
+	{
+		object->setMinVisibleRange(value);
+		triggerRepaint();
+	}
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionImageLayerMaxVisibleRange>::execute()
+{
+	osgEarth::ImageLayer * object = static_cast<osgEarth::ImageLayer*>(item<SGIItemOsg>()->object());
+
+	double value = object->getMaxVisibleRange();
+	bool gotInput = _hostInterface->inputDialogDouble(menuAction()->menu()->parentWidget(), value, "Range", "Set maximum visible range", 0.0, 10000000.0, 1, _item);
+	if (gotInput)
+	{
+		object->setMaxVisibleRange(value);
+		triggerRepaint();
+	}
+	return true;
 }
 
 bool actionHandlerImpl<MenuActionTerrainLayerSetURL>::execute()

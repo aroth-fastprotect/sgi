@@ -465,6 +465,9 @@ bool contextMenuPopulateImpl<osgEarth::ImageLayer>::populate(IContextMenuItem * 
         ret = callNextHandler(menuItem);
         if(ret)
         {
+			menuItem->addSimpleAction(MenuActionImageLayerOpacity, helpers::str_plus_info("Opacity", object->getOpacity()), _item);
+			menuItem->addSimpleAction(MenuActionImageLayerMinVisibleRange, helpers::str_plus_info("Min visible", object->getMinVisibleRange()), _item);
+			menuItem->addSimpleAction(MenuActionImageLayerMaxVisibleRange, helpers::str_plus_info("Max visible", object->getMaxVisibleRange()), _item);
         }
         break;
 	default:

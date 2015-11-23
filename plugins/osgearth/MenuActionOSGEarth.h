@@ -20,6 +20,9 @@ enum MenuAction {
     MenuActionTerrainLayerEnable,
     MenuActionTerrainLayerVisible,
     MenuActionTerrainLayerCacheUsage,
+	MenuActionImageLayerOpacity,
+	MenuActionImageLayerMinVisibleRange,
+	MenuActionImageLayerMaxVisibleRange,
     MenuActionTileInspector,
 	MenuActionMapInspector,
 	MenuActionAddExtension,
@@ -98,6 +101,9 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionModelLayerSetURL)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionMaskLayerSetURL)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTerrainLayerEnable)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionTerrainLayerVisible)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionImageLayerOpacity)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionImageLayerMinVisibleRange)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionImageLayerMaxVisibleRange)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionModelLayerEnable)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionModelLayerVisible)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionModelLayerLighting)
