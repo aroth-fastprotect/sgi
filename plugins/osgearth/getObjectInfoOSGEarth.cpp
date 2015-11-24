@@ -8,6 +8,7 @@
 
 #include <osgEarth/Registry>
 #include <osgEarth/Map>
+#include <osgEarth/MapFrame>
 #include <osgEarth/MapNode>
 #include <osgEarth/XmlUtils>
 #include <osgEarth/LevelDBFactory>

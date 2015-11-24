@@ -22,6 +22,7 @@
 #include <osgEarth/TileKey>
 #include <osgEarth/TerrainLayer>
 #include <osgEarth/MapNode>
+#include <osgEarth/MapFrame>
 
 #include <osgEarthDrivers/vpb/VPBOptions>
 #include <osgEarthDrivers/tms/TMSOptions>

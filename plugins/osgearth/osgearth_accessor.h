@@ -4,6 +4,7 @@
 #include <osgEarthUtil/EarthManipulator>
 #include <osgEarthUtil/AutoClipPlaneHandler>
 #include <osgEarth/MapNode>
+#include <osgEarth/TerrainEngineNode>
 #include <osgEarth/Registry>
 #include <osgEarth/VirtualProgram>
 #include <osgEarth/ElevationQuery>
