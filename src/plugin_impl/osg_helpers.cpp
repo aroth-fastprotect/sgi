@@ -830,6 +830,31 @@ void heightFieldDumpPlainText(std::basic_ostream<char>& os, const osg::HeightFie
 {
 	unsigned max_rows = hf->getNumRows();
 	unsigned max_cols = hf->getNumColumns();
+	float min_height = FLT_MAX;
+	float max_height = FLT_MIN;
+	float sum_height = 0;
+	unsigned num_sum = 0;
+	unsigned num_nodata = 0;
+	for (unsigned row = 0; row < max_rows; ++row)
+	{
+		for (unsigned col = 0; col < max_cols; ++col)
+		{
+			float h = hf->getHeight(col, row);
+			if (h == -FLT_MAX)
+				++num_nodata;
+			else
+			{
+				min_height = std::min(min_height, h);
+				max_height = std::max(max_height, h);
+				sum_height += h;
+				++num_sum;
+			}
+		}
+	}
+	os << "min " << std::setw(7) << (num_sum ? min_height : 0) << std::endl;
+	os << "max " << std::setw(7) << (num_sum ? max_height : 0) << std::endl;
+	os << "avg " << std::setw(7) << (num_sum ? (sum_height / num_sum) : -FLT_MAX) << std::endl;
+	os << "nodata " << num_nodata << '/' << (num_sum + num_nodata) << std::endl;
 	os << std::setfill(' ') << "     ";
 	for (unsigned col = 0; col < max_cols; ++col)
 	{
