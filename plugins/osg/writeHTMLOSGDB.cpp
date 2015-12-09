@@ -513,10 +513,18 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
             os << "<tr><td>num compiles</td><td>" << object->getDataToCompileListSize() << "</td></tr>" << std::endl;
             os << "<tr><td>num merges</td><td>" << object->getDataToMergeListSize() << "</td></tr>" << std::endl;
             os << "<tr><td>require update</td><td>" << (object->requiresUpdateSceneGraph()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>pre-compile</td><td>" << (object->getDoPreCompile()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>apply PBO to images</td><td>" << (object->getApplyPBOToImages()?"true":"false") << "</td></tr>" << std::endl;
 
             os << "<tr><td>active PagedLODs</td><td>" << access->numberOfPagedLODs() << "</td></tr>" << std::endl;
+
+			bool changeAutoUnRef = false, valueAutoUnRef = false;
+			object->getUnrefImageDataAfterApplyPolicy(changeAutoUnRef, valueAutoUnRef);
+			os << "<tr><td>unref image data after apply</td><td>" << (changeAutoUnRef ? "true" : "false") << "/" << (valueAutoUnRef ? "true" : "false") << "</td></tr>" << std::endl;
+			
+			bool changeAnisotropy = false;
+			float valueAnisotropy = 0;
+			object->getMaxAnisotropyPolicy(changeAnisotropy, valueAnisotropy);
+			os << "<tr><td>max anisotropy policy</td><td>" << (changeAnisotropy ? "true" : "false") << "/" << valueAnisotropy << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
