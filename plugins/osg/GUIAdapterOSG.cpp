@@ -4,12 +4,14 @@
 #include "SGIItemOsg"
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <osgViewer/View>
+#include <osgGA/CameraManipulator>
 
 namespace sgi {
 namespace osg_plugin {
 
 GUI_ADAPTER_SET_VIEW_IMPL_REGISTER(osg::Camera)
 GUI_ADAPTER_SET_VIEW_IMPL_REGISTER(osg::View)
+GUI_ADAPTER_SET_VIEW_IMPL_REGISTER(osgGA::CameraManipulator)
 
 namespace {
     /// @brief Given a valid node placed in a scene under a transform, return the
@@ -25,6 +27,42 @@ namespace {
         ret.center() = ret.center() * l2w;
         return ret;
     }
+
+	static bool computeViewMatrix(osg::Matrixd & viewMatrix, const SetViewNodeLookAt & lookAt)
+	{
+		osg::BoundingSphere bs = lookAt.node->getBound();
+		ComputeLocalToWorldMatrixVisitor cl2wv;
+		lookAt.node->accept(cl2wv);
+		const osg::Matrix & l2w = cl2wv.matrix();
+		osg::Vec3d newCenter = bs.center() * l2w;
+		float lookDistance = bs.radius();
+
+		osg::Vec3d currentEye, currentCenter, currentUp;
+		viewMatrix.getLookAt(currentEye, currentCenter, currentUp);
+
+		osg::Vec3d lookVector = (currentEye - currentCenter);
+		osg::Vec3d newEye = currentEye;
+
+		switch (lookAt.mode)
+		{
+		default:
+		case NodeLookAtDirect:
+			newEye = newCenter;
+			newCenter = newCenter + lookVector;
+			viewMatrix = osg::Matrixd::lookAt(newEye, newCenter, currentUp);
+			break;
+		case NodeLookAtTopView:
+			newEye = newCenter + (currentUp * lookDistance);
+			viewMatrix = osg::Matrixd::lookAt(newEye, newCenter, currentUp);
+			break;
+		case NodeLookAtFromBehind:
+			newEye = newCenter - (lookVector * lookDistance);
+			viewMatrix = osg::Matrixd::lookAt(newEye, newCenter, currentUp);
+			break;
+		}
+		return true;
+
+	}
 }
 
 bool guiAdapterSetViewImpl<osg::Camera>::execute()
@@ -32,46 +70,16 @@ bool guiAdapterSetViewImpl<osg::Camera>::execute()
     bool ret = false;
     osg::Camera * object = getObject<osg::Camera, SGIItemOsg>();
 
-    const osg::Matrixd& currentViewMatrix = object->getViewMatrix();
-    osg::Vec3d currentEye, currentCenter, currentUp;
-    currentViewMatrix.getLookAt(currentEye, currentCenter, currentUp);
-
-    osg::Vec3d lookVector = (currentCenter - currentEye);
-
-    osg::Vec3d newEye;
-    osg::Matrixd newViewMatrix;
     const ReferencedSetViewNodeLookAt * refLookAt = getTargetObject<ReferencedSetViewNodeLookAt, SGIItemOsg>();
     if(refLookAt)
     {
         const SetViewNodeLookAt & lookAt = refLookAt->data();
-        osg::BoundingSphere bs = lookAt.node->getBound();
-        ComputeLocalToWorldMatrixVisitor cl2wv;
-        const osg::Matrix & l2w = cl2wv.matrix();
-        osg::Vec3d newCenter = bs.center() * l2w;
-        float lookDistance = bs.radius();
+		osg::Matrixd viewMatrix = object->getViewMatrix();
+		ret = computeViewMatrix(viewMatrix, lookAt);
+		if (ret)
+			object->setViewMatrix(viewMatrix);
+	}
 
-        switch(lookAt.mode)
-        {
-        default:
-        case NodeLookAtDirect:
-            newEye = newCenter;
-            newCenter = newCenter + lookVector;
-            newViewMatrix = osg::Matrixd::lookAt(newEye, newCenter, currentUp);
-            break;
-        case NodeLookAtTopView:
-            newEye = newCenter + (currentUp * lookDistance);
-            newViewMatrix = osg::Matrixd::lookAt(newEye, newCenter, currentUp);
-            break;
-        case NodeLookAtFromBehind:
-            newEye = newCenter - (lookVector * lookDistance);
-            newViewMatrix = osg::Matrixd::lookAt(newEye, newCenter, currentUp);
-            break;
-        }
-        ret = true;
-    }
-
-    if(ret)
-        object->setViewMatrix(newViewMatrix);
 
     return ret;
 }
@@ -99,6 +107,25 @@ bool guiAdapterSetViewImpl<osg::View>::execute()
             viewer_object->requestRedraw();
     }
     return ret;
+}
+
+
+bool guiAdapterSetViewImpl<osgGA::CameraManipulator>::execute()
+{
+	bool ret = false;
+	osgGA::CameraManipulator * object = getObject<osgGA::CameraManipulator, SGIItemOsg, DynamicCaster>();
+
+	const ReferencedSetViewNodeLookAt * refLookAt = getTargetObject<ReferencedSetViewNodeLookAt, SGIItemOsg>();
+	if (refLookAt)
+	{
+		const SetViewNodeLookAt & lookAt = refLookAt->data();
+		osg::Matrixd viewMatrix = object->getMatrix();
+		ret = computeViewMatrix(viewMatrix, lookAt);
+		if (ret)
+			object->setByMatrix(viewMatrix);
+	}
+
+	return ret;
 }
 
 } // namespace osg_plugin
