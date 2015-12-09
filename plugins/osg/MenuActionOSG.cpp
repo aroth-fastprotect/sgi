@@ -3038,8 +3038,16 @@ bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
 		viewerbase->getViews(views);
 		if (!views.empty())
 		{
+			bool stopThreads = false;
+			if(!viewerbase->areThreadsRunning())
+			{
+				viewerbase->startThreading();
+				stopThreads = true;
+			}
 			views.front()->requestRedraw();
 			handler->wait();
+			if (stopThreads)
+				viewerbase->stopThreading();
 			osg::ref_ptr<osg::Image> image = handler->takeImage();
 			if (image.valid())
 			{
