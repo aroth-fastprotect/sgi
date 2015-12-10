@@ -22,7 +22,9 @@ namespace osgEarth {
     class MaskLayer;
     class Map;
     class MapNode;
+	class Terrain;
     class TerrainDecorator;
+	class TerrainEngineNode;
     class OverlayDecorator;
 
     class GeoCircle;
@@ -115,6 +117,8 @@ WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::ModelLayer)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::MaskLayer)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Map)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::MapNode)
+WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Terrain)
+WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::TerrainEngineNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::TerrainDecorator)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::OverlayDecorator)
 

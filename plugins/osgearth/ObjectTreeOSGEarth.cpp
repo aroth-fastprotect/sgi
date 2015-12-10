@@ -67,6 +67,7 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::ElevationLayer)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::ModelLayer)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::MaskLayer)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::Terrain)
+OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::TerrainEngineNode)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::TileSource)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::TileBlacklist)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::ModelSource)
@@ -893,6 +894,44 @@ bool objectTreeBuildImpl<osgEarth::Terrain>::build(IObjectTreeItem * treeItem)
         break;
     }
     return ret;
+}
+
+bool objectTreeBuildImpl<osgEarth::TerrainEngineNode>::build(IObjectTreeItem * treeItem)
+{
+	osgEarth::TerrainEngineNode * object = static_cast<osgEarth::TerrainEngineNode*>(item<SGIItemOsg>()->object());
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(treeItem);
+		if (ret)
+		{
+			SGIHostItemOsg map(object->getMap());
+			if (map.hasObject())
+				treeItem->addChild("Map", &map);
+
+			SGIHostItemOsg terrain(object->getTerrain());
+			if (terrain.hasObject())
+				treeItem->addChild("Terrain", &terrain);
+
+			SGIHostItemOsg resources(object->getResources());
+			if (resources.hasObject())
+				treeItem->addChild("Resources", &resources);
+
+			SGIHostItemOsg terrainstateset(object->getTerrainStateSet());
+			if (terrainstateset.hasObject())
+				treeItem->addChild("TerrainStateSet", &terrainstateset);
+
+			SGIHostItemOsg payloadstateset(object->getPayloadStateSet());
+			if (payloadstateset.hasObject())
+				treeItem->addChild("PayloadStateSet", &payloadstateset);
+		}
+		break;
+	default:
+		ret = callNextHandler(treeItem);
+		break;
+	}
+	return ret;
 }
 
 bool objectTreeBuildImpl<osgEarth::TileSource>::build(IObjectTreeItem * treeItem)

@@ -14,6 +14,7 @@ namespace osgEarth {
     class ModelLayer;
     class MaskLayer;
     class Terrain;
+	class TerrainEngineNode;
     class TileSource;
     class TileBlacklist;
     class TileKey;
@@ -81,6 +82,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::ElevationLayer)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::ModelLayer)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::MaskLayer)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::Terrain)
+OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::TerrainEngineNode)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::TileSource)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::TileBlacklist)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::ModelSource)

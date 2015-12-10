@@ -66,6 +66,8 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::ModelLayer)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::MaskLayer)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Map)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::MapNode)
+WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Terrain)
+WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::TerrainEngineNode)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::TerrainDecorator)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::OverlayDecorator)
 
@@ -1056,6 +1058,73 @@ bool writePrettyHTMLImpl<osgEarth::MapNode>::process(std::basic_ostream<char>& o
         break;
     }
     return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Terrain>::process(std::basic_ostream<char>& os)
+{
+	osgEarth::Terrain * object = static_cast<osgEarth::Terrain*>(item<SGIItemOsg>()->object());
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+	{
+		if (_table)
+			os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+		// add group properties first
+		callNextHandler(os);
+
+		// add remaining Terrain properties
+		os << "<tr><td>profile</td><td>" << getObjectNameAndType(object->getProfile()) << "</td></tr>" << std::endl;
+		os << "<tr><td>SRS</td><td>" << getObjectNameAndType(object->getSRS()) << "</td></tr>" << std::endl;
+		os << "<tr><td>isGeocentric</td><td>" << (object->isGeocentric() ? "true" : "false") << "</td></tr>" << std::endl;
+		os << "<tr><td>graph</td><td>" << getObjectNameAndType(object->getGraph()) << "</td></tr>" << std::endl;
+
+		if (_table)
+			os << "</table>" << std::endl;
+		ret = true;
+	}
+	break;
+	default:
+		ret = callNextHandler(os);
+		break;
+	}
+	return ret;
+}
+bool writePrettyHTMLImpl<osgEarth::TerrainEngineNode>::process(std::basic_ostream<char>& os)
+{
+	osgEarth::TerrainEngineNode * object = static_cast<osgEarth::TerrainEngineNode*>(item<SGIItemOsg>()->object());
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+	{
+		if (_table)
+			os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+		// add group properties first
+		callNextHandler(os);
+
+		// add remaining TerrainEngineNode properties
+		os << "<tr><td>terrain</td><td>" << getObjectNameAndType(object->getTerrain()) << "</td></tr>" << std::endl;
+		os << "<tr><td>resources</td><td>" << getObjectNameAndType(object->getResources()) << "</td></tr>" << std::endl;
+		os << "<tr><td>terrain stateset</td><td>" << getObjectNameAndType(object->getTerrainStateSet()) << "</td></tr>" << std::endl;
+		os << "<tr><td>payload stateset</td><td>" << getObjectNameAndType(object->getPayloadStateSet()) << "</td></tr>" << std::endl;
+		os << "<tr><td>normalTexturesRequired</td><td>" << (object->normalTexturesRequired() ? "true" : "false") << "</td></tr>" << std::endl;
+		os << "<tr><td>elevationTexturesRequired</td><td>" << (object->elevationTexturesRequired() ? "true" : "false") << "</td></tr>" << std::endl;
+		os << "<tr><td>parentTexturesRequired</td><td>" << (object->parentTexturesRequired() ? "true" : "false") << "</td></tr>" << std::endl;
+		os << "<tr><td>verticalScale</td><td>" << object->getVerticalScale() << "</td></tr>" << std::endl;
+
+		if (_table)
+			os << "</table>" << std::endl;
+		ret = true;
+	}
+	break;
+	default:
+		ret = callNextHandler(os);
+		break;
+	}
+	return ret;
 }
 
 bool writePrettyHTMLImpl<osgEarth::TerrainDecorator>::process(std::basic_ostream<char>& os)

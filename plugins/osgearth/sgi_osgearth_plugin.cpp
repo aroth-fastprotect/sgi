@@ -76,6 +76,7 @@ GENERATE_IMPL_NO_ACCEPT(osg::StateAttribute)
 GENERATE_IMPL_NO_ACCEPT(osg::Group)
 GENERATE_IMPL_NO_ACCEPT(osg::LOD)
 GENERATE_IMPL_NO_ACCEPT(osg::PagedLOD)
+GENERATE_IMPL_NO_ACCEPT(osg::CoordinateSystemNode)
 GENERATE_IMPL_NO_ACCEPT(osg::Transform)
 GENERATE_IMPL_NO_ACCEPT(osg::MatrixTransform)
 GENERATE_IMPL_NO_ACCEPT(osg::Camera)
@@ -101,11 +102,13 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(osgEarth::Cache, os
                                                             ))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::StateAttribute, LOKI_TYPELIST(osgEarth::VirtualProgram))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Node, LOKI_TYPELIST(osg::Group, osgEarth::Util::Controls::ControlNode))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Group, LOKI_TYPELIST(osgEarth::MapNode, osgEarth::TerrainDecorator, osgEarth::Util::SkyNode,
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Group, LOKI_TYPELIST(osg::CoordinateSystemNode,
+															osgEarth::MapNode, osgEarth::TerrainDecorator, osgEarth::Util::SkyNode,
                                                             osgEarth::Util::Controls::Control, osgEarth::Util::Controls::ControlCanvas,
                                                             osgEarth::Util::Controls::ControlNodeBin, osg::Transform,
                                                             osgEarth::Annotation::AnnotationNode
                                                            ))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::CoordinateSystemNode, LOKI_TYPELIST(osgEarth::TerrainEngineNode))
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::AnnotationNode, LOKI_TYPELIST(osgEarth::Annotation::PositionedAnnotationNode,
                                                                                       osgEarth::Annotation::FeatureNode
