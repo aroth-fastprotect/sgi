@@ -96,7 +96,9 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Util::Controls::ImageControl)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Util::SkyNode)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Util::AutoClipPlaneCullCallback)
 
+WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Features::FeatureProfile)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Features::FeatureModelSource)
+WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Features::FeatureSource)
 
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::AnnotationNode)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::PositionedAnnotationNode)
@@ -2244,6 +2246,70 @@ bool writePrettyHTMLImpl<osgEarth::Util::AutoClipPlaneCullCallback>::process(std
     return ret;
 }
 
+bool writePrettyHTMLImpl<osgEarth::Features::FeatureProfile>::process(std::basic_ostream<char>& os)
+{
+	osgEarth::Features::FeatureProfile * object = getObject<osgEarth::Features::FeatureProfile, SGIItemOsg>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+	{
+		if (_table)
+			os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+		callNextHandler(os);
+
+		os << "<tr><td>extent</td><td>" << object->getExtent() << "</td></tr>" << std::endl;
+		os << "<tr><td>SRS</td><td>" << getObjectNameAndType(object->getSRS()) << "</td></tr>" << std::endl;
+		os << "<tr><td>tiled</td><td>" << (object->getTiled() ? "true" : "false") << "</td></tr>" << std::endl;
+		os << "<tr><td>profile</td><td>" << getObjectNameAndType(object->getProfile()) << "</td></tr>" << std::endl;
+		os << "<tr><td>first level</td><td>" << object->getFirstLevel() << "</td></tr>" << std::endl;
+		os << "<tr><td>max level</td><td>" << object->getMaxLevel() << "</td></tr>" << std::endl;
+		os << "<tr><td>geometry interpolation</td><td>" << object->geoInterp() << "</td></tr>" << std::endl;
+
+		if (_table)
+			os << "</table>" << std::endl;
+		ret = true;
+	}
+	break;
+	default:
+		ret = callNextHandler(os);
+		break;
+	}
+	return ret;
+}
+bool writePrettyHTMLImpl<osgEarth::Features::FeatureSource>::process(std::basic_ostream<char>& os)
+{
+	osgEarth::Features::FeatureSource * object = getObject<osgEarth::Features::FeatureSource, SGIItemOsg>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+	{
+		if (_table)
+			os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+		callNextHandler(os);
+
+		os << "<tr><td>feature profile</td><td>" << getObjectNameAndType(object->getFeatureProfile()) << "</td></tr>" << std::endl;
+		os << "<tr><td>isWritable</td><td>" << (object->isWritable() ? "true" : "false") << "</td></tr>" << std::endl;
+		os << "<tr><td>feature count</td><td>" << object->getFeatureCount() << "</td></tr>" << std::endl;
+		os << "<tr><td>supportsGetFeature</td><td>" << (object->supportsGetFeature() ? "true" : "false") << "</td></tr>" << std::endl;
+		os << "<tr><td>geometry type</td><td>" << object->getGeometryType() << "</td></tr>" << std::endl;
+		os << "<tr><td>hasEmbeddedStyles</td><td>" << (object->hasEmbeddedStyles() ? "true" : "false") << "</td></tr>" << std::endl;
+
+		if (_table)
+			os << "</table>" << std::endl;
+		ret = true;
+	}
+	break;
+	default:
+		ret = callNextHandler(os);
+		break;
+	}
+	return ret;
+}
+
 bool writePrettyHTMLImpl<osgEarth::Features::FeatureModelSource>::process(std::basic_ostream<char>& os)
 {
     osgEarth::Features::FeatureModelSource * object = getObject<osgEarth::Features::FeatureModelSource, SGIItemOsg>();
@@ -2256,6 +2322,8 @@ bool writePrettyHTMLImpl<osgEarth::Features::FeatureModelSource>::process(std::b
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
             callNextHandler(os);
+
+			os << "<tr><td>feature source</td><td>" << getObjectNameAndType(object->getFeatureSource()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;

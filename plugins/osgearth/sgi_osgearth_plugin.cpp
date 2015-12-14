@@ -37,6 +37,7 @@
 #include <osgEarthUtil/Controls>
 
 #include <osgEarthFeatures/FeatureModelSource>
+#include <osgEarthFeatures/FeatureTileSource>
 #include <osgEarthFeatures/GeometryCompiler>
 
 #include <osgEarthAnnotation/Decoration>
@@ -83,6 +84,8 @@ GENERATE_IMPL_NO_ACCEPT(osg::Camera)
 GENERATE_IMPL_NO_ACCEPT(osg::BufferData)
 //GENERATE_IMPL_NO_ACCEPT(osg::Image)
 
+GENERATE_IMPL_NO_ACCEPT(osgDB::ReaderWriter)
+
 SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, osgEarth::Map, osgEarth::Registry, osgEarth::Capabilities, osgEarth::CacheBin,
@@ -91,6 +94,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                  osgEarth::Annotation::Decoration,
                                                                  osgEarth::StateSetCache,
 																 osgEarth::LevelDBDatabase,
+																 osgEarth::Features::FeatureCursor, osgEarth::Features::FeatureProfile,
                                                                  ElevationQueryReferenced,
                                                                  TileKeyReferenced,
                                                                  TileSourceTileKey
@@ -98,8 +102,10 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(osgEarth::Cache, osgEarth::TileSource, osgEarth::ModelSource,
 															 osgEarth::Extension,
+															 osgEarth::Features::FeatureSource,
                                                              osg::Node, osg::NodeCallback, osg::StateAttribute, osg::BufferData
                                                             ))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgDB::ReaderWriter, LOKI_TYPELIST(osgEarth::Features::FeatureSourceDriver))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::StateAttribute, LOKI_TYPELIST(osgEarth::VirtualProgram))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Node, LOKI_TYPELIST(osg::Group, osgEarth::Util::Controls::ControlNode))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Group, LOKI_TYPELIST(osg::CoordinateSystemNode,
@@ -126,6 +132,8 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::LocalizedNode, LOKI_TYPE
                                                                                      osgEarth::Annotation::ModelNode
                                                                                     ))
 
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Features::FeatureCursor, LOKI_TYPELIST(osgEarth::Features::FeatureListCursor, osgEarth::Features::GeometryFeatureCursor))
+	
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::BufferData, LOKI_TYPELIST(osg::Image))
 
@@ -153,6 +161,9 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Layer, LOKI_TYPELIST(osgEarth::Terra
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::TerrainLayer, LOKI_TYPELIST(osgEarth::ImageLayer, osgEarth::ElevationLayer))
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::ModelSource, LOKI_TYPELIST(osgEarth::Features::FeatureModelSource))
+
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Features::FeatureSource, LOKI_TYPELIST(osgEarth::Features::FeatureModelSource))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::TileSource, LOKI_TYPELIST(osgEarth::Features::FeatureTileSource))
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Config, ::Loki::NullType)
 

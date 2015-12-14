@@ -77,6 +77,7 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::ModelSourceOptions)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::CacheOptions)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::LevelDBOptions)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Features::FeatureModelSourceOptions)
+WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Features::FeatureSourceOptions)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Features::GeometryCompilerOptions)
 
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Drivers::TMSOptions)
@@ -700,6 +701,43 @@ bool writePrettyHTMLImpl<osgEarth::LevelDBOptions>::process(std::basic_ostream<c
 		os << "<tr><td>blockSize</td><td>" << object->blockSize() << "</td></tr>" << std::endl;
 		os << "<tr><td>maxOpenFiles</td><td>" << object->maxOpenFiles() << "</td></tr>" << std::endl;
 		os << "<tr><td>createIfMissing</td><td>" << object->createIfMissing() << "</td></tr>" << std::endl;
+
+		if (_table)
+			os << "</table>" << std::endl;
+		ret = true;
+	}
+	break;
+	default:
+		ret = callNextHandler(os);
+		break;
+	}
+	return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Features::FeatureSourceOptions>::process(std::basic_ostream<char>& os)
+{
+	osgEarth::Features::FeatureSourceOptions * object = getObject<osgEarth::Features::FeatureSourceOptions, SGIItemEarthConfigOptions>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+	{
+		if (_table)
+			os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+		callNextHandler(os);
+
+		os << "<tr><td>profile</td><td>";
+		writePrettyHTMLImplForDriverOptions(_hostInterface, os, object->profile());
+		os << "</td></tr>" << std::endl;
+
+		os << "<tr><td>name</td><td>" << object->name() << "</td></tr>" << std::endl;
+		os << "<tr><td>filters</td><td><ul>"; 
+		for (const auto & f : object->filters())
+			os << "<li>" << f << "</li>";
+		os << "</ul></td></tr>" << std::endl;
+		os << "<tr><td>openWrite</td><td>" << object->openWrite() << "</td></tr>" << std::endl;
+		os << "<tr><td>geoInterp</td><td>" << object->geoInterp() << "</td></tr>" << std::endl;
 
 		if (_table)
 			os << "</table>" << std::endl;

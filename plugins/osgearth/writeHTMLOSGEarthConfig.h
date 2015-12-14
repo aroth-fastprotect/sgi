@@ -35,6 +35,7 @@ namespace osgEarth {
     }
     namespace Features {
         class FeatureModelSourceOptions;
+		class FeatureSourceOptions;
         class GeometryCompilerOptions;
     }
 
@@ -62,6 +63,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::ModelSourceOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::CacheOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::LevelDBOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Features::FeatureModelSourceOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Features::FeatureSourceOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Features::GeometryCompilerOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Drivers::TMSOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Drivers::WMSOptions)

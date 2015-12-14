@@ -73,7 +73,9 @@ namespace osgEarth {
         } // namespace Controls
     } // namespace Util
     namespace Features {
+		class FeatureSource;
         class FeatureModelSource;
+		class FeatureProfile;
     }
     namespace Annotation {
         class AnnotationNode;
@@ -147,6 +149,8 @@ WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Util::Controls::ImageControl)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Util::SkyNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Util::AutoClipPlaneCullCallback)
 
+WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Features::FeatureProfile)
+WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Features::FeatureSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Features::FeatureModelSource)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Annotation::AnnotationNode)

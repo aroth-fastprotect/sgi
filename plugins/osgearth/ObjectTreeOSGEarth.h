@@ -45,6 +45,8 @@ namespace osgEarth {
         } // namespace Controls
     }
     namespace Features {
+		class FeatureProfile;
+		class FeatureSource;
         class FeatureModelSource;
         class FeatureModelSourceOptions;
     }
@@ -97,6 +99,8 @@ OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::CacheBin)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::LevelDBDatabase)
 
+OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::Features::FeatureProfile)
+OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::Features::FeatureSource)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::Features::FeatureModelSource)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::Config)

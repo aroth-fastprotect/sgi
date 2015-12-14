@@ -80,6 +80,8 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::VirtualProgram)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::Cache)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::CacheBin)
 
+OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::Features::FeatureProfile)
+OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::Features::FeatureSource)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::Features::FeatureModelSource)
 
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::Config)
@@ -1295,6 +1297,63 @@ bool objectTreeBuildImpl<osgEarth::CacheBin>::build(IObjectTreeItem * treeItem)
         break;
     }
     return ret;
+}
+
+bool objectTreeBuildImpl<osgEarth::Features::FeatureProfile>::build(IObjectTreeItem * treeItem)
+{
+	osgEarth::Features::FeatureProfile * object = getObject<osgEarth::Features::FeatureProfile, SGIItemOsg>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(treeItem);
+		if (ret)
+		{
+			SGIHostItemOsg srs(object->getSRS());
+			if (srs.hasObject())
+				treeItem->addChild("SRS", &srs);
+
+			SGIHostItemOsg profile(object->getProfile());
+			if (profile.hasObject())
+				treeItem->addChild("Profile", &profile);
+		}
+		break;
+	case SGIItemTypeConfig:
+		ret = true;
+		break;
+	default:
+		ret = callNextHandler(treeItem);
+		break;
+	}
+	return ret;
+}
+
+bool objectTreeBuildImpl<osgEarth::Features::FeatureSource>::build(IObjectTreeItem * treeItem)
+{
+	osgEarth::Features::FeatureSource * object = getObject<osgEarth::Features::FeatureSource, SGIItemOsg>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(treeItem);
+		if (ret)
+		{
+			SGIHostItemOsg featureProfile(object->getFeatureProfile());
+			if (featureProfile.hasObject())
+				treeItem->addChild("FeatureProfile", &featureProfile);
+
+			SGIHostItemOsgEarthConfigOptions featureSourceOptions(object->getFeatureSourceOptions());
+			treeItem->addChild("FeatureSourceOptions", &featureSourceOptions);
+		}
+		break;
+	case SGIItemTypeConfig:
+		ret = true;
+		break;
+	default:
+		ret = callNextHandler(treeItem);
+		break;
+	}
+	return ret;
 }
 
 bool objectTreeBuildImpl<osgEarth::Features::FeatureModelSource>::build(IObjectTreeItem * treeItem)
