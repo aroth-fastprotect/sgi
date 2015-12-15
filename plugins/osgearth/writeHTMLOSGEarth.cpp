@@ -437,7 +437,7 @@ bool writePrettyHTMLImpl<osgEarth::SpatialReference>::process(std::basic_ostream
             os << "<tr><td>horizontal init</td><td>" << object->getHorizInitString() << "</td></tr>" << std::endl;
             os << "<tr><td>vertical init</td><td>" << object->getVertInitString() << "</td></tr>" << std::endl;
             os << "<tr><td>datum name</td><td>" << object->getDatumName() << "</td></tr>" << std::endl;
-            os << "<tr><td>ellipsoid</td><td>" << object->getEllipsoid() << "</td></tr>" << std::endl;
+            os << "<tr><td>ellipsoid</td><td>" << getObjectNameAndType(object->getEllipsoid()) << "</td></tr>" << std::endl;
 
             os << "<tr><td>isGeographic</td><td>" << (object->isGeographic()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>isGeodetic</td><td>" << (object->isGeodetic()?"true":"false") << "</td></tr>" << std::endl;
