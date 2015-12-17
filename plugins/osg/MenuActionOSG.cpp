@@ -60,6 +60,7 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectSave)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectDataVariance)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionNotifyLevel)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeMask)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeMaskAndChilds)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeNumUpdateTraversal)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeNumEventTraversal)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeRecomputeBound)
@@ -82,7 +83,10 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetMode)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetAddUniform)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetAddAttribute)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetAttributeValue)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetAttributeDelete)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetUniformValue)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetUniformDelete)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetClear)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionProgramAddShader)
 
@@ -284,6 +288,25 @@ bool actionHandlerImpl<MenuActionNotifyLevel>::execute()
     return true;
 }
 
+namespace {
+    class SetNodeMaskVisitor : public osg::NodeVisitor
+    {
+        unsigned _nodemask;
+    public:
+        SetNodeMaskVisitor(unsigned mask, osg::NodeVisitor::TraversalMode tm)
+            : osg::NodeVisitor(tm), _nodemask(mask) {
+            // ignore node mask when applying the new node mask
+            setTraversalMask(~0u);
+            setNodeMaskOverride(~0u);
+        }
+        virtual void apply(osg::Node& node) override
+        {
+            node.setNodeMask(_nodemask);
+            traverse(node);
+        }
+    };
+}
+
 bool actionHandlerImpl<MenuActionNodeMask>::execute()
 {
     osg::Node * object = getObject<osg::Node, SGIItemOsg>();
@@ -295,8 +318,28 @@ bool actionHandlerImpl<MenuActionNodeMask>::execute()
                                              "Node mask:", "Set node mask",
                                              _item
                                             );
-    if(ret)
-        object->setNodeMask((osg::Node::NodeMask)nodeMask);
+    if (ret)
+        object->setNodeMask(nodeMask);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionNodeMaskAndChilds>::execute()
+{
+    osg::Node * object = getObject<osg::Node, SGIItemOsg>();
+
+    unsigned nodeMask = object->getNodeMask();
+    bool ret;
+    ret = _hostInterface->inputDialogBitmask(menu()->parentWidget(),
+        nodeMask,
+        "Node mask:", "Set node mask (+childs)",
+        _item
+        );
+    if (ret)
+    {
+        SetNodeMaskVisitor snmv(nodeMask, osg::NodeVisitor::TRAVERSE_ALL_CHILDREN);
+        object->accept(snmv);
+        object->setNodeMask(nodeMask);
+    }
     return true;
 }
 
@@ -691,6 +734,16 @@ bool actionHandlerImpl<MenuActionStateSetAttributeValue>::execute()
     return true;
 }
 
+bool actionHandlerImpl<MenuActionStateSetAttributeDelete>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    const ReferencedDataIntPair * attr = userData<ReferencedDataIntPair>();
+    const osg::StateAttribute::Type & type = (const osg::StateAttribute::Type &)attr->data().first;
+    const unsigned & member = (const unsigned &)attr->data().second;
+    object->removeAttribute(type, member);
+    return true;
+}
+
 bool actionHandlerImpl<MenuActionStateSetUniformValue>::execute()
 {
     osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
@@ -698,6 +751,21 @@ bool actionHandlerImpl<MenuActionStateSetUniformValue>::execute()
     object->removeUniform(uniform);
     osg::StateAttribute::OverrideValue value = stateAttributeModeValueToOverrideValue((StateAttributeModeValue)menuAction()->mode());
     object->addUniform(uniform, value);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetUniformDelete>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    const ReferencedDataString * uniformName = userData<ReferencedDataString>();
+    object->removeUniform(uniformName->data());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetClear>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    object->clear();
     return true;
 }
 

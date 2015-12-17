@@ -245,6 +245,7 @@ namespace {
 		case QImage::Format_A2BGR30_Premultiplied:
 		case QImage::Format_RGB30:
 		case QImage::Format_A2RGB30_Premultiplied:
+		default:
 			imageFormat = sgi::Image::ImageFormatInvalid; 
 			break;
 		}

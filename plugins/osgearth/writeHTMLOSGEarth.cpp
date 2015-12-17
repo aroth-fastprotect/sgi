@@ -1502,12 +1502,25 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
 #if OSGEARTH_VERSION_LESS_THAN(2,7,0)
 					const std::string & name = it->first;
 					const osgEarth::VirtualProgram::ShaderEntry & entry = it->second;
-					os << "<li>" << name << "</li>";
 #else
 					const auto & id = it->key();
 					const auto & entry = it->data();
-					os << "<li>" << id << "</li>";
 #endif
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+                    const osg::ref_ptr<osg::Shader> & shader = entry._shader;
+                    const osg::StateAttribute::OverrideValue & overrideValue = entry._overrideValue;
+#else
+                    const osg::ref_ptr<osg::Shader> & shader = entry.first;
+                    const osg::StateAttribute::OverrideValue & overrideValue = entry.second;
+#endif
+                    os << "<li>";
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
+                    os << name;
+#else
+                    os << "0x" << std::hex << id;
+#endif
+                    os << '(' << glOverrideValueName(overrideValue) << ')';
+                    os << "</li>";
                 }
                 os << "</ul>";
             }
@@ -1551,7 +1564,11 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
         break;
     case SGIItemTypeVirtualProgramShaderMap:
         {
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
+            os << "<table border=\'1\' align=\'left\'><tr><th>ShaderID</th><th>Value</th></tr>" << std::endl;
+#else
             os << "<table border=\'1\' align=\'left\'><tr><th>Shader</th><th>Value</th></tr>" << std::endl;
+#endif
             osgEarth::VirtualProgram::ShaderMap shaderMap;
             access->getShaderMap(shaderMap);
             for(osgEarth::VirtualProgram::ShaderMap::const_iterator it = shaderMap.begin(); it != shaderMap.end(); it++)
@@ -1563,7 +1580,7 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
 #else
 				const auto & id = it->key();
 				const auto & entry = it->data();
-				os << "<tr><td>" << id << "</td><td>";
+				os << "<tr><td>0x" << std::hex << id << "</td><td>";
 #endif
                 os << "<table border=\'1\' align=\'left\'>";
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)

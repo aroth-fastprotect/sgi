@@ -1214,7 +1214,7 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
 #if OSGEARTH_VERSION_LESS_THAN(2,7,0)
 				ss << name;
 #else
-				ss << id;
+				ss << "0x" << std::hex << id;
 #endif
 				ss << '(' << glOverrideValueName(overrideValue) << ')';
                 SGIHostItemOsg child(shader.get());

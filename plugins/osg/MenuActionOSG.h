@@ -39,6 +39,7 @@ enum MenuAction {
     MenuActionObjectDataVariance,
     MenuActionNotifyLevel,
     MenuActionNodeMask,
+    MenuActionNodeMaskAndChilds,
     MenuActionNodeNumUpdateTraversal,
     MenuActionNodeNumEventTraversal,
     MenuActionNodeRecomputeBound,
@@ -60,7 +61,10 @@ enum MenuAction {
     MenuActionStateSetAddUniform,
     MenuActionStateSetAddAttribute,
     MenuActionStateSetAttributeValue,
+    MenuActionStateSetAttributeDelete,
     MenuActionStateSetUniformValue,
+    MenuActionStateSetUniformDelete,
+    MenuActionStateSetClear,
     MenuActionProgramAddShader,
     MenuActionGeodeAddShapeDrawable,
     MenuActionGeodeRenderInfoDrawable,
@@ -198,6 +202,7 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionObjectSave)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionObjectDataVariance)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionNotifyLevel)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionNodeMask)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionNodeMaskAndChilds)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionNodeNumUpdateTraversal)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionNodeNumEventTraversal)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionNodeRecomputeBound)
@@ -221,7 +226,10 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetMode)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetAddUniform)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetAddAttribute)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetAttributeValue)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetAttributeDelete)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetUniformValue)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetUniformDelete)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetClear)
 
 ACTION_HANDLER_IMPL_DECLARE(MenuActionProgramAddShader)
 

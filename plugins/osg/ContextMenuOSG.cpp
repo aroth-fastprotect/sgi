@@ -123,7 +123,7 @@ CONTEXT_MENU_POPULATE_IMPL_REGISTER(sgi::ISceneGraphDialogToolsMenu)
 using namespace sgi::osg_helpers;
 
 namespace {
-    static void createStateAttributeMenu(unsigned actionId, osg::StateAttribute * attr, IContextMenuItem * menuItem,
+    static IContextMenuItem * createStateAttributeMenu(unsigned actionId, osg::StateAttribute * attr, IContextMenuItem * menuItem,
                                              const std::string & name, SGIItemBase * item, const osg::StateAttribute::OverrideValue value)
     {
         StateAttributeModeValue currentMode = getStateAttributeModeFromOverrideValue(value);
@@ -133,8 +133,9 @@ namespace {
         childMenu->addModeAction("Off", StateAttributeModeValueOff);
         childMenu->addModeAction("Override On", StateAttributeModeValueOverrideOn);
         childMenu->addModeAction("Protected", StateAttributeModeValueProtected);
+        return childMenu;
     }
-    static void createUniformMenu(unsigned actionId, osg::Uniform * uniform, IContextMenuItem * menuItem,
+    static IContextMenuItem * createUniformMenu(unsigned actionId, osg::Uniform * uniform, IContextMenuItem * menuItem,
                                              const std::string & name, SGIItemBase * item, const osg::StateAttribute::OverrideValue value)
     {
         StateAttributeModeValue currentMode = getStateAttributeModeFromOverrideValue(value);
@@ -144,9 +145,10 @@ namespace {
         childMenu->addModeAction("Off", StateAttributeModeValueOff);
         childMenu->addModeAction("Override On", StateAttributeModeValueOverrideOn);
         childMenu->addModeAction("Protected", StateAttributeModeValueProtected);
+        return childMenu;
     }
 
-    static void createStateAttributeModeMenu(unsigned actionId, osg::StateAttribute::GLMode mode, IContextMenuItem * menuItem,
+    static IContextMenuItem * createStateAttributeModeMenu(unsigned actionId, osg::StateAttribute::GLMode mode, IContextMenuItem * menuItem,
                                              const std::string & name, SGIItemBase * item, const StateAttributeModeValue value)
     {
         IContextMenuItem * childMenu = menuItem->addModeMenu(actionId, name, item, value, new ReferencedDataInt(mode));
@@ -156,12 +158,13 @@ namespace {
         childMenu->addModeAction("On", StateAttributeModeValueOn);
         childMenu->addModeAction("Off (override)", StateAttributeModeValueOverrideOff);
         childMenu->addModeAction("On (override)", StateAttributeModeValueOverrideOn);
+        return childMenu;
     }
-    static void addStateSetModeMenu(IContextMenuItem * menuItem, osg::StateAttribute::GLMode mode, SGIItemBase * item)
+    static IContextMenuItem * addStateSetModeMenu(IContextMenuItem * menuItem, osg::StateAttribute::GLMode mode, SGIItemBase * item)
     {
         std::string name = sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(mode);
         StateAttributeModeValue currentMode = getStateAttributeModeFromObject(static_cast<osg::Object*>(static_cast<SGIItemOsg*>(item)->object()), mode);
-        createStateAttributeModeMenu(MenuActionStateSetMode, mode, menuItem, name, item, currentMode);
+        return createStateAttributeModeMenu(MenuActionStateSetMode, mode, menuItem, name, item, currentMode);
     }
 }
 
@@ -234,6 +237,7 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
                 unsigned numEventTraversal = object->getNumChildrenRequiringEventTraversal();
 
                 manipulateMenu->addSimpleAction(MenuActionNodeMask, helpers::str_plus_hex("Node mask", object->getNodeMask()), _item);
+                manipulateMenu->addSimpleAction(MenuActionNodeMaskAndChilds, helpers::str_plus_hex("Node mask (+childs)", object->getNodeMask()), _item);
 
                 manipulateMenu->addSimpleAction(MenuActionNodeNumUpdateTraversal, helpers::str_plus_count("Num update traversal", numUpdateTraversal), _item);
                 manipulateMenu->addSimpleAction(MenuActionNodeNumEventTraversal, helpers::str_plus_count("Num event traversal", numEventTraversal), _item);
@@ -369,6 +373,7 @@ bool contextMenuPopulateImpl<osg::StateSet>::populate(IContextMenuItem * menuIte
 
             manipulateMenu->addSimpleAction(MenuActionStateSetRenderBinNumber, helpers::str_plus_info("RenderBinNum", object->getBinNumber()), _item);
             manipulateMenu->addSimpleAction(MenuActionStateSetRenderBinName, helpers::str_plus_info("RenderBinName", object->getBinName()), _item);
+            manipulateMenu->addSimpleAction(MenuActionStateSetClear, "Clear", _item);
 
             osg::StateSet::RenderBinMode renderBinMode = (osg::StateSet::RenderBinMode)object->getRenderBinMode();
             IContextMenuItem * renderBinModeMenu = menuItem->addModeMenu(MenuActionStateSetRenderBinMode, "RenderBinMode", _item, renderBinMode);
@@ -466,7 +471,8 @@ bool contextMenuPopulateImpl<osg::StateSet>::populate(IContextMenuItem * menuIte
                 SGIHostItemOsg attrItem(attr.get());
                 std::stringstream ss;
                 ss << childNo << ':' << type << ' ' << attr->getName();
-                createStateAttributeMenu(MenuActionStateSetAttributeValue, attr.get(), menuItem, ss.str(), _item, value);
+                IContextMenuItem * attrmenu = createStateAttributeMenu(MenuActionStateSetAttributeValue, attr.get(), menuItem, ss.str(), _item, value);
+                attrmenu->addSimpleAction(MenuActionStateSetAttributeDelete, "Delete", _item, new ReferencedDataIntPair(IntPair((int)type, (int)member)));
             }
 
             ret = true;
@@ -503,7 +509,8 @@ bool contextMenuPopulateImpl<osg::StateSet>::populate(IContextMenuItem * menuIte
                 SGIHostItemOsg uniformItem(uniform.get());
                 std::stringstream ss;
                 ss << childNo << ':' << osg::Uniform::getTypename(uniform->getType()) << ' ' << uniform->getName();
-                createUniformMenu(MenuActionStateSetUniformValue, uniform.get(), menuItem, ss.str(), _item, value);
+                IContextMenuItem * unimenu = createUniformMenu(MenuActionStateSetUniformValue, uniform.get(), menuItem, ss.str(), _item, value);
+                unimenu->addSimpleAction(MenuActionStateSetUniformDelete, "Delete", _item, new ReferencedDataString(name));
             }
 
             ret = true;
@@ -1185,9 +1192,11 @@ bool contextMenuPopulateImpl<osg::Drawable>::populate(IContextMenuItem * menuIte
         if(ret)
         {
             menuItem->addBoolAction(MenuActionDrawableToggleDisabled, "Disabled", _item, DisabledDrawCallback::isDisabled(object));
+#if OSG_VERSION_LESS_THAN(3,4,0)
             SGIHostItemOsg stateSet(object->getStateSet());
             if(stateSet.hasObject())
                 menuItem->addMenu("StateSet", &stateSet);
+#endif // OSG_VERSION_LESS_THAN(3,4,0)
 
 			IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
 			if (manipulateMenu)

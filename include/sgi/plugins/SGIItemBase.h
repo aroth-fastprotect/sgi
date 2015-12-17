@@ -226,6 +226,8 @@ private:
 };
 
 typedef ReferencedDataT<int> ReferencedDataInt;
+typedef std::pair<int, int> IntPair;
+typedef ReferencedDataT<IntPair> ReferencedDataIntPair;
 typedef ReferencedDataT<std::string> ReferencedDataString;
 
 template<typename T>

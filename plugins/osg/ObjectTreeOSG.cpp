@@ -489,9 +489,11 @@ bool objectTreeBuildImpl<osg::Drawable>::build(IObjectTreeItem * treeItem)
             if(numParents)
                 treeItem->addChild(helpers::str_plus_count("Parents", numParents), cloneItem<SGIItemOsg>(SGIItemTypeParents));
 
+#if OSG_VERSION_LESS_THAN(3,4,0)
             SGIHostItemOsg stateSet(object->getStateSet());
             if(stateSet.hasObject())
                 treeItem->addChild("StateSet", &stateSet);
+#endif // OSG_VERSION_LESS_THAN(3,4,0)
 
             if(object->getComputeBoundingBoxCallback() ||
                 object->getEventCallback() ||
