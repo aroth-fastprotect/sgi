@@ -18,6 +18,7 @@
 namespace sgi {
 namespace osg_plugin {
 
+WRITE_PRETTY_HTML_IMPL_REGISTER(osgGA::EventHandler)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgGA::GUIEventHandler)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgGA::GUIEventAdapter)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgGA::CameraManipulator)
@@ -108,6 +109,50 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgGA::
 }
 
 
+bool writePrettyHTMLImpl<osgGA::EventHandler>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    osgGA::EventHandler * object = getObject<osgGA::EventHandler, SGIItemOsg, DynamicCaster>();
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add osg::NodeCallback properties first
+            callNextHandler(os);
+
+            osg::ref_ptr<osg::ApplicationUsage> usage = new osg::ApplicationUsage;
+            object->getUsage(*usage);
+            {
+                os << "<tr><td>cmd line</td><td><pre>";
+                usage->write(os, osg::ApplicationUsage::COMMAND_LINE_OPTION, 132, true);
+                os << "</pre></td></tr>" << std::endl;
+            }
+            {
+                os << "<tr><td>environmental variables</td><td><pre>";
+                usage->write(os, osg::ApplicationUsage::ENVIRONMENTAL_VARIABLE, 132, true);
+                os << "</pre></td></tr>" << std::endl;
+            }
+            {
+                os << "<tr><td>keyboard/mouse bindings</td><td><pre>";
+                usage->write(os, osg::ApplicationUsage::KEYBOARD_MOUSE_BINDING, 132, true);
+                os << "</pre></td></tr>" << std::endl;
+            }
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
 bool writePrettyHTMLImpl<osgGA::GUIEventHandler>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -131,34 +176,6 @@ bool writePrettyHTMLImpl<osgGA::GUIEventHandler>::process(std::basic_ostream<cha
             os << "<tr><td>ignored handled event mask</td><td>" << std::hex
                 << (object?object->getIgnoreHandledEventsMask():0) << std::dec << "</td></tr>" << std::endl;
 #endif
-
-            if(object)
-            {
-                osg::ref_ptr<osg::ApplicationUsage> usage = new osg::ApplicationUsage;
-                object->getUsage(*usage);
-                {
-                    std::stringstream str;
-                    usage->write(str, osg::ApplicationUsage::COMMAND_LINE_OPTION, 132, true);
-                    os << "<tr><td>cmd line</td><td><pre>" << str.str() << "</pre></td></tr>" << std::endl;
-                }
-                {
-                    std::stringstream str;
-                    usage->write(str, osg::ApplicationUsage::ENVIRONMENTAL_VARIABLE, 132, true);
-                    os << "<tr><td>environmental variables</td><td><pre>" << str.str() << "</pre></td></tr>" << std::endl;
-                }
-                {
-                    std::stringstream str;
-                    usage->write(str, osg::ApplicationUsage::KEYBOARD_MOUSE_BINDING, 132, true);
-                    os << "<tr><td>keyboard/mouse bindings</td><td><pre>" << str.str() << "</pre></td></tr>" << std::endl;
-                }
-            }
-            else
-            {
-                os << "<tr><td>cmd line</td><td></td></tr>" << std::endl;
-                os << "<tr><td>environmental variables</td><td></td></tr>" << std::endl;
-                os << "<tr><td>keyboard/mouse bindings</td><td></td></tr>" << std::endl;
-            }
-            os << "</pre></td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -277,7 +294,7 @@ bool writePrettyHTMLImpl<osgGA::CameraManipulator>::process(std::basic_ostream<c
 
             os << "<tr><td>intersect traversal mask</td><td>" << castToEnumValueString<osgNodeMask>(object->getIntersectTraversalMask()) << "</td></tr>" << std::endl;
 
-            os << "<tr><td>node</td><td>" << getObjectNameAndType(const_cast<osgGA::CameraManipulator*>(object)->getNode()) << "</td></tr>" << std::endl;
+            os << "<tr><td>node</td><td>" << getObjectNameAndType(const_cast<osgGA::CameraManipulator*>(object)->getNode(), true) << "</td></tr>" << std::endl;
 
             os << "<tr><td>auto home position</td><td>" << (object->getAutoComputeHomePosition()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>home position</td><td>";

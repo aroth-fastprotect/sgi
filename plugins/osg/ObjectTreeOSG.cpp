@@ -685,6 +685,45 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
         }
         break;
     case SGIItemTypeStateSetModeList:
+        {
+            unsigned itemNumber = _item->number();
+            const osg::StateSet::TextureModeList & textureModeList = object->getTextureModeList();
+            if (!textureModeList.empty())
+            {
+                unsigned count = 0;
+
+                for (osg::StateSet::TextureModeList::const_iterator it = textureModeList.begin(); it != textureModeList.end(); it++, count++)
+                {
+                    if (itemNumber == ~0u)
+                    {
+                        const osg::StateSet::ModeList & modeList = *it;
+                        if (modeList.empty())
+                        {
+                            SGIHostItemOsg modeItem = cloneItem<SGIItemOsg>(SGIItemTypeStateSetModeList, count);
+                            std::stringstream ss;
+                            ss << "Unit #" << count << ": empty";
+                            treeItem->addChild(ss.str(), &modeItem);
+                        }
+                        else
+                        {
+                            for (osg::StateSet::ModeList::const_iterator it2 = modeList.begin(); it2 != modeList.end(); it2++)
+                            {
+                                const osg::StateAttribute::GLMode & mode = it2->first;
+                                const osg::StateAttribute::GLModeValue & value = it2->second;
+
+                                SGIHostItemOsg modeItem = cloneItem<SGIItemOsg>(SGIItemTypeStateSetModeList, count);
+                                std::stringstream ss;
+                                ss << "Unit #" << count << ": " << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(mode) << "=" << glValueName(value);
+                                treeItem->addChild(ss.str(), &modeItem);
+                            }
+                        }
+                    }
+
+                }
+            }
+            ret = true;
+        }
+        break;
     case SGIItemTypeStateSetTextureModeList:
         ret = true;
         break;
@@ -1350,6 +1389,13 @@ bool objectTreeBuildImpl<osg::Texture>::build(IObjectTreeItem * treeItem)
             if(readPBuffer.hasObject())
                 treeItem->addChild("ReadPBuffer", &readPBuffer);
 
+            for (unsigned n = 0; n < object->getNumImages(); ++n)
+            {
+                SGIHostItemOsg image(object->getImage(n));
+                if (image.hasObject())
+                    treeItem->addChild(helpers::str_plus_count("Image", n), &image);
+            }
+
         }
         break;
     default:
@@ -1937,6 +1983,11 @@ bool objectTreeBuildImpl<osgGA::CameraManipulator>::build(IObjectTreeItem * tree
         ret = callNextHandler(treeItem);
         if(ret)
         {
+            if (object->getCoordinateFrameCallback())
+            {
+                treeItem->addChildIfNotExists("Callbacks", cloneItem<SGIItemOsg>(SGIItemTypeCallbacks));
+            }
+
             SGIHostItemOsg node(object->getNode());
             if(node.hasObject())
                 treeItem->addChild("Node", &node);

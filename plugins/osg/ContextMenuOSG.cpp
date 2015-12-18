@@ -339,7 +339,8 @@ bool contextMenuPopulateImpl<osg::Group>::populate(IContextMenuItem * menuItem)
             {
                 osg::Node * child = object->getChild(i);
                 SGIHostItemOsg childItem(child);
-                menuItem->addMenu(std::string(), &childItem);
+                IContextMenuItem * childMenu = menuItem->addMenu(std::string(), &childItem);
+                childMenu->addSimpleAction(MenuActionGroupRemoveChild, "Remove", _item, child);
             }
             ret = true;
         }
@@ -424,6 +425,30 @@ bool contextMenuPopulateImpl<osg::StateSet>::populate(IContextMenuItem * menuIte
         break;
     case SGIItemTypeStateSetTextureModeList:
         {
+            unsigned itemNumber = _item->number();
+            if(itemNumber != ~0u)
+            {
+                const osg::StateSet::TextureModeList & textureModeList = object->getTextureModeList();
+                unsigned count = 0;
+
+                for (osg::StateSet::TextureModeList::const_iterator it = textureModeList.begin(); it != textureModeList.end(); it++, count++)
+                {
+                    if (itemNumber == count)
+                    {
+                        const osg::StateSet::ModeList & modeList = *it;
+                        if (!modeList.empty())
+                        {
+                            for (osg::StateSet::ModeList::const_iterator it2 = modeList.begin(); it2 != modeList.end(); it2++)
+                            {
+                                const osg::StateAttribute::GLMode & mode = it2->first;
+                                const osg::StateAttribute::GLModeValue & value = it2->second;
+                            }
+                        }
+                    }
+
+                }
+
+            }
             ret = true;
         }
         break;

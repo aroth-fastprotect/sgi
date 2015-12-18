@@ -162,8 +162,7 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osg::LightModel)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Stencil)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Viewport)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Program)
-WRITE_PRETTY_HTML_IMPL_DECLARE(osg::Program::PerContextProgram)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Program::PerContextProgram)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Program::PerContextProgram)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::TexGen)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::ClipPlane)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::BlendFunc)
@@ -1372,7 +1371,6 @@ bool writePrettyHTMLImpl<osg::Drawable>::process(std::basic_ostream<char>& os)
         }
         break;
     default:
-        // add Shape properties first
         callNextHandler(os);
         break;
     }
@@ -1719,8 +1717,8 @@ bool writePrettyHTMLImpl<osg::Uniform>::process(std::basic_ostream<char>& os)
             // first add all callbacks from base classes
             callNextHandler(os);
 
-            os << "<tr><td>update callback</td><td>" << osg_helpers::getObjectNameAndType(object->getUpdateCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>event callback</td><td>" << osg_helpers::getObjectNameAndType(object->getEventCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>update callback</td><td>" << osg_helpers::getObjectNameAndType(object->getUpdateCallback(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>event callback</td><td>" << osg_helpers::getObjectNameAndType(object->getEventCallback(), true) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -1765,7 +1763,7 @@ bool writePrettyHTMLImpl<osg::BufferData>::process(std::basic_ostream<char>& os)
             // first add all callbacks from base classes
             callNextHandler(os);
 
-            os << "<tr><td>modified callback</td><td>" << osg_helpers::getObjectNameAndType(object->getModifiedCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>modified callback</td><td>" << osg_helpers::getObjectNameAndType(object->getModifiedCallback(), true) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -4251,8 +4249,8 @@ bool writePrettyHTMLImpl<osg::StateSet>::process(std::basic_ostream<char>& os)
             // first add all callbacks from base classes
             callNextHandler(os);
 
-            os << "<tr><td>update callback</td><td>" << osg_helpers::getObjectNameAndType(object->getUpdateCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>event callback</td><td>" << osg_helpers::getObjectNameAndType(object->getEventCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>update callback</td><td>" << osg_helpers::getObjectNameAndType(object->getUpdateCallback(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>event callback</td><td>" << osg_helpers::getObjectNameAndType(object->getEventCallback(), true) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -4590,10 +4588,10 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add osg::Camera callbacks now
-            os << "<tr><td>initial draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getInitialDrawCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>pre-draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getPreDrawCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>post-draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getPostDrawCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>final draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getFinalDrawCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>initial draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getInitialDrawCallback(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>pre-draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getPreDrawCallback(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>post-draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getPostDrawCallback(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>final draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getFinalDrawCallback(), true) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;

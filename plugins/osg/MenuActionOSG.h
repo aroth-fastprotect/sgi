@@ -52,6 +52,7 @@ enum MenuAction {
     MenuActionObjectLoggerVisible,
     MenuActionObjectLoggerActive,
     MenuActionGroupAddChild,
+    MenuActionGroupRemoveChild,
     MenuActionStateSetRenderHint,
     MenuActionStateSetRenderBinName,
     MenuActionStateSetRenderBinNumber,
@@ -216,6 +217,7 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionObjectLoggerVisible)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionObjectLoggerActive)
 
 ACTION_HANDLER_IMPL_DECLARE(MenuActionGroupAddChild)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionGroupRemoveChild)
 
 ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetRenderHint)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetRenderBinName)

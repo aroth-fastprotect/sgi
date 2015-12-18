@@ -74,6 +74,7 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectLoggerVisible)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectLoggerActive)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionGroupAddChild)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionGroupRemoveChild)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetRenderHint)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetRenderBinName)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetRenderBinNumber)
@@ -622,6 +623,28 @@ bool actionHandlerImpl<MenuActionGroupAddChild>::execute()
         break;
     }
     manipulateObject<AddChildUpdateOperation>(static_cast<osg::Node*>(object), child);
+    return true;
+}
+
+namespace {
+    struct RemoveChildUpdateOperation
+    {
+    public:
+        RemoveChildUpdateOperation(osg::Node * child)
+            : _child(child) { }
+        void operator()(osg::Node * object, osg::NodeVisitor* nv)
+        {
+            static_cast<osg::Group*>(object)->removeChild(_child.release());
+        }
+        osg::ref_ptr<osg::Node> _child;
+    };
+}
+
+bool actionHandlerImpl<MenuActionGroupRemoveChild>::execute()
+{
+    osg::Group * object = getObject<osg::Group, SGIItemOsg>();
+    osg::Node * child = userData<osg::Node>();
+    manipulateObject<RemoveChildUpdateOperation>(static_cast<osg::Node*>(object), child);
     return true;
 }
 

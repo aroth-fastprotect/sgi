@@ -254,11 +254,12 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(osg::Node, osg::Nod
                                                              osgAnimation::AnimationUpdateCallbackBase,
                                                              osgDB::Options, osgDB::ReaderWriter, osgDB::DatabaseRevision, osgDB::DatabaseRevisions, osgDB::FileList,
                                                              osgViewer::ViewerBase, osgViewer::GraphicsWindow,
-                                                             osgGA::GUIEventHandler, osgGA::GUIEventAdapter,
+                                                             osgGA::EventHandler, osgGA::GUIEventAdapter,
                                                              osgText::Font,
                                                              osgUtil::SceneView, osgUtil::RenderBin,
                                                              osgTerrain::Locator, osgTerrain::Layer, osgTerrain::TerrainTechnique))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Callback, LOKI_TYPELIST(osg::NodeCallback, osg::StateAttributeCallback, osg::UniformCallback))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgGA::EventHandler, LOKI_TYPELIST(osgGA::GUIEventHandler))
 #else // OSG_MIN_VERSION_REQUIRED(3,4,0)
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(osg::Node, osg::NodeCallback, osg::Drawable, osg::Shape, osg::StateAttribute,
                                                              osg::StateSet, osg::View, osg::GraphicsContext, osg::Shader, osg::UserDataContainer,
