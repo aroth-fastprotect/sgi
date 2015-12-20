@@ -656,21 +656,25 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
 
             const osg::StateSet::ModeList & modelist = object->getModeList();
             if(!modelist.empty())
-                treeItem->addChild(helpers::str_plus_count("Mode list", modelist.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetModeList, ~0u));
+                treeItem->addChild(helpers::str_plus_count("Modes", modelist.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetModeList, ~0u));
 
             const osg::StateSet::AttributeList & attributelist = object->getAttributeList();
             if(!attributelist.empty())
-                treeItem->addChild(helpers::str_plus_count("Attribute list", attributelist.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetAttributeList, ~0u));
+                treeItem->addChild(helpers::str_plus_count("Attributes", attributelist.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetAttributeList, ~0u));
 
             if(object->getNumTextureModeLists() != 0)
-                treeItem->addChild(helpers::str_plus_count("Texture mode lists", object->getNumTextureModeLists()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetTextureModeList, ~0u));
+                treeItem->addChild(helpers::str_plus_count("Texture modes", object->getNumTextureModeLists()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetTextureModeList, ~0u));
 
             if(object->getNumTextureAttributeLists() != 0)
-                treeItem->addChild(helpers::str_plus_count("Texture attribute lists", object->getNumTextureAttributeLists()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetTextureAttributeLists, ~0u));
+                treeItem->addChild(helpers::str_plus_count("Texture attributes", object->getNumTextureAttributeLists()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetTextureAttributeLists, ~0u));
 
             const osg::StateSet::UniformList & uniformlist = object->getUniformList();
             if(!uniformlist.empty())
-                treeItem->addChild(helpers::str_plus_count("Uniform list", uniformlist.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetUniformList, ~0u));
+                treeItem->addChild(helpers::str_plus_count("Uniforms", uniformlist.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetUniformList, ~0u));
+
+            const osg::StateSet::DefineList & definelist = object->getDefineList();
+            if(!definelist.empty())
+                treeItem->addChild(helpers::str_plus_count("Defines", definelist.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetDefineList, ~0u));
         }
         break;
     case SGIItemTypeParents:
@@ -743,6 +747,9 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
             }
             ret = true;
         }
+        break;
+    case SGIItemTypeStateSetDefineList:
+        ret = true;
         break;
     case SGIItemTypeStateSetAttributeList:
         {

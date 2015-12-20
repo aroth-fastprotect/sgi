@@ -57,14 +57,22 @@ enum MenuAction {
     MenuActionStateSetRenderBinName,
     MenuActionStateSetRenderBinNumber,
     MenuActionStateSetRenderBinMode,
-    MenuActionStateSetTextureAttributeList,
-    MenuActionStateSetMode,
-    MenuActionStateSetAddUniform,
-    MenuActionStateSetAddAttribute,
-    MenuActionStateSetAttributeValue,
-    MenuActionStateSetAttributeDelete,
-    MenuActionStateSetUniformValue,
-    MenuActionStateSetUniformDelete,
+    MenuActionStateSetTextureAttributeSet,
+    MenuActionStateSetTextureAttributeRemove,
+    MenuActionStateSetTextureModeSet,
+    MenuActionStateSetTextureModeRemove,
+    MenuActionStateSetModeSet,
+    MenuActionStateSetModeRemove,
+    MenuActionStateSetAttributeAdd,
+    MenuActionStateSetAttributeSet,
+    MenuActionStateSetAttributeRemove,
+    MenuActionStateSetUniformAdd,
+    MenuActionStateSetUniformSet,
+    MenuActionStateSetUniformRemove,
+    MenuActionStateSetDefineAdd,
+    MenuActionStateSetDefineSet,
+    MenuActionStateSetDefineEdit,
+    MenuActionStateSetDefineRemove,
     MenuActionStateSetClear,
     MenuActionProgramAddShader,
     MenuActionGeodeAddShapeDrawable,
@@ -196,6 +204,14 @@ enum MenuAction {
     MenuActionToolDistanceToCamera,
 };
 
+struct TextureAttributePair {
+    TextureAttributePair(unsigned u, osg::StateAttribute * a)
+        : textureUnit(u), attr(a) {}
+    unsigned textureUnit;
+    osg::ref_ptr<osg::StateAttribute> attr;
+};
+typedef ReferencedDataT<TextureAttributePair> ReferencedDataTextureAttributePair;
+
 ACTION_HANDLER_IMPL_TEMPLATE()
 ACTION_HANDLER_IMPL_DECLARE(MenuActionObjectInfo)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionObjectSetName)
@@ -223,14 +239,22 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetRenderHint)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetRenderBinName)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetRenderBinNumber)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetRenderBinMode)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetTextureAttributeList)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetMode)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetAddUniform)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetAddAttribute)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetAttributeValue)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetAttributeDelete)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetUniformValue)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetUniformDelete)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetTextureAttributeSet)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetTextureAttributeRemove)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetTextureModeSet)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetTextureModeRemove)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetModeSet)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetModeRemove)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetAttributeAdd)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetAttributeSet)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetAttributeRemove)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetUniformAdd)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetUniformSet)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetUniformRemove)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetDefineAdd)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetDefineSet)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetDefineEdit)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetDefineRemove)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionStateSetClear)
 
 ACTION_HANDLER_IMPL_DECLARE(MenuActionProgramAddShader)

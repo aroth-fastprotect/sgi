@@ -79,14 +79,22 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetRenderHint)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetRenderBinName)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetRenderBinNumber)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetRenderBinMode)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetTextureAttributeList)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetMode)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetAddUniform)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetAddAttribute)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetAttributeValue)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetAttributeDelete)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetUniformValue)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetUniformDelete)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetTextureAttributeSet)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetTextureAttributeRemove)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetTextureModeSet)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetTextureModeRemove)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetModeSet)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetModeRemove)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetAttributeAdd)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetAttributeSet)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetAttributeRemove)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetUniformAdd)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetUniformSet)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetUniformRemove)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetDefineAdd)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetDefineSet)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetDefineEdit)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetDefineRemove)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetClear)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionProgramAddShader)
@@ -694,13 +702,45 @@ bool actionHandlerImpl<MenuActionStateSetRenderBinMode>::execute()
     return true;
 }
 
-bool actionHandlerImpl<MenuActionStateSetTextureAttributeList>::execute()
+bool actionHandlerImpl<MenuActionStateSetTextureAttributeSet>::execute()
 {
     osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    TextureAttributePair pair = modeUserData<ReferencedDataTextureAttributePair>()->data();
+    osg::StateAttribute::OverrideValue value = stateAttributeModeValueToOverrideValue((StateAttributeModeValue)menuAction()->mode());
+    object->setTextureAttribute(pair.textureUnit, pair.attr.get(), value);
     return true;
 }
 
-bool actionHandlerImpl<MenuActionStateSetMode>::execute()
+bool actionHandlerImpl<MenuActionStateSetTextureAttributeRemove>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    TextureAttributePair pair = userData<ReferencedDataTextureAttributePair>()->data();
+    object->removeTextureAttribute(pair.textureUnit, pair.attr.get());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetTextureModeSet>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    IntPair pair = modeUserData<ReferencedDataIntPair>()->data();
+    unsigned textureUnit = (unsigned)pair.first;
+    osg::StateAttribute::GLMode mode = (osg::StateAttribute::GLMode)pair.second;
+    osg::StateAttribute::OverrideValue value = stateAttributeModeValueToOverrideValue((StateAttributeModeValue)menuAction()->mode());
+    object->setTextureMode(textureUnit, mode, value);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetTextureModeRemove>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    IntPair pair = userData<ReferencedDataIntPair>()->data();
+    unsigned textureUnit = (unsigned)pair.first;
+    osg::StateAttribute::GLMode mode = (osg::StateAttribute::GLMode)pair.second;
+    object->removeTextureMode(textureUnit, mode);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetModeSet>::execute()
 {
     osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
     osg::StateAttribute::GLModeValue mode = (osg::StateAttribute::GLModeValue)modeUserData<ReferencedDataInt>()->data();
@@ -709,18 +749,16 @@ bool actionHandlerImpl<MenuActionStateSetMode>::execute()
     return true;
 }
 
-bool actionHandlerImpl<MenuActionStateSetAddUniform>::execute()
+bool actionHandlerImpl<MenuActionStateSetModeRemove>::execute()
 {
     osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
-    osg::Uniform::Type type = (osg::Uniform::Type)menuAction()->mode();
-    std::string name;
-    bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), name, "Name:", "Enter name of new uniform", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
-    if(gotInput)
-        object->addUniform(new osg::Uniform(type, name, 1), osg::StateAttribute::OFF);
+    osg::StateAttribute::GLModeValue mode = (osg::StateAttribute::GLModeValue)userData<ReferencedDataInt>()->data();
+    std::cout << "remove " << std::hex << mode << std::endl;
+    object->removeMode(mode);
     return true;
 }
 
-bool actionHandlerImpl<MenuActionStateSetAddAttribute>::execute()
+bool actionHandlerImpl<MenuActionStateSetAttributeAdd>::execute()
 {
     osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
     osg::StateAttribute::Type type = (osg::StateAttribute::Type)menuAction()->mode();
@@ -748,7 +786,7 @@ bool actionHandlerImpl<MenuActionStateSetAddAttribute>::execute()
     return true;
 }
 
-bool actionHandlerImpl<MenuActionStateSetAttributeValue>::execute()
+bool actionHandlerImpl<MenuActionStateSetAttributeSet>::execute()
 {
     osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
     osg::StateAttribute * attr = modeUserData<osg::StateAttribute>();
@@ -757,7 +795,7 @@ bool actionHandlerImpl<MenuActionStateSetAttributeValue>::execute()
     return true;
 }
 
-bool actionHandlerImpl<MenuActionStateSetAttributeDelete>::execute()
+bool actionHandlerImpl<MenuActionStateSetAttributeRemove>::execute()
 {
     osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
     const ReferencedDataIntPair * attr = userData<ReferencedDataIntPair>();
@@ -767,7 +805,18 @@ bool actionHandlerImpl<MenuActionStateSetAttributeDelete>::execute()
     return true;
 }
 
-bool actionHandlerImpl<MenuActionStateSetUniformValue>::execute()
+bool actionHandlerImpl<MenuActionStateSetUniformAdd>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    osg::Uniform::Type type = (osg::Uniform::Type)menuAction()->mode();
+    std::string name;
+    bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), name, "Name:", "Enter name of new uniform", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+    if(gotInput)
+        object->addUniform(new osg::Uniform(type, name, 1), osg::StateAttribute::OFF);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetUniformSet>::execute()
 {
     osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
     osg::ref_ptr<osg::Uniform> uniform = modeUserData<osg::Uniform>();
@@ -777,11 +826,58 @@ bool actionHandlerImpl<MenuActionStateSetUniformValue>::execute()
     return true;
 }
 
-bool actionHandlerImpl<MenuActionStateSetUniformDelete>::execute()
+bool actionHandlerImpl<MenuActionStateSetUniformRemove>::execute()
 {
     osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
     const ReferencedDataString * uniformName = userData<ReferencedDataString>();
     object->removeUniform(uniformName->data());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetDefineAdd>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    std::string name;
+    bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), name, "Name:", "Enter name of new define", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+    if(gotInput)
+        object->setDefine(name);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetDefineSet>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    const ReferencedDataString * defineName = userData<ReferencedDataString>();
+    const osg::StateSet::DefinePair* defpair = object->getDefinePair(defineName->data());
+    osg::StateAttribute::OverrideValue value = stateAttributeModeValueToOverrideValue((StateAttributeModeValue)menuAction()->mode());
+    object->setDefine(defineName->data(), defpair->first, value);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetDefineEdit>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    const ReferencedDataString * defineName = userData<ReferencedDataString>();
+    const osg::StateSet::DefinePair* defpair = object->getDefinePair(defineName->data());
+
+    std::string value = defpair->first;
+    bool ret;
+    ret = _hostInterface->inputDialogText(menu()->parentWidget(),
+                                             value,
+                                             "Value:", "Edit value for define " + defineName->data(),
+                                             SGIPluginHostInterface::InputDialogStringEncodingSystem,
+                                            _item
+                                            );
+    if(ret)
+        object->setDefine(defineName->data(), value, defpair->second);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetDefineRemove>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    const ReferencedDataString * defineName = userData<ReferencedDataString>();
+    object->removeDefine(defineName->data());
     return true;
 }
 

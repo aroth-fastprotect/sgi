@@ -4176,6 +4176,32 @@ void writePrettyHTMLStateSetUniformList(std::basic_ostream<char>& os, const SGII
     }
 }
 
+void writePrettyHTMLStateSetDefineList(std::basic_ostream<char>& os, const SGIItemOsg * item, unsigned index)
+{
+    osg::StateSet * object = static_cast<osg::StateSet*>(item->object());
+    const osg::StateSet::DefineList & defines = object->getDefineList();
+    if(!defines.empty())
+    {
+        os << "<ol>";
+        unsigned count = 0;
+        for(osg::StateSet::DefineList::const_iterator it = defines.begin(); it != defines.end(); it++, count++)
+        {
+            if(index == ~0u || index == count)
+            {
+                const std::string & name = it->first;
+                const std::string & value = it->second.first;
+                const osg::StateAttribute::OverrideValue & overridevalue = it->second.second;
+                os << "<li>" << name << '=' << value << " override=" << glOverrideValueName(overridevalue) << "</li>";
+            }
+        }
+        os << "</ol>";
+    }
+    else
+    {
+        os << "&lt;empty&gt;" << std::endl;
+    }
+}
+
 bool writePrettyHTMLImpl<osg::StateSet>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -4216,6 +4242,10 @@ bool writePrettyHTMLImpl<osg::StateSet>::process(std::basic_ostream<char>& os)
             writePrettyHTMLStateSetUniformList(os, item<SGIItemOsg>(), ~0u);
             os << "</td></tr>" << std::endl;
 
+            os << "<tr><td>defines</td><td>" << std::endl;
+            writePrettyHTMLStateSetDefineList(os, item<SGIItemOsg>(), ~0u);
+            os << "</td></tr>" << std::endl;
+
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
@@ -4239,6 +4269,10 @@ bool writePrettyHTMLImpl<osg::StateSet>::process(std::basic_ostream<char>& os)
         break;
     case SGIItemTypeStateSetUniformList:
         writePrettyHTMLStateSetUniformList(os, item<SGIItemOsg>(), _item->number());
+        ret = true;
+        break;
+    case SGIItemTypeStateSetDefineList:
+        writePrettyHTMLStateSetDefineList(os, item<SGIItemOsg>(), _item->number());
         ret = true;
         break;
     case SGIItemTypeCallbacks:
