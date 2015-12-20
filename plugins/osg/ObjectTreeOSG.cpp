@@ -703,10 +703,10 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
                         const osg::StateSet::ModeList & modeList = *it;
                         if (modeList.empty())
                         {
-                            SGIHostItemOsg modeItem = cloneItem<SGIItemOsg>(SGIItemTypeStateSetModeList, count);
+                            SGIItemBasePtr modeItem = cloneItem<SGIItemOsg>(SGIItemTypeStateSetModeList, count);
                             std::stringstream ss;
                             ss << "Unit #" << count << ": empty";
-                            treeItem->addChild(ss.str(), &modeItem);
+                            treeItem->addChild(ss.str(), modeItem.get());
                         }
                         else
                         {
@@ -715,10 +715,10 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
                                 const osg::StateAttribute::GLMode & mode = it2->first;
                                 const osg::StateAttribute::GLModeValue & value = it2->second;
 
-                                SGIHostItemOsg modeItem = cloneItem<SGIItemOsg>(SGIItemTypeStateSetModeList, count);
+                                SGIItemBasePtr modeItem = cloneItem<SGIItemOsg>(SGIItemTypeStateSetModeList, count);
                                 std::stringstream ss;
                                 ss << "Unit #" << count << ": " << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(mode) << "=" << glValueName(value);
-                                treeItem->addChild(ss.str(), &modeItem);
+                                treeItem->addChild(ss.str(), modeItem.get());
                             }
                         }
                     }
@@ -729,7 +729,32 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
         }
         break;
     case SGIItemTypeStateSetTextureModeList:
-        ret = true;
+        {
+            unsigned itemNumber = _item->number();
+            unsigned textureUnit = 0;
+            unsigned count = 0;
+            const osg::StateSet::TextureModeList & textureModeList = object->getTextureModeList();
+
+            for (osg::StateSet::TextureModeList::const_iterator it = textureModeList.begin(); it != textureModeList.end(); it++, textureUnit++)
+            {
+                if(itemNumber == ~0u || itemNumber == textureUnit)
+                {
+                    const osg::StateSet::ModeList & modeList = *it;
+                    for (osg::StateSet::ModeList::const_iterator it2 = modeList.begin(); it2 != modeList.end(); it2++)
+                    {
+                        const osg::StateAttribute::GLMode & mode = it2->first;
+                        const osg::StateAttribute::GLModeValue & value = it2->second;
+
+                        SGIItemBasePtr modeItem = cloneItem<SGIItemOsg>(SGIItemTypeStateSetTextureModeList, textureUnit);
+
+                        std::stringstream ss;
+                        ss << helpers::str_plus_number("Texture", textureUnit) << '/' << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(mode);
+                        treeItem->addChild(ss.str(), modeItem.get());
+                    }
+                }
+            }
+            ret = true;
+        }
         break;
     case SGIItemTypeStateSetUniformList:
         {
@@ -764,7 +789,7 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
                 const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
                 SGIHostItemOsg attrItem(attr.get());
                 std::stringstream ss;
-                ss << childNo << ':' << type << ' ' << attr->getName();
+                ss << '#' << member << ':' << type << ' ' << attr->getName();
                 treeItem->addChild(ss.str(), &attrItem);
             }
             ret = true;
@@ -775,33 +800,25 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
             unsigned itemNumber = _item->number();
             unsigned childNo = 0;
             const osg::StateSet::TextureAttributeList & textureAttributes = object->getTextureAttributeList();
-            if(itemNumber == ~0u)
+            for(osg::StateSet::TextureAttributeList::const_iterator it = textureAttributes.begin(); it != textureAttributes.end(); it++, childNo++)
             {
-                for(osg::StateSet::TextureAttributeList::const_iterator it = textureAttributes.begin(); it != textureAttributes.end(); it++, childNo++)
+                if(itemNumber == ~0u || childNo == itemNumber)
                 {
-                    treeItem->addChild(helpers::str_plus_count("TextureUnit", childNo), cloneItem<SGIItemOsg>(SGIItemTypeStateSetTextureAttributeLists, childNo));
-                }
-            }
-            else
-            {
-                for(osg::StateSet::TextureAttributeList::const_iterator it = textureAttributes.begin(); it != textureAttributes.end(); it++, childNo++)
-                {
-                    if(childNo == itemNumber)
+                    unsigned attrChildNo = 0;
+                    const osg::StateSet::AttributeList & attributes = *it;
+                    for(osg::StateSet::AttributeList::const_iterator it2 = attributes.begin(); it2 != attributes.end(); it2++, attrChildNo++)
                     {
-                        unsigned attrChildNo = 0;
-                        const osg::StateSet::AttributeList & attributes = *it;
-                        for(osg::StateSet::AttributeList::const_iterator it2 = attributes.begin(); it2 != attributes.end(); it2++, attrChildNo++)
-                        {
-                            const osg::StateAttribute::TypeMemberPair type = it2->first;
-                            const osg::StateSet::RefAttributePair & attrpair = it2->second;
-                            const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
-                            const osg::StateAttribute::OverrideValue & overrideValue = attrpair.second;
+                        const osg::StateAttribute::TypeMemberPair typepair = it2->first;
+                        const osg::StateAttribute::Type & type = typepair.first;
+                        const unsigned & member = typepair.second;
+                        const osg::StateSet::RefAttributePair & attrpair = it2->second;
+                        const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
+                        //const osg::StateAttribute::OverrideValue & overrideValue = attrpair.second;
 
-                            std::stringstream ss;
-                            ss << "Attribute#" << attrChildNo << '[' << type.first << ';' << type.second << ";ov=" << glOverrideValueName(overrideValue) << ']';
-                            SGIHostItemOsg attrItem(attr.get());
-                            treeItem->addChild(ss.str(), &attrItem);
-                        }
+                        std::stringstream ss;
+                        ss << '#' << member << ':' << type << ' ' << attr->getName();
+                        SGIHostItemOsg attrItem(attr.get());
+                        treeItem->addChild(ss.str(), &attrItem);
                     }
                 }
             }
@@ -3560,30 +3577,74 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
                 if(hostItem.hasObject())
                     treeItem->addChild(std::string(), &hostItem);
             }
-            osg::Geode * geode = osg_helpers::findTopMostNodeByName<osg::Geode>(node, "ImageGeode");
-            if(geode)
+            osg::Node * imageGeode = osg_helpers::findTopMostNodeByName<osg::Node>(node, "ImageGeode");
+            if(imageGeode)
             {
                 bool foundImage = false;
-                for(unsigned n = 0; n < geode->getNumDrawables(); ++n)
+                osg::Geode * geode = dynamic_cast<osg::Geode *>(node);
+#if OSG_VERSION_GREATER_OR_EQUAL(3,4,0)
+                osg::Geometry * geometry = dynamic_cast<osg::Geometry*>(node);
+                if(geometry)
                 {
-                    osg::Geometry * geom = geode->getDrawable(n)->asGeometry();
-                    if(geom)
+                    osg::StateSet * stateSet = geometry->getStateSet();
+                    if(stateSet)
                     {
-                        osg::StateSet * stateSet = geom->getStateSet();
-                        if(stateSet)
+                        osg::StateAttribute * attr = stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
+                        if(attr)
                         {
-                            osg::StateAttribute * attr = stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
-                            if(attr)
+                            osg::Texture * text = attr->asTexture();
+                            if(text)
                             {
-                                osg::Texture * text = attr->asTexture();
-                                if(text)
+                                for(unsigned imgno = 0; imgno < text->getNumImages(); ++imgno)
                                 {
-                                    for(unsigned imgno = 0; imgno < text->getNumImages(); ++imgno)
+                                    osg::Image * img = text->getImage(imgno);
+                                    if(img)
                                     {
-                                        osg::Image * img = text->getImage(imgno);
-                                        if(img)
+                                        SGIHostItemOsg hostItem(img);
+                                        treeItem->addChild(std::string(), &hostItem);
+                                        foundImage = true;
+                                    }
+                                }
+                                if(!foundImage)
+                                {
+                                    SGIHostItemOsg hostItem(text);
+                                    treeItem->addChild(std::string(), &hostItem);
+                                    foundImage = true;
+                                }
+                            }
+                        }
+                    }
+                }
+#endif // OSG_VERSION_GREATER_OR_EQUAL(3,4,0)
+                if(geode)
+                {
+                    for(unsigned n = 0; n < geode->getNumDrawables(); ++n)
+                    {
+                        osg::Geometry * geom = geode->getDrawable(n)->asGeometry();
+                        if(geom)
+                        {
+                            osg::StateSet * stateSet = geom->getStateSet();
+                            if(stateSet)
+                            {
+                                osg::StateAttribute * attr = stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
+                                if(attr)
+                                {
+                                    osg::Texture * text = attr->asTexture();
+                                    if(text)
+                                    {
+                                        for(unsigned imgno = 0; imgno < text->getNumImages(); ++imgno)
                                         {
-                                            SGIHostItemOsg hostItem(img);
+                                            osg::Image * img = text->getImage(imgno);
+                                            if(img)
+                                            {
+                                                SGIHostItemOsg hostItem(img);
+                                                treeItem->addChild(std::string(), &hostItem);
+                                                foundImage = true;
+                                            }
+                                        }
+                                        if(!foundImage)
+                                        {
+                                            SGIHostItemOsg hostItem(text);
                                             treeItem->addChild(std::string(), &hostItem);
                                             foundImage = true;
                                         }
@@ -3592,11 +3653,6 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
                             }
                         }
                     }
-                }
-                if(!foundImage)
-                {
-                    SGIHostItemOsg hostItem(geode);
-                    treeItem->addChild(std::string(), &hostItem);
                 }
             }
         }

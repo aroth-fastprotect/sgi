@@ -1586,7 +1586,7 @@ bool writePrettyHTMLImpl<osg::Geometry>::process(std::basic_ostream<char>& os)
             for(unsigned i = 0; i < numTexCoordArrays; i++)
             {
                 osg::Array * texcoords = object->getTexCoordArray(i);
-                os << "<li>" << osg_helpers::getObjectName(texcoords) << " (" << osg_helpers::getObjectTypename(texcoords) << ")</li>";
+                os << "<li>" << osg_helpers::getObjectNameAndType(texcoords, true) << "</li>";
             }
             os << "</ol>";
             ret = true;
@@ -1599,7 +1599,7 @@ bool writePrettyHTMLImpl<osg::Geometry>::process(std::basic_ostream<char>& os)
             for(unsigned i = 0; i < numPrimitiveSets; i++)
             {
                 osg::PrimitiveSet * primset = object->getPrimitiveSet(i);
-                os << "<li>" << osg_helpers::getObjectName(primset) << " (" << osg_helpers::getObjectTypename(primset) << ")</li>";
+                os << "<li>" << osg_helpers::getObjectNameAndType(primset, true) << "</li>";
             }
             os << "</ol>";
             ret = true;
@@ -5409,14 +5409,11 @@ bool writePrettyHTMLImpl<osg::NodeCallback>::process(std::basic_ostream<char>& o
             // add remaining NodeCallback properties
             os << "<tr><td>nested</td><td>";
 #if OSG_VERSION_GREATER_THAN(3,3,1)
-            const osg::Callback * nested = (object!=NULL)?object->getNestedCallback():NULL;
+            const osg::Callback * nested = object->getNestedCallback();
 #else
-            const osg::NodeCallback * nested = (object!=NULL)?object->getNestedCallback():NULL;
+            const osg::NodeCallback * nested = object->getNestedCallback();
 #endif
-            if(nested)
-                os << osg_helpers::getObjectName(nested) << " (" << osg_helpers::getObjectTypename(nested) << ")" << std::endl;
-            else
-                os << "&lt;null&gt;";
+            os << osg_helpers::getObjectNameAndType(nested);
             os << "</td></tr>" << std::endl;
             if(_table)
                 os << "</table>" << std::endl;
@@ -5800,6 +5797,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg::Array::T
     case osg::Array::Vec3dArrayType: os << "Vec3dArrayType"; break;
     case osg::Array::Vec4dArrayType: os << "Vec4dArrayType"; break;
     case osg::Array::MatrixArrayType: os << "MatrixArrayType"; break;
+    case osg::Array::MatrixdArrayType: os << "MatrixdArrayType"; break;
     default: os << (int)t; break;
     }
     return os;
@@ -5865,6 +5863,7 @@ bool writePrettyHTMLImpl<osg::Array>::process(std::basic_ostream<char>& os)
             default:
             case osg::Array::ArrayType:
             case osg::Array::MatrixArrayType:
+            case osg::Array::MatrixdArrayType:
                 os << "array type " << object->getType() << " not implemented";
                 break;
             case osg::Array::ByteArrayType: writeArrayDataImpl(int8_t); break;
@@ -5912,11 +5911,6 @@ bool writePrettyHTMLImpl<osg::IndexArray>::process(std::basic_ostream<char>& os)
 
             // add osg::Array properties first
             callNextHandler(os);
-
-            // remaining IndexArray properties
-            /// @todo add more IndexArray properties
-
-            /// @todo add array data here
 
             if(_table)
                 os << "</table>" << std::endl;

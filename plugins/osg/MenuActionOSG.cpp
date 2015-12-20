@@ -121,6 +121,11 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionUniformEdit)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionBufferDataEdit)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionBufferDirty)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionArrayDataEdit)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionArrayBinding)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionArrayNormalize)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionArrayPreserveDataType)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionArrayTrim)
+
 ACTION_HANDLER_IMPL_REGISTER(MenuActionLineWidthSet)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionLineStipplePattern)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionLineStippleFactor)
@@ -1303,6 +1308,34 @@ bool actionHandlerImpl<MenuActionArrayDataEdit>::execute()
         object->dirty();
     }
 
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionArrayBinding>::execute()
+{
+    osg::Array * object = getObject<osg::Array,SGIItemOsg>();
+    object->setBinding((osg::Array::Binding)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionArrayNormalize>::execute()
+{
+    osg::Array * object = getObject<osg::Array,SGIItemOsg>();
+    object->setNormalize(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionArrayPreserveDataType>::execute()
+{
+    osg::Array * object = getObject<osg::Array,SGIItemOsg>();
+    object->setPreserveDataType(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionArrayTrim>::execute()
+{
+    osg::Array * object = getObject<osg::Array,SGIItemOsg>();
+    object->trim();
     return true;
 }
 

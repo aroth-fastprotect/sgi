@@ -748,7 +748,22 @@ bool contextMenuPopulateImpl<osg::Array>::populate(IContextMenuItem * menuItem)
             if(manipulateMenu)
             {
                 manipulateMenu->addSimpleAction(MenuActionArrayDataEdit, "Modify data...", _item);
+                manipulateMenu->addSimpleAction(MenuActionArrayTrim, "Trim", _item);
             }
+
+            IContextMenuItem * bindingMenu = menuItem->addModeMenu(MenuActionArrayBinding, "Binding", _item, object->getBinding());
+            if(bindingMenu)
+            {
+                bindingMenu->addModeAction("Undefined", osg::Array::BIND_UNDEFINED);
+                bindingMenu->addModeAction("Off", osg::Array::BIND_OFF);
+                bindingMenu->addModeAction("Overall", osg::Array::BIND_OVERALL);
+                bindingMenu->addModeAction("Per primitive set", osg::Array::BIND_PER_PRIMITIVE_SET);
+                bindingMenu->addModeAction("Per vertix", osg::Array::BIND_PER_VERTEX);
+            }
+            menuItem->addBoolAction(MenuActionArrayNormalize, "Normalize", _item, object->getNormalize());
+            menuItem->addBoolAction(MenuActionArrayPreserveDataType, "Preserve data type", _item, object->getPreserveDataType());
+
+
         }
         break;
     default:

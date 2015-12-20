@@ -148,6 +148,10 @@ enum MenuAction {
 
     MenuActionUniformEdit,
     MenuActionArrayDataEdit,
+    MenuActionArrayBinding,
+    MenuActionArrayNormalize,
+    MenuActionArrayPreserveDataType,
+    MenuActionArrayTrim,
     MenuActionBufferDataEdit,
     MenuActionBufferDirty,
     MenuActionLineWidthSet,
@@ -281,6 +285,11 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionUniformEdit)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionBufferDataEdit)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionBufferDirty)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionArrayDataEdit)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionArrayBinding)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionArrayNormalize)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionArrayPreserveDataType)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionArrayTrim)
+
 ACTION_HANDLER_IMPL_DECLARE(MenuActionLineWidthSet)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionLineStipplePattern)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionLineStippleFactor)
