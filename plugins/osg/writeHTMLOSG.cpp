@@ -2384,6 +2384,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::St
     case osg::StateAttribute::HINT: os << "HINT"; break;
     case osg::StateAttribute::SAMPLEMASKI: os << "SAMPLEMASKI"; break;
     case osg::StateAttribute::PRIMITIVERESTARTINDEX: os << "PRIMITIVERESTARTINDEX"; break;
+    case osg::StateAttribute::CLIPCONTROL: os << "CLIPCONTROL"; break;
 
         /// osgFX namespace
     case osg::StateAttribute::VALIDATOR: os << "VALIDATOR"; break;
