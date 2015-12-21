@@ -84,6 +84,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="placeholderText">
+        <string>Enter coordinate (lat,lon,alt) or tile key (level/x/y)</string>
+       </property>
       </widget>
      </item>
      <item>
@@ -173,7 +176,9 @@
      <item>
       <widget class="QPushButton" name="reloadButton">
        <property name="icon">
-        <iconset theme="view-refresh"/>
+        <iconset theme="view-refresh">
+         <normaloff/>
+        </iconset>
        </property>
       </widget>
      </item>
@@ -300,8 +305,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>317</width>
-             <height>388</height>
+             <width>311</width>
+             <height>356</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_6">

@@ -67,6 +67,8 @@ enum MenuAction {
 
 	MenuActionLevelDBDatabaseRead,
 	MenuActionLevelDBDatabaseWrite,
+
+    MenuActionTileKeyAdd,
 };
 
 enum MapDebugImageLayer {
@@ -80,6 +82,16 @@ enum VirtualProgramInheritMode {
     VirtualProgramInheritModeUnspecified,
     VirtualProgramInheritModeEnabled,
     VirtualProgramInheritModeDisabled
+};
+
+enum TileKeyAddMode {
+    TileKeyAddModeUnknown = 0,
+    TileKeyAddModeParent,
+    TileKeyAddModeChildren,
+    TileKeyAddModeNeighborNorth,
+    TileKeyAddModeNeighborSouth,
+    TileKeyAddModeNeighborWest,
+    TileKeyAddModeNeighborEast,
 };
 
 MapDebugImageLayer getDebugImageLayer(const osgEarth::Map * object, osg::ref_ptr<osgEarth::ImageLayer> & imageLayer );
@@ -134,6 +146,8 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionImagePreviewRGBA)
 
 ACTION_HANDLER_IMPL_DECLARE(MenuActionLevelDBDatabaseRead)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionLevelDBDatabaseWrite)
+
+ACTION_HANDLER_IMPL_DECLARE(MenuActionTileKeyAdd)
 
 } // namespace osgearth_plugin
 } // namespace sgi

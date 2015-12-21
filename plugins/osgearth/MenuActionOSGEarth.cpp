@@ -26,6 +26,9 @@
 
 #include "osgearth_accessor.h"
 #include "SettingsDialogOSGEarth.h"
+#include "ElevationQueryReferenced"
+
+#include "TileInspectorDialog.h"
 
 #include <sgi/helpers/osg>
 #include <sgi/helpers/string>
@@ -86,6 +89,8 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionImagePreviewRGBA)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionLevelDBDatabaseRead)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionLevelDBDatabaseWrite)
+
+ACTION_HANDLER_IMPL_REGISTER(MenuActionTileKeyAdd)
 
 using namespace sgi::osg_helpers;
 
@@ -679,6 +684,52 @@ bool actionHandlerImpl<MenuActionLevelDBDatabaseWrite>::execute()
 		}
 	}
 	return true;
+}
+
+bool actionHandlerImpl<MenuActionTileKeyAdd>::execute()
+{
+    TileKeyReferenced * tk_data_ref = getObject<TileKeyReferenced, SGIItemOsg>();
+    TileSourceTileKey * tksrc_data_ref = getObject<TileSourceTileKey, SGIItemOsg>();
+
+    const osgEarth::TileKey & tilekey = (tk_data_ref)?tk_data_ref->data():tksrc_data_ref->data().tileKey;
+
+    typedef std::list<osgEarth::TileKey> TileKeyList;
+    TileKeyList tilekeylist;
+    switch(menuAction()->mode())
+    {
+    default:
+    case TileKeyAddModeUnknown:
+        break;
+    case TileKeyAddModeParent:
+        tilekeylist.push_back(tilekey.createParentKey());
+        break;
+    case TileKeyAddModeChildren:
+        for(unsigned q = 0; q < 4; ++q)
+            tilekeylist.push_back(tilekey.createChildKey(q));
+        break;
+    case TileKeyAddModeNeighborNorth:
+        tilekeylist.push_back(tilekey.createNeighborKey(0, -1));
+        break;
+    case TileKeyAddModeNeighborSouth:
+        tilekeylist.push_back(tilekey.createNeighborKey(0, +1));
+        break;
+    case TileKeyAddModeNeighborWest:
+        tilekeylist.push_back(tilekey.createNeighborKey(-1, 0));
+        break;
+    case TileKeyAddModeNeighborEast:
+        tilekeylist.push_back(tilekey.createNeighborKey(+1, 0));
+        break;
+    }
+    TileInspectorDialog* tileInspector = dynamic_cast<TileInspectorDialog*>(menu()->parentWidget());
+    if(tileInspector)
+    {
+        for(const osgEarth::TileKey & key : tilekeylist)
+        {
+            if(key.valid())
+                tileInspector->addTileKey(key);
+        }
+    }
+    return true;
 }
 
 } // namespace osgearth_plugin

@@ -11,6 +11,7 @@ QT_END_NAMESPACE
 namespace osgEarth {
     class TileSource;
     class TerrainLayer;
+    class TileKey;
 }
 
 namespace sgi {
@@ -60,6 +61,7 @@ public:
 		NUM_NEIGHBORS_PARENTAL,
 		NUM_NEIGHBORS_PARENTAL_AND_CHILDS,
     };
+    void                    addTileKey(const osgEarth::TileKey & key);
 protected:
     void                    triggerRepaint();
     SGIItemBase *           getView();

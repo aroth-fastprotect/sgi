@@ -54,6 +54,8 @@ CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgEarth::TileBlacklist)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgEarth::VirtualProgram)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgEarth::LevelDBDatabase)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(ElevationQueryReferenced)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(TileKeyReferenced)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(TileSourceTileKey)
 
 bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
 {
@@ -777,27 +779,6 @@ bool contextMenuPopulateImpl<osgEarth::TileBlacklist>::populate(IContextMenuItem
     return ret;
 }
 
-bool contextMenuPopulateImpl<ElevationQueryReferenced>::populate(IContextMenuItem * menuItem)
-{
-    ElevationQueryReferenced * query_ref = getObject<ElevationQueryReferenced, SGIItemOsg>();
-    osgEarth::ElevationQuery* object = query_ref->get();
-    bool ret = false;
-    switch(itemType())
-    {
-    case SGIItemTypeObject:
-        ret = callNextHandler(menuItem);
-        if(ret)
-        {
-            menuItem->addSimpleAction(MenuActionElevationQueryCustom, "Query...", _item);
-        }
-        break;
-    default:
-        ret = callNextHandler(menuItem);
-        break;
-    }
-    return ret;
-}
-
 bool contextMenuPopulateImpl<osgEarth::VirtualProgram>::populate(IContextMenuItem * menuItem)
 {
     osgEarth::VirtualProgram * object = getObject<osgEarth::VirtualProgram, SGIItemOsg>();
@@ -826,6 +807,85 @@ bool contextMenuPopulateImpl<osgEarth::VirtualProgram>::populate(IContextMenuIte
                 inheritMenu->addModeAction("Enabled", VirtualProgramInheritModeEnabled);
                 inheritMenu->addModeAction("Disabled", VirtualProgramInheritModeDisabled);
             }
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<ElevationQueryReferenced>::populate(IContextMenuItem * menuItem)
+{
+    ElevationQueryReferenced * query_ref = getObject<ElevationQueryReferenced, SGIItemOsg>();
+    osgEarth::ElevationQuery* object = query_ref->get();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if(ret)
+        {
+            menuItem->addSimpleAction(MenuActionElevationQueryCustom, "Query...", _item);
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+namespace {
+    void contextMenuPopulate_TileKey(IContextMenuItem * menuItem, SGIItemBase * item, const osgEarth::TileKey & tileKey)
+    {
+        IContextMenuItem * keyMenu = menuItem->addModeMenu(MenuActionTileKeyAdd, "Add Keys", item, -1);
+        if(keyMenu)
+        {
+            keyMenu->addModeAction("Parent", TileKeyAddModeParent);
+            keyMenu->addModeAction("Children", TileKeyAddModeChildren);
+            keyMenu->addModeAction("Neighbor North", TileKeyAddModeNeighborNorth);
+            keyMenu->addModeAction("Neighbor South", TileKeyAddModeNeighborSouth);
+            keyMenu->addModeAction("Neighbor West", TileKeyAddModeNeighborWest);
+            keyMenu->addModeAction("Neighbor East", TileKeyAddModeNeighborEast);
+        }
+    }
+}
+
+bool contextMenuPopulateImpl<TileKeyReferenced>::populate(IContextMenuItem * menuItem)
+{
+    TileKeyReferenced * data_ref = getObject<TileKeyReferenced, SGIItemOsg>();
+    const osgEarth::TileKey & object = data_ref->data();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if(ret)
+        {
+            contextMenuPopulate_TileKey(menuItem, _item.get(), object);
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<TileSourceTileKey>::populate(IContextMenuItem * menuItem)
+{
+    TileSourceTileKey * data_ref = getObject<TileSourceTileKey, SGIItemOsg>();
+    const TileSourceTileKeyData & object = data_ref->data();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if(ret)
+        {
+            contextMenuPopulate_TileKey(menuItem, _item.get(), object.tileKey);
         }
         break;
     default:

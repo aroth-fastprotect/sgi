@@ -384,6 +384,11 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
 	ui = new Ui_TileInspectorDialog;
 	ui->setupUi( this );
 
+#ifndef OSGEARTH_WITH_FAST_MODIFICATIONS
+    ui->updateMetaDataButton->hide();
+#endif
+    ui->coordinateStatus->setText(tr("No coordinate or tile key"));
+
     _treeRoot = new ObjectTreeItem(ui->treeWidget, _treeImpl.get(), _hostInterface);
 
     osgEarth::Map * map = getMap(_item.get());
@@ -1010,9 +1015,9 @@ void TileInspectorDialog::loadData()
                 osgEarth::TileSource * tileSource = data.tileSource;
 				std::string ext = tileSource->getExtension();
 				bool isImageTileSource = true;
-				if (ext.compare("osgb"))
+				if (ext.compare("osgb") == 0 || ext.compare("ive") == 0)
 					isImageTileSource = (tileSource->getPixelsPerTile() >= 64);
-				else if (ext.compare("tif"))
+				else if (ext.compare("tif") == 0)
 					isImageTileSource = false;
 
 				if (isImageTileSource)
@@ -1069,27 +1074,54 @@ void TileInspectorDialog::takePositionFromCamera()
 		{
 			view = dynamic_cast<osgViewer::View*>(camera->getView());
 			camera->getViewMatrixAsLookAt(eye, center, up);
+
+            osg::Vec3d lookdir = center - eye;
+            lookdir.normalize();
+            osg::Vec3d start = eye;
+            osg::Vec3d end = eye + (lookdir * osg::WGS_84_RADIUS_EQUATOR * 100);
+            osg::ref_ptr<osgUtil::LineSegmentIntersector> isector = new osgUtil::LineSegmentIntersector(start, end);
+
+            osgUtil::IntersectionVisitor intersectVisitor(isector.get());
+            mapnode->accept(intersectVisitor);
+            if (isector->containsIntersections())
+            {
+                const osgUtil::LineSegmentIntersector::Intersection & first = isector->getFirstIntersection();
+                osgEarth::GeoPoint geopt;
+                geopt.fromWorld(mapnode->getMapSRS()->getECEF(), first.getWorldIntersectPoint());
+                osgEarth::GeoPoint geoptMap = geopt.transform(mapnode->getMapSRS());
+
+                ui->coordinate->setText(QString("%1,%2,%3").arg(geoptMap.y()).arg(geoptMap.x()).arg(geoptMap.z()));
+            }
+            else
+            {
+                ui->coordinateStatus->setText(tr("No intersections with MapNode"));
+            }
 		}
+        else
+        {
+            ui->coordinateStatus->setText(tr("No camera found"));
+        }
 
-		osg::Vec3d lookdir = center - eye;
-		lookdir.normalize();
-		osg::Vec3d start = eye;
-		osg::Vec3d end = eye + (lookdir * osg::WGS_84_RADIUS_EQUATOR * 100);
-		osg::ref_ptr<osgUtil::LineSegmentIntersector> isector = new osgUtil::LineSegmentIntersector(start, end);
-
-		osgUtil::IntersectionVisitor intersectVisitor(isector.get());
-		mapnode->accept(intersectVisitor);
-		if (isector->containsIntersections())
-		{
-			const osgUtil::LineSegmentIntersector::Intersection & first = isector->getFirstIntersection();
-			osgEarth::GeoPoint geopt;
-			geopt.fromWorld(mapnode->getMapSRS()->getECEF(), first.getWorldIntersectPoint());
-			osgEarth::GeoPoint geoptMap = geopt.transform(mapnode->getMapSRS());
-
-			ui->coordinate->setText(QString("%1,%2,%3").arg(geoptMap.y()).arg(geoptMap.x()).arg(geoptMap.z()));
-		}
 	}
+    else
+    {
+        ui->coordinateStatus->setText(tr("No MapNode available"));
+    }
+}
 
+void TileInspectorDialog::addTileKey(const osgEarth::TileKey& key)
+{
+    int index = ui->layer->currentIndex();
+    QVariant itemdata = ui->layer->itemData(index);
+    QtSGIItem qitem = itemdata.value<QtSGIItem>();
+    SGIItemOsg * item = (SGIItemOsg *)qitem.item();
+    osgEarth::TileSource * tileSource = getTileSource(item);
+    if(!tileSource)
+        return;
+
+    TileSourceTileKeyData data(tileSource, key);
+    SGIHostItemOsg tskey(new TileSourceTileKey(data));
+    _treeRoot->addChild(std::string(), &tskey);
 }
 
 } // namespace osgearth_plugin

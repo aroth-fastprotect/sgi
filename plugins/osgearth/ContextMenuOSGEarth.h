@@ -17,6 +17,7 @@ namespace osgEarth {
     class MaskLayer;
     class TileSource;
     class TileBlacklist;
+    class TileKey;
     class VirtualProgram;
     class ElevationQuery;
 	class LevelDBDatabase;
@@ -36,6 +37,9 @@ namespace sgi {
 namespace osgearth_plugin {
 
 typedef ReferencedRawPtrT<osgEarth::ElevationQuery> ElevationQueryReferenced;
+typedef ReferencedDataT<osgEarth::TileKey> TileKeyReferenced;
+struct TileSourceTileKeyData;
+typedef ReferencedDataT<TileSourceTileKeyData> TileSourceTileKey;
 
 class NamedViewpoint : public osgEarth::Viewpoint
 {
@@ -101,6 +105,8 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::TileBlacklist)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::VirtualProgram)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::LevelDBDatabase)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(ElevationQueryReferenced)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE(TileKeyReferenced)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE(TileSourceTileKey)
 
 } // namespace osgearth_plugin
 } // namespace sgi
