@@ -513,8 +513,11 @@ public:
     virtual ~ContextMenuQtImpl()
         { 
 			qDebug() << "ContextMenuQtImpl::dtor" << _menu; 
-			_menu->_interface = NULL;
-			delete _menu;
+            if (_menu)
+            {
+                _menu->_interface = NULL;
+                delete _menu;
+            }
 		}
 
     virtual QMenu *                 getMenu() override { return _menu->getMenu(); }
