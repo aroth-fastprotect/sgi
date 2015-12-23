@@ -347,9 +347,9 @@ bool objectTreeBuildImpl<osgEarth::Registry>::build(IObjectTreeItem * treeItem)
                 treeItem->addChild("Capabilities", &capabilities);
 
 			{
-				std::vector<osgEarth::LevelDBDatabasePtr> databases;
-				osgEarth::LevelDBFactory::getActiveDatabases(databases);
-				if (!databases.empty())
+                osgEarth::LevelDBDatabasePairList databases;
+                osgEarth::LevelDBFactory::getDatabases(databases, false);
+                if (!databases.empty())
 					treeItem->addChild(helpers::str_plus_count("LevelDB", databases.size()), cloneItem<SGIItemOsg>(SGIItemTypeDatabases));
 			}
 		}
@@ -368,14 +368,16 @@ bool objectTreeBuildImpl<osgEarth::Registry>::build(IObjectTreeItem * treeItem)
         break;
 	case SGIItemTypeDatabases:
 		{
-			std::vector<osgEarth::LevelDBDatabasePtr> databases;
-			osgEarth::LevelDBFactory::getActiveDatabases(databases);
-			for(const osgEarth::LevelDBDatabasePtr & db : databases)
-			{
-				SGIHostItemOsg item(db.get());
-				osgEarth::URI uri = db->rootPath();
-				treeItem->addChild(uri.full(), &item);
-			}
+            osgEarth::LevelDBDatabasePairList databases;
+            osgEarth::LevelDBFactory::getDatabases(databases, false);
+            for (const osgEarth::LevelDBDatabasePair & pair : databases)
+            {
+                SGIHostItemOsg item(pair.second.get());
+                if (item.hasObject())
+                    treeItem->addChild(pair.first, &item);
+                else
+                    treeItem->addChild(pair.first, (sgi::SGIItemBase*)NULL);
+            }
 			ret = true;
 		}
 		break;

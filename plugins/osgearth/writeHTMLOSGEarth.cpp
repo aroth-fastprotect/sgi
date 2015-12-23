@@ -195,13 +195,22 @@ bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& 
 		break;
 	case SGIItemTypeDatabases:
 		{
-			std::vector<osgEarth::LevelDBDatabasePtr> databases;
-			osgEarth::LevelDBFactory::getActiveDatabases(databases);
+            osgEarth::LevelDBDatabasePairList databases;
+			osgEarth::LevelDBFactory::getDatabases(databases, false);
 			os << databases.size() << " databases<br/>" << std::endl;
 			os << "<ul>";
-			for (const osgEarth::LevelDBDatabasePtr & db : databases)
+			for (const osgEarth::LevelDBDatabasePair & pair : databases)
 			{
-				os << "<li>" << (void*)db->_db << " " << db->created() << "</li>" << std::endl;
+                os << "<li>" << pair.first << ": ";
+                if (pair.second.valid())
+                {
+                    os << (void*)pair.second->_db << " " << pair.second->created();
+                }
+                else
+                {
+                    os << "NULL";
+                }
+                os << "</li>" << std::endl;
 			}
 			os << "</ul>" << std::endl;
 
