@@ -2784,6 +2784,21 @@ bool writePrettyHTMLImpl<osg::PolygonOffset>::process(std::basic_ostream<char>& 
     return ret;
 }
 
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Material::ColorMode & t)
+{
+    switch (t)
+    {
+    case osg::Material::AMBIENT: os << "AMBIENT"; break;
+    case osg::Material::DIFFUSE: os << "DIFFUSE"; break;
+    case osg::Material::SPECULAR: os << "SPECULAR"; break;
+    case osg::Material::EMISSION: os << "EMISSION"; break;
+    case osg::Material::AMBIENT_AND_DIFFUSE: os << "AMBIENT_AND_DIFFUSE"; break;
+    case osg::Material::OFF: os << "OFF"; break;
+    default: os << (int)t; break;
+    }
+    return os;
+}
 bool writePrettyHTMLImpl<osg::Material>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -2799,7 +2814,7 @@ bool writePrettyHTMLImpl<osg::Material>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add remaining Material properties
-            os << "<tr><td>color mode</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getColorMode()) << "</td></tr>" << std::endl;
+            os << "<tr><td>color mode</td><td>" << object->getColorMode() << "</td></tr>" << std::endl;
 
             osg::Material::Face faces[3] = { osg::Material::FRONT, osg::Material::BACK, osg::Material::FRONT_AND_BACK };
             const char * faceNames[3] = { "front", "back", "front+back" };

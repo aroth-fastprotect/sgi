@@ -218,7 +218,7 @@ namespace {
         IContextMenuItem * childMenu = menuItem->addModeMenu(MenuActionStateSetModeSet, name, item, currentMode, new ReferencedDataInt(mode));
         buildStateAttributeOverrideMenu(childMenu);
         childMenu->addSeparator();
-        childMenu->addSimpleAction(MenuActionStateSetTextureModeRemove, "Remove", item, new ReferencedDataInt(mode));
+        childMenu->addSimpleAction(MenuActionStateSetModeRemove, "Remove", item, new ReferencedDataInt(mode));
         return childMenu;
     }
 }
