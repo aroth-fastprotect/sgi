@@ -138,6 +138,5 @@ osgEarth::TileKey tileKeyFromString(const QString & input, const osgEarth::Profi
 CoordinateResult coordinateFromString(const QString & input, const osgEarth::Profile * profile, int inputLod, bool * ok);
 CoordinateResult coordinateFromString(QLineEdit * lineEdit, const osgEarth::Profile * profile, int inputLod, bool * ok);
 
-
 	} // namespace osgearth_plugin
 } // namespace sgi

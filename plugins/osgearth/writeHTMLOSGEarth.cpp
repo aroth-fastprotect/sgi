@@ -3,6 +3,7 @@
 #include "writeHTMLOSGEarth.h"
 #include <sgi/plugins/SGIItemOsg>
 #include <sgi/helpers/osg>
+#include <sgi/helpers/string>
 
 #include "string_helpers.h"
 
@@ -75,6 +76,7 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::SpatialReference)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Profile)
 
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::TileSource)
+WRITE_PRETTY_HTML_IMPL_REGISTER(TileSourceInfo)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::ModelSource)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::VirtualProgram)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::TileBlacklist)
@@ -1346,6 +1348,81 @@ bool writePrettyHTMLImpl<osgEarth::TileSource>::process(std::basic_ostream<char>
 			os << "<p>union: " << object->getDataExtentsUnion() << "</p>" << std::endl;
 			ret = true;
 		}
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<TileSourceInfo>::process(std::basic_ostream<char>& os)
+{
+    TileSourceInfo * object = dynamic_cast<TileSourceInfo*>(item<SGIItemOsg>()->object());
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add Object properties first
+            callNextHandler(os);
+
+            os << "<tr><td>driver</td><td>" << object->driver() << "</td></tr>" << std::endl;
+            os << "<tr><td>url</td><td>" << object->url() << "</td></tr>" << std::endl;
+            os << "<tr><td>path</td><td>" << object->path() << "</td></tr>" << std::endl;
+            os << "<tr><td>infoURI</td><td>" << object->infoURI() << "</td></tr>" << std::endl;
+            os << "<tr><td>creationTime</td><td>" << object->creationTime() << "</td></tr>" << std::endl;
+            os << "<tr><td>modificationTime</td><td>" << object->modificationTime() << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeInfo:
+        {
+            if(object->rawData().empty())
+                os << "<i>empty</i>";
+            else
+                os << "<pre>" << object->rawData().toJSON(true) << "</pre>";
+            ret = true;
+        }
+        break;
+    case SGIItemTypeChangeset:
+        {
+            const osgEarth::ConfigSet & changesets = object->changesets();
+            if(_item->number() == ~0u)
+            {
+                os << "<table border=\'1\' align=\'left\'>" << std::endl;
+
+                unsigned num = 0;
+                for(osgEarth::ConfigSet::const_iterator it = changesets.begin(); it != changesets.end(); ++it, ++num)
+                {
+                    const osgEarth::Config & cfg = *it;
+                    std::string name = (cfg.key().empty())?helpers::str_plus_count("Changeset", num):cfg.key();
+                    os << "<tr><td>" << name << "</td><td><pre>" << cfg.toJSON(true) << "</pre></td></tr>";
+                }
+                os << "</table>" << std::endl;
+            }
+            else
+            {
+                unsigned num = 0;
+                for(osgEarth::ConfigSet::const_iterator it = changesets.begin(); it != changesets.end(); ++it, ++num)
+                {
+                    const osgEarth::Config & cfg = *it;
+                    if(num == _item->number())
+                    {
+                        std::string name = (cfg.key().empty())?helpers::str_plus_count("Changeset", num):cfg.key();
+                        os << "<b>" << name << "</b><br/><pre>" << cfg.toJSON(true) << "</pre>";
+                        break;
+                    }
+                }
+            }
+            ret = true;
+        }
         break;
     default:
         ret = callNextHandler(os);

@@ -38,6 +38,8 @@ enum SGIItemType_osgearth
 	SGIItemTypeBlacklist,
 	SGIItemTypeExtensions,
 	SGIItemTypeDatabases,
+    SGIItemTypeChangeset,
+    SGIItemTypeInfo,
 };
 
 class SGIItemEarthConfig : public SGIItemBase

@@ -103,6 +103,7 @@ typedef ReferencedRawPtrT<osgEarth::ElevationQuery> ElevationQueryReferenced;
 typedef ReferencedDataT<osgEarth::TileKey> TileKeyReferenced;
 struct TileSourceTileKeyData;
 typedef ReferencedDataT<TileSourceTileKeyData> TileSourceTileKey;
+class TileSourceInfo;
 
 WRITE_PRETTY_HTML_IMPL_TEMPLATE()
 
@@ -128,6 +129,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::SpatialReference)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Profile)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::TileSource)
+WRITE_PRETTY_HTML_IMPL_DECLARE(TileSourceInfo)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::ModelSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::VirtualProgram)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::TileBlacklist)

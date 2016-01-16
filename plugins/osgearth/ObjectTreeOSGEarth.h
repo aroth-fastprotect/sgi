@@ -62,6 +62,7 @@ typedef ReferencedRawPtrT<osgEarth::ElevationQuery> ElevationQueryReferenced;
 typedef ReferencedDataT<osgEarth::TileKey> TileKeyReferenced;
 struct TileSourceTileKeyData;
 typedef ReferencedDataT<TileSourceTileKeyData> TileSourceTileKey;
+class TileSourceInfo;
 
 OBJECT_TREE_BUILD_IMPL_TEMPLATE()
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::MapNode)
@@ -86,6 +87,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::MaskLayer)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::Terrain)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::TerrainEngineNode)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::TileSource)
+OBJECT_TREE_BUILD_IMPL_DECLARE(TileSourceInfo)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::TileBlacklist)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::ModelSource)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgEarth::MaskSource)

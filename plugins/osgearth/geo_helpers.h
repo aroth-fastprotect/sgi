@@ -2,6 +2,11 @@
 
 #include <osgEarth/GeoData>
 
+namespace osgEarth {
+    class TileSource;
+    class DateTime;
+}
+
 namespace sgi {
 namespace osgearth_plugin {
 
@@ -48,6 +53,30 @@ private:
     class MapDownloadPrivate;
     MapDownloadPrivate * d;
 };
+
+class TileSourceInfo : public osg::Referenced
+{
+public:
+    TileSourceInfo(const osgEarth::TileSource * ts);
+    ~TileSourceInfo();
+
+    void refresh();
+
+    const std::string & driver() const;
+    const osgEarth::URI & url() const;
+    const osgEarth::URI & path() const;
+    const osgEarth::URI & infoURI() const;
+    const osgEarth::Config & rawData() const;
+
+    const osgEarth::ConfigSet & changesets() const;
+    const osgEarth::DateTime & creationTime() const;
+    const osgEarth::DateTime & modificationTime() const;
+
+private:
+    class TileSourceInfoPrivate;
+    TileSourceInfoPrivate * d;
+};
+
 
 } // namespace osgearth_plugin
 } // namespace sgi

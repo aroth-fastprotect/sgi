@@ -41,6 +41,7 @@
 
 #include "osgearth_accessor.h"
 #include "ElevationQueryReferenced"
+#include "geo_helpers.h"
 
 namespace sgi {
 
@@ -69,6 +70,7 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::MaskLayer)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::Terrain)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::TerrainEngineNode)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::TileSource)
+OBJECT_TREE_BUILD_IMPL_REGISTER(TileSourceInfo)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::TileBlacklist)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::ModelSource)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgEarth::MaskSource)
@@ -955,12 +957,17 @@ bool objectTreeBuildImpl<osgEarth::TileSource>::build(IObjectTreeItem * treeItem
             if(blacklist.hasObject())
                 treeItem->addChild("Blacklist", &blacklist);
 
-            SGIHostItemOsgEarthConfigOptions runtimeOptions(object->getOptions());
+            const osgEarth::TileSourceOptions & tileSourceOpts = object->getOptions();
+            SGIHostItemOsgEarthConfigOptions runtimeOptions(tileSourceOpts);
             treeItem->addChild("Runtime Options", &runtimeOptions);
 
             const osgEarth::DataExtentList& dataExtents = object->getDataExtents();
             if(!dataExtents.empty())
                 treeItem->addChild(helpers::str_plus_count("Data extents", dataExtents.size()), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents, ~0u));
+
+            osg::ref_ptr<TileSourceInfo> tsi = new TileSourceInfo(object);
+            SGIHostItemOsg tsiitem(tsi.get());
+            treeItem->addChild("Info", &tsiitem);
         }
         break;
     case SGIItemTypeDataExtents:
@@ -977,6 +984,46 @@ bool objectTreeBuildImpl<osgEarth::TileSource>::build(IObjectTreeItem * treeItem
             }
             ret = true;
         }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<TileSourceInfo>::build(IObjectTreeItem * treeItem)
+{
+    TileSourceInfo * object = getObject<TileSourceInfo, SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            treeItem->addChild(helpers::str_plus_count("Changesets", object->changesets().size()), cloneItem<SGIItemOsg>(SGIItemTypeChangeset, ~0u));
+            treeItem->addChild("Info", cloneItem<SGIItemOsg>(SGIItemTypeInfo, ~0u));
+        }
+        break;
+    case SGIItemTypeChangeset:
+        {
+            if(_item->number() == ~0u)
+            {
+                const osgEarth::ConfigSet & changesets = object->changesets();
+                unsigned num = 0;
+                for(osgEarth::ConfigSet::const_iterator it = changesets.begin(); it != changesets.end(); ++it, ++num)
+                {
+                    const osgEarth::Config & cfg = *it;
+                    std::string name = (cfg.key().empty())?helpers::str_plus_count("Changeset", num):cfg.key();
+                    treeItem->addChild(name, cloneItem<SGIItemOsg>(SGIItemTypeChangeset, num));
+                }
+            }
+            ret = true;
+        }
+        break;
+    case SGIItemTypeInfo:
+        ret = true;
         break;
     default:
         ret = callNextHandler(treeItem);

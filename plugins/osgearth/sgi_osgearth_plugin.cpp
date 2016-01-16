@@ -64,6 +64,7 @@
 #include <osgEarthDrivers/gdal/GDALOptions>
 
 #include "ElevationQueryReferenced"
+#include "geo_helpers.h"
 
 namespace sgi {
 namespace osgearth_plugin {
@@ -97,7 +98,8 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
 																 osgEarth::Features::FeatureCursor, osgEarth::Features::FeatureProfile,
                                                                  ElevationQueryReferenced,
                                                                  TileKeyReferenced,
-                                                                 TileSourceTileKey
+                                                                 TileSourceTileKey,
+                                                                 TileSourceInfo
                                                                 ))
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(osgEarth::Cache, osgEarth::TileSource, osgEarth::ModelSource,
