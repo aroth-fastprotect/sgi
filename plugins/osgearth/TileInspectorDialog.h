@@ -60,6 +60,7 @@ public:
         NUM_NEIGHBORS_IMMEDIATE,
 		NUM_NEIGHBORS_PARENTAL,
 		NUM_NEIGHBORS_PARENTAL_AND_CHILDS,
+        NUM_NEIGHBORS_CHILDS,
     };
     void                    addTileKey(const osgEarth::TileKey & key);
 protected:

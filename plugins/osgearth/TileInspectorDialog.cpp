@@ -113,6 +113,18 @@ namespace {
 					addTileKeyChilds(set, tilekey);
 				}
 				break;
+            case TileInspectorDialog::NUM_NEIGHBORS_CHILDS:
+                {
+                    set.insert(tilekey);
+                    osgEarth::TileKey t = tilekey.createParentKey();
+                    while (t.valid())
+                    {
+                        set.insert(t);
+                        t = t.createParentKey();
+                    }
+                    addTileKeyChilds(set, tilekey);
+                }
+                break;
 		}
         for(TileKeySet::const_iterator it = set.begin(); it != set.end(); it++)
             list.push_back(*it);
@@ -435,6 +447,7 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
     ui->numNeighbors->addItem(tr("None"), QVariant(NUM_NEIGHBORS_NONE) );
     ui->numNeighbors->addItem(tr("Cross (4)"), QVariant(NUM_NEIGHBORS_CROSS) );
     ui->numNeighbors->addItem(tr("Immediate (9)"), QVariant(NUM_NEIGHBORS_IMMEDIATE) );
+    ui->numNeighbors->addItem(tr("Childs"), QVariant(NUM_NEIGHBORS_CHILDS));
 	ui->numNeighbors->addItem(tr("Parental"), QVariant(NUM_NEIGHBORS_PARENTAL));
 	ui->numNeighbors->addItem(tr("Parental&Childs"), QVariant(NUM_NEIGHBORS_PARENTAL_AND_CHILDS));
 
