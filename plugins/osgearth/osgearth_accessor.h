@@ -260,11 +260,18 @@ namespace osgearth_plugin {
         const osgEarth::Profile* getProfile() const { return ((DataAccess*)this)->_mapf.getProfile(); }
     };
 
-
     class TileBlacklistAccess : public osgEarth::TileBlacklist
     {
     public:
+        typedef std::set<osgEarth::TileKey> TileKeySet;
 
+#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
+        void getTileKeySet(TileKeySet & ts)
+        {
+            osgEarth::Threading::ScopedReadLock lock(_mutex);
+            ts = _tiles;
+        }
+#endif
     };
 
     class CacheAccess : public osgEarth::Cache

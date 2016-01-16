@@ -155,6 +155,47 @@ void MapDownload::addCoordinates(const GeoPointList & points, EntityType type)
     d->coordinateSets.push_back(s);
 }
 
+void MapDownload::addCoordinates(const TileKeyList & points)
+{
+    for(const osgEarth::TileKey & tk : points)
+    {
+        MapDownload::MapDownloadPrivate::CoordinateSet s;
+        const osgEarth::GeoExtent & ge = tk.getExtent();
+
+        NamedGeoPoint nw(tk.str(), osgEarth::GeoPoint(ge.getSRS(), ge.north(), ge.west()));
+        NamedGeoPoint ne(tk.str(), osgEarth::GeoPoint(ge.getSRS(), ge.north(), ge.east()));
+        NamedGeoPoint sw(tk.str(), osgEarth::GeoPoint(ge.getSRS(), ge.south(), ge.west()));
+        NamedGeoPoint se(tk.str(), osgEarth::GeoPoint(ge.getSRS(), ge.south(), ge.east()));
+        s.coordinates.push_back(nw);
+        s.coordinates.push_back(ne);
+        s.coordinates.push_back(se);
+        s.coordinates.push_back(sw);
+        s.coordinates.push_back(nw);
+        s.type = Polygon;
+        d->coordinateSets.push_back(s);
+    }
+}
+
+void MapDownload::addCoordinates(const DataExtentList & points)
+{
+    for(const osgEarth::DataExtent & de : points)
+    {
+        MapDownload::MapDownloadPrivate::CoordinateSet s;
+
+        NamedGeoPoint nw("NW", osgEarth::GeoPoint(de.getSRS(), de.north(), de.west()));
+        NamedGeoPoint ne("NE", osgEarth::GeoPoint(de.getSRS(), de.north(), de.east()));
+        NamedGeoPoint sw("SW", osgEarth::GeoPoint(de.getSRS(), de.south(), de.west()));
+        NamedGeoPoint se("SE", osgEarth::GeoPoint(de.getSRS(), de.south(), de.east()));
+        s.coordinates.push_back(nw);
+        s.coordinates.push_back(ne);
+        s.coordinates.push_back(se);
+        s.coordinates.push_back(sw);
+        s.coordinates.push_back(nw);
+        s.type = Polygon;
+        d->coordinateSets.push_back(s);
+    }
+}
+
 std::string MapDownload::getUrl() const
 {
     std::string ret;
@@ -203,6 +244,7 @@ std::string MapDownload::getUrl() const
             }
             break;
         case Line:
+        case Polygon:
             csetStr += "&path=color:0x0000ff|weight:5";
             for(MapDownload::NamedGeoPointList::const_iterator it = set.coordinates.begin(); it != set.coordinates.end(); it++)
             {
@@ -249,6 +291,38 @@ std::string MapDownload::getUrl(const NamedGeoPointList & points, bool satelite,
 {
     MapDownload dl(satelite?GoogleSatelite:GoogleRoadmap, width, height);
     dl.addCoordinates(points, (markers)?Point:Line);
+    return dl.getUrl();
+}
+
+std::string MapDownload::getUrl(const TileKeyList & points, bool satelite, int width, int height)
+{
+    MapDownload dl(satelite?GoogleSatelite:GoogleRoadmap, width, height);
+    dl.addCoordinates(points);
+    return dl.getUrl();
+}
+
+std::string MapDownload::getUrl(const osgEarth::TileKey & tk, bool satelite, int width, int height)
+{
+    MapDownload dl(satelite?GoogleSatelite:GoogleRoadmap, width, height);
+    TileKeyList points(1);
+    points[0] = tk;
+    dl.addCoordinates(points);
+    return dl.getUrl();
+}
+
+std::string MapDownload::getUrl(const DataExtentList & points, bool satelite, int width, int height)
+{
+    MapDownload dl(satelite?GoogleSatelite:GoogleRoadmap, width, height);
+    dl.addCoordinates(points);
+    return dl.getUrl();
+}
+
+std::string MapDownload::getUrl(const osgEarth::DataExtent & de, bool satelite, int width, int height)
+{
+    MapDownload dl(satelite?GoogleSatelite:GoogleRoadmap, width, height);
+    DataExtentList points;
+    points.push_back(de);
+    dl.addCoordinates(points);
     return dl.getUrl();
 }
 

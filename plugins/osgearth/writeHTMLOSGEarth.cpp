@@ -1207,13 +1207,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
 
 void writePrettyHTML(std::basic_ostream<char>& os, const osgEarth::DataExtent & ext, bool table)
 {
-    MapDownload::NamedGeoPointList coords;
-    coords.push_back(MapDownload::NamedGeoPoint("A", osgEarth::GeoPoint(ext.getSRS(), osg::Vec3d(ext.north(), ext.west(), 0), osgEarth::ALTMODE_ABSOLUTE)));
-    coords.push_back(MapDownload::NamedGeoPoint("B", osgEarth::GeoPoint(ext.getSRS(), osg::Vec3d(ext.north(), ext.east(), 0), osgEarth::ALTMODE_ABSOLUTE)));
-    coords.push_back(MapDownload::NamedGeoPoint("C", osgEarth::GeoPoint(ext.getSRS(), osg::Vec3d(ext.south(), ext.east(), 0), osgEarth::ALTMODE_ABSOLUTE)));
-    coords.push_back(MapDownload::NamedGeoPoint("D", osgEarth::GeoPoint(ext.getSRS(), osg::Vec3d(ext.south(), ext.west(), 0), osgEarth::ALTMODE_ABSOLUTE)));
-    std::string mapUrl = MapDownload::getUrl(coords);
-
+    std::string mapUrl = MapDownload::getUrl(ext);
     if(table)
     {
         os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
@@ -1722,6 +1716,7 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
 bool writePrettyHTMLImpl<osgEarth::TileBlacklist>::process(std::basic_ostream<char>& os)
 {
     osgEarth::TileBlacklist * object = dynamic_cast<osgEarth::TileBlacklist*>(item<SGIItemOsg>()->object());
+    TileBlacklistAccess * access = static_cast<TileBlacklistAccess*>(object);
     bool ret = false;
     switch(itemType())
     {
@@ -1735,6 +1730,37 @@ bool writePrettyHTMLImpl<osgEarth::TileBlacklist>::process(std::basic_ostream<ch
 
             // add remaining TileSource properties
             os << "<tr><td>size</td><td>" << object->size() << "</td></tr>" << std::endl;
+            os << "<tr><td>tiles</td><td><ul>";
+
+
+#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
+            os << "<tr><td>tiles</td><td>";
+            TileBlacklistAccess::TileKeySet tiles;
+            access->getTileKeySet(tiles);
+
+            const int max_level = 35;
+            MapDownload::TileKeyList tiles_per_level[max_level];
+            for(const osgEarth::TileKey & tilekey : tiles)
+            {
+                tiles_per_level[tilekey.getLOD()].push_back(tilekey);
+            }
+
+            for(unsigned level = 0; level < max_level; ++level)
+            {
+                if(!tiles_per_level[level].empty())
+                {
+                    os << "<a href=\"" << MapDownload::getUrl(tiles_per_level[level]) << "\">Level " << level << " Preview</a><br/>";
+                }
+            }
+
+            os << "<ul>";
+            for(const osgEarth::TileKey & tilekey : tiles)
+            {
+                os << "<li>" << tilekey << "&nbsp;<a href=\"" << MapDownload::getUrl(tilekey) << "\">Preview</a></li>";
+            }
+            os << "</ul></td></tr>" << std::endl;
+
+#else
             os << "<tr><td>tiles</td><td><ul>";
             std::stringstream oss;
             object->write(oss);
@@ -1753,6 +1779,7 @@ bool writePrettyHTMLImpl<osgEarth::TileBlacklist>::process(std::basic_ostream<ch
             if(lastpos != tilelist.end())
                 os << "<li>" << std::string(lastpos, tilelist.end()) << "</li>";
             os << "</ul></td></tr>" << std::endl;
+#endif
 
             if(_table)
                 os << "</table>" << std::endl;
