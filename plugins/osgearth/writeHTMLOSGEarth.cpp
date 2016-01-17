@@ -1901,6 +1901,44 @@ bool writePrettyHTMLImpl<TileKeyReferenced>::process(std::basic_ostream<char>& o
     return ret;
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const TileSourceTileKeyData::Status & t)
+{
+    switch(t)
+    {
+    case TileSourceTileKeyData::StatusNotLoaded: os << "not loaded"; break;
+    case TileSourceTileKeyData::StatusLoaded: os << "loaded"; break;
+    case TileSourceTileKeyData::StatusLoadFailure: os << "load failure"; break;
+    case TileSourceTileKeyData::StatusNoData: os << "no data"; break;
+    default: os << (int)t; break;
+    }
+    return os;
+}
+
+namespace {
+
+    osgEarth::DataExtentList findTileSourceDataExtents(const osgEarth::TileSource * tileSource, const osgEarth::TileKey & key)
+    {
+        osgEarth::DataExtentList ret;
+        const osgEarth::GeoExtent& keyExtent = key.getExtent();
+
+        unsigned int lod = key.getLevelOfDetail();
+
+        const osgEarth::DataExtentList & _dataExtents = tileSource->getDataExtents();
+        for (osgEarth::DataExtentList::const_iterator itr = _dataExtents.begin(); itr != _dataExtents.end(); ++itr)
+        {
+            if ((keyExtent.intersects( *itr )) &&
+                (!itr->minLevel().isSet() || itr->minLevel() <= lod ) &&
+                (!itr->maxLevel().isSet() || itr->maxLevel() >= lod ))
+            {
+                ret.push_back((*itr));
+            }
+        }
+
+        return ret;
+    }
+
+}
+
 bool writePrettyHTMLImpl<TileSourceTileKey>::process(std::basic_ostream<char>& os)
 {
     TileSourceTileKey * object_ptr = getObject<TileSourceTileKey, SGIItemOsg>();
@@ -1919,8 +1957,44 @@ bool writePrettyHTMLImpl<TileSourceTileKey>::process(std::basic_ostream<char>& o
             // add remaining TileSourceTileKey properties
             os << "<tr><td>tileKey</td><td>" << object.tileKey << "</td></tr>" << std::endl;
 			os << "<tr><td>tileKey extents</td><td>" << object.tileKey.getExtent() << "</td></tr>" << std::endl;
+            os << "<tr><td>status</td><td>" << object.status << "</td></tr>" << std::endl;
             os << "<tr><td>tileSource</td><td>" << getObjectNameAndType(object.tileSource.get(), true) << "</td></tr>" << std::endl;
             os << "<tr><td>tileData</td><td>" << getObjectNameAndType(object.tileData.get()) << "</td></tr>" << std::endl;
+            if(object.tileSource.valid())
+            {
+                os << "<tr><td>tileSource hasData</td><td>" << (object.tileSource->hasData(object.tileKey)?"true":"false") << "</td></tr>" << std::endl;
+                os << "<tr><td>tileSource data extents</td><td>";
+                osgEarth::DataExtentList dataExtents = findTileSourceDataExtents(object.tileSource, object.tileKey);
+                if(dataExtents.empty())
+                    os << "<i>none</i>";
+                else
+                {
+                    os << "<ul>";
+                    for(const osgEarth::DataExtent & ext : dataExtents)
+                    {
+                        // show the tilekey in relation to the data extent
+                        std::string mapUrl = MapDownload::getUrl(ext, object.tileKey);
+                        os << "<li>";
+
+#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
+                        if(ext.description().isSet())
+                            os << ext.description() << " ";
+#endif
+                        if(ext.minLevel().isSet() || ext.maxLevel().isSet())
+                            os << "min=" << ext.minLevel() << " max=" << ext.maxLevel();
+
+                        os << "<br/>&emsp;";
+                        os << " north=" << ext.north();
+                        os << " south=" << ext.south();
+                        os << " east=" << ext.east();
+                        os << " west=" << ext.west();
+                        os << " <a href=\"" << mapUrl << "\">preview</a>";
+                        os << "</li>";
+                    }
+                    os << "</ul>";
+                }
+                os << "</td></tr>" << std::endl;
+            }
 
             if(_table)
                 os << "</table>" << std::endl;

@@ -17,11 +17,19 @@ namespace osgearth_plugin {
 
     struct TileSourceTileKeyData
     {
+        enum Status {
+            StatusNotLoaded = 0,
+            StatusLoaded,
+            StatusLoadFailure,
+            StatusNoData
+        };
+
         TileSourceTileKeyData(osgEarth::TileSource * ts, const osgEarth::TileKey & tk, osg::Referenced * td=NULL)
-            : tileSource(ts), tileKey(tk), tileData(td) {}
+            : tileSource(ts), tileKey(tk), tileData(td), status(StatusNotLoaded) {}
         osg::ref_ptr<osgEarth::TileSource> tileSource;
         osgEarth::TileKey tileKey;
         osg::ref_ptr<osg::Referenced> tileData;
+        Status status;
     };
     typedef ReferencedDataT<TileSourceTileKeyData> TileSourceTileKey;
 

@@ -326,6 +326,29 @@ std::string MapDownload::getUrl(const osgEarth::DataExtent & de, bool satelite, 
     return dl.getUrl();
 }
 
+std::string MapDownload::getUrl(const osgEarth::DataExtent & de, const TileKeyList & points, bool satelite, int width, int height)
+{
+    MapDownload dl(satelite?GoogleSatelite:GoogleRoadmap, width, height);
+    DataExtentList delist;
+    delist.push_back(de);
+    dl.addCoordinates(delist);
+    dl.addCoordinates(points);
+    return dl.getUrl();
+}
+
+std::string MapDownload::getUrl(const osgEarth::DataExtent & de, const osgEarth::TileKey & tk, bool satelite, int width, int height)
+{
+    MapDownload dl(satelite?GoogleSatelite:GoogleRoadmap, width, height);
+    DataExtentList delist;
+    delist.push_back(de);
+    dl.addCoordinates(delist);
+    TileKeyList points;
+    points.push_back(tk);
+    dl.addCoordinates(points);
+    return dl.getUrl();
+}
+
+
 class TileSourceInfo::TileSourceInfoPrivate
 {
 public:

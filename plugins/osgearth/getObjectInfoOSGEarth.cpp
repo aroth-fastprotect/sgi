@@ -94,6 +94,8 @@ std::string getObjectNameImpl<TileKeyReferenced>::process()
     return object.str();
 }
 
+extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const TileSourceTileKeyData::Status & t);
+
 std::string getObjectNameImpl<TileSourceTileKey>::process()
 {
     TileSourceTileKey * object_ptr = static_cast<TileSourceTileKey*>(item<SGIItemOsg>()->object());
@@ -105,12 +107,12 @@ std::string getObjectNameImpl<TileSourceTileKey>::process()
 //	SGIHostItemOsg ts(object.tileSource.get());
 //	_hostInterface->getObjectName(tilesourceName, &ts);
 	if(tilesourceName.empty())
-		return object.tileKey.str();
+		ss << object.tileKey.str();
 	else
-	{
-		ss << tilesourceName << '/' << object.tileKey.str();
-		return ss.str();
-	}
+        ss << tilesourceName << '/' << object.tileKey.str();
+    ss << '(' << object.status << ')';
+
+    return ss.str();
 }
 
 //--------------------------------------------------------------------------------

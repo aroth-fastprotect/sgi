@@ -48,6 +48,7 @@ public slots:
     void                        loadData();
     void                        reloadSelectedItem();
 	void                        takePositionFromCamera();
+    void                        loadFromFile();
 
 public:
     void                        requestRedraw();

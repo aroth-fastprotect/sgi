@@ -47,6 +47,7 @@ public:
     void                    addCoordinates(const GeoPointList & points, EntityType type=Point);
     void                    addCoordinates(const TileKeyList & points);
     void                    addCoordinates(const DataExtentList & points);
+    void                    addCoordinates(const osgEarth::DataExtent & de, const TileKeyList & points);
 
     std::string                 getUrl() const;
 
@@ -57,6 +58,8 @@ public:
     static std::string          getUrl(const osgEarth::TileKey & tk, bool satelite=true, int width=640, int height=480);
     static std::string          getUrl(const DataExtentList & points, bool satelite=true, int width=640, int height=480);
     static std::string          getUrl(const osgEarth::DataExtent & de, bool satelite=true, int width=640, int height=480);
+    static std::string          getUrl(const osgEarth::DataExtent & de, const TileKeyList & points, bool satelite=true, int width=640, int height=480);
+    static std::string          getUrl(const osgEarth::DataExtent & de, const osgEarth::TileKey & tk, bool satelite=true, int width=640, int height=480);
 
 private:
     class MapDownloadPrivate;

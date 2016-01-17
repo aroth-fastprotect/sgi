@@ -13,6 +13,7 @@
 #include <QTextStream>
 #include <QFileDialog>
 #include <QMenu>
+#include <QMessageBox>
 
 #include <osg/CoordinateSystemNode>
 #include <osgViewer/View>
@@ -28,6 +29,7 @@
 #include <osgEarthDrivers/tms/TMSOptions>
 #include <osgEarthDrivers/arcgis/ArcGISOptions>
 
+#include <osgEarth/Version>
 #include <osgEarthUtil/TMS>
 
 #include <sgi/plugins/ContextMenu>
@@ -36,6 +38,7 @@
 
 #include "ElevationQueryReferenced"
 #include "string_helpers.h"
+#include "osgearth_accessor.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -1033,18 +1036,25 @@ void TileInspectorDialog::loadData()
 				else if (ext.compare("tif") == 0)
 					isImageTileSource = false;
 
-				if (isImageTileSource)
-				{
-					osg::Image * image = tileSource->createImage(data.tileKey);
-					data.tileData = image;
-				}
-				else
-				{
-					osg::HeightField * hf = tileSource->createHeightField(data.tileKey);
-					data.tileData = hf;
-				}
+                if(!tileSource->hasData(data.tileKey))
+                    data.status = TileSourceTileKeyData::StatusNoData;
+                else
+                {
+                    if (isImageTileSource)
+                    {
+                        osg::ref_ptr<osg::Image> image = tileSource->createImage(data.tileKey);
+                        data.tileData = image;
+                    }
+                    else
+                    {
+                        osg::ref_ptr<osg::HeightField> hf = tileSource->createHeightField(data.tileKey);
+                        data.tileData = hf;
+                    }
+                    data.status = data.tileData.valid()?TileSourceTileKeyData::StatusLoaded:TileSourceTileKeyData::StatusLoadFailure;
+                }
             }
         }
+        child->updateName();
     }
 }
 
@@ -1135,6 +1145,48 @@ void TileInspectorDialog::addTileKey(const osgEarth::TileKey& key)
     TileSourceTileKeyData data(tileSource, key);
     SGIHostItemOsg tskey(new TileSourceTileKey(data));
     _treeRoot->addChild(std::string(), &tskey);
+}
+
+void TileInspectorDialog::loadFromFile()
+{
+    int index = ui->layer->currentIndex();
+    QVariant itemdata = ui->layer->itemData(index);
+    QtSGIItem qitem = itemdata.value<QtSGIItem>();
+    SGIItemOsg * item = (SGIItemOsg *)qitem.item();
+    osgEarth::TileSource * tileSource = getTileSource(item);
+    if(!tileSource)
+        return;
+
+    const osgEarth::TileSourceOptions & opts = tileSource->getOptions();
+    QString oldFilename = QString::fromStdString(opts.blacklistFilename().value());
+
+    QString filename = QFileDialog::getOpenFileName(this, tr("Load tile list from file"), oldFilename, tr("List files (*.list *.txt)"));
+    if(filename.isEmpty())
+        return;
+
+    osg::ref_ptr<osgEarth::TileBlacklist> blacklist = osgEarth::TileBlacklist::read(filename.toStdString());
+    if(!blacklist.valid())
+    {
+        QMessageBox::critical(this, tr("Tile list read error"), tr("Unable to read tile key list %1").arg(filename));
+        return;
+    }
+
+    _treeRoot->clear();
+
+    const osgEarth::Profile * profile = tileSource->getProfile();
+
+#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
+    TileBlacklistAccess::TileKeySet tiles;
+    static_cast<TileBlacklistAccess*>(blacklist.get())->getTileKeySet(tiles);
+    for(const osgEarth::TileKey & tilekey : tiles)
+    {
+        osgEarth::TileKey tilekeyWithProfile(tilekey.getLOD(), tilekey.getTileX(), tilekey.getTileY(), profile);
+        TileSourceTileKeyData data(tileSource, tilekeyWithProfile);
+        SGIHostItemOsg tskey(new TileSourceTileKey(data));
+        _treeRoot->addChild(std::string(), &tskey);
+    }
+#endif
+
 }
 
 } // namespace osgearth_plugin
