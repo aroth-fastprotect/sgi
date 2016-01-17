@@ -688,10 +688,17 @@ bool actionHandlerImpl<MenuActionLevelDBDatabaseWrite>::execute()
 
 bool actionHandlerImpl<MenuActionTileKeyAdd>::execute()
 {
-    TileKeyReferenced * tk_data_ref = getObject<TileKeyReferenced, SGIItemOsg>();
-    TileSourceTileKey * tksrc_data_ref = getObject<TileSourceTileKey, SGIItemOsg>();
+    TileKeyReferenced * tk_data_ref = getObject<TileKeyReferenced, SGIItemOsg, DynamicCaster>();
+    TileSourceTileKey * tksrc_data_ref = getObject<TileSourceTileKey, SGIItemOsg, DynamicCaster>();
 
-    const osgEarth::TileKey & tilekey = (tk_data_ref)?tk_data_ref->data():tksrc_data_ref->data().tileKey;
+    osgEarth::TileKey tilekey;
+    if(tk_data_ref)
+        tilekey = tk_data_ref->data();
+    else if(tksrc_data_ref)
+        tilekey = tksrc_data_ref->data().tileKey;
+
+    if(!tilekey.valid())
+        return true;
 
     typedef std::list<osgEarth::TileKey> TileKeyList;
     TileKeyList tilekeylist;
