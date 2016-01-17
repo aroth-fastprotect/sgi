@@ -31,33 +31,36 @@ public:
     ObjectTreeItem(const ObjectTreeItem & item);
     virtual ~ObjectTreeItem();
 
-    virtual IObjectTreeItem * root();
-    virtual IObjectTreeItem * parent();
+    IObjectTreeItem * root() override;
+    IObjectTreeItem * parent() override;
 
-    virtual void clear() ;
-    IObjectTreeItem * addChild(const std::string & name, SGIItemBase * item);
-    IObjectTreeItem * addChild(const std::string & name, const SGIHostItemBase * hostitem);
+    void clear()  override;
+    IObjectTreeItem * addChild(const std::string & name, SGIItemBase * item) override;
+    IObjectTreeItem * addChild(const std::string & name, const SGIHostItemBase * hostitem) override;
 
-    IObjectTreeItem * findChild(const std::string & name);
+    IObjectTreeItem * findChild(const std::string & name) override;
 
-    IObjectTreeItem * addChildIfNotExists(const std::string & name, SGIItemBase * item);
-    IObjectTreeItem * addChildIfNotExists(const std::string & name, const SGIHostItemBase * hostitem);
+    IObjectTreeItem * addChildIfNotExists(const std::string & name, SGIItemBase * item) override;
+    IObjectTreeItem * addChildIfNotExists(const std::string & name, const SGIHostItemBase * hostitem) override;
 
-    void setSelected(bool select);
-    bool isSelected() const;
+    void setSelected(bool select) override;
+    bool isSelected() const override;
 
-    SGIItemBase * item();
-    void expand();
-    void collapse();
+    SGIItemBase * item() override;
+    void expand() override;
+    void collapse() override;
 
     QTreeWidgetItem * treeItem();
     const QTreeWidgetItem * treeItem() const;
 
-    virtual void children(IObjectTreeItemPtrList & children);
+    void children(IObjectTreeItemPtrList & children) override;
 
-    void reload();
+    void reload() override;
 
-    virtual IObjectTreeItem * selectedItem();
+    IObjectTreeItem * selectedItem() override;
+
+    void setName(const std::string & name) override;
+    void updateName() override;
 
 protected:
     IObjectTreeItem * addChildImpl(const std::string & name, SGIItemBase * item);

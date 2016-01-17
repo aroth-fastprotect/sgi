@@ -67,6 +67,8 @@ public:
     virtual void children(IObjectTreeItemPtrList & children) = 0;
     virtual void reload() = 0;
     virtual IObjectTreeItem * selectedItem() = 0;
+    virtual void setName(const std::string & name) = 0;
+    virtual void updateName() = 0;
 };
 
 class IContextMenuItem : public osg::Referenced

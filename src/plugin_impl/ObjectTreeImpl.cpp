@@ -407,4 +407,16 @@ void ObjectTreeItem::reload()
     }
 }
 
+void ObjectTreeItem::setName(const std::string & name)
+{
+    _item->setText(0, fromLocal8Bit(name));
+}
+
+void ObjectTreeItem::updateName()
+{
+    std::string displayName;
+    _hostInterface->getObjectDisplayName(displayName, item());
+    _item->setText(0, fromLocal8Bit(displayName));
+}
+
 } // namespace sgi
