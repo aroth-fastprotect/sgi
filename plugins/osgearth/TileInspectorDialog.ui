@@ -90,9 +90,18 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="positionFromCamera">
+      <widget class="QToolButton" name="coordinateButton">
        <property name="text">
-        <string>From Camera</string>
+        <string>...</string>
+       </property>
+       <property name="popupMode">
+        <enum>QToolButton::InstantPopup</enum>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
+       </property>
+       <property name="arrowType">
+        <enum>Qt::DownArrow</enum>
        </property>
       </widget>
      </item>
@@ -170,13 +179,6 @@
       <widget class="QPushButton" name="loadButton">
        <property name="text">
         <string>Load</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="loadFromFileButton">
-       <property name="text">
-        <string>Load from file...</string>
        </property>
       </widget>
      </item>
@@ -387,6 +389,32 @@
     </widget>
    </item>
   </layout>
+  <action name="actionCoordinateFromCamera">
+   <property name="text">
+    <string>From Camera</string>
+   </property>
+  </action>
+  <action name="actionCoordinateLoadFromFile">
+   <property name="icon">
+    <iconset theme="document-open"/>
+   </property>
+   <property name="text">
+    <string>Load from file...</string>
+   </property>
+  </action>
+  <action name="actionCoordinateFromDataExtents">
+   <property name="text">
+    <string>From data extents</string>
+   </property>
+  </action>
+  <action name="actionCoordinateFromDataExtentsUnion">
+   <property name="text">
+    <string>From data extents union</string>
+   </property>
+   <property name="toolTip">
+    <string>From data extents union</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -519,14 +547,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>positionFromCamera</sender>
-   <signal>clicked()</signal>
+   <sender>actionCoordinateFromCamera</sender>
+   <signal>triggered()</signal>
    <receiver>TileInspectorDialog</receiver>
    <slot>takePositionFromCamera()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>374</x>
-     <y>52</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>344</x>
@@ -535,14 +563,46 @@
    </hints>
   </connection>
   <connection>
-   <sender>loadFromFileButton</sender>
-   <signal>clicked()</signal>
+   <sender>actionCoordinateLoadFromFile</sender>
+   <signal>triggered()</signal>
    <receiver>TileInspectorDialog</receiver>
    <slot>loadFromFile()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>449</x>
-     <y>102</y>
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>344</x>
+     <y>275</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionCoordinateFromDataExtents</sender>
+   <signal>triggered()</signal>
+   <receiver>TileInspectorDialog</receiver>
+   <slot>takeFromDataExtents()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>344</x>
+     <y>275</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionCoordinateFromDataExtentsUnion</sender>
+   <signal>triggered()</signal>
+   <receiver>TileInspectorDialog</receiver>
+   <slot>takeFromDataExtentsUnion()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>344</x>
@@ -560,5 +620,7 @@
   <slot>reloadSelectedItem()</slot>
   <slot>takePositionFromCamera()</slot>
   <slot>loadFromFile()</slot>
+  <slot>takeFromDataExtents()</slot>
+  <slot>takeFromDataExtentsUnion()</slot>
  </slots>
 </ui>

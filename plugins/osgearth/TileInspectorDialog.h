@@ -28,6 +28,9 @@ typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
 
 namespace osgearth_plugin {
 
+typedef std::list<osgEarth::TileKey> TileKeyList;
+typedef std::set<osgEarth::TileKey> TileKeySet;
+
 class TileInspectorDialog : public QDialog
 {
 	Q_OBJECT
@@ -49,9 +52,8 @@ public slots:
     void                        reloadSelectedItem();
 	void                        takePositionFromCamera();
     void                        loadFromFile();
-
-public:
-    void                        requestRedraw();
+    void                        takeFromDataExtents();
+    void                        takeFromDataExtentsUnion();
     
 public:
     enum NUM_NEIGHBORS 
@@ -64,6 +66,10 @@ public:
         NUM_NEIGHBORS_CHILDS,
     };
     void                    addTileKey(const osgEarth::TileKey & key);
+    void                    addTileKeys(osgEarth::TileSource * tileSource, const TileKeyList & tiles, bool append=false);
+    void                    addTileKeys(osgEarth::TileSource * tileSource, const TileKeySet & tiles, bool append=false);
+    void                    addTileKeys(const TileKeyList & tiles, bool append=false);
+    void                    addTileKeys(const TileKeySet & tiles, bool append=false);
 protected:
     void                    triggerRepaint();
     SGIItemBase *           getView();

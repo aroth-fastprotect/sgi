@@ -52,9 +52,6 @@ using namespace sgi::qt_helpers;
 
 namespace {
 
-    typedef std::list<osgEarth::TileKey> TileKeyList;
-    typedef std::set<osgEarth::TileKey> TileKeySet;
-
 	void addTileKeyChilds(TileKeySet & set, const osgEarth::TileKey & tilekey)
 	{
 		if (tilekey.getLevelOfDetail() >= 24 || set.size() > 200)
@@ -399,6 +396,14 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
 	ui = new Ui_TileInspectorDialog;
 	ui->setupUi( this );
 
+    QMenu * coordinateButtonMenu = new QMenu(ui->coordinateButton);
+    coordinateButtonMenu->addAction(ui->actionCoordinateFromCamera);
+    coordinateButtonMenu->addAction(ui->actionCoordinateLoadFromFile);
+    coordinateButtonMenu->addAction(ui->actionCoordinateFromDataExtents);
+    coordinateButtonMenu->addAction(ui->actionCoordinateFromDataExtentsUnion);
+    ui->coordinateButton->setMenu(coordinateButtonMenu);
+    ui->coordinateButton->setDefaultAction(ui->actionCoordinateFromCamera);
+
 #ifndef OSGEARTH_WITH_FAST_MODIFICATIONS
     ui->updateMetaDataButton->hide();
 #endif
@@ -443,8 +448,8 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
 	osgEarth::MapNode * mapnode = findMapNode(_item.get());
 	if (!mapnode)
 	{
-		ui->positionFromCamera->setEnabled(false);
-		ui->positionFromCamera->setToolTip(tr("This function is not available because access to scene graph is not available. Please run the Tile inspector from a osgEarth::MapNode instance."));
+		ui->actionCoordinateFromCamera->setEnabled(false);
+		ui->actionCoordinateFromCamera->setToolTip(tr("This function is not available because access to scene graph is not available. Please run the Tile inspector from a osgEarth::MapNode instance."));
 	}
 
     ui->numNeighbors->addItem(tr("None"), QVariant(NUM_NEIGHBORS_NONE) );
@@ -514,9 +519,9 @@ void TileInspectorDialog::reloadTree()
 
 SGIItemBase * TileInspectorDialog::getView()
 {
-//     if(_info)
-//         return _info->getView();
-//     else
+    if(_info)
+        return _info->getView();
+    else
         return NULL;
 }
 
@@ -1132,6 +1137,58 @@ void TileInspectorDialog::takePositionFromCamera()
     }
 }
 
+void TileInspectorDialog::addTileKeys(osgEarth::TileSource * tileSource, const TileKeyList & tiles, bool append)
+{
+    if(!append)
+        _treeRoot->clear();
+
+    for(auto it = tiles.begin(); it != tiles.end(); it++)
+    {
+        const osgEarth::TileKey & tilekey = *it;
+        TileSourceTileKeyData data(tileSource, tilekey);
+        SGIHostItemOsg tskey(new TileSourceTileKey(data));
+        _treeRoot->addChild(std::string(), &tskey);
+    }
+}
+
+void TileInspectorDialog::addTileKeys(osgEarth::TileSource * tileSource, const TileKeySet & tiles, bool append)
+{
+    if(!append)
+        _treeRoot->clear();
+
+    for(auto it = tiles.begin(); it != tiles.end(); it++)
+    {
+        const osgEarth::TileKey & tilekey = *it;
+        TileSourceTileKeyData data(tileSource, tilekey);
+        SGIHostItemOsg tskey(new TileSourceTileKey(data));
+        _treeRoot->addChild(std::string(), &tskey);
+    }
+}
+
+void TileInspectorDialog::addTileKeys(const TileKeyList & tiles, bool append)
+{
+    int index = ui->layer->currentIndex();
+    QVariant itemdata = ui->layer->itemData(index);
+    QtSGIItem qitem = itemdata.value<QtSGIItem>();
+    SGIItemOsg * item = (SGIItemOsg *)qitem.item();
+    osgEarth::TileSource * tileSource = getTileSource(item);
+    if(!tileSource)
+        return;
+    addTileKeys(tileSource, tiles, append);
+}
+
+void TileInspectorDialog::addTileKeys(const TileKeySet & tiles, bool append)
+{
+    int index = ui->layer->currentIndex();
+    QVariant itemdata = ui->layer->itemData(index);
+    QtSGIItem qitem = itemdata.value<QtSGIItem>();
+    SGIItemOsg * item = (SGIItemOsg *)qitem.item();
+    osgEarth::TileSource * tileSource = getTileSource(item);
+    if(!tileSource)
+        return;
+    addTileKeys(tileSource, tiles, append);
+}
+
 void TileInspectorDialog::addTileKey(const osgEarth::TileKey& key)
 {
     int index = ui->layer->currentIndex();
@@ -1187,6 +1244,108 @@ void TileInspectorDialog::loadFromFile()
     }
 #endif
 
+}
+
+namespace {
+
+    void addTileForGeoPoint(TileKeyList & tilekeylist, const osgEarth::GeoPoint & pt, TileInspectorDialog::NUM_NEIGHBORS numNeighbors, int selected_lod, const osgEarth::Profile * profile)
+    {
+        osgEarth::TileKey tilekey = profile->createTileKey(pt.x(), pt.y(), selected_lod);
+        addTileKeyAndNeighbors(tilekeylist, tilekey, (numNeighbors==TileInspectorDialog::NUM_NEIGHBORS_PARENTAL || numNeighbors == TileInspectorDialog::NUM_NEIGHBORS_PARENTAL_AND_CHILDS)? TileInspectorDialog::NUM_NEIGHBORS_NONE:numNeighbors);
+    }
+
+    void addTilesForGeoExtent(TileKeyList & tilekeylist, const osgEarth::GeoExtent & ext, TileInspectorDialog::NUM_NEIGHBORS numNeighbors, int selected_lod, const osgEarth::Profile * profile)
+    {
+        osgEarth::GeoPoint nw(profile->getSRS(), ext.xMin(), ext.yMin());
+        osgEarth::GeoPoint ne(profile->getSRS(), ext.xMin(), ext.yMax());
+        osgEarth::GeoPoint sw(profile->getSRS(), ext.xMax(), ext.yMin());
+        osgEarth::GeoPoint se(profile->getSRS(), ext.xMax(), ext.yMax());
+
+        osgEarth::GeoPoint center;
+        ext.getCentroid(center);
+
+        if(selected_lod < 0)
+        {
+            for (unsigned lod = 0; lod < 21; lod++)
+            {
+                addTileForGeoPoint(tilekeylist, center, numNeighbors, lod, profile);
+                addTileForGeoPoint(tilekeylist, nw, numNeighbors, lod, profile);
+                addTileForGeoPoint(tilekeylist, ne, numNeighbors, lod, profile);
+                addTileForGeoPoint(tilekeylist, sw, numNeighbors, lod, profile);
+                addTileForGeoPoint(tilekeylist, se, numNeighbors, lod, profile);
+            }
+        }
+        else
+        {
+            addTileForGeoPoint(tilekeylist, center, numNeighbors, selected_lod, profile);
+            addTileForGeoPoint(tilekeylist, nw, numNeighbors, selected_lod, profile);
+            addTileForGeoPoint(tilekeylist, ne, numNeighbors, selected_lod, profile);
+            addTileForGeoPoint(tilekeylist, sw, numNeighbors, selected_lod, profile);
+            addTileForGeoPoint(tilekeylist, se, numNeighbors, selected_lod, profile);
+        }
+    }
+}
+
+void TileInspectorDialog::takeFromDataExtents()
+{
+    int index = ui->layer->currentIndex();
+    QVariant itemdata = ui->layer->itemData(index);
+    QtSGIItem qitem = itemdata.value<QtSGIItem>();
+    SGIItemOsg * item = (SGIItemOsg *)qitem.item();
+    osgEarth::TileSource * tileSource = getTileSource(item);
+    if(!tileSource)
+        return;
+
+    int idx = ui->numNeighbors->currentIndex();
+    NUM_NEIGHBORS numNeighbors = NUM_NEIGHBORS_NONE;
+    if(idx >= 0)
+        numNeighbors = (NUM_NEIGHBORS)ui->numNeighbors->itemData(idx).toInt();
+
+    int lod = -1;
+    idx = ui->levelOfDetail->currentIndex();
+    if(idx >= 0)
+        lod = ui->levelOfDetail->itemData(idx).toInt();
+
+    const osgEarth::Profile * profile = tileSource->getProfile();
+    const osgEarth::DataExtentList& dataExtents = tileSource->getDataExtents();
+
+    TileKeyList tilekeylist;
+    for(osgEarth::DataExtentList::const_iterator it = dataExtents.begin(); it != dataExtents.end(); ++it)
+    {
+        const osgEarth::DataExtent & ext = *it;
+        addTilesForGeoExtent(tilekeylist, ext, numNeighbors, (ext.maxLevel().isSet()?ext.maxLevel().value():lod), profile);
+    }
+
+    addTileKeys(tileSource, tilekeylist);
+}
+
+void TileInspectorDialog::takeFromDataExtentsUnion()
+{
+    int index = ui->layer->currentIndex();
+    QVariant itemdata = ui->layer->itemData(index);
+    QtSGIItem qitem = itemdata.value<QtSGIItem>();
+    SGIItemOsg * item = (SGIItemOsg *)qitem.item();
+    osgEarth::TileSource * tileSource = getTileSource(item);
+    if(!tileSource)
+        return;
+
+    int idx = ui->numNeighbors->currentIndex();
+    NUM_NEIGHBORS numNeighbors = NUM_NEIGHBORS_NONE;
+    if(idx >= 0)
+        numNeighbors = (NUM_NEIGHBORS)ui->numNeighbors->itemData(idx).toInt();
+
+    int lod = -1;
+    idx = ui->levelOfDetail->currentIndex();
+    if(idx >= 0)
+        lod = ui->levelOfDetail->itemData(idx).toInt();
+
+    const osgEarth::Profile * profile = tileSource->getProfile();
+    const osgEarth::GeoExtent & ext = tileSource->getDataExtentsUnion();
+
+    TileKeyList tilekeylist;
+    addTilesForGeoExtent(tilekeylist, ext, numNeighbors, lod, profile);
+
+    addTileKeys(tileSource, tilekeylist);
 }
 
 } // namespace osgearth_plugin
