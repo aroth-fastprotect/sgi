@@ -89,6 +89,7 @@ namespace osg {
     class Program;
     class ClipPlane;
     class BlendFunc;
+    class BlendColor;
     class LineWidth;
     class LineStipple;
     class Point;
@@ -187,6 +188,10 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE(osg::Uniform)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osg::Material)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osg::LineWidth)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osg::LineStipple)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE(osg::LightModel)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE(osg::BlendFunc)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE(osg::BlendColor)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE(osg::PolygonMode)
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osg::BufferData)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE(osg::Array)

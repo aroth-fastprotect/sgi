@@ -1070,7 +1070,44 @@ bool objectTreeBuildImpl<osgEarth::ModelSource>::build(IObjectTreeItem * treeIte
             const osgEarth::DataExtentList& dataExtents = object->getDataExtents();
             if(!dataExtents.empty())
                 treeItem->addChild(helpers::str_plus_count("Data extents", dataExtents.size()), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents, ~0u));
+
+            const osgEarth::NodeOperationVector& preMergeOperations = object->preMergeOperations();
+            if (!preMergeOperations.empty())
+                treeItem->addChild(helpers::str_plus_count("Pre-Merge operations", preMergeOperations.size()), cloneItem<SGIItemOsg>(SGIItemTypePreMergeOps, ~0u));
+
+            const osgEarth::NodeOperationVector& postMergeOperations = object->postMergeOperations();
+            if (!postMergeOperations.empty())
+                treeItem->addChild(helpers::str_plus_count("Post-Merge operations", postMergeOperations.size()), cloneItem<SGIItemOsg>(SGIItemTypePostMergeOps, ~0u));
+#endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+
+        }
+        break;
+    case SGIItemTypePreMergeOps:
+        {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+            const osgEarth::NodeOperationVector& preMergeOperations = object->preMergeOperations();
+            for (osgEarth::NodeOperationVector::const_iterator it = preMergeOperations.begin(); it != preMergeOperations.end(); it++)
+            {
+                const osg::ref_ptr<osgEarth::NodeOperation> & nodeop = *it;
+                SGIHostItemOsg item(nodeop.get());
+                treeItem->addChild(std::string(), &item);
+            }
 #endif
+            ret = true;
+        }
+        break;
+    case SGIItemTypePostMergeOps:
+        {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+            const osgEarth::NodeOperationVector& postMergeOperations = object->postMergeOperations();
+            for (osgEarth::NodeOperationVector::const_iterator it = postMergeOperations.begin(); it != postMergeOperations.end(); it++)
+            {
+                const osg::ref_ptr<osgEarth::NodeOperation> & nodeop = *it;
+                SGIHostItemOsg item(nodeop.get());
+                treeItem->addChild(std::string(), &item);
+            }
+#endif
+            ret = true;
         }
         break;
     case SGIItemTypeDataExtents:

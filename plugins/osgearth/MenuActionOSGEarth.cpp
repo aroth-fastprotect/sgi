@@ -68,6 +68,11 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionTileSourceUpdateMetaData)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionTileBlacklistClear)
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionSkyNodeLightSettings)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionSkyNodeSetDateTime)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionSkyNodeSetSunVisible)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionSkyNodeSetStarsVisible)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionSkyNodeSetMoonVisible)
+
 ACTION_HANDLER_IMPL_REGISTER(MenuActionAutoClipPlaneCullCallbackSetup)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionAutoClipPlaneCullCallbackMinNearFarRatio)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionAutoClipPlaneCullCallbackMaxNearFarRatio)
@@ -479,6 +484,35 @@ bool actionHandlerImpl<MenuActionSkyNodeLightSettings>::execute()
     osgEarth::Util::SkyNode * object = getObject<osgEarth::Util::SkyNode, SGIItemOsg>();
     /// @todo open settings dialog for sky/light
     //object->clear();
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionSkyNodeSetDateTime>::execute()
+{
+    osgEarth::Util::SkyNode * object = getObject<osgEarth::Util::SkyNode, SGIItemOsg>();
+    /// @todo open settings dialog for sky/light
+    //object->clear();
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionSkyNodeSetSunVisible>::execute()
+{
+    osgEarth::Util::SkyNode * object = getObject<osgEarth::Util::SkyNode, SGIItemOsg>();
+    object->setSunVisible(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionSkyNodeSetStarsVisible>::execute()
+{
+    osgEarth::Util::SkyNode * object = getObject<osgEarth::Util::SkyNode, SGIItemOsg>();
+    object->setStarsVisible(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionSkyNodeSetMoonVisible>::execute()
+{
+    osgEarth::Util::SkyNode * object = getObject<osgEarth::Util::SkyNode, SGIItemOsg>();
+    object->setMoonVisible(menuAction()->state());
     return true;
 }
 

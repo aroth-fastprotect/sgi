@@ -40,6 +40,8 @@ enum SGIItemType_osgearth
 	SGIItemTypeDatabases,
     SGIItemTypeChangeset,
     SGIItemTypeInfo,
+    SGIItemTypePreMergeOps,
+    SGIItemTypePostMergeOps,
 };
 
 class SGIItemEarthConfig : public SGIItemBase

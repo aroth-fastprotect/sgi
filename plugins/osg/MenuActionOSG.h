@@ -157,6 +157,15 @@ enum MenuAction {
     MenuActionLineWidthSet,
     MenuActionLineStipplePattern,
     MenuActionLineStippleFactor,
+    MenuActionLightModelColorControl,
+    MenuActionLightModelLocalViewer,
+    MenuActionLightModelTwoSided,
+    MenuActionLightModelAmbientIntensity,
+    MenuActionBlendColorConstantColor,
+    MenuActionPolygonModeFront,
+    MenuActionPolygonModeBack,
+    MenuActionPolygonModeFrontAndBack,
+
     MenuActionMaterialColorMode,
     MenuActionMaterialAmbient,
     MenuActionMaterialDiffuse,
@@ -293,6 +302,15 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionArrayTrim)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionLineWidthSet)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionLineStipplePattern)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionLineStippleFactor)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionLightModelColorControl)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionLightModelLocalViewer)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionLightModelTwoSided)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionLightModelAmbientIntensity)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionBlendColorConstantColor)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionPolygonModeFront)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionPolygonModeBack)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionPolygonModeFrontAndBack)
+
 ACTION_HANDLER_IMPL_DECLARE(MenuActionMaterialColorMode)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionMaterialAmbient)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionMaterialDiffuse)

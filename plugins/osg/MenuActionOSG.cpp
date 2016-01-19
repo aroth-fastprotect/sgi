@@ -20,6 +20,17 @@
 #include <osg/Material>
 #include <osg/LineWidth>
 #include <osg/LineStipple>
+#include <osg/PolygonStipple>
+#include <osg/LightModel>
+#include <osg/AlphaFunc>
+#include <osg/BlendColor>
+#include <osg/BlendFunc>
+#include <osg/Point>
+#include <osg/PolygonMode>
+#include <osg/TexEnv>
+#include <osg/TexEnvFilter>
+#include <osg/TexMat>
+#include <osg/TexGen>
 #include <osg/ProxyNode>
 #include <osg/MatrixTransform>
 #include <osg/PositionAttitudeTransform>
@@ -129,6 +140,15 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionArrayTrim)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionLineWidthSet)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionLineStipplePattern)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionLineStippleFactor)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionLightModelColorControl)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionLightModelLocalViewer)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionLightModelTwoSided)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionLightModelAmbientIntensity)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionBlendColorConstantColor)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionPolygonModeFront)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionPolygonModeBack)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionPolygonModeFrontAndBack)
+
 ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialColorMode)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialAmbient)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialDiffuse)
@@ -785,6 +805,48 @@ bool actionHandlerImpl<MenuActionStateSetAttributeAdd>::execute()
     case osg::StateAttribute::MATERIAL:
         newAttr = new osg::Material;
         break;
+    case osg::StateAttribute::ALPHAFUNC:
+        newAttr = new osg::AlphaFunc;
+        break;
+    case osg::StateAttribute::BLENDCOLOR:
+        newAttr = new osg::BlendColor;
+        break;
+    case osg::StateAttribute::BLENDFUNC:
+        newAttr = new osg::BlendFunc;
+        break;
+    case osg::StateAttribute::LIGHTMODEL:
+        newAttr = new osg::LightModel;
+        break;
+    case osg::StateAttribute::LIGHT:
+        newAttr = new osg::Light;
+        break;
+    case osg::StateAttribute::POLYGONMODE:
+        newAttr = new osg::PolygonMode;
+        break;
+    case osg::StateAttribute::LINESTIPPLE:
+        newAttr = new osg::LineStipple;
+        break;
+    case osg::StateAttribute::LINEWIDTH:
+        newAttr = new osg::LineWidth;
+        break;
+    case osg::StateAttribute::POINT:
+        newAttr = new osg::Point;
+        break;
+    case osg::StateAttribute::POLYGONSTIPPLE:
+        newAttr = new osg::PolygonStipple;
+        break;
+    case osg::StateAttribute::TEXENV:
+        newAttr = new osg::TexEnv;
+        break;
+    case osg::StateAttribute::TEXENVFILTER:
+        newAttr = new osg::TexEnvFilter;
+        break;
+    case osg::StateAttribute::TEXMAT:
+        newAttr = new osg::TexMat;
+        break;
+    case osg::StateAttribute::TEXGEN:
+        newAttr = new osg::TexGen;
+        break;
     }
     if(newAttr.valid())
         object->setAttribute(newAttr.get(), osg::StateAttribute::OFF);
@@ -1383,6 +1445,74 @@ bool actionHandlerImpl<MenuActionLineStippleFactor>::execute()
                                             );
     if(ok)
         object->setFactor(value);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionLightModelColorControl>::execute()
+{
+    osg::LightModel * object = getObject<osg::LightModel, SGIItemOsg>();
+    object->setColorControl((osg::LightModel::ColorControl)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionLightModelLocalViewer>::execute()
+{
+    osg::LightModel * object = getObject<osg::LightModel, SGIItemOsg>();
+    object->setLocalViewer(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionLightModelTwoSided>::execute()
+{
+    osg::LightModel * object = getObject<osg::LightModel, SGIItemOsg>();
+    object->setTwoSided(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionLightModelAmbientIntensity>::execute()
+{
+    osg::LightModel * object = getObject<osg::LightModel, SGIItemOsg>();
+
+    sgi::Color color = osgColor(object->getAmbientIntensity());
+    if (_hostInterface->inputDialogColor(menu()->parentWidget(), color, "Ambient intensity", "Set ambient intensity", _item))
+    {
+        object->setAmbientIntensity(osgColor(color));
+        triggerRepaint();
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionBlendColorConstantColor>::execute()
+{
+    osg::BlendColor * object = getObject<osg::BlendColor, SGIItemOsg>();
+
+    sgi::Color color = osgColor(object->getConstantColor());
+    if (_hostInterface->inputDialogColor(menu()->parentWidget(), color, "Constant color", "Set constant color", _item))
+    {
+        object->setConstantColor(osgColor(color));
+        triggerRepaint();
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionPolygonModeFront>::execute()
+{
+    osg::PolygonMode * object = getObject<osg::PolygonMode, SGIItemOsg>();
+    object->setMode(osg::PolygonMode::FRONT, (osg::PolygonMode::Mode)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionPolygonModeBack>::execute()
+{
+    osg::PolygonMode * object = getObject<osg::PolygonMode, SGIItemOsg>();
+    object->setMode(osg::PolygonMode::BACK, (osg::PolygonMode::Mode)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionPolygonModeFrontAndBack>::execute()
+{
+    osg::PolygonMode * object = getObject<osg::PolygonMode, SGIItemOsg>();
+    object->setMode(osg::PolygonMode::FRONT_AND_BACK, (osg::PolygonMode::Mode)menuAction()->mode());
     return true;
 }
 

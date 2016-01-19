@@ -27,6 +27,10 @@
 #include <osg/Material>
 #include <osg/LineWidth>
 #include <osg/LineStipple>
+#include <osg/LightModel>
+#include <osg/BlendColor>
+#include <osg/BlendFunc>
+#include <osg/PolygonMode>
 #include <osg/io_utils>
 
 #include <osgDB/Registry>
@@ -95,6 +99,10 @@ CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::Array)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::Material)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::LineWidth)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::LineStipple)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::LightModel)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::BlendFunc)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::BlendColor)
+CONTEXT_MENU_POPULATE_IMPL_REGISTER(osg::PolygonMode)
 
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgDB::Registry)
 CONTEXT_MENU_POPULATE_IMPL_REGISTER(osgDB::ImagePager)
@@ -535,6 +543,16 @@ bool contextMenuPopulateImpl<osg::StateSet>::populate(IContextMenuItem * menuIte
                 addAttrMenu->addModeAction("Alpha func", osg::StateAttribute::ALPHAFUNC);
                 addAttrMenu->addModeAction("Blend func", osg::StateAttribute::BLENDFUNC);
                 addAttrMenu->addModeAction("Blend color", osg::StateAttribute::BLENDCOLOR);
+                addAttrMenu->addModeAction("Light model", osg::StateAttribute::LIGHTMODEL);
+                addAttrMenu->addModeAction("Light", osg::StateAttribute::LIGHT);
+                addAttrMenu->addModeAction("Line stipple", osg::StateAttribute::LINESTIPPLE);
+                addAttrMenu->addModeAction("Line width", osg::StateAttribute::LINEWIDTH);
+                addAttrMenu->addModeAction("Point", osg::StateAttribute::POINT);
+                addAttrMenu->addModeAction("Polygon stipple", osg::StateAttribute::POLYGONSTIPPLE);
+                addAttrMenu->addModeAction("TexEnv", osg::StateAttribute::TEXENV);
+                addAttrMenu->addModeAction("TexEnvFilter", osg::StateAttribute::TEXENVFILTER);
+                addAttrMenu->addModeAction("TexMat", osg::StateAttribute::TEXMAT);
+                addAttrMenu->addModeAction("TexGen", osg::StateAttribute::TEXGEN);
             }
             unsigned childNo = 0;
             const osg::StateSet::AttributeList & list = object->getAttributeList();
@@ -845,6 +863,114 @@ bool contextMenuPopulateImpl<osg::LineStipple>::populate(IContextMenuItem * menu
         {
             menuItem->addSimpleAction(MenuActionLineStipplePattern, helpers::str_plus_info("Pattern", object->getPattern()), _item);
             menuItem->addSimpleAction(MenuActionLineStippleFactor, helpers::str_plus_info("Factor", object->getFactor()), _item);
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::LightModel>::populate(IContextMenuItem * menuItem)
+{
+    osg::LightModel * object = getObject<osg::LightModel, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            IContextMenuItem * colorControlMenu = menuItem->addModeMenu(MenuActionLightModelColorControl, "Color control", _item, object->getColorControl());
+            if (colorControlMenu)
+            {
+                colorControlMenu->addModeAction("Separate specular color", osg::LightModel::SEPARATE_SPECULAR_COLOR);
+                colorControlMenu->addModeAction("Single color", osg::LightModel::SINGLE_COLOR);
+            }
+
+            menuItem->addBoolAction(MenuActionLightModelLocalViewer, "Local viewer", _item, object->getLocalViewer());
+            menuItem->addBoolAction(MenuActionLightModelTwoSided, "Two-sided", _item, object->getTwoSided());
+            menuItem->addSimpleAction(MenuActionLightModelAmbientIntensity, "Ambient intensity...", _item);
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::BlendFunc>::populate(IContextMenuItem * menuItem)
+{
+    osg::BlendFunc * object = getObject<osg::BlendFunc, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::BlendColor>::populate(IContextMenuItem * menuItem)
+{
+    osg::BlendColor * object = getObject<osg::BlendColor, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            menuItem->addSimpleAction(MenuActionBlendColorConstantColor, "Constant color...", _item);
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::PolygonMode>::populate(IContextMenuItem * menuItem)
+{
+    osg::PolygonMode * object = getObject<osg::PolygonMode, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            IContextMenuItem * menuFront = menuItem->addModeMenu(MenuActionPolygonModeFront, "Front", _item, object->getMode(osg::PolygonMode::FRONT));
+            if (menuFront)
+            {
+                menuFront->addModeAction("Point", osg::PolygonMode::POINT);
+                menuFront->addModeAction("Wire frame", osg::PolygonMode::LINE);
+                menuFront->addModeAction("Solid", osg::PolygonMode::FILL);
+            }
+            IContextMenuItem * menuBack = menuItem->addModeMenu(MenuActionPolygonModeBack, "Back", _item, object->getMode(osg::PolygonMode::BACK));
+            if (menuBack)
+            {
+                menuBack->addModeAction("Point", osg::PolygonMode::POINT);
+                menuBack->addModeAction("Wire frame", osg::PolygonMode::LINE);
+                menuBack->addModeAction("Solid", osg::PolygonMode::FILL);
+            }
+            IContextMenuItem * menuFrontAndBack = menuItem->addModeMenu(MenuActionPolygonModeFrontAndBack, "Front+Back", _item, object->getMode(osg::PolygonMode::FRONT_AND_BACK));
+            if (menuFrontAndBack)
+            {
+                menuFrontAndBack->addModeAction("Point", osg::PolygonMode::POINT);
+                menuFrontAndBack->addModeAction("Wire frame", osg::PolygonMode::LINE);
+                menuFrontAndBack->addModeAction("Solid", osg::PolygonMode::FILL);
+            }
         }
         break;
     default:

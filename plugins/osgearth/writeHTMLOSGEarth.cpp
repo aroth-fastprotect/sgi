@@ -585,7 +585,7 @@ bool writePrettyHTMLImpl<osgEarth::Layer>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add terrain layer properties
-            os << "<tr><td>uid</td><td>" << (object?object->getUID():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>uid</td><td>" << object->getUID() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;

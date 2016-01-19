@@ -95,6 +95,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                  osgEarth::Annotation::Decoration,
                                                                  osgEarth::StateSetCache,
 																 osgEarth::LevelDBDatabase,
+                                                                 osgEarth::NodeOperation,
 																 osgEarth::Features::FeatureCursor, osgEarth::Features::FeatureProfile,
                                                                  ElevationQueryReferenced,
                                                                  TileKeyReferenced,
