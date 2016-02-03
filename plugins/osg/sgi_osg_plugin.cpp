@@ -81,6 +81,7 @@
 // osgViewer headers
 #include <osgViewer/CompositeViewer>
 #include <osgViewer/Renderer>
+#include <osgViewer/ViewerEventHandlers>
 
 // osgQt headers
 #include <osgQt/GraphicsWindowQt>
@@ -334,7 +335,12 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgText::TextBase, LOKI_TYPELIST(osgText::Text
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgFX::Effect, LOKI_TYPELIST(osgFX::Outline))
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgGA::GUIEventHandler, LOKI_TYPELIST(osgGA::CameraManipulator))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgGA::GUIEventHandler, LOKI_TYPELIST(osgGA::CameraManipulator, osgViewer::HelpHandler, osgViewer::StatsHandler, 
+                                                                        osgViewer::WindowSizeHandler, osgViewer::ThreadingHandler,
+                                                                        osgViewer::RecordCameraPathHandler, osgViewer::LODScaleHandler,
+                                                                        osgViewer::ToggleSyncToVBlankHandler, osgViewer::ScreenCaptureHandler, 
+                                                                        osgViewer::InteractiveImageHandler
+                                                                    ))
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgTerrain::Layer, LOKI_TYPELIST(osgTerrain::ImageLayer, osgTerrain::ContourLayer,
                                                                    osgTerrain::HeightFieldLayer, osgTerrain::ProxyLayer,

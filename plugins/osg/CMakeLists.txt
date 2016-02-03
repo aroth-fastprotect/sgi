@@ -50,6 +50,7 @@ SET(TARGET_H
     osgdb_accessor.h
 	osgtext_accessor.h
 	osganimation_accessor.h
+	osgviewer_accessor.h
     stateset_helpers.h
     std_ostream_osgtext.h
 

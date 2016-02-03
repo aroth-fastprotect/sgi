@@ -28,6 +28,7 @@
 
 #include <osgViewer/View>
 #include <osgViewer/Renderer>
+#include <osgViewer/ViewerEventHandlers>
 
 #include <osgQt/GraphicsWindowQt>
 
@@ -46,6 +47,7 @@
 #include "osgdb_accessor.h"
 #include "DrawableHelper.h"
 #include "osganimation_accessor.h"
+#include "osgviewer_accessor.h"
 #include <sys/stat.h>
 
 #ifdef min
@@ -119,6 +121,8 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(osgViewer::View)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgViewer::GraphicsWindow)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgViewer::Scene)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgViewer::Renderer)
+OBJECT_TREE_BUILD_IMPL_REGISTER(osgViewer::HelpHandler)
+OBJECT_TREE_BUILD_IMPL_REGISTER(osgViewer::StatsHandler)
 
 OBJECT_TREE_BUILD_IMPL_REGISTER(osgQt::GraphicsWindowQt)
 
@@ -1924,6 +1928,54 @@ bool objectTreeBuildImpl<osgViewer::Renderer>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg sceneView1(object->getSceneView(1));
             if(sceneView1.hasObject())
                 treeItem->addChild("SceneView1", &sceneView1);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osgViewer::HelpHandler>::build(IObjectTreeItem * treeItem)
+{
+    osgViewer::HelpHandler * object = getObject<osgViewer::HelpHandler,SGIItemOsg, DynamicCaster>();
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsg camera(object->getCamera());
+            if (camera.hasObject())
+                treeItem->addChild("Camera", &camera);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osgViewer::StatsHandler>::build(IObjectTreeItem * treeItem)
+{
+    osgViewer::StatsHandler * object = getObject<osgViewer::StatsHandler, SGIItemOsg, DynamicCaster>();
+    osgViewerStatsHandlerAccess * access = static_cast<osgViewerStatsHandlerAccess*>(object);
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsg camera(object->getCamera());
+            if (camera.hasObject())
+                treeItem->addChild("Camera", &camera);
+            SGIHostItemOsg sw(access->getSwitch());
+            if (sw.hasObject())
+                treeItem->addChild("Switch", &sw);
         }
         break;
     default:

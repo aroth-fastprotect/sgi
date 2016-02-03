@@ -104,7 +104,9 @@ namespace osgViewer {
     class View;
     class GraphicsWindow;
     class Scene;
-class Renderer;
+    class Renderer;
+    class HelpHandler;
+    class StatsHandler;
 }
 
 namespace osgQt {
@@ -227,6 +229,8 @@ OBJECT_TREE_BUILD_IMPL_DECLARE(osgViewer::View)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgViewer::GraphicsWindow)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgViewer::Scene)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgViewer::Renderer)
+OBJECT_TREE_BUILD_IMPL_DECLARE(osgViewer::HelpHandler)
+OBJECT_TREE_BUILD_IMPL_DECLARE(osgViewer::StatsHandler)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE(osgQt::GraphicsWindowQt)
 
