@@ -83,6 +83,7 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Shader)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Uniform)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::GraphicsContext)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::NodeVisitor)
+OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Stats)
 
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::ProxyNode)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::PagedLOD)
@@ -1270,6 +1271,34 @@ bool objectTreeBuildImpl<osg::NodeVisitor>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg imageRequestHandler(object->getImageRequestHandler());
             if(imageRequestHandler.hasObject())
                 treeItem->addChild("ImageRequestHandler", &imageRequestHandler);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osg::Stats>::build(IObjectTreeItem * treeItem)
+{
+    osg::Stats * object = getObject<osg::Stats, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            for (unsigned frame = object->getEarliestFrameNumber(); frame <= object->getLatestFrameNumber(); ++frame)
+            {
+                treeItem->addChild(helpers::str_plus_number("Frame", frame), cloneItem<SGIItemOsg>(SGIItemTypeStatsFrame, frame));
+            }
+        }
+        break;
+    case SGIItemTypeStatsFrame:
+        {
+            ret = true;
         }
         break;
     default:

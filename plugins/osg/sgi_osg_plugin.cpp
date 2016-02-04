@@ -223,6 +223,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                  osg::DisplaySettings,
                                                                  osg::GLBufferObject,
                                                                  osg::GLBufferObjectSet,
+                                                                 osg::Stats,
                                                                  osgAnimation::Channel,
                                                                  osgAnimation::Target,
                                                                  osgAnimation::Sampler,
@@ -474,7 +475,8 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeDBPagerDataToMerge);
         SGIITEMTYPE_NAME(SGIItemTypeColorLayers);
         SGIITEMTYPE_NAME(SGIItemTypeCameaBufferAttachments);
-
+        SGIITEMTYPE_NAME(SGIItemTypeFontTextureList);
+        SGIITEMTYPE_NAME(SGIItemTypeStatsFrame);
     }
     SGIPlugin_osg_Implementation(const SGIPlugin_osg_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
         : osg_plugin::SGIPluginImpl(rhs, copyop)

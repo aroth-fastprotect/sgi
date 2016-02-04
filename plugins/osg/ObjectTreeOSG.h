@@ -42,6 +42,7 @@ namespace osg {
     class State;
     class BufferObject;
     class NodeVisitor;
+    class Stats;
 
     class LOD;
     class PagedLOD;
@@ -194,6 +195,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE(osg::Shader)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osg::Uniform)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osg::GraphicsContext)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osg::NodeVisitor)
+OBJECT_TREE_BUILD_IMPL_DECLARE(osg::Stats)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE(osg::ProxyNode)
 OBJECT_TREE_BUILD_IMPL_DECLARE(osg::PagedLOD)

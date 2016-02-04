@@ -101,6 +101,7 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osg::PositionAttitudeTransform)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::AutoTransform)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::DisplaySettings)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::NodeVisitor)
+WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Stats)
 
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Uniform)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::BufferData)
@@ -537,6 +538,65 @@ bool writePrettyHTMLImpl<osg::NodeVisitor>::process(std::basic_ostream<char>& os
             ret = true;
         }
         break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osg::Stats>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    osg::Stats * object = getObject<osg::Stats, SGIItemOsg>();
+    StatsAccess * access = static_cast<StatsAccess*>(object);
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add node properties first
+            callNextHandler(os);
+
+            os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
+            os << "<tr><td>earliest frame</td><td>" << object->getEarliestFrameNumber() << "</td></tr>" << std::endl;
+            os << "<tr><td>latest frame</td><td>" << object->getLatestFrameNumber() << "</td></tr>" << std::endl;
+
+            osg::Stats::CollectMap stats;
+            access->getCollectStats(stats);
+            os << "<tr><td>collect stats</td><td><ul>";
+            for (auto it = stats.begin(); it != stats.end(); ++it)
+            {
+                os << "<li>" << it->first << "=" << (it->second ? "true" : "false") << "</li>";
+            }
+            os << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeStatsFrame:
+        {
+            unsigned frame = itemNumber();
+            osg::Stats::AttributeMap attributes = object->getAttributeMap(frame);
+            if (attributes.empty())
+                os << "<i>N/A</i>";
+            else
+            {
+                os << "<table border=\'1\' align=\'left\'><tr><th>Attribute</th><th>Value</th></tr>" << std::endl;
+                for (auto it = attributes.begin(); it != attributes.end(); ++it)
+                {
+                    os << "<tr><td>" << it->first << "</td><td>" << it->second << "</td></tr>" << std::endl;
+                }
+                os << "</table>" << std::endl;
+            }
+            ret = true;
+        }
+        break;
+
     default:
         ret = callNextHandler(os);
         break;

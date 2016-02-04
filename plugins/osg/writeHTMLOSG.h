@@ -26,6 +26,7 @@ namespace osg {
     class Uniform;
     class DisplaySettings;
     class NodeVisitor;
+    class Stats;
 
     class LOD;
     class PagedLOD;
@@ -137,6 +138,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE(osg::PositionAttitudeTransform)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osg::AutoTransform)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osg::DisplaySettings)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osg::NodeVisitor)
+WRITE_PRETTY_HTML_IMPL_DECLARE(osg::Stats)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE(osg::Uniform)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osg::BufferData)

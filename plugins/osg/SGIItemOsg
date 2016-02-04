@@ -68,6 +68,7 @@ enum SGIItemType_osg
     SGIItemTypeColorLayers,
     SGIItemTypeCameaBufferAttachments,
 	SGIItemTypeFontTextureList,
+    SGIItemTypeStatsFrame,
 };
 
 class SGIItemOsg : public SGIItemBase

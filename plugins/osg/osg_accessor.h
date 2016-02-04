@@ -46,6 +46,16 @@ public:
     const ShaderMainMap & shaderMainMap() const { return _shaderMainMap; }
 };
 
+class StatsAccess : public osg::Stats
+{
+public:
+    void getCollectStats(CollectMap & c)
+    {
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+        c = _collectMap;
+    }
+};
+
 } // namespace osg_plugin
 } // namespace sgi
 
