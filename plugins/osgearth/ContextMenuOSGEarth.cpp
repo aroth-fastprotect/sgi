@@ -660,6 +660,7 @@ bool contextMenuPopulateImpl<osgEarth::Util::Controls::Control>::populate(IConte
             IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
             if(manipulateMenu)
             {
+                manipulateMenu->addBoolAction(MenuActionControlVisible, "Visible", _item, object->visible());
                 manipulateMenu->addBoolAction(MenuActionControlDirty, "Dirty", _item, object->isDirty());
                 manipulateMenu->addBoolAction(MenuActionControlActive, "Active", _item, object->getActive());
                 manipulateMenu->addBoolAction(MenuActionControlAbsorbEvents, "Absorb events", _item, object->getAbsorbEvents());
