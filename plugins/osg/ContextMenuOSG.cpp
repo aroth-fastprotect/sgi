@@ -2294,6 +2294,7 @@ bool contextMenuPopulateImpl<sgi::ISceneGraphDialogToolsMenu>::populate(IContext
     case SGIItemTypeObject:
         menuItem->addSimpleAction(MenuActionToolFindUpdateNodes, "Find update nodes", _item);
         menuItem->addSimpleAction(MenuActionToolFindEventNodes, "Find event nodes", _item);
+        menuItem->addSimpleAction(MenuActionToolFindAllStateSets, "Find all state sets", _item);
         menuItem->addSimpleAction(MenuActionToolFindNaNNodes, "Find NaN nodes", _item);
         menuItem->addSimpleAction(MenuActionToolFindVisibleNodes, "Find visible", _item);
         menuItem->addSimpleAction(MenuActionToolListNodeMasks, "List node masks", _item);

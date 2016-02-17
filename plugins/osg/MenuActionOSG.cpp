@@ -246,6 +246,7 @@ ACTION_HANDLER_IMPL_REGISTER(MenuActionIncrementalCompileOperationConservativeTi
 
 ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindUpdateNodes)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindEventNodes)
+ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindAllStateSets)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindNaNNodes)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindVisibleNodes)
 ACTION_HANDLER_IMPL_REGISTER(MenuActionToolListNodeMasks)
@@ -2746,6 +2747,90 @@ bool actionHandlerImpl<MenuActionToolFindEventNodes>::execute()
                     SGIHostItemOsg item(node.get());
                     pathNode->addChild(std::string(), &item);
                 }
+            }
+        }
+
+    }
+    return true;
+}
+
+
+class FindStateSetTraversalNodesVisitor : public osg::NodeVisitor
+{
+public:
+    FindStateSetTraversalNodesVisitor(TraversalMode tm = TRAVERSE_ALL_CHILDREN)
+        : osg::NodeVisitor(tm), _results(), _unique(true) {}
+
+    FindStateSetTraversalNodesVisitor(VisitorType type, TraversalMode tm = TRAVERSE_ALL_CHILDREN)
+        : osg::NodeVisitor(type, tm), _results(), _unique(true) {}
+
+    void clear()
+    {
+        _results.clear();
+    }
+
+    typedef std::vector< osg::ref_ptr<osg::StateSet> > StateSetList;
+
+    const StateSetList &   results() const
+    {
+        return _results;
+    }
+
+    virtual void apply(osg::Node& node)
+    {
+        if (node.getStateSet() != 0)
+            foundStateSet(node.getStateSet());
+        traverse(node);
+    }
+
+protected:
+    void                    foundStateSet(osg::StateSet * ss)
+    {
+        if(!_unique)
+            _results.push_back(ss);
+        else
+        {
+            auto it = std::find(_results.begin(), _results.end(), ss);
+            if (it == _results.end())
+                _results.push_back(ss);
+        }
+    }
+protected:
+    StateSetList       _results;
+    bool _unique;
+};
+
+bool actionHandlerImpl<MenuActionToolFindAllStateSets>::execute()
+{
+    ISceneGraphDialogToolsMenu * toolsMenu = static_cast<ISceneGraphDialogToolsMenu*>(item<SGIItemInternal>()->object());
+    ISceneGraphDialog * dialog = (toolsMenu) ? toolsMenu->getDialog() : NULL;
+    IObjectTreeItem * selectedItem = (dialog) ? dialog->selectedItem() : NULL;
+    SGIItemOsg * item = selectedItem ? dynamic_cast<SGIItemOsg *>(selectedItem->item()) : NULL;
+    osg::Node * object = item ? dynamic_cast<osg::Node*>(item->object()) : NULL;
+
+    if (object)
+    {
+        FindStateSetTraversalNodesVisitor visitor;
+        object->accept(visitor);
+
+        const auto & results = visitor.results();
+        if (results.empty())
+        {
+            std::stringstream os;
+            os << "<i>no state sets found</i><br/>" << std::endl;
+            dialog->setInfoText(os.str());
+        }
+        else
+        {
+            selectedItem->expand();
+            IObjectTreeItem * stateSetsItem = selectedItem->addChild("StatSets", (SGIItemBase*)NULL);
+
+            unsigned num = 0;
+            for (auto it = results.begin(); it != results.end(); num++, it++)
+            {
+                const osg::ref_ptr<osg::StateSet> & ss = *it;
+                SGIHostItemOsg item(ss.get());
+                stateSetsItem->addChild(std::string(), &item);
             }
         }
 

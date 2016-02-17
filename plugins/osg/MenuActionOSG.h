@@ -215,6 +215,7 @@ enum MenuAction {
     MenuActionToolFindCamera,
     MenuActionToolFindView,
     MenuActionToolDistanceToCamera,
+    MenuActionToolFindAllStateSets,
 };
 
 struct TextureAttributePair {
@@ -407,6 +408,7 @@ ACTION_HANDLER_IMPL_DECLARE(MenuActionIncrementalCompileOperationConservativeTim
 
 ACTION_HANDLER_IMPL_DECLARE(MenuActionToolFindUpdateNodes)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionToolFindEventNodes)
+ACTION_HANDLER_IMPL_DECLARE(MenuActionToolFindAllStateSets)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionToolFindNaNNodes)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionToolFindVisibleNodes)
 ACTION_HANDLER_IMPL_DECLARE(MenuActionToolListNodeMasks)
