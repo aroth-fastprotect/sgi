@@ -251,7 +251,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(osg::Node, osg::Nod
                                                              osg::StateSet, osg::View, osg::GraphicsContext, osg::Shader, osg::UserDataContainer,
                                                              osg::BufferData, osg::BufferObject, osg::View, osg::Uniform, osg::ShaderComposer,
                                                              osg::NodeVisitor, osg::RenderBuffer, osg::ShaderComponent,
-                                                             osg::RefMatrixd, osg::RefMatrixf,
+                                                             osg::RefMatrixd, osg::RefMatrixf, osg::Callback,
                                                              osgAnimation::Animation,
                                                              osgAnimation::AnimationUpdateCallbackBase,
                                                              osgDB::Options, osgDB::ReaderWriter, osgDB::DatabaseRevision, osgDB::DatabaseRevisions, osgDB::FileList,
