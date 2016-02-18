@@ -45,6 +45,7 @@ public:
 public slots:
     void                        refresh();
     void                        layerChanged(int index);
+    void                        layerSourceChanged(int index);
     void                        proxySaveScript();
     void                        reloadTree();
     void                        updateMetaData();
@@ -56,7 +57,13 @@ public slots:
     void                        takeFromDataExtentsUnion();
     
 public:
-    enum NUM_NEIGHBORS 
+    enum LAYER_DATA_SOURCE
+    {
+        LayerDataSourceLayer,
+        LayerDataSourceTileSource,
+        LayerDataSourceCache,
+    };
+    enum NUM_NEIGHBORS
     {
         NUM_NEIGHBORS_NONE = 0,
         NUM_NEIGHBORS_CROSS,

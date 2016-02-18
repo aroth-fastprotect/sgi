@@ -7,6 +7,8 @@ namespace osgEarth {
     class ElevationQuery;
     class TileSource;
     class TileKey;
+    class CacheBin;
+    class TerrainLayer;
 }
 
 namespace sgi {
@@ -26,7 +28,13 @@ namespace osgearth_plugin {
 
         TileSourceTileKeyData(osgEarth::TileSource * ts, const osgEarth::TileKey & tk, osg::Referenced * td=NULL)
             : tileSource(ts), tileKey(tk), tileData(td), status(StatusNotLoaded) {}
+        TileSourceTileKeyData(osgEarth::TerrainLayer * tl, const osgEarth::TileKey & tk, osg::Referenced * td = NULL)
+            : terrainLayer(tl), tileKey(tk), tileData(td), status(StatusNotLoaded) {}
+        TileSourceTileKeyData(osgEarth::CacheBin * cb, const osgEarth::TileKey & tk, osg::Referenced * td = NULL)
+            : cacheBin(cb), tileKey(tk), tileData(td), status(StatusNotLoaded) {}
         osg::ref_ptr<osgEarth::TileSource> tileSource;
+        osg::ref_ptr<osgEarth::TerrainLayer> terrainLayer;
+        osg::ref_ptr<osgEarth::CacheBin> cacheBin;
         osgEarth::TileKey tileKey;
         osg::ref_ptr<osg::Referenced> tileData;
         Status status;

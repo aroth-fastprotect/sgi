@@ -139,22 +139,23 @@ namespace {
 
         if(ok)
         {
+            const osgEarth::Profile * used_profile = profile ? profile : osgEarth::Registry::instance()->getGlobalGeodeticProfile();
 			const unsigned maximum_lod = 21;
 			if (coordResult.geoPoint.isValid())
 			{
-				osgEarth::GeoPoint geoptProfile = coordResult.geoPoint.transform(profile->getSRS());
+				osgEarth::GeoPoint geoptProfile = coordResult.geoPoint.transform(used_profile->getSRS());
 
 				if (selectedLod == -1)
 				{
 					for (unsigned lod = 0; lod < maximum_lod; lod++)
 					{
-						osgEarth::TileKey tilekey = profile->createTileKey(geoptProfile.x(), geoptProfile.y(), lod);
+						osgEarth::TileKey tilekey = used_profile->createTileKey(geoptProfile.x(), geoptProfile.y(), lod);
 						addTileKeyAndNeighbors(ret, tilekey, (numNeighbors==TileInspectorDialog::NUM_NEIGHBORS_PARENTAL || numNeighbors == TileInspectorDialog::NUM_NEIGHBORS_PARENTAL_AND_CHILDS)? TileInspectorDialog::NUM_NEIGHBORS_NONE:numNeighbors);
 					}
 				}
 				else
 				{
-					osgEarth::TileKey tilekey = profile->createTileKey(geoptProfile.x(), geoptProfile.y(), selectedLod);
+					osgEarth::TileKey tilekey = used_profile->createTileKey(geoptProfile.x(), geoptProfile.y(), selectedLod);
 					addTileKeyAndNeighbors(ret, tilekey, numNeighbors);
 				}
 			}
@@ -381,6 +382,21 @@ namespace {
         else
             return NULL;
     }
+    osgEarth::CacheBin * getCacheBin(SGIItemOsg * item)
+    {
+        if (!item)
+            return NULL;
+        if (osgEarth::TerrainLayer * terrainLayer = dynamic_cast<osgEarth::TerrainLayer *>(item->object()))
+        {
+            const osgEarth::Profile * p = terrainLayer->getProfile();
+            if (p)
+                return terrainLayer->getCacheBin(p);
+            else
+                return NULL;
+        }
+        else
+            return NULL;
+    }
 }
 
 TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, ISettingsDialogInfo * info, SGIPluginHostInterface * hostInterface)
@@ -458,6 +474,10 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
     ui->numNeighbors->addItem(tr("Childs"), QVariant(NUM_NEIGHBORS_CHILDS));
 	ui->numNeighbors->addItem(tr("Parental"), QVariant(NUM_NEIGHBORS_PARENTAL));
 	ui->numNeighbors->addItem(tr("Parental&Childs"), QVariant(NUM_NEIGHBORS_PARENTAL_AND_CHILDS));
+
+    ui->layerSource->addItem(tr("Layer"), QVariant(LayerDataSourceLayer));
+    ui->layerSource->addItem(tr("Tile source"), QVariant(LayerDataSourceTileSource));
+    ui->layerSource->addItem(tr("Cache"), QVariant(LayerDataSourceCache));
 
     ui->layer->setCurrentIndex(0);
 
@@ -552,6 +572,27 @@ void TileInspectorDialog::layerChanged(int index)
     refresh();
 }
 
+void TileInspectorDialog::layerSourceChanged(int index)
+{
+    QVariant data = ui->layer->itemData(index);
+    QtSGIItem qitem = data.value<QtSGIItem>();
+    SGIItemOsg * item = (SGIItemOsg *)qitem.item();
+
+    ui->levelOfDetail->clear();
+    osgEarth::TileSource * tileSource = getTileSource(item);
+    ui->levelOfDetail->addItem(tr("All"), QVariant(-1));
+    for (unsigned lod = 0; lod < 23; lod++)
+    {
+        if (tileSource && tileSource->hasDataAtLOD(lod))
+        {
+            QString text(tr("LOD%1").arg(lod));
+            ui->levelOfDetail->addItem(text, QVariant(lod));
+        }
+    }
+
+    refresh();
+}
+
 void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
 {
     std::ostringstream os;
@@ -626,216 +667,261 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
 void TileInspectorDialog::refresh()
 {
     int index = ui->layer->currentIndex();
+    LAYER_DATA_SOURCE layerDataSource = (LAYER_DATA_SOURCE)ui->layerSource->itemData(ui->layerSource->currentIndex()).toInt();
     QVariant data = ui->layer->itemData(index);
     QtSGIItem qitem = data.value<QtSGIItem>();
     SGIItemOsg * item = (SGIItemOsg *)qitem.item();
-    osgEarth::TileSource * tileSource = getTileSource(item);
-    if(tileSource)
+    osgEarth::TileSource * tileSource = (layerDataSource == LayerDataSourceTileSource) ? getTileSource(item) : NULL;
+    osgEarth::TerrainLayer * terrainLayer = (layerDataSource == LayerDataSourceLayer) ? getTerrainLayer(item) : NULL;
+    osgEarth::CacheBin * cachebin = (layerDataSource == LayerDataSourceCache) ? getCacheBin(item) : NULL;
+    const osgEarth::Profile * profile = NULL;
+    if (tileSource)
+        profile = tileSource->getProfile();
+    else if (terrainLayer)
+        profile = terrainLayer->getProfile();
+    else if (cachebin)
     {
-        _treeRoot->clear();
-        const osgEarth::Profile * profile = tileSource->getProfile();
+        osgEarth::TerrainLayer * terrainLayer = getTerrainLayer(item);
+        if(terrainLayer)
+            profile = terrainLayer->getProfile();
+    }
+
+    int lod = -1;
+    index = ui->levelOfDetail->currentIndex();
+    if (index >= 0)
+        lod = ui->levelOfDetail->itemData(index).toInt();
+    index = ui->numNeighbors->currentIndex();
+    NUM_NEIGHBORS numNeighbors = NUM_NEIGHBORS_NONE;
+    if (index >= 0)
+        numNeighbors = (NUM_NEIGHBORS)ui->numNeighbors->itemData(index).toInt();
+
+    _treeRoot->clear();
+
+    typedef std::list<std::string> stdstringlist;
+    stdstringlist urllist;
+
+    std::string baseurl;
+    std::string driver;
+    bool invertY = false;
+    osgEarth::Config layerConf;
+    osgEarth::TileSourceOptions tileSourceOptions;
+    if (tileSource)
+    {
         const osgEarth::TileSourceOptions & options = tileSource->getOptions();
-        
-        int idx = ui->numNeighbors->currentIndex();
-        NUM_NEIGHBORS numNeighbors = NUM_NEIGHBORS_NONE;
-        if(idx >= 0)
-            numNeighbors = (NUM_NEIGHBORS)ui->numNeighbors->itemData(idx).toInt();
-        
-        int lod = -1;
-        idx = ui->levelOfDetail->currentIndex();
-        if(idx >= 0)
-            lod = ui->levelOfDetail->itemData(idx).toInt();
+        tileSourceOptions = options;
+        layerConf = options.getConfig();
+    }
+    else if (terrainLayer)
+    {
+        const osgEarth::TerrainLayerOptions & options = terrainLayer->getInitialOptions();
+        layerConf = options.getConfig();
+        driver = options.driver().value().getDriver();
+    }
+    driver = tileSourceOptions.getDriver();
+    if (driver == "tms")
+    {
+        osgEarth::Drivers::TMSOptions tmsopts(tileSourceOptions);
+        invertY = tmsopts.tmsType().value() == "google";
+    }
 
-        bool ok = false;
-        QString input = ui->coordinate->text();
-        TileKeyList tilekeylist = tileKeyListfromStringOrGpsCoordinate(ui->coordinate, profile, lod, numNeighbors, &ok);
-        if(ok && !tilekeylist.empty())
+    osgEarth::optional<osgEarth::URI> url;
+    layerConf.getIfSet("url", url);
+    if (url.isSet())
+    {
+        baseurl = url.value().full();
+        std::string::size_type last_slash = baseurl.rfind('/');
+        if (last_slash != std::string::npos)
+            baseurl.resize(last_slash + 1);
+    }
+
+    bool ok = false;
+    QString input = ui->coordinate->text();
+    TileKeyList tilekeylist = tileKeyListfromStringOrGpsCoordinate(ui->coordinate, profile, lod, numNeighbors, &ok);
+    if(ok && !tilekeylist.empty())
+    {
+        std::ostringstream os;
+        std::string baseurl;
+
+        os << "<b>Result for " << input.toStdString() << "</b><br/>";
+        os << "Driver: " << driver << "<br/>";
+        if(driver == "tms")
         {
-            std::string baseurl;
-            bool invertY = false;
-            osgEarth::Config layerConf = options.getConfig();
-            osgEarth::optional<osgEarth::URI> url;
-            std::ostringstream os;
-            layerConf.getIfSet("url", url);
-            if(url.isSet())
+            std::string tms_type;
+            osgEarth::Drivers::TMSOptions tmsopts(tileSourceOptions);
+            osg::ref_ptr<osgEarth::Util::TMS::TileMap> tilemap = osgEarth::Util::TMS::TileMap::create(tileSource, profile);
+
+            os << "Base URL: <a href=\"" << baseurl << "\">"  << baseurl << "</a><br/>";
+            os << "TMS type: " << tmsopts.tmsType().value() << "<br/>";
+            os << "Format: " << tmsopts.format().value() << "<br/>";
+            os << "InvertY: " << (invertY?"true":"false") << "<br/>";
+            os << "<ul>";
+            for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
             {
-                baseurl = url.value().full();
-                std::string::size_type last_slash = baseurl.rfind('/');
-                if(last_slash != std::string::npos)
-                    baseurl.resize(last_slash + 1);
-            }
-            typedef std::list<std::string> stdstringlist;
-            stdstringlist urllist;
-
-            os << "<b>Result for " << input.toStdString() << "</b><br/>";
-            os << "Driver: " << options.getDriver() << "<br/>";
-            if(options.getDriver() == "tms")
-            {
-                std::string tms_type;
-                osgEarth::Drivers::TMSOptions tmsopts(options);
-                osg::ref_ptr<osgEarth::Util::TMS::TileMap> tilemap = osgEarth::Util::TMS::TileMap::create(tileSource, profile);
-
-                invertY = tmsopts.tmsType().value() == "google";
-
-                os << "Base URL: <a href=\"" << baseurl << "\">"  << baseurl << "</a><br/>";
-                os << "TMS type: " << tmsopts.tmsType().value() << "<br/>";
-                os << "Format: " << tmsopts.format().value() << "<br/>";
-                os << "InvertY: " << (invertY?"true":"false") << "<br/>";
-                os << "<ul>";
-                for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
+                const osgEarth::TileKey & tilekey = *it;
+                if(!tileSource->hasData(tilekey))
+                    os << "<li>" << tilekey.str() << ": no data</li>" << std::endl;
+                else
                 {
-                    const osgEarth::TileKey & tilekey = *it;
-                    if(!tileSource->hasData(tilekey))
-                        os << "<li>" << tilekey.str() << ": no data</li>" << std::endl;
-                    else
+                    std::string image_url = tilemap->getURL( tilekey, invertY );
+                    if(!image_url.empty())
                     {
-                        std::string image_url = tilemap->getURL( tilekey, invertY );
-                        if(!image_url.empty())
-                        {
-                            std::string full_url = baseurl + image_url;
-                            urllist.push_back(full_url);
-                            os << "<li>L" << tilekey.getLOD() << ": <a href=\"" << full_url << "\">" << full_url << "</a></li>" << std::endl;
-                        }
-                        else
-                        {
-                            if(tilemap->getMinLevel() != 0 && tilemap->getMinLevel() > tilekey.getLOD())
-                                os << "<li>L" << tilekey.getLOD() << ": < minimum " << tilemap->getMinLevel() << "</li>" << std::endl;
-                            else if(tilemap->getMaxLevel() != 0 && tilemap->getMaxLevel() < tilekey.getLOD())
-                                os << "<li>L" << tilekey.getLOD() << ": > maximum " << tilemap->getMaxLevel() << "</li>" << std::endl;
-                            else
-                                os << "<li>L" << tilekey.getLOD() << ": no data</li>" << std::endl;
-                        }
+                        std::string full_url = baseurl + image_url;
+                        urllist.push_back(full_url);
+                        os << "<li>L" << tilekey.getLOD() << ": <a href=\"" << full_url << "\">" << full_url << "</a></li>" << std::endl;
                     }
-                }
-                os << "</ul>" << std::endl;
-            }
-            else if(options.getDriver() == "vpb")
-            {
-                osgEarth::Drivers::VPBOptions vpbopts(options);
-                os << "Base URL: <a href=\"" << vpbopts.url().value().full() << "\">"  << vpbopts.url().value().full() << "</a><br/>";
-                os << "Base name: " << vpbopts.baseName().value() << "<br/>";
-                os << "Primary split: " << vpbopts.primarySplitLevel().value() << "<br/>";
-                os << "Secondary split: " << vpbopts.secondarySplitLevel().value() << "<br/>";
-                os << "<ul>";
-                for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
-                {
-                    const osgEarth::TileKey & tilekey = *it;
-                    if(!tileSource->hasData(tilekey))
-                        os << "<li>" << tilekey.str() << ": no data</li>" << std::endl;
                     else
                     {
-                        std::string image_url = getVPBTerrainTile(tilekey, vpbopts);
-                        if(!image_url.empty())
-                        {
-                            std::string full_url = baseurl + image_url;
-                            urllist.push_back(full_url);
-                            os << "<li>L" << tilekey.getLOD() << ": <a href=\"" << full_url << "\">" << full_url << "</a></li>" << std::endl;
-                        }
+                        if(tilemap->getMinLevel() != 0 && tilemap->getMinLevel() > tilekey.getLOD())
+                            os << "<li>L" << tilekey.getLOD() << ": < minimum " << tilemap->getMinLevel() << "</li>" << std::endl;
+                        else if(tilemap->getMaxLevel() != 0 && tilemap->getMaxLevel() < tilekey.getLOD())
+                            os << "<li>L" << tilekey.getLOD() << ": > maximum " << tilemap->getMaxLevel() << "</li>" << std::endl;
                         else
-                        {
                             os << "<li>L" << tilekey.getLOD() << ": no data</li>" << std::endl;
-                        }
                     }
                 }
-                os << "</ul>" << std::endl;
             }
-            else if(options.getDriver() == "arcgis")
+            os << "</ul>" << std::endl;
+        }
+        else if(driver == "vpb")
+        {
+            osgEarth::Drivers::VPBOptions vpbopts(tileSourceOptions);
+            os << "Base URL: <a href=\"" << vpbopts.url().value().full() << "\">"  << vpbopts.url().value().full() << "</a><br/>";
+            os << "Base name: " << vpbopts.baseName().value() << "<br/>";
+            os << "Primary split: " << vpbopts.primarySplitLevel().value() << "<br/>";
+            os << "Secondary split: " << vpbopts.secondarySplitLevel().value() << "<br/>";
+            os << "<ul>";
+            for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
             {
-                osgEarth::Drivers::ArcGISOptions arcgisopts(options);
-                std::string url_full = arcgisopts.url().value().full();
-                os << "Base URL: <a href=\"" << url_full << "\">"  << url_full << "</a><br/>";
-
-                std::string sep = url_full.find( "?" ) == std::string::npos ? "?" : "&";
-                std::string json_url = url_full + sep + std::string("f=pjson");  // request the data in JSON format
-
-                os << "JSON URL: <a href=\"" << json_url << "\">"  << json_url << "</a><br/>";
-                os << "<ul>";
-
-                for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
+                const osgEarth::TileKey & tilekey = *it;
+                if(!tileSource->hasData(tilekey))
+                    os << "<li>" << tilekey.str() << ": no data</li>" << std::endl;
+                else
                 {
-                    const osgEarth::TileKey & tilekey = *it;
-                    if(!tileSource->hasData(tilekey))
-                        os << "<li>" << tilekey.str() << ": no data</li>" << std::endl;
+                    std::string image_url = getVPBTerrainTile(tilekey, vpbopts);
+                    if(!image_url.empty())
+                    {
+                        std::string full_url = baseurl + image_url;
+                        urllist.push_back(full_url);
+                        os << "<li>L" << tilekey.getLOD() << ": <a href=\"" << full_url << "\">" << full_url << "</a></li>" << std::endl;
+                    }
                     else
                     {
-                        std::string image_url = getArcGISTerrainTile(tilekey, arcgisopts);
-                        if(!image_url.empty())
-                        {
-                            std::string full_url = baseurl + image_url;
-                            urllist.push_back(full_url);
-                            os << "<li>L" << tilekey.getLOD() << ": <a href=\"" << full_url << "\">" << full_url << "</a></li>" << std::endl;
-                        }
-                        else
-                        {
-                            os << "<li>L" << tilekey.getLOD() << ": no data</li>" << std::endl;
-                        }
+                        os << "<li>L" << tilekey.getLOD() << ": no data</li>" << std::endl;
                     }
                 }
-                os << "</ul>" << std::endl;
             }
-            else
-            {
-                os << "<i>Driver " << options.getDriver() << " not yet implemented.</i>" << std::endl;
-            }
-            ui->urlList->setText(QString::fromStdString(os.str()));
+            os << "</ul>" << std::endl;
+        }
+        else if(driver == "arcgis")
+        {
+            osgEarth::Drivers::ArcGISOptions arcgisopts(tileSourceOptions);
+            std::string url_full = arcgisopts.url().value().full();
+            os << "Base URL: <a href=\"" << url_full << "\">"  << url_full << "</a><br/>";
+
+            std::string sep = url_full.find( "?" ) == std::string::npos ? "?" : "&";
+            std::string json_url = url_full + sep + std::string("f=pjson");  // request the data in JSON format
+
+            os << "JSON URL: <a href=\"" << json_url << "\">"  << json_url << "</a><br/>";
+            os << "<ul>";
 
             for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
             {
                 const osgEarth::TileKey & tilekey = *it;
+                if(!tileSource->hasData(tilekey))
+                    os << "<li>" << tilekey.str() << ": no data</li>" << std::endl;
+                else
+                {
+                    std::string image_url = getArcGISTerrainTile(tilekey, arcgisopts);
+                    if(!image_url.empty())
+                    {
+                        std::string full_url = baseurl + image_url;
+                        urllist.push_back(full_url);
+                        os << "<li>L" << tilekey.getLOD() << ": <a href=\"" << full_url << "\">" << full_url << "</a></li>" << std::endl;
+                    }
+                    else
+                    {
+                        os << "<li>L" << tilekey.getLOD() << ": no data</li>" << std::endl;
+                    }
+                }
+            }
+            os << "</ul>" << std::endl;
+        }
+        else
+        {
+            os << "<i>Driver " << driver << " not yet implemented.</i>" << std::endl;
+        }
+        ui->urlList->setText(QString::fromStdString(os.str()));
+
+        for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
+        {
+            const osgEarth::TileKey & tilekey = *it;
+            if (tileSource)
+            {
                 TileSourceTileKeyData data(tileSource, tilekey);
                 SGIHostItemOsg tskey(new TileSourceTileKey(data));
                 _treeRoot->addChild(std::string(), &tskey);
             }
-
-            //ui->previewImage
-            
-            if(!urllist.empty())
+            else if (terrainLayer)
             {
-                std::ostringstream os;
-
-                std::string proxyOpts;
-                std::string proxyUrl;
-                std::string proxyUser;
-                {
-                    osgEarth::ProxySettings proxy;
-                    if(!proxy.hostName().empty())
-                    {
-                        std::stringstream ss;
-                        ss << proxy.hostName() << ':' << proxy.port();
-                        proxyUrl = ss.str();
-                    }
-                    if(!proxy.userName().empty())
-                    {
-                        std::stringstream ss;
-                        if(proxy.password().empty())
-                            ss << proxy.userName();
-                        else
-                            ss << proxy.userName() << ':' << proxy.password();
-                        proxyUser = ss.str();
-                    }
-                    if(!proxyUrl.empty())
-                        proxyOpts += " -x " + proxyUrl;
-                    if(!proxyUser.empty())
-                        proxyOpts += " -U " + proxyUser;
-                }
-                os << "Proxy URL: <a href=\"" << proxyUrl << "\">" << proxyUrl << "</a><br/>";
-                os << "Proxy User: " << proxyUser  << "<br/>";
-                os << "<ul>";
-                for(stdstringlist::const_iterator it = urllist.begin(); it != urllist.end(); it++)
-                {
-                    const std::string & url = *it;
-                    std::string output = url;
-                    if(output.compare(0, 7, "http://") == 0)
-                        output.erase(0, 7);
-
-                    std::replace_if(output.begin(), output.end(), IsSlash, '_');
-                    os << "<li>curl" << proxyOpts << " " << url << " -o " << output << "</li>" << std::endl;
-                }
-                os << "</ul>" << std::endl;
-                ui->proxyCmdLines->setText(QString::fromStdString(os.str()));
+                TileSourceTileKeyData data(terrainLayer, tilekey);
+                SGIHostItemOsg tskey(new TileSourceTileKey(data));
+                _treeRoot->addChild(std::string(), &tskey);
+            }
+            else if (cachebin)
+            {
+                TileSourceTileKeyData data(cachebin, tilekey);
+                SGIHostItemOsg tskey(new TileSourceTileKey(data));
+                _treeRoot->addChild(std::string(), &tskey);
             }
         }
     }
+
+    if (!urllist.empty())
+    {
+        std::ostringstream os;
+
+        std::string proxyOpts;
+        std::string proxyUrl;
+        std::string proxyUser;
+        {
+            osgEarth::ProxySettings proxy;
+            if (!proxy.hostName().empty())
+            {
+                std::stringstream ss;
+                ss << proxy.hostName() << ':' << proxy.port();
+                proxyUrl = ss.str();
+            }
+            if (!proxy.userName().empty())
+            {
+                std::stringstream ss;
+                if (proxy.password().empty())
+                    ss << proxy.userName();
+                else
+                    ss << proxy.userName() << ':' << proxy.password();
+                proxyUser = ss.str();
+            }
+            if (!proxyUrl.empty())
+                proxyOpts += " -x " + proxyUrl;
+            if (!proxyUser.empty())
+                proxyOpts += " -U " + proxyUser;
+        }
+        os << "Proxy URL: <a href=\"" << proxyUrl << "\">" << proxyUrl << "</a><br/>";
+        os << "Proxy User: " << proxyUser << "<br/>";
+        os << "<ul>";
+        for (stdstringlist::const_iterator it = urllist.begin(); it != urllist.end(); it++)
+        {
+            const std::string & url = *it;
+            std::string output = url;
+            if (output.compare(0, 7, "http://") == 0)
+                output.erase(0, 7);
+
+            std::replace_if(output.begin(), output.end(), IsSlash, '_');
+            os << "<li>curl" << proxyOpts << " " << url << " -o " << output << "</li>" << std::endl;
+        }
+        os << "</ul>" << std::endl;
+        ui->proxyCmdLines->setText(QString::fromStdString(os.str()));
+    }
+
 }
 
 void TileInspectorDialog::updateMetaData()
@@ -1034,29 +1120,59 @@ void TileInspectorDialog::loadData()
             {
                 TileSourceTileKeyData & data = tskey->data();
                 osgEarth::TileSource * tileSource = data.tileSource;
-				std::string ext = tileSource->getExtension();
-				bool isImageTileSource = true;
-				if (ext.compare("osgb") == 0 || ext.compare("ive") == 0)
-					isImageTileSource = (tileSource->getPixelsPerTile() >= 64);
-				else if (ext.compare("tif") == 0)
-					isImageTileSource = false;
+                osgEarth::TerrainLayer * terrainLayer = data.terrainLayer;
+                osgEarth::CacheBin * cacheBin = data.cacheBin;
 
-                if(!tileSource->hasData(data.tileKey))
-                    data.status = TileSourceTileKeyData::StatusNoData;
-                else
+                if (tileSource)
                 {
-                    if (isImageTileSource)
-                    {
-                        osg::ref_ptr<osg::Image> image = tileSource->createImage(data.tileKey);
-                        data.tileData = image;
-                    }
+                    std::string ext = tileSource->getExtension();
+                    bool isImageTileSource = true;
+                    if (ext.compare("osgb") == 0 || ext.compare("ive") == 0)
+                        isImageTileSource = (tileSource->getPixelsPerTile() >= 64);
+                    else if (ext.compare("tif") == 0)
+                        isImageTileSource = false;
+
+                    if (!tileSource->hasData(data.tileKey))
+                        data.status = TileSourceTileKeyData::StatusNoData;
                     else
                     {
-                        osg::ref_ptr<osg::HeightField> hf = tileSource->createHeightField(data.tileKey);
-                        data.tileData = hf;
+                        if (isImageTileSource)
+                        {
+                            osg::ref_ptr<osg::Image> image = tileSource->createImage(data.tileKey);
+                            data.tileData = image;
+                        }
+                        else
+                        {
+                            osg::ref_ptr<osg::HeightField> hf = tileSource->createHeightField(data.tileKey);
+                            data.tileData = hf;
+                        }
+                        data.status = data.tileData.valid() ? TileSourceTileKeyData::StatusLoaded : TileSourceTileKeyData::StatusLoadFailure;
                     }
-                    data.status = data.tileData.valid()?TileSourceTileKeyData::StatusLoaded:TileSourceTileKeyData::StatusLoadFailure;
                 }
+                else if (terrainLayer)
+                {
+                    osgEarth::ImageLayer* imageLayer = dynamic_cast<osgEarth::ImageLayer*>(terrainLayer);
+                    osgEarth::ElevationLayer * elevLayer = dynamic_cast<osgEarth::ElevationLayer*>(terrainLayer);
+                    if (imageLayer)
+                    {
+                        osgEarth::GeoImage image = imageLayer->createImage(data.tileKey);
+                        data.tileData = image.getImage();
+                    }
+                    else if (elevLayer)
+                    {
+                        osgEarth::GeoHeightField hf = elevLayer->createHeightField(data.tileKey);
+                        data.tileData = hf.getHeightField();
+                    }
+                    data.status = data.tileData.valid() ? TileSourceTileKeyData::StatusLoaded : TileSourceTileKeyData::StatusLoadFailure;
+                }
+                else if (cacheBin)
+                {
+                    osgEarth::ReadResult res = cacheBin->readObject(data.tileKey.str());
+                    if(res.succeeded())
+                        data.tileData = res.getObject();
+                    data.status = data.tileData.valid() ? TileSourceTileKeyData::StatusLoaded : TileSourceTileKeyData::StatusLoadFailure;
+                }
+
             }
         }
         child->updateName();

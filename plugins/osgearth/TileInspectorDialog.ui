@@ -40,6 +40,9 @@
       </widget>
      </item>
      <item>
+      <widget class="QComboBox" name="layerSource"/>
+     </item>
+     <item>
       <widget class="QPushButton" name="updateMetaDataButton">
        <property name="text">
         <string>Update meta data</string>
@@ -314,8 +317,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>311</width>
-             <height>356</height>
+             <width>317</width>
+             <height>389</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -396,7 +399,9 @@
   </action>
   <action name="actionCoordinateLoadFromFile">
    <property name="icon">
-    <iconset theme="document-open"/>
+    <iconset theme="document-open">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Load from file...</string>
@@ -610,6 +615,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>layerSource</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>TileInspectorDialog</receiver>
+   <slot>layerSourceChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>152</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>344</x>
+     <y>275</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>refresh()</slot>
@@ -622,5 +643,6 @@
   <slot>loadFromFile()</slot>
   <slot>takeFromDataExtents()</slot>
   <slot>takeFromDataExtentsUnion()</slot>
+  <slot>layerSourceChanged(int)</slot>
  </slots>
 </ui>
