@@ -224,6 +224,8 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                  osg::GLBufferObject,
                                                                  osg::GLBufferObjectSet,
                                                                  osg::Stats,
+                                                                 osg::Texture::TextureObject,
+                                                                 osg::Texture::TextureObjectManager,
                                                                  osgAnimation::Channel,
                                                                  osgAnimation::Target,
                                                                  osgAnimation::Sampler,

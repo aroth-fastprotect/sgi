@@ -90,6 +90,8 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(osg::PagedLOD)
 
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::StateAttribute)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Texture)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObject)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObjectManager)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Texture2D)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Texture3D)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Image)
@@ -1442,9 +1444,19 @@ bool objectTreeBuildImpl<osg::Texture>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
+            unsigned contextID = osg_helpers::findContextID(object);
+
             SGIHostItemOsg readPBuffer(object->getReadPBuffer());
             if(readPBuffer.hasObject())
                 treeItem->addChild("ReadPBuffer", &readPBuffer);
+
+            SGIHostItemOsg txtobj(object->getTextureObject(contextID));
+            if (txtobj.hasObject())
+                treeItem->addChild("TextureObject", &txtobj);
+
+            SGIHostItemOsg txtobjmgr(osg::Texture::getTextureObjectManager(contextID));
+            if (txtobjmgr.hasObject())
+                treeItem->addChild("TextureObjectManager", &txtobjmgr);
 
             for (unsigned n = 0; n < object->getNumImages(); ++n)
             {
@@ -1452,7 +1464,47 @@ bool objectTreeBuildImpl<osg::Texture>::build(IObjectTreeItem * treeItem)
                 if (image.hasObject())
                     treeItem->addChild(helpers::str_plus_count("Image", n), &image);
             }
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
 
+bool objectTreeBuildImpl<osg::Texture::TextureObject>::build(IObjectTreeItem * treeItem)
+{
+    osg::Texture::TextureObject * object = static_cast<osg::Texture::TextureObject*>(item<SGIItemOsg>()->object());
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsg texture(object->getTexture());
+            if (texture.hasObject())
+                treeItem->addChild("Texture", &texture);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osg::Texture::TextureObjectManager>::build(IObjectTreeItem * treeItem)
+{
+    osg::Texture::TextureObject * object = static_cast<osg::Texture::TextureObject*>(item<SGIItemOsg>()->object());
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
         }
         break;
     default:
@@ -3612,7 +3664,13 @@ class FindTreeItemNodeVisitor : public osg::NodeVisitor
 public:
     FindTreeItemNodeVisitor(TraversalMode tm=TRAVERSE_ALL_CHILDREN)
         : osg::NodeVisitor(tm) {}
-    const osg::NodeList &   results() const
+    struct NodeItem
+    {
+        osg::ref_ptr<osg::Node> node;
+        std::string name;
+    };
+    typedef std::vector<NodeItem> NodeList;
+    const NodeList &   results() const
         { return _nodes; }
 
     virtual void apply(osg::Node& node)
@@ -3620,13 +3678,18 @@ public:
         bool sgi_tree_item = false;
         if(node.getUserValue<bool>("sgi_tree_item", sgi_tree_item))
         {
-            if(sgi_tree_item)
-                _nodes.push_back(&node);
+            if (sgi_tree_item)
+            {
+                NodeItem item;
+                item.node = &node;
+                node.getUserValue<std::string>("sgi_tree_itemname", item.name);
+                _nodes.push_back(item);
+            }
         }
         traverse(node);
     }
 protected:
-    osg::NodeList _nodes;
+    NodeList _nodes;
 };
 
 bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeItem)
@@ -3652,11 +3715,11 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
         {
             FindTreeItemNodeVisitor ftinv;
             node->accept(ftinv);
-            for(osg::NodeList::const_iterator it = ftinv.results().begin(); it != ftinv.results().end(); ++it)
+            for(FindTreeItemNodeVisitor::NodeList::const_iterator it = ftinv.results().begin(); it != ftinv.results().end(); ++it)
             {
-                SGIHostItemOsg hostItem(*it);
+                SGIHostItemOsg hostItem((*it).node.get());
                 if(hostItem.hasObject())
-                    treeItem->addChild(std::string(), &hostItem);
+                    treeItem->addChild((*it).name, &hostItem);
             }
             osg::Node * imageGeode = osg_helpers::findTopMostNodeByName<osg::Node>(node, "ImageGeode");
             if(imageGeode)

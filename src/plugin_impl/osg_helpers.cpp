@@ -3,6 +3,7 @@
 
 #include <osg/StateAttribute>
 #include <osg/Texture>
+#include <osg/Camera>
 #include <osg/CoordinateSystemNode>
 #include <osg/ObserverNodePath>
 #include <osg/io_utils>
@@ -878,6 +879,74 @@ void heightFieldDumpPlainText(std::basic_ostream<char>& os, const osg::HeightFie
 		}
 		os << std::endl;
 	}
+}
+
+osg::Camera * findCamera(const osg::Node * node)
+{
+    osg::Camera * ret = dynamic_cast<osg::Camera*>(const_cast<osg::Node*>(node));
+    if (!ret)
+        ret = findFirstParentOfType<osg::Camera>(const_cast<osg::Node*>(node));
+    return ret;
+}
+
+osg::Camera * findCamera(const osg::StateSet * stateset)
+{
+    osg::Camera * ret = NULL;
+    const osg::StateSet::ParentList & parents = stateset->getParents();
+    for (osg::Node * ss : parents)
+    {
+        ret = findCamera(ss);
+        if (ret)
+            break;
+    }
+    return ret;
+}
+
+osg::Camera * findCamera(const osg::StateAttribute * sa)
+{
+    osg::Camera * ret = NULL;
+    const osg::StateAttribute::ParentList & parents = sa->getParents();
+    for (osg::StateSet * ss : parents)
+    {
+        ret = findCamera(ss);
+        if (ret)
+            break;
+    }
+    return ret;
+}
+
+unsigned findContextID(const osg::Camera * camera)
+{
+    unsigned ret = ~0u;
+    if (camera)
+    {
+        const osg::GraphicsContext * gc = camera->getGraphicsContext();
+        if (gc)
+        {
+            const osg::State * state = gc->getState();
+            if (state)
+                ret = state->getContextID();
+        }
+    }
+    return ret;
+}
+
+unsigned findContextID(const osg::Node * node)
+{
+    osg::Camera * camera = findCamera(node);
+    return findContextID(camera);
+}
+
+unsigned findContextID(const osg::StateSet * stateset)
+{
+    osg::Camera * camera = findCamera(stateset);
+    return findContextID(camera);
+}
+
+unsigned findContextID(const osg::StateAttribute * sa)
+{
+    osg::Camera * camera = findCamera(sa);
+    return findContextID(camera);
 }
 
 } // namespace osg_helpers

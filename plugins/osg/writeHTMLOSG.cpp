@@ -149,6 +149,8 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osg::State)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::StateAttribute)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Image)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Texture)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObjectManager)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Texture1D)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Texture2D)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Texture3D)
@@ -2686,6 +2688,105 @@ bool writePrettyHTMLImpl<osg::Texture>::process(std::basic_ostream<char>& os)
     return ret;
 }
 
+
+void writePrettyHTMLTextureProfile(std::basic_ostream<char>& os, const osg::Texture::TextureProfile & profile)
+{
+    os << "<ul>";
+    os << "<li>numMipmapLevels=" << profile._numMipmapLevels << "</li>";
+    os << "<li>internalFormat=" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(profile._internalFormat) << "</li>";
+    os << "<li>width=" << profile._width << "</li>";
+    os << "<li>height=" << profile._height << "</li>";
+    os << "<li>depth=" << profile._depth << "</li>";
+    os << "<li>border=" << profile._border << "</li>";
+    os << "</ul>" << std::endl;
+}
+
+bool writePrettyHTMLImpl<osg::Texture::TextureObject>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    osg::Texture::TextureObject * object = static_cast<osg::Texture::TextureObject*>(item<SGIItemOsg>()->object());
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add Texture properties first
+            callNextHandler(os);
+
+            os << "<tr><td>id</td><td>" << object->id() << "</td></tr>" << std::endl;
+            os << "<tr><td>target</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->target()) << "</td></tr>" << std::endl;
+            os << "<tr><td>size</td><td>" << object->size() << "</td></tr>" << std::endl;
+            os << "<tr><td>timestamp</td><td>" << object->getTimeStamp() << "</td></tr>" << std::endl;
+            os << "<tr><td>allocated</td><td>" << (object->isAllocated() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>reusable</td><td>" << (object->isReusable() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>texture</td><td>" << osg_helpers::getObjectNameAndType(object->getTexture(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>profile</td><td>";
+            writePrettyHTMLTextureProfile(os, object->_profile);
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>next</td><td>" << osg_helpers::getObjectNameAndType(object->_next) << "</td></tr>" << std::endl;
+            os << "<tr><td>previous</td><td>" << osg_helpers::getObjectNameAndType(object->_previous) << "</td></tr>" << std::endl;
+            os << "<tr><td>set</td><td>" << osg_helpers::getObjectNameAndType(object->_set) << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osg::Texture::TextureObjectManager>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    osg::Texture::TextureObjectManager * object = static_cast<osg::Texture::TextureObjectManager*>(item<SGIItemOsg>()->object());
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        // add Texture properties first
+        callNextHandler(os);
+
+        os << "<tr><td>contextID</td><td>" << object->getContextID() << "</td></tr>" << std::endl;
+        os << "<tr><td>num active texture objects</td><td>" << object->getNumberActiveTextureObjects() << "</td></tr>" << std::endl;
+        os << "<tr><td>num orphaned texture objects</td><td>" << object->getNumberOrphanedTextureObjects() << "</td></tr>" << std::endl;
+        os << "<tr><td>current pool size</td><td>" << object->getCurrTexturePoolSize() << "</td></tr>" << std::endl;
+        os << "<tr><td>max pool size</td><td>" << object->getMaxTexturePoolSize() << "</td></tr>" << std::endl;
+
+        os << "<tr><td>frame number</td><td>" << object->getFrameNumber() << "</td></tr>" << std::endl;
+        os << "<tr><td>number of frames</td><td>" << object->getNumberFrames() << "</td></tr>" << std::endl;
+        os << "<tr><td>number deleted</td><td>" << object->getNumberDeleted() << "</td></tr>" << std::endl;
+        os << "<tr><td>delete time</td><td>" << object->getDeleteTime() << "</td></tr>" << std::endl;
+        os << "<tr><td>number generated</td><td>" << object->getNumberGenerated() << "</td></tr>" << std::endl;
+        os << "<tr><td>generate time</td><td>" << object->getGenerateTime() << "</td></tr>" << std::endl;
+
+        os << "<tr><td>number applied</td><td>" << object->getNumberApplied() << "</td></tr>" << std::endl;
+        os << "<tr><td>apply time</td><td>" << object->getApplyTime() << "</td></tr>" << std::endl;
+
+        os << "<tr><td>stats</td><td>";
+        object->reportStats(os);
+        os << "</td></tr>" << std::endl;
+
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
 bool writePrettyHTMLImpl<osg::Texture1D>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -4762,7 +4863,7 @@ namespace {
         typedef std::set<osg::Uniform*> UniformSet;
 
     public:
-        StatisticsVisitor();
+        StatisticsVisitor(unsigned int contextID=~0u);
         virtual ~StatisticsVisitor();
 
         virtual void reset();
@@ -4787,6 +4888,7 @@ namespace {
         virtual void apply(osg::StateAttribute & attr);
         virtual void apply(osg::Uniform & uniform);
         virtual void apply(osg::BufferData& buffer);
+        virtual void apply(osg::Texture::TextureObject & to);
 
 		virtual void apply(osgText::TextBase & text);
 
@@ -4804,6 +4906,7 @@ namespace {
 
 
     protected:
+        unsigned int _contextID;
         unsigned int _numInstancedPagedLOD;
         unsigned int _numInstancedProxyNode;
         unsigned int _numInstancedCSN;
@@ -4843,8 +4946,9 @@ namespace {
         NodeSet             _animationBoneSet;
 		NodeSet             _textBaseSet;
     };
-    StatisticsVisitor::StatisticsVisitor()
+    StatisticsVisitor::StatisticsVisitor(unsigned int contextID)
         : osgUtil::StatsVisitor()
+        , _contextID(contextID)
         , _numInstancedPagedLOD(0)
         , _numInstancedProxyNode(0)
         , _numInstancedCSN(0)
@@ -5188,6 +5292,11 @@ namespace {
 
     }
 
+    void StatisticsVisitor::apply(osg::Texture::TextureObject & to)
+    {
+        _estimatedMemory += to._profile._size;
+    }
+
     void StatisticsVisitor::apply(osg::StateAttribute & attr)
     {
         ++_numInstancedStateAttribute;
@@ -5200,11 +5309,17 @@ namespace {
                 osg::Texture * texture = attr.asTexture();
                 if(texture)
                 {
+                    if (_contextID != ~0u)
+                    {
+                        osg::Texture::TextureObject * to = texture->getTextureObject(_contextID);
+                        if(to)
+                            apply(*to);
+                    }
                     unsigned int numImages = texture->getNumImages();
-                    for(unsigned n = 0; n < numImages; n++)
+                    for (unsigned n = 0; n < numImages; n++)
                     {
                         osg::Image * image = texture->getImage(n);
-                        if(image)
+                        if (image)
                             apply(*image);
                     }
                 }
@@ -5455,7 +5570,8 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
         break;
     case SGIItemTypeStatistics:
         {
-            StatisticsVisitor sv;
+            unsigned contextID = osg_helpers::findContextID(object);
+            StatisticsVisitor sv(contextID);
             object->accept(sv);
             sv.printHTML(os);
             ret = true;

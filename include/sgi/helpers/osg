@@ -25,6 +25,9 @@ namespace osg {
     class Matrixd;
     class Image;
 	class HeightField;
+    class Camera;
+    class StateSet;
+    class StateAttribute;
 
     typedef std::vector< Node* > NodePath;
 
@@ -354,6 +357,15 @@ void heightFieldDumpPlainText(std::basic_ostream<char>& os, const osg::HeightFie
             result = findTopMostNodeByName<T>( node, name, traversalMask );
         return result;
     }
+
+    osg::Camera * findCamera(const osg::Node * node);
+    osg::Camera * findCamera(const osg::StateSet * stateset);
+    osg::Camera * findCamera(const osg::StateAttribute * sa);
+
+    unsigned findContextID(const osg::Camera * camera);
+    unsigned findContextID(const osg::Node * node);
+    unsigned findContextID(const osg::StateSet * stateset);
+    unsigned findContextID(const osg::StateAttribute * sa);
 
     } // namespace osg_helpers
 } // namespace sgi
