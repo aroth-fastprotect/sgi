@@ -1730,8 +1730,6 @@ bool writePrettyHTMLImpl<osgEarth::TileBlacklist>::process(std::basic_ostream<ch
 
             // add remaining TileSource properties
             os << "<tr><td>size</td><td>" << object->size() << "</td></tr>" << std::endl;
-            os << "<tr><td>tiles</td><td><ul>";
-
 
 #ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
             os << "<tr><td>tiles</td><td>";
@@ -1742,7 +1740,8 @@ bool writePrettyHTMLImpl<osgEarth::TileBlacklist>::process(std::basic_ostream<ch
             MapDownload::TileKeyList tiles_per_level[max_level];
             for(const osgEarth::TileKey & tilekey : tiles)
             {
-                tiles_per_level[tilekey.getLOD()].push_back(tilekey);
+                if(tilekey.valid())
+                    tiles_per_level[tilekey.getLOD()].push_back(tilekey);
             }
 
             for(unsigned level = 0; level < max_level; ++level)
@@ -1756,7 +1755,12 @@ bool writePrettyHTMLImpl<osgEarth::TileBlacklist>::process(std::basic_ostream<ch
             os << "<ul>";
             for(const osgEarth::TileKey & tilekey : tiles)
             {
-                os << "<li>" << tilekey << "&nbsp;<a href=\"" << MapDownload::getUrl(tilekey) << "\">Preview</a></li>";
+                os << "<li>";
+                if (tilekey.valid())
+                    os << tilekey << "&nbsp;<a href=\"" << MapDownload::getUrl(tilekey) << "\">Preview</a>";
+                else
+                    os << "invalid " << tilekey.getLOD() << '/' << tilekey.getTileX() << '/' << tilekey.getTileY();
+                os << "</li>";
             }
             os << "</ul></td></tr>" << std::endl;
 
