@@ -2637,6 +2637,7 @@ bool writePrettyHTMLImpl<osg::Texture>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add remaining texture properties
+            os << "<tr><td>texture target</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getTextureTarget()) << "</td></tr>" << std::endl;
             os << "<tr><td>images</td><td>" << object->getNumImages() << "</td></tr>" << std::endl;
             os << "<tr><td>width</td><td>" << object->getTextureWidth() << "</td></tr>" << std::endl;
             os << "<tr><td>height</td><td>" << object->getTextureHeight() << "</td></tr>" << std::endl;
@@ -2660,6 +2661,7 @@ bool writePrettyHTMLImpl<osg::Texture>::process(std::basic_ostream<char>& os)
             os << "<tr><td>resizeNonPowerOfTwoHint</td><td>" << (object->getResizeNonPowerOfTwoHint()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>clientStorageHint</td><td>" << (object->getClientStorageHint()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>unRefImageDataAfterApply</td><td>" << (object->getUnRefImageDataAfterApply()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>swizzle</td><td>" << object->getSwizzle() << "</td></tr>" << std::endl;
             os << "<tr><td>useHardwareMipMapGeneration</td><td>" << (object->getUseHardwareMipMapGeneration()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>maxAnisotropy</td><td>" << object->getMaxAnisotropy() << "</td></tr>" << std::endl;
             os << "<tr><td>min filter</td><td>" << object->getFilter(osg::Texture::MIN_FILTER) << "</td></tr>" << std::endl;
@@ -5309,18 +5311,25 @@ namespace {
                 osg::Texture * texture = attr.asTexture();
                 if(texture)
                 {
+                    bool got_txtobj = false;
                     if (_contextID != ~0u)
                     {
                         osg::Texture::TextureObject * to = texture->getTextureObject(_contextID);
-                        if(to)
+                        if (to)
+                        {
+                            got_txtobj = true;
                             apply(*to);
+                        }
                     }
-                    unsigned int numImages = texture->getNumImages();
-                    for (unsigned n = 0; n < numImages; n++)
+                    if (!got_txtobj)
                     {
-                        osg::Image * image = texture->getImage(n);
-                        if (image)
-                            apply(*image);
+                        unsigned int numImages = texture->getNumImages();
+                        for (unsigned n = 0; n < numImages; n++)
+                        {
+                            osg::Image * image = texture->getImage(n);
+                            if (image)
+                                apply(*image);
+                        }
                     }
                 }
             }
