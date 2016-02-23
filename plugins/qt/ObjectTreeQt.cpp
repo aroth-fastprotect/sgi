@@ -9,6 +9,7 @@
 #include <QWindow>
 #include <QSurface>
 #include <QDesktopWidget>
+#include <QOpenGLContext>
 
 #include "ObjectTreeQt.h"
 #include "SGIItemQt"
@@ -34,6 +35,7 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(QCoreApplication)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QApplication)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QPaintDevice)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QImage)
+OBJECT_TREE_BUILD_IMPL_REGISTER(QOpenGLContext)
 
 using namespace sgi::qt_helpers;
 
@@ -324,6 +326,29 @@ bool objectTreeBuildImpl<QImage>::build(IObjectTreeItem * treeItem)
         if(ret)
         {
         }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<QOpenGLContext>::build(IObjectTreeItem * treeItem)
+{
+    QOpenGLContext * object = getObject<QOpenGLContext, SGIItemQt>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            treeItem->addChild("Extensions", cloneItem<SGIItemQt>(SGIItemTypeContextExtensions));
+        }
+        break;
+    case SGIItemTypeContextExtensions:
+        ret = true;
         break;
     default:
         ret = callNextHandler(treeItem);

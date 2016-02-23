@@ -2,10 +2,15 @@
 #include <ostream>
 #include <QThread>
 #include <QDialog>
+#ifdef WITH_QTOPENGL
 #include <QGLWidget>
+#endif
+#include <QOpenGLWindow>
+#include <QOpenGLWidget>
 #include <QSurfaceFormat>
 #include <QWindow>
 #include <QSurface>
+#include <QScreen>
 #include <QMetaProperty>
 #include "writeHTMLQt.h"
 #include "SGIItemQt"
@@ -28,7 +33,11 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(QWidgetWindow)
 WRITE_PRETTY_HTML_IMPL_REGISTER(QSurface)
 WRITE_PRETTY_HTML_IMPL_REGISTER(QDialog)
 WRITE_PRETTY_HTML_IMPL_REGISTER(QThread)
+WRITE_PRETTY_HTML_IMPL_REGISTER(QOpenGLContext)
+WRITE_PRETTY_HTML_IMPL_REGISTER(QOpenGLWidget)
+#ifdef WITH_QTOPENGL
 WRITE_PRETTY_HTML_IMPL_REGISTER(QGLWidget)
+#endif
 
 
 extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaMethod & method);
@@ -47,17 +56,44 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurfac
     return os;
 }
 
-std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurfaceFormat::FormatOptions & o)
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurfaceFormat::RenderableType t)
 {
-    if(o.testFlag(QSurfaceFormat::StereoBuffers))
-        os << "stereo";
-    if(o.testFlag(QSurfaceFormat::DebugContext))
-        os << "debug";
-    if(o.testFlag(QSurfaceFormat::DeprecatedFunctions))
-        os << "deprecated functions";
+    switch(t)
+    {
+    case QSurfaceFormat::DefaultRenderableType: os << "default"; break;
+    case QSurfaceFormat::OpenGL: os << "OpenGL"; break;
+    case QSurfaceFormat::OpenGLES: os << "OpenGLES"; break;
+    case QSurfaceFormat::OpenVG: os << "OpenVG"; break;
+    default: os << (int)t; break;
+    }
     return os;
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurfaceFormat::FormatOptions & o)
+{
+    if(o.testFlag(QSurfaceFormat::StereoBuffers))
+        os << "StereoBuffers";
+    if(o.testFlag(QSurfaceFormat::DebugContext))
+        os << "DebugContext";
+    if(o.testFlag(QSurfaceFormat::DeprecatedFunctions))
+        os << "DeprecatedFunctions";
+    if(o.testFlag(QSurfaceFormat::ResetNotification))
+        os << "ResetNotification";
+
+    return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurfaceFormat::OpenGLContextProfile & p)
+{
+    switch(p)
+    {
+    case QSurfaceFormat::NoProfile: os << "NoProfile"; break;
+    case QSurfaceFormat::CoreProfile: os << "CoreProfile"; break;
+    case QSurfaceFormat::CompatibilityProfile: os << "CompatibilityProfile"; break;
+    default: os << (int)p; break;
+    }
+    return os;
+}
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurfaceFormat & format)
 {
@@ -318,6 +354,7 @@ bool writePrettyHTMLImpl<QThread>::process(std::basic_ostream<char>& os)
     return ret;
 }
 
+#ifdef WITH_QTOPENGL
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QGLFormat::OpenGLContextProfile t)
 {
     switch(t)
@@ -373,7 +410,160 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QGLForm
     os << "</table>" << std::endl;
     return os;
 }
+#endif // WITH_QTOPENGL
 
+bool writePrettyHTMLImpl<QOpenGLContext>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    QOpenGLContext * object = getObject<QOpenGLContext, SGIItemQt>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add QWidget properties first
+            callNextHandler(os);
+
+            // add QGLWidget properties
+
+            os << "<tr><td>isValid</td><td>" << (object->isValid()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>isOpenGLES</td><td>" << (object->isOpenGLES()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>format</td><td>" << object->format() << "</td></tr>" << std::endl;
+            os << "<tr><td>screen</td><td>" << qt_helpers::getObjectNameAndType(object->screen(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>nativeHandle</td><td>" << object->nativeHandle() << "</td></tr>" << std::endl;
+            os << "<tr><td>defaultFramebufferObject</td><td>" << object->defaultFramebufferObject() << "</td></tr>" << std::endl;
+            os << "<tr><td>shareContext</td><td>" << qt_helpers::getObjectNameAndType(object->shareContext(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>shareGroup</td><td>" << qt_helpers::getObjectNameAndType(object->shareGroup(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>surface</td><td>" << (void*)object->surface() << "</td></tr>" << std::endl;
+            os << "<tr><td>handle</td><td>" << object->handle() << "</td></tr>" << std::endl;
+            os << "<tr><td>shareHandle</td><td>" << object->shareHandle() << "</td></tr>" << std::endl;
+            os << "<tr><td>functions</td><td>" << (void*)object->functions() << "</td></tr>" << std::endl;
+            os << "<tr><td>numExtensions</td><td>" << object->extensions().size() << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeContextExtensions:
+        {
+            QSet<QByteArray> extensions = object->extensions();
+            os << "Total number of extensions: " << extensions.size() << "<br/>" << std::endl;
+
+            QStringList amd_ati_extensions;
+            QStringList arb_extensions;
+            QStringList ext_extensions;
+            QStringList intel_extensions;
+            QStringList nvidia_extensions;
+            QStringList s3_extensions;
+            QStringList sgi_extensions;
+            QStringList other_extensions;
+            for(QSet<QByteArray>::const_iterator it = extensions.begin(); it != extensions.end(); it++)
+            {
+                const QByteArray & extension = *it;
+                if(extension.startsWith("GL_AMD") == 0 || extension.startsWith("GL_ATI") == 0)
+                    amd_ati_extensions.push_back(extension);
+                else if(extension.startsWith("GL_ARB") == 0)
+                    arb_extensions.push_back(extension);
+                else if(extension.startsWith("GL_EXT") == 0)
+                    ext_extensions.push_back(extension);
+                else if(extension.startsWith("GL_INTEL") == 0)
+                    intel_extensions.push_back(extension);
+                else if(extension.startsWith("GL_NV") == 0)
+                    nvidia_extensions.push_back(extension);
+                else if(extension.startsWith("GL_S3") == 0)
+                    s3_extensions.push_back(extension);
+                else if(extension.startsWith("GL_SGI") == 0)
+                    sgi_extensions.push_back(extension);
+                else
+                    other_extensions.push_back(extension);
+            }
+            arb_extensions.sort();
+            os << "ARB extensions: " << arb_extensions.size() << "<ol>" << std::endl;
+            for(QStringList::const_iterator it = arb_extensions.begin(); it != arb_extensions.end(); it++)
+                os << "<li>" << *it << "</li>" << std::endl;
+            os << "</ol>" << std::endl;
+            ext_extensions.sort();
+            os << "EXT extensions: " << ext_extensions.size() << "<ol>" << std::endl;
+            for(QStringList::const_iterator it = ext_extensions.begin(); it != ext_extensions.end(); it++)
+                os << "<li>" << *it << "</li>" << std::endl;
+            os << "</ol>" << std::endl;
+            amd_ati_extensions.sort();
+            os << "AMD/ATI extensions: " << amd_ati_extensions.size() << "<ol>" << std::endl;
+            for(QStringList::const_iterator it = amd_ati_extensions.begin(); it != amd_ati_extensions.end(); it++)
+                os << "<li>" << *it << "</li>" << std::endl;
+            os << "</ol>" << std::endl;
+            nvidia_extensions.sort();
+            os << "NVIDIA extensions: " << nvidia_extensions.size() << "<ol>" << std::endl;
+            for(QStringList::const_iterator it = nvidia_extensions.begin(); it != nvidia_extensions.end(); it++)
+                os << "<li>" << *it << "</li>" << std::endl;
+            os << "</ol>" << std::endl;
+            intel_extensions.sort();
+            os << "Intel extensions: " << intel_extensions.size() << "<ol>" << std::endl;
+            for(QStringList::const_iterator it = intel_extensions.begin(); it != intel_extensions.end(); it++)
+                os << "<li>" << *it << "</li>" << std::endl;
+            os << "</ol>" << std::endl;
+            s3_extensions.sort();
+            os << "S3 extensions: " << s3_extensions.size() << "<ol>" << std::endl;
+            for(QStringList::const_iterator it = s3_extensions.begin(); it != s3_extensions.end(); it++)
+                os << "<li>" << *it << "</li>" << std::endl;
+            os << "</ol>" << std::endl;
+            sgi_extensions.sort();
+            os << "SGI extensions: " << sgi_extensions.size() << "<ol>" << std::endl;
+            for(QStringList::const_iterator it = sgi_extensions.begin(); it != sgi_extensions.end(); it++)
+                os << "<li>" << *it << "</li>" << std::endl;
+            os << "</ol>" << std::endl;
+            other_extensions.sort();
+            os << "Other extensions: " << other_extensions.size() << "<ol>" << std::endl;
+            for(QStringList::const_iterator it = other_extensions.begin(); it != other_extensions.end(); it++)
+                os << "<li>" << *it << "</li>" << std::endl;
+            os << "</ol>" << std::endl;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<QOpenGLWidget>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    QOpenGLWidget * object = getObject<QOpenGLWidget, SGIItemQt>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add QWidget properties first
+            callNextHandler(os);
+
+            // add QGLWidget properties
+
+            os << "<tr><td>isValid</td><td>" << (object->isValid()?"true":"false") << "</td></tr>" << std::endl;
+
+            os << "<tr><td>format</td><td>" << object->format() << "</td></tr>" << std::endl;
+            os << "<tr><td>context</td><td>" << qt_helpers::getObjectNameAndType(object->context(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>updateBehavior</td><td>" << object->updateBehavior() << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+#ifdef WITH_QTOPENGL
 bool writePrettyHTMLImpl<QGLWidget>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -410,6 +600,7 @@ bool writePrettyHTMLImpl<QGLWidget>::process(std::basic_ostream<char>& os)
     }
     return ret;
 }
+#endif // WITH_QTOPENGL
 
 bool writePrettyHTMLImpl<QDialog>::process(std::basic_ostream<char>& os)
 {
