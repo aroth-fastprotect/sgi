@@ -20,6 +20,8 @@
 #include <QLocale>
 #include <QEasingCurve>
 #include <QSizePolicy>
+#include <QPaintDevice>
+#include <sgi/helpers/rtti>
 
 namespace sgi {
     namespace qt_helpers {
@@ -74,6 +76,34 @@ std::string getObjectName(const QObject * object, bool includeAddr)
 }
 
 std::string getObjectNameAndType(const QObject * object, bool includeAddr)
+{
+    std::string ret;
+    if(object)
+    {
+        std::stringstream buf;
+        buf << getObjectName(object, includeAddr) << " (" << getObjectTypename(object) << ")";
+        ret = buf.str();
+    }
+    else
+        ret = "(null)";
+    return ret;
+}
+
+std::string getObjectTypename(const QPaintDevice * object)
+{
+    return object?(helpers::getRTTITypename_html(object)):"(null)";
+}
+
+std::string getObjectName(const QPaintDevice * object, bool includeAddr)
+{
+    std::string ret;
+    std::stringstream buf;
+    buf << (void*)object;
+    ret = buf.str();
+    return ret;
+}
+
+std::string getObjectNameAndType(const QPaintDevice * object, bool includeAddr)
 {
     std::string ret;
     if(object)

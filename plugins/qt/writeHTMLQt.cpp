@@ -11,6 +11,7 @@
 #include <QWindow>
 #include <QSurface>
 #include <QScreen>
+#include <QStyle>
 #include <QMetaProperty>
 #include "writeHTMLQt.h"
 #include "SGIItemQt"
@@ -38,7 +39,6 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(QOpenGLWidget)
 #ifdef WITH_QTOPENGL
 WRITE_PRETTY_HTML_IMPL_REGISTER(QGLWidget)
 #endif
-
 
 extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaMethod & method);
 
@@ -214,6 +214,14 @@ bool writePrettyHTMLImpl<QWidget>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add QWidget properties
+            os << "<tr><td>winId</td><td>" << object->winId() << "</td></tr>" << std::endl;
+            os << "<tr><td>internalWinId</td><td>" << object->internalWinId() << "</td></tr>" << std::endl;
+            os << "<tr><td>effectiveWinId</td><td>" << object->effectiveWinId() << "</td></tr>" << std::endl;
+
+            os << "<tr><td>windowHandle</td><td>" << qt_helpers::getObjectNameAndType(object->windowHandle()) << "</td></tr>" << std::endl;
+            os << "<tr><td>style</td><td>" << qt_helpers::getObjectNameAndType(object->style()) << "</td></tr>" << std::endl;
+            os << "<tr><td>isTopLevel</td><td>" << (object->isTopLevel()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>isWindow</td><td>" << (object->isWindow()?"true":"false") << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -277,7 +285,7 @@ bool writePrettyHTMLImpl<QWidgetWindow>::process(std::basic_ostream<char>& os)
 			callNextHandler(os);
 
 			// add properties
-			os << "<tr><td>widget</td><td>" << qt_helpers::getObjectNameAndType(object->widget()) << "</td></tr>" << std::endl;
+			os << "<tr><td>widget</td><td>" << qt_helpers::getObjectNameAndType((const QObject*)object->widget(), true) << "</td></tr>" << std::endl;
 
 			if (_table)
 				os << "</table>" << std::endl;
@@ -410,6 +418,24 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QGLForm
     os << "</table>" << std::endl;
     return os;
 }
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QGLContext * object)
+{
+    if(object)
+    {
+        os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+        os << "<tr><td>isValid</td><td>" << (object->isValid()?"true":"false") << "</td></tr>" << std::endl;
+        os << "<tr><td>isSharing</td><td>" << (object->isSharing()?"true":"false") << "</td></tr>" << std::endl;
+
+        os << "<tr><td>format</td><td>" << object->format() << "</td></tr>" << std::endl;
+        os << "<tr><td>device</td><td>" << qt_helpers::getObjectNameAndType(object->device(), true) << "</td></tr>" << std::endl;
+        //os << "<tr><td>functions</td><td>" << (void*)object->functions() << "</td></tr>" << std::endl;
+        os << "</table>" << std::endl;
+    }
+    else
+        os << "(null)";
+    return os;
+}
 #endif // WITH_QTOPENGL
 
 bool writePrettyHTMLImpl<QOpenGLContext>::process(std::basic_ostream<char>& os)
@@ -439,7 +465,7 @@ bool writePrettyHTMLImpl<QOpenGLContext>::process(std::basic_ostream<char>& os)
             os << "<tr><td>surface</td><td>" << (void*)object->surface() << "</td></tr>" << std::endl;
             os << "<tr><td>handle</td><td>" << object->handle() << "</td></tr>" << std::endl;
             os << "<tr><td>shareHandle</td><td>" << object->shareHandle() << "</td></tr>" << std::endl;
-            os << "<tr><td>functions</td><td>" << (void*)object->functions() << "</td></tr>" << std::endl;
+            //os << "<tr><td>functions</td><td>" << (void*)object->functions() << "</td></tr>" << std::endl;
             os << "<tr><td>numExtensions</td><td>" << object->extensions().size() << "</td></tr>" << std::endl;
 
             if(_table)
@@ -585,12 +611,18 @@ bool writePrettyHTMLImpl<QGLWidget>::process(std::basic_ostream<char>& os)
             os << "<tr><td>doubleBuffer</td><td>" << (object->doubleBuffer()?"true":"false") << "</td></tr>" << std::endl;
 
             os << "<tr><td>format</td><td>" << object->format() << "</td></tr>" << std::endl;
-            os << "<tr><td>context</td><td>" << (void*)object->context() << "</td></tr>" << std::endl;
-            os << "<tr><td>overlayContext</td><td>" << (void*)object->overlayContext() << "</td></tr>" << std::endl;
+            os << "<tr><td>context</td><td>" << object->context() << "</td></tr>" << std::endl;
+            os << "<tr><td>overlayContext</td><td>" << object->overlayContext() << "</td></tr>" << std::endl;
             os << "<tr><td>colormap</td><td>" << (void*)&object->colormap() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeContext:
+        {
+            os << object->context();
             ret = true;
         }
         break;

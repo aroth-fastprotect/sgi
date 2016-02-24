@@ -23,6 +23,7 @@ enum SGIItemType_qt
     SGIItemTypeMethods,
     SGIItemTypeWidgets,
     SGIItemTypeSurfaceFormat,
+    SGIItemTypeContext,
     SGIItemTypeContextExtensions,
 };
 
