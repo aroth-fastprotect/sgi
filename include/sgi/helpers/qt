@@ -27,6 +27,7 @@ class QPoint;
 class QPointF;
 class QChar;
 class QUrl;
+class QPaintDevice;
 
 namespace sgi {
 
@@ -139,6 +140,9 @@ std::string toLocal8Bit(const QString & str);
 std::string getObjectTypename(const QObject * object);
 std::string getObjectName(const QObject * object, bool includeAddr=false);
 std::string getObjectNameAndType(const QObject * object, bool includeAddr=false);
+std::string getObjectTypename(const QPaintDevice * object);
+std::string getObjectName(const QPaintDevice * object, bool includeAddr=false);
+std::string getObjectNameAndType(const QPaintDevice * object, bool includeAddr=false);
 
 inline sgi::Color qtColor(const QColor & c)
 {

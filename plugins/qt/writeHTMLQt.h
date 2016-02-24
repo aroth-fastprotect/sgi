@@ -13,7 +13,11 @@ class QWindow;
 class QWidgetWindow;
 class QSurface;
 class QDialog;
+class QOpenGLContext;
+class QOpenGLWidget;
+#ifdef WITH_QTOPENGL
 class QGLWidget;
+#endif
 class QPaintDevice;
 
 namespace sgi {
@@ -33,7 +37,11 @@ WRITE_PRETTY_HTML_IMPL_DECLARE(QWidgetWindow)
 WRITE_PRETTY_HTML_IMPL_DECLARE(QSurface)
 WRITE_PRETTY_HTML_IMPL_DECLARE(QDialog)
 WRITE_PRETTY_HTML_IMPL_DECLARE(QThread)
+WRITE_PRETTY_HTML_IMPL_DECLARE(QOpenGLContext)
+WRITE_PRETTY_HTML_IMPL_DECLARE(QOpenGLWidget)
+#ifdef WITH_QTOPENGL
 WRITE_PRETTY_HTML_IMPL_DECLARE(QGLWidget)
+#endif
 
 WRITE_PRETTY_HTML_IMPL_DECLARE(QPaintDevice)
 WRITE_PRETTY_HTML_IMPL_DECLARE(QImage)

@@ -9,6 +9,10 @@
 #include <QWindow>
 #include <QSurface>
 #include <QDesktopWidget>
+#include <QOpenGLContext>
+#ifdef WITH_QTOPENGL
+#include <QGLWidget>
+#endif // WITH_QTOPENGL
 
 #include "ObjectTreeQt.h"
 #include "SGIItemQt"
@@ -34,6 +38,10 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(QCoreApplication)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QApplication)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QPaintDevice)
 OBJECT_TREE_BUILD_IMPL_REGISTER(QImage)
+OBJECT_TREE_BUILD_IMPL_REGISTER(QOpenGLContext)
+#ifdef WITH_QTOPENGL
+OBJECT_TREE_BUILD_IMPL_REGISTER(QGLWidget)
+#endif // WITH_QTOPENGL
 
 using namespace sgi::qt_helpers;
 
@@ -331,6 +339,52 @@ bool objectTreeBuildImpl<QImage>::build(IObjectTreeItem * treeItem)
     }
     return ret;
 }
+
+bool objectTreeBuildImpl<QOpenGLContext>::build(IObjectTreeItem * treeItem)
+{
+    QOpenGLContext * object = getObject<QOpenGLContext, SGIItemQt>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            treeItem->addChild("Extensions", cloneItem<SGIItemQt>(SGIItemTypeContextExtensions));
+        }
+        break;
+    case SGIItemTypeContextExtensions:
+        ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+#ifdef WITH_QTOPENGL
+bool objectTreeBuildImpl<QGLWidget>::build(IObjectTreeItem * treeItem)
+{
+    QGLWidget * object = getObject<QGLWidget, SGIItemQt>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            treeItem->addChild("Context", cloneItem<SGIItemQt>(SGIItemTypeContext));
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+#endif // WITH_QTOPENGL
+
 
 OBJECT_TREE_BUILD_ROOT_IMPL_REGISTER(ISceneGraphDialog)
 
