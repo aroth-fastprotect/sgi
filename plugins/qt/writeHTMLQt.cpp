@@ -77,8 +77,10 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurfac
         os << "DebugContext";
     if(o.testFlag(QSurfaceFormat::DeprecatedFunctions))
         os << "DeprecatedFunctions";
+#if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
     if(o.testFlag(QSurfaceFormat::ResetNotification))
         os << "ResetNotification";
+#endif
 
     return os;
 }
@@ -575,7 +577,9 @@ bool writePrettyHTMLImpl<QOpenGLWidget>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>format</td><td>" << object->format() << "</td></tr>" << std::endl;
             os << "<tr><td>context</td><td>" << qt_helpers::getObjectNameAndType(object->context(), true) << "</td></tr>" << std::endl;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
             os << "<tr><td>updateBehavior</td><td>" << object->updateBehavior() << "</td></tr>" << std::endl;
+#endif
 
             if(_table)
                 os << "</table>" << std::endl;
