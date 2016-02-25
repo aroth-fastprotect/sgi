@@ -91,7 +91,11 @@ OBJECT_TREE_BUILD_IMPL_REGISTER(osg::PagedLOD)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::StateAttribute)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Texture)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObject)
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::TextureObjectManager)
+#else
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObjectManager)
+#endif
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Texture2D)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Texture3D)
 OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Image)
@@ -1454,9 +1458,11 @@ bool objectTreeBuildImpl<osg::Texture>::build(IObjectTreeItem * treeItem)
             if (txtobj.hasObject())
                 treeItem->addChild("TextureObject", &txtobj);
 
+#if OSG_VERSION_LESS_OR_EQUAL(3,4,0)
             SGIHostItemOsg txtobjmgr(osg::Texture::getTextureObjectManager(contextID));
             if (txtobjmgr.hasObject())
                 treeItem->addChild("TextureObjectManager", &txtobjmgr);
+#endif
 
             for (unsigned n = 0; n < object->getNumImages(); ++n)
             {
@@ -1495,9 +1501,17 @@ bool objectTreeBuildImpl<osg::Texture::TextureObject>::build(IObjectTreeItem * t
     return ret;
 }
 
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+bool objectTreeBuildImpl<osg::TextureObjectManager>::build(IObjectTreeItem * treeItem)
+#else
 bool objectTreeBuildImpl<osg::Texture::TextureObjectManager>::build(IObjectTreeItem * treeItem)
+#endif
 {
-    osg::Texture::TextureObject * object = static_cast<osg::Texture::TextureObject*>(item<SGIItemOsg>()->object());
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+    osg::TextureObjectManager * object = static_cast<osg::TextureObjectManager*>(item<SGIItemOsg>()->object());
+#else
+    osg::Texture::TextureObjectManager * object = static_cast<osg::Texture::TextureObjectManager*>(item<SGIItemOsg>()->object());
+#endif
     bool ret;
     switch (itemType())
     {

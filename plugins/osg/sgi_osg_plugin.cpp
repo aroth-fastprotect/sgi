@@ -214,6 +214,7 @@ namespace osg_plugin {
 
 SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
 
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, osg::ObserverSet, osgDB::Registry,
                                                                  osg::GraphicsContext::Traits, osg::OperationThread, osg::Operation,
                                                                  osg::FrameStamp, osg::State,
@@ -225,7 +226,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                  osg::GLBufferObjectSet,
                                                                  osg::Stats,
                                                                  osg::Texture::TextureObject,
-                                                                 osg::Texture::TextureObjectManager,
+                                                                 osg::GraphicsObjectManager,
                                                                  osgAnimation::Channel,
                                                                  osgAnimation::Target,
                                                                  osgAnimation::Sampler,
@@ -247,8 +248,60 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                  sgi::ReferencedPickerBase,
                                                                  sgi::ISceneGraphDialogToolsMenu
                                                                 ))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::GraphicsObjectManager, LOKI_TYPELIST(osg::GLBufferObjectManager, osg::GLObjectManager, osg::TextureObjectManager))
+#else
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, osg::ObserverSet, osgDB::Registry,
+                                                                 osg::GraphicsContext::Traits, osg::OperationThread, osg::Operation,
+                                                                 osg::FrameStamp, osg::State,
+                                                                 osg::NodeVisitor::DatabaseRequestHandler,
+                                                                 osg::NodeVisitor::ImageRequestHandler,
+                                                                 osg::Program::PerContextProgram,
+                                                                 osg::DisplaySettings,
+                                                                 osg::GLBufferObject,
+                                                                 osg::GLBufferObjectSet,
+                                                                 osg::Stats,
+                                                                 osg::Texture::TextureObject,
+                                                                 osg::Texture::TextureObjectManager,
+                                                                 osgAnimation::Channel,
+                                                                 osgAnimation::Target,
+                                                                 osgAnimation::Sampler,
+                                                                 osgDB::DatabasePager::DatabaseThread,
+                                                                 osgDB::DatabasePager::DatabaseRequest,
+                                                                 osgDB::DatabasePager::RequestQueue,
+                                                                 osgDB::DatabasePager::ReadQueue,
+                                                                 osgDB::ImagePager::ImageThread,
+                                                                 osgDB::ObjectWrapper,
+                                                                 osgDB::ObjectWrapperManager,
+                                                                 osgDB::FileCache,
+                                                                 osgDB::BaseSerializer,
+                                                                 osgUtil::StateGraph, osgUtil::RenderLeaf,
+                                                                 osgViewer::Scene,
+                                                                 osgText::Font::FontImplementation,
+                                                                 osgText::Glyph3D,
+                                                                 osgText::GlyphGeometry,
+                                                                 ReferencedSetViewNodeLookAt,
+                                                                 sgi::ReferencedPickerBase,
+                                                                 sgi::ISceneGraphDialogToolsMenu
+                                                                ))
+#endif
 
-#if OSG_MIN_VERSION_REQUIRED(3,4,0)
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(osg::Node, osg::Node, osg::Shape, osg::StateAttribute,
+                                                             osg::StateSet, osg::View, osg::GraphicsContext, osg::Shader, osg::UserDataContainer,
+                                                             osg::BufferData, osg::BufferObject, osg::View, osg::Uniform, osg::ShaderComposer,
+                                                             osg::NodeVisitor, osg::RenderBuffer, osg::ShaderComponent,
+                                                             osg::RefMatrixd, osg::RefMatrixf, osg::Callback,
+                                                             osgAnimation::Animation,
+                                                             osgAnimation::AnimationUpdateCallbackBase,
+                                                             osgDB::Options, osgDB::ReaderWriter, osgDB::DatabaseRevision, osgDB::DatabaseRevisions, osgDB::FileList,
+                                                             osgViewer::ViewerBase, osgViewer::GraphicsWindow,
+                                                             osgGA::EventHandler, osgGA::GUIEventAdapter,
+                                                             osgText::Font,
+                                                             osgUtil::SceneView, osgUtil::RenderBin,
+                                                             osgTerrain::Locator, osgTerrain::Layer, osgTerrain::TerrainTechnique))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Callback, LOKI_TYPELIST(osg::NodeCallback, osg::StateAttributeCallback, osg::UniformCallback))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgGA::EventHandler, LOKI_TYPELIST(osgGA::GUIEventHandler))
+#elif OSG_MIN_VERSION_REQUIRED(3,4,0)
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(osg::Node, osg::Node, osg::Shape, osg::StateAttribute,
                                                              osg::StateSet, osg::View, osg::GraphicsContext, osg::Shader, osg::UserDataContainer,
                                                              osg::BufferData, osg::BufferObject, osg::View, osg::Uniform, osg::ShaderComposer,

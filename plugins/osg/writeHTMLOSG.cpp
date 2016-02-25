@@ -150,7 +150,11 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osg::StateAttribute)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Image)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Texture)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObject)
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::TextureObjectManager)
+#else
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObjectManager)
+#endif
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Texture1D)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Texture2D)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Texture3D)
@@ -2743,10 +2747,18 @@ bool writePrettyHTMLImpl<osg::Texture::TextureObject>::process(std::basic_ostrea
     return ret;
 }
 
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+bool writePrettyHTMLImpl<osg::TextureObjectManager>::process(std::basic_ostream<char>& os)
+#else
 bool writePrettyHTMLImpl<osg::Texture::TextureObjectManager>::process(std::basic_ostream<char>& os)
+#endif
 {
     bool ret = false;
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+    osg::TextureObjectManager * object = static_cast<osg::TextureObjectManager*>(item<SGIItemOsg>()->object());
+#else
     osg::Texture::TextureObjectManager * object = static_cast<osg::Texture::TextureObjectManager*>(item<SGIItemOsg>()->object());
+#endif
     switch (itemType())
     {
     case SGIItemTypeObject:
@@ -2770,8 +2782,10 @@ bool writePrettyHTMLImpl<osg::Texture::TextureObjectManager>::process(std::basic
         os << "<tr><td>number generated</td><td>" << object->getNumberGenerated() << "</td></tr>" << std::endl;
         os << "<tr><td>generate time</td><td>" << object->getGenerateTime() << "</td></tr>" << std::endl;
 
+#if OSG_VERSION_LESS_OR_EQUAL(3,4,0)
         os << "<tr><td>number applied</td><td>" << object->getNumberApplied() << "</td></tr>" << std::endl;
         os << "<tr><td>apply time</td><td>" << object->getApplyTime() << "</td></tr>" << std::endl;
+#endif
 
         os << "<tr><td>stats</td><td>";
         object->reportStats(os);
