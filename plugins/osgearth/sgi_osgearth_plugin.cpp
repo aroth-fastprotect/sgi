@@ -40,7 +40,7 @@
 #include <osgEarthFeatures/FeatureTileSource>
 #include <osgEarthFeatures/GeometryCompiler>
 
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 #include <osgEarthAnnotation/Decoration>
 #include <osgEarthAnnotation/ScaleDecoration>
 #include <osgEarthAnnotation/HighlightDecoration>
