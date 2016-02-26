@@ -40,9 +40,11 @@
 #include <osgEarthFeatures/FeatureTileSource>
 #include <osgEarthFeatures/GeometryCompiler>
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 #include <osgEarthAnnotation/Decoration>
 #include <osgEarthAnnotation/ScaleDecoration>
 #include <osgEarthAnnotation/HighlightDecoration>
+#endif
 #include <osgEarthAnnotation/CircleNode>
 #include <osgEarthAnnotation/RectangleNode>
 #include <osgEarthAnnotation/EllipseNode>
@@ -89,6 +91,20 @@ GENERATE_IMPL_NO_ACCEPT(osgDB::ReaderWriter)
 
 SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, osgEarth::Map, osgEarth::Registry, osgEarth::Capabilities, osgEarth::CacheBin,
+                                                                 osgEarth::Layer, osgEarth::SpatialReference, osgEarth::Profile, osgEarth::Terrain,
+                                                                 osgEarth::TileBlacklist, osgEarth::Util::Controls::ControlEventHandler,
+                                                                 osgEarth::StateSetCache,
+                                                                 osgEarth::LevelDBDatabase,
+                                                                 osgEarth::NodeOperation,
+                                                                 osgEarth::Features::FeatureCursor, osgEarth::Features::FeatureProfile,
+                                                                 ElevationQueryReferenced,
+                                                                 TileKeyReferenced,
+                                                                 TileSourceTileKey,
+                                                                 TileSourceInfo
+                                                                ))
+#else
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, osgEarth::Map, osgEarth::Registry, osgEarth::Capabilities, osgEarth::CacheBin,
                                                                  osgEarth::Layer, osgEarth::SpatialReference, osgEarth::Profile, osgEarth::Terrain,
                                                                  osgEarth::TileBlacklist, osgEarth::Util::Controls::ControlEventHandler,
@@ -102,6 +118,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                  TileSourceTileKey,
                                                                  TileSourceInfo
                                                                 ))
+#endif
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(osgEarth::Cache, osgEarth::TileSource, osgEarth::ModelSource,
 															 osgEarth::Extension,
@@ -119,12 +136,17 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Group, LOKI_TYPELIST(osg::CoordinateSyste
                                                            ))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::CoordinateSystemNode, LOKI_TYPELIST(osgEarth::TerrainEngineNode))
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::AnnotationNode, LOKI_TYPELIST(osgEarth::Annotation::PositionedAnnotationNode,
                                                                                       osgEarth::Annotation::FeatureNode
                                                                                     ))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::PositionedAnnotationNode, LOKI_TYPELIST(osgEarth::Annotation::LocalizedNode,
                                                                                                 osgEarth::Annotation::OrthoNode
                                                                                                 ))
+#else
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::AnnotationNode, LOKI_TYPELIST(osgEarth::Annotation::FeatureNode
+                                                                                    ))
+#endif
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::OrthoNode, LOKI_TYPELIST(osgEarth::Annotation::PlaceNode,
                                                                                  osgEarth::Annotation::LabelNode,
                                                                                  osgEarth::Annotation::TrackNode
@@ -191,8 +213,10 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Features::FeatureSourceOptions, LOKI
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Features::FeatureModelSourceOptions, LOKI_TYPELIST(osgEarth::Drivers::FeatureGeomModelOptions,
                                                                                                osgEarth::Drivers::FeatureStencilModelOptions))
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::Decoration, LOKI_TYPELIST(osgEarth::Annotation::InjectionDecoration))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::InjectionDecoration, LOKI_TYPELIST(osgEarth::Annotation::ScaleDecoration, osgEarth::Annotation::HighlightDecoration))
+#endif
 
 class generateSGIItemEarthConfig
 {

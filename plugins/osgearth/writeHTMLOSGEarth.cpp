@@ -44,6 +44,9 @@
 #include <osgEarthAnnotation/FeatureNode>
 #include <osgEarthAnnotation/ModelNode>
 #include <osgEarthAnnotation/TrackNode>
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+#include <osgEarthAnnotation/GeoPositionNode>
+#endif
 
 #include "SGIItemOsgEarth"
 
@@ -103,10 +106,12 @@ WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Features::FeatureModelSource)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Features::FeatureSource)
 
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::AnnotationNode)
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::PositionedAnnotationNode)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::FeatureNode)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::LocalizedNode)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::OrthoNode)
+#endif
+WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::FeatureNode)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::PlaceNode)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::LabelNode)
 WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Annotation::TrackNode)
@@ -753,7 +758,9 @@ bool writePrettyHTMLImpl<osgEarth::ElevationLayer>::process(std::basic_ostream<c
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             os << "<tr><td>isOffset</td><td>" << (access->isOffset()?"true":"false") << "</td></tr>" << std::endl;
 #endif
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>suggestCacheFormat</td><td>" << access->suggestCacheFormatStr() << "</td></tr>" << std::endl;
+#endif
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -1121,8 +1128,10 @@ bool writePrettyHTMLImpl<osgEarth::TerrainEngineNode>::process(std::basic_ostrea
 		// add remaining TerrainEngineNode properties
 		os << "<tr><td>terrain</td><td>" << getObjectNameAndType(object->getTerrain()) << "</td></tr>" << std::endl;
 		os << "<tr><td>resources</td><td>" << getObjectNameAndType(object->getResources()) << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 		os << "<tr><td>terrain stateset</td><td>" << getObjectNameAndType(object->getTerrainStateSet()) << "</td></tr>" << std::endl;
 		os << "<tr><td>payload stateset</td><td>" << getObjectNameAndType(object->getPayloadStateSet()) << "</td></tr>" << std::endl;
+#endif
 		os << "<tr><td>normalTexturesRequired</td><td>" << (object->normalTexturesRequired() ? "true" : "false") << "</td></tr>" << std::endl;
 		os << "<tr><td>elevationTexturesRequired</td><td>" << (object->elevationTexturesRequired() ? "true" : "false") << "</td></tr>" << std::endl;
 		os << "<tr><td>parentTexturesRequired</td><td>" << (object->parentTexturesRequired() ? "true" : "false") << "</td></tr>" << std::endl;
@@ -1587,7 +1596,7 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
 					const auto & entry = it->data();
 #endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
-                    const osg::ref_ptr<osg::Shader> & shader = entry._shader;
+                    const auto & shader = entry._shader;
                     const osg::StateAttribute::OverrideValue & overrideValue = entry._overrideValue;
 #else
                     const osg::ref_ptr<osg::Shader> & shader = entry.first;
@@ -1664,7 +1673,11 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
 #endif
                 os << "<table border=\'1\' align=\'left\'>";
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+                os << "<tr><td>shader</td><td>" << getObjectNameAndType(entry._shader.get()) << "</td></tr>";
+#else
                 os << "<tr><td>shader</td><td>" << getObjectNameAndType(entry._shader.get(), true) << "</td></tr>";
+#endif
                 os << "<tr><td>override</td><td>" << glOverrideValueName(entry._overrideValue) << "</td></tr>";
                 os << "<tr><td>accept</td><td>" << getObjectNameAndType(entry._accept.get()) << "</td></tr>";
 #else
@@ -2568,7 +2581,9 @@ bool writePrettyHTMLImpl<osgEarth::Annotation::AnnotationNode>::process(std::bas
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
             callNextHandler(os);
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>decoration</td><td>" << object->getDecoration() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>style</td><td>" << object->getStyle() << "</td></tr>" << std::endl;
 
             if(_table)
@@ -2583,6 +2598,7 @@ bool writePrettyHTMLImpl<osgEarth::Annotation::AnnotationNode>::process(std::bas
     return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 bool writePrettyHTMLImpl<osgEarth::Annotation::PositionedAnnotationNode>::process(std::basic_ostream<char>& os)
 {
     osgEarth::Annotation::PositionedAnnotationNode * object = getObject<osgEarth::Annotation::PositionedAnnotationNode, SGIItemOsg>();
@@ -2608,6 +2624,7 @@ bool writePrettyHTMLImpl<osgEarth::Annotation::PositionedAnnotationNode>::proces
     }
     return ret;
 }
+#endif
 
 bool writePrettyHTMLImpl<osgEarth::Annotation::FeatureNode>::process(std::basic_ostream<char>& os)
 {
@@ -2635,6 +2652,7 @@ bool writePrettyHTMLImpl<osgEarth::Annotation::FeatureNode>::process(std::basic_
     return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 bool writePrettyHTMLImpl<osgEarth::Annotation::LocalizedNode>::process(std::basic_ostream<char>& os)
 {
     osgEarth::Annotation::LocalizedNode * object = getObject<osgEarth::Annotation::LocalizedNode, SGIItemOsg>();
@@ -2696,6 +2714,7 @@ bool writePrettyHTMLImpl<osgEarth::Annotation::OrthoNode>::process(std::basic_os
     }
     return ret;
 }
+#endif
 
 bool writePrettyHTMLImpl<osgEarth::Annotation::PlaceNode>::process(std::basic_ostream<char>& os)
 {

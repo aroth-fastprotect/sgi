@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sgi/plugins/SGIPluginMacros.h>
+#include <osgEarth/Version>
 
 namespace osg {
     class Image;
@@ -156,10 +157,12 @@ WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Features::FeatureSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Features::FeatureModelSource)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Annotation::AnnotationNode)
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Annotation::PositionedAnnotationNode)
-WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Annotation::FeatureNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Annotation::LocalizedNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Annotation::OrthoNode)
+#endif
+WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Annotation::FeatureNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Annotation::PlaceNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Annotation::LabelNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE(osgEarth::Annotation::TrackNode)

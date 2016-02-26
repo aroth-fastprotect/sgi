@@ -924,6 +924,7 @@ bool objectTreeBuildImpl<osgEarth::TerrainEngineNode>::build(IObjectTreeItem * t
 			if (resources.hasObject())
 				treeItem->addChild("Resources", &resources);
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 			SGIHostItemOsg terrainstateset(object->getTerrainStateSet());
 			if (terrainstateset.hasObject())
 				treeItem->addChild("TerrainStateSet", &terrainstateset);
@@ -931,6 +932,7 @@ bool objectTreeBuildImpl<osgEarth::TerrainEngineNode>::build(IObjectTreeItem * t
 			SGIHostItemOsg payloadstateset(object->getPayloadStateSet());
 			if (payloadstateset.hasObject())
 				treeItem->addChild("PayloadStateSet", &payloadstateset);
+#endif
 		}
 		break;
 	default:
@@ -1289,7 +1291,7 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
 				const auto & entry = it->data();
 #endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
-				const osg::ref_ptr<osg::Shader> & shader = entry._shader;
+				const auto & shader = entry._shader;
 				const osg::StateAttribute::OverrideValue & overrideValue = entry._overrideValue;
 #else
                 const osg::ref_ptr<osg::Shader> & shader = entry.first;

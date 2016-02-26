@@ -153,10 +153,12 @@ namespace osgearth_plugin {
     class ElevationLayerAccessor : public osgEarth::ElevationLayer
     {
     public:
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
         inline std::string suggestCacheFormatStr() const
         {
             return suggestCacheFormat();
         }
+#endif
     };
 
     class ModelLayerAccessor : public osgEarth::ModelLayer

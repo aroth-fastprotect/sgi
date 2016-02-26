@@ -416,7 +416,9 @@ bool writePrettyHTMLImpl<osgEarth::TerrainLayerOptions>::process(std::basic_ostr
             os << "<tr><td>reprojectedTileSize</td><td>" << object->reprojectedTileSize() << "</td></tr>" << std::endl;
             os << "<tr><td>cacheId</td><td>" << object->cacheId() << "</td></tr>" << std::endl;
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>cacheFormat</td><td>" << object->cacheFormat() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>cachePolicy</td><td>" << object->cachePolicy() << "</td></tr>" << std::endl;
             os << "<tr><td>loadingWeight</td><td>" << object->loadingWeight() << "</td></tr>" << std::endl;
             os << "<tr><td>edgeBufferRatio</td><td>" << object->edgeBufferRatio() << "</td></tr>" << std::endl;
@@ -734,7 +736,17 @@ bool writePrettyHTMLImpl<osgEarth::Features::FeatureSourceOptions>::process(std:
 		os << "<tr><td>name</td><td>" << object->name() << "</td></tr>" << std::endl;
 		os << "<tr><td>filters</td><td><ul>"; 
 		for (const auto & f : object->filters())
-			os << "<li>" << f << "</li>";
+        {
+            os << "<li>";
+            ;
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
+			os << f;
+#else
+            writePrettyHTMLImplForDriverOptions(_hostInterface, os, f);
+#endif
+            os << "</li>";
+
+        }
 		os << "</ul></td></tr>" << std::endl;
 		os << "<tr><td>openWrite</td><td>" << object->openWrite() << "</td></tr>" << std::endl;
 		os << "<tr><td>geoInterp</td><td>" << object->geoInterp() << "</td></tr>" << std::endl;
@@ -769,7 +781,9 @@ bool writePrettyHTMLImpl<osgEarth::Features::FeatureModelSourceOptions>::process
             os << "</td></tr>" << std::endl;
 
             os << "<tr><td>maxGranularity</td><td>" << object->maxGranularity() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>mergeGeometry</td><td>" << object->mergeGeometry() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>enableLighting</td><td>" << object->maxGranularity() << "</td></tr>" << std::endl;
             os << "<tr><td>clusterCulling</td><td>" << object->clusterCulling() << "</td></tr>" << std::endl;
             os << "<tr><td>featureName</td><td>" << object->featureName() << "</td></tr>" << std::endl;
