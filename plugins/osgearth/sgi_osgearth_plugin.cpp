@@ -143,10 +143,6 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::AnnotationNode, LOKI_TYP
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::PositionedAnnotationNode, LOKI_TYPELIST(osgEarth::Annotation::LocalizedNode,
                                                                                                 osgEarth::Annotation::OrthoNode
                                                                                                 ))
-#else
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::AnnotationNode, LOKI_TYPELIST(osgEarth::Annotation::FeatureNode
-                                                                                    ))
-#endif
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::OrthoNode, LOKI_TYPELIST(osgEarth::Annotation::PlaceNode,
                                                                                  osgEarth::Annotation::LabelNode,
                                                                                  osgEarth::Annotation::TrackNode
@@ -156,6 +152,16 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::LocalizedNode, LOKI_TYPE
                                                                                      osgEarth::Annotation::RectangleNode,
                                                                                      osgEarth::Annotation::ModelNode
                                                                                     ))
+#else
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::AnnotationNode, LOKI_TYPELIST(osgEarth::Annotation::FeatureNode,
+                                                                                      osgEarth::Annotation::GeoPositionNode
+                                                                                    ))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::GeoPositionNode, LOKI_TYPELIST(osgEarth::Annotation::CircleNode,
+                                                                                     osgEarth::Annotation::EllipseNode,
+                                                                                     osgEarth::Annotation::RectangleNode,
+                                                                                     osgEarth::Annotation::ModelNode
+                                                                                    ))
+#endif
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Features::FeatureCursor, LOKI_TYPELIST(osgEarth::Features::FeatureListCursor, osgEarth::Features::GeometryFeatureCursor))
 	
