@@ -124,6 +124,8 @@ int main( int argc, char** argv )
     arguments.getApplicationUsage()->addCommandLineOption("--speed <factor>","Speed factor for animation playing (1 == normal speed).");
     arguments.getApplicationUsage()->addCommandLineOption("--device <device-name>","add named device to the viewer");
     arguments.getApplicationUsage()->addCommandLineOption("--window <x y w h>","Set the position (x,y) and size (w,h) of the viewer window.");
+    arguments.getApplicationUsage()->addCommandLineOption("--nosgi", "Do not load SGI plugin");
+    arguments.getApplicationUsage()->addCommandLineOption("--hidesgi", "Do not automatically show the SGI dialog");
 
 #ifndef _WIN32
     // QApplication constructor shall call X11InitThreads to get OpenGL working with
@@ -166,6 +168,12 @@ int main( int argc, char** argv )
             );
         }
     }
+    bool addSceneGraphInspector = true;
+    bool showSceneGraphInspector = true;
+    if ( arguments.read("--nosgi") )
+        addSceneGraphInspector = false;
+    if ( arguments.read("--hidesgi") )
+        showSceneGraphInspector = false;
 
     osgViewer::View * mainView = mainWidget->mainView();
 
@@ -246,6 +254,26 @@ int main( int argc, char** argv )
         return 1;
     }
 
+    osg::ref_ptr<osg::Group> root = new osg::Group;
+
+    if(addSceneGraphInspector)
+    {
+        osg::ref_ptr<osgDB::Options> opts = osgDB::Registry::instance()->getOptions();
+        if(opts.valid())
+            opts = opts->cloneOptions();
+        else
+            opts = new osgDB::Options;
+        opts->setPluginStringData("showSceneGraphDialog", showSceneGraphInspector ? "1" : "0");
+        osg::ref_ptr<osg::Node> sgi_loader = osgDB::readRefNodeFile("qapp.sgi_loader", opts);
+        if(sgi_loader.valid())
+            root->addChild(sgi_loader);
+        else
+        {
+            std::cerr << "Failed to load SGI" << std::endl;
+        }
+    }
+
+
     // any option left unread are converted into errors to write out later.
     arguments.reportRemainingOptionsAsUnrecognized();
 
@@ -261,7 +289,9 @@ int main( int argc, char** argv )
     osgUtil::Optimizer optimizer;
     optimizer.optimize(loadedModel.get());
 
-    mainView->setSceneData( loadedModel.get() );
+    root->addChild(loadedModel);
+
+    mainView->setSceneData( root.get() );
 
     mainWidget->show();
     return app.exec();
