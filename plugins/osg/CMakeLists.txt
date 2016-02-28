@@ -35,14 +35,6 @@ SET(TARGET_H
     SGIItemOsg
     stdafx.h
     writeHTMLOSG.h
-    writeHTMLOSGAnimation.h
-    writeHTMLOSGDB.h
-    writeHTMLOSGFX.h
-    writeHTMLOSGGA.h
-    writeHTMLOSGText.h
-    writeHTMLOSGTerrain.h
-    writeHTMLOSGUtil.h
-    writeHTMLOSGViewer.h
 
     getObjectInfoOSG.h
 

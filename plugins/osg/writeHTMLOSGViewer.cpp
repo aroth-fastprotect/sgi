@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include <ostream>
 #include "writeHTMLOSG.h"
-#include "writeHTMLOSGViewer.h"
 
 // osgViewer headers
 #include <osgViewer/CompositeViewer>
@@ -18,23 +17,23 @@
 namespace sgi {
 namespace osg_plugin {
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgViewer::ViewerBase)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgViewer::CompositeViewer)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgViewer::View)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgViewer::GraphicsWindow)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgViewer::Renderer)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgViewer::Scene)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgViewer::HelpHandler)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgViewer::StatsHandler)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgViewer::WindowSizeHandler)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgViewer::ThreadingHandler)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgViewer::RecordCameraPathHandler)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgViewer::LODScaleHandler)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgViewer::ToggleSyncToVBlankHandler)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgViewer::ScreenCaptureHandler)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgViewer::InteractiveImageHandler)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::ViewerBase)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::CompositeViewer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::View)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::GraphicsWindow)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::Renderer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::Scene)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::HelpHandler)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::StatsHandler)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::WindowSizeHandler)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::ThreadingHandler)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::RecordCameraPathHandler)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::LODScaleHandler)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::ToggleSyncToVBlankHandler)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::ScreenCaptureHandler)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::InteractiveImageHandler)
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgQt::GraphicsWindowQt)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgQt::GraphicsWindowQt)
 
 using namespace sgi::osg_helpers;
 

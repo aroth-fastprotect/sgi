@@ -12,8 +12,8 @@ class SGIItemOsg;
 
 namespace log4cplus_plugin {
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectInfo)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionLoggerLogLevel)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectInfo)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLoggerLogLevel)
 
 bool actionHandlerImpl<MenuActionObjectInfo>::execute()
 {

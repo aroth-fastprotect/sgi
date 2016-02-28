@@ -2,7 +2,6 @@
 #include <ostream>
 #include <sstream>
 #include "writeHTMLOSG.h"
-#include "writeHTMLOSGGA.h"
 
 #include <osg/Version>
 #include <osgGA/GUIEventHandler>
@@ -18,12 +17,12 @@
 namespace sgi {
 namespace osg_plugin {
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgGA::EventHandler)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgGA::GUIEventHandler)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgGA::GUIEventAdapter)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgGA::CameraManipulator)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgGA::EventHandler)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgGA::GUIEventHandler)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgGA::GUIEventAdapter)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgGA::CameraManipulator)
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgUtil::SceneView)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgUtil::SceneView)
 
 using namespace sgi::osg_helpers;
 

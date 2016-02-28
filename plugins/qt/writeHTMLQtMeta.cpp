@@ -14,7 +14,7 @@
 
 namespace sgi {
 namespace qt_plugin {
-WRITE_PRETTY_HTML_IMPL_REGISTER(QMetaObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QMetaObject)
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaMethod::Access & access)
 {

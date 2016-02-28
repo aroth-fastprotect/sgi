@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include <ostream>
 #include "writeHTMLOSG.h"
-#include "writeHTMLOSGText.h"
 #include "SGIItemOsg"
 
 // osgText headers
@@ -16,9 +15,9 @@
 namespace sgi {
 namespace osg_plugin {
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgText::Font)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgText::TextBase)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgText::Text)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgText::Font)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgText::TextBase)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgText::Text)
 
 using namespace sgi::osg_helpers;
 

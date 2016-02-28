@@ -12,11 +12,11 @@ class SGIItemLog4cplus;
 
 namespace log4cplus_plugin {
 
-GET_OBJECT_NAME_IMPL_REGISTER(Log4cplusObjectBase)
-GET_OBJECT_NAME_IMPL_REGISTER(Log4cplusObjectLogger)
-GET_OBJECT_NAME_IMPL_REGISTER(Log4cplusObjectAppender)
-GET_OBJECT_TYPE_IMPL_REGISTER(Log4cplusObjectBase)
-GET_OBJECT_PATH_IMPL_REGISTER(Log4cplusObjectLogger)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectBase)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectLogger)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectAppender)
+GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectBase)
+GET_OBJECT_PATH_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectLogger)
 
 std::string getObjectNameImpl<Log4cplusObjectBase>::process()
 {

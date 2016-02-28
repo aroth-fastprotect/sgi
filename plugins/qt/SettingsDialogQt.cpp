@@ -5,7 +5,7 @@
 namespace sgi {
 namespace qt_plugin {
 
-SETTINGS_DIALOG_CREATE_IMPL_REGISTER(SettingsDialogImagePreview)
+SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogImagePreview)
 
 bool settingsDialogCreateImpl<SettingsDialogImagePreview>::execute(ISettingsDialogPtr & dialog)
 {

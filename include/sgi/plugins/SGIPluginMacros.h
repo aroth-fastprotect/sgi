@@ -754,6 +754,10 @@ public:
 #define GET_OBJECT_SUGGESTED_FILENAME_IMPL_REGISTER(__type) \
     getObjectSuggestedFilenameImpl<__type>::AutoRegisterType getObjectSuggestedFilenameImpl<__type>::s_autoregister;
 
+#define GET_OBJECT_SUGGESTED_FILENAME_IMPL_DECLARE_AND_REGISTER(__type) \
+    GET_OBJECT_SUGGESTED_FILENAME_IMPL_DECLARE(__type) \
+    GET_OBJECT_SUGGESTED_FILENAME_IMPL_REGISTER(__type)
+
 #define GET_OBJECT_SUGGESTED_FILENAME_EXTENSION_IMPL_TEMPLATE() \
     template<typename T> \
     class getObjectSuggestedFilenameExtensionImpl { \

@@ -9,7 +9,7 @@
 namespace sgi {
 namespace osgearth_plugin {
 
-GUI_ADAPTER_SET_VIEW_IMPL_REGISTER(osgEarth::Util::EarthManipulator)
+GUI_ADAPTER_SET_VIEW_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::EarthManipulator)
 
 bool guiAdapterSetViewImpl<osgEarth::Util::EarthManipulator>::execute()
 {

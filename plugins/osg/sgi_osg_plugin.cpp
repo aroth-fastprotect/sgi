@@ -9,11 +9,6 @@
 #include "SGIItemOsg"
 
 #include "writeHTMLOSG.h"
-#include "writeHTMLOSGDB.h"
-#include "writeHTMLOSGGA.h"
-#include "writeHTMLOSGTerrain.h"
-#include "writeHTMLOSGText.h"
-#include "writeHTMLOSGViewer.h"
 
 #include "getObjectInfoOSG.h"
 

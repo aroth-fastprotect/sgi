@@ -2,7 +2,6 @@
 #include <ostream>
 #include <sstream>
 #include "writeHTMLOSG.h"
-#include "writeHTMLOSGFX.h"
 
 #include <osgFX/Outline>
 
@@ -13,8 +12,8 @@
 namespace sgi {
 namespace osg_plugin {
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgFX::Effect)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgFX::Outline)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgFX::Effect)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgFX::Outline)
 
 using namespace sgi::osg_helpers;
 

@@ -13,9 +13,9 @@
 namespace sgi {
 namespace osg_plugin {
 
-SETTINGS_DIALOG_CREATE_IMPL_REGISTER(SettingsDialogCamera)
-SETTINGS_DIALOG_CREATE_IMPL_REGISTER(SettingsDialogObjectLogger)
-SETTINGS_DIALOG_CREATE_IMPL_REGISTER(SettingsDialogImagePreview)
+SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogCamera)
+SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogObjectLogger)
+SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogImagePreview)
 
 bool settingsDialogCreateImpl<SettingsDialogCamera>::execute(ISettingsDialogPtr & dialog)
 {

@@ -3,7 +3,6 @@
 #include <sstream>
 #include <iomanip>
 #include "writeHTMLOSG.h"
-#include "writeHTMLOSGUtil.h"
 
 #include <osgUtil/RenderStage>
 #include <osgUtil/RenderLeaf>
@@ -15,10 +14,10 @@
 namespace sgi {
 namespace osg_plugin {
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgUtil::RenderBin)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgUtil::RenderStage)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgUtil::RenderLeaf)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgUtil::IncrementalCompileOperation)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgUtil::RenderBin)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgUtil::RenderStage)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgUtil::RenderLeaf)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgUtil::IncrementalCompileOperation)
 
 using namespace sgi::osg_helpers;
 

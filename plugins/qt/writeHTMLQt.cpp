@@ -27,21 +27,23 @@
 
 namespace sgi {
 namespace qt_plugin {
-WRITE_PRETTY_HTML_IMPL_REGISTER(QObject)
-WRITE_PRETTY_HTML_IMPL_REGISTER(QWidget)
-WRITE_PRETTY_HTML_IMPL_REGISTER(QWindow)
-WRITE_PRETTY_HTML_IMPL_REGISTER(QWidgetWindow)
-WRITE_PRETTY_HTML_IMPL_REGISTER(QSurface)
-WRITE_PRETTY_HTML_IMPL_REGISTER(QDialog)
-WRITE_PRETTY_HTML_IMPL_REGISTER(QThread)
-WRITE_PRETTY_HTML_IMPL_REGISTER(QOpenGLContext)
-WRITE_PRETTY_HTML_IMPL_REGISTER(QOpenGLWidget)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QWidget)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QWindow)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QWidgetWindow)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QSurface)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QDialog)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QThread)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLContext)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLWidget)
 #ifdef WITH_QTOPENGL
-WRITE_PRETTY_HTML_IMPL_REGISTER(QGLWidget)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QGLWidget)
 #endif
 
 extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaMethod & method);
-
+extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaProperty & property);
+extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaEnum & metaenum);
+extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaClassInfo & metaclassInfo);
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurfaceFormat::SwapBehavior t)
 {
