@@ -38,7 +38,7 @@ std::string getObjectTypename(const osg::Object * object)
     return object?(std::string(object->libraryName()) + std::string("::") + std::string(object->className())):"(null)";
 }
 
-std::string getObjectName(const osg::Referenced * object)
+std::string getObjectName(const osg::Referenced * object, bool includeAddr)
 {
     std::string ret;
     if(object)
@@ -55,7 +55,7 @@ std::string getObjectName(const osg::Referenced * object)
     return ret;
 }
 
-std::string getObjectName(const osg::Observer * object)
+std::string getObjectName(const osg::Observer * object, bool includeAddr)
 {
     std::string ret;
     if(object)
@@ -100,7 +100,7 @@ std::string getObjectName(const osg::Object * object, bool includeAddr)
     return ret;
 }
 
-std::string getObjectNameAndType(const osg::Referenced * object)
+std::string getObjectNameAndType(const osg::Referenced * object, bool includeAddr)
 {
     std::string ret;
     if(object)
@@ -115,7 +115,7 @@ std::string getObjectNameAndType(const osg::Referenced * object)
     return ret;
 }
 
-std::string getObjectNameAndType(const osg::Observer * object)
+std::string getObjectNameAndType(const osg::Observer * object, bool includeAddr)
 {
     std::string ret;
     if(object)
