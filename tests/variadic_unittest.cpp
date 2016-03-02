@@ -156,9 +156,7 @@ struct for_each_type<type_list<HEAD,TAIL...>>
     template<typename FuncT>
     for_each_type(FuncT & f)
     {
-        f.template operator()<HEAD>();
-        //std::cout << typeid(HEAD).name();
-        //f<typename HEAD>();
+        f.operator()<HEAD>();
         for_each_type<type_list<TAIL...> > next(f);
     }
 };
