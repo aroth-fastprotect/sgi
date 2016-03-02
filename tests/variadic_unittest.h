@@ -9,5 +9,7 @@ private slots:
     void initTestCase();
     void cleanupTestCase();
 
-    void checkCompiler();
+    void test_index_of();
+    void test_for_each();
+    void test_sizeof();
 };
