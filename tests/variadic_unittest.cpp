@@ -156,7 +156,11 @@ struct for_each_type<type_list<HEAD,TAIL...>>
     template<typename FuncT>
     for_each_type(FuncT & f)
     {
+#ifdef _MSC_VER
         f.operator()<HEAD>();
+#else
+        f.template operator()<HEAD>();
+#endif
         for_each_type<type_list<TAIL...> > next(f);
     }
 };
