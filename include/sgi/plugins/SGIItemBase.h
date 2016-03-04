@@ -258,26 +258,28 @@ private:
     T* _ptr;
 };
 
-template <class To, class From>
 struct StaticCaster
 {
+    template <class To, class From>
     static To* cast(From* obj)
     {
         return static_cast<To*>(obj);
     }
+    template <class To, class From>
     static const To* cast(const From* obj)
     {
         return static_cast<const To*>(obj);
     }
 };
 
-template <class To, class From>
 struct DynamicCaster
 {
+    template <class To, class From>
     static To* cast(From* obj)
     {
         return dynamic_cast<To*>(obj);
     }
+    template <class To, class From>
     static const To* cast(const From* obj)
     {
         return dynamic_cast<const To*>(obj);

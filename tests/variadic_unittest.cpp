@@ -6,6 +6,8 @@
 #include <QMenu>
 #include <QThread>
 
+#include <sgi/helpers/type_list>
+
 #define SGI_NO_HOSTITEM_GENERATOR
 #include <sgi/GenerateItem>
 #include <sgi/plugins/SGIHostItemBase.h>
@@ -18,6 +20,7 @@
 
 using namespace std;
 using namespace sgi;
+using namespace sgi::helpers;
 
 inline QDebug operator<< (QDebug dbg, const std::string & s)
 {
@@ -81,57 +84,6 @@ void dump_element()
 }
 #endif
 
-//A metafunction returning the index of a type T in a type_list of types L. If T doesn't belong to L, it returns -1
-template<typename T>
-struct type_list_size;
-
-//The typelist template
-template<typename... TYPES>
-struct type_list
-{
-    static constexpr size_t size = type_list_size<type_list<TYPES...> >::value;
-};
-
-
-//Again that recursive head:tail traversal of functional languages
-template<typename HEAD, typename... TAIL>
-struct type_list_size<type_list<HEAD,TAIL...>>
-{
-    static constexpr size_t value = type_list_size<type_list<TAIL...> >::value + 1u;
-};
-
-//Second base case: The type is not found (There are no more types on the type_list to match with)
-template<>
-struct type_list_size<type_list<> >
-{
-    static constexpr size_t value = 0;
-};
-
-//A metafunction returning the index of a type T in a type_list of types L. If T doesn't belong to L, it returns -1
-template<typename T , typename L>
-struct index_of;
-
-//Again that recursive head:tail traversal of functional languages
-template<typename T , typename HEAD , typename... TAIL>
-struct index_of<T,type_list<HEAD,TAIL...>>
-{
-    static constexpr int next_value = index_of<T,type_list<TAIL...> >::value;
-    static constexpr int value = next_value >= 0 ? next_value + 1 : -1; //Propagate the -1 or the index
-};
-
-//First base case: The type is found (T matches HEAD)
-template<typename T , typename... TAIL>
-struct index_of<T,type_list<T,TAIL...>>
-{
-    static constexpr int value = 0;
-};
-
-//Second base case: The type is not found (There are no more types on the type_list to match with)
-template<typename T>
-struct index_of<T,type_list<>>
-{
-    static constexpr int value = -1;
-};
 
 void variadic_unittest::test_index_of()
 {
@@ -145,35 +97,6 @@ void variadic_unittest::test_index_of()
     QCOMPARE(n, -1);
 }
 
-//A metafunction returning the index of a type T in a type_list of types L. If T doesn't belong to L, it returns -1
-template<typename T>
-struct for_each_type;
-
-//Again that recursive head:tail traversal of functional languages
-template<typename HEAD, typename... TAIL>
-struct for_each_type<type_list<HEAD,TAIL...>>
-{
-    template<typename FuncT>
-    for_each_type(FuncT & f)
-    {
-#ifdef _MSC_VER
-        f.operator()<HEAD>();
-#else
-        f.template operator()<HEAD>();
-#endif
-        for_each_type<type_list<TAIL...> > next(f);
-    }
-};
-
-//Second base case: The type is not found (There are no more types on the type_list to match with)
-template<>
-struct for_each_type<type_list<> >
-{
-    template<typename FuncT>
-    for_each_type(FuncT &)
-    {
-    }
-};
 
 struct counter
 {
@@ -209,6 +132,46 @@ void variadic_unittest::test_sizeof()
 
     //QCOMPARE(ddd::size, s);
 }
+
+namespace testing {
+
+    template<class T> struct DerivedClassesT : public sgi::details::DerivedClassesImplT<T, sgi::helpers::type_list<> > {}; \
+    template<typename BaseType, typename Functor> \
+    struct call_function_for_object_type { \
+        call_function_for_object_type(BaseType * object, Functor & op) { \
+            details::call_function_for_object_type<BaseType, Functor, DerivedClassesT>(object, op); \
+        } \
+    };
+
+
+    //template<> struct DerivedClassesT<__base_type> : public details::DerivedClassesImplT<__base_type, __derived_types> {};
+}
+
+
+struct QObjectCaster
+{
+    template <class To, class From>
+    static To* cast(From* obj)
+    {
+        return qobject_cast<To*>(obj);
+    }
+    template <class To, class From>
+    static const To* cast(const From* obj)
+    {
+        return qobject_cast<const To*>(obj);
+    }
+};
+
+
+template<typename BASE, typename DERIVED=type_list<>, typename OBJECT_CASTER=DynamicCaster >
+struct ClassTypeInfo {
+    typedef BASE base_type;
+    typedef DERIVED derived_types;
+    typedef OBJECT_CASTER object_caster;
+};
+
+template<>
+struct ClassTypeInfo<QObject, type_list<QWindow, QWidget, QThread>, QObjectCaster > {};
 
 
 QTEST_MAIN(variadic_unittest)

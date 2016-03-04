@@ -34,7 +34,7 @@ class SGIPluginHostInterface;
     };
 
 namespace details {
-    template<class T, typename TypeList=::Loki::NullType>
+    template<class T, typename TypeList=sgi::helpers::type_list<>>
     struct DerivedClassesImplT {
         typedef TypeList DerivedClasses;
     };
@@ -43,7 +43,7 @@ namespace details {
     struct call_function_for_object_and_derivedT;
 
     template <typename BaseType, typename Functor, bool startOfLevel, template<typename> class DerivedClassesT, template<typename, typename> class ObjectTypeCheckOperatorT>
-    struct call_function_for_object_and_derivedT<BaseType, ::Loki::NullType, Functor, startOfLevel, DerivedClassesT, ObjectTypeCheckOperatorT>
+    struct call_function_for_object_and_derivedT<BaseType, sgi::helpers::type_list<>, Functor, startOfLevel, DerivedClassesT, ObjectTypeCheckOperatorT>
     {
         call_function_for_object_and_derivedT(BaseType * object, Functor & op)
         {
@@ -60,8 +60,8 @@ namespace details {
         }
     };
 
-    template <typename BaseType, class Head, class Tail, typename Functor, bool startOfLevel, template<typename> class DerivedClassesT, template<typename, typename> class ObjectTypeCheckOperatorT>
-    struct call_function_for_object_and_derivedT<BaseType, ::Loki::Typelist<Head, Tail>, Functor, startOfLevel, DerivedClassesT, ObjectTypeCheckOperatorT>
+    template <typename BaseType, class Head, class ...Tail, typename Functor, bool startOfLevel, template<typename> class DerivedClassesT, template<typename, typename> class ObjectTypeCheckOperatorT>
+    struct call_function_for_object_and_derivedT<BaseType, sgi::helpers::type_list<Head, Tail...>, Functor, startOfLevel, DerivedClassesT, ObjectTypeCheckOperatorT>
     {
         call_function_for_object_and_derivedT(BaseType * object, Functor & op)
         {
@@ -78,7 +78,7 @@ namespace details {
             }
             else
             {
-                call_function_for_object_and_derivedT<BaseType, Tail, Functor, false, DerivedClassesT, DynamicCastObjectCheck> tail(object, op);
+                call_function_for_object_and_derivedT<BaseType, sgi::helpers::type_list<Tail...>, Functor, false, DerivedClassesT, DynamicCastObjectCheck> tail(object, op);
                 if(!op.wasAccepted() && op.canAccept(object) && !op.recursiveAccept()) {
                     op.accept(object);
                 }
@@ -143,7 +143,7 @@ namespace details {
     registerItemType(__enum, #__enum)
 
 #define SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE() \
-    template<class T> struct DerivedClassesT : public sgi::details::DerivedClassesImplT<T, ::Loki::NullType> {}; \
+    template<class T> struct DerivedClassesT : public sgi::details::DerivedClassesImplT<T, sgi::helpers::type_list<> > {}; \
     template<typename BaseType, typename Functor> \
     struct call_function_for_object_type { \
         call_function_for_object_type(BaseType * object, Functor & op) { \
@@ -214,7 +214,7 @@ struct generateItemImpl {
 };
 
 template<template<typename, typename> class CallFunctionT, template<typename> class Params>
-struct generateItemImpl<CallFunctionT, Params, ::Loki::NullType>
+struct generateItemImpl<CallFunctionT, Params, helpers::type_list<> >
 {
     static bool generate(const SGIHostItemBase * object, SGIItemBasePtr & item)
     {
@@ -223,7 +223,7 @@ struct generateItemImpl<CallFunctionT, Params, ::Loki::NullType>
 };
 
 template <template<typename, typename> class CallFunctionT, template<typename> class Params, class Head, class Tail>
-struct generateItemImpl<CallFunctionT, Params, ::Loki::Typelist<Head, Tail> >
+struct generateItemImpl<CallFunctionT, Params, helpers::type_list<Head, Tail> >
 {
     static bool generate(const SGIHostItemBase * object, SGIItemBasePtr & item)
     {
@@ -459,6 +459,7 @@ public:
 
     virtual bool generateItem(const SGIHostItemBase * object, SGIItemBasePtr & item)
     {
+        //helpers::for_each_type<TypeList>(
         return generateItemImpl<CallFunctionT, pluginGenerateItemImpl, TypeList>::generate(object, item);
     }
     virtual void shutdown()
