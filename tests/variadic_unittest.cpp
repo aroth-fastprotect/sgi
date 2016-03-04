@@ -162,6 +162,24 @@ struct QObjectCaster
     }
 };
 
+namespace details {
+    template<typename BASE>
+    struct DerivedClassImplT {
+        typedef DERIVED derived_types;
+    };
+
+    template<typename BASE, typename DERIVED = type_list<>, typename OBJECT_CASTER = DynamicCaster >
+    struct BaseClassImplT {
+        typedef BASE base_type;
+        typedef DERIVED derived_types;
+        typedef OBJECT_CASTER object_caster;
+    };
+}
+
+template<typename BASE>
+struct BaseClass : public details::BaseClassImplT<BASE>
+{
+};
 
 template<typename BASE, typename DERIVED=type_list<>, typename OBJECT_CASTER=DynamicCaster >
 struct ClassTypeInfo {
@@ -173,5 +191,83 @@ struct ClassTypeInfo {
 template<>
 struct ClassTypeInfo<QObject, type_list<QWindow, QWidget, QThread>, QObjectCaster > {};
 
+template<>
+struct ClassTypeInfo<QWidget, type_list<QMenu, QDialog>, QObjectCaster > {};
+
+#if 0
+template <typename BaseType, typename Functor, bool startOfLevel, template<typename> class DerivedClassesT, template<typename, typename> class ObjectTypeCheckOperatorT>
+struct call_function_for_object_and_derivedT<BaseType, sgi::helpers::type_list<>, Functor, startOfLevel, DerivedClassesT, ObjectTypeCheckOperatorT>
+{
+    call_function_for_object_and_derivedT(BaseType * object, Functor & op)
+    {
+        if (op.recursiveAccept())
+        {
+            if (startOfLevel && op.canAccept(object))
+                op.accept(object);
+        }
+        else
+        {
+            if (!op.wasAccepted() && op.canAccept(object))
+                op.accept(object);
+        }
+    }
+};
+
+template <typename BaseType, class Head, class ...Tail, typename Functor, bool startOfLevel, template<typename> class DerivedClassesT, template<typename, typename> class ObjectTypeCheckOperatorT>
+struct call_function_for_object_and_derivedT<BaseType, sgi::helpers::type_list<Head, Tail...>, Functor, startOfLevel, DerivedClassesT, ObjectTypeCheckOperatorT>
+{
+    call_function_for_object_and_derivedT(BaseType * object, Functor & op)
+    {
+        if (startOfLevel && op.canAccept(object) && op.recursiveAccept())
+            op.accept(object);
+
+        if (Head * derivedTypeObject = ObjectTypeCheckOperatorT<Head, BaseType>::getObject(object)) {
+            op.decend(derivedTypeObject);
+            call_function_for_object_and_derivedT<Head, typename DerivedClassesT<Head>::DerivedClasses, Functor, true, DerivedClassesT, ObjectTypeCheckOperatorT> f(derivedTypeObject, op);
+            op.ascend(derivedTypeObject);
+            if (!op.wasAccepted() && op.canAccept(derivedTypeObject) && !op.recursiveAccept()) {
+                op.accept(derivedTypeObject);
+            }
+        }
+        else
+        {
+            call_function_for_object_and_derivedT<BaseType, sgi::helpers::type_list<Tail...>, Functor, false, DerivedClassesT, DynamicCastObjectCheck> tail(object, op);
+            if (!op.wasAccepted() && op.canAccept(object) && !op.recursiveAccept()) {
+                op.accept(object);
+            }
+        }
+    }
+};
+template<typename BaseType, typename Functor, template<typename> class DerivedClassesT>
+struct call_function_for_object_type {
+    call_function_for_object_type(BaseType * object, Functor & op) {
+        call_function_for_object_and_derivedT<BaseType, typename DerivedClassesT<BaseType>::DerivedClasses, Functor, true, DerivedClassesT, DynamicCastObjectCheck> f(object, op);
+    }
+};
+#endif
+
+template<typename BaseType>
+struct call_function_for_object_type {
+    template<typename Functor>
+    call_function_for_object_type(BaseType * object, Functor & op) {
+        typedef ClassTypeInfo<BaseType>::derived_types derived_types;
+        counter cnt;
+        for_each_type<derived_types> aa(cnt);
+        //call_function_for_object_and_derivedT<BaseType, typename DerivedClassesT<BaseType>::DerivedClasses, Functor, true, DerivedClassesT, DynamicCastObjectCheck> f(object, op);
+    }
+};
+
+void variadic_unittest::test_item_generation()
+{
+    QMenu * menu = new QMenu;
+    SGIHostItemQt hostItem(menu);
+    SGIItemBasePtr item;
+
+    details::objectTypeTraverseOutput func(std::cout);
+
+    call_function_for_object_type<QObject>(menu, func);
+    //generateItem(item, &hostItem);
+
+}
 
 QTEST_MAIN(variadic_unittest)
