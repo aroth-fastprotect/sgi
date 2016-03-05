@@ -51,6 +51,8 @@ LIST(APPEND TARGET_H
 	${SGI_INCLUDE_DIR}/sgi/helpers/qt_widgets
 	${SGI_INCLUDE_DIR}/sgi/helpers/osg
 
+	${SGI_INCLUDE_DIR}/sgi/details/type_list
+
     ${SGI_INCLUDE_DIR}/sgi/plugins/fallback_support.h
     ${SGI_INCLUDE_DIR}/sgi/plugins/log4cplus_support.h
     ${SGI_INCLUDE_DIR}/sgi/plugins/osg_support.h

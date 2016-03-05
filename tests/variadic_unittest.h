@@ -12,5 +12,6 @@ private slots:
     void test_index_of();
     void test_for_each();
     void test_sizeof();
-    void test_item_generation();
+    void test_item_qobject();
+    void test_item_qmenu();
 };

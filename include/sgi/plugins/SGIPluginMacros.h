@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "../helpers/NullType"
+#include <sgi/details/caster>
 
 namespace sgi {
 

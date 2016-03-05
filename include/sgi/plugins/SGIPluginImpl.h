@@ -34,7 +34,7 @@ class SGIPluginHostInterface;
     };
 
 namespace details {
-    template<class T, typename TypeList=sgi::helpers::type_list<>>
+    template<class T, typename TypeList=sgi::details::type_list<>>
     struct DerivedClassesImplT {
         typedef TypeList DerivedClasses;
     };
@@ -43,45 +43,27 @@ namespace details {
     struct call_function_for_object_and_derivedT;
 
     template <typename BaseType, typename Functor, bool startOfLevel, template<typename> class DerivedClassesT, template<typename, typename> class ObjectTypeCheckOperatorT>
-    struct call_function_for_object_and_derivedT<BaseType, sgi::helpers::type_list<>, Functor, startOfLevel, DerivedClassesT, ObjectTypeCheckOperatorT>
+    struct call_function_for_object_and_derivedT<BaseType, sgi::details::type_list<>, Functor, startOfLevel, DerivedClassesT, ObjectTypeCheckOperatorT>
     {
         call_function_for_object_and_derivedT(BaseType * object, Functor & op)
         {
-            if(op.recursiveAccept())
-            {
-                if(startOfLevel && op.canAccept(object))
-                    op.accept(object);
-            }
-            else
-            {
-                if(!op.wasAccepted() && op.canAccept(object))
-                    op.accept(object);
-            }
+            if(startOfLevel && op.canAccept(object))
+                op.accept(object);
         }
     };
 
     template <typename BaseType, class Head, class ...Tail, typename Functor, bool startOfLevel, template<typename> class DerivedClassesT, template<typename, typename> class ObjectTypeCheckOperatorT>
-    struct call_function_for_object_and_derivedT<BaseType, sgi::helpers::type_list<Head, Tail...>, Functor, startOfLevel, DerivedClassesT, ObjectTypeCheckOperatorT>
+    struct call_function_for_object_and_derivedT<BaseType, sgi::details::type_list<Head, Tail...>, Functor, startOfLevel, DerivedClassesT, ObjectTypeCheckOperatorT>
     {
         call_function_for_object_and_derivedT(BaseType * object, Functor & op)
         {
-            if(startOfLevel && op.canAccept(object) && op.recursiveAccept())
+            if(startOfLevel && op.canAccept(object))
                 op.accept(object);
 
             if(Head * derivedTypeObject = ObjectTypeCheckOperatorT<Head, BaseType>::getObject(object)) {
                 op.decend(derivedTypeObject);
                 call_function_for_object_and_derivedT<Head, typename DerivedClassesT<Head>::DerivedClasses, Functor, true, DerivedClassesT, ObjectTypeCheckOperatorT> f(derivedTypeObject, op);
                 op.ascend(derivedTypeObject);
-                if(!op.wasAccepted() && op.canAccept(derivedTypeObject) && !op.recursiveAccept()) {
-                    op.accept(derivedTypeObject);
-                }
-            }
-            else
-            {
-                call_function_for_object_and_derivedT<BaseType, sgi::helpers::type_list<Tail...>, Functor, false, DerivedClassesT, DynamicCastObjectCheck> tail(object, op);
-                if(!op.wasAccepted() && op.canAccept(object) && !op.recursiveAccept()) {
-                    op.accept(object);
-                }
             }
         }
     };
@@ -128,10 +110,6 @@ namespace details {
         {
             return false;
         }
-        bool recursiveAccept() const
-        {
-            return true;
-        }
 
     private:
         unsigned    _level;
@@ -142,8 +120,8 @@ namespace details {
 #define SGIITEMTYPE_NAME(__enum) \
     registerItemType(__enum, #__enum)
 
-#define SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE() \
-    template<class T> struct DerivedClassesT : public sgi::details::DerivedClassesImplT<T, sgi::helpers::type_list<> > {}; \
+#define SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE_OLD() \
+    template<class T> struct DerivedClassesT : public sgi::details::DerivedClassesImplT<T, sgi::details::type_list<> > {}; \
     template<typename BaseType, typename Functor> \
     struct call_function_for_object_type { \
         call_function_for_object_type(BaseType * object, Functor & op) { \
@@ -151,7 +129,7 @@ namespace details {
         } \
     };
 
-#define SGI_CALL_FUNCTION_FOR_OBJECT_BASE(__base_type, __derived_types) \
+#define SGI_CALL_FUNCTION_FOR_OBJECT_BASE_OLD(__base_type, __derived_types) \
     template<> struct DerivedClassesT<__base_type> : public details::DerivedClassesImplT<__base_type, __derived_types> {};
 
 template<typename SGIItemClassT, template<typename> class generateSGIItemImplTemplate>
@@ -193,10 +171,6 @@ public:
     {
         return _itemChain.valid();
     }
-    bool recursiveAccept() const
-    {
-        return true;
-    }
     SGIItemClass * getItem()
     {
         return (SGIItemClass *)_itemChain.get();
@@ -214,7 +188,7 @@ struct generateItemImpl {
 };
 
 template<template<typename, typename> class CallFunctionT, template<typename> class Params>
-struct generateItemImpl<CallFunctionT, Params, helpers::type_list<> >
+struct generateItemImpl<CallFunctionT, Params, details::type_list<> >
 {
     static bool generate(const SGIHostItemBase * object, SGIItemBasePtr & item)
     {
@@ -223,7 +197,7 @@ struct generateItemImpl<CallFunctionT, Params, helpers::type_list<> >
 };
 
 template <template<typename, typename> class CallFunctionT, template<typename> class Params, class Head, class Tail>
-struct generateItemImpl<CallFunctionT, Params, helpers::type_list<Head, Tail> >
+struct generateItemImpl<CallFunctionT, Params, details::type_list<Head, Tail> >
 {
     static bool generate(const SGIHostItemBase * object, SGIItemBasePtr & item)
     {
@@ -249,7 +223,7 @@ struct generateItemImpl<CallFunctionT, Params, helpers::type_list<Head, Tail> >
 
 #define GENERATE_IMPL_TEMPLATE() \
     template<typename T> \
-    class generateItemImpl { \
+    class generateItemAcceptImpl { \
     public: \
         typedef sgi::details::constexpr_true accept; \
         typedef sgi::details::constexpr_enum<SGIItemType, SGIItemTypeObject> ItemType; \
@@ -257,7 +231,7 @@ struct generateItemImpl<CallFunctionT, Params, helpers::type_list<Head, Tail> >
 
 #define GENERATE_IMPL_DECLARE_EX(__type, __accept, __itemType) \
     template<> \
-    class generateItemImpl<__type> { \
+    class generateItemAcceptImpl<__type> { \
     public: \
         typedef sgi::details::constexpr_##__accept accept; \
         typedef sgi::details::constexpr_enum<SGIItemType, __itemType> ItemType; \
@@ -269,11 +243,12 @@ struct generateItemImpl<CallFunctionT, Params, helpers::type_list<Head, Tail> >
 #define GENERATE_IMPL_NO_ACCEPT(__type) \
     GENERATE_IMPL_DECLARE_EX(__type, false, SGIItemTypeObject)
 
-template<typename T>
 class defaultPluginGenerateItemImpl {
 public:
-    typedef sgi::details::constexpr_true accept;
-    typedef sgi::details::constexpr_enum<SGIItemType, SGIItemTypeObject> ItemType;
+    static bool generate(const SGIHostItemBase * /*object*/, SGIItemBasePtr & /*item*/)
+    {
+        return false;
+    }
 };
 
 ////////--------------
@@ -404,9 +379,7 @@ public:
     bool execute(IObjectLoggerPtr & logger) { return false; }
 };
 
-template<typename TypeList,
-            template<typename, typename> class CallFunctionT,
-            template<typename> class pluginGenerateItemImpl=defaultPluginGenerateItemImpl,
+template<   typename pluginGenerateItemImpl=defaultPluginGenerateItemImpl,
             template<typename> class pluginWritePrettyHTMLImpl=defaultPluginWritePrettyHTMLImpl,
             template<typename> class pluginGetObjectNameImpl=defaultPluginGetObjectInfoStringImpl,
             template<typename> class pluginGetObjectDisplayNameImpl=defaultPluginGetObjectInfoStringImpl,
@@ -459,8 +432,7 @@ public:
 
     virtual bool generateItem(const SGIHostItemBase * object, SGIItemBasePtr & item)
     {
-        //helpers::for_each_type<TypeList>(
-        return generateItemImpl<CallFunctionT, pluginGenerateItemImpl, TypeList>::generate(object, item);
+        return pluginGenerateItemImpl::generate(object, item);
     }
     virtual void shutdown()
     {

@@ -2,7 +2,7 @@
 #pragma once
 
 namespace sgi {
-namespace helpers {
+namespace details {
 
 //A metafunction returning the index of a type T in a type_list of types L. If T doesn't belong to L, it returns -1
 template<typename T>
@@ -57,33 +57,40 @@ struct index_of<T,type_list<>>
 
 //A metafunction returning the index of a type T in a type_list of types L. If T doesn't belong to L, it returns -1
 template<typename T>
-struct for_each_type;
+struct for_each_type_impl;
 
 //Again that recursive head:tail traversal of functional languages
 template<typename HEAD, typename... TAIL>
-struct for_each_type<type_list<HEAD,TAIL...>>
+struct for_each_type_impl<type_list<HEAD,TAIL...>>
 {
     template<typename FuncT>
-    for_each_type(FuncT & f)
+    for_each_type_impl(FuncT & f)
     {
 #ifdef _MSC_VER
         f.operator()<HEAD>();
 #else
         f.template operator()<HEAD>();
 #endif
-        for_each_type<type_list<TAIL...> > next(f);
+        for_each_type_impl<type_list<TAIL...> > next(f);
     }
 };
 
 //Second base case: The type is not found (There are no more types on the type_list to match with)
 template<>
-struct for_each_type<type_list<> >
+struct for_each_type_impl<type_list<> >
 {
     template<typename FuncT>
-    for_each_type(FuncT &)
+    for_each_type_impl(FuncT &)
     {
     }
 };
 
-} // namespace helpers
+template<typename LIST_OF_TYPES, typename FuncT>
+void for_each_type(FuncT & f)
+{
+    details::for_each_type_impl<LIST_OF_TYPES> impl(f);
+}
+
+
+} // namespace details
 } // namespace sgi
