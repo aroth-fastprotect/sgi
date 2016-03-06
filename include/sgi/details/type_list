@@ -91,6 +91,9 @@ void for_each_type(FuncT & f)
     details::for_each_type_impl<LIST_OF_TYPES> impl(f);
 }
 
+#define LOKI_TYPELIST(...) \
+    sgi::details::type_list<__VA_ARGS__>
+
 
 } // namespace details
 } // namespace sgi

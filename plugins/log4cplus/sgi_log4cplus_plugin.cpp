@@ -54,20 +54,20 @@ typedef SGIPluginImplementationT< generateItemImpl,
                                         contextMenuPopulateImpl,
                                         actionHandlerImpl
                                         >
-    SGIPlugin_log4cplus_Implementation_base;
+    SGIPluginImpl;
 
 } // namespace log4cplus_plugin
 
-class SGIPlugin_log4cplus_Implementation : public log4cplus_plugin::SGIPlugin_log4cplus_Implementation_base
+class SGIPlugin_log4cplus_Implementation : public log4cplus_plugin::SGIPluginImpl
 {
 public:
     SGIPlugin_log4cplus_Implementation(SGIPluginHostInterface * hostInterface=NULL)
-        : log4cplus_plugin::SGIPlugin_log4cplus_Implementation_base(hostInterface)
+        : log4cplus_plugin::SGIPluginImpl(hostInterface)
     {
         SGIITEMTYPE_NAME(SGIItemTypeAppenders);
     }
     SGIPlugin_log4cplus_Implementation(const SGIPlugin_log4cplus_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : log4cplus_plugin::SGIPlugin_log4cplus_Implementation_base(rhs, copyop)
+        : log4cplus_plugin::SGIPluginImpl(rhs, copyop)
     {
     }
 

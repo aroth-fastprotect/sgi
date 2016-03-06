@@ -7,12 +7,13 @@
 #include <osgDB/FileNameUtils>
 #include <osgDB/Registry>
 
-#include "../helpers/Typelist"
-#include "../helpers/TypelistMacros"
+#include <sgi/details/type_list>
+#include <sgi/helpers/preprocessor>
 
 #include "SGIPluginInterface.h"
 #include "SGIHostItemBase.h"
 #include "SGIPluginMacros.h"
+#include "GenerateItemImpl"
 #include "ActionHandlerImpl"
 #include "SettingsDialogImpl"
 
@@ -21,123 +22,8 @@ namespace sgi {
 class Registry;
 class SGIPluginHostInterface;
 
-    template <class To, class From>
-    struct DynamicCastObjectCheck {
-        static bool match(From * object)
-        {
-            return (dynamic_cast<To*>(object) != NULL);
-        }
-        static To * getObject(From * object)
-        {
-            return dynamic_cast<To*>(object);
-        }
-    };
-
 #define SGIITEMTYPE_NAME(__enum) \
     registerItemType(__enum, #__enum)
-
-#define SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE_OLD() \
-    template<class T> struct DerivedClassesT : public sgi::details::DerivedClassesImplT<T, sgi::details::type_list<> > {}; \
-    template<typename BaseType, typename Functor> \
-    struct call_function_for_object_type { \
-        call_function_for_object_type(BaseType * object, Functor & op) { \
-            details::call_function_for_object_type<BaseType, Functor, DerivedClassesT>(object, op); \
-        } \
-    };
-
-#define SGI_CALL_FUNCTION_FOR_OBJECT_BASE_OLD(__base_type, __derived_types) \
-    template<> struct DerivedClassesT<__base_type> : public details::DerivedClassesImplT<__base_type, __derived_types> {};
-
-template<typename SGIItemClassT, template<typename> class generateSGIItemImplTemplate>
-class generateSGIItemT
-{
-public:
-    typedef SGIItemClassT SGIItemClass;
-    typedef typename SGIItemClassT::ObjectStorageType ObjectStorageType;
-    typedef typename SGIItemClassT::HostItemType HostItemType;
-    generateSGIItemT(const HostItemType * hostItem)
-        : _hostItem(hostItem), _level(0), _itemChain(NULL)
-    {
-    }
-    template<typename T>
-    void ascend(T * object)
-    {
-        _level--;
-    }
-    template<typename T>
-    void decend(T * object)
-    {
-        _level++;
-    }
-    template<typename T>
-    void accept(T * object)
-    {
-        SGIItemType itemType = generateSGIItemImplTemplate<T>::ItemType::value;
-        SGIItemClass * newItem = new SGIItemClass(_hostItem, itemType, object, 0, _level, _hostItem->userDataPtr());
-        //SGIItemClass * newItem = new SGIItemClass(_hostItem, itemType, nullptr, 0, _level, _hostItem->userDataPtr());
-        newItem->setTypeInfo(typeid(T));
-        if(_itemChain.valid())
-            _itemChain->insertBefore(newItem);
-        _itemChain = newItem;
-    }
-    template<typename T>
-    bool canAccept(T * object)
-    {
-        return generateSGIItemImplTemplate<T>::accept::value;
-    }
-    bool wasAccepted() const
-    {
-        return _itemChain.valid();
-    }
-    SGIItemClass * getItem()
-    {
-        return (SGIItemClass *)_itemChain.get();
-    }
-
-private:
-    const HostItemType * _hostItem;
-    unsigned    _level;
-    SGIItemBasePtr _itemChain;
-};
-
-template<template<typename, typename> class CallFunctionT, template<typename> class Params, typename TypeList>
-struct generateItemImpl {
-    static bool generate(const SGIHostItemBase * object, SGIItemBasePtr & item);
-};
-
-template<template<typename, typename> class CallFunctionT, template<typename> class Params>
-struct generateItemImpl<CallFunctionT, Params, details::type_list<> >
-{
-    static bool generate(const SGIHostItemBase * object, SGIItemBasePtr & item)
-    {
-        return false;
-    }
-};
-
-template <template<typename, typename> class CallFunctionT, template<typename> class Params, class Head, class Tail>
-struct generateItemImpl<CallFunctionT, Params, details::type_list<Head, Tail> >
-{
-    static bool generate(const SGIHostItemBase * object, SGIItemBasePtr & item)
-    {
-        bool ret = false;
-        typedef typename Head::HostItemType HostItemType;
-        if(const HostItemType * hostitem = object->as<HostItemType>())
-        {
-            typedef generateSGIItemT<Head, Params> generateSGIItemFunctor;
-            generateSGIItemFunctor func(hostitem);
-            typedef typename Head::ObjectType ObjectType;
-            CallFunctionT<ObjectType, generateSGIItemFunctor>(hostitem->object(), func);
-            ret = func.wasAccepted();
-            if(ret)
-                item = func.getItem();
-        }
-        else
-        {
-            ret = generateItemImpl<CallFunctionT, Params, Tail>::generate(object, item);
-        }
-        return ret;
-    }
-};
 
 #define GENERATE_IMPL_TEMPLATE() \
     template<typename T> \

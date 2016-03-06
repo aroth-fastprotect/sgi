@@ -9,7 +9,6 @@
 #include <unordered_map>
 #include <string.h>
 
-#include "../helpers/NullType"
 #include <sgi/details/caster>
 
 namespace sgi {
@@ -292,20 +291,20 @@ public:
     {
         return getObject<T, ItemType, StaticCaster>();
     }
-    template<typename T, typename ItemType, template<typename, typename> class CasterT>
+    template<typename T, typename ItemType, typename CasterT>
     T * getObject()
     {
         typedef typename ItemType::ObjectType ObjectType;
         ObjectType * obj = static_cast<const ItemType*>(_item.get())->object();
-        T * ret = CasterT<T, ObjectType>::cast(obj);
+        T * ret = CasterT::template cast<T, ObjectType>(obj);
         return ret;
     }
-    template<typename T, typename ItemType, template<typename, typename> class CasterT>
+    template<typename T, typename ItemType, typename CasterT>
     const T * getObject() const
     {
         typedef typename ItemType::ObjectType ObjectType;
         const ObjectType * obj = static_cast<const ItemType*>(_item.get())->object();
-        const T * ret = CasterT<const T, ObjectType>::cast(obj);
+        const T * ret = CasterT::template cast<const T, const ObjectType>(obj);
         return ret;
     }
     template<typename T, typename ItemTypeFirst, typename ItemTypeSecond>
@@ -318,7 +317,7 @@ public:
     {
         return getObjectMulti<T, ItemTypeFirst, ItemTypeSecond, StaticCaster>();
     }
-    template<typename T, typename ItemTypeFirst, typename ItemTypeSecond, template<typename, typename> class CasterT>
+    template<typename T, typename ItemTypeFirst, typename ItemTypeSecond, typename CasterT>
     T * getObjectMulti()
     {
         T * ret = NULL;
@@ -326,17 +325,17 @@ public:
         {
             typedef typename ItemTypeFirst::ObjectType ObjectType;
             ObjectType * obj = first->object();
-            ret = CasterT<T, ObjectType>::cast(obj);
+            ret = CasterT::template cast<T, ObjectType>(obj);
         }
         else if(ItemTypeSecond * second = dynamic_cast<ItemTypeSecond*>(_item.get()))
         {
             typedef typename ItemTypeSecond::ObjectType ObjectType;
             ObjectType * obj = second->object();
-            ret = CasterT<T, ObjectType>::cast(obj);
+            ret = CasterT::template cast<T, ObjectType>(obj);
         }
         return ret;
     }
-    template<typename T, typename ItemTypeFirst, typename ItemTypeSecond, template<typename, typename> class CasterT>
+    template<typename T, typename ItemTypeFirst, typename ItemTypeSecond, typename CasterT>
     const T * getObjectMulti() const
     {
         const T * ret = NULL;
@@ -344,13 +343,13 @@ public:
         {
             typedef typename ItemTypeFirst::ObjectType ObjectType;
             const ObjectType * obj = first->object();
-            ret = CasterT<const T, ObjectType>::cast(obj);
+            ret = CasterT::template cast<const T, const ObjectType>(obj);
         }
         else if(const ItemTypeSecond * second = dynamic_cast<const ItemTypeSecond*>(_item.get()))
         {
             typedef typename ItemTypeSecond::ObjectType ObjectType;
             const ObjectType * obj = second->object();
-            ret = CasterT<const T, ObjectType>::cast(obj);
+            ret = CasterT::template cast<const T, const ObjectType>(obj);
         }
         return ret;
     }
@@ -1480,14 +1479,14 @@ public:
     {
         return getTargetObject<T, ItemType, DynamicCaster>();
     }
-    template<typename T, typename ItemType, template<typename, typename> class CasterT>
+    template<typename T, typename ItemType, typename CasterT>
     const T * getTargetObject() const
     {
         if(!_targetItem.valid())
             return NULL;
         typedef typename ItemType::ObjectType ObjectType;
         const ObjectType * obj = static_cast<const ItemType*>(_targetItem.get())->object();
-        const T * ret = CasterT<const T, ObjectType>::cast(obj);
+        const T * ret = CasterT::template cast<const T, const ObjectType>(obj);
         return ret;
     }
 protected:

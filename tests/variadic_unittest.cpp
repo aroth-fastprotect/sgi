@@ -8,6 +8,7 @@
 
 #include <sgi/details/type_list>
 #include <sgi/details/object_type_info>
+#include <sgi/details/call_function_for_object_type>
 
 #define SGI_NO_HOSTITEM_GENERATOR
 #include <sgi/GenerateItem>
@@ -137,42 +138,12 @@ void variadic_unittest::test_sizeof()
 SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
 
 template<>
+struct object_info::object_type_info<QObject>
+    : details::object_type_info_impl<QObject, details::type_list<QWidget, QThread>, QObjectCaster > {};
+
+template<>
 struct object_info::object_type_info<QWidget>
     : details::object_type_info_impl<QWidget, details::type_list<QMenu, QDialog>, QObjectCaster > {};
-
-template<typename BaseType>
-struct call_function_for_object_type {
-    template<typename Functor>
-    struct call_proxy
-    {
-        BaseType * _obj;
-        Functor & _op;
-        call_proxy(BaseType * obj, Functor & op) : _obj(obj), _op(op) {}
-        template<typename T>
-        void operator()()
-        {
-            typedef typename object_info::object_type_info<BaseType>::object_caster object_caster;
-            T * obj = object_caster::template cast<T>(_obj);
-            if(obj) {
-                _op.decend(obj);
-                call_function_for_object_type<T>(reinterpret_cast<T*>(_obj), _op);
-                _op.ascend(obj);
-            }
-        }
-    };
-
-    template<typename Functor>
-    call_function_for_object_type(BaseType * object, Functor & op) {
-
-        if(op.canAccept(object))
-            op.accept(object);
-
-        typedef typename object_info::object_type_info<BaseType>::derived_types derived_types;
-        call_proxy<Functor> proxy(object, op);
-        details::for_each_type<derived_types>(proxy);
-        //call_function_for_object_and_derivedT<BaseType, typename DerivedClassesT<BaseType>::DerivedClasses, Functor, true, DerivedClassesT, DynamicCastObjectCheck> f(object, op);
-    }
-};
 
 GENERATE_IMPL_TEMPLATE()
 
@@ -180,9 +151,9 @@ void variadic_unittest::test_item_qobject()
 {
     SGIHostItemQt hostItem(new QObject);
 
-    typedef generateSGIItemT<SGIItemQt, generateItemAcceptImpl> generateSGIItemFunctor;
+    typedef details::generateSGIItemT<SGIItemQt, generateItemAcceptImpl> generateSGIItemFunctor;
     generateSGIItemFunctor func(&hostItem);
-    call_function_for_object_type<SGIHostItemQt::ObjectType>(hostItem.object(), func);
+    details::call_function_for_object_type<SGIHostItemQt::ObjectType, SGIHostItemQt::ObjectType>(hostItem.object(), func);
 
     QVERIFY(func.wasAccepted());
     SGIItemBasePtr item = func.getItem();
@@ -195,9 +166,9 @@ void variadic_unittest::test_item_qmenu()
 {
     SGIHostItemQt hostItem(new QMenu);
 
-    typedef generateSGIItemT<SGIItemQt, generateItemAcceptImpl> generateSGIItemFunctor;
+    typedef details::generateSGIItemT<SGIItemQt, generateItemAcceptImpl> generateSGIItemFunctor;
     generateSGIItemFunctor func(&hostItem);
-    call_function_for_object_type<SGIHostItemQt::ObjectType>(hostItem.object(), func);
+    details::call_function_for_object_type<SGIHostItemQt::ObjectType, SGIHostItemQt::ObjectType>(hostItem.object(), func);
 
     QVERIFY(func.wasAccepted());
     SGIItemBasePtr item = func.getItem();

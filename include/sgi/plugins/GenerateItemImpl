@@ -12,6 +12,57 @@ struct generateItemImplT;
 
 namespace details {
 
+template<typename SGIItemClassT, template<typename> class generateSGIItemImplTemplate>
+class generateSGIItemT
+{
+public:
+    typedef SGIItemClassT SGIItemClass;
+    typedef typename SGIItemClassT::ObjectStorageType ObjectStorageType;
+    typedef typename SGIItemClassT::HostItemType HostItemType;
+    generateSGIItemT(const HostItemType * hostItem)
+        : _hostItem(hostItem), _level(0), _itemChain(NULL)
+    {
+    }
+    template<typename T>
+    void ascend(T * object)
+    {
+        _level--;
+    }
+    template<typename T>
+    void decend(T * object)
+    {
+        _level++;
+    }
+    template<typename T>
+    void accept(T * object)
+    {
+        SGIItemType itemType = generateSGIItemImplTemplate<T>::ItemType::value;
+        SGIItemClass * newItem = new SGIItemClass(_hostItem, itemType, object, 0, _level, _hostItem->userDataPtr());
+        newItem->setTypeInfo(typeid(T));
+        if(_itemChain.valid())
+            _itemChain->insertBefore(newItem);
+        _itemChain = newItem;
+    }
+    template<typename T>
+    bool canAccept(T * object)
+    {
+        return generateSGIItemImplTemplate<T>::accept::value;
+    }
+    bool wasAccepted() const
+    {
+        return _itemChain.valid();
+    }
+    SGIItemClass * getItem()
+    {
+        return (SGIItemClass *)_itemChain.get();
+    }
+
+private:
+    const HostItemType * _hostItem;
+    unsigned    _level;
+    SGIItemBasePtr _itemChain;
+};
+
 template<typename ITEM_TYPE, template<typename> class generateItemAcceptImplTemplate>
 struct generateSGIItem_BaseT
 {
@@ -47,7 +98,9 @@ struct generateItemImplT
         void operator()()
         {
             typedef typename SINGLE_ITEM_TYPE::HostItemType HostItemType;
-            _ret = details::generateSGIItem_BaseT<SINGLE_ITEM_TYPE, generateItemAcceptImplTemplate>::generate((const HostItemType*)_hostItem, _item);
+            const HostItemType* targetHostItem = dynamic_cast<const HostItemType*>(_hostItem);
+            if(targetHostItem)
+                _ret = details::generateSGIItem_BaseT<SINGLE_ITEM_TYPE, generateItemAcceptImplTemplate>::generate(targetHostItem, _item);
         }
     };
     static bool generate(const SGIHostItemBase * object, SGIItemBasePtr & item)

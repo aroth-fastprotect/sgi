@@ -5,6 +5,7 @@
 #include <sgi/plugins/SGIPluginImpl.h>
 #include <sgi/plugins/SGIPluginInterface.h>
 #include <sgi/plugins/SGIHostItemQt.h>
+#include <sgi/plugins/GenerateItemImpl>
 #include <sgi/plugins/SGIPluginMacros.h>
 #include <sgi/SGIItemInternal>
 #include <sgi/plugins/SceneGraphDialog>
@@ -45,12 +46,7 @@
 #include "MenuActionQt.h"
 #include "SettingsDialogQt.h"
 
-namespace sgi {
-
-namespace qt_plugin {
-
-GENERATE_IMPL_TEMPLATE()
-GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
+using namespace sgi::qt_plugin;
 
 SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
 
@@ -82,15 +78,22 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QPaintDevice, LOKI_TYPELIST(QImage, QPicture, 
 #endif
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QDialog, LOKI_TYPELIST(QFileDialog, QMessageBox, QInputDialog, QProgressDialog, QColorDialog));
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QMetaObject, ::Loki::NullType);
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QIcon, ::Loki::NullType);
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QMetaObject, sgi::details::type_list<>);
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QIcon, sgi::details::type_list<>);
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(ISceneGraphDialog))
 
+namespace sgi {
 
-typedef SGIPluginImplementationT< LOKI_TYPELIST(SGIItemQt, SGIItemQtMeta, SGIItemQtPaintDevice, SGIItemQtSurface, SGIItemQtIcon),
-                                        call_function_for_object_type,
-                                        generateItemImpl,
+namespace qt_plugin {
+
+GENERATE_IMPL_TEMPLATE()
+GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
+
+
+typedef generateItemImplT<generateItemAcceptImpl, SGIItemQt, SGIItemQtMeta, SGIItemQtPaintDevice, SGIItemQtSurface, SGIItemQtIcon > generateItemImpl;
+
+typedef SGIPluginImplementationT<       generateItemImpl,
                                         writePrettyHTMLImpl,
                                         getObjectNameImpl,
                                         getObjectNameImpl,

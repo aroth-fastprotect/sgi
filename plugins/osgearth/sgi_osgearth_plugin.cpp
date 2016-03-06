@@ -4,6 +4,7 @@
 #include <sgi/plugins/SGIPluginImpl.h>
 #include <sgi/plugins/SGIPluginInterface.h>
 #include <sgi/plugins/SGIPluginMacros.h>
+#include <sgi/plugins/GenerateItemImpl>
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SGIHostItemOsgEarth.h>
 #include <sgi/plugins/SettingsDialog>
@@ -68,26 +69,7 @@
 #include "ElevationQueryReferenced"
 #include "geo_helpers.h"
 
-namespace sgi {
-namespace osgearth_plugin {
-
-GENERATE_IMPL_TEMPLATE()
-GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
-GENERATE_IMPL_NO_ACCEPT(osg::Object)
-GENERATE_IMPL_NO_ACCEPT(osg::NodeCallback)
-//GENERATE_IMPL_NO_ACCEPT(osg::Node)
-GENERATE_IMPL_NO_ACCEPT(osg::StateAttribute)
-GENERATE_IMPL_NO_ACCEPT(osg::Group)
-GENERATE_IMPL_NO_ACCEPT(osg::LOD)
-GENERATE_IMPL_NO_ACCEPT(osg::PagedLOD)
-GENERATE_IMPL_NO_ACCEPT(osg::CoordinateSystemNode)
-GENERATE_IMPL_NO_ACCEPT(osg::Transform)
-GENERATE_IMPL_NO_ACCEPT(osg::MatrixTransform)
-GENERATE_IMPL_NO_ACCEPT(osg::Camera)
-GENERATE_IMPL_NO_ACCEPT(osg::BufferData)
-//GENERATE_IMPL_NO_ACCEPT(osg::Image)
-
-GENERATE_IMPL_NO_ACCEPT(osgDB::ReaderWriter)
+using namespace sgi::osgearth_plugin;
 
 SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
 
@@ -110,9 +92,9 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                  osgEarth::TileBlacklist, osgEarth::Util::Controls::ControlEventHandler,
                                                                  osgEarth::Annotation::Decoration,
                                                                  osgEarth::StateSetCache,
-																 osgEarth::LevelDBDatabase,
+                                                                 osgEarth::LevelDBDatabase,
                                                                  osgEarth::NodeOperation,
-																 osgEarth::Features::FeatureCursor, osgEarth::Features::FeatureProfile,
+                                                                 osgEarth::Features::FeatureCursor, osgEarth::Features::FeatureProfile,
                                                                  ElevationQueryReferenced,
                                                                  TileKeyReferenced,
                                                                  TileSourceTileKey,
@@ -121,15 +103,15 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
 #endif
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(osgEarth::Cache, osgEarth::TileSource, osgEarth::ModelSource,
-															 osgEarth::Extension,
-															 osgEarth::Features::FeatureSource,
+                                                             osgEarth::Extension,
+                                                             osgEarth::Features::FeatureSource,
                                                              osg::Node, osg::NodeCallback, osg::StateAttribute, osg::BufferData
                                                             ))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgDB::ReaderWriter, LOKI_TYPELIST(osgEarth::Features::FeatureSourceDriver))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::StateAttribute, LOKI_TYPELIST(osgEarth::VirtualProgram))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Node, LOKI_TYPELIST(osg::Group, osgEarth::Util::Controls::ControlNode))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Group, LOKI_TYPELIST(osg::CoordinateSystemNode,
-															osgEarth::MapNode, osgEarth::TerrainDecorator, osgEarth::Util::SkyNode,
+                                                            osgEarth::MapNode, osgEarth::TerrainDecorator, osgEarth::Util::SkyNode,
                                                             osgEarth::Util::Controls::Control, osgEarth::Util::Controls::ControlCanvas,
                                                             osgEarth::Util::Controls::ControlNodeBin, osg::Transform,
                                                             osgEarth::Annotation::AnnotationNode
@@ -164,7 +146,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::GeoPositionNode, LOKI_TY
 #endif
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Features::FeatureCursor, LOKI_TYPELIST(osgEarth::Features::FeatureListCursor, osgEarth::Features::GeometryFeatureCursor))
-	
+
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::BufferData, LOKI_TYPELIST(osg::Image))
 
@@ -196,11 +178,11 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::ModelSource, LOKI_TYPELIST(osgEarth:
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Features::FeatureSource, LOKI_TYPELIST(osgEarth::Features::FeatureModelSource))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::TileSource, LOKI_TYPELIST(osgEarth::Features::FeatureTileSource))
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Config, ::Loki::NullType)
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Config, sgi::details::type_list<>)
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::ConfigOptions, LOKI_TYPELIST(osgEarth::TerrainLayerOptions, osgEarth::ModelLayerOptions, osgEarth::MapOptions,
                                                                          osgEarth::MapNodeOptions, osgEarth::ProfileOptions, osgEarth::DriverConfigOptions,
-																		 osgEarth::LevelDBOptions,
+                                                                         osgEarth::LevelDBOptions,
                                                                          osgEarth::Features::GeometryCompilerOptions
                                                                         ))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::TerrainLayerOptions, LOKI_TYPELIST(osgEarth::ImageLayerOptions, osgEarth::ElevationLayerOptions))
@@ -223,6 +205,27 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Features::FeatureModelSourceOptions,
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::Decoration, LOKI_TYPELIST(osgEarth::Annotation::InjectionDecoration))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::InjectionDecoration, LOKI_TYPELIST(osgEarth::Annotation::ScaleDecoration, osgEarth::Annotation::HighlightDecoration))
 #endif
+
+namespace sgi {
+namespace osgearth_plugin {
+
+GENERATE_IMPL_TEMPLATE()
+GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
+GENERATE_IMPL_NO_ACCEPT(osg::Object)
+GENERATE_IMPL_NO_ACCEPT(osg::NodeCallback)
+//GENERATE_IMPL_NO_ACCEPT(osg::Node)
+GENERATE_IMPL_NO_ACCEPT(osg::StateAttribute)
+GENERATE_IMPL_NO_ACCEPT(osg::Group)
+GENERATE_IMPL_NO_ACCEPT(osg::LOD)
+GENERATE_IMPL_NO_ACCEPT(osg::PagedLOD)
+GENERATE_IMPL_NO_ACCEPT(osg::CoordinateSystemNode)
+GENERATE_IMPL_NO_ACCEPT(osg::Transform)
+GENERATE_IMPL_NO_ACCEPT(osg::MatrixTransform)
+GENERATE_IMPL_NO_ACCEPT(osg::Camera)
+GENERATE_IMPL_NO_ACCEPT(osg::BufferData)
+//GENERATE_IMPL_NO_ACCEPT(osg::Image)
+
+GENERATE_IMPL_NO_ACCEPT(osgDB::ReaderWriter)
 
 class generateSGIItemEarthConfig
 {
@@ -275,9 +278,9 @@ private:
     ObjectStorageType   _accepted;
 };
 
-typedef SGIPluginImplementationT< LOKI_TYPELIST(SGIItemOsg, SGIItemEarthConfig, SGIItemEarthConfigOptions),
-                                        call_function_for_object_type,
-                                        generateItemImpl,
+typedef generateItemImplT<generateItemAcceptImpl, SGIItemOsg, SGIItemEarthConfig, SGIItemEarthConfigOptions> generateItemImpl;
+
+typedef SGIPluginImplementationT<       generateItemImpl,
                                         writePrettyHTMLImpl,
                                         getObjectNameImpl,
                                         getObjectNameImpl,

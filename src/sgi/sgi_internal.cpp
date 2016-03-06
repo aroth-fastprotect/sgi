@@ -18,6 +18,20 @@
 
 sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = NULL;
 
+SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced,
+                                  LOKI_TYPELIST(sgi::SGIPlugins,
+                                                sgi::ISceneGraphDialog,
+                                                sgi::IContextMenu,
+                                                sgi::IObjectLoggerDialog,
+                                                sgi::ISettingsDialog,
+                                                sgi::ISettingsDialogInfo,
+                                                sgi::ReferencedInternalItemData,
+                                                sgi::ReferencedInternalInfoData,
+                                                osg::Object))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(sgi::SGIItemBase))
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(sgi::SGIItemBase, LOKI_TYPELIST(sgi::SGIProxyItemBase))
+
 namespace sgi {
 namespace internal_plugin {
 
@@ -25,19 +39,6 @@ GENERATE_IMPL_TEMPLATE()
 GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
 GENERATE_IMPL_NO_ACCEPT(osg::Object)
 
-SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced,
-                                  LOKI_TYPELIST(SGIPlugins,
-                                                ISceneGraphDialog,
-                                                IContextMenu,
-                                                IObjectLoggerDialog,
-                                                ISettingsDialog,
-                                                ISettingsDialogInfo,
-                                                ReferencedInternalItemData,
-                                                ReferencedInternalInfoData,
-                                                osg::Object))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(SGIItemBase))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(SGIItemBase, LOKI_TYPELIST(SGIProxyItemBase))
 
 WRITE_PRETTY_HTML_IMPL_TEMPLATE()
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(SGIPlugins)
@@ -440,9 +441,9 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
     return true;
 }
 
-typedef SGIPluginImplementationT< LOKI_TYPELIST(SGIItemInternal),
-                                        call_function_for_object_type,
-                                        generateItemImpl,
+typedef generateItemImplT<generateItemAcceptImpl, SGIItemInternal> generateItemImpl;
+
+typedef SGIPluginImplementationT<       generateItemImpl,
                                         writePrettyHTMLImpl,
                                         getObjectNameImpl,
                                         getObjectNameImpl,

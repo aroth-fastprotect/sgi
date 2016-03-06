@@ -15,6 +15,7 @@ void call_function_for_object_type(BaseType * object, Functor & op)
 {
     typedef typename object_info::object_type_info<OBJECT_TYPE>::derived_types derived_types;
     call_function_for_object_type_functor<BaseType, Functor> proxy(object, op);
+    op.accept(object);
     details::for_each_type<derived_types>(proxy);
 }
 

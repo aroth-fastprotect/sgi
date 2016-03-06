@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sgi/plugins/SGIPluginImpl.h>
 #include <sgi/plugins/SGIPluginInterface.h>
+#include <sgi/plugins/GenerateItemImpl>
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SettingsDialog>
@@ -204,8 +205,7 @@
 #define GL_PROGRAM_POINT_SIZE_EXT         0x8642
 #endif /* GL_EXT_geometry_shader4 */
 
-namespace sgi {
-namespace osg_plugin {
+using namespace sgi::osg_plugin;
 
 SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
 
@@ -226,9 +226,9 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                  osgAnimation::Target,
                                                                  osgAnimation::Sampler,
                                                                  osgDB::DatabasePager::DatabaseThread,
-																 osgDB::DatabasePager::DatabaseRequest,
-																 osgDB::DatabasePager::RequestQueue,
-																 osgDB::DatabasePager::ReadQueue,
+                                                                 osgDB::DatabasePager::DatabaseRequest,
+                                                                 osgDB::DatabasePager::RequestQueue,
+                                                                 osgDB::DatabasePager::ReadQueue,
                                                                  osgDB::ImagePager::ImageThread,
                                                                  osgDB::ObjectWrapper,
                                                                  osgDB::ObjectWrapperManager,
@@ -237,8 +237,8 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, os
                                                                  osgUtil::StateGraph, osgUtil::RenderLeaf,
                                                                  osgViewer::Scene,
                                                                  osgText::Font::FontImplementation,
-																 osgText::Glyph3D,
-																 osgText::GlyphGeometry,
+                                                                 osgText::Glyph3D,
+                                                                 osgText::GlyphGeometry,
                                                                  ReferencedSetViewNodeLookAt,
                                                                  sgi::ReferencedPickerBase,
                                                                  sgi::ISceneGraphDialogToolsMenu
@@ -386,10 +386,10 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgText::TextBase, LOKI_TYPELIST(osgText::Text
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgFX::Effect, LOKI_TYPELIST(osgFX::Outline))
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgGA::GUIEventHandler, LOKI_TYPELIST(osgGA::CameraManipulator, osgViewer::HelpHandler, osgViewer::StatsHandler, 
+SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgGA::GUIEventHandler, LOKI_TYPELIST(osgGA::CameraManipulator, osgViewer::HelpHandler, osgViewer::StatsHandler,
                                                                         osgViewer::WindowSizeHandler, osgViewer::ThreadingHandler,
                                                                         osgViewer::RecordCameraPathHandler, osgViewer::LODScaleHandler,
-                                                                        osgViewer::ToggleSyncToVBlankHandler, osgViewer::ScreenCaptureHandler, 
+                                                                        osgViewer::ToggleSyncToVBlankHandler, osgViewer::ScreenCaptureHandler,
                                                                         osgViewer::InteractiveImageHandler
                                                                     ))
 
@@ -405,6 +405,11 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgViewer::GraphicsWindow, LOKI_TYPELIST(osgQt
 
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(sgi::ReferencedPickerBase, LOKI_TYPELIST(sgi::ReferencedPicker, sgi::ReferencedLinePicker))
 
+namespace sgi {
+namespace osg_plugin {
+
+GENERATE_IMPL_TEMPLATE()
+
 bool objectInfo_hasCallback(SGIPluginHostInterface * hostInterface, bool & result, const SGIItemBase * item)
 {
     bool ret = false;
@@ -417,9 +422,9 @@ bool objectInfo_hasCallback(SGIPluginHostInterface * hostInterface, bool & resul
     return ret;
 }
 
-typedef SGIPluginImplementationT< LOKI_TYPELIST(SGIItemOsg),
-                                        call_function_for_object_type,
-                                        defaultPluginGenerateItemImpl,
+typedef generateItemImplT<generateItemAcceptImpl, SGIItemOsg> generateItemImpl;
+
+typedef SGIPluginImplementationT<       generateItemImpl,
                                         writePrettyHTMLImpl,
                                         getObjectNameImpl,
                                         getObjectDisplayNameImpl,
