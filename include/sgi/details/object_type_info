@@ -15,13 +15,17 @@ struct object_type_info_impl {
     typedef OBJECT_CASTER object_caster;
 };
 
-#define SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE() \
-    template<typename BASE> \
+} // namespace details
+
+namespace object_info {
+    template<typename BASE>
     struct object_type_info : public sgi::details::object_type_info_impl<BASE> { };
+}
+
+#define SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
 
 #define SGI_CALL_FUNCTION_FOR_OBJECT_BASE(__base_type, __derived_types) \
-template<> struct object_type_info<__base_type> \
-    : sgi::details::object_type_info_impl<__base_type, __derived_types, DynamicCaster > {};
+template<> struct ::sgi::object_info::object_type_info<__base_type> \
+    : ::sgi::details::object_type_info_impl<__base_type, __derived_types, DynamicCaster > {};
 
-} // namespace details
 } // namespace sgi

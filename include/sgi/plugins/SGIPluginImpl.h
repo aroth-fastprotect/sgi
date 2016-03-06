@@ -33,90 +33,6 @@ class SGIPluginHostInterface;
         }
     };
 
-namespace details {
-    template<class T, typename TypeList=sgi::details::type_list<>>
-    struct DerivedClassesImplT {
-        typedef TypeList DerivedClasses;
-    };
-
-    template<typename BaseType, typename TypeList, typename Functor, bool startOfLevel, template<typename> class DerivedClassesT, template<typename, typename> class ObjectTypeCheckOperatorT=DynamicCastObjectCheck>
-    struct call_function_for_object_and_derivedT;
-
-    template <typename BaseType, typename Functor, bool startOfLevel, template<typename> class DerivedClassesT, template<typename, typename> class ObjectTypeCheckOperatorT>
-    struct call_function_for_object_and_derivedT<BaseType, sgi::details::type_list<>, Functor, startOfLevel, DerivedClassesT, ObjectTypeCheckOperatorT>
-    {
-        call_function_for_object_and_derivedT(BaseType * object, Functor & op)
-        {
-            if(startOfLevel && op.canAccept(object))
-                op.accept(object);
-        }
-    };
-
-    template <typename BaseType, class Head, class ...Tail, typename Functor, bool startOfLevel, template<typename> class DerivedClassesT, template<typename, typename> class ObjectTypeCheckOperatorT>
-    struct call_function_for_object_and_derivedT<BaseType, sgi::details::type_list<Head, Tail...>, Functor, startOfLevel, DerivedClassesT, ObjectTypeCheckOperatorT>
-    {
-        call_function_for_object_and_derivedT(BaseType * object, Functor & op)
-        {
-            if(startOfLevel && op.canAccept(object))
-                op.accept(object);
-
-            if(Head * derivedTypeObject = ObjectTypeCheckOperatorT<Head, BaseType>::getObject(object)) {
-                op.decend(derivedTypeObject);
-                call_function_for_object_and_derivedT<Head, typename DerivedClassesT<Head>::DerivedClasses, Functor, true, DerivedClassesT, ObjectTypeCheckOperatorT> f(derivedTypeObject, op);
-                op.ascend(derivedTypeObject);
-            }
-        }
-    };
-    template<typename BaseType, typename Functor, template<typename> class DerivedClassesT>
-    struct call_function_for_object_type {
-        call_function_for_object_type(BaseType * object, Functor & op) {
-            call_function_for_object_and_derivedT<BaseType, typename DerivedClassesT<BaseType>::DerivedClasses, Functor, true, DerivedClassesT, DynamicCastObjectCheck> f(object, op);
-        }
-    };
-
-    /// @class objectTypeTraverseOutput
-    /// @brief helper class to be used as functor for @a call_function_for_object_type and outputs
-    ///        the progress of @a call_function_for_object_type
-    class objectTypeTraverseOutput
-    {
-    public:
-        objectTypeTraverseOutput(std::ostream & os)
-            : _level(0), _os(os)
-        {
-        }
-        template<typename T>
-        void ascend(T * object)
-        {
-            _level--;
-            _os << "ascend level=" << _level << " for " << (void*)object << " " << typeid(T).name() << std::endl;
-        }
-        template<typename T>
-        void decend(T * object)
-        {
-            _level++;
-            _os << "decend level=" << _level << " for " << (void*)object << " " << typeid(T).name() << std::endl;
-        }
-        template<typename T>
-        void accept(T * object)
-        {
-            _os << "accept level=" << _level << " for " << (void*)object << " " << typeid(T).name() << std::endl;
-        }
-        template<typename T>
-        bool canAccept(T * object)
-        {
-            return true;
-        }
-        bool wasAccepted() const
-        {
-            return false;
-        }
-
-    private:
-        unsigned    _level;
-        std::ostream & _os;
-    };
-} // namespace details
-
 #define SGIITEMTYPE_NAME(__enum) \
     registerItemType(__enum, #__enum)
 
@@ -156,7 +72,9 @@ public:
     template<typename T>
     void accept(T * object)
     {
-        SGIItemClass * newItem = new SGIItemClass(_hostItem, generateSGIItemImplTemplate<T>::ItemType::value, object, 0, _level, _hostItem->userDataPtr());
+        SGIItemType itemType = generateSGIItemImplTemplate<T>::ItemType::value;
+        SGIItemClass * newItem = new SGIItemClass(_hostItem, itemType, object, 0, _level, _hostItem->userDataPtr());
+        //SGIItemClass * newItem = new SGIItemClass(_hostItem, itemType, nullptr, 0, _level, _hostItem->userDataPtr());
         newItem->setTypeInfo(typeid(T));
         if(_itemChain.valid())
             _itemChain->insertBefore(newItem);

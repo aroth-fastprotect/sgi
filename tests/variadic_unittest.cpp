@@ -137,7 +137,7 @@ void variadic_unittest::test_sizeof()
 SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
 
 template<>
-struct object_type_info<QWidget>
+struct object_info::object_type_info<QWidget>
     : details::object_type_info_impl<QWidget, details::type_list<QMenu, QDialog>, QObjectCaster > {};
 
 template<typename BaseType>
@@ -151,7 +151,7 @@ struct call_function_for_object_type {
         template<typename T>
         void operator()()
         {
-            typedef typename object_type_info<BaseType>::object_caster object_caster;
+            typedef typename object_info::object_type_info<BaseType>::object_caster object_caster;
             T * obj = object_caster::template cast<T>(_obj);
             if(obj) {
                 _op.decend(obj);
@@ -167,7 +167,7 @@ struct call_function_for_object_type {
         if(op.canAccept(object))
             op.accept(object);
 
-        typedef typename object_type_info<BaseType>::derived_types derived_types;
+        typedef typename object_info::object_type_info<BaseType>::derived_types derived_types;
         call_proxy<Functor> proxy(object, op);
         details::for_each_type<derived_types>(proxy);
         //call_function_for_object_and_derivedT<BaseType, typename DerivedClassesT<BaseType>::DerivedClasses, Functor, true, DerivedClassesT, DynamicCastObjectCheck> f(object, op);

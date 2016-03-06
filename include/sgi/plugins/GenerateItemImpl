@@ -1,0 +1,61 @@
+// kate: mode C++;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+#include <sgi/details/call_function_for_object_type>
+
+namespace sgi {
+
+// forward declaration
+template<template<typename> class generateItemAcceptImplTemplate, typename ...ITEM_TYPE>
+struct generateItemImplT;
+
+namespace details {
+
+template<typename ITEM_TYPE, template<typename> class generateItemAcceptImplTemplate>
+struct generateSGIItem_BaseT
+{
+    typedef typename ITEM_TYPE::HostItemType HostItemType;
+    typedef typename HostItemType::ObjectType ObjectType;
+    static bool generate(const HostItemType * hostItem, SGIItemBasePtr & item)
+    {
+        typedef generateSGIItemT<ITEM_TYPE, generateItemAcceptImplTemplate> generateSGIItemFunctor;
+        generateSGIItemFunctor func(hostItem);
+        call_function_for_object_type<ObjectType, ObjectType>(hostItem->object(), func);
+        bool ret = func.wasAccepted();
+        if(ret)
+            item = func.getItem();
+        return ret;
+    }
+};
+
+} // namespace details
+
+template<template<typename> class generateItemAcceptImplTemplate, typename ...ITEM_TYPE>
+struct generateItemImplT
+{
+    typedef details::type_list<ITEM_TYPE...> item_types;
+    struct call_proxy
+    {
+        const SGIHostItemBase * _hostItem;
+        SGIItemBasePtr & _item;
+        bool _ret;
+        call_proxy(const SGIHostItemBase * hostItem, SGIItemBasePtr & item)
+            : _hostItem(hostItem), _item(item), _ret(false) {}
+
+        template<typename SINGLE_ITEM_TYPE>
+        void operator()()
+        {
+            typedef typename SINGLE_ITEM_TYPE::HostItemType HostItemType;
+            _ret = details::generateSGIItem_BaseT<SINGLE_ITEM_TYPE, generateItemAcceptImplTemplate>::generate((const HostItemType*)_hostItem, _item);
+        }
+    };
+    static bool generate(const SGIHostItemBase * object, SGIItemBasePtr & item)
+    {
+        call_proxy func(object, item);
+        details::for_each_type<item_types>(func);
+        return func._ret;
+    }
+};
+
+} // namespace sgi
