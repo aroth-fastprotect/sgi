@@ -45,13 +45,9 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaMe
 {
     const char *tag = method.tag();
     const char *typeName = method.typeName();
-#if QT_VERSION < 0x050000
-    const char *signature = method.signature();
-#else
-    const char *signature = method.methodSignature();
-#endif
+    QByteArray signature = method.methodSignature();
 
-    os << method.access() << ":" << typeName << " " << signature;
+    os << method.access() << ":" << typeName << " " << signature.toStdString();
     if(strlen(tag))
         os << " (" << tag << ")";
     return os;
