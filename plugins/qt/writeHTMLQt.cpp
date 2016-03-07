@@ -141,7 +141,7 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
             // the values for the properties and the list becomes quite long here.
             // if the user is interested in the meta object he should call writePrettyHTML
             // for the metaObject explicitly.
-            os << "<tr><td>meta object</td><td>" << (void*)metaObject << "</td></tr>" << std::endl;
+            os << "<tr><td>meta object</td><td>0x" << (void*)metaObject << "</td></tr>" << std::endl;
 
             while(metaObject)
             {
