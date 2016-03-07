@@ -10,13 +10,20 @@ namespace details {
 template<typename BaseType, typename Functor>
 struct call_function_for_object_type_functor;
 
+
 template<typename BaseType, typename OBJECT_TYPE, typename Functor>
-void call_function_for_object_type(BaseType * object, Functor & op)
+void call_function_for_object_type(BaseType * baseObject, OBJECT_TYPE * object, Functor & op)
 {
-    typedef typename object_info::object_type_info<OBJECT_TYPE>::derived_types derived_types;
-    call_function_for_object_type_functor<BaseType, Functor> proxy(object, op);
     op.accept(object);
+    typedef typename object_info::object_type_info<OBJECT_TYPE>::derived_types derived_types;
+    call_function_for_object_type_functor<BaseType, Functor> proxy(baseObject, op);
     details::for_each_type<derived_types>(proxy);
+}
+
+template<typename BaseType, typename Functor>
+void call_function_for_object_type(BaseType * baseObject, Functor & op)
+{
+    call_function_for_object_type<BaseType, BaseType, Functor>(baseObject, baseObject, op);
 }
 
 template<typename BaseType, typename Functor>
@@ -32,7 +39,7 @@ struct call_function_for_object_type_functor
         T * obj = object_caster::template cast<T>(_obj);
         if(obj) {
             _op.decend(obj);
-            call_function_for_object_type<BaseType, T, Functor>(_obj, _op);
+            call_function_for_object_type<BaseType, T, Functor>(_obj, obj, _op);
             _op.ascend(obj);
         }
     }

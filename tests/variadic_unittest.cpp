@@ -153,7 +153,7 @@ void variadic_unittest::test_item_qobject()
 
     typedef details::generateSGIItemT<SGIItemQt, generateItemAcceptImpl> generateSGIItemFunctor;
     generateSGIItemFunctor func(&hostItem);
-    details::call_function_for_object_type<SGIHostItemQt::ObjectType, SGIHostItemQt::ObjectType>(hostItem.object(), func);
+    details::call_function_for_object_type<SGIHostItemQt::ObjectType>(hostItem.object(), func);
 
     QVERIFY(func.wasAccepted());
     SGIItemBasePtr item = func.getItem();
@@ -168,7 +168,7 @@ void variadic_unittest::test_item_qmenu()
 
     typedef details::generateSGIItemT<SGIItemQt, generateItemAcceptImpl> generateSGIItemFunctor;
     generateSGIItemFunctor func(&hostItem);
-    details::call_function_for_object_type<SGIHostItemQt::ObjectType, SGIHostItemQt::ObjectType>(hostItem.object(), func);
+    details::call_function_for_object_type<SGIHostItemQt::ObjectType>(hostItem.object(), func);
 
     QVERIFY(func.wasAccepted());
     SGIItemBasePtr item = func.getItem();

@@ -4,6 +4,12 @@
 #pragma once
 #include <sgi/details/call_function_for_object_type>
 
+#ifdef SGI_DEBUG_GENERATESGIITEM
+#define generateSGIItemT_debug(...) std::cout << __VA_ARGS__ << std::endl
+#else
+#define generateSGIItemT_debug(...) (void(0))
+#endif
+
 namespace sgi {
 
 // forward declaration
@@ -27,15 +33,18 @@ public:
     void ascend(T * object)
     {
         _level--;
+        generateSGIItemT_debug("ascend " << typeid(T).name() << " level=" << _level << " " << (void*)object);
     }
     template<typename T>
     void decend(T * object)
     {
         _level++;
+        generateSGIItemT_debug("decend " << typeid(T).name() << " level=" << _level << " " << (void*)object);
     }
     template<typename T>
     void accept(T * object)
     {
+        generateSGIItemT_debug("accept " << typeid(T).name() << " level=" << _level << " " << (void*)object);
         SGIItemType itemType = generateSGIItemImplTemplate<T>::ItemType::value;
         SGIItemClass * newItem = new SGIItemClass(_hostItem, itemType, object, 0, _level, _hostItem->userDataPtr());
         newItem->setTypeInfo(typeid(T));
@@ -46,6 +55,7 @@ public:
     template<typename T>
     bool canAccept(T * object)
     {
+        generateSGIItemT_debug("canAccept " << typeid(T).name() << " level=" << _level << " " << (void*)object << " ret=" << generateSGIItemImplTemplate<T>::accept::value);
         return generateSGIItemImplTemplate<T>::accept::value;
     }
     bool wasAccepted() const
@@ -72,7 +82,7 @@ struct generateSGIItem_BaseT
     {
         typedef generateSGIItemT<ITEM_TYPE, generateItemAcceptImplTemplate> generateSGIItemFunctor;
         generateSGIItemFunctor func(hostItem);
-        call_function_for_object_type<ObjectType, ObjectType>(hostItem->object(), func);
+        call_function_for_object_type<ObjectType>(hostItem->object(), func);
         bool ret = func.wasAccepted();
         if(ret)
             item = func.getItem();
