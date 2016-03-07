@@ -179,20 +179,42 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
         break;
     case SGIItemTypeMethods:
         {
-            os << "<ol>";
-            const QMetaObject * metaObject = object->metaObject();
-            while(metaObject)
+            if (_item->number() == ~0u)
             {
-                int methodOffset = metaObject->methodOffset();
-                int methodCount = metaObject->methodCount();
-                for (int i=methodOffset; i<methodCount; ++i)
+                os << "<ol>";
+                const QMetaObject * metaObject = object->metaObject();
+                while (metaObject)
                 {
-                    QMetaMethod method = metaObject->method(i);
-                    os << "<li>" << method << "</li>" << std::endl;
+                    int methodOffset = metaObject->methodOffset();
+                    int methodCount = metaObject->methodCount();
+                    for (int i = methodOffset; i < methodCount; ++i)
+                    {
+                        QMetaMethod method = metaObject->method(i);
+                        os << "<li>" << method << "</li>" << std::endl;
+                    }
+                    metaObject = metaObject->superClass();
                 }
-                metaObject = metaObject->superClass();
+                os << "</ol>" << std::endl;
             }
-            os << "</ol>" << std::endl;
+            else
+            {
+                const QMetaObject * metaObject = object->metaObject();
+                bool found = false;
+                while (metaObject && !found)
+                {
+                    int methodOffset = metaObject->methodOffset();
+                    int methodCount = metaObject->methodCount();
+                    for (int i = methodOffset; !found && i < methodCount; ++i)
+                    {
+                        if (i == _item->number())
+                        {
+                            QMetaMethod method = metaObject->method(i);
+                            os << method << std::endl;
+                        }
+                    }
+                    metaObject = metaObject->superClass();
+                }
+            }
             ret = true;
         }
         break;
