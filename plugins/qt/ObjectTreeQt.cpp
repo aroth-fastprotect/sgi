@@ -93,9 +93,7 @@ bool objectTreeBuildImpl<QObject>::build(IObjectTreeItem * treeItem)
             unsigned numChild = children.size();
             if(numChild)
                 treeItem->addChild(helpers::str_plus_count("Childs", numChild), cloneItem<SGIItemQt>(SGIItemTypeChilds));
-            //SGIItemBasePtr m = ;
-            //treeItem->addChild("Methods", m);
-            treeItem->addChild("Methods", cloneItem<SGIItemQt>(SGIItemTypeMethods, ~0u)_);
+            treeItem->addChild("Methods", cloneItem<SGIItemQt>(SGIItemTypeMethods, ~0u));
             const QThread * thread = object->thread();
             if(thread && object != thread)
             {

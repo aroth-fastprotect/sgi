@@ -44,6 +44,7 @@ extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const 
 extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaProperty & property);
 extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaEnum & metaenum);
 extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaClassInfo & metaclassInfo);
+extern void writePrettyHTMLImpl_QMetaMethod(std::basic_ostream<char>& os, const QMetaMethod & method);
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurfaceFormat::SwapBehavior t)
 {
@@ -209,7 +210,7 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
                         if (i == _item->number())
                         {
                             QMetaMethod method = metaObject->method(i);
-                            os << method << std::endl;
+                            writePrettyHTMLImpl_QMetaMethod(os, method);
                         }
                     }
                     metaObject = metaObject->superClass();
