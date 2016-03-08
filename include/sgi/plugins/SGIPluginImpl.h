@@ -16,6 +16,7 @@
 #include "GenerateItemImpl"
 #include "ActionHandlerImpl"
 #include "SettingsDialogImpl"
+#include "WritePrettyHTMLImpl"
 
 namespace sgi {
 

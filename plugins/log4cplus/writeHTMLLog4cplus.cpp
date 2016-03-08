@@ -3,6 +3,7 @@
 #include <log4cplus/hierarchy.h>
 #include "writeHTMLLog4cplus.h"
 #include "SGIItemLog4cplus"
+#include <sgi/plugins/SGIHostItemLog4cplus.h>
 
 #include <sgi/helpers/rtti>
 

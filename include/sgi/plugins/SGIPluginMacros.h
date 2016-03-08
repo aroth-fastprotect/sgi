@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include <sgi/details/caster>
+#include <sgi/details/functionImplBase>
 
 namespace sgi {
 
@@ -17,541 +18,8 @@ class SGIItemBase;
 class SGIPluginHostInterface;
 class IHostCallback;
 
-namespace details {
-    template<bool value_>
-    struct constexpr_bool {
-#ifdef __GNUG__
-        constexpr static const bool value = value_;
-#else
-        static const bool value = value_;
-#endif
-    };
-    typedef constexpr_bool<true> constexpr_true;
-    typedef constexpr_bool<false> constexpr_false;
-
-    template<typename EnumType, EnumType value_>
-    struct constexpr_enum {
-#ifdef __GNUG__
-        constexpr static const EnumType value = value_;
-#else
-        static const EnumType value = value_;
-#endif
-    };
-
-    template<typename CallParamType, typename ResultType>
-    class call_by_type_interface
-    {
-    public:
-        virtual bool callImpl(const CallParamType & param, ResultType & result) = 0;
-    };
-
-    template<typename TypePolicy>
-    class call_by_type_registryT
-    {
-    protected:
-        call_by_type_registryT() {}
-    public:
-        typedef typename TypePolicy::CallParamType CallParamType;
-        typedef typename TypePolicy::ResultType ResultType;
-        typedef call_by_type_interface<CallParamType, ResultType> InterfaceType;
-    public:
-        bool call(const std::type_info & ti, const CallParamType & param, ResultType & result)
-        {
-            bool ret;
-            InterfaceType * typeImpl = _registed_types[std::type_index(ti)];
-            ret = (typeImpl != NULL);
-            if(ret)
-                ret = typeImpl->callImpl(param, result);
-            return ret;
-        }
-
-        void registerType(const std::type_index & ti, InterfaceType* impl)
-        {
-            _registed_types[ti] = impl;
-        }
-
-        static call_by_type_registryT * instance()
-        {
-            static call_by_type_registryT s_instance;
-            return &s_instance;
-        }
-
-    private:
-        typedef std::unordered_map<std::type_index, InterfaceType*> TypeMap;
-        TypeMap _registed_types;
-    };
-
-    template<typename T>
-    struct TypeWrap {
-        typedef T Type;
-    };
-
-    template<unsigned num>
-    struct UintWrap {
-        typedef unsigned Type;
-#ifdef __GNUG__
-        constexpr static const unsigned value = num;
-#else
-        static const unsigned value = num;
-#endif
-    };
-
-    template<typename CallImplT, typename T>
-    class call_by_type_auto_registerT
-    {
-    public:
-        typedef typename CallImplT::Registry RegistryType;
-        typedef typename RegistryType::CallParamType CallParamType;
-        typedef typename RegistryType::ResultType ResultType;
-
-        typedef call_by_type_interface<CallParamType, ResultType> InterfaceType;
-
-        class InterfaceWrapper : public InterfaceType
-        {
-        public:
-            virtual bool callImpl(const CallParamType & param, ResultType & result)
-            {
-                return CallImplT::callImpl(TypeWrap<T>(), param, result);
-            }
-        };
-        call_by_type_auto_registerT()
-        {
-            RegistryType::instance()->registerType(typeid(T), &_iface);
-        }
-    private:
-        InterfaceWrapper _iface;
-    };
-
-    template<typename IdPolicy>
-    class call_by_id_registryT
-    {
-    protected:
-        call_by_id_registryT() {}
-    public:
-        typedef typename IdPolicy::CallParamType CallParamType;
-        typedef typename IdPolicy::ResultType ResultType;
-        typedef call_by_type_interface<CallParamType, ResultType> InterfaceType;
-    public:
-        bool call(const unsigned id, const CallParamType & param, ResultType & result)
-        {
-            bool ret;
-            InterfaceType * typeImpl = _registed_types[id];
-            ret = (typeImpl != NULL);
-            if(ret)
-                ret = typeImpl->callImpl(param, result);
-            return ret;
-        }
-
-        void registerId(const unsigned id, InterfaceType* impl)
-        {
-            _registed_types[id] = impl;
-        }
-
-        static call_by_id_registryT * instance()
-        {
-            static call_by_id_registryT s_instance;
-            return &s_instance;
-        }
-
-    private:
-        typedef std::unordered_map<unsigned, InterfaceType*> TypeMap;
-        TypeMap _registed_types;
-    };
-
-    template<typename CallImplT, unsigned Id>
-    class call_by_id_auto_registerT
-    {
-    public:
-        typedef typename CallImplT::Registry RegistryType;
-        typedef typename RegistryType::CallParamType CallParamType;
-        typedef typename RegistryType::ResultType ResultType;
-
-        typedef call_by_type_interface<CallParamType, ResultType> InterfaceType;
-
-        class InterfaceWrapper : public InterfaceType
-        {
-        public:
-            virtual bool callImpl(const CallParamType & param, ResultType & result)
-            {
-                return CallImplT::callImpl(UintWrap<Id>(), param, result);
-            }
-        };
-        call_by_id_auto_registerT()
-        {
-            RegistryType::instance()->registerId(Id, &_iface);
-        }
-    private:
-        InterfaceWrapper _iface;
-    };
-
-    template<typename TYPENAME_OF>
-    class StaticTypeNameImpl
-    {
-    public:
-        StaticTypeNameImpl()
-        {
-#ifdef _MSC_VER
-            const char * begin = __FUNCTION__;
-            const size_t len = strlen(begin);
-#else
-            const char * begin = strstr(__PRETTY_FUNCTION__, "TYPENAME_OF = ");
-            begin += 14;
-            const size_t len = strlen(begin) - 1;
-#endif
-            name.assign(begin, len);
-        }
-        std::string name;
-    };
-
-    template<typename T>
-    struct StaticTypeName
-    {
-        static const std::string & name()
-        {
-            static std::string name_of_this_enum(StaticTypeNameImpl<T>().name);
-            return name_of_this_enum;
-        }
-    };
-
-} // namespace details
-
-class functionImplBase
-{
-public:
-    functionImplBase(SGIPluginHostInterface * hostInterface, SGIItemBase * item=NULL)
-        : _hostInterface(hostInterface)
-        , _item(item)
-        {
-        }
-    functionImplBase(SGIPluginHostInterface * hostInterface, const SGIItemBase * item=NULL)
-        : _hostInterface(hostInterface)
-        , _item(const_cast<SGIItemBase*>(item))
-        {
-        }
-
-    template<typename ANOTHER_ITEMTYPE>
-    ANOTHER_ITEMTYPE * item()
-    {
-        return static_cast<ANOTHER_ITEMTYPE *>(_item.get());
-    }
-    template<typename ANOTHER_ITEMTYPE>
-    const ANOTHER_ITEMTYPE * item() const
-    {
-        return static_cast<const ANOTHER_ITEMTYPE *>(_item.get());
-    }
-    template<typename ANOTHER_ITEMTYPE>
-    ANOTHER_ITEMTYPE * itemAs()
-    {
-        return dynamic_cast<ANOTHER_ITEMTYPE *>(_item.get());
-    }
-    template<typename ANOTHER_ITEMTYPE>
-    const ANOTHER_ITEMTYPE * itemAs() const
-    {
-        return dynamic_cast<const ANOTHER_ITEMTYPE *>(_item.get());
-    }
-
-    template<typename ANOTHER_ITEMTYPE, typename SGIITEMTYPE_ENUM>
-    ANOTHER_ITEMTYPE * cloneItem(SGIITEMTYPE_ENUM newType=(SGIITEMTYPE_ENUM)0, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
-    {
-        return _item->rootBase()->clone<ANOTHER_ITEMTYPE>((SGIItemType)newType, copyop);
-    }
-    template<typename ANOTHER_ITEMTYPE, typename SGIITEMTYPE_ENUM>
-    ANOTHER_ITEMTYPE * cloneItem(SGIITEMTYPE_ENUM newType, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
-    {
-        return _item->rootBase()->clone<ANOTHER_ITEMTYPE>((SGIItemType)newType, userData, copyop);
-    }
-    template<typename ANOTHER_ITEMTYPE, typename SGIITEMTYPE_ENUM>
-    ANOTHER_ITEMTYPE * cloneItem(SGIITEMTYPE_ENUM newType, unsigned number, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
-    {
-        return _item->rootBase()->clone<ANOTHER_ITEMTYPE>((SGIItemType)newType, number, copyop);
-    }
-    template<typename ANOTHER_ITEMTYPE, typename SGIITEMTYPE_ENUM>
-    ANOTHER_ITEMTYPE * cloneItem(SGIITEMTYPE_ENUM newType, unsigned number, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
-    {
-        return _item->rootBase()->clone<ANOTHER_ITEMTYPE>((SGIItemType)newType, number, userData, copyop);
-    }
-
-    template<typename ItemTypeFirst, typename ItemTypeSecond, typename SGIITEMTYPE_ENUM>
-    SGIItemBase * cloneItemMulti(SGIITEMTYPE_ENUM newType=(SGIITEMTYPE_ENUM)0, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
-    {
-        SGIItemBase * ret = NULL;
-        if(ItemTypeFirst * first = dynamic_cast<ItemTypeFirst*>(_item.get()))
-            ret = _item->rootBase()->clone<ItemTypeFirst>((SGIItemType)newType, copyop);
-        else if(ItemTypeSecond * second = dynamic_cast<ItemTypeSecond*>(_item.get()))
-            ret = _item->rootBase()->clone<ItemTypeSecond>((SGIItemType)newType, copyop);
-        return ret;
-    }
-    template<typename T, typename ItemType>
-    inline T * getObject()
-    {
-        return getObject<T, ItemType, StaticCaster>();
-    }
-    template<typename T, typename ItemType >
-    inline const T * getObject() const
-    {
-        return getObject<T, ItemType, StaticCaster>();
-    }
-    template<typename T, typename ItemType, typename CasterT>
-    T * getObject()
-    {
-        typedef typename ItemType::ObjectType ObjectType;
-        ObjectType * obj = static_cast<const ItemType*>(_item.get())->object();
-        T * ret = CasterT::template cast<T, ObjectType>(obj);
-        return ret;
-    }
-    template<typename T, typename ItemType, typename CasterT>
-    const T * getObject() const
-    {
-        typedef typename ItemType::ObjectType ObjectType;
-        const ObjectType * obj = static_cast<const ItemType*>(_item.get())->object();
-        const T * ret = CasterT::template cast<const T, const ObjectType>(obj);
-        return ret;
-    }
-    template<typename T, typename ItemTypeFirst, typename ItemTypeSecond>
-    inline T * getObjectMulti()
-    {
-        return getObjectMulti<T, ItemTypeFirst, ItemTypeSecond, StaticCaster>();
-    }
-    template<typename T, typename ItemTypeFirst, typename ItemTypeSecond>
-    inline const T * getObjectMulti() const
-    {
-        return getObjectMulti<T, ItemTypeFirst, ItemTypeSecond, StaticCaster>();
-    }
-    template<typename T, typename ItemTypeFirst, typename ItemTypeSecond, typename CasterT>
-    T * getObjectMulti()
-    {
-        T * ret = NULL;
-        if(ItemTypeFirst * first = dynamic_cast<ItemTypeFirst*>(_item.get()))
-        {
-            typedef typename ItemTypeFirst::ObjectType ObjectType;
-            ObjectType * obj = first->object();
-            ret = CasterT::template cast<T, ObjectType>(obj);
-        }
-        else if(ItemTypeSecond * second = dynamic_cast<ItemTypeSecond*>(_item.get()))
-        {
-            typedef typename ItemTypeSecond::ObjectType ObjectType;
-            ObjectType * obj = second->object();
-            ret = CasterT::template cast<T, ObjectType>(obj);
-        }
-        return ret;
-    }
-    template<typename T, typename ItemTypeFirst, typename ItemTypeSecond, typename CasterT>
-    const T * getObjectMulti() const
-    {
-        const T * ret = NULL;
-        if(const ItemTypeFirst * first = dynamic_cast<const ItemTypeFirst*>(_item.get()))
-        {
-            typedef typename ItemTypeFirst::ObjectType ObjectType;
-            const ObjectType * obj = first->object();
-            ret = CasterT::template cast<const T, const ObjectType>(obj);
-        }
-        else if(const ItemTypeSecond * second = dynamic_cast<const ItemTypeSecond*>(_item.get()))
-        {
-            typedef typename ItemTypeSecond::ObjectType ObjectType;
-            const ObjectType * obj = second->object();
-            ret = CasterT::template cast<const T, const ObjectType>(obj);
-        }
-        return ret;
-    }
-
-    template<typename T>
-    std::string enumValueToString(T value)
-    {
-        std::string ret;
-        const std::string& value_type = details::StaticTypeName<T>::name();
-        _hostInterface->namedEnumValueToString(value_type, ret, (int)value);
-        return ret;
-    }
-
-    template<typename T, typename INPUT_TYPE>
-    std::string castToEnumValueString(INPUT_TYPE value)
-    {
-        std::string ret;
-        const std::string& value_type = details::StaticTypeName<T>::name();
-        _hostInterface->namedEnumValueToString(value_type, ret, (int)value);
-        return ret;
-    }
-
-    IHostCallback * hostCallback() const
-    {
-        return _hostInterface->hostCallback();
-    }
-
-    SGIItemType itemType() const
-    {
-        return _item->type();
-    }
-    unsigned itemNumber() const
-    {
-        return _item->number();
-    }
-
-protected:
-    SGIPluginHostInterface * _hostInterface;
-    SGIItemBasePtr _item;
-};
-
-template<typename T>
-std::string enumValueToString(T value)
-{
-    std::string ret;
-    const std::string& value_type = details::StaticTypeName<T>::name();
-    SGIPluginInterface::hostInterface()->namedEnumValueToString(value_type, ret, (int)value);
-    return ret;
-}
-
-template<typename T, typename INPUT_TYPE>
-std::string castToEnumValueString(INPUT_TYPE value)
-{
-    std::string ret;
-    const std::string& value_type = details::StaticTypeName<T>::name();
-    SGIPluginInterface::hostInterface()->namedEnumValueToString(value_type, ret, (int)value);
-    return ret;
-}
-
-template<typename CallParamType, typename ResultType, typename SGIItemType=SGIItemBase>
-class functionImplBaseT : public functionImplBase
-{
-public:
-    functionImplBaseT(SGIPluginHostInterface * hostInterface, SGIItemType * item=NULL)
-        : functionImplBase(hostInterface, item)
-        {
-        }
-
-public:
-    class Registry
-    {
-    public:
-        static bool call(SGIPluginHostInterface * hostInterface, ResultType & result, CallParamType param, SGIItemType * item)
-        {
-            bool ret;
-            const std::type_info * ti = item->typeInfo();
-            Registry * typeImpl = _registed_types[std::type_index(*ti)];
-            ret = (typeImpl != NULL);
-            if(ret)
-                result = typeImpl->callImpl(hostInterface, param, item);
-            return ret;
-        }
-
-    protected:
-        virtual ResultType callImpl(SGIPluginHostInterface * hostInterface, CallParamType param, SGIItemType * item) = 0;
-
-        static void registerType(const std::type_index & ti, Registry * impl)
-        {
-            _registed_types[ti] = impl;
-        }
-
-        typedef std::unordered_map<std::type_index, Registry *> TypeMap;
-        static TypeMap _registed_types;
-    };
-
-protected:
-    template<typename T, template<typename> class ImplT>
-    class AutoRegister : public Registry {
-    public:
-        AutoRegister() {
-            Registry::registerType(typeid(T), this);
-        }
-        virtual ResultType callImpl(SGIPluginHostInterface * hostInterface, CallParamType param, SGIItemType * item) {
-            ImplT<T> impl(hostInterface, item);
-            ResultType ret = impl.process(param);
-            return ret;
-        }
-    };
-};
-
 template<template<typename> class ImplT>
-class writePrettyHTMLImplBaseT : public functionImplBase
-{
-public:
-    struct TypePolicy {
-        struct CallParamType
-        {
-            CallParamType(SGIPluginHostInterface * hostInterface_, const SGIItemBase * item_, std::basic_ostream<char>& os_, bool table_)
-                : hostInterface(hostInterface_), item(item_), os(os_), table(table_) {}
-            SGIPluginHostInterface * hostInterface;
-            const SGIItemBase * item;
-            std::ostream & os;
-            bool table;
-        };
-        typedef bool ResultType;
-    };
-
-    writePrettyHTMLImplBaseT(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool table=true)
-        : functionImplBase(hostInterface, item), _table(table) {}
-
-    typedef details::call_by_type_registryT<TypePolicy> Registry;
-    template<typename T>
-    class AutoRegisterTypeT : public details::call_by_type_auto_registerT<writePrettyHTMLImplBaseT, T>
-    {
-    };
-
-    typedef typename TypePolicy::CallParamType CallParamType;
-    typedef typename TypePolicy::ResultType ResultType;
-
-    template<typename T>
-    static bool callImpl(const details::TypeWrap<T> & t, const CallParamType & param, ResultType & result)
-    {
-        ImplT<T> f(param.hostInterface, param.item, param.table);
-        result = f.process(param.os);
-        return result;
-    }
-
-    static bool call(SGIPluginHostInterface * hostInterface, const SGIItemBase * item, std::basic_ostream<char>& os, bool table)
-    {
-        CallParamType param(hostInterface, item, os, table);
-        ResultType result;
-        return Registry::instance()->call(*item->typeInfo(), param, result);
-    }
-
-    bool callNextHandler(std::basic_ostream<char>& os)
-    {
-        bool ret = false;
-        SGIItemBase * itemNext = _item->nextBase();
-        if(itemNext)
-        {
-            bool table = (os.tellp() == (std::streamoff)0);
-            ret = _hostInterface->writePrettyHTML(os, itemNext, table);
-        }
-        return ret;
-    }
-
-protected:
-    bool    _table;
-};
-
-#define WRITE_PRETTY_HTML_IMPL_TEMPLATE() \
-    template<typename T> \
-    class writePrettyHTMLImpl { \
-    public: \
-        typedef sgi::details::constexpr_false accept; \
-        writePrettyHTMLImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool table=true) {} \
-        bool process(std::basic_ostream<char>& os) { return false; } \
-    }; \
-    typedef writePrettyHTMLImplBaseT<writePrettyHTMLImpl> writePrettyHTMLImplBase;
-
-#define WRITE_PRETTY_HTML_IMPL_DECLARE(__type) \
-    template<> \
-    class writePrettyHTMLImpl<__type> : public writePrettyHTMLImplBase { \
-    private: \
-        typedef AutoRegisterTypeT<__type> AutoRegisterType; \
-        static AutoRegisterType s_autoregister; \
-    public: \
-        typedef sgi::details::constexpr_true accept; \
-        writePrettyHTMLImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool table=true) \
-            : writePrettyHTMLImplBase(hostInterface, item, table) {} \
-        bool process(std::basic_ostream<char>& os); \
-    };
-
-#define WRITE_PRETTY_HTML_IMPL_REGISTER(__type) \
-    writePrettyHTMLImpl<__type>::AutoRegisterType writePrettyHTMLImpl<__type>::s_autoregister;
-
-#define WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(__type) \
-    WRITE_PRETTY_HTML_IMPL_DECLARE(__type) \
-    WRITE_PRETTY_HTML_IMPL_REGISTER(__type)
-
-template<template<typename> class ImplT>
-class getObjectInfoFullStringImplBaseT : public functionImplBase
+class getObjectInfoFullStringImplBaseT : public details::functionImplBase
 {
 public:
     struct TypePolicy {
@@ -687,7 +155,7 @@ protected:
     GET_OBJECT_TYPE_IMPL_REGISTER(__type)
 
 template<template<typename> class ImplT>
-class getObjectInfoStringImplBaseT : public functionImplBase
+class getObjectInfoStringImplBaseT : public details::functionImplBase
 {
 public:
     struct TypePolicy {
@@ -790,7 +258,7 @@ public:
 
 
 template<template<typename> class ImplT>
-class getObjectFilenameFiltersImplBaseT : public functionImplBase
+class getObjectFilenameFiltersImplBaseT : public details::functionImplBase
 {
 public:
     struct TypePolicy {
@@ -862,7 +330,7 @@ public:
     GET_OBJECT_FILENAME_FILTERS_IMPL_REGISTER(__type)
 
 template<template<typename> class ImplT>
-class getObjectPathImplBaseT : public functionImplBase
+class getObjectPathImplBaseT : public details::functionImplBase
 {
 public:
     struct TypePolicy {
@@ -934,7 +402,7 @@ public:
     GET_OBJECT_PATH_IMPL_REGISTER(__type)
 
 template<template<typename> class ImplT>
-class hasCallbackImplBaseT : public functionImplBase
+class hasCallbackImplBaseT : public details::functionImplBase
 {
 public:
     struct TypePolicy {
@@ -1021,7 +489,7 @@ public:
 
 
 template<template<typename> class ImplT>
-class writeObjectFileImplBaseT : public functionImplBase
+class writeObjectFileImplBaseT : public details::functionImplBase
 {
 public:
     struct TypePolicy {
@@ -1095,7 +563,7 @@ public:
     WRITE_OBJECT_FILE_IMPL_REGISTER(__type)
 
 template<template<typename> class ImplT>
-class objectTreeBuildImplBaseT : public functionImplBase
+class objectTreeBuildImplBaseT : public details::functionImplBase
 {
 public:
     struct TypePolicy {
@@ -1181,7 +649,7 @@ public:
     OBJECT_TREE_BUILD_IMPL_REGISTER(__type)
 
 template<template<typename> class ImplT>
-class objectTreeBuildRootImplBaseT : public functionImplBase
+class objectTreeBuildRootImplBaseT : public details::functionImplBase
 {
 public:
     struct TypePolicy {
@@ -1258,7 +726,7 @@ public:
     OBJECT_TREE_BUILD_ROOT_IMPL_REGISTER(__type)
 
 template<template<typename> class ImplT>
-class contextMenuPopulateImplBaseT : public functionImplBase
+class contextMenuPopulateImplBaseT : public details::functionImplBase
 {
 public:
     struct TypePolicy {
@@ -1344,7 +812,7 @@ public:
 
 
 template<template<typename> class ImplT>
-class guiAdapterParentWidgetImplBaseT : public functionImplBase
+class guiAdapterParentWidgetImplBaseT : public details::functionImplBase
 {
 public:
     struct TypePolicy {
@@ -1426,7 +894,7 @@ protected:
     GUI_ADAPTER_PARENT_WIDGET_IMPL_REGISTER(__type)
 
 template<template<typename> class ImplT>
-class guiAdapterSetViewImplBaseT : public functionImplBase
+class guiAdapterSetViewImplBaseT : public details::functionImplBase
 {
 public:
     struct TypePolicy {
@@ -1526,7 +994,7 @@ protected:
     GUI_ADAPTER_SET_VIEW_IMPL_REGISTER(__type)
 
 template<template<typename> class ImplT>
-class getOrCreateObjectLoggerImplBaseT : public functionImplBase
+class getOrCreateObjectLoggerImplBaseT : public details::functionImplBase
 {
 public:
     struct TypePolicy {

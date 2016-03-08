@@ -1,5 +1,5 @@
 #pragma once
-#include <sgi/plugins/SGIPluginMacros.h>
+#include <sgi/plugins/WritePrettyHTMLImpl>
 
 namespace sgi {
 namespace qt_plugin {
