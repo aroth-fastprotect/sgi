@@ -87,6 +87,34 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaCl
     return os;
 }
 
+
+void writePrettyHTMLImpl_QMetaMethod(std::basic_ostream<char>& os, const QMetaMethod & method)
+{
+    os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+    os << "<tr><td>name</td><td>" << method.name().toStdString() << "</td></tr>" << std::endl;
+    os << "<tr><td>tag</td><td>" << method.tag() << "</td></tr>" << std::endl;
+    os << "<tr><td>access</td><td>" << method.access() << "</td></tr>" << std::endl;
+    os << "<tr><td>methodType</td><td>" << method.methodType() << "</td></tr>" << std::endl;
+    os << "<tr><td>attributes</td><td>" << method.attributes() << "</td></tr>" << std::endl;
+    os << "<tr><td>methodIndex</td><td>" << method.methodIndex() << "</td></tr>" << std::endl;
+    os << "<tr><td>revision</td><td>" << method.revision() << "</td></tr>" << std::endl;
+    os << "<tr><td>typeName</td><td>" << method.typeName() << "</td></tr>" << std::endl;
+    os << "<tr><td>methodSignature</td><td>" << method.methodSignature().toStdString() << "</td></tr>" << std::endl;
+    os << "<tr><td>parameterTypes</td><td><ol>";
+    for (const QByteArray & pt : method.parameterTypes())
+    {
+        os << "<li>" << pt.toStdString() << "</li>";
+    }
+    os << "</td></tr>" << std::endl;
+    os << "<tr><td>parameterNames</td><td><ol>";
+    for (const QByteArray & pt : method.parameterNames())
+    {
+        os << "<li>" << pt.toStdString() << "</li>";
+    }
+    os << "</td></tr>" << std::endl;
+    os << "</table>" << std::endl;
+}
+
 bool writePrettyHTMLImpl<QMetaObject>::process(std::basic_ostream<char>& os)
 {
     QMetaObject * object = getObject<QMetaObject, SGIItemQtMeta>();
