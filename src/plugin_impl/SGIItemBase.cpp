@@ -255,6 +255,7 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, unsigned number, const
     SGIItemBasePtr ret;
     SGIItemBasePtr previous_cloned;
     SGIItemBasePtr current = this;
+    SGIItemBasePtr safe_this = this;
     while(current.valid())
     {
         SGIItemBasePtr clonedItem = (SGIItemBase*)current->clone(copyop);
