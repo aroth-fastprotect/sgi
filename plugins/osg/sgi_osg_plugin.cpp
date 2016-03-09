@@ -226,7 +226,9 @@ template<> struct sgi::object_info::object_type_info<osg::Referenced>
             osg::GLBufferObjectSet,
             osg::Stats,
             osg::Texture::TextureObject,
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
             osg::GraphicsObjectManager,
+#endif
             osgAnimation::Channel,
             osgAnimation::Target,
             osgAnimation::Sampler,
