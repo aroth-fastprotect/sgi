@@ -2,6 +2,7 @@
 // SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
 
 #include <sgi/plugins/SGIItemBase.h>
+#include <sgi/plugins/SGIProxyItem.h>
 #include <sstream>
 
 namespace sgi {
@@ -336,6 +337,39 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, unsigned number, osg::
     return ret.release();
 }
 
+SGIProxyItemBase::SGIProxyItemBase(SGIPluginHostInterface * hostInterface, SGIItemBase * realItem)
+    : _hostInterface(hostInterface), _realItem(realItem) 
+{
+}
+
+SGIProxyItemBase::SGIProxyItemBase(SGIPluginHostInterface * hostInterface, 
+                                    const std::string & name, 
+                                    const std::string & typeName, 
+                                    const std::string & displayName, 
+                                    SGIItemBase * realItem)
+    : _hostInterface(hostInterface), _name(name), _displayName(displayName), _typeName(typeName)
+    , _realItem(realItem) 
+{
+}
+
+SGIProxyItemBase::SGIProxyItemBase(const SGIProxyItemBase & rhs)
+    : _hostInterface(rhs._hostInterface), _name(rhs._name), _displayName(rhs._displayName)
+    , _typeName(rhs._typeName), _realItem(rhs._realItem) 
+{
+}
+
+SGIItemBase * SGIProxyItemBase::realItem(bool getInstance)
+{
+    if (!_realItem.valid() && getInstance)
+        _realItem = getRealInstance();
+    return _realItem;
+}
+const SGIItemBase * SGIProxyItemBase::realItem(bool getInstance) const
+{
+    if (!_realItem.valid() && getInstance)
+        const_cast<SGIProxyItemBase*>(this)->_realItem = const_cast<SGIProxyItemBase*>(this)->getRealInstance();
+    return _realItem;
+}
 
 
 
