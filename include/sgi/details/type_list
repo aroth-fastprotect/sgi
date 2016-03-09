@@ -67,11 +67,12 @@ struct for_each_type_impl<type_list<HEAD,TAIL...>>
     for_each_type_impl(FuncT & f)
     {
 #ifdef _MSC_VER
-        f.operator()<HEAD>();
+        bool continue_with_next_type = f.operator()<HEAD>();
 #else
-        f.template operator()<HEAD>();
+        bool continue_with_next_type = f.template operator()<HEAD>();
 #endif
-        for_each_type_impl<type_list<TAIL...> > next(f);
+        if(continue_with_next_type)
+            for_each_type_impl<type_list<TAIL...> > next(f);
     }
 };
 

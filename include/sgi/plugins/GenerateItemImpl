@@ -105,12 +105,14 @@ struct generateItemImplT
             : _hostItem(hostItem), _item(item), _ret(false) {}
 
         template<typename SINGLE_ITEM_TYPE>
-        void operator()()
+        bool operator()()
         {
             typedef typename SINGLE_ITEM_TYPE::HostItemType HostItemType;
             const HostItemType* targetHostItem = dynamic_cast<const HostItemType*>(_hostItem);
             if(targetHostItem)
                 _ret = details::generateSGIItem_BaseT<SINGLE_ITEM_TYPE, generateItemAcceptImplTemplate>::generate(targetHostItem, _item);
+            // continue with the search until we found a matching HostItemType
+            return (targetHostItem == NULL);
         }
     };
     static bool generate(const SGIHostItemBase * object, SGIItemBasePtr & item)

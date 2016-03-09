@@ -33,7 +33,7 @@ struct call_function_for_object_type_functor
     Functor & _op;
     call_function_for_object_type_functor(BaseType * obj, Functor & op) : _obj(obj), _op(op) {}
     template<typename T>
-    void operator()()
+    bool operator()()
     {
         typedef typename object_info::object_type_info<BaseType>::object_caster object_caster;
         T * obj = object_caster::template cast<T>(_obj);
@@ -42,6 +42,8 @@ struct call_function_for_object_type_functor
             call_function_for_object_type<BaseType, T, Functor>(_obj, obj, _op);
             _op.ascend(obj);
         }
+        // continue with next type until we found one matching type
+        return (obj == NULL);
     }
 };
 } // namespace details

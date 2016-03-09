@@ -38,34 +38,6 @@ void variadic_unittest::cleanupTestCase()
 {
 }
 
-#if 0
-template <template<typename, typename> class CallFunctionT, template<typename> class Params, typename TypeList>
-struct v2_generateItemImpl
-{
-    static bool generate(const SGIHostItemBase * object, SGIItemBasePtr & item)
-    {
-        bool ret = false;
-        for(size_t n = 0; !ret && n < meta::size<TypeList>(); ++n)
-        {
-            constexpr size_t _n = n;
-            typedef Loki::Int2Type<_n> s;
-            typedef typename meta::at<TypeList, s> HostItemType;
-            if(const HostItemType * hostitem = object->as<HostItemType>())
-            {
-                typedef generateSGIItemT<HostItemType, Params> generateSGIItemFunctor;
-                generateSGIItemFunctor func(hostitem);
-                typedef typename HostItemType::ObjectType ObjectType;
-                CallFunctionT<ObjectType, generateSGIItemFunctor>(hostitem->object(), func);
-                ret = func.wasAccepted();
-                if(ret)
-                    item = func.getItem();
-            }
-        }
-        return ret;
-    }
-};
-#endif
-
 template<typename BaseT, typename DerivedT>
 struct object_hier {
     typedef BaseT base_type;
@@ -73,19 +45,6 @@ struct object_hier {
 };
 
 object_hier<QObject, tuple<QWindow, QWidget, QThread, QCoreApplication> > obj_hier_QObject;
-
-#if 0
-template< typename TL, size_t NO>
-void dump_element()
-{
-    //template<size_t N> struct TL::type<N>;
-    using X = typename TL::type;
-    typedef X element_type;
-    //typedef typename TL::type<typename NO> element_type;
-    std::cout << typeid(element_type).name() << std::endl;
-}
-#endif
-
 
 void variadic_unittest::test_index_of()
 {
@@ -106,10 +65,11 @@ struct counter
     counter() : num(0) {}
 
     template<typename T>
-    void operator()()
+    bool operator()()
     {
         ++num;
         //std::cout << typeid(T).name();
+        return true;
     }
 };
 
