@@ -220,6 +220,8 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseSetFontHeight)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseModifyText)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseDrawMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseAxisAlignment)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseSetMaximumWidth)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseSetMaximumHeight)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropEnableDepthWrites)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropType)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropImplementation)
@@ -2352,6 +2354,38 @@ bool actionHandlerImpl<MenuActionTextBaseAxisAlignment>::execute()
 {
     osgText::TextBase * object = getObject<osgText::TextBase,SGIItemOsg>();
     object->setAxisAlignment((osgText::TextBase::AxisAlignment)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBaseSetMaximumWidth>::execute()
+{
+    osgText::TextBase * object = getObject<osgText::TextBase, SGIItemOsg>();
+    double number = object->getMaximumWidth();
+    bool ret;
+    ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+        number,
+        "Width:", "Set maximum width",
+        0.0, 1000.0, 1,
+        _item
+        );
+    if (ret)
+        object->setMaximumWidth(number);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBaseSetMaximumHeight>::execute()
+{
+    osgText::TextBase * object = getObject<osgText::TextBase, SGIItemOsg>();
+    double number = object->getMaximumHeight();
+    bool ret;
+    ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+        number,
+        "Height:", "Set maximum height",
+        0.0, 1000.0, 1,
+        _item
+        );
+    if (ret)
+        object->setMaximumHeight(number);
     return true;
 }
 

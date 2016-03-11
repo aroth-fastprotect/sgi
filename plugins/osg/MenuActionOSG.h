@@ -182,6 +182,8 @@ enum MenuAction {
     MenuActionTextBaseModifyText,
     MenuActionTextBaseDrawMode,
     MenuActionTextBaseAxisAlignment,
+    MenuActionTextBaseSetMaximumWidth,
+    MenuActionTextBaseSetMaximumHeight,
     MenuActionTextBackdropEnableDepthWrites,
     MenuActionTextBackdropImplementation,
     MenuActionTextBackdropType,
