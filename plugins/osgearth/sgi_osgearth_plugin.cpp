@@ -71,139 +71,211 @@
 
 using namespace sgi::osgearth_plugin;
 
-SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
-
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, osgEarth::Map, osgEarth::Registry, osgEarth::Capabilities, osgEarth::CacheBin,
-                                                                 osgEarth::Layer, osgEarth::SpatialReference, osgEarth::Profile, osgEarth::Terrain,
-                                                                 osgEarth::TileBlacklist, osgEarth::Util::Controls::ControlEventHandler,
-                                                                 osgEarth::StateSetCache,
-                                                                 osgEarth::LevelDBDatabase,
-                                                                 osgEarth::NodeOperation,
-                                                                 osgEarth::Features::FeatureCursor, osgEarth::Features::FeatureProfile,
-                                                                 ElevationQueryReferenced,
-                                                                 TileKeyReferenced,
-                                                                 TileSourceTileKey,
-                                                                 TileSourceInfo
-                                                                ))
-#else
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(osg::Object, osgEarth::Map, osgEarth::Registry, osgEarth::Capabilities, osgEarth::CacheBin,
-                                                                 osgEarth::Layer, osgEarth::SpatialReference, osgEarth::Profile, osgEarth::Terrain,
-                                                                 osgEarth::TileBlacklist, osgEarth::Util::Controls::ControlEventHandler,
-                                                                 osgEarth::Annotation::Decoration,
-                                                                 osgEarth::StateSetCache,
-                                                                 osgEarth::LevelDBDatabase,
-                                                                 osgEarth::NodeOperation,
-                                                                 osgEarth::Features::FeatureCursor, osgEarth::Features::FeatureProfile,
-                                                                 ElevationQueryReferenced,
-                                                                 TileKeyReferenced,
-                                                                 TileSourceTileKey,
-                                                                 TileSourceInfo
-                                                                ))
+SGI_OBJECT_INFO_BEGIN(osg::Referenced)
+    osg::Object, osgEarth::Map, osgEarth::Registry, osgEarth::Capabilities, osgEarth::CacheBin,
+    osgEarth::Layer, osgEarth::SpatialReference, osgEarth::Profile, osgEarth::Terrain,
+    osgEarth::TileBlacklist, osgEarth::Util::Controls::ControlEventHandler,
+    osgEarth::StateSetCache,
+    osgEarth::LevelDBDatabase,
+    osgEarth::NodeOperation,
+    osgEarth::Features::FeatureCursor, osgEarth::Features::FeatureProfile,
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
+    osgEarth::Annotation::Decoration,
 #endif
+    ElevationQueryReferenced,
+    TileKeyReferenced,
+    TileSourceTileKey,
+    TileSourceInfo
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(osgEarth::Cache, osgEarth::TileSource, osgEarth::ModelSource,
-                                                             osgEarth::Extension,
-                                                             osgEarth::Features::FeatureSource,
-                                                             osg::Node, osg::NodeCallback, osg::StateAttribute, osg::BufferData
-                                                            ))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgDB::ReaderWriter, LOKI_TYPELIST(osgEarth::Features::FeatureSourceDriver))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::StateAttribute, LOKI_TYPELIST(osgEarth::VirtualProgram))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Node, LOKI_TYPELIST(osg::Group, osgEarth::Util::Controls::ControlNode))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Group, LOKI_TYPELIST(osg::CoordinateSystemNode,
-                                                            osgEarth::MapNode, osgEarth::TerrainDecorator, osgEarth::Util::SkyNode,
-                                                            osgEarth::Util::Controls::Control, osgEarth::Util::Controls::ControlCanvas,
-                                                            osgEarth::Util::Controls::ControlNodeBin, osg::Transform,
-                                                            osgEarth::Annotation::AnnotationNode
-                                                           ))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::CoordinateSystemNode, LOKI_TYPELIST(osgEarth::TerrainEngineNode))
+SGI_OBJECT_INFO_BEGIN(osg::Object)
+    osgEarth::Cache, osgEarth::TileSource,
+    osgEarth::ModelSource,
+    osgEarth::Extension,
+    osgEarth::Features::FeatureSource,
+    osg::Node, osg::NodeCallback, osg::StateAttribute, osg::BufferData
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgDB::ReaderWriter)
+    osgEarth::Features::FeatureSourceDriver
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::StateAttribute)
+    osgEarth::VirtualProgram
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::Node)
+    osg::Group, osgEarth::Util::Controls::ControlNode
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::Group)
+    osg::CoordinateSystemNode,
+    osgEarth::MapNode, osgEarth::TerrainDecorator, osgEarth::Util::SkyNode,
+    osgEarth::Util::Controls::Control, osgEarth::Util::Controls::ControlCanvas,
+    osgEarth::Util::Controls::ControlNodeBin,
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
+    osgEarth::Annotation::AnnotationNode,
+#endif
+    osg::Transform
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osg::CoordinateSystemNode)
+    osgEarth::TerrainEngineNode
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::AnnotationNode)
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
+    osgEarth::Annotation::PositionedAnnotationNode,
+#else
+    osgEarth::Annotation::GeoPositionNode,
+#endif
+    osgEarth::Annotation::FeatureNode
+SGI_OBJECT_INFO_END()
 
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::AnnotationNode, LOKI_TYPELIST(osgEarth::Annotation::PositionedAnnotationNode,
-                                                                                      osgEarth::Annotation::FeatureNode
-                                                                                    ))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::PositionedAnnotationNode, LOKI_TYPELIST(osgEarth::Annotation::LocalizedNode,
-                                                                                                osgEarth::Annotation::OrthoNode
-                                                                                                ))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::OrthoNode, LOKI_TYPELIST(osgEarth::Annotation::PlaceNode,
-                                                                                 osgEarth::Annotation::LabelNode,
-                                                                                 osgEarth::Annotation::TrackNode
-                                                                                ))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::LocalizedNode, LOKI_TYPELIST(osgEarth::Annotation::CircleNode,
-                                                                                     osgEarth::Annotation::EllipseNode,
-                                                                                     osgEarth::Annotation::RectangleNode,
-                                                                                     osgEarth::Annotation::ModelNode
-                                                                                    ))
-#else
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::AnnotationNode, LOKI_TYPELIST(osgEarth::Annotation::FeatureNode,
-                                                                                      osgEarth::Annotation::GeoPositionNode
-                                                                                    ))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::GeoPositionNode, LOKI_TYPELIST(osgEarth::Annotation::CircleNode,
-                                                                                     osgEarth::Annotation::EllipseNode,
-                                                                                     osgEarth::Annotation::RectangleNode,
-                                                                                     osgEarth::Annotation::ModelNode
-                                                                                    ))
-#endif
+SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::PositionedAnnotationNode)
+    osgEarth::Annotation::LocalizedNode,
+    osgEarth::Annotation::OrthoNode
+SGI_OBJECT_INFO_END()
+#else // OSGEARTH_VERSION_LESS_THAN(2,9,0)
+SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::GeoPositionNode)
+    osgEarth::Annotation::CircleNode,
+    osgEarth::Annotation::EllipseNode,
+    osgEarth::Annotation::RectangleNode,
+    osgEarth::Annotation::ModelNode
+SGI_OBJECT_INFO_END()
+#endif // OSGEARTH_VERSION_LESS_THAN(2,9,0)
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Features::FeatureCursor, LOKI_TYPELIST(osgEarth::Features::FeatureListCursor, osgEarth::Features::GeometryFeatureCursor))
+SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::OrthoNode)
+    osgEarth::Annotation::PlaceNode,
+    osgEarth::Annotation::LabelNode,
+    osgEarth::Annotation::TrackNode
+SGI_OBJECT_INFO_END()
 
+SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::LocalizedNode)
+    osgEarth::Annotation::CircleNode,
+    osgEarth::Annotation::EllipseNode,
+    osgEarth::Annotation::RectangleNode,
+    osgEarth::Annotation::ModelNode
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::BufferData, LOKI_TYPELIST(osg::Image))
-
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Transform, LOKI_TYPELIST(osg::Camera))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Camera, LOKI_TYPELIST(osgEarth::Util::Controls::ControlCanvas))
-
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::NodeCallback, LOKI_TYPELIST(osgEarth::Util::AutoClipPlaneCullCallback))
-
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Util::Controls::Control, LOKI_TYPELIST(osgEarth::Util::Controls::Container, osgEarth::Util::Controls::LabelControl,
-                                                                                   osgEarth::Util::Controls::ImageControl, osgEarth::Util::Controls::CheckBoxControl,
-                                                                                   osgEarth::Util::Controls::HSliderControl))
+SGI_OBJECT_INFO_BEGIN(osgEarth::Features::FeatureCursor)
+    osgEarth::Features::FeatureListCursor, osgEarth::Features::GeometryFeatureCursor
+SGI_OBJECT_INFO_END()
 
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Util::Controls::Container, LOKI_TYPELIST(osgEarth::Util::Controls::HBox, osgEarth::Util::Controls::VBox,
-                                                                                     osgEarth::Util::Controls::Grid))
+SGI_OBJECT_INFO_BEGIN(osg::BufferData)
+    osg::Image
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Util::Controls::LabelControl, LOKI_TYPELIST(osgEarth::Util::Controls::ButtonControl))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Util::Controls::ImageControl, LOKI_TYPELIST(osgEarth::Util::Controls::Frame))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Util::Controls::Frame, LOKI_TYPELIST(osgEarth::Util::Controls::RoundedFrame))
+SGI_OBJECT_INFO_BEGIN(osg::Transform)
+    osg::Camera
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::Camera)
+    osgEarth::Util::Controls::ControlCanvas
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::TerrainDecorator, LOKI_TYPELIST(osgEarth::OverlayDecorator))
+SGI_OBJECT_INFO_BEGIN(osg::NodeCallback)
+    osgEarth::Util::AutoClipPlaneCullCallback
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Layer, LOKI_TYPELIST(osgEarth::TerrainLayer, osgEarth::ModelLayer, osgEarth::MaskLayer))
+SGI_OBJECT_INFO_BEGIN(osgEarth::Util::Controls::Control)
+    osgEarth::Util::Controls::Container, osgEarth::Util::Controls::LabelControl,
+    osgEarth::Util::Controls::ImageControl, osgEarth::Util::Controls::CheckBoxControl,
+    osgEarth::Util::Controls::HSliderControl
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::TerrainLayer, LOKI_TYPELIST(osgEarth::ImageLayer, osgEarth::ElevationLayer))
+SGI_OBJECT_INFO_BEGIN(osgEarth::Util::Controls::Container)
+    osgEarth::Util::Controls::HBox,
+    osgEarth::Util::Controls::VBox,
+    osgEarth::Util::Controls::Grid
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::ModelSource, LOKI_TYPELIST(osgEarth::Features::FeatureModelSource))
+SGI_OBJECT_INFO_BEGIN(osgEarth::Util::Controls::LabelControl)
+    osgEarth::Util::Controls::ButtonControl
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Features::FeatureSource, LOKI_TYPELIST(osgEarth::Features::FeatureModelSource))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::TileSource, LOKI_TYPELIST(osgEarth::Features::FeatureTileSource))
+SGI_OBJECT_INFO_BEGIN(osgEarth::Util::Controls::ImageControl)
+    osgEarth::Util::Controls::Frame
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Config, sgi::details::type_list<>)
+SGI_OBJECT_INFO_BEGIN(osgEarth::Util::Controls::Frame)
+    osgEarth::Util::Controls::RoundedFrame
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::ConfigOptions, LOKI_TYPELIST(osgEarth::TerrainLayerOptions, osgEarth::ModelLayerOptions, osgEarth::MapOptions,
-                                                                         osgEarth::MapNodeOptions, osgEarth::ProfileOptions, osgEarth::DriverConfigOptions,
-                                                                         osgEarth::LevelDBOptions,
-                                                                         osgEarth::Features::GeometryCompilerOptions
-                                                                        ))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::TerrainLayerOptions, LOKI_TYPELIST(osgEarth::ImageLayerOptions, osgEarth::ElevationLayerOptions))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::DriverConfigOptions, LOKI_TYPELIST(osgEarth::TileSourceOptions, osgEarth::CacheOptions, osgEarth::ModelSourceOptions,
+SGI_OBJECT_INFO_BEGIN(osgEarth::TerrainDecorator)
+    osgEarth::OverlayDecorator
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::Layer)
+    osgEarth::TerrainLayer, osgEarth::ModelLayer, osgEarth::MaskLayer
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::TerrainLayer)
+    osgEarth::ImageLayer, osgEarth::ElevationLayer
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::ModelSource)
+    osgEarth::Features::FeatureModelSource
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::Features::FeatureSource)
+    osgEarth::Features::FeatureModelSource
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::TileSource)
+    osgEarth::Features::FeatureTileSource
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::Config)
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::ConfigOptions)
+    osgEarth::TerrainLayerOptions, osgEarth::ModelLayerOptions, osgEarth::MapOptions,
+    osgEarth::MapNodeOptions, osgEarth::ProfileOptions, osgEarth::DriverConfigOptions,
+    osgEarth::LevelDBOptions,
+    osgEarth::Features::GeometryCompilerOptions
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::TerrainLayerOptions)
+    osgEarth::ImageLayerOptions, osgEarth::ElevationLayerOptions
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osgEarth::DriverConfigOptions)
+    osgEarth::TileSourceOptions,
+    osgEarth::CacheOptions,
+    osgEarth::ModelSourceOptions,
                                                                                osgEarth::MaskSourceOptions, osgEarth::TerrainOptions,
                                                                                osgEarth::Features::FeatureSourceOptions,
                                                                                osgEarth::Features::ScriptEngineOptions
-                                                                              ))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::TileSourceOptions, LOKI_TYPELIST(osgEarth::Drivers::TMSOptions, osgEarth::Drivers::WMSOptions, osgEarth::Drivers::ArcGISOptions,
-                                                                             osgEarth::Drivers::VPBOptions, osgEarth::Drivers::GDALOptions))
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::CacheOptions, LOKI_TYPELIST(osgEarth::Drivers::FileSystemCacheOptions))
+SGI_OBJECT_INFO_BEGIN(osgEarth::TileSourceOptions)
+    osgEarth::Drivers::TMSOptions,
+    osgEarth::Drivers::WMSOptions,
+    osgEarth::Drivers::ArcGISOptions,
+    osgEarth::Drivers::VPBOptions,
+    osgEarth::Drivers::GDALOptions
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::ModelSourceOptions, LOKI_TYPELIST(osgEarth::Drivers::SimpleModelOptions, osgEarth::Features::FeatureModelSourceOptions))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Features::FeatureSourceOptions, LOKI_TYPELIST(osgEarth::Drivers::OGRFeatureOptions))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Features::FeatureModelSourceOptions, LOKI_TYPELIST(osgEarth::Drivers::FeatureGeomModelOptions,
-                                                                                               osgEarth::Drivers::FeatureStencilModelOptions))
+SGI_OBJECT_INFO_BEGIN(osgEarth::CacheOptions)
+    osgEarth::Drivers::FileSystemCacheOptions
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::ModelSourceOptions)
+    osgEarth::Drivers::SimpleModelOptions, osgEarth::Features::FeatureModelSourceOptions
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osgEarth::Features::FeatureSourceOptions)
+    osgEarth::Drivers::OGRFeatureOptions
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osgEarth::Features::FeatureModelSourceOptions)
+    osgEarth::Drivers::FeatureGeomModelOptions,
+    osgEarth::Drivers::FeatureStencilModelOptions
+SGI_OBJECT_INFO_END()
 
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::Decoration, LOKI_TYPELIST(osgEarth::Annotation::InjectionDecoration))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgEarth::Annotation::InjectionDecoration, LOKI_TYPELIST(osgEarth::Annotation::ScaleDecoration, osgEarth::Annotation::HighlightDecoration))
+SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::Decoration)
+    osgEarth::Annotation::InjectionDecoration
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::InjectionDecoration)
+    osgEarth::Annotation::ScaleDecoration, osgEarth::Annotation::HighlightDecoration
+SGI_OBJECT_INFO_END()
 #endif
 
 namespace sgi {

@@ -21,12 +21,15 @@
 
 using namespace sgi::log4cplus_plugin;
 
-SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
-
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(Log4cplusObjectBase, LOKI_TYPELIST(Log4cplusObjectLogger, Log4cplusObjectHierarchy, Log4cplusObjectAppender, Log4cplusObjectLayout))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(Log4cplusObjectLayout, LOKI_TYPELIST(Log4cplusObjectSimpleLayout, Log4cplusObjectPatternLayout))
-
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(ISceneGraphDialog))
+SGI_OBJECT_INFO_BEGIN(Log4cplusObjectBase)
+    Log4cplusObjectLogger, Log4cplusObjectHierarchy, Log4cplusObjectAppender, Log4cplusObjectLayout
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(Log4cplusObjectLayout)
+    Log4cplusObjectSimpleLayout, Log4cplusObjectPatternLayout
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::Referenced)
+    ISceneGraphDialog
+SGI_OBJECT_INFO_END()
 
 namespace sgi {
 

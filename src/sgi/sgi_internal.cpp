@@ -18,19 +18,25 @@
 
 sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = NULL;
 
-SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced,
-                                  LOKI_TYPELIST(sgi::SGIPlugins,
-                                                sgi::ISceneGraphDialog,
-                                                sgi::IContextMenu,
-                                                sgi::IObjectLoggerDialog,
-                                                sgi::ISettingsDialog,
-                                                sgi::ISettingsDialogInfo,
-                                                sgi::ReferencedInternalItemData,
-                                                sgi::ReferencedInternalInfoData,
-                                                osg::Object))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(sgi::SGIItemBase))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(sgi::SGIItemBase, LOKI_TYPELIST(sgi::SGIProxyItemBase))
+SGI_OBJECT_INFO_BEGIN(osg::Referenced)
+    sgi::SGIPlugins,
+    sgi::ISceneGraphDialog,
+    sgi::IContextMenu,
+    sgi::IObjectLoggerDialog,
+    sgi::ISettingsDialog,
+    sgi::ISettingsDialogInfo,
+    sgi::ReferencedInternalItemData,
+    sgi::ReferencedInternalInfoData,
+    osg::Object
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osg::Object)
+    sgi::SGIItemBase
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(sgi::SGIItemBase)
+    sgi::SGIProxyItemBase
+SGI_OBJECT_INFO_END()
 
 namespace sgi {
 namespace internal_plugin {

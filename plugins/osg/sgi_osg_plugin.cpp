@@ -207,183 +207,237 @@
 
 using namespace sgi::osg_plugin;
 
-SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
-
-template<> struct sgi::object_info::object_type_info<osg::Referenced>
-    : sgi::details::object_type_info_impl<osg::Referenced,
-        sgi::details::type_list<
-            osg::Object,
-            osg::ObserverSet,
-            osgDB::Registry,
-            sgi::ISceneGraphDialogToolsMenu,
-            osg::GraphicsContext::Traits, osg::OperationThread, osg::Operation,
-            osg::FrameStamp, osg::State,
-            osg::NodeVisitor::DatabaseRequestHandler,
-            osg::NodeVisitor::ImageRequestHandler,
-            osg::Program::PerContextProgram,
-            osg::DisplaySettings,
-            osg::GLBufferObject,
-            osg::GLBufferObjectSet,
-            osg::Stats,
-            osg::Texture::TextureObject,
+SGI_OBJECT_INFO_BEGIN(osg::Referenced)
+    osg::Object,
+    osg::ObserverSet,
+    osgDB::Registry,
+    sgi::ISceneGraphDialogToolsMenu,
+    osg::GraphicsContext::Traits, osg::OperationThread, osg::Operation,
+    osg::FrameStamp, osg::State,
+    osg::NodeVisitor::DatabaseRequestHandler,
+    osg::NodeVisitor::ImageRequestHandler,
+    osg::Program::PerContextProgram,
+    osg::DisplaySettings,
+    osg::GLBufferObject,
+    osg::GLBufferObjectSet,
+    osg::Stats,
+    osg::Texture::TextureObject,
 #if OSG_MIN_VERSION_REQUIRED(3,5,0)
-            osg::GraphicsObjectManager,
+    osg::GraphicsObjectManager,
 #endif
-            osgAnimation::Channel,
-            osgAnimation::Target,
-            osgAnimation::Sampler,
-            osgDB::DatabasePager::DatabaseThread,
-            osgDB::DatabasePager::DatabaseRequest,
-            osgDB::DatabasePager::RequestQueue,
-            osgDB::DatabasePager::ReadQueue,
-            osgDB::ImagePager::ImageThread,
-            osgDB::ObjectWrapper,
-            osgDB::ObjectWrapperManager,
-            osgDB::FileCache,
-            osgDB::BaseSerializer,
-            osgUtil::StateGraph, osgUtil::RenderLeaf,
-            osgViewer::Scene,
-            osgText::Font::FontImplementation,
-            osgText::Glyph3D,
-            osgText::GlyphGeometry,
-            ReferencedSetViewNodeLookAt,
-            sgi::ReferencedPickerBase
-        >,
-        DynamicCaster > {};
+    osgAnimation::Channel,
+    osgAnimation::Target,
+    osgAnimation::Sampler,
+    osgDB::DatabasePager::DatabaseThread,
+    osgDB::DatabasePager::DatabaseRequest,
+    osgDB::DatabasePager::RequestQueue,
+    osgDB::DatabasePager::ReadQueue,
+    osgDB::ImagePager::ImageThread,
+    osgDB::ObjectWrapper,
+    osgDB::ObjectWrapperManager,
+    osgDB::FileCache,
+    osgDB::BaseSerializer,
+    osgUtil::StateGraph, osgUtil::RenderLeaf,
+    osgViewer::Scene,
+    osgText::Font::FontImplementation,
+    osgText::Glyph3D,
+    osgText::GlyphGeometry,
+    ReferencedSetViewNodeLookAt,
+    sgi::ReferencedPickerBase
+SGI_OBJECT_INFO_END()
 
 #if OSG_MIN_VERSION_REQUIRED(3,5,0)
-template<> struct sgi::object_info::object_type_info<osg::GraphicsObjectManager>
-    : sgi::details::object_type_info_impl<osg::GraphicsObjectManager,
-        sgi::details::type_list<osg::GLBufferObjectManager, osg::GLObjectManager, osg::TextureObjectManager>,
-        DynamicCaster > {};
+SGI_OBJECT_INFO_BEGIN(osg::GraphicsObjectManager)
+    osg::GLBufferObjectManager, osg::GLObjectManager, osg::TextureObjectManager
+SGI_OBJECT_INFO_END()
 #endif
 
-template<> struct sgi::object_info::object_type_info<osg::Object>
-    : sgi::details::object_type_info_impl<osg::Object,
-        sgi::details::type_list<
-                osg::Node, osg::Node, osg::Shape, osg::StateAttribute,
-                osg::StateSet, osg::View, osg::GraphicsContext, osg::Shader, osg::UserDataContainer,
-                osg::BufferData, osg::BufferObject, osg::View, osg::Uniform, osg::ShaderComposer,
-                osg::NodeVisitor, osg::RenderBuffer, osg::ShaderComponent,
-                osg::RefMatrixd, osg::RefMatrixf, osg::Callback,
-                osgAnimation::Animation,
-                osgAnimation::AnimationUpdateCallbackBase,
-                osgDB::Options, osgDB::ReaderWriter, osgDB::DatabaseRevision, osgDB::DatabaseRevisions, osgDB::FileList,
-                osgViewer::ViewerBase, osgViewer::GraphicsWindow,
-                osgGA::EventHandler, osgGA::GUIEventAdapter,
-                osgText::Font,
-                osgUtil::SceneView, osgUtil::RenderBin,
-                osgTerrain::Locator, osgTerrain::Layer, osgTerrain::TerrainTechnique
-            >,
-        DynamicCaster > {};
+SGI_OBJECT_INFO_BEGIN(osg::Object)
+    osg::Node, osg::Node, osg::Shape, osg::StateAttribute,
+    osg::StateSet, osg::View, osg::GraphicsContext, osg::Shader, osg::UserDataContainer,
+    osg::BufferData, osg::BufferObject, osg::View, osg::Uniform, osg::ShaderComposer,
+    osg::NodeVisitor, osg::RenderBuffer, osg::ShaderComponent,
+    osg::RefMatrixd, osg::RefMatrixf, osg::Callback,
+    osgAnimation::Animation,
+    osgAnimation::AnimationUpdateCallbackBase,
+    osgDB::Options, osgDB::ReaderWriter, osgDB::DatabaseRevision, osgDB::DatabaseRevisions, osgDB::FileList,
+    osgViewer::ViewerBase, osgViewer::GraphicsWindow,
+    osgGA::EventHandler, osgGA::GUIEventAdapter,
+    osgText::Font,
+    osgUtil::SceneView, osgUtil::RenderBin,
+    osgTerrain::Locator, osgTerrain::Layer, osgTerrain::TerrainTechnique
+SGI_OBJECT_INFO_END()
 
-template<> struct sgi::object_info::object_type_info<osg::Callback>
-    : sgi::details::object_type_info_impl<osg::Callback,
-        sgi::details::type_list<osg::NodeCallback, osg::StateAttributeCallback, osg::UniformCallback>,
-        DynamicCaster > {};
+SGI_OBJECT_INFO_BEGIN(osg::Callback)
+    osg::NodeCallback, osg::StateAttributeCallback, osg::UniformCallback
+SGI_OBJECT_INFO_END()
 
-template<> struct sgi::object_info::object_type_info<osgGA::EventHandler>
-    : sgi::details::object_type_info_impl<osgGA::EventHandler,
-        sgi::details::type_list<osgGA::GUIEventHandler>,
-        DynamicCaster > {};
+SGI_OBJECT_INFO_BEGIN(osgGA::EventHandler)
+    osgGA::GUIEventHandler
+SGI_OBJECT_INFO_END()
 
-template<> struct sgi::object_info::object_type_info<osg::NodeVisitor::ImageRequestHandler>
-    : sgi::details::object_type_info_impl<osg::NodeVisitor::ImageRequestHandler,
-        sgi::details::type_list<osgDB::ImagePager>,
-        DynamicCaster > {};
-template<> struct sgi::object_info::object_type_info<osg::NodeVisitor::DatabaseRequestHandler>
-    : sgi::details::object_type_info_impl<osg::NodeVisitor::DatabaseRequestHandler,
-        sgi::details::type_list<osgDB::DatabasePager>,
-        DynamicCaster > {};
+SGI_OBJECT_INFO_BEGIN(osg::NodeVisitor::ImageRequestHandler)
+    osgDB::ImagePager
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::NodeVisitor::DatabaseRequestHandler)
+    osgDB::DatabasePager
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::DrawElements, LOKI_TYPELIST(osg::DrawElementsUByte, osg::DrawElementsUShort, osg::DrawElementsUInt,
-                                                                   osg::DrawArrays, osg::DrawArrayLengths))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::PrimitiveSet, LOKI_TYPELIST(osg::DrawElements))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Array, LOKI_TYPELIST(osg::IndexArray))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::BufferData, LOKI_TYPELIST(osg::PrimitiveSet, osg::Image, osg::Array))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Image, LOKI_TYPELIST(osgText::Glyph))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::BufferObject, LOKI_TYPELIST(osg::VertexBufferObject, osg::ElementBufferObject,
-                                                                   osg::PixelBufferObject, osg::PixelDataBufferObject,
-                                                                   osg::UniformBufferObject, osg::AtomicCounterBufferObject
-                                                                  ))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Drawable, LOKI_TYPELIST(osg::Geometry, osgText::TextBase, osg::ShapeDrawable, RenderInfoDrawable))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::GraphicsContext, LOKI_TYPELIST(osgViewer::GraphicsWindow))
+SGI_OBJECT_INFO_BEGIN(osg::PrimitiveSet)
+    osg::DrawElements
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::DrawElements)
+    osg::DrawElementsUByte,
+    osg::DrawElementsUShort,
+    osg::DrawElementsUInt,
+    osg::DrawArrays,
+    osg::DrawArrayLengths
+SGI_OBJECT_INFO_END()
 
-template<> struct sgi::object_info::object_type_info<osg::Node>
-    : sgi::details::object_type_info_impl<osg::Node,
-        sgi::details::type_list<
-            osg::Group,
+SGI_OBJECT_INFO_BEGIN(osg::Array)
+    osg::IndexArray
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::BufferData)
+    osg::PrimitiveSet, osg::Image, osg::Array
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::Image)
+    osgText::Glyph
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::BufferObject)
+    osg::VertexBufferObject, osg::ElementBufferObject,
+    osg::PixelBufferObject, osg::PixelDataBufferObject,
+    osg::UniformBufferObject, osg::AtomicCounterBufferObject
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::Drawable)
+    osg::Geometry, osgText::TextBase, osg::ShapeDrawable, RenderInfoDrawable
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::GraphicsContext)
+    osgViewer::GraphicsWindow
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osg::Node)
+    osg::Group,
 #if OSG_MIN_VERSION_REQUIRED(3,4,0)
-            osg::Drawable
+    osg::Drawable
 #else
-            osg::Geode
+    osg::Geode
 #endif
-            >,
-        DynamicCaster > {};
+SGI_OBJECT_INFO_END()
 
-template<> struct sgi::object_info::object_type_info<osg::Group>
-    : sgi::details::object_type_info_impl<osg::Group,
-        sgi::details::type_list<
+SGI_OBJECT_INFO_BEGIN(osg::Group)
 #if OSG_MIN_VERSION_REQUIRED(3,4,0)
-            osg::Geode,
+    osg::Geode,
 #endif
-            osg::Transform, osg::LOD, osg::ProxyNode, osg::CoordinateSystemNode, osgFX::Effect, osgTerrain::TerrainTile
-            >,
-        DynamicCaster > {};
+    osg::Transform, osg::LOD, osg::ProxyNode, osg::CoordinateSystemNode, osgFX::Effect, osgTerrain::TerrainTile
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::CoordinateSystemNode, LOKI_TYPELIST(osgTerrain::Terrain))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Transform, LOKI_TYPELIST(osg::Camera, osg::MatrixTransform, osg::PositionAttitudeTransform, osg::AutoTransform))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::LOD, LOKI_TYPELIST(osg::PagedLOD))
+SGI_OBJECT_INFO_BEGIN(osg::CoordinateSystemNode)
+    osgTerrain::Terrain
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::Transform)
+    osg::Camera, osg::MatrixTransform, osg::PositionAttitudeTransform, osg::AutoTransform
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::LOD)
+    osg::PagedLOD
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::StateAttribute, LOKI_TYPELIST(osg::FrameBufferObject, osg::Light, osg::Texture, osg::Viewport, osg::Program,
-                                                                     osg::ClipPlane, osg::TexEnv, osg::TexMat, osg::TexGen, osg::Material, osg::ColorMask,
-                                                                     osg::LightModel, osg::CullFace, osg::Point, osg::Depth, osg::PolygonStipple,
-                                                                     osg::LineStipple, osg::LineWidth, osg::Stencil, osg::PolygonMode, osg::PolygonOffset,
-                                                                     osg::BlendFunc, osg::BlendColor, osg::BlendEquation
-                                                                    ))
+SGI_OBJECT_INFO_BEGIN(osg::StateAttribute)
+    osg::FrameBufferObject, osg::Light, osg::Texture, osg::Viewport, osg::Program,
+    osg::ClipPlane, osg::TexEnv, osg::TexMat, osg::TexGen, osg::Material, osg::ColorMask,
+    osg::LightModel, osg::CullFace, osg::Point, osg::Depth, osg::PolygonStipple,
+    osg::LineStipple, osg::LineWidth, osg::Stencil, osg::PolygonMode, osg::PolygonOffset,
+    osg::BlendFunc, osg::BlendColor, osg::BlendEquation
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Shape, LOKI_TYPELIST(osg::Sphere, osg::Box, osg::Cone, osg::Cylinder, osg::Capsule, osg::InfinitePlane,
-                                                            osg::TriangleMesh, osg::HeightField, osg::CompositeShape))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::TriangleMesh, LOKI_TYPELIST(osg::ConvexHull))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::View, LOKI_TYPELIST(osgViewer::View))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Texture, LOKI_TYPELIST(osg::Texture1D, osg::Texture2D, osg::Texture3D, osg::TextureRectangle))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Texture2D, LOKI_TYPELIST(osgText::GlyphTexture))
+SGI_OBJECT_INFO_BEGIN(osg::Shape)
+    osg::Sphere, osg::Box, osg::Cone, osg::Cylinder, osg::Capsule, osg::InfinitePlane,
+    osg::TriangleMesh, osg::HeightField, osg::CompositeShape
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Operation, LOKI_TYPELIST(osg::GraphicsOperation, osg::BarrierOperation))
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::GraphicsOperation, LOKI_TYPELIST(osgViewer::Renderer, osgUtil::IncrementalCompileOperation))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::NodeCallback, LOKI_TYPELIST(osgGA::GUIEventHandler, osg::ClusterCullingCallback,
-                                                                   osg::AnimationPathCallback,
-                                                                   osgAnimation::AnimationManagerBase,
-                                                                   osgAnimation::AnimationUpdateCallback<osg::NodeCallback>,
-                                                                   osgAnimation::Skeleton::UpdateSkeleton ))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgAnimation::AnimationUpdateCallback<osg::NodeCallback>, LOKI_TYPELIST(osgAnimation::UpdateMatrixTransform))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgAnimation::UpdateMatrixTransform, LOKI_TYPELIST(osgAnimation::UpdateBone))
+SGI_OBJECT_INFO_BEGIN(osg::TriangleMesh)
+    osg::ConvexHull
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::MatrixTransform, LOKI_TYPELIST(osgAnimation::Bone, osgAnimation::Skeleton))
+SGI_OBJECT_INFO_BEGIN(osg::View)
+    osgViewer::View
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgText::TextBase, LOKI_TYPELIST(osgText::Text, osgText::Text3D))
+SGI_OBJECT_INFO_BEGIN(osg::Texture)
+    osg::Texture1D, osg::Texture2D, osg::Texture3D, osg::TextureRectangle
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgFX::Effect, LOKI_TYPELIST(osgFX::Outline))
+SGI_OBJECT_INFO_BEGIN(osg::Texture2D)
+    osgText::GlyphTexture
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgGA::GUIEventHandler, LOKI_TYPELIST(osgGA::CameraManipulator, osgViewer::HelpHandler, osgViewer::StatsHandler,
-                                                                        osgViewer::WindowSizeHandler, osgViewer::ThreadingHandler,
-                                                                        osgViewer::RecordCameraPathHandler, osgViewer::LODScaleHandler,
-                                                                        osgViewer::ToggleSyncToVBlankHandler, osgViewer::ScreenCaptureHandler,
-                                                                        osgViewer::InteractiveImageHandler
-                                                                    ))
+SGI_OBJECT_INFO_BEGIN(osg::Operation)
+    osg::GraphicsOperation, osg::BarrierOperation
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgTerrain::Layer, LOKI_TYPELIST(osgTerrain::ImageLayer, osgTerrain::ContourLayer,
-                                                                   osgTerrain::HeightFieldLayer, osgTerrain::ProxyLayer,
-                                                                   osgTerrain::CompositeLayer
-                                                                  ))
+SGI_OBJECT_INFO_BEGIN(osg::GraphicsOperation)
+    osgViewer::Renderer, osgUtil::IncrementalCompileOperation
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgUtil::RenderBin, LOKI_TYPELIST(osgUtil::RenderStage))
+SGI_OBJECT_INFO_BEGIN(osg::NodeCallback)
+    osgGA::GUIEventHandler, osg::ClusterCullingCallback,
+    osg::AnimationPathCallback,
+    osgAnimation::AnimationManagerBase,
+    osgAnimation::AnimationUpdateCallback<osg::NodeCallback>,
+    osgAnimation::Skeleton::UpdateSkeleton
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgViewer::ViewerBase, LOKI_TYPELIST(osgViewer::CompositeViewer))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgViewer::GraphicsWindow, LOKI_TYPELIST(osgQt::GraphicsWindowQt))
+SGI_OBJECT_INFO_BEGIN(osgAnimation::AnimationUpdateCallback<osg::NodeCallback>)
+    osgAnimation::UpdateMatrixTransform
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(sgi::ReferencedPickerBase, LOKI_TYPELIST(sgi::ReferencedPicker, sgi::ReferencedLinePicker))
+SGI_OBJECT_INFO_BEGIN(osgAnimation::UpdateMatrixTransform)
+    osgAnimation::UpdateBone
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osg::MatrixTransform)
+    osgAnimation::Bone, osgAnimation::Skeleton
+SGI_OBJECT_INFO_END()
+
+
+SGI_OBJECT_INFO_BEGIN(osgText::TextBase)
+    osgText::Text, osgText::Text3D
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgFX::Effect)
+    osgFX::Outline
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgGA::GUIEventHandler)
+    osgGA::CameraManipulator, osgViewer::HelpHandler, osgViewer::StatsHandler,
+    osgViewer::WindowSizeHandler, osgViewer::ThreadingHandler,
+    osgViewer::RecordCameraPathHandler, osgViewer::LODScaleHandler,
+    osgViewer::ToggleSyncToVBlankHandler, osgViewer::ScreenCaptureHandler,
+    osgViewer::InteractiveImageHandler
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgTerrain::Layer)
+    osgTerrain::ImageLayer, osgTerrain::ContourLayer,
+    osgTerrain::HeightFieldLayer, osgTerrain::ProxyLayer,
+    osgTerrain::CompositeLayer
+SGI_OBJECT_INFO_END()
+
+
+SGI_OBJECT_INFO_BEGIN(osgUtil::RenderBin)
+    osgUtil::RenderStage
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgViewer::ViewerBase)
+    osgViewer::CompositeViewer
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgViewer::GraphicsWindow)
+    osgQt::GraphicsWindowQt
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(sgi::ReferencedPickerBase)
+    sgi::ReferencedPicker, sgi::ReferencedLinePicker
+SGI_OBJECT_INFO_END()
 
 namespace sgi {
 namespace osg_plugin {

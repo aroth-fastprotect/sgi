@@ -95,8 +95,6 @@ void variadic_unittest::test_sizeof()
     //QCOMPARE(ddd::size, s);
 }
 
-SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
-
 template<>
 struct object_info::object_type_info<QObject>
     : details::object_type_info_impl<QObject, details::type_list<QWidget, QThread>, QObjectCaster > {};

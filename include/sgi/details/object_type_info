@@ -15,6 +15,13 @@ struct object_type_info_impl {
     typedef OBJECT_CASTER object_caster;
 };
 
+template<typename BASE, typename OBJECT_CASTER, typename DERIVED=sgi::details::type_list<> >
+struct object_type_info_impl_with_caster {
+    typedef BASE base_type;
+    typedef DERIVED derived_types;
+    typedef OBJECT_CASTER object_caster;
+};
+
 } // namespace details
 
 namespace object_info {
@@ -22,10 +29,14 @@ namespace object_info {
     struct object_type_info : public sgi::details::object_type_info_impl<BASE> { };
 }
 
-#define SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
+#define SGI_OBJECT_INFO_BEGIN(__type) \
+    template<> struct ::sgi::object_info::object_type_info<__type> : sgi::details::object_type_info_impl_with_caster<__type, sgi::DynamicCaster, \
+        ::sgi::details::type_list<
+#define SGI_OBJECT_INFO_BEGIN_EX(__type, __caster) \
+    template<> struct ::sgi::object_info::object_type_info<__type> : sgi::details::object_type_info_impl_with_caster<__type, __caster, \
+        ::sgi::details::type_list<
 
-#define SGI_CALL_FUNCTION_FOR_OBJECT_BASE(__base_type, __derived_types) \
-template<> struct ::sgi::object_info::object_type_info<__base_type> \
-    : ::sgi::details::object_type_info_impl<__base_type, __derived_types, DynamicCaster > {};
+#define SGI_OBJECT_INFO_END() \
+    > > {};
 
 } // namespace sgi

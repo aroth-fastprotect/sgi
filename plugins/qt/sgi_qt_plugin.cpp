@@ -48,40 +48,53 @@
 
 using namespace sgi::qt_plugin;
 
-SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
+SGI_OBJECT_INFO_BEGIN(QObject)
+    QWindow, QWidget, QThread,
+    QCoreApplication,
+    QOpenGLContext
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(QWindow)
+    QPaintDeviceWindow, QWidgetWindow
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(QPaintDeviceWindow)
+    QOpenGLWindow, QRasterWindow
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QObject, LOKI_TYPELIST(QWindow, QWidget, QThread,
-                                                         QCoreApplication,
-                                                         QOpenGLContext
-                                                        ));
-//SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QWindow, LOKI_TYPELIST(QPaintDeviceWindow, QQuickWindow));
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QWindow, LOKI_TYPELIST(QPaintDeviceWindow, QWidgetWindow));
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QPaintDeviceWindow, LOKI_TYPELIST(QOpenGLWindow, QRasterWindow));
+SGI_OBJECT_INFO_BEGIN(QSurface)
+    QWindow, QOffscreenSurface
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(QCoreApplication)
+    QApplication
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QSurface, LOKI_TYPELIST(QWindow, QOffscreenSurface));
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QCoreApplication, LOKI_TYPELIST(QApplication));
-
+SGI_OBJECT_INFO_BEGIN(QWidget)
+    QDialog,
 #ifdef WITH_QTOPENGL
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QWidget, LOKI_TYPELIST(QDialog,
-                                                         QOpenGLWidget,
-                                                         QGLWidget));
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QPaintDevice, LOKI_TYPELIST(QGLFramebufferObject, QGLPixelBuffer, QImage, QPicture, QPixmap,
-                                                              QOpenGLPaintDevice, QPagedPaintDevice, QPaintDeviceWindow,
-                                                              QWidget))
-#else
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QWidget, LOKI_TYPELIST(QDialog,
-                                                         QOpenGLWidget
-                                                            ));
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QPaintDevice, LOKI_TYPELIST(QImage, QPicture, QPixmap,
-                                                              QOpenGLPaintDevice, QPagedPaintDevice, QPaintDeviceWindow,
-                                                              QWidget))
+    QGLWidget,
 #endif
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QDialog, LOKI_TYPELIST(QFileDialog, QMessageBox, QInputDialog, QProgressDialog, QColorDialog));
+    QOpenGLWidget
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(QPaintDevice)
+    QImage, QPicture, QPixmap,
+    QOpenGLPaintDevice, QPagedPaintDevice, QPaintDeviceWindow,
+#ifdef WITH_QTOPENGL
+    QGLFramebufferObject, QGLPixelBuffer,
+#endif
+    QWidget
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QMetaObject, sgi::details::type_list<>);
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(QIcon, sgi::details::type_list<>);
+SGI_OBJECT_INFO_BEGIN(QDialog)
+    QFileDialog, QMessageBox, QInputDialog, QProgressDialog, QColorDialog
+SGI_OBJECT_INFO_END()
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(ISceneGraphDialog))
+SGI_OBJECT_INFO_BEGIN(QMetaObject)
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(QIcon)
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osg::Referenced)
+    ISceneGraphDialog
+SGI_OBJECT_INFO_END()
 
 namespace sgi {
 
