@@ -70,7 +70,6 @@ LIST(APPEND TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemBase.h
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIPluginImpl.h
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIPluginInterface.h
-    ${SGI_INCLUDE_DIR}/sgi/plugins/SGIPluginMacros.h
 
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIDataItemBase.h
 

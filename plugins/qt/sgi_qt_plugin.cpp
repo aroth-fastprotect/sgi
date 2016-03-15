@@ -6,7 +6,6 @@
 #include <sgi/plugins/SGIPluginInterface.h>
 #include <sgi/plugins/SGIHostItemQt.h>
 #include <sgi/plugins/GenerateItemImpl>
-#include <sgi/plugins/SGIPluginMacros.h>
 #include <sgi/SGIItemInternal>
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SettingsDialog>

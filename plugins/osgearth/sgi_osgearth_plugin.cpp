@@ -3,7 +3,6 @@
 #include <iostream>
 #include <sgi/plugins/SGIPluginImpl.h>
 #include <sgi/plugins/SGIPluginInterface.h>
-#include <sgi/plugins/SGIPluginMacros.h>
 #include <sgi/plugins/GenerateItemImpl>
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SGIHostItemOsgEarth.h>

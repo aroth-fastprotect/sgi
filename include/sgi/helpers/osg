@@ -34,8 +34,8 @@ namespace osg {
     template<typename VT>
     class BoundingBoxImpl;
 
-    typedef BoundingBoxImpl<Vec3f> BoundingBoxf;
-    typedef BoundingBoxImpl<Vec3d> BoundingBoxd;
+    typedef BoundingBoxImpl<osg::Vec3f> BoundingBoxf;
+    typedef BoundingBoxImpl<osg::Vec3d> BoundingBoxd;
 
 #ifdef OSG_USE_FLOAT_BOUNDINGBOX
     typedef BoundingBoxf BoundingBox;
@@ -46,8 +46,8 @@ namespace osg {
     template<typename VT>
     class BoundingSphereImpl;
 
-    typedef BoundingSphereImpl<Vec3f> BoundingSpheref;
-    typedef BoundingSphereImpl<Vec3d> BoundingSphered;
+    typedef BoundingSphereImpl<osg::Vec3f> BoundingSpheref;
+    typedef BoundingSphereImpl<osg::Vec3d> BoundingSphered;
 
 #ifdef OSG_USE_FLOAT_BOUNDINGSPHERE
     typedef BoundingSpheref BoundingSphere;

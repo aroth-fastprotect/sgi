@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sgi/plugins/SGIPluginMacros.h>
+#include <sgi/plugins/GetObjectInfoImpl>
 #include <sgi/plugins/SGIHostItemLog4cplus.h>
 
 namespace sgi {

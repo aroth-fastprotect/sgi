@@ -3,23 +3,180 @@
 
 #pragma once
 
-#include "SGIPluginInterface.h"
+#include "ObjectTree"
+#include <sgi/details/functionImplBase>
 
+class QTreeWidget;
 class QTreeWidgetItem;
 
 namespace sgi {
 
-class IObjectTreeImpl : public osg::Referenced
+class SGIItemBase;
+class SGIPluginHostInterface;
+class IHostCallback;
+
+template<template<typename> class ImplT>
+class objectTreeBuildImplBaseT : public details::functionImplBase
 {
 public:
-    virtual void    itemSelected(IObjectTreeItem * oldItem, IObjectTreeItem * newItem) = 0;
-    virtual void    itemContextMenu(IObjectTreeItem * item, IContextMenuPtr & contextMenu) = 0;
-    virtual void    itemExpanded(IObjectTreeItem * item) = 0;
-    virtual void    itemCollapsed(IObjectTreeItem * item) = 0;
-    virtual void    itemActivated(IObjectTreeItem * item) = 0;
-    virtual void    itemClicked(IObjectTreeItem * item) = 0;
+    struct TypePolicy {
+        struct CallParamType
+        {
+            CallParamType(SGIPluginHostInterface * hostInterface_, SGIItemBase * item_, IObjectTreeItem * treeItem_)
+                : hostInterface(hostInterface_), item(item_), treeItem(treeItem_) {}
+            SGIPluginHostInterface * hostInterface;
+            SGIItemBase * item;
+            IObjectTreeItem * treeItem;
+        };
+        typedef bool ResultType;
+    };
+
+    objectTreeBuildImplBaseT(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL)
+        : functionImplBase(hostInterface, item) {}
+
+    typedef details::call_by_type_registryT<TypePolicy> Registry;
+    template<typename T>
+    class AutoRegisterTypeT : public details::call_by_type_auto_registerT<objectTreeBuildImplBaseT, T>
+    {
+    };
+
+    typedef typename TypePolicy::CallParamType CallParamType;
+    typedef typename TypePolicy::ResultType ResultType;
+
+    template<typename T>
+    static bool callImpl(const details::TypeWrap<T> & t, const CallParamType & param, ResultType & result)
+    {
+        ImplT<T> f(param.hostInterface, param.item);
+        result = f.build(param.treeItem);
+        return result;
+    }
+
+    static bool call(SGIPluginHostInterface * hostInterface, SGIItemBase * item, IObjectTreeItem * treeItem)
+    {
+        CallParamType param(hostInterface, item, treeItem);
+        bool result;
+        if(!Registry::instance()->call(*item->typeInfo(), param, result))
+            return false;
+        else
+            return result;
+    }
+
+    bool callNextHandler(IObjectTreeItem * treeItem)
+    {
+        bool ret = false;
+        SGIItemBase * itemNext = _item->nextBase();
+        if(itemNext)
+            ret = _hostInterface->objectTreeBuildTree(treeItem, itemNext);
+        return ret;
+    }
 };
-typedef osg::ref_ptr<IObjectTreeImpl> IObjectTreeImplPtr;
+
+#define OBJECT_TREE_BUILD_IMPL_TEMPLATE() \
+    template<typename T> \
+    class objectTreeBuildImpl { \
+    public: \
+        typedef sgi::details::constexpr_false accept; \
+        objectTreeBuildImpl(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL) {} \
+        bool build(IObjectTreeItem * treeItem) { return false; } \
+    }; \
+    typedef objectTreeBuildImplBaseT<objectTreeBuildImpl> objectTreeBuildImplBase;
+
+#define OBJECT_TREE_BUILD_IMPL_DECLARE(__type) \
+    template<> \
+    class objectTreeBuildImpl<__type> : public objectTreeBuildImplBase { \
+    private: \
+        typedef AutoRegisterTypeT<__type> AutoRegisterType; \
+        static AutoRegisterType s_autoregister; \
+    public: \
+        typedef sgi::details::constexpr_true accept; \
+        objectTreeBuildImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL) \
+            : objectTreeBuildImplBase(hostInterface, item) {} \
+        bool build(IObjectTreeItem * treeItem); \
+    };
+
+#define OBJECT_TREE_BUILD_IMPL_REGISTER(__type) \
+    objectTreeBuildImpl<__type>::AutoRegisterType objectTreeBuildImpl<__type>::s_autoregister;
+
+#define OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(__type) \
+    OBJECT_TREE_BUILD_IMPL_DECLARE(__type) \
+    OBJECT_TREE_BUILD_IMPL_REGISTER(__type)
+
+template<template<typename> class ImplT>
+class objectTreeBuildRootImplBaseT : public details::functionImplBase
+{
+public:
+    struct TypePolicy {
+        struct CallParamType
+        {
+            CallParamType(SGIPluginHostInterface * hostInterface_, SGIItemBase * item_, IObjectTreeItem * treeItem_)
+                : hostInterface(hostInterface_), item(item_), treeItem(treeItem_) {}
+            SGIPluginHostInterface * hostInterface;
+            SGIItemBase * item;
+            IObjectTreeItem * treeItem;
+        };
+        typedef bool ResultType;
+    };
+
+    objectTreeBuildRootImplBaseT(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL)
+        : functionImplBase(hostInterface, item) {}
+
+    typedef details::call_by_type_registryT<TypePolicy> Registry;
+    template<typename T>
+    class AutoRegisterTypeT : public details::call_by_type_auto_registerT<objectTreeBuildRootImplBaseT, T>
+    {
+    };
+
+    typedef typename TypePolicy::CallParamType CallParamType;
+    typedef typename TypePolicy::ResultType ResultType;
+
+    template<typename T>
+    static bool callImpl(const details::TypeWrap<T> & t, const CallParamType & param, ResultType & result)
+    {
+        ImplT<T> f(param.hostInterface, param.item);
+        result = f.build(param.treeItem);
+        return result;
+    }
+
+    static bool call(SGIPluginHostInterface * hostInterface, SGIItemBase * item, IObjectTreeItem * treeItem)
+    {
+        CallParamType param(hostInterface, item, treeItem);
+        bool result;
+        if(!Registry::instance()->call(*item->typeInfo(), param, result))
+            return false;
+        else
+            return result;
+    }
+};
+
+#define OBJECT_TREE_BUILD_ROOT_IMPL_TEMPLATE() \
+    template<typename T> \
+    class objectTreeBuildRootImpl { \
+    public: \
+        typedef sgi::details::constexpr_false accept; \
+        objectTreeBuildRootImpl(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL) {} \
+        bool build(IObjectTreeItem * treeItem) { return false; } \
+    }; \
+    typedef objectTreeBuildRootImplBaseT<objectTreeBuildRootImpl> objectTreeBuildRootImplBase;
+
+#define OBJECT_TREE_BUILD_ROOT_IMPL_DECLARE(__type) \
+    template<> \
+    class objectTreeBuildRootImpl<__type> : public objectTreeBuildRootImplBase { \
+    private: \
+        typedef AutoRegisterTypeT<__type> AutoRegisterType; \
+        static AutoRegisterType s_autoregister; \
+    public: \
+        typedef sgi::details::constexpr_true accept; \
+        objectTreeBuildRootImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL) \
+            : objectTreeBuildRootImplBase(hostInterface, item) {} \
+        bool build(IObjectTreeItem * treeItem); \
+    };
+
+#define OBJECT_TREE_BUILD_ROOT_IMPL_REGISTER(__type) \
+    objectTreeBuildRootImpl<__type>::AutoRegisterType objectTreeBuildRootImpl<__type>::s_autoregister;
+
+#define OBJECT_TREE_BUILD_ROOT_IMPL_DECLARE_AND_REGISTER(__type) \
+    OBJECT_TREE_BUILD_ROOT_IMPL_DECLARE(__type) \
+    OBJECT_TREE_BUILD_ROOT_IMPL_REGISTER(__type)
 
 class ObjectTreeItem : public IObjectTreeItem
 {

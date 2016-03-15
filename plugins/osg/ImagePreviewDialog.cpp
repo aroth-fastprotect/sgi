@@ -11,7 +11,6 @@
 #include <osgDB/WriteFile>
 
 #include <sgi/plugins/SGIItemOsg>
-#include <sgi/plugins/SGIPluginMacros.h>
 #include <sgi/helpers/osg>
 #include <sgi/helpers/qt>
 

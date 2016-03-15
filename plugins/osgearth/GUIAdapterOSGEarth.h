@@ -1,6 +1,6 @@
 #pragma once
+#include <sgi/plugins/GuiAdapterImpl>
 
-#include <sgi/plugins/SGIPluginMacros.h>
 namespace osgEarth {
     namespace Util {
         class EarthManipulator;

@@ -1,8 +1,6 @@
 #pragma once
 
-#include <sgi/plugins/SGIPluginMacros.h>
 #include <sgi/plugins/SGIHostItemOsgEarth.h>
-#include <typeinfo>
 
 namespace osgEarth {
 

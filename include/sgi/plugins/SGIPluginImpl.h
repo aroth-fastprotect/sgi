@@ -12,11 +12,15 @@
 
 #include "SGIPluginInterface.h"
 #include "SGIHostItemBase.h"
-#include "SGIPluginMacros.h"
 #include "GenerateItemImpl"
+#include "GetObjectInfoImpl"
+#include "ObjectTreeImpl"
+#include "ContextMenuImpl"
 #include "ActionHandlerImpl"
 #include "SettingsDialogImpl"
 #include "WritePrettyHTMLImpl"
+#include "ObjectLoggerImpl"
+#include "GuiAdapterImpl"
 
 namespace sgi {
 
