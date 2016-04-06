@@ -218,6 +218,7 @@ enum MenuAction {
     MenuActionToolFindView,
     MenuActionToolDistanceToCamera,
     MenuActionToolFindAllStateSets,
+    MenuActionToolFindClosestNodeToCamera,
 };
 
 struct TextureAttributePair {

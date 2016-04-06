@@ -2302,6 +2302,7 @@ bool contextMenuPopulateImpl<sgi::ISceneGraphDialogToolsMenu>::populate(IContext
         menuItem->addSimpleAction(MenuActionToolFindVisibleNodes, "Find visible", _item);
         menuItem->addSimpleAction(MenuActionToolListNodeMasks, "List node masks", _item);
         menuItem->addSimpleAction(MenuActionToolFindPagedLODChilds, "Find PagedLOD childs", _item);
+        menuItem->addSimpleAction(MenuActionToolFindClosestNodeToCamera, "Find closest node", _item);
         menuItem->addSimpleAction(MenuActionToolEffectiveStateSet, "Effective StateSet", _item);
         menuItem->addSimpleAction(MenuActionToolFindCamera, "Find camera", _item);
         menuItem->addSimpleAction(MenuActionToolFindView, "Find view", _item);

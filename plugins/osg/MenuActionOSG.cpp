@@ -258,6 +258,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolEffectiveStateSet)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolFindCamera)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolFindView)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolDistanceToCamera)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolFindClosestNodeToCamera)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewCaptureScreenshot)
 
@@ -3396,6 +3397,143 @@ bool actionHandlerImpl<MenuActionToolDistanceToCamera>::execute()
         }
 
         dialog->setInfoText(os.str());
+    }
+    return true;
+}
+
+class FindClosestNodeVisitor : public osg::NodeVisitor
+{
+public:
+    typedef std::map<osg::Node::NodeMask, osg::NodePathList> NodeMaskUsers;
+
+public:
+    FindClosestNodeVisitor(const osg::Camera * camera, bool onlyLODs, const osg::NodeVisitor::TraversalMode mode= osg::NodeVisitor::TRAVERSE_ACTIVE_CHILDREN)
+        : osg::NodeVisitor(mode) 
+        , _onlyLODs(onlyLODs)
+    {
+        camera->getViewMatrixAsLookAt(_eye, _center, _up);
+    }
+
+    /** Get the eye point in local coordinates.
+    * Note, not all NodeVisitor implement this method, it is mainly cull visitors which will implement.*/
+    osg::Vec3 getEyePoint() const override { return _eye; }
+
+    /** Get the distance from a point to the eye point, distance value in local coordinate system.
+    * Note, not all NodeVisitor implement this method, it is mainly cull visitors which will implement.
+    * If the getDistanceFromEyePoint(pos) is not implemented then a default value of 0.0 is returned.*/
+    virtual float getDistanceToEyePoint(const osg::Vec3& pos, bool /*useLODScale*/) const override
+    {
+        return (pos - _eye).length();
+    }
+
+    /** Get the distance of a point from the eye point, distance value in the eye coordinate system.
+    * Note, not all NodeVisitor implement this method, it is mainly cull visitors which will implement.
+    * If the getDistanceFromEyePoint(pos) is not implemented than a default value of 0.0 is returned.*/
+    virtual float getDistanceFromEyePoint(const osg::Vec3& pos, bool /*useLODScale*/) const override
+    {
+        return (_eye - pos).length();
+    }
+
+    /** Get the distance from a point to the view point, distance value in local coordinate system.
+    * Note, not all NodeVisitor implement this method, it is mainly cull visitors which will implement.
+    * If the getDistanceToViewPoint(pos) is not implemented then a default value of 0.0 is returned.*/
+    virtual float getDistanceToViewPoint(const osg::Vec3& pos, bool /*useLODScale*/) const override
+    {
+        return (_eye - pos).length();
+    }
+
+
+    void clear()
+    {
+        _list.clear();
+    }
+
+    typedef std::pair<float, osg::NodePath> DistancedNodePath;
+    typedef std::list<DistancedNodePath> DistancedNodePathList;
+
+    const DistancedNodePathList & results() const
+    {
+        return _list;
+    }
+
+    static bool sort_by_distance(const DistancedNodePath& first, const DistancedNodePath& second)
+    {
+        return first.first < second.first;
+    }
+
+    const DistancedNodePathList & sorted_results()
+    {
+        _list.sort(sort_by_distance);
+        return _list;
+    }
+
+    void apply(osg::Node& node) override
+    {
+        if (!_onlyLODs)
+        {
+            float distance = getDistanceToViewPoint(node.getBound().center(), true);
+            DistancedNodePath item(distance, getNodePath());
+            _list.push_back(item);
+            traverse(node);
+        }
+    }
+    void apply(osg::PagedLOD& node) override
+    {
+        if (_onlyLODs)
+        {
+            float distance = getDistanceToViewPoint(node.getCenter(), true);
+            DistancedNodePath item(distance, getNodePath());
+            _list.push_back(item);
+            traverse(node);
+        }
+        else
+            osg::NodeVisitor::apply(node);
+    }
+    void apply(osg::LOD& node) override
+    {
+        if (_onlyLODs)
+        {
+            float distance = getDistanceToViewPoint(node.getCenter(), true);
+            DistancedNodePath item(distance, getNodePath());
+            _list.push_back(item);
+            traverse(node);
+        }
+        else
+            osg::NodeVisitor::apply(node);
+    }
+
+private:
+    osg::Vec3d _eye, _center, _up;
+    DistancedNodePathList _list;
+    bool _onlyLODs;
+};
+
+bool actionHandlerImpl<MenuActionToolFindClosestNodeToCamera>::execute()
+{
+    ISceneGraphDialogToolsMenu * toolsMenu = static_cast<ISceneGraphDialogToolsMenu*>(item<SGIItemInternal>()->object());
+    ISceneGraphDialog * dialog = (toolsMenu) ? toolsMenu->getDialog() : NULL;
+    IObjectTreeItem * selectedItem = (dialog) ? dialog->selectedItem() : NULL;
+    SGIItemOsg * item = selectedItem ? dynamic_cast<SGIItemOsg *>(selectedItem->item()) : NULL;
+    osg::Node * object = item ? dynamic_cast<osg::Node*>(item->object()) : NULL;
+    if (object)
+    {
+        osg::Camera * camera = dynamic_cast<osg::Camera*>(object);
+        if (!camera)
+            camera = findFirstParentOfType<osg::Camera>(object);
+        if (camera)
+        {
+            FindClosestNodeVisitor fcnv(camera, true);
+            object->accept(fcnv);
+
+            selectedItem->expand();
+            for (const FindClosestNodeVisitor::DistancedNodePath & nodepath : fcnv.sorted_results())
+            {
+                SGIHostItemOsg item(nodepath.second.back());
+                std::string name;
+                _hostInterface->getObjectDisplayName(name, &item);
+                selectedItem->addChild(helpers::str_plus_number(name, nodepath.first), &item);
+            }
+        }
     }
     return true;
 }
