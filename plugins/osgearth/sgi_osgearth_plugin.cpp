@@ -241,9 +241,10 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::DriverConfigOptions)
     osgEarth::TileSourceOptions,
     osgEarth::CacheOptions,
     osgEarth::ModelSourceOptions,
-                                                                               osgEarth::MaskSourceOptions, osgEarth::TerrainOptions,
-                                                                               osgEarth::Features::FeatureSourceOptions,
-                                                                               osgEarth::Features::ScriptEngineOptions
+    osgEarth::MaskSourceOptions, 
+    osgEarth::TerrainOptions,
+    osgEarth::Features::FeatureSourceOptions,
+    osgEarth::Features::ScriptEngineOptions
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::TileSourceOptions)
