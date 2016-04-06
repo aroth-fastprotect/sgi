@@ -69,6 +69,8 @@ enum MenuAction {
 	MenuActionLevelDBDatabaseWrite,
 
     MenuActionTileKeyAdd,
+
+    MenuActionLODScaleOverrideNodeLODScale,
 };
 
 enum MapDebugImageLayer {

@@ -182,6 +182,8 @@ enum MenuAction {
     MenuActionTextBaseModifyText,
     MenuActionTextBaseDrawMode,
     MenuActionTextBaseAxisAlignment,
+    MenuActionTextBaseSetMaximumWidth,
+    MenuActionTextBaseSetMaximumHeight,
     MenuActionTextBackdropEnableDepthWrites,
     MenuActionTextBackdropImplementation,
     MenuActionTextBackdropType,
@@ -216,6 +218,7 @@ enum MenuAction {
     MenuActionToolFindView,
     MenuActionToolDistanceToCamera,
     MenuActionToolFindAllStateSets,
+    MenuActionToolFindClosestNodeToCamera,
 };
 
 struct TextureAttributePair {

@@ -112,6 +112,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Group)
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::Annotation::AnnotationNode,
 #endif
+	osgEarth::LODScaleOverrideNode,
     osg::Transform
 SGI_OBJECT_INFO_END()
 

@@ -53,6 +53,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TileSource)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TileBlacklist)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::VirtualProgram)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LevelDBDatabase)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LODScaleOverrideNode)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(ElevationQueryReferenced)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(TileKeyReferenced)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
@@ -585,6 +586,26 @@ bool contextMenuPopulateImpl<osgEarth::LevelDBDatabase>::populate(IContextMenuIt
 		break;
 	}
 	return ret;
+}
+
+bool contextMenuPopulateImpl<osgEarth::LODScaleOverrideNode>::populate(IContextMenuItem * menuItem)
+{
+    osgEarth::LODScaleOverrideNode * object = static_cast<osgEarth::LODScaleOverrideNode*>(item<SGIItemOsg>()->object());
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            menuItem->addSimpleAction(MenuActionLODScaleOverrideNodeLODScale, helpers::str_plus_number("LOD scale", object->getLODScale()), _item);
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
 }
 
 bool contextMenuPopulateImpl<osgEarth::Util::SkyNode>::populate(IContextMenuItem * menuItem)

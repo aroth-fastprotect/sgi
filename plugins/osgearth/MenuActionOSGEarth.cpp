@@ -97,6 +97,8 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLevelDBDatabaseWrite)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTileKeyAdd)
 
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLODScaleOverrideNodeLODScale)
+
 using namespace sgi::osg_helpers;
 
 namespace {
@@ -770,6 +772,21 @@ bool actionHandlerImpl<MenuActionTileKeyAdd>::execute()
                 tileInspector->addTileKey(key);
         }
     }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionLODScaleOverrideNodeLODScale>::execute()
+{
+    osgEarth::LODScaleOverrideNode * object = static_cast<osgEarth::LODScaleOverrideNode*>(item<SGIItemOsg>()->object());
+
+    double value = object->getLODScale();
+    bool gotInput = _hostInterface->inputDialogDouble(menuAction()->menu()->parentWidget(), value, "LOD scale", "Set LOD scale", 0.0, 100.0, 1, _item);
+    if (gotInput)
+    {
+        object->setLODScale(value);
+        triggerRepaint();
+    }
+
     return true;
 }
 
