@@ -132,6 +132,7 @@ SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Group, LOKI_TYPELIST(osg::CoordinateSyste
 															osgEarth::MapNode, osgEarth::TerrainDecorator, osgEarth::Util::SkyNode,
                                                             osgEarth::Util::Controls::Control, osgEarth::Util::Controls::ControlCanvas,
                                                             osgEarth::Util::Controls::ControlNodeBin, osg::Transform,
+                                                            osgEarth::LODScaleOverrideNode,
                                                             osgEarth::Annotation::AnnotationNode
                                                            ))
 SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::CoordinateSystemNode, LOKI_TYPELIST(osgEarth::TerrainEngineNode))
