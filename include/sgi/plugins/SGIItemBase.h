@@ -258,32 +258,6 @@ private:
     T* _ptr;
 };
 
-template <class To, class From>
-struct StaticCaster
-{
-    static To* cast(From* obj)
-    {
-        return static_cast<To*>(obj);
-    }
-    static const To* cast(const From* obj)
-    {
-        return static_cast<const To*>(obj);
-    }
-};
-
-template <class To, class From>
-struct DynamicCaster
-{
-    static To* cast(From* obj)
-    {
-        return dynamic_cast<To*>(obj);
-    }
-    static const To* cast(const From* obj)
-    {
-        return dynamic_cast<const To*>(obj);
-    }
-};
-
 struct Color {
     Color(float r_=0.0f, float g_=0.0f, float b_=0.0f, float a_=1.0f)
         : r(r_), g(g_), b(b_), a(a_) {}

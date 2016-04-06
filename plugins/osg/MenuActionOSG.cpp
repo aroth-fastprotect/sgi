@@ -10,6 +10,7 @@
 #include <sgi/plugins/ObjectLoggerDialog>
 #include <sgi/plugins/SettingsDialog>
 #include <sgi/plugins/ImagePreviewDialog>
+#include <sgi/plugins/ObjectTree>
 #include <sgi/SGIItemInternal>
 #include <sgi/helpers/string>
 

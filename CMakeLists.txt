@@ -75,7 +75,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 	OPTION(SGI_PLUGIN_OSGEARTH "Enable osgEarth plugin" ${OSGEARTH_FOUND})
 	OPTION(SGI_PLUGIN_QT "Enable Qt plugin" ON)
 	OPTION(SGI_PLUGIN_LOG4CPLUS "Enable log4cplus plugin" ${LOG4CPLUS_FOUND})
-    OPTION(SGI_UNITTESTS "Enable SGI unitests" OFF)
+    OPTION(SGI_UNITTESTS "Enable SGI unitests" ON)
 
 	SET(SGI_PLUGIN_IMPL_LIBRARY osgSGI-plugin-impl)
 

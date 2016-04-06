@@ -1,0 +1,66 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+namespace sgi {
+
+struct StaticCaster
+{
+    template <class To, class From>
+    static To* cast(From* obj)
+    {
+        return static_cast<To*>(obj);
+    }
+    template <class To, class From>
+    static const To* cast(const From* obj)
+    {
+        return static_cast<const To*>(obj);
+    }
+};
+
+struct DynamicCaster
+{
+    template <class To, class From>
+    static To* cast(From* obj)
+    {
+        return dynamic_cast<To*>(obj);
+    }
+    template <class To, class From>
+    static const To* cast(const From* obj)
+    {
+        return dynamic_cast<const To*>(obj);
+    }
+};
+
+struct ReinterpretCaster
+{
+    template <class To, class From>
+    static To* cast(From* obj)
+    {
+        return reinterpret_cast<To*>(obj);
+    }
+    template <class To, class From>
+    static const To* cast(const From* obj)
+    {
+        return reinterpret_cast<const To*>(obj);
+    }
+};
+
+#ifdef QOBJECT_H
+struct QObjectCaster
+{
+    template <class To, class From>
+    static To* cast(From* obj)
+    {
+        return qobject_cast<To*>(obj);
+    }
+    template <class To, class From>
+    static const To* cast(const From* obj)
+    {
+        return qobject_cast<const To*>(obj);
+    }
+};
+#endif
+
+} // namespace sgi

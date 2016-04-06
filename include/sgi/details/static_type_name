@@ -1,0 +1,41 @@
+// kate: mode C++;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include <string.h>
+
+namespace sgi {
+namespace details {
+
+template<typename TYPENAME_OF>
+class StaticTypeNameImpl
+{
+public:
+    StaticTypeNameImpl()
+    {
+#ifdef _MSC_VER
+        const char * begin = __FUNCTION__;
+        const size_t len = strlen(begin);
+#else
+        const char * begin = strstr(__PRETTY_FUNCTION__, "TYPENAME_OF = ");
+        begin += 14;
+        const size_t len = strlen(begin) - 1;
+#endif
+        name.assign(begin, len);
+    }
+    std::string name;
+};
+
+template<typename T>
+struct StaticTypeName
+{
+    static const std::string & name()
+    {
+        static std::string name_of_this_type(StaticTypeNameImpl<T>().name);
+        return name_of_this_type;
+    }
+};
+
+} // namespace details
+} // namespace sgi

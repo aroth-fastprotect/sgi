@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sgi/plugins/SGIPluginMacros.h>
+#include <sgi/plugins/GetObjectInfoImpl>
 
 namespace sgi {
 namespace qt_plugin {

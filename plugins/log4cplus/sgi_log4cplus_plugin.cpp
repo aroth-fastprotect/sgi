@@ -8,7 +8,7 @@
 #include <sgi/plugins/SGIPluginInterface.h>
 #include <sgi/plugins/SGIHostItemLog4cplus.h>
 #include <sgi/plugins/SGIHostItemOsg.h>
-#include <sgi/plugins/SGIPluginMacros.h>
+#include <sgi/plugins/GenerateItemImpl>
 #include <sgi/SGIItemInternal>
 
 #include "SGIItemLog4cplus"
@@ -18,6 +18,18 @@
 #include "ContextMenuLog4cplus.h"
 #include "MenuActionLog4cplus.h"
 
+using namespace sgi::log4cplus_plugin;
+
+SGI_OBJECT_INFO_BEGIN(Log4cplusObjectBase)
+    Log4cplusObjectLogger, Log4cplusObjectHierarchy, Log4cplusObjectAppender, Log4cplusObjectLayout
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(Log4cplusObjectLayout)
+    Log4cplusObjectSimpleLayout, Log4cplusObjectPatternLayout
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::Referenced)
+    ISceneGraphDialog
+SGI_OBJECT_INFO_END()
+
 namespace sgi {
 
 namespace log4cplus_plugin {
@@ -25,16 +37,10 @@ namespace log4cplus_plugin {
 GENERATE_IMPL_TEMPLATE()
 GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
 
-SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
+typedef generateItemImplT<generateItemAcceptImpl, SGIItemLog4cplus, SGIItemInternal > generateItemImpl;
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(Log4cplusObjectBase, LOKI_TYPELIST(Log4cplusObjectLogger, Log4cplusObjectHierarchy, Log4cplusObjectAppender, Log4cplusObjectLayout))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(Log4cplusObjectLayout, LOKI_TYPELIST(Log4cplusObjectSimpleLayout, Log4cplusObjectPatternLayout))
 
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced, LOKI_TYPELIST(ISceneGraphDialog))
-
-typedef SGIPluginImplementationT< LOKI_TYPELIST(SGIItemLog4cplus, SGIItemInternal),
-                                        call_function_for_object_type,
-                                        generateItemImpl,
+typedef SGIPluginImplementationT< generateItemImpl,
                                         writePrettyHTMLImpl,
                                         getObjectNameImpl,
                                         getObjectNameImpl,
@@ -50,20 +56,20 @@ typedef SGIPluginImplementationT< LOKI_TYPELIST(SGIItemLog4cplus, SGIItemInterna
                                         contextMenuPopulateImpl,
                                         actionHandlerImpl
                                         >
-    SGIPlugin_log4cplus_Implementation_base;
+    SGIPluginImpl;
 
 } // namespace log4cplus_plugin
 
-class SGIPlugin_log4cplus_Implementation : public log4cplus_plugin::SGIPlugin_log4cplus_Implementation_base
+class SGIPlugin_log4cplus_Implementation : public log4cplus_plugin::SGIPluginImpl
 {
 public:
     SGIPlugin_log4cplus_Implementation(SGIPluginHostInterface * hostInterface=NULL)
-        : log4cplus_plugin::SGIPlugin_log4cplus_Implementation_base(hostInterface)
+        : log4cplus_plugin::SGIPluginImpl(hostInterface)
     {
         SGIITEMTYPE_NAME(SGIItemTypeAppenders);
     }
     SGIPlugin_log4cplus_Implementation(const SGIPlugin_log4cplus_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : log4cplus_plugin::SGIPlugin_log4cplus_Implementation_base(rhs, copyop)
+        : log4cplus_plugin::SGIPluginImpl(rhs, copyop)
     {
     }
 

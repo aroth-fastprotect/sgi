@@ -1,0 +1,95 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include "SGIItemBase.h"
+#include "SGIPluginInterface.h"
+#include <typeindex>
+#include <unordered_map>
+#include <string.h>
+
+#include <sgi/details/caster>
+#include <sgi/details/functionImplBase>
+
+namespace sgi {
+
+class SGIItemBase;
+class SGIPluginHostInterface;
+class IHostCallback;
+
+template<template<typename> class ImplT>
+class getOrCreateObjectLoggerImplBaseT : public details::functionImplBase
+{
+public:
+    struct TypePolicy {
+        struct CallParamType
+        {
+            CallParamType(SGIPluginHostInterface * hostInterface_, const SGIItemBase * item_, bool createIfNotExists_)
+                : hostInterface(hostInterface_), item(item_), createIfNotExists(createIfNotExists_) {}
+            SGIPluginHostInterface * hostInterface;
+            const SGIItemBase * item;
+            bool createIfNotExists;
+        };
+        typedef IObjectLoggerPtr & ResultType;
+    };
+
+    getOrCreateObjectLoggerImplBaseT(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool createIfNotExists=false)
+        : functionImplBase(hostInterface, item), _createIfNotExists(createIfNotExists) {}
+
+    typedef details::call_by_type_registryT<TypePolicy> Registry;
+    template<typename T>
+    class AutoRegisterTypeT : public details::call_by_type_auto_registerT<getOrCreateObjectLoggerImplBaseT, T>
+    {
+    };
+
+    typedef typename TypePolicy::CallParamType CallParamType;
+    typedef typename TypePolicy::ResultType ResultType;
+
+    template<typename T>
+    static bool callImpl(const details::TypeWrap<T> & t, const CallParamType & param, ResultType & result)
+    {
+        ImplT<T> f(param.hostInterface, param.item, param.createIfNotExists);
+        return f.execute(result);
+    }
+
+    static bool call(SGIPluginHostInterface * hostInterface, const SGIItemBase * item, IObjectLoggerPtr & result, bool createIfNotExists)
+    {
+        CallParamType param(hostInterface, item, createIfNotExists);
+        return Registry::instance()->call(*item->typeInfo(), param, result);
+    }
+protected:
+    bool _createIfNotExists;
+};
+
+#define GET_OR_CREATE_OBJECTLOGGER_IMPL_TEMPLATE() \
+    template<typename T> \
+    class getOrCreateObjectLoggerImpl { \
+    public: \
+        typedef sgi::details::constexpr_false accept; \
+        getOrCreateObjectLoggerImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool createIfNotExists=false) {} \
+        bool execute(IObjectLoggerPtr & result) { return false; } \
+    }; \
+    typedef getOrCreateObjectLoggerImplBaseT<getOrCreateObjectLoggerImpl> getOrCreateObjectLoggerImplBase;
+
+#define GET_OR_CREATE_OBJECTLOGGER_IMPL_DECLARE(__type) \
+    template<> \
+    class getOrCreateObjectLoggerImpl<__type> : public getOrCreateObjectLoggerImplBase { \
+    private: \
+        typedef AutoRegisterTypeT<__type> AutoRegisterType; \
+        static AutoRegisterType s_autoregister; \
+    public: \
+        typedef sgi::details::constexpr_true accept; \
+        getOrCreateObjectLoggerImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool createIfNotExists=false) \
+            : getOrCreateObjectLoggerImplBase(hostInterface, item, createIfNotExists) {} \
+        bool execute(IObjectLoggerPtr & result); \
+    };
+
+#define GET_OR_CREATE_OBJECTLOGGER_IMPL_REGISTER(__type) \
+    getOrCreateObjectLoggerImpl<__type>::AutoRegisterType getOrCreateObjectLoggerImpl<__type>::s_autoregister;
+
+#define GET_OR_CREATE_OBJECTLOGGER_IMPL_DECLARE_AND_REGISTER(__type) \
+    GET_OR_CREATE_OBJECTLOGGER_IMPL_DECLARE(__type) \
+    GET_OR_CREATE_OBJECTLOGGER_IMPL_REGISTER(__type) \
+
+} // namespace sgi

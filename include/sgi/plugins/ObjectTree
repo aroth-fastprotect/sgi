@@ -1,0 +1,49 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include "SGIPluginInterface.h"
+
+class QTreeWidgetItem;
+
+namespace sgi {
+
+class IObjectTreeItem : public osg::Referenced
+{
+public:
+    virtual IObjectTreeItem * root() = 0;
+    virtual IObjectTreeItem * parent() = 0;
+    virtual void clear() = 0;
+    virtual IObjectTreeItem * addChild(const std::string & name, SGIItemBase * item) = 0;
+    virtual IObjectTreeItem * addChild(const std::string & name, const SGIHostItemBase * item) = 0;
+    virtual IObjectTreeItem * findChild(const std::string & name) = 0;
+    virtual IObjectTreeItem * addChildIfNotExists(const std::string & name, SGIItemBase * item) = 0;
+    virtual IObjectTreeItem * addChildIfNotExists(const std::string & name, const SGIHostItemBase * hostitem) = 0;
+    virtual void setSelected(bool select) = 0;
+    virtual bool isSelected() const = 0;
+    virtual SGIItemBase * item() = 0;
+    virtual void expand() = 0;
+    virtual void collapse() = 0;
+    virtual void children(IObjectTreeItemPtrList & children) = 0;
+    virtual void reload() = 0;
+    virtual IObjectTreeItem * selectedItem() = 0;
+    virtual void setName(const std::string & name) = 0;
+    virtual void updateName() = 0;
+};
+typedef osg::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
+
+class IObjectTreeImpl : public osg::Referenced
+{
+public:
+    virtual void    itemSelected(IObjectTreeItem * oldItem, IObjectTreeItem * newItem) = 0;
+    virtual void    itemContextMenu(IObjectTreeItem * item, IContextMenuPtr & contextMenu) = 0;
+    virtual void    itemExpanded(IObjectTreeItem * item) = 0;
+    virtual void    itemCollapsed(IObjectTreeItem * item) = 0;
+    virtual void    itemActivated(IObjectTreeItem * item) = 0;
+    virtual void    itemClicked(IObjectTreeItem * item) = 0;
+};
+typedef osg::ref_ptr<IObjectTreeImpl> IObjectTreeImplPtr;
+
+
+} // namespace sgi

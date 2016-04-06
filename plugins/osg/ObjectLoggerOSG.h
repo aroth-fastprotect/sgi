@@ -1,8 +1,8 @@
 #pragma once
 
-#include <sgi/plugins/SGIPluginMacros.h>
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/ObjectLoggerBase>
+#include <sgi/plugins/ObjectLoggerImpl>
 
 // can be removed when done
 #include <osg/NodeVisitor>

@@ -1,8 +1,6 @@
 #pragma once
 
-#include <sgi/plugins/SGIPluginMacros.h>
-#include <typeinfo>
-#include <sgi/plugins/SGIHostItemOsg.h>
+#include <sgi/plugins/WritePrettyHTMLImpl>
 
 namespace osg {
     class NodeCallback;

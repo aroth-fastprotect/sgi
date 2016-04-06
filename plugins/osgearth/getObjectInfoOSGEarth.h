@@ -1,7 +1,7 @@
 #pragma once
 
-#include <sgi/plugins/SGIPluginMacros.h>
 #include <sgi/plugins/SGIHostItemOsg.h>
+#include <sgi/plugins/GetObjectInfoImpl>
 
 namespace osgEarth {
     class Map;

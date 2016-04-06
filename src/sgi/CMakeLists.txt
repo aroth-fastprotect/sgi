@@ -51,6 +51,9 @@ LIST(APPEND TARGET_H
 	${SGI_INCLUDE_DIR}/sgi/helpers/qt_widgets
 	${SGI_INCLUDE_DIR}/sgi/helpers/osg
 
+	${SGI_INCLUDE_DIR}/sgi/details/type_list
+	${SGI_INCLUDE_DIR}/sgi/details/functionImplBase
+
     ${SGI_INCLUDE_DIR}/sgi/plugins/fallback_support.h
     ${SGI_INCLUDE_DIR}/sgi/plugins/log4cplus_support.h
     ${SGI_INCLUDE_DIR}/sgi/plugins/osg_support.h
@@ -67,7 +70,6 @@ LIST(APPEND TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemBase.h
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIPluginImpl.h
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIPluginInterface.h
-    ${SGI_INCLUDE_DIR}/sgi/plugins/SGIPluginMacros.h
 
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIDataItemBase.h
 
@@ -78,6 +80,10 @@ LIST(APPEND TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/plugins/SceneGraphDialog
     ${SGI_INCLUDE_DIR}/sgi/plugins/ObjectLoggerDialog
     ${SGI_INCLUDE_DIR}/sgi/plugins/ImagePreviewDialog
+
+    ${SGI_INCLUDE_DIR}/sgi/plugins/SettingsDialogImpl
+    ${SGI_INCLUDE_DIR}/sgi/plugins/SGISettingsDialogImpl
+    ${SGI_INCLUDE_DIR}/sgi/plugins/WritePrettyHTMLImpl
 
 	)
 

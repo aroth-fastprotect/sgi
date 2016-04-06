@@ -1,5 +1,6 @@
 #pragma once
-#include <sgi/plugins/SGIPluginMacros.h>
+
+#include <sgi/plugins/ObjectTreeImpl>
 
 namespace sgi {
 namespace qt_plugin {

@@ -9,9 +9,9 @@
 namespace sgi {
 namespace osg_plugin {
 
-GUI_ADAPTER_SET_VIEW_IMPL_REGISTER(osg::Camera)
-GUI_ADAPTER_SET_VIEW_IMPL_REGISTER(osg::View)
-GUI_ADAPTER_SET_VIEW_IMPL_REGISTER(osgGA::CameraManipulator)
+GUI_ADAPTER_SET_VIEW_IMPL_DECLARE_AND_REGISTER(osg::Camera)
+GUI_ADAPTER_SET_VIEW_IMPL_DECLARE_AND_REGISTER(osg::View)
+GUI_ADAPTER_SET_VIEW_IMPL_DECLARE_AND_REGISTER(osgGA::CameraManipulator)
 
 namespace {
     /// @brief Given a valid node placed in a scene under a transform, return the

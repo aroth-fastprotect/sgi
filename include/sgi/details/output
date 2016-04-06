@@ -1,0 +1,55 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include <typeinfo>
+
+namespace sgi {
+namespace details {
+
+/// @class objectTypeTraverseOutput
+/// @brief helper class to be used as functor for @a call_function_for_object_type and outputs
+///        the progress of @a call_function_for_object_type
+class objectTypeTraverseOutput
+{
+public:
+    objectTypeTraverseOutput(std::ostream & os)
+        : _level(0), _os(os)
+    {
+    }
+    template<typename T>
+    void ascend(T * object)
+    {
+        _level--;
+        _os << "ascend level=" << _level << " for " << (void*)object << " " << typeid(T).name() << std::endl;
+    }
+    template<typename T>
+    void decend(T * object)
+    {
+        _level++;
+        _os << "decend level=" << _level << " for " << (void*)object << " " << typeid(T).name() << std::endl;
+    }
+    template<typename T>
+    void accept(T * object)
+    {
+        _os << "accept level=" << _level << " for " << (void*)object << " " << typeid(T).name() << std::endl;
+    }
+    template<typename T>
+    bool canAccept(T * object)
+    {
+        return true;
+    }
+    bool wasAccepted() const
+    {
+        return false;
+    }
+
+private:
+    unsigned    _level;
+    std::ostream & _os;
+};
+
+
+} // namespace details
+} // namespace sgi

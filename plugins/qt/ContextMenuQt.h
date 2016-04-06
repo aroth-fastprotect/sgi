@@ -1,6 +1,5 @@
 #pragma once
-
-#include <sgi/plugins/SGIPluginMacros.h>
+#include <sgi/plugins/ContextMenuImpl>
 
 namespace sgi {
 namespace qt_plugin {

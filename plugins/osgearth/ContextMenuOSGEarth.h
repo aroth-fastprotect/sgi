@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sgi/plugins/SGIPluginMacros.h>
+#include <sgi/plugins/ContextMenuImpl>
 #include <sgi/plugins/SGIHostItemOsg.h>
 
 #include <osgEarth/Viewpoint>

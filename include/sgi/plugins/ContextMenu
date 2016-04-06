@@ -25,5 +25,34 @@ public:
 };
 typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
 
+class IContextMenuItem : public osg::Referenced
+{
+public:
+    virtual bool addSimpleAction(unsigned actionId, const std::string & name, const SGIHostItemBase * item, osg::Referenced * userData=NULL) = 0;
+    virtual bool addSimpleAction(unsigned actionId, const std::string & name, SGIItemBase * item, osg::Referenced * userData=NULL) = 0;
+    virtual bool addBoolAction(unsigned actionId, const std::string & name, SGIItemBase * item, bool state, osg::Referenced * userData=NULL) = 0;
+    virtual bool addModeAction(const std::string & name, int mode, osg::Referenced * userData=NULL) = 0;
+    virtual IContextMenuItem * addMenu(const std::string & name, SGIItemBase * item, osg::Referenced * userData=NULL) = 0;
+    virtual IContextMenuItem * addMenu(const std::string & name, const SGIHostItemBase * item, osg::Referenced * userData=NULL) = 0;
+    virtual IContextMenuItem * addModeMenu(unsigned actionId, const std::string & name, SGIItemBase * item, int currentMode, osg::Referenced * userData=NULL) = 0;
+    virtual IContextMenuItem * getOrCreateMenu(const std::string & name, osg::Referenced * userData=NULL) = 0;
+    virtual void addSeparator() = 0;
+};
+typedef osg::ref_ptr<IContextMenuItem> IContextMenuItemPtr;
+
+class IContextMenuAction : public osg::Referenced
+{
+public:
+    virtual unsigned actionId() = 0;
+    virtual IContextMenu * menu() = 0;
+    virtual SGIItemBase * item() = 0;
+    virtual unsigned mode() = 0;
+    virtual bool state() = 0;
+    virtual osg::Referenced * userData() = 0;
+    virtual const osg::Referenced * userData() const = 0;
+    virtual osg::Referenced * modeUserData() = 0;
+    virtual const osg::Referenced * modeUserData() const = 0;
+};
+typedef osg::ref_ptr<IContextMenuAction> IContextMenuActionPtr;
 
 } // namespace sgi

@@ -5,6 +5,7 @@ ENDIF()
 SET(TARGET_SRC
     SGIItemBase.cpp
     ObjectTreeImpl.cpp
+    functionImplBase.cpp
     osg_helpers.cpp
     qt_helpers.cpp
     widget_helpers.cpp

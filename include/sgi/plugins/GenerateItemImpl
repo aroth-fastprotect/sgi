@@ -1,0 +1,126 @@
+// kate: mode C++;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+#include <sgi/details/call_function_for_object_type>
+
+#ifdef SGI_DEBUG_GENERATESGIITEM
+#define generateSGIItemT_debug(...) std::cout << __VA_ARGS__ << std::endl
+#else
+#define generateSGIItemT_debug(...) (void(0))
+#endif
+
+namespace sgi {
+
+// forward declaration
+template<template<typename> class generateItemAcceptImplTemplate, typename ...ITEM_TYPE>
+struct generateItemImplT;
+
+namespace details {
+
+template<typename SGIItemClassT, template<typename> class generateSGIItemImplTemplate>
+class generateSGIItemT
+{
+public:
+    typedef SGIItemClassT SGIItemClass;
+    typedef typename SGIItemClassT::ObjectStorageType ObjectStorageType;
+    typedef typename SGIItemClassT::HostItemType HostItemType;
+    generateSGIItemT(const HostItemType * hostItem)
+        : _hostItem(hostItem), _level(0), _itemChain(NULL)
+    {
+    }
+    template<typename T>
+    void ascend(T * object)
+    {
+        _level--;
+        generateSGIItemT_debug("ascend " << typeid(T).name() << " level=" << _level << " " << (void*)object);
+    }
+    template<typename T>
+    void decend(T * object)
+    {
+        _level++;
+        generateSGIItemT_debug("decend " << typeid(T).name() << " level=" << _level << " " << (void*)object);
+    }
+    template<typename T>
+    void accept(T * object)
+    {
+        generateSGIItemT_debug("accept " << typeid(T).name() << " level=" << _level << " " << (void*)object);
+        SGIItemType itemType = generateSGIItemImplTemplate<T>::ItemType::value;
+        SGIItemClass * newItem = new SGIItemClass(_hostItem, itemType, object, 0, _level, _hostItem->userDataPtr());
+        newItem->setTypeInfo(typeid(T));
+        if(_itemChain.valid())
+            _itemChain->insertBefore(newItem);
+        _itemChain = newItem;
+    }
+    template<typename T>
+    bool canAccept(T * object)
+    {
+        generateSGIItemT_debug("canAccept " << typeid(T).name() << " level=" << _level << " " << (void*)object << " ret=" << generateSGIItemImplTemplate<T>::accept::value);
+        return generateSGIItemImplTemplate<T>::accept::value;
+    }
+    bool wasAccepted() const
+    {
+        return _itemChain.valid();
+    }
+    SGIItemClass * getItem()
+    {
+        return (SGIItemClass *)_itemChain.get();
+    }
+
+private:
+    const HostItemType * _hostItem;
+    unsigned    _level;
+    SGIItemBasePtr _itemChain;
+};
+
+template<typename ITEM_TYPE, template<typename> class generateItemAcceptImplTemplate>
+struct generateSGIItem_BaseT
+{
+    typedef typename ITEM_TYPE::HostItemType HostItemType;
+    typedef typename HostItemType::ObjectType ObjectType;
+    static bool generate(const HostItemType * hostItem, SGIItemBasePtr & item)
+    {
+        typedef generateSGIItemT<ITEM_TYPE, generateItemAcceptImplTemplate> generateSGIItemFunctor;
+        generateSGIItemFunctor func(hostItem);
+        call_function_for_object_type<ObjectType>(hostItem->object(), func);
+        bool ret = func.wasAccepted();
+        if(ret)
+            item = func.getItem();
+        return ret;
+    }
+};
+
+} // namespace details
+
+template<template<typename> class generateItemAcceptImplTemplate, typename ...ITEM_TYPE>
+struct generateItemImplT
+{
+    typedef details::type_list<ITEM_TYPE...> item_types;
+    struct call_proxy
+    {
+        const SGIHostItemBase * _hostItem;
+        SGIItemBasePtr & _item;
+        bool _ret;
+        call_proxy(const SGIHostItemBase * hostItem, SGIItemBasePtr & item)
+            : _hostItem(hostItem), _item(item), _ret(false) {}
+
+        template<typename SINGLE_ITEM_TYPE>
+        bool operator()()
+        {
+            typedef typename SINGLE_ITEM_TYPE::HostItemType HostItemType;
+            const HostItemType* targetHostItem = dynamic_cast<const HostItemType*>(_hostItem);
+            if(targetHostItem)
+                _ret = details::generateSGIItem_BaseT<SINGLE_ITEM_TYPE, generateItemAcceptImplTemplate>::generate(targetHostItem, _item);
+            // continue with the search until we found a matching HostItemType
+            return (targetHostItem == NULL);
+        }
+    };
+    static bool generate(const SGIHostItemBase * object, SGIItemBasePtr & item)
+    {
+        call_proxy func(object, item);
+        details::for_each_type<item_types>(func);
+        return func._ret;
+    }
+};
+
+} // namespace sgi
