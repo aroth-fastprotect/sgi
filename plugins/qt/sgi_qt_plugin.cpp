@@ -45,8 +45,6 @@
 #include "MenuActionQt.h"
 #include "SettingsDialogQt.h"
 
-using namespace sgi::qt_plugin;
-
 SGI_OBJECT_INFO_BEGIN(QObject)
     QWindow, QWidget, QThread,
     QCoreApplication,

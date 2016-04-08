@@ -30,13 +30,15 @@ namespace object_info {
 }
 
 #define SGI_OBJECT_INFO_BEGIN(__type) \
-    template<> struct ::sgi::object_info::object_type_info<__type> : sgi::details::object_type_info_impl_with_caster<__type, sgi::DynamicCaster, \
-        ::sgi::details::type_list<
+    namespace sgi { namespace object_info { \
+    template<> struct object_type_info<__type> : sgi::details::object_type_info_impl_with_caster<__type, sgi::DynamicCaster, \
+        sgi::details::type_list<
 #define SGI_OBJECT_INFO_BEGIN_EX(__type, __caster) \
-    template<> struct ::sgi::object_info::object_type_info<__type> : sgi::details::object_type_info_impl_with_caster<__type, __caster, \
-        ::sgi::details::type_list<
+    namespace sgi { namespace object_info { \
+    template<> struct object_type_info<__type> : sgi::details::object_type_info_impl_with_caster<__type, __caster, \
+        sgi::details::type_list<
 
 #define SGI_OBJECT_INFO_END() \
-    > > {};
+    > > {}; } }
 
 } // namespace sgi
