@@ -1,5 +1,9 @@
 include_directories(${LOG4CPLUS_INCLUDE_DIR})
 
+if(CMAKE_COMPILER_IS_GNUCXX)
+    add_compile_options(-Wno-deprecated-declarations)
+endif()
+
 SET(TARGET_SRC
     stdafx.cpp
     sgi_log4cplus_plugin.cpp
