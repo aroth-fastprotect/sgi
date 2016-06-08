@@ -30,6 +30,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionWidgetSetAcceptDrops)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionWidgetSetAutoFillBackground)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionWidgetHighlight)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectMethodInvoke)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectModifyProperty)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionImagePreview)
 
 using namespace sgi::qt_helpers;
@@ -213,6 +214,132 @@ bool actionHandlerImpl<MenuActionObjectMethodInvoke>::execute()
     method.invoke(object);
     return true;
 }
+
+bool actionHandlerImpl<MenuActionObjectModifyProperty>::execute()
+{
+    QObject* object = getObject<QObject, SGIItemQt>();
+    ReferencedDataString * userData = static_cast<ReferencedDataString *>(menuAction()->userData());
+    const std::string & propertyName = userData->data();
+    QVariant propertyValue = object->property(propertyName.c_str());
+
+    switch(propertyValue.type())
+    {
+    case QVariant::Color:
+        {
+            QColor qcolor = propertyValue.value<QColor>();
+            sgi::Color color = qtColor(qcolor);
+            bool gotInput = _hostInterface->inputDialogColor(menuAction()->menu()->parentWidget(),
+                color, propertyName, "Set property " + propertyName,
+                _item);
+            if(gotInput)
+            {
+                qcolor = qtColor(color);
+                propertyValue = QVariant::fromValue(qcolor);
+                object->setProperty(propertyName.c_str(), propertyValue);
+            }
+        }
+        break;
+    case QVariant::Bool:
+        {
+            bool propertyValueBool = propertyValue.value<bool>();
+            std::string propertyValueString = propertyValueBool ? "true" : "false";
+            bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(),
+                propertyValueString, propertyName, "Set property " + propertyName,
+                SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+            if (gotInput)
+            {
+                if (propertyValueString == "true" || propertyValueString == "on" || propertyValueString == "yes" || propertyValueString == "1")
+                    propertyValueBool = true;
+                else if (propertyValueString == "false" || propertyValueString == "off" || propertyValueString == "no" || propertyValueString == "0")
+                    propertyValueBool = false;
+                propertyValue = QVariant::fromValue(propertyValueBool);
+                object->setProperty(propertyName.c_str(), propertyValue);
+            }
+        }
+        break;
+    case QVariant::Int:
+        {
+            int propertyValueInt = propertyValue.value<int>();
+            bool gotInput = _hostInterface->inputDialogInteger(menuAction()->menu()->parentWidget(),
+                propertyValueInt, propertyName, "Set property " + propertyName, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), 1, _item);
+            if (gotInput)
+            {
+                propertyValue = QVariant::fromValue(propertyValueInt);
+                object->setProperty(propertyName.c_str(), propertyValue);
+            }
+        }
+        break;
+    case QVariant::UInt:
+        {
+            uint propertyValueInt = propertyValue.value<uint>();
+            bool gotInput = _hostInterface->inputDialogInteger(menuAction()->menu()->parentWidget(),
+                (int&)propertyValueInt, propertyName, "Set property " + propertyName, std::numeric_limits<uint>::min(), std::numeric_limits<uint>::max(), 1, _item);
+            if (gotInput)
+            {
+                propertyValue = QVariant::fromValue(propertyValueInt);
+                object->setProperty(propertyName.c_str(), propertyValue);
+            }
+        }
+        break;
+    case QVariant::LongLong:
+        {
+            qlonglong propertyValueInt = propertyValue.value<qlonglong>();
+            bool gotInput = _hostInterface->inputDialogInteger(menuAction()->menu()->parentWidget(),
+                (int&)propertyValueInt, propertyName, "Set property " + propertyName, std::numeric_limits<qlonglong>::min(), std::numeric_limits<qlonglong>::max(), 1, _item);
+            if (gotInput)
+            {
+                propertyValue = QVariant::fromValue(propertyValueInt);
+                object->setProperty(propertyName.c_str(), propertyValue);
+            }
+        }
+        break;
+    case QVariant::ULongLong:
+        {
+            qulonglong propertyValueInt = propertyValue.value<qulonglong>();
+            bool gotInput = _hostInterface->inputDialogInteger(menuAction()->menu()->parentWidget(),
+                (int&)propertyValueInt, propertyName, "Set property " + propertyName, std::numeric_limits<qulonglong>::min(), std::numeric_limits<qulonglong>::max(), 1, _item);
+            if (gotInput)
+            {
+                propertyValue = QVariant::fromValue(propertyValueInt);
+                object->setProperty(propertyName.c_str(), propertyValue);
+            }
+        }
+        break;
+    case QVariant::String:
+        {
+            std::string propertyValueString = propertyValue.toString().toStdString();
+
+            bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(),
+                                                            propertyValueString, propertyName, "Set property " + propertyName,
+                                                            SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+            if(gotInput)
+            {
+                propertyValue.setValue(fromLocal8Bit(propertyValueString));
+                object->setProperty(propertyName.c_str(), propertyValue);
+            }
+        }
+        break;
+    default:
+        {
+            std::stringstream ss;
+            ss << propertyValue;
+            std::string propertyValueString = ss.str();
+
+            bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(),
+                                                            propertyValueString, propertyName, "Set property " + propertyName,
+                                                            SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+            if(gotInput)
+            {
+                propertyValue.setValue(fromLocal8Bit(propertyValueString));
+                object->setProperty(propertyName.c_str(), propertyValue);
+            }
+        }
+        break;
+    }
+    return true;
+}
+
+
 
 namespace {
 	const sgi::Image * convertImage(QImage * image)

@@ -25,6 +25,7 @@ enum SGIItemType_qt
     SGIItemTypeSurfaceFormat,
     SGIItemTypeContext,
     SGIItemTypeContextExtensions,
+    SGIItemTypeProperties,
 };
 
 class SGIItemQt : public SGIItemBase

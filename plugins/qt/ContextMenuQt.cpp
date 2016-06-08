@@ -39,6 +39,8 @@ bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
             if(metaObject.hasObject())
                 menuItem->addMenu("Meta object", &metaObject); 
 
+            menuItem->addMenu("Properties", cloneItem<SGIItemQt>(SGIItemTypeProperties));
+
             SGIHostItemQt parent(object->parent());
             if(parent.hasObject())
                 menuItem->addMenu("Parent", &parent);
@@ -58,6 +60,31 @@ bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
                 SGIHostItemQt childItem(*it);
                 menuItem->addMenu(std::string(), &childItem);
             }
+            ret = true;
+        }
+        break;
+    case SGIItemTypeProperties:
+        {
+
+            const QMetaObject * metaObject = object->metaObject();
+            while (metaObject)
+            {
+                int propertyOffset = metaObject->propertyOffset();
+                int propertyCount = metaObject->propertyCount();
+                for (int i = propertyOffset; i < propertyCount; ++i)
+                {
+                    QMetaProperty metaproperty = metaObject->property(i);
+                    const char *name = metaproperty.name();
+                    const char *typeName = metaproperty.typeName();
+                    QVariant value = object->property(name);
+
+                    std::stringstream ss;
+                    ss << metaObject->className() << "::" << name << "=" << value;
+                    menuItem->addSimpleAction(MenuActionObjectModifyProperty, ss.str(), _item, new ReferencedDataString(name));
+                }
+                metaObject = metaObject->superClass();
+            }
+
             ret = true;
         }
         break;

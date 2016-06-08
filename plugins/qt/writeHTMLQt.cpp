@@ -178,6 +178,32 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
             ret = true;
         }
         break;
+    case SGIItemTypeProperties:
+        {
+            os << "<table border=\'1\' align=\'left\'><tr><th>Property</th><th>Value</th></tr>" << std::endl;
+
+            const QMetaObject * metaObject = object->metaObject();
+            while (metaObject)
+            {
+                int propertyOffset = metaObject->propertyOffset();
+                int propertyCount = metaObject->propertyCount();
+                for (int i = propertyOffset; i < propertyCount; ++i)
+                {
+                    QMetaProperty metaproperty = metaObject->property(i);
+                    const char *name = metaproperty.name();
+                    const char *typeName = metaproperty.typeName();
+                    QVariant value = object->property(name);
+
+                    os << "<tr><td>" << metaObject->className() << "::" << name << "(" << typeName << ")</td><td>" << value << "</td></tr>" << std::endl;
+                }
+                metaObject = metaObject->superClass();
+            }
+
+            os << "</table>" << std::endl;
+
+            ret = true;
+        }
+        break;
     case SGIItemTypeMethods:
         {
             if (_item->number() == ~0u)

@@ -16,7 +16,8 @@ enum MenuAction {
     MenuActionWidgetSetAutoFillBackground,
     MenuActionWidgetHighlight,
     MenuActionObjectMethodInvoke,
-    MenuActionImagePreview
+    MenuActionObjectModifyProperty,
+    MenuActionImagePreview,
 };
 
 ACTION_HANDLER_IMPL_TEMPLATE()
