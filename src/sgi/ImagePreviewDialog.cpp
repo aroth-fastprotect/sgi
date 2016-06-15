@@ -660,6 +660,13 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, QImage::Forma
     case QImage::Format_RGB888: os << "RGB888"; break;
     case QImage::Format_RGB444: os << "RGB444"; break;
     case QImage::Format_ARGB4444_Premultiplied: os << "ARGB4444_Premultiplied"; break;
+    case QImage::Format_RGBX8888: os << "RGBX8888"; break;
+    case QImage::Format_RGBA8888: os << "RGBA8888"; break;
+    case QImage::Format_RGBA8888_Premultiplied: os << "RGBA8888_Premultiplied"; break;
+    case QImage::Format_BGR30: os << "BGR30"; break;
+    case QImage::Format_A2BGR30_Premultiplied: os << "A2BGR30_Premultiplied"; break;
+    case QImage::Format_RGB30: os << "RGB30"; break;
+    case QImage::Format_A2RGB30_Premultiplied: os << "A2RGB30_Premultiplied"; break;
     default: os << (int)t; break;
     }
     return os;
@@ -738,6 +745,19 @@ bool convertImageToQImage_RGB24(const sgi::Image * image, QImage & qimage)
         ret = true;
     }
     break;
+    case Image::ImageFormatLuminance:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[0];
+            dest[2] = src[0];
+            src++;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
     }
     return ret;
 }
@@ -802,6 +822,19 @@ bool convertImageToQImage_BGR24(const sgi::Image * image, QImage & qimage)
             dest[1] = src[1];
             dest[2] = src[2];
             src += 3;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatLuminance:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[0];
+            dest[2] = src[0];
+            src++;
             dest += 3;
         }
         ret = true;
@@ -880,6 +913,20 @@ bool convertImageToQImage_RGB32(const sgi::Image * image, QImage & qimage)
         ret = true;
     }
     break;
+    case Image::ImageFormatLuminance:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[0];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src++;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
     }
     return ret;
 }
@@ -953,6 +1000,20 @@ bool convertImageToQImage_BGR32(const sgi::Image * image, QImage & qimage)
         ret = true;
     }
     break;
+    case Image::ImageFormatLuminance:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[0];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src++;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
     }
     return ret;
 }
@@ -1001,6 +1062,12 @@ QImage convertImageToQImage(const sgi::Image * image, Image::ImageFormat destFor
                 ret = QImage((uchar*)image->data(), (int)image->width(), (int)image->height(), (int)image->bytesPerLine(), qt_format);
                 if (image->origin() == Image::OriginBottomLeft)
                     ret.mirrored(false, true);
+            }
+            else
+            {
+                QImage qimage;
+                if (convertImageToQImage_RGB32(image, qimage))
+                    ret = qimage;
             }
         }
         break;
