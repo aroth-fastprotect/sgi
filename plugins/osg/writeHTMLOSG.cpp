@@ -2666,7 +2666,12 @@ bool writePrettyHTMLImpl<osg::Texture>::process(std::basic_ostream<char>& os)
             os << "<tr><td>resizeNonPowerOfTwoHint</td><td>" << (object->getResizeNonPowerOfTwoHint()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>clientStorageHint</td><td>" << (object->getClientStorageHint()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>unRefImageDataAfterApply</td><td>" << (object->getUnRefImageDataAfterApply()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>swizzle</td><td>" << object->getSwizzle() << "</td></tr>" << std::endl;
+            os << "<tr><td>swizzle</td><td>" 
+                << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSwizzle().x()) << ","
+                << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSwizzle().y()) << ","
+                << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSwizzle().z()) << ","
+                << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSwizzle().w()) << ","
+                << "</td></tr>" << std::endl;
             os << "<tr><td>useHardwareMipMapGeneration</td><td>" << (object->getUseHardwareMipMapGeneration()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>maxAnisotropy</td><td>" << object->getMaxAnisotropy() << "</td></tr>" << std::endl;
             os << "<tr><td>min filter</td><td>" << object->getFilter(osg::Texture::MIN_FILTER) << "</td></tr>" << std::endl;

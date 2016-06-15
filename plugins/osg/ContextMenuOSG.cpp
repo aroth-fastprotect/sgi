@@ -707,6 +707,12 @@ bool contextMenuPopulateImpl<osg::Uniform>::populate(IContextMenuItem * menuItem
         ret = callNextHandler(menuItem);
         if(ret)
         {
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+            {
+                manipulateMenu->addSimpleAction(MenuActionUniformDirty, "Dirty", _item);
+            }
+
             std::stringstream ss;
             ss << "Edit " << osg::Uniform::getTypename(object->getType());
             if(object->getType() == osg::Uniform::BOOL)

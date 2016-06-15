@@ -146,6 +146,7 @@ enum MenuAction {
     MenuActionDepthSetZNear,
     MenuActionDepthSetZFar,
 
+    MenuActionUniformDirty,
     MenuActionUniformEdit,
     MenuActionArrayDataEdit,
     MenuActionArrayBinding,

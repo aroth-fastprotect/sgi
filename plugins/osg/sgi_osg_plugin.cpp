@@ -205,6 +205,31 @@
 #define GL_PROGRAM_POINT_SIZE_EXT         0x8642
 #endif /* GL_EXT_geometry_shader4 */
 
+#ifndef GL_ARB_texture_rg
+    #define GL_RG                             0x8227
+    #define GL_RG_INTEGER                     0x8228
+    #define GL_R8                             0x8229
+    #define GL_R16                            0x822A
+    #define GL_RG8                            0x822B
+    #define GL_RG16                           0x822C
+    #define GL_R16F                           0x822D
+    #define GL_R32F                           0x822E
+    #define GL_RG16F                          0x822F
+    #define GL_RG32F                          0x8230
+    #define GL_R8I                            0x8231
+    #define GL_R8UI                           0x8232
+    #define GL_R16I                           0x8233
+    #define GL_R16UI                          0x8234
+    #define GL_R32I                           0x8235
+    #define GL_R32UI                          0x8236
+    #define GL_RG8I                           0x8237
+    #define GL_RG8UI                          0x8238
+    #define GL_RG16I                          0x8239
+    #define GL_RG16UI                         0x823A
+    #define GL_RG32I                          0x823B
+    #define GL_RG32UI                         0x823C
+#endif
+
 using namespace sgi::osg_plugin;
 
 SGI_OBJECT_INFO_BEGIN(osg::Referenced)
@@ -759,6 +784,26 @@ public:
         REGISTER_GLENUM(GL_RGB10_A2);
         REGISTER_GLENUM(GL_RGBA12);
         REGISTER_GLENUM(GL_RGBA16);
+
+        REGISTER_GLENUM(GL_RG);
+        REGISTER_GLENUM(GL_RG_INTEGER);
+        REGISTER_GLENUM(GL_R8);
+        REGISTER_GLENUM(GL_R16);
+        REGISTER_GLENUM(GL_RG16);
+        REGISTER_GLENUM(GL_R16F);
+        REGISTER_GLENUM(GL_R32F);
+        REGISTER_GLENUM(GL_R8I);
+        REGISTER_GLENUM(GL_R8UI);
+        REGISTER_GLENUM(GL_R16I);
+        REGISTER_GLENUM(GL_R16UI);
+        REGISTER_GLENUM(GL_R32I);
+        REGISTER_GLENUM(GL_R32UI);
+        REGISTER_GLENUM(GL_RG8I);
+        REGISTER_GLENUM(GL_RG8UI);
+        REGISTER_GLENUM(GL_RG16I);
+        REGISTER_GLENUM(GL_RG16UI);
+        REGISTER_GLENUM(GL_RG32I);
+        REGISTER_GLENUM(GL_RG32UI);
 
 #ifdef GL_PROGRAM_POINT_SIZE
         REGISTER_GLENUM(GL_PROGRAM_POINT_SIZE);

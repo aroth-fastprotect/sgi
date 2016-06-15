@@ -129,6 +129,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionPagedLODFrameNumberOfLastTrav
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionClipNodeReset)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionClipNodeSetState)
 
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionUniformDirty)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionUniformEdit)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionBufferDataEdit)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionBufferDirty)
@@ -1184,6 +1185,13 @@ bool actionHandlerImpl<MenuActionCameraComputeNearFarMode>::execute()
 {
     osg::Camera * object = getObject<osg::Camera,SGIItemOsg>();
     object->setComputeNearFarMode((osg::Camera::ComputeNearFarMode)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionUniformDirty>::execute()
+{
+    osg::Uniform * object = getObject<osg::Uniform, SGIItemOsg>();
+    object->dirty();
     return true;
 }
 
