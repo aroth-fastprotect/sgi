@@ -5,6 +5,8 @@
 #include <sgi/plugins/SGIProxyItem.h>
 #include <sstream>
 
+#include <QImage>
+
 namespace sgi {
 // some method implementations from SGIItemBase which are only
 // used within the SGI base and not in any plugin or caller.
@@ -387,10 +389,58 @@ Image::Image(ImageFormat format, Origin origin, const void * data, size_t length
     QImage * originalImage)
     : _format(format), _origin(origin), _data(data), _length(length)
     , _width(width), _height(height), _depth(depth), _bytesPerLine(bytesPerLine)
-    , _originalImage(NULL), _originalImageQt(originalImage)
+    , _originalImage(NULL), _originalImageQt((originalImage)?new QImage(*originalImage):NULL)
 {
 
 }
+
+namespace {
+    Image::ImageFormat imageFormatFromQImage(QImage::Format format)
+    {
+        Image::ImageFormat imageFormat;
+        switch (format)
+        {
+        case QImage::Format_Invalid:imageFormat = sgi::Image::ImageFormatInvalid; break;
+        case QImage::Format_Mono: imageFormat = sgi::Image::ImageFormatMono; break;
+        case QImage::Format_MonoLSB: imageFormat = sgi::Image::ImageFormatMonoLSB; break;
+        case QImage::Format_Indexed8: imageFormat = sgi::Image::ImageFormatIndexed8; break;
+        case QImage::Format_RGB32: imageFormat = sgi::Image::ImageFormatRGB32; break;
+        case QImage::Format_RGBA8888:
+        case QImage::Format_RGBA8888_Premultiplied:
+        case QImage::Format_ARGB32_Premultiplied:
+        case QImage::Format_ARGB32: imageFormat = sgi::Image::ImageFormatARGB32; break;
+        case QImage::Format_RGB888: imageFormat = sgi::Image::ImageFormatRGB24; break;
+        case QImage::Format_RGB16:
+        case QImage::Format_ARGB8565_Premultiplied:
+        case QImage::Format_RGB666:
+        case QImage::Format_ARGB6666_Premultiplied:
+        case QImage::Format_RGB555:
+        case QImage::Format_ARGB8555_Premultiplied:
+        case QImage::Format_RGB444:
+        case QImage::Format_ARGB4444_Premultiplied:
+        case QImage::Format_RGBX8888:
+        case QImage::Format_BGR30:
+        case QImage::Format_A2BGR30_Premultiplied:
+        case QImage::Format_RGB30:
+        case QImage::Format_A2RGB30_Premultiplied:
+        default:
+            imageFormat = sgi::Image::ImageFormatRaw;
+            break;
+        }
+        return imageFormat;
+    }
+}
+
+Image::Image(QImage * originalImage)
+    : _format(imageFormatFromQImage(originalImage->format()))
+    , _origin(OriginTopLeft), _data(NULL), _length(0)
+    , _width(originalImage->width()), _height(originalImage->height()), _depth(1), _bytesPerLine(originalImage->bytesPerLine())
+    , _originalImage(NULL), _originalImageQt((originalImage) ? new QImage(*originalImage) : NULL)
+{
+    _data = _originalImageQt->bits();
+    _length = _originalImageQt->byteCount();
+}
+
 Image::Image(const Image & rhs)
     : _format(rhs._format), _origin(rhs._origin), _data(rhs._data), _length(rhs._length)
     , _width(rhs._width), _height(rhs._height), _depth(rhs._depth), _bytesPerLine(rhs._bytesPerLine)
@@ -398,6 +448,13 @@ Image::Image(const Image & rhs)
 {
 
 }
+
+Image::~Image()
+{
+    if (_originalImageQt)
+        delete _originalImageQt;
+}
+
 Image & Image::operator=(const Image & rhs)
 {
     _format = rhs._format;
@@ -413,7 +470,6 @@ Image & Image::operator=(const Image & rhs)
     return *this;
 }
 
-
 std::string Image::imageFormatToString(ImageFormat format)
 {
     std::string ret;
@@ -423,11 +479,31 @@ std::string Image::imageFormatToString(ImageFormat format)
     case ImageFormatRGB24: ret = "RGB24"; break;
     case ImageFormatRGB32: ret = "RGB32"; break;
     case ImageFormatARGB32: ret = "ARGB32"; break;
-    case ImageFormatARGB32_Premultiplied: ret = "ARGB32_Premultiplied"; break;
     case ImageFormatMono: ret = "Mono"; break;
     case ImageFormatMonoLSB: ret = "MonoLSB"; break;
     case ImageFormatIndexed8: ret = "Indexed8"; break;
     case ImageFormatFloat: ret = "Float"; break;
+    case ImageFormatBGR24: ret = "BGR24"; break;
+    case ImageFormatBGR32: ret = "BGR32"; break;
+    case ImageFormatABGR32: ret = "ABGR32"; break;
+    case ImageFormatYUV420: ret = "YUV420"; break;
+    case ImageFormatYUV422: ret = "YUV422"; break;
+    case ImageFormatYUV444: ret = "YUV444"; break;
+    case ImageFormatYUYV: ret = "YUYV"; break;
+    case ImageFormatUYVY: ret = "UYVY"; break;
+    case ImageFormatGray: ret = "Gray"; break;
+    case ImageFormatRed: ret = "Red"; break;
+    case ImageFormatGreen: ret = "Green"; break;
+    case ImageFormatBlue: ret = "Blue"; break;
+    case ImageFormatAlpha: ret = "Alpha"; break;
+    case ImageFormatDepth: ret = "Depth"; break;
+    case ImageFormatLuminance: ret = "Luminance"; break;
+    case ImageFormatLuminanceAlpha: ret = "LuminanceAlpha"; break;
+    case ImageFormatDXT1: ret = "DXT1"; break;
+    case ImageFormatDXT1Alpha: ret = "DXT1a"; break;
+    case ImageFormatDXT3: ret = "DXT3"; break;
+    case ImageFormatDXT5: ret = "DXT5"; break;
+    case ImageFormatRaw: ret = "raw"; break;
     default:
         {
             std::stringstream ss;

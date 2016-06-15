@@ -4,6 +4,7 @@
 #include <QApplication>
 #include <QHBoxLayout>
 
+#include <osg/ValueObject>
 #include <osgViewer/ViewerEventHandlers>
 
 #include <osgGA/TrackballManipulator>
@@ -258,6 +259,8 @@ int main( int argc, char** argv )
 
     if(addSceneGraphInspector)
     {
+        loadedModel->setUserValue("sgi_tree_item", true);
+
         osg::ref_ptr<osgDB::Options> opts = osgDB::Registry::instance()->getOptions();
         if(opts.valid())
             opts = opts->cloneOptions();

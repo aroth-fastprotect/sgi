@@ -278,15 +278,36 @@ class Image : public osg::Referenced
 {
 public:
     enum ImageFormat {
+        ImageFormatAutomatic = -2,
         ImageFormatInvalid = -1,
         ImageFormatRGB24 = 0,
         ImageFormatRGB32,
         ImageFormatARGB32,
-        ImageFormatARGB32_Premultiplied,
         ImageFormatMono,
         ImageFormatMonoLSB,
         ImageFormatIndexed8,
-        ImageFormatFloat
+        ImageFormatFloat,
+        ImageFormatBGR24,
+        ImageFormatBGR32,
+        ImageFormatABGR32,
+        ImageFormatYUV420,
+        ImageFormatYUV422,
+        ImageFormatYUV444,
+        ImageFormatYUYV,
+        ImageFormatUYVY,
+        ImageFormatGray,
+        ImageFormatRed,
+        ImageFormatGreen,
+        ImageFormatBlue,
+        ImageFormatAlpha,
+        ImageFormatDepth,
+        ImageFormatLuminance,
+        ImageFormatLuminanceAlpha,
+        ImageFormatDXT1,
+        ImageFormatDXT1Alpha,
+        ImageFormatDXT3,
+        ImageFormatDXT5,
+        ImageFormatRaw = 1000,
     };
     static std::string imageFormatToString(ImageFormat format);
 
@@ -303,8 +324,10 @@ public:
 	Image(ImageFormat format = ImageFormatInvalid, Origin origin = OriginDefault, const void * data = NULL, size_t length = 0,
 		unsigned width = 0, unsigned height = 0, unsigned depth = 0, unsigned bytesPerLine = 0,
 		QImage * originalImage = NULL);
-	Image(const Image & rhs);
+    Image(QImage * originalImage);
+    Image(const Image & rhs);
     Image & operator=(const Image & rhs);
+    ~Image();
 
     ImageFormat format() const { return _format; }
     const void * data() const { return _data; }

@@ -4,6 +4,7 @@
 #include <QFileDialog>
 #include <QToolBar>
 #include <QScrollBar>
+#include <QComboBox>
 #include <QDesktopWidget>
 #include <QImageWriter>
 #include <QImageReader>
@@ -12,8 +13,9 @@
 #include "ImagePreviewDialog.h"
 #include "ui_ImagePreviewDialog.h"
 #include "SGIPlugin.h"
-
+#include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/helpers/qt>
+
 
 namespace sgi {
 
@@ -164,6 +166,8 @@ public:
     static void adjustScrollBar(QScrollBar *scrollBar, double factor);
     void setImageInfo(const std::string & infoText);
 
+    Image::ImageFormat currentImageFormat() const;
+
     // Actions
     void zoomIn();
     void zoomOut();
@@ -174,9 +178,11 @@ public:
     void refresh();
     void flipHorizontal();
     void flipVertical();
+    void imageFormatChanged(int index);
 
     void applyFlip();
 	void setNodeInfo(const SGIItemBase * item);
+    void setImageInfo(const Image * image);
 
     virtual QDialog *       getDialog() { return _dialog; }
     virtual IHostCallback * getHostCallback() { return _dialog->_hostCallback; }
@@ -204,6 +210,7 @@ public:
     QAction *                       fitToWindowAction;
     QAction *                       flipHorizontalAction;
     QAction *                       flipVerticalAction;
+    QComboBox *                     imageFormat;
     QString                         labelText;
     double                          scaleFactor;
     bool                            initialRefresh;
@@ -212,17 +219,18 @@ public:
 };
 
 ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewDialog * dialog_)
-	: _dialog(dialog_)
-	, ui(NULL)
-	, toolBar(NULL)
-	, refreshAction(NULL)
-	, saveAction(NULL)
-	, zoomInAction(NULL)
-	, zoomOutAction(NULL)
-	, normalSizeAction(NULL)
-	, fitToWindowAction(NULL)
-	, flipHorizontalAction(NULL)
-	, flipVerticalAction(NULL)
+    : _dialog(dialog_)
+    , ui(NULL)
+    , toolBar(NULL)
+    , refreshAction(NULL)
+    , saveAction(NULL)
+    , zoomInAction(NULL)
+    , zoomOutAction(NULL)
+    , normalSizeAction(NULL)
+    , fitToWindowAction(NULL)
+    , flipHorizontalAction(NULL)
+    , flipVerticalAction(NULL)
+    , imageFormat(NULL)
 	, labelText()
 	, scaleFactor(1.0)
 	, initialRefresh(true)
@@ -256,17 +264,18 @@ ImagePreviewDialog::ImagePreviewDialogImpl::~ImagePreviewDialogImpl()
 void ImagePreviewDialog::ImagePreviewDialogImpl::refresh()
 {
 	setNodeInfo(_dialog->_item.get());
+    setImageInfo(_dialog->_image.get());
 	_dialog->refreshImpl();
 }
 
 void ImagePreviewDialog::ImagePreviewDialogImpl::setImageInfo(const std::string & infoText)
 {
 	if (labelText.isEmpty())
-		ui->label->setText(qt_helpers::fromLocal8Bit(infoText));
+		ui->labelImage->setText(qt_helpers::fromLocal8Bit(infoText));
 	else
-		ui->label->setText(labelText + QString("\r\n") + qt_helpers::fromLocal8Bit(infoText));
+		ui->labelImage->setText(labelText + QString("\r\n") + qt_helpers::fromLocal8Bit(infoText));
 
-	const QPixmap * p = ui->label->pixmap();
+	const QPixmap * p = ui->labelImage->pixmap();
 	int width = p ? p->width() : 0;
 	int height = p ? p->height() : 0;
 	ui->scrollArea->horizontalScrollBar()->setMaximum(width);
@@ -379,7 +388,22 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 	flipVerticalAction->setCheckable(true);
 	connect(flipVerticalAction, &QAction::triggered, this, &ImagePreviewDialogImpl::flipVertical);
 
-	toolBar->addAction(refreshAction);
+    imageFormat = new QComboBox(_dialog);
+
+    imageFormat->addItem(tr("Automatic"), QVariant::fromValue((int)Image::ImageFormatAutomatic));
+    imageFormat->addItem(tr("RGB 24-bit"), QVariant::fromValue((int)Image::ImageFormatRGB24));
+    imageFormat->addItem(tr("RGB 32-bit"), QVariant::fromValue((int)Image::ImageFormatRGB32));
+    imageFormat->addItem(tr("ARGB 32-bit"), QVariant::fromValue((int)Image::ImageFormatARGB32));
+    imageFormat->addItem(tr("BGR 24-bit"), QVariant::fromValue((int)Image::ImageFormatBGR24));
+    imageFormat->addItem(tr("BGR 32-bit"), QVariant::fromValue((int)Image::ImageFormatBGR32));
+    imageFormat->addItem(tr("ABGR 32-bit"), QVariant::fromValue((int)Image::ImageFormatABGR32));
+    imageFormat->addItem(tr("YUV 4:2:0"), QVariant::fromValue((int)Image::ImageFormatYUV420));
+    imageFormat->addItem(tr("YUV 4:2:2"), QVariant::fromValue((int)Image::ImageFormatYUV422));
+    imageFormat->addItem(tr("YUV 4:4:4"), QVariant::fromValue((int)Image::ImageFormatYUV444));
+    connect(imageFormat, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ImagePreviewDialogImpl::imageFormatChanged);
+
+    toolBar->addWidget(imageFormat);
+    toolBar->addAction(refreshAction);
 	toolBar->addAction(saveAction);
 	toolBar->addAction(zoomInAction);
 	toolBar->addAction(zoomOutAction);
@@ -445,6 +469,11 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::flipVertical()
 	applyFlip();
 }
 
+void ImagePreviewDialog::ImagePreviewDialogImpl::imageFormatChanged(int index)
+{
+    // just refresh the actual change is done in refreshImpl
+    refresh();
+}
 
 void ImagePreviewDialog::ImagePreviewDialogImpl::open()
 {
@@ -482,9 +511,26 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::setNodeInfo(const SGIItemBase *
 	{
 		os << "<b>item is <i>NULL</i></b>";
 	}
-	ui->textEdit->blockSignals(true);
-	ui->textEdit->setHtml(QString::fromStdString(os.str()));
-	ui->textEdit->blockSignals(false);
+	ui->textEditItem->blockSignals(true);
+	ui->textEditItem->setHtml(QString::fromStdString(os.str()));
+	ui->textEditItem->blockSignals(false);
+}
+
+void ImagePreviewDialog::ImagePreviewDialogImpl::setImageInfo(const Image * image)
+{
+    std::ostringstream os;
+    if (image)
+    {
+        SGIHostItemInternal imageItem(image);
+        _dialog->_hostInterface->writePrettyHTML(os, &imageItem);
+    }
+    else
+    {
+        os << "<b>image is <i>NULL</i></b>";
+    }
+    ui->textEditImage->blockSignals(true);
+    ui->textEditImage->setHtml(QString::fromStdString(os.str()));
+    ui->textEditImage->blockSignals(false);
 }
 
 class ImagePreviewDialog::HostCallback : public HostCallbackFilterT<IImagePreviewDialog>
@@ -619,34 +665,345 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, QImage::Forma
     return os;
 }
 
-QImage convertToQImage(const sgi::Image * image)
-{
-    QImage ret;
-    if(image)
-    {
-		if (image->originalImageQt())
-			ret = *image->originalImageQt();
-		else
-		{
-			QImage::Format qt_format = QImage::Format_Invalid;
-			switch (image->format())
-			{
-			case Image::ImageFormatRGB24: qt_format = QImage::Format_RGB888; break;
-			case Image::ImageFormatRGB32: qt_format = QImage::Format_RGB32; break;
-			case Image::ImageFormatARGB32: qt_format = QImage::Format_ARGB32; break;
-			case Image::ImageFormatARGB32_Premultiplied: qt_format = QImage::Format_ARGB32_Premultiplied; break;
-			case Image::ImageFormatMono: qt_format = QImage::Format_Mono; break;
-			case Image::ImageFormatMonoLSB: qt_format = QImage::Format_MonoLSB; break;
-			case Image::ImageFormatIndexed8: qt_format = QImage::Format_Indexed8; break;
-			case Image::ImageFormatFloat:
-			case Image::ImageFormatInvalid:
-			default: qt_format = QImage::Format_Invalid; break;
-			}
 
-			ret = QImage((uchar*)image->data(), (int)image->width(), (int)image->height(), (int)image->bytesPerLine(), qt_format);
-			if (image->origin() == Image::OriginBottomLeft)
-				ret.mirrored(false, true);
-		}
+Image::ImageFormat ImagePreviewDialog::ImagePreviewDialogImpl::currentImageFormat() const
+{
+    int index = imageFormat->currentIndex();
+    Image::ImageFormat ret = (Image::ImageFormat)imageFormat->itemData(index, Qt::UserRole).toInt();
+    return ret;
+}
+
+bool convertImageToQImage_RGB24(const sgi::Image * image, QImage & qimage)
+{
+    bool ret = false;
+    qimage = QImage(image->width(), image->height(), QImage::Format_RGB888);
+    uchar * dest = qimage.bits();
+    uchar * src = (uchar *)const_cast<void*>(image->data());
+    unsigned pixels = image->width() * image->height();
+    switch (image->format())
+    {
+    case Image::ImageFormatRGB24:
+        memcpy(dest, src, image->width() * image->height() * 3);
+        ret = true;
+        break;
+    case Image::ImageFormatARGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[2];
+            dest[1] = src[1];
+            dest[2] = src[0];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 3;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    }
+    return ret;
+}
+
+bool convertImageToQImage_BGR24(const sgi::Image * image, QImage & qimage)
+{
+    bool ret = false;
+    qimage = QImage(image->width(), image->height(), QImage::Format_RGB888);
+    uchar * dest = qimage.bits();
+    uchar * src = (uchar *)const_cast<void*>(image->data());
+    unsigned pixels = image->width() * image->height();
+    switch (image->format())
+    {
+    case Image::ImageFormatBGR24:
+        memcpy(dest, src, image->width() * image->height() * 3);
+        ret = true;
+        break;
+    case Image::ImageFormatARGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 3;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    }
+    return ret;
+}
+
+bool convertImageToQImage_RGB32(const sgi::Image * image, QImage & qimage)
+{
+    bool ret = false;
+    qimage = QImage(image->width(), image->height(), QImage::Format_RGB32);
+    uchar * dest = qimage.bits();
+    uchar * src = (uchar *)const_cast<void*>(image->data());
+    unsigned pixels = image->width() * image->height();
+    switch (image->format())
+    {
+    case Image::ImageFormatRGB32:
+        memcpy(dest, src, image->width() * image->height() * 4);
+        ret = true;
+        break;
+    case Image::ImageFormatARGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 4;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 3;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[2];
+            dest[1] = src[1];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src += 4;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[2];
+            dest[1] = src[1];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src += 3;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    }
+    return ret;
+}
+
+bool convertImageToQImage_BGR32(const sgi::Image * image, QImage & qimage)
+{
+    bool ret = false;
+    qimage = QImage(image->width(), image->height(), QImage::Format_RGB32);
+    uchar * dest = qimage.bits();
+    uchar * src = (uchar *)const_cast<void*>(image->data());
+    unsigned pixels = image->width() * image->height();
+    switch (image->format())
+    {
+    case Image::ImageFormatBGR32:
+        memcpy(dest, src, image->width() * image->height() * 4);
+        ret = true;
+        break;
+    case Image::ImageFormatARGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 4;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 3;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[2];
+            dest[1] = src[1];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src += 4;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 3;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    }
+    return ret;
+}
+
+QImage convertImageToQImage(const sgi::Image * image, Image::ImageFormat destFormat)
+{
+    bool convertOk = false;
+    QImage ret;
+    switch (destFormat)
+    {
+    case Image::ImageFormatInvalid:
+        // invalid -> return emtpy QImage
+        break;
+    case Image::ImageFormatRGB24: 
+        convertOk = convertImageToQImage_RGB24(image, ret);
+        break;
+    case Image::ImageFormatBGR24:
+        convertOk = convertImageToQImage_BGR24(image, ret);
+        break;
+    case Image::ImageFormatRGB32: 
+        convertOk = convertImageToQImage_RGB32(image, ret);
+        break;
+    case Image::ImageFormatBGR32:
+        convertOk = convertImageToQImage_BGR32(image, ret);
+        break;
+    case Image::ImageFormatAutomatic:
+        if (image->originalImageQt())
+            ret = *image->originalImageQt();
+        else
+        {
+            QImage::Format qt_format = QImage::Format_Invalid;
+            switch (image->format())
+            {
+            case Image::ImageFormatRGB24: qt_format = QImage::Format_RGB888; break;
+            case Image::ImageFormatRGB32: qt_format = QImage::Format_RGB32; break;
+            case Image::ImageFormatARGB32: qt_format = QImage::Format_ARGB32; break;
+            case Image::ImageFormatMono: qt_format = QImage::Format_Mono; break;
+            case Image::ImageFormatMonoLSB: qt_format = QImage::Format_MonoLSB; break;
+            case Image::ImageFormatIndexed8: qt_format = QImage::Format_Indexed8; break;
+            case Image::ImageFormatFloat:
+            case Image::ImageFormatInvalid:
+            default: qt_format = QImage::Format_Invalid; break;
+            }
+            if (qt_format != QImage::Format_Invalid)
+            {
+                ret = QImage((uchar*)image->data(), (int)image->width(), (int)image->height(), (int)image->bytesPerLine(), qt_format);
+                if (image->origin() == Image::OriginBottomLeft)
+                    ret.mirrored(false, true);
+            }
+        }
+        break;
     }
     return ret;
 }
@@ -713,7 +1070,8 @@ void ImagePreviewDialog::refreshImpl()
         setWindowTitle(tr("Image Viewer - No image available"));
     }
 
-    QImage qimg = convertToQImage(_image.get());
+    Image::ImageFormat format = _priv->currentImageFormat();
+    QImage qimg = convertImageToQImage(_image.get(), format);
 
 	refreshStatistics(qimg);
 
@@ -725,81 +1083,16 @@ void ImagePreviewDialog::refreshImpl()
         _priv->ui->imageLabel->setPixmap(QPixmap());
 
     std::stringstream ss;
-    if(!_priv->labelText.isEmpty())
-        ss << _priv->labelText + QString("\r\n");
+    ss << "<i>Info for displayed image:</i><br/>\r\n";
     if(!qimg.isNull())
     {
         ss << qimg.width() << "x" << qimg.height() << "x" << qimg.depth() << std::endl;
         ss << "format=" << qimg.format() << " colors=" << qimg.colorCount() << " bitPlaneCount=" << qimg.bitPlaneCount();
     }
     else
-        ss << "No image";
+        ss << "<b>No image</b>";
     _priv->setImageInfo(ss.str());
 }
-
-#if 0
-void ImagePreviewDialog::setImage(const QImage & image, const QString & name, const QString & infoText)
-{
-    _priv->ui->imageLabel->setText(QString());
-	_priv->originalImage = image;
-    if(!image.isNull())
-        _priv->ui->imageLabel->setPixmap(QPixmap::fromImage(image));
-    else
-        _priv->ui->imageLabel->setPixmap(QPixmap());
-
-    std::stringstream ss;
-    if(!infoText.isEmpty())
-        ss << infoText + QString("\r\n");
-    if(!image.isNull())
-    {
-        ss << "QImage " << image.width() << "x" << image.height() << "x" << image.depth();
-        ss << " [format=" << image.format() << ";colors=" << image.colorCount() << ";bitPlaneCount=" << image.bitPlaneCount() << "]";
-    }
-    else
-        ss << "QImage NULL";
-
-    QString imageInfo = QString::fromStdString(ss.str());
-    QString imageName = name;
-    if(imageName.isEmpty())
-    {
-        ss.clear();
-        ss << (void*)&image;
-        imageName = QString::fromStdString(ss.str());
-    }
-    _priv->setImageInfo(imageInfo);
-}
-
-void ImagePreviewDialog::setImage(const QPixmap & pixmap, const QString & name, const QString & infoText)
-{
-    _priv->ui->imageLabel->setText(QString());
-    if(pixmap.isNull())
-        _priv->ui->imageLabel->setPixmap(pixmap);
-    else
-        _priv->ui->imageLabel->setPixmap(QPixmap());
-	_priv->originalImage = pixmap.toImage();
-
-    std::stringstream ss;
-    if(!infoText.isEmpty())
-        ss << infoText + QString("\r\n");
-    if(!pixmap.isNull())
-    {
-        ss << "QPixmap " << pixmap.width() << "x" << pixmap.height() << "x" << pixmap.depth();
-        ss << " [devtype=" << pixmap.devType() << ";alpha=" << pixmap.hasAlpha() << "]";
-    }
-    else
-        ss << "QPixmap NULL";
-
-    QString imageInfo = QString::fromStdString(ss.str());
-    QString imageName = name;
-    if(imageName.isEmpty())
-    {
-        ss.clear();
-        ss << (void*)&pixmap;
-        imageName = QString::fromStdString(ss.str());
-    }
-    _priv->setImageInfo(imageName, imageInfo);
-}
-#endif
 
 bool ImagePreviewDialog::openImpl(const QString & filename)
 {

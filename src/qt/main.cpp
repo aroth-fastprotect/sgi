@@ -89,8 +89,8 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
 				bool sgi_skip_object = obj->property("sgi_skip_object").toBool();
 				if (!sgi_skip_object)
 				{
-					int x = mouseEvent->screenPos().x();
-					int y = mouseEvent->screenPos().y();
+					int x = mouseEvent->globalPos().x();
+					int y = mouseEvent->globalPos().y();
 					QWidget* widget = dynamic_cast<QWidget*>(obj);
 					if (!widget)
 					{
@@ -100,14 +100,20 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
 					}
 					if (widget)
 					{
+                        // use the found widget as initial object
+                        obj = widget;
 						x = mouseEvent->x();
 						y = mouseEvent->y();
 						sgi_skip_object = widget->property("sgi_skip_object").toBool();
 						if (!sgi_skip_object)
 						{
 							QWidget * child = widget->childAt(x, y);
-							if (child)
-								sgi_skip_object = child->property("sgi_skip_object").toBool();
+                            if (child)
+                            {
+                                sgi_skip_object = child->property("sgi_skip_object").toBool();
+                                // use child widget as initial item
+                                obj = child;
+                            }
 						}
 					}
 					else
@@ -115,9 +121,9 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
 						QPoint pt;
 						widget = QApplication::activeWindow();
 						if (widget)
-							pt = widget->mapFromGlobal(mouseEvent->screenPos().toPoint());
+							pt = widget->mapFromGlobal(mouseEvent->globalPos());
 						else
-							pt = mouseEvent->screenPos().toPoint();
+							pt = mouseEvent->globalPos();
 						x = pt.x();
 						y = pt.y();
 					}

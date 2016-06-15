@@ -27,6 +27,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     sgi::ISettingsDialogInfo,
     sgi::ReferencedInternalItemData,
     sgi::ReferencedInternalInfoData,
+    sgi::Image,
     osg::Object
 SGI_OBJECT_INFO_END()
 
@@ -50,6 +51,7 @@ WRITE_PRETTY_HTML_IMPL_TEMPLATE()
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(SGIPlugins)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(Image)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 
 
@@ -215,11 +217,42 @@ bool writePrettyHTMLImpl<SGIProxyItemBase>::process(std::basic_ostream<char>& os
     return ret;
 }
 
+bool writePrettyHTMLImpl<Image>::process(std::basic_ostream<char>& os)
+{
+    Image * object = getObject<Image, SGIItemInternal>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+            callNextHandler(os);
+
+            os << "<tr><td>width</td><td>" << object->width() << "</td></tr>" << std::endl;
+            os << "<tr><td>height</td><td>" << object->height() << "</td></tr>" << std::endl;
+            os << "<tr><td>depth</td><td>" << object->depth() << "</td></tr>" << std::endl;
+            os << "<tr><td>bytesPerLine</td><td>" << object->bytesPerLine() << "</td></tr>" << std::endl;
+            os << "<tr><td>origin</td><td>" << Image::originToString(object->origin()) << "</td></tr>" << std::endl;
+            os << "<tr><td>format</td><td>" << Image::imageFormatToString(object->format()) << "</td></tr>" << std::endl;
+            os << "<tr><td>data</td><td>" << object->data() << "</td></tr>" << std::endl;
+            os << "<tr><td>originalImage</td><td>" << object->originalImage() << "</td></tr>" << std::endl;
+            os << "<tr><td>originalImageQt</td><td>" << object->originalImageQt() << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+        }
+        break;
+    default:
+        break;
+    }
+    return true;
+}
 GET_OBJECT_NAME_IMPL_TEMPLATE()
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(Image)
 
 std::string getObjectNameImpl<ReferencedInternalItemData>::process()
 {
@@ -234,6 +267,11 @@ std::string getObjectNameImpl<ReferencedInternalInfoData>::process()
 std::string getObjectNameImpl<SGIPlugins>::process()
 {
     return "SGIPlugins";
+}
+
+std::string getObjectNameImpl<Image>::process()
+{
+    return "SGIImage";
 }
 
 std::string getObjectNameImpl<SGIProxyItemBase>::process()
@@ -256,6 +294,7 @@ GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
+GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(Image)
 
 std::string getObjectTypeImpl<ReferencedInternalItemData>::process()
 {
@@ -270,6 +309,11 @@ std::string getObjectTypeImpl<ReferencedInternalInfoData>::process()
 std::string getObjectTypeImpl<SGIPlugins>::process()
 {
     return "sgi::SGIPlugins";
+}
+
+std::string getObjectTypeImpl<Image>::process()
+{
+    return "sgi::Image";
 }
 
 std::string getObjectTypeImpl<SGIProxyItemBase>::process()
@@ -292,6 +336,7 @@ GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
+GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(Image)
 
 std::string getObjectDisplayNameImpl<ReferencedInternalItemData>::process()
 {
@@ -323,6 +368,10 @@ std::string getObjectDisplayNameImpl<SGIProxyItemBase>::process()
     return ret;
 }
 
+std::string getObjectDisplayNameImpl<Image>::process()
+{
+    return "SGIImage";
+}
 OBJECT_TREE_BUILD_IMPL_TEMPLATE()
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)

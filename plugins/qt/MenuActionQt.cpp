@@ -127,6 +127,31 @@ namespace {
 #else
     QtMsgHandler CaptureQtMessageHandler::_oldHandler = NULL;
 #endif
+
+    const sgi::Image * convertImage(QImage * image)
+    {
+        if (!image)
+            return NULL;
+        sgi::Image * ret = new sgi::Image(image);
+        return ret;
+    }
+    const sgi::Image * convertImage(QPixmap * image)
+    {
+        if (!image)
+            return NULL;
+        QImage qimg = image->toImage();
+        return convertImage(&qimg);
+    }
+    const sgi::Image * convertImage(QIcon * image)
+    {
+        if (!image)
+            return NULL;
+        QList<QSize> sizes = image->availableSizes();
+        if (sizes.empty())
+            return NULL;
+        QPixmap pixmap = image->pixmap(sizes.front());
+        return convertImage(&pixmap);
+    }
 }
 
 bool actionHandlerImpl<MenuActionDumpObjectInfo>::execute()
@@ -319,6 +344,39 @@ bool actionHandlerImpl<MenuActionObjectModifyProperty>::execute()
             }
         }
         break;
+    case QVariant::Pixmap:
+        {
+            IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), _item.get());
+            if (dialog.valid())
+            {
+                QPixmap img = propertyValue.value<QPixmap>();
+                dialog->setObject(_item.get(), convertImage(&img), std::string(), hostCallback());
+                dialog->show();
+            }
+        }
+        break;
+    case QVariant::Image:
+        {
+            IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), _item.get());
+            if (dialog.valid())
+            {
+                QImage img = propertyValue.value<QImage>();
+                dialog->setObject(_item.get(), convertImage(&img), std::string(), hostCallback());
+                dialog->show();
+            }
+        }
+        break;
+    case QVariant::Icon:
+        {
+            IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), _item.get());
+            if (dialog.valid())
+            {
+                QIcon img = propertyValue.value<QIcon>();
+                dialog->setObject(_item.get(), convertImage(&img), std::string(), hostCallback());
+                dialog->show();
+            }
+        }
+        break;
     default:
         {
             std::stringstream ss;
@@ -337,70 +395,6 @@ bool actionHandlerImpl<MenuActionObjectModifyProperty>::execute()
         break;
     }
     return true;
-}
-
-
-
-namespace {
-	const sgi::Image * convertImage(QImage * image)
-	{
-		if (!image)
-			return NULL;
-		sgi::Image::ImageFormat imageFormat;
-		switch (image->format())
-		{
-		case QImage::Format_Mono: imageFormat = sgi::Image::ImageFormatMono; break;
-		case QImage::Format_MonoLSB: imageFormat = sgi::Image::ImageFormatMonoLSB; break;
-		case QImage::Format_Indexed8: imageFormat = sgi::Image::ImageFormatIndexed8; break;
-		case QImage::Format_RGB32: imageFormat = sgi::Image::ImageFormatRGB32; break;
-		case QImage::Format_ARGB32: imageFormat = sgi::Image::ImageFormatARGB32; break;
-		case QImage::Format_ARGB32_Premultiplied: imageFormat = sgi::Image::ImageFormatARGB32_Premultiplied; break;
-		case QImage::Format_RGB888: imageFormat = sgi::Image::ImageFormatRGB32; break;
-		case QImage::Format_RGB16:
-		case QImage::Format_ARGB8565_Premultiplied:
-		case QImage::Format_RGB666:
-		case QImage::Format_ARGB6666_Premultiplied:
-		case QImage::Format_Invalid:
-		case QImage::Format_RGB555:
-		case QImage::Format_ARGB8555_Premultiplied:
-		case QImage::Format_RGB444:
-		case QImage::Format_ARGB4444_Premultiplied:
-		case QImage::Format_RGBX8888:
-		case QImage::Format_RGBA8888:
-		case QImage::Format_RGBA8888_Premultiplied:
-		case QImage::Format_BGR30:
-		case QImage::Format_A2BGR30_Premultiplied:
-		case QImage::Format_RGB30:
-		case QImage::Format_A2RGB30_Premultiplied:
-		default:
-			imageFormat = sgi::Image::ImageFormatInvalid; 
-			break;
-		}
-		sgi::Image::Origin origin = sgi::Image::OriginTopLeft;
-		sgi::Image * ret = new sgi::Image(imageFormat, origin,
-			image->bits(), image->byteCount(),
-			image->width(), image->height(), 1, image->bytesPerLine(),
-			image);
-		return ret;
-	}
-	const sgi::Image * convertImage(QPixmap * image)
-	{
-		if (!image)
-			return NULL;
-		QImage qimg = image->toImage();
-		return convertImage(&qimg);
-	}
-	const sgi::Image * convertImage(QIcon * image)
-	{
-		if (!image)
-			return NULL;
-		QList<QSize> sizes = image->availableSizes();
-		if (sizes.empty())
-			return NULL;
-		QPixmap pixmap = image->pixmap(sizes.front());
-		return convertImage(&pixmap);
-	}
-
 }
 
 bool actionHandlerImpl<MenuActionImagePreview>::execute()
