@@ -207,6 +207,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewerBaseMaxFrameRate)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewerBaseMaxRunFrameScheme)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewerBaseIncrementalCompileOperation)
 
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShaderDirty)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShaderEditSource)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDepthFunction)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDepthWriteMask)
@@ -2180,6 +2181,13 @@ bool actionHandlerImpl<MenuActionCameraManipulatorAutoComputeHome>::execute()
 {
     osgGA::CameraManipulator * object = getObject<osgGA::CameraManipulator,SGIItemOsg, DynamicCaster>();
     object->setAutoComputeHomePosition(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionShaderDirty>::execute()
+{
+    osg::Shader * object = getObject<osg::Shader, SGIItemOsg>();
+    object->dirtyShader();
     return true;
 }
 

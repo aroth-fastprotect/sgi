@@ -814,6 +814,8 @@ bool contextMenuPopulateImpl<osgEarth::VirtualProgram>::populate(IContextMenuIte
             VirtualProgramAccessor * access = (VirtualProgramAccessor*)object;
 
             menuItem->addSimpleAction(MenuActionVirtualProgramMask, helpers::str_plus_hex("Mask", access->mask()), _item);
+            menuItem->addBoolAction(MenuActionVirtualProgramLogging, "Logging", _item, access->getShaderLogging());
+            menuItem->addSimpleAction(MenuActionVirtualProgramLoggingFile, helpers::str_plus_info("Logfile", access->getShaderLogFile()), _item);
 
             VirtualProgramInheritMode mode;
             if(!access->inheritSet())

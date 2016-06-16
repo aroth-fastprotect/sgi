@@ -53,6 +53,8 @@ enum MenuAction {
 
     MenuActionVirtualProgramMask,
     MenuActionVirtualProgramInherit,
+    MenuActionVirtualProgramLogging,
+    MenuActionVirtualProgramLoggingFile,
 
     MenuActionElevationQueryCustom,
     MenuActionElevationQueryCameraPosition,

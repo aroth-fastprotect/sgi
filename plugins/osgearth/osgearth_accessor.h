@@ -193,6 +193,9 @@ namespace osgearth_plugin {
         const AttribAliasMap &       attribAliases() const { return _attribAliases; }
         bool                         inherit() const { return _inherit; }
         bool                         inheritSet() const { return _inheritSet; }
+
+        bool                         getShaderLogging() const { return _logShaders; }
+        const std::string &          getShaderLogFile() const { return _logPath; }
         
         void                         setInheritShadersToUnspecified()
         {

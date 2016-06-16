@@ -1876,6 +1876,11 @@ bool contextMenuPopulateImpl<osg::Shader>::populate(IContextMenuItem * menuItem)
         ret = callNextHandler(menuItem);
         if(ret)
         {
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+            {
+                manipulateMenu->addSimpleAction(MenuActionShaderDirty, "Dirty", _item);
+            }
             menuItem->addSimpleAction(MenuActionShaderEditSource, "Edit...", _item);
         }
         break;

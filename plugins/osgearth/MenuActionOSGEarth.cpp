@@ -81,6 +81,8 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAutoClipPlaneCullCallbackClam
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionVirtualProgramMask)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionVirtualProgramInherit)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionVirtualProgramLogging)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionVirtualProgramLoggingFile)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionElevationQueryCustom)
 
@@ -609,6 +611,29 @@ bool actionHandlerImpl<MenuActionVirtualProgramInherit>::execute()
     case VirtualProgramInheritModeDisabled:
         object->setInheritShaders(false);
         break;
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionVirtualProgramLogging>::execute()
+{
+    osgEarth::VirtualProgram * object = getObject<osgEarth::VirtualProgram, SGIItemOsg>();
+    object->setShaderLogging(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionVirtualProgramLoggingFile>::execute()
+{
+    osgEarth::VirtualProgram * object = getObject<osgEarth::VirtualProgram, SGIItemOsg>();
+
+    std::string filename = ((VirtualProgramAccessor*)object)->getShaderLogFile();
+    std::vector<std::string> filters;
+
+    filters.push_back("Log files (*.txt *.log)");
+
+    if (_hostInterface->inputDialogFilename(menu()->parentWidget(), SGIPluginHostInterface::InputDialogFilenameSave, filename, filters, "Set shader log file", _item))
+    {
+        object->setShaderLogging(true, filename);;
     }
     return true;
 }

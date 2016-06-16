@@ -140,6 +140,7 @@ enum MenuAction {
     MenuActionEventHandlerIgnoreHandledEventsMask,
     MenuActionCameraManipulatorAutoComputeHome,
 
+    MenuActionShaderDirty,
     MenuActionShaderEditSource,
     MenuActionDepthFunction,
     MenuActionDepthWriteMask,
