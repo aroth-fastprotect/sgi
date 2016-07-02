@@ -595,6 +595,29 @@ bool objectTreeBuildImpl<osg::Geometry>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
+            bool isImageGeode = false;
+            if(!object->getUserValue<bool>("sgi_tree_imagegeode", isImageGeode))
+                isImageGeode = false;
+
+            if(isImageGeode)
+            {
+                osg::StateSet* stateSet = object->getStateSet();
+                if(stateSet)
+                {
+                    osg::StateAttribute * sa = stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
+                    osg::Texture * texture = sa ? sa->asTexture() : NULL;
+                    if(texture)
+                    {
+                        std::string itemname;
+                        object->getUserValue<std::string>("sgi_tree_itemname", itemname);
+
+                        SGIHostItemOsg image(texture->getImage(0));
+                        if(image.hasObject())
+                            treeItem->addChild(itemname, &image);
+                    }
+                }
+            }
+
             SGIHostItemOsg vertexArray(object->getVertexArray());
             if(vertexArray.hasObject())
                 treeItem->addChild(helpers::str_plus_count("Vertices", ((const osg::Array * )vertexArray.object())->getNumElements()), &vertexArray);
@@ -3683,6 +3706,7 @@ public:
     {
         osg::ref_ptr<osg::Node> node;
         std::string name;
+        bool imageGeode;
     };
     typedef std::vector<NodeItem> NodeList;
     const NodeList &   results() const
@@ -3697,7 +3721,10 @@ public:
             {
                 NodeItem item;
                 item.node = &node;
+                item.imageGeode = false;
                 node.getUserValue<std::string>("sgi_tree_itemname", item.name);
+                if(!node.getUserValue<bool>("sgi_tree_imagegeode", item.imageGeode))
+                    item.imageGeode = false;
                 _nodes.push_back(item);
             }
         }
@@ -3732,83 +3759,27 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
             node->accept(ftinv);
             for(FindTreeItemNodeVisitor::NodeList::const_iterator it = ftinv.results().begin(); it != ftinv.results().end(); ++it)
             {
-                SGIHostItemOsg hostItem((*it).node.get());
+                const FindTreeItemNodeVisitor::NodeItem & item = *it;
+                osg::Node * node = item.node.get();
+                SGIHostItemOsg hostItem(node);
                 if(hostItem.hasObject())
+                {
+                    // always add the node item to the tree
                     treeItem->addChild((*it).name, &hostItem);
-            }
-            osg::Node * imageGeode = osg_helpers::findTopMostNodeByName<osg::Node>(node, "ImageGeode");
-            if(imageGeode)
-            {
-                bool foundImage = false;
-                osg::Geode * geode = dynamic_cast<osg::Geode *>(node);
-#if OSG_VERSION_GREATER_OR_EQUAL(3,4,0)
-                osg::Geometry * geometry = dynamic_cast<osg::Geometry*>(node);
-                if(geometry)
-                {
-                    osg::StateSet * stateSet = geometry->getStateSet();
-                    if(stateSet)
+
+                    if(item.imageGeode)
                     {
-                        osg::StateAttribute * attr = stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
-                        if(attr)
+                        // ... and if it is a image geode try to add the image to the tree as well
+                        osg::StateSet* stateSet = node->getStateSet();
+                        if(stateSet)
                         {
-                            osg::Texture * text = attr->asTexture();
-                            if(text)
+                            osg::StateAttribute * sa = stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
+                            osg::Texture * texture = sa ? sa->asTexture() : NULL;
+                            if(texture)
                             {
-                                for(unsigned imgno = 0; imgno < text->getNumImages(); ++imgno)
-                                {
-                                    osg::Image * img = text->getImage(imgno);
-                                    if(img)
-                                    {
-                                        SGIHostItemOsg hostItem(img);
-                                        treeItem->addChild(std::string(), &hostItem);
-                                        foundImage = true;
-                                    }
-                                }
-                                if(!foundImage)
-                                {
-                                    SGIHostItemOsg hostItem(text);
-                                    treeItem->addChild(std::string(), &hostItem);
-                                    foundImage = true;
-                                }
-                            }
-                        }
-                    }
-                }
-#endif // OSG_VERSION_GREATER_OR_EQUAL(3,4,0)
-                if(geode)
-                {
-                    for(unsigned n = 0; n < geode->getNumDrawables(); ++n)
-                    {
-                        osg::Geometry * geom = geode->getDrawable(n)->asGeometry();
-                        if(geom)
-                        {
-                            osg::StateSet * stateSet = geom->getStateSet();
-                            if(stateSet)
-                            {
-                                osg::StateAttribute * attr = stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
-                                if(attr)
-                                {
-                                    osg::Texture * text = attr->asTexture();
-                                    if(text)
-                                    {
-                                        for(unsigned imgno = 0; imgno < text->getNumImages(); ++imgno)
-                                        {
-                                            osg::Image * img = text->getImage(imgno);
-                                            if(img)
-                                            {
-                                                SGIHostItemOsg hostItem(img);
-                                                treeItem->addChild(std::string(), &hostItem);
-                                                foundImage = true;
-                                            }
-                                        }
-                                        if(!foundImage)
-                                        {
-                                            SGIHostItemOsg hostItem(text);
-                                            treeItem->addChild(std::string(), &hostItem);
-                                            foundImage = true;
-                                        }
-                                    }
-                                }
+                                SGIHostItemOsg image(texture->getImage(0));
+                                if(image.hasObject())
+                                    treeItem->addChild(item.name, &image);
                             }
                         }
                     }

@@ -39,6 +39,8 @@
 #include <iomanip>
 #include <osg/io_utils>
 
+#include <sgi/helpers/osg_helper_nodes>
+
 namespace std {
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::NotifySeverity & t)
@@ -554,68 +556,6 @@ public:
     }
 };
 
-
-#if OSG_VERSION_GREATER_OR_EQUAL(3,4,0)
-osg::Geometry* createGeometryForImage(osg::Image* image,float s,float t)
-{
-    osg::Geometry* geom = NULL;
-    if (image && s>0 && t>0)
-    {
-        float y = 1.0;
-        float x = y*(s/t);
-
-        float texcoord_y_b = (image->getOrigin() == osg::Image::BOTTOM_LEFT) ? 0.0f : 1.0f;
-        float texcoord_y_t = (image->getOrigin() == osg::Image::BOTTOM_LEFT) ? 1.0f : 0.0f;
-
-        // set up the texture.
-
-        osg::Texture2D* texture = new osg::Texture2D;
-        texture->setFilter(osg::Texture::MIN_FILTER,osg::Texture::LINEAR);
-        texture->setFilter(osg::Texture::MAG_FILTER,osg::Texture::LINEAR);
-        texture->setResizeNonPowerOfTwoHint(false);
-        float texcoord_x = 1.0f;
-
-        texture->setImage(image);
-
-        // set up the drawstate.
-        osg::StateSet* dstate = new osg::StateSet;
-        dstate->setMode(GL_CULL_FACE,osg::StateAttribute::OFF);
-        dstate->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
-        dstate->setTextureAttributeAndModes(0, texture,osg::StateAttribute::ON);
-
-        // set up the geoset.                unsigned int rowSize = computeRowWidthInBytes(s,_pixelFormat,_dataType,_packing);
-
-        geom = new osg::Geometry;
-        geom->setStateSet(dstate);
-
-        osg::Vec3Array* coords = new osg::Vec3Array(4);
-        (*coords)[0].set(-x,0.0f,y);
-        (*coords)[1].set(-x,0.0f,-y);
-        (*coords)[2].set(x,0.0f,-y);
-        (*coords)[3].set(x,0.0f,y);
-        geom->setVertexArray(coords);
-
-        osg::Vec2Array* tcoords = new osg::Vec2Array(4);
-        (*tcoords)[0].set(0.0f*texcoord_x,texcoord_y_t);
-        (*tcoords)[1].set(0.0f*texcoord_x,texcoord_y_b);
-        (*tcoords)[2].set(1.0f*texcoord_x,texcoord_y_b);
-        (*tcoords)[3].set(1.0f*texcoord_x,texcoord_y_t);
-        geom->setTexCoordArray(0,tcoords);
-
-        osg::Vec4Array* colours = new osg::Vec4Array(1);
-        (*colours)[0].set(1.0f,1.0f,1.0,1.0f);
-        geom->setColorArray(colours, osg::Array::BIND_OVERALL);
-
-        geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS,0,4));
-    }
-    return geom;
-}
-osg::Geometry * createGeometryForImage(osg::Image* image)
-{
-    return createGeometryForImage(image,image->s(),image->t());
-}
-#endif // OSG_VERSION_GREATER_OR_EQUAL(3,4,0)
-
 bool iequals(const std::string& a, const std::string& b)
 {
     unsigned int sz = a.size();
@@ -789,27 +729,15 @@ TEVMapNodeHelper::load(osg::ArgumentParser& args,
                             {
                                 hasAtLeastOneNode = true;
                                 osg::ref_ptr<osg::Node> node = rr.takeNode();
-                                node->setUserValue("sgi_tree_item", true);
-                                node->setUserValue("sgi_tree_itemname", arg);
+                                sgi::osg_helpers::tagNodeForObjectTree(node.get(), arg);
                                 root->addChild(node);
                             }
                             else if(rr.validImage())
                             {
-                                osg::ref_ptr<osg::Image> image = rr.takeImage();
-#if OSG_VERSION_GREATER_OR_EQUAL(3,4,0)
-                                osg::Geometry* node = createGeometryForImage(image.get());
-#else // OSG_VERSION_GREATER_OR_EQUAL(3,4,0)
-                                osg::Geode* node = osg::createGeodeForImage(image.get());
-#endif // OSG_VERSION_GREATER_OR_EQUAL(3,4,0)
-                                node->setUserValue("sgi_tree_item", true);
-                                node->setUserValue("sgi_tree_itemname", arg);
-                                node->setName("ImageGeode");
-                                if (image->isImageTranslucent())
-                                {
-                                    node->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-                                    node->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-                                }
                                 hasAtLeastOneNode = true;
+                                osg::ref_ptr<osg::Image> image = rr.takeImage();
+                                osg::Node * node = sgi::osg_helpers::createNodeForImage(image.get());
+                                sgi::osg_helpers::tagNodeForObjectTree(node, arg);
                                 root->addChild(node);
                             }
                             else

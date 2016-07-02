@@ -28,6 +28,7 @@ namespace osg {
     class Camera;
     class StateSet;
     class StateAttribute;
+    class Image;
 
     typedef std::vector< Node* > NodePath;
 
