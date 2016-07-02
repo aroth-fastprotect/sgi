@@ -34,18 +34,6 @@
 
 #include <osgEarthUtil/ExampleResources>
 #include <osgEarthUtil/EarthManipulator>
-#include <osgEarthUtil/LatLongFormatter>
-#include <osgEarthUtil/MGRSFormatter>
-#include <osgEarthUtil/MouseCoordsTool>
-#include <osgEarthUtil/AutoClipPlaneHandler>
-#include <osgEarthUtil/DataScanner>
-#include <osgEarthUtil/Sky>
-#include <osgEarthUtil/Ocean>
-#include <osgEarthUtil/Shadowing>
-#include <osgEarthUtil/ActivityMonitorTool>
-#include <osgEarthUtil/LogarithmicDepthBuffer>
-#include <osgEarthSymbology/Color>
-
 
 #include <iostream>
 #include <iomanip>
@@ -524,16 +512,6 @@ bool osgImageToQImage(const osg::Image * image, QImage * qimage)
     return ret;
 }
 
-// sets a user-specified uniform.
-struct ApplyValueUniform : public osgEarth::Util::Controls::ControlEventHandler
-{
-    osg::ref_ptr<osg::Uniform> _u;
-    ApplyValueUniform(osg::Uniform* u) :_u(u) { }
-    void onValueChanged(osgEarth::Util::Controls::Control* c, double value) {
-        _u->set( float(value) );
-    }
-};
-
 class KeyboardDumpHandler : public osgGA::GUIEventHandler
 {
 public:
@@ -649,6 +627,17 @@ bool iequals(const std::string& a, const std::string& b)
     return true;
 }
 
+TEVMapNodeHelper::TEVMapNodeHelper()
+{
+    _mapNodeHelper = new osgEarth::Util::MapNodeHelper;
+}
+
+TEVMapNodeHelper::~TEVMapNodeHelper()
+{
+    delete _mapNodeHelper;
+}
+
+
 void TEVMapNodeHelper::setupInitialPosition( osgViewer::View* view, int viewpointNum, const std::string & viewpointName ) const
 {
     osgGA::CameraManipulator * manip = view->getCameraManipulator();
@@ -719,35 +708,23 @@ void TEVMapNodeHelper::setupInitialPosition( osgViewer::View* view, int viewpoin
 std::string
 TEVMapNodeHelper::usage() const
 {
-    return osgEarth::Stringify()
-        << "    --nosky              : do not add a sky model\n"
-        << "    --ocean              : add an ocean model\n"
-        << "    --kml <file.kml>     : load a KML or KMZ file\n"
-        << "    --nocoords           : do not display map coords under mouse\n"
-        << "    --dms                : dispay deg/min/sec coords under mouse\n"
-        << "    --dd                 : display decimal degrees coords under mouse\n"
-        << "    --mgrs               : show MGRS coords under mouse\n"
-        << "    --ortho              : use an orthographic camera\n"
-        << "    --noautoclip         : does not install an auto-clip plane callback\n"
-        << "    --nologdepth         : does not install an logarithmic depth buffer\n"
-        << "    --nostencil          : disable stencil buffer\n"
+    std::string msg = osgEarth::Stringify()
         << "    --nosgi              : do not add SceneGraphInspector\n"
         << "    --hidesgi            : do not show SceneGraphInspector\n"
-        << "    --oit                : enable order independant transparency\n"
         << "    --nokeys             : do not add keyboard dump handler\n"
         << "    --nomouse            : do not add mouse dump handler\n"
-        << "    --useproxy           : use the terra3d client proxy for HTTP requests\n"
         << "    --osgdebug <level>   : set OSG_NOTIFY_LEVEL to specified level\n"
         << "    --earthdebug <level> : set OSGEARTG_NOTIFY_LEVEL to specified level\n"
         << "    --debug              : set OSG_NOTIFY_LEVEL and OSGEARTG_NOTIFY_LEVEL to debug\n"
         << "    --autoclose <ms>     : set up timer to close the main window after the given time in milliseconds\n"
         << "    --viewpoint <name|num>  : jump to the given viewpoint\n"
         ;
+    return _mapNodeHelper->usage() + msg;
 }
 
-QString TEVMapNodeHelper::errorMessages() const
+std::string TEVMapNodeHelper::errorMessages() const
 {
-    return QString::fromStdString(m_errorMessages.str());
+    return m_errorMessages.str();
 }
 
 osg::Group*
@@ -911,11 +888,11 @@ TEVMapNodeHelper::load(osg::ArgumentParser& args,
 
     root = setupRootGroup(root);
 
-    // parses common cmdline arguments.
-    parse( mapNode.get(), args, view, root, userContainer);
+    if(mapNode.valid())
+        _mapNodeHelper->parse( mapNode.get(), args, view, root, userContainer);
 
     // configures the viewer with some stock goodies
-    configureView( view );
+    _mapNodeHelper->configureView( view );
 
     return root;
 }
@@ -926,420 +903,6 @@ osg::Group * TEVMapNodeHelper::setupRootGroup(osg::Group * root)
 
     ret = root;
     return ret;
-}
-
-//------------------------------------------------------------------------
-
-void
-TEVMapNodeHelper::parse(osgEarth::MapNode*             mapNode,
-                     osg::ArgumentParser& args,
-                     osgViewer::View*     view,
-                     osg::Group*          root,
-                     osgEarth::Util::Controls::LabelControl*        userLabel )
-{
-    osgEarth::Util::Controls::VBox* vbox = new osgEarth::Util::Controls::VBox();
-    vbox->setAbsorbEvents( true );
-    vbox->setBackColor( osgEarth::Color(osgEarth::Color::Black, 0.8) );
-    vbox->setHorizAlign( osgEarth::Util::Controls::Control::ALIGN_LEFT );
-    vbox->setVertAlign( osgEarth::Util::Controls::Control::ALIGN_BOTTOM );
-    vbox->addControl( userLabel );
-
-    parse(mapNode, args, view, root, vbox);
-}
-
-void
-TEVMapNodeHelper::parse(osgEarth::MapNode*             mapNode,
-                     osg::ArgumentParser& args,
-                     osgViewer::View*     view,
-                     osg::Group*          root,
-                     osgEarth::Util::Controls::Container*           userContainer )
-{
-    if ( !root )
-        root = mapNode;
-
-    // options to use for the load
-    osg::ref_ptr<osgDB::Options> dbOptions = osgEarth::Registry::instance()->cloneOrCreateOptions();
-
-    // parse out custom example arguments first:
-
-    bool doNotUseSky   = args.read("--nosky");
-    bool useSky        = !doNotUseSky;
-    bool useOcean      = args.read("--ocean");
-    bool useMGRS       = args.read("--mgrs");
-    bool useDMS        = args.read("--dms");
-    bool useDD         = args.read("--dd");
-    bool noCanvas      = args.read("--nocanvas");
-    bool doNotUseCoords     = args.read("--nocoords");
-    bool useCoords     = !doNotUseCoords || useMGRS || useDMS || useDD;
-    bool useOrtho      = args.read("--ortho");
-    bool doNotUseAutoClip   = args.read("--noautoclip");
-    bool doNotUseLogDepthBuffer = args.read("--nologdepth");
-    bool useAutoClip   = !doNotUseAutoClip;
-    bool useLogDepthBuffer = !doNotUseLogDepthBuffer;
-    bool useShadows    = args.read("--shadows");
-    bool animateSky    = args.read("--animate-sky");
-    bool showActivity  = args.read("--activity");
-    bool useLogDepth   = args.read("--logdepth");
-    bool useLogDepth2  = args.read("--logdepth2");
-    bool kmlUI         = args.read("--kmlui");
-    bool inspect       = args.read("--inspect");
-
-    float ambientBrightness = 0.2f;
-    args.read("--ambientBrightness", ambientBrightness);
-
-    std::string kmlFile;
-    args.read( "--kml", kmlFile );
-
-    std::string imageFolder;
-    args.read( "--images", imageFolder );
-
-    std::string imageExtensions;
-    args.read("--image-extensions", imageExtensions);
-
-    // animation path:
-    std::string animpath;
-    if ( args.read("--path", animpath) )
-    {
-        view->setCameraManipulator( new osgGA::AnimationPathManipulator(animpath) );
-    }
-    // Install a new Canvas for our UI controls, or use one that already exists.
-    osgEarth::Util::Controls::ControlCanvas * canvas = NULL;
-    if(!noCanvas)
-        canvas = osgEarth::Util::Controls::ControlCanvas::getOrCreate(view);
-
-    osgEarth::Util::Controls::Container* mainContainer;
-    if ( userContainer )
-    {
-        mainContainer = userContainer;
-    }
-    else
-    {
-        mainContainer = new osgEarth::Util::Controls::VBox();
-        mainContainer->setAbsorbEvents( true );
-        mainContainer->setBackColor( osgEarth::Symbology::Color(osgEarth::Symbology::Color::Black, 0.8) );
-        mainContainer->setHorizAlign( osgEarth::Util::Controls::Control::ALIGN_LEFT );
-        mainContainer->setVertAlign( osgEarth::Util::Controls::Control::ALIGN_BOTTOM );
-    }
-    if(canvas)
-        canvas->addControl( mainContainer );
-
-    if(mapNode)
-    {
-        // look for external data in the map node:
-        const osgEarth::Config& externals = mapNode->externalConfig();
-
-        const osgEarth::Config& skyConf         = externals.child("sky");
-        const osgEarth::Config& oceanConf       = externals.child("ocean");
-        const osgEarth::Config& annoConf        = externals.child("annotations");
-        const osgEarth::Config& declutterConf   = externals.child("decluttering");
-
-        // some terrain effects.
-        // TODO: Most of these are likely to move into extensions.
-        const osgEarth::Config& lodBlendingConf = externals.child("lod_blending");
-        const osgEarth::Config& vertScaleConf   = externals.child("vertical_scale");
-        const osgEarth::Config& contourMapConf  = externals.child("contour_map");
-
-        // Adding a sky model:
-        if ( useSky || !skyConf.empty() )
-        {
-            osgEarth::Util::SkyOptions options(skyConf);
-            if ( options.getDriver().empty() )
-            {
-                if ( mapNode->getMapSRS()->isGeographic() )
-                    options.setDriver("simple");
-                else
-                    options.setDriver("gl");
-            }
-
-            osgEarth::Util::SkyNode* sky = osgEarth::Util::SkyNode::create(options, mapNode);
-            if ( sky )
-            {
-                sky->attach( view, 0 );
-                if ( mapNode->getNumParents() > 0 )
-                {
-                    osgEarth::insertGroup(sky, mapNode->getParent(0));
-                }
-                else
-                {
-                    sky->addChild( mapNode );
-                    root = sky;
-                }
-
-                osgEarth::Util::Controls::Control* c = osgEarth::Util::SkyControlFactory().create(sky, view);
-                if ( c )
-                    mainContainer->addControl( c );
-#if 0
-                if (animateSky)
-                {
-                    sky->setUpdateCallback( new AnimateSkyUpdateCallback() );
-                }
-#endif
-            }
-        }
-
-        // Adding an ocean model:
-        if ( useOcean || !oceanConf.empty() )
-        {
-#if 0
-            OceanNode* ocean = OceanNode::create(OceanOptions(oceanConf), mapNode);
-            if ( ocean )
-            {
-                // if there's a sky, we want to ocean under it
-                osg::Group* parent = osgEarth::findTopMostNodeOfType<SkyNode>(root);
-                if ( !parent ) parent = root;
-                parent->addChild( ocean );
-
-                Control* c = OceanControlFactory().create(ocean);
-                if ( c )
-                    mainContainer->addControl(c);
-            }
-#endif
-        }
-#if 0
-        // Shadowing.
-        if ( useShadows )
-        {
-            ShadowCaster* caster = new ShadowCaster();
-            caster->setLight( view->getLight() );
-            caster->getShadowCastingGroup()->addChild( mapNode->getModelLayerGroup() );
-            if ( mapNode->getNumParents() > 0 )
-            {
-                insertGroup(caster, mapNode->getParent(0));
-            }
-            else
-            {
-                caster->addChild(mapNode);
-                root = caster;
-            }
-        }
-
-        // Loading KML from the command line:
-        if ( !kmlFile.empty() )
-        {
-            KMLOptions kml_options;
-            kml_options.declutter() = true;
-
-            // set up a default icon for point placemarks:
-            IconSymbol* defaultIcon = new IconSymbol();
-            defaultIcon->url()->setLiteral(KML_PUSHPIN_URL);
-            kml_options.defaultIconSymbol() = defaultIcon;
-
-            osg::Node* kml = KML::load( URI(kmlFile), mapNode, kml_options );
-            if ( kml )
-            {
-                if (kmlUI)
-                {
-                    Control* c = AnnotationGraphControlFactory().create(kml, view);
-                    if ( c )
-                    {
-                        c->setVertAlign( Control::ALIGN_TOP );
-                        if(canvas)
-                            canvas->addControl( c );
-                    }
-                }
-                root->addChild( kml );
-            }
-            else
-            {
-                OE_NOTICE << "Failed to load " << kmlFile << std::endl;
-            }
-        }
-
-        // Annotations in the map node externals:
-        if ( !annoConf.empty() )
-        {
-            osg::Group* annotations = 0L;
-            AnnotationRegistry::instance()->create( mapNode, annoConf, dbOptions.get(), annotations );
-            if ( annotations )
-            {
-                mapNode->addChild( annotations );
-                //root->addChild( annotations );
-            }
-        }
-
-        // Configure the de-cluttering engine for labels and annotations:
-        if ( !declutterConf.empty() )
-        {
-            Decluttering::setOptions( DeclutteringOptions(declutterConf) );
-        }
-
-        // Configure the mouse coordinate readout:
-        if ( useCoords && canvas)
-        {
-            LabelControl* readout = new LabelControl();
-            readout->setBackColor( Color(Color::Black, 0.8) );
-            readout->setHorizAlign( Control::ALIGN_RIGHT );
-            readout->setVertAlign( Control::ALIGN_BOTTOM );
-
-            Formatter* formatter =
-                useMGRS ? (Formatter*)new MGRSFormatter(MGRSFormatter::PRECISION_1M, 0L, MGRSFormatter::USE_SPACES) :
-                useDMS  ? (Formatter*)new LatLongFormatter(LatLongFormatter::FORMAT_DEGREES_MINUTES_SECONDS) :
-                useDD   ? (Formatter*)new LatLongFormatter(LatLongFormatter::FORMAT_DECIMAL_DEGREES) :
-                0L;
-
-            MouseCoordsTool* mcTool = new MouseCoordsTool( mapNode );
-            mcTool->addCallback( new MouseCoordsLabelCallback(readout, formatter) );
-            view->addEventHandler( mcTool );
-
-            canvas->addControl( readout );
-        }
-#endif // 0
-#if 0
-        // Configure for an ortho camera:
-        if ( useOrtho )
-        {
-            view->getCamera()->setProjectionMatrixAsOrtho(-1, 1, -1, 1, 0, 1);
-        //EarthManipulator* manip = dynamic_cast<EarthManipulator*>(view->getCameraManipulator());
-        //if ( manip )
-        //{
-        //    manip->getSettings()->setCameraProjection( EarthManipulator::PROJ_ORTHOGRAPHIC );
-        //}
-        }
-#endif
-
-        // activity monitor (debugging)
-        if ( showActivity && canvas)
-        {
-            osgEarth::Util::Controls::VBox* vbox = new osgEarth::Util::Controls::VBox();
-            vbox->setBackColor( osgEarth::Symbology::Color(osgEarth::Symbology::Color::Black, 0.8) );
-            vbox->setHorizAlign( osgEarth::Util::Controls::Control::ALIGN_RIGHT );
-            vbox->setVertAlign( osgEarth::Util::Controls::Control::ALIGN_BOTTOM );
-            view->addEventHandler( new osgEarth::Util::ActivityMonitorTool(vbox) );
-            canvas->addControl( vbox );
-        }
-
-        // Install an auto clip plane clamper
-        if ( useAutoClip )
-        {
-            mapNode->addCullCallback( new osgEarth::Util::AutoClipPlaneCullCallback(mapNode) );
-        }
-
-        // Install logarithmic depth buffer on main camera
-        if ( useLogDepth )
-        {
-            osgEarth::Util::LogarithmicDepthBuffer logDepth;
-            logDepth.setUseFragDepth( false );
-            logDepth.install( view->getCamera() );
-        }
-
-        else if ( useLogDepth2 )
-        {
-            osgEarth::Util::LogarithmicDepthBuffer logDepth;
-            logDepth.setUseFragDepth( true );
-            logDepth.install( view->getCamera() );
-        }
-
-        // Scan for images if necessary.
-        if ( !imageFolder.empty() )
-        {
-            std::vector<std::string> extensions;
-            if ( !imageExtensions.empty() )
-                osgEarth::StringTokenizer( imageExtensions, extensions, ",;", "", false, true );
-            if ( extensions.empty() )
-                extensions.push_back( "tif" );
-
-            osgEarth::ImageLayerVector imageLayers;
-            osgEarth::Util::DataScanner scanner;
-            scanner.findImageLayers( imageFolder, extensions, imageLayers );
-
-            if ( imageLayers.size() > 0 )
-            {
-                mapNode->getMap()->beginUpdate();
-                for( osgEarth::ImageLayerVector::iterator i = imageLayers.begin(); i != imageLayers.end(); ++i )
-                {
-                    mapNode->getMap()->addImageLayer( i->get() );
-                }
-                mapNode->getMap()->endUpdate();
-            }
-        }
-
-#if 0
-        // Install elevation morphing
-        if ( !lodBlendingConf.empty() )
-        {
-            mapNode->getTerrainEngine()->addEffect( new LODBlending(lodBlendingConf) );
-        }
-
-        // Install vertical scaler
-        if ( !vertScaleConf.empty() )
-        {
-            mapNode->getTerrainEngine()->addEffect( new VerticalScale(vertScaleConf) );
-        }
-
-        // Install a contour map effect.
-        if ( !contourMapConf.empty() )
-        {
-            mapNode->getTerrainEngine()->addEffect( new ContourMap(contourMapConf) );
-        }
-#endif
-        if (canvas)
-        {
-            // Generic named value uniform with min/max.
-            osgEarth::Util::Controls::VBox* uniformBox = 0L;
-            while (args.find("--uniform") >= 0)
-            {
-                std::string name;
-                float minval, maxval;
-                if (args.read("--uniform", name, minval, maxval))
-                {
-                    if (uniformBox == 0L)
-                    {
-                        uniformBox = new osgEarth::Util::Controls::VBox();
-                        uniformBox->setBackColor(0, 0, 0, 0.5);
-                        uniformBox->setAbsorbEvents(true);
-                        canvas->addControl(uniformBox);
-                    }
-                    osg::Uniform* uniform = new osg::Uniform(osg::Uniform::FLOAT, name);
-                    uniform->set(minval);
-                    root->getOrCreateStateSet()->addUniform(uniform, osg::StateAttribute::OVERRIDE);
-                    osgEarth::Util::Controls::HBox* box = new osgEarth::Util::Controls::HBox();
-                    box->addControl(new osgEarth::Util::Controls::LabelControl(name));
-                    osgEarth::Util::Controls::HSliderControl* hs = box->addControl(new osgEarth::Util::Controls::HSliderControl(minval, maxval, minval, new ApplyValueUniform(uniform)));
-                    hs->setHorizFill(true, 200);
-                    box->addControl(new osgEarth::Util::Controls::LabelControl(hs));
-                    uniformBox->addControl(box);
-                }
-            }
-        }
-
-        if ( inspect )
-        {
-            //mapNode->addExtension( Extension::create("mapinspector", ConfigOptions()) );
-        }
-#if 0
-        // Process extensions.
-        for(std::vector<osg::ref_ptr<Extension> >::const_iterator eiter = mapNode->getExtensions().begin();
-            eiter != mapNode->getExtensions().end();
-            ++eiter)
-        {
-            Extension* e = eiter->get();
-
-            // Check for a View interface:
-            ExtensionInterface<osg::View>* viewIF = ExtensionInterface<osg::View>::get( e );
-            if ( viewIF )
-                viewIF->connect( view );
-
-            // Check for a Control interface:
-            ExtensionInterface<Control>* controlIF = ExtensionInterface<Control>::get( e );
-            if ( controlIF )
-                controlIF->connect( mainContainer );
-        }
-#endif
-        if(canvas)
-            root->addChild( canvas );
-    }
-}
-
-void
-TEVMapNodeHelper::configureView( osgViewer::View* view ) const
-{
-    // add some stock OSG handlers:
-    view->addEventHandler(new osgViewer::StatsHandler());
-    view->addEventHandler(new osgViewer::WindowSizeHandler());
-    view->addEventHandler(new osgViewer::ThreadingHandler());
-    view->addEventHandler(new osgViewer::LODScaleHandler());
-    view->addEventHandler(new osgGA::StateSetManipulator(view->getCamera()->getOrCreateStateSet()));
-    view->addEventHandler(new osgViewer::RecordCameraPathHandler());
 }
 
 void setupWidgetAutoCloseTimer(QWidget * widget, int milliseconds)
@@ -1636,7 +1199,7 @@ main(int argc, char** argv)
     else
     {
         QString msg;
-        msg = helper.errorMessages();
+        msg = QString::fromStdString(helper.errorMessages());
         msg += "\r\nCmdline: ";
         for(int i = 0; i < argc; i++)
         {

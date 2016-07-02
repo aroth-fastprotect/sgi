@@ -11,6 +11,7 @@ namespace osgQt {
 namespace osgEarth {
     class MapNode;
     namespace Util {
+        class MapNodeHelper;
         namespace Controls {
             class Control;
             class Container;
@@ -29,6 +30,9 @@ class QPaintEvent;
 class TEVMapNodeHelper
 {
 public:
+    TEVMapNodeHelper();
+    ~TEVMapNodeHelper();
+
     /**
         * Loads a map file and processes all the built-in example command line
         * arguments and XML externals.
@@ -71,7 +75,7 @@ public:
         */
     std::string usage() const;
 
-    QString errorMessages() const;
+    std::string errorMessages() const;
 
     const std::vector<std::string> & files() const {
         return m_files;
@@ -80,6 +84,7 @@ public:
 private:
     std::stringstream m_errorMessages;
     std::vector<std::string> m_files;
+    osgEarth::Util::MapNodeHelper * _mapNodeHelper;
 };
 
 class ViewerWidget : public QMainWindow, public osgViewer::CompositeViewer
