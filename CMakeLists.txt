@@ -44,6 +44,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 	FIND_PACKAGE(OpenGL)
 	FAST_PACKAGE_QT5()
 	FAST_PACKAGE_LOG4CPLUS()
+
 	find_package(OSG 3.2.0 REQUIRED)
 	find_package(OsgEarth)
 
@@ -76,6 +77,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 	OPTION(SGI_PLUGIN_QT "Enable Qt plugin" ON)
 	OPTION(SGI_PLUGIN_LOG4CPLUS "Enable log4cplus plugin" ${LOG4CPLUS_FOUND})
     OPTION(SGI_UNITTESTS "Enable SGI unitests" ON)
+    OPTION(SGI_USE_FFMPEG "Use ffmpeg/swscale for image operations" ON)
 
 	SET(SGI_PLUGIN_IMPL_LIBRARY osgSGI-plugin-impl)
 

@@ -8,6 +8,7 @@
 #include <QDesktopWidget>
 #include <QImageWriter>
 #include <QImageReader>
+#include <QLibrary>
 
 #include "ImagePreviewDialog.moc"
 #include "ImagePreviewDialog.h"
@@ -16,6 +17,13 @@
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/helpers/qt>
 #include <sgi/helpers/osg>
+
+#ifdef SGI_USE_FFMPEG
+namespace ffmpeg {
+#include <libswscale/swscale.h>
+#include <libavutil/pixfmt.h>
+}
+#endif
 
 #include <iostream>
 
@@ -219,6 +227,243 @@ public:
 	Histogram						histogram;
 	bool							histogramReady;
 };
+
+class SWScale
+{
+private:
+    static QLibrary * library;
+    static bool loadAttempted;
+    static bool ready;
+    typedef struct ffmpeg::SwsContext * (*pfn_sws_getContext)(int srcW, int srcH, enum ffmpeg::AVPixelFormat srcFormat,
+                                  int dstW, int dstH, enum ffmpeg::AVPixelFormat dstFormat,
+                                  int flags, ffmpeg::SwsFilter *srcFilter,
+                                  ffmpeg::SwsFilter *dstFilter, const double *param);
+    typedef int (*pfn_sws_scale)(struct ffmpeg::SwsContext *c, const uint8_t *const srcSlice[],
+              const int srcStride[], int srcSliceY, int srcSliceH,
+              uint8_t *const dst[], const int dstStride[]);
+    typedef void (*pfn_sws_freeContext)(struct ffmpeg::SwsContext *swsContext);
+    static pfn_sws_getContext sws_getContext;
+    static pfn_sws_scale sws_scale;
+    static pfn_sws_freeContext sws_freeContext;
+
+    static bool load()
+    {
+        if(!loadAttempted)
+        {
+            library = new QLibrary("swscale.so");
+            if(library->load())
+            {
+                sws_getContext = (pfn_sws_getContext)library->resolve("sws_getContext");
+                sws_scale = (pfn_sws_scale)library->resolve("sws_scale");
+                sws_freeContext = (pfn_sws_freeContext)library->resolve("sws_freeContext");
+                ready = (sws_getContext != NULL && sws_scale != NULL && sws_freeContext != NULL);
+            }
+            loadAttempted = true;
+        }
+        return ready;
+    }
+
+
+    static Image::ImageFormat ImageFormatFromAVCodec(ffmpeg::AVPixelFormat pix_fmt)
+    {
+        Image::ImageFormat ret = Image::ImageFormatInvalid;
+        switch (pix_fmt)
+        {
+        case ffmpeg::AV_PIX_FMT_NONE: ret = Image::ImageFormatInvalid; break;
+        case ffmpeg::AV_PIX_FMT_RGB24: ret = Image::ImageFormatRGB24; break;
+        case ffmpeg::AV_PIX_FMT_BGR24: ret = Image::ImageFormatBGR24; break;
+
+        case ffmpeg::AV_PIX_FMT_PAL8:
+        case ffmpeg::AV_PIX_FMT_ARGB:
+        case ffmpeg::AV_PIX_FMT_RGBA: ret = Image::ImageFormatARGB32; break;
+        case ffmpeg::AV_PIX_FMT_ABGR:
+        case ffmpeg::AV_PIX_FMT_BGRA: ret = Image::ImageFormatABGR32; break;
+
+        case ffmpeg::AV_PIX_FMT_YUVJ420P:
+        case ffmpeg::AV_PIX_FMT_YUV420P: ret = Image::ImageFormatYUV420; break;
+        case ffmpeg::AV_PIX_FMT_YUVJ422P:
+        case ffmpeg::AV_PIX_FMT_YUV422P: ret = Image::ImageFormatYUV422; break;
+        case ffmpeg::AV_PIX_FMT_YUVJ444P:
+        case ffmpeg::AV_PIX_FMT_YUV444P: ret = Image::ImageFormatYUV444; break;
+        case ffmpeg::AV_PIX_FMT_YUYV422: ret = Image::ImageFormatYUYV; break;
+        case ffmpeg::AV_PIX_FMT_UYVY422: ret = Image::ImageFormatUYVY; break;
+        default:
+            Q_ASSERT_X(false, __FUNCTION__, "Unhandled frame format from avcodec");
+            break;
+        }
+        return ret;
+    }
+    static ffmpeg::AVPixelFormat ImageFormatToAVCodec(Image::ImageFormat format)
+    {
+        ffmpeg::AVPixelFormat ret = ffmpeg::AV_PIX_FMT_NONE;
+        switch (format)
+        {
+        case Image::ImageFormatRGB24: ret = ffmpeg::AV_PIX_FMT_RGB24; break;
+        case Image::ImageFormatRGB32: ret = ffmpeg::AV_PIX_FMT_RGB32; break;
+        case Image::ImageFormatARGB32: ret = ffmpeg::AV_PIX_FMT_ARGB; break;
+        case Image::ImageFormatMono: ret = ffmpeg::AV_PIX_FMT_MONOBLACK; break;
+        case Image::ImageFormatMonoLSB: ret = ffmpeg::AV_PIX_FMT_MONOBLACK; break;
+        case Image::ImageFormatIndexed8: ret = ffmpeg::AV_PIX_FMT_RGB24; break;
+        //case Image::ImageFormatFloat: ret = ffmpeg::AV_PIX_FMT_FLOAT; break;
+        case Image::ImageFormatBGR24: ret = ffmpeg::AV_PIX_FMT_BGR24; break;
+        case Image::ImageFormatBGR32: ret = ffmpeg::AV_PIX_FMT_BGR32; break;
+        case Image::ImageFormatABGR32: ret = ffmpeg::AV_PIX_FMT_ABGR; break;
+        case Image::ImageFormatYUV420: ret = ffmpeg::AV_PIX_FMT_YUV420P; break;
+        case Image::ImageFormatYUV422: ret = ffmpeg::AV_PIX_FMT_YUV422P; break;
+        case Image::ImageFormatYUV444: ret = ffmpeg::AV_PIX_FMT_YUV444P; break;
+        case Image::ImageFormatYUYV: ret = ffmpeg::AV_PIX_FMT_YUYV422; break;
+        case Image::ImageFormatUYVY: ret = ffmpeg::AV_PIX_FMT_UYVY422; break;
+        case Image::ImageFormatGray: ret = ffmpeg::AV_PIX_FMT_GRAY8; break;
+        case Image::ImageFormatRed: ret = ffmpeg::AV_PIX_FMT_GRAY8; break;
+        case Image::ImageFormatGreen: ret = ffmpeg::AV_PIX_FMT_GRAY8; break;
+        case Image::ImageFormatBlue: ret = ffmpeg::AV_PIX_FMT_GRAY8; break;
+        case Image::ImageFormatAlpha: ret = ffmpeg::AV_PIX_FMT_RGB24; break;
+        case Image::ImageFormatDepth: ret = ffmpeg::AV_PIX_FMT_RGB24; break;
+        case Image::ImageFormatLuminance: ret = ffmpeg::AV_PIX_FMT_GRAY8; break;
+        case Image::ImageFormatLuminanceAlpha: ret = ffmpeg::AV_PIX_FMT_GRAY8; break;
+        default: ret = ffmpeg::AV_PIX_FMT_NONE; break;
+        }
+        return ret;
+    }
+
+    /// @brief scale function for interleaved pixel formats (like rgb or yuyv)
+    /// @note buffer of destination frame must be large enough for the rescaled frame
+    /// @param pixelFormat pixel format of the frame (e.g. AV_PIX_FMT_RGB24)
+    /// @param src source frame
+    /// @param dest destination frame
+    static void interleaved_scale(ffmpeg::AVPixelFormat pixelFormat, const sgi::Image& src, sgi::Image& dest)
+    {
+        const uint8_t* srcdata = reinterpret_cast<const uint8_t*>(src.data());
+        const int srcPitch[1] = { (int)src.width() };
+        const unsigned srcPlaneOffset[1] = { 0 };
+        const uint8_t* srcPlanes[1] = { srcdata + srcPlaneOffset[0] };
+
+        uint8_t* dstdata = reinterpret_cast<uint8_t*>(dest.data());
+        int dstPitch[1] = { (int)dest.width() };
+        const unsigned dstPlaneOffset[1] = { 0 };
+        uint8_t * dstPlanes[1] = { dstdata + dstPlaneOffset[0] };
+
+        ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), pixelFormat,
+            dest.width(), dest.height(), pixelFormat,
+            SWS_BILINEAR, NULL, NULL, NULL);
+        sws_scale(ctx, srcPlanes, srcPitch, 0, src.height(), dstPlanes, dstPitch);
+        sws_freeContext(ctx);
+    }
+
+    /// @brief scale function for interleaved pixel formats (like YUV420)
+    /// @note buffer of destination frame must be large enough for the rescaled frame
+    /// @note this function assumes that the frame used three planes
+    /// @param pixelFormat pixel format of the frame (e.g. AV_PIX_FMT_YUV420P)
+    /// @param src source frame
+    /// @param dest destination frame
+    static void planar_scale(ffmpeg::AVPixelFormat pixelFormat, const sgi::Image& src, sgi::Image& dest)
+    {
+        const uint8_t* srcdata = reinterpret_cast<const uint8_t*>(src.data());
+        const int srcPitch[3] = { (int)src.width(), (int)src.width(), (int)src.width() };
+        const unsigned srcPlaneOffset[3] = { 0, 0, 0 };
+        const uint8_t* srcPlanes[3] = { srcdata + srcPlaneOffset[0], srcdata + srcPlaneOffset[1], srcdata + srcPlaneOffset[2] };
+
+        uint8_t* dstdata = reinterpret_cast<uint8_t*>(dest.data());
+        int dstPitch[3] = { (int)dest.width(), (int)dest.width(), (int)dest.width() };
+        const unsigned dstPlaneOffset[3] = { 0, 0, 0 };
+        uint8_t * dstPlanes[3] = { dstdata + dstPlaneOffset[0], dstdata + dstPlaneOffset[1], dstdata + dstPlaneOffset[2] };
+
+        ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), pixelFormat,
+            dest.width(), dest.height(), pixelFormat,
+            SWS_BILINEAR, NULL, NULL, NULL);
+        sws_scale(ctx, srcPlanes, srcPitch, 0, src.height(), dstPlanes, dstPitch);
+        sws_freeContext(ctx);
+    }
+
+    static bool convert(const sgi::Image& src, sgi::Image& dest)
+    {
+        ffmpeg::AVPixelFormat srcPixelFormat = ImageFormatToAVCodec(src.format());
+        ffmpeg::AVPixelFormat destPixelFormat = ImageFormatToAVCodec(dest.format());
+        if(srcPixelFormat == ffmpeg::AV_PIX_FMT_NONE)
+            return false;
+
+        const uint8_t* srcdata = reinterpret_cast<const uint8_t*>(src.data());
+        const int srcPitch[4] = { (int)src.pitch(0), (int)src.pitch(1), (int)src.pitch(2), (int)src.pitch(3) };
+        const unsigned srcPlaneOffset[4] = { src.planeOffset(0), src.planeOffset(1), src.planeOffset(2), src.planeOffset(3) };
+        const uint8_t* srcPlanes[4] = { srcdata + srcPlaneOffset[0], srcdata + srcPlaneOffset[1], srcdata + srcPlaneOffset[2], srcdata + srcPlaneOffset[3] };
+
+        uint8_t* destdata = reinterpret_cast<uint8_t*>(dest.data());
+        const int destPitch[4] = { (int)dest.pitch(0), (int)dest.pitch(1), (int)dest.pitch(2), (int)dest.pitch(3) };
+        const unsigned destPlaneOffset[4] = { dest.planeOffset(0), dest.planeOffset(1), dest.planeOffset(2), dest.planeOffset(3) };
+        uint8_t* destPlanes[4] = { destdata + destPlaneOffset[0], destdata + destPlaneOffset[1], destdata + destPlaneOffset[2], destdata + destPlaneOffset[3] };
+
+        ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
+            dest.width(), dest.height(), destPixelFormat,
+            SWS_BILINEAR, NULL, NULL, NULL);
+        sws_scale(ctx, srcPlanes, srcPitch, 0, src.height(), destPlanes, destPitch);
+        sws_freeContext(ctx);
+        return true;
+    }
+
+    static bool to_qimage_argb32(const sgi::Image& src, QImage& dest)
+    {
+        ffmpeg::AVPixelFormat srcPixelFormat = ImageFormatToAVCodec(src.format());
+        if(srcPixelFormat == ffmpeg::AV_PIX_FMT_NONE)
+            return false;
+
+        const uint8_t* srcdata = reinterpret_cast<const uint8_t*>(src.data());
+        const int srcPitch[4] = { (int)src.pitch(0), (int)src.pitch(1), (int)src.pitch(2), (int)src.pitch(3) };
+        const unsigned srcPlaneOffset[4] = { src.planeOffset(0), src.planeOffset(1), src.planeOffset(2), src.planeOffset(3) };
+        const uint8_t* srcPlanes[4] = { srcdata + srcPlaneOffset[0], srcdata + srcPlaneOffset[1], srcdata + srcPlaneOffset[2], srcdata + srcPlaneOffset[3] };
+
+        dest = QImage(src.width(), src.height(), QImage::Format_ARGB32);
+
+        uint8_t* dstdata = reinterpret_cast<uint8_t*>(dest.bits());
+        int dstPitch[1] = { (int)dest.bytesPerLine() };
+        const unsigned dstPlaneOffset[1] = { 0  };
+        uint8_t * dstPlanes[1] = { dstdata + dstPlaneOffset[0] };
+
+        ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
+            dest.width(), dest.height(), ffmpeg::AV_PIX_FMT_ARGB,
+            SWS_BILINEAR, NULL, NULL, NULL);
+        sws_scale(ctx, srcPlanes, srcPitch, 0, src.height(), dstPlanes, dstPitch);
+        sws_freeContext(ctx);
+        return true;
+    }
+
+public:
+    static bool convert(const sgi::Image& src, Image::ImageFormat destFormat, sgi::Image& dest)
+    {
+        bool ret;
+        if(destFormat == src.format())
+        {
+            dest = src;
+            ret = true;
+        }
+        else
+        {
+            ret = load();
+            if(ret)
+            {
+                ret = dest.allocate(src.width(), src.height(), destFormat);
+                if(ret)
+                    ret = convert(src, dest);
+            }
+        }
+        return ret;
+    }
+    static bool convertToQImage(const sgi::Image& src, Image::ImageFormat destFormat, QImage & dest)
+    {
+        bool ret;
+        sgi::Image tmpImage;
+        ret = convert(src, destFormat, tmpImage);
+        if(ret)
+            ret = to_qimage_argb32(tmpImage, dest);
+        return ret;
+    }
+};
+
+QLibrary * SWScale::library = NULL;
+bool SWScale::loadAttempted = false;
+bool SWScale::ready = false;
+SWScale::pfn_sws_getContext SWScale::sws_getContext = NULL;
+SWScale::pfn_sws_scale SWScale::sws_scale = NULL;
+SWScale::pfn_sws_freeContext SWScale::sws_freeContext = NULL;
 
 ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewDialog * dialog_)
     : _dialog(dialog_)
@@ -693,6 +938,7 @@ Image::ImageFormat ImagePreviewDialog::ImagePreviewDialogImpl::currentImageForma
     return ret;
 }
 
+#if !defined(SGI_USE_FFMPEG)
 bool convertImageToQImage_RGB24(const sgi::Image * image, QImage & qimage)
 {
     bool ret = false;
@@ -1074,7 +1320,7 @@ QImage convertImageToQImage(const sgi::Image * image, Image::ImageFormat destFor
             }
             if (qt_format != QImage::Format_Invalid)
             {
-                ret = QImage((uchar*)image->data(), (int)image->width(), (int)image->height(), (int)image->bytesPerLine(), qt_format);
+                ret = QImage((uchar*)image->data(), (int)image->width(), (int)image->height(), (int)image->pitch(0), qt_format);
                 if (image->origin() == Image::OriginBottomLeft)
                     ret.mirrored(false, true);
             }
@@ -1089,6 +1335,7 @@ QImage convertImageToQImage(const sgi::Image * image, Image::ImageFormat destFor
     }
     return ret;
 }
+#endif // !defined(SGI_USE_FFMPEG)
 
 namespace {
 	QTreeWidgetItem * addStatisticsValueImpl(QTreeWidgetItem * root, const QString & name, const QString & value)
@@ -1153,7 +1400,12 @@ void ImagePreviewDialog::refreshImpl()
     }
 
     Image::ImageFormat format = _priv->currentImageFormat();
+#if defined(SGI_USE_FFMPEG)
+    QImage qimg;
+    SWScale::convertToQImage(*_image.get(), format, qimg);
+#else
     QImage qimg = convertImageToQImage(_image.get(), format);
+#endif
 
 	refreshStatistics(qimg);
 

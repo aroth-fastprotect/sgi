@@ -231,7 +231,7 @@ bool writePrettyHTMLImpl<Image>::process(std::basic_ostream<char>& os)
             os << "<tr><td>width</td><td>" << object->width() << "</td></tr>" << std::endl;
             os << "<tr><td>height</td><td>" << object->height() << "</td></tr>" << std::endl;
             os << "<tr><td>depth</td><td>" << object->depth() << "</td></tr>" << std::endl;
-            os << "<tr><td>bytesPerLine</td><td>" << object->bytesPerLine() << "</td></tr>" << std::endl;
+            os << "<tr><td>pitch</td><td>" << object->pitch(0) << "," << object->pitch(1) << "," << object->pitch(2) << "," << object->pitch(3) << "</td></tr>" << std::endl;
             os << "<tr><td>origin</td><td>" << Image::originToString(object->origin()) << "</td></tr>" << std::endl;
             os << "<tr><td>format</td><td>" << Image::imageFormatToString(object->format()) << "</td></tr>" << std::endl;
             os << "<tr><td>data</td><td>" << object->data() << "</td></tr>" << std::endl;

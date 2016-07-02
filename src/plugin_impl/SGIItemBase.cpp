@@ -374,21 +374,27 @@ const SGIItemBase * SGIProxyItemBase::realItem(bool getInstance) const
 }
 
 
+Image::Image(ImageFormat format)
+    : _format(format), _origin(OriginDefault), _data(NULL), _length(0)
+    , _width(0), _height(0), _depth(0), _pitch { 0, 0, 0, 0 }, _planeOffset{0, 0, 0, 0}
+    , _originalImage(NULL), _originalImageQt(NULL)
+{
+}
 
-Image::Image(ImageFormat format, Origin origin, const void * data, size_t length,
+Image::Image(ImageFormat format, Origin origin, void * data, size_t length,
         unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
         const osg::Referenced * originalImage)
     : _format(format), _origin(origin), _data(data), _length(length)
-    , _width(width), _height(height), _depth(depth), _bytesPerLine(bytesPerLine)
+    , _width(width), _height(height), _depth(depth), _pitch { bytesPerLine, 0, 0, 0 }, _planeOffset{0, 0, 0, 0}
     , _originalImage(originalImage), _originalImageQt(NULL)
 {
 
 }
-Image::Image(ImageFormat format, Origin origin, const void * data, size_t length,
+Image::Image(ImageFormat format, Origin origin, void * data, size_t length,
     unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
     QImage * originalImage)
     : _format(format), _origin(origin), _data(data), _length(length)
-    , _width(width), _height(height), _depth(depth), _bytesPerLine(bytesPerLine)
+    , _width(width), _height(height), _depth(depth), _pitch { bytesPerLine, 0, 0, 0 }, _planeOffset{0, 0, 0, 0}
     , _originalImage(NULL), _originalImageQt((originalImage)?new QImage(*originalImage):NULL)
 {
 
@@ -434,7 +440,8 @@ namespace {
 Image::Image(QImage * originalImage)
     : _format(imageFormatFromQImage(originalImage->format()))
     , _origin(OriginTopLeft), _data(NULL), _length(0)
-    , _width(originalImage->width()), _height(originalImage->height()), _depth(1), _bytesPerLine(originalImage->bytesPerLine())
+    , _width(originalImage->width()), _height(originalImage->height()), _depth(1), _pitch { (unsigned)originalImage->bytesPerLine(), 0, 0, 0 }
+    , _planeOffset{0, 0, 0, 0}
     , _originalImage(NULL), _originalImageQt((originalImage) ? new QImage(*originalImage) : NULL)
 {
     _data = _originalImageQt->bits();
@@ -443,7 +450,9 @@ Image::Image(QImage * originalImage)
 
 Image::Image(const Image & rhs)
     : _format(rhs._format), _origin(rhs._origin), _data(rhs._data), _length(rhs._length)
-    , _width(rhs._width), _height(rhs._height), _depth(rhs._depth), _bytesPerLine(rhs._bytesPerLine)
+    , _width(rhs._width), _height(rhs._height), _depth(rhs._depth)
+    , _pitch { rhs._pitch[0], rhs._pitch[1], rhs._pitch[2], rhs._pitch[3] }
+    , _planeOffset { rhs._planeOffset[0], rhs._planeOffset[1], rhs._planeOffset[2], rhs._planeOffset[3] }
     , _originalImage(rhs._originalImage), _originalImageQt(rhs._originalImageQt)
 {
 
@@ -464,10 +473,108 @@ Image & Image::operator=(const Image & rhs)
     _width = rhs._width;
     _height = rhs._height;
     _depth = rhs._depth;
-    _bytesPerLine = rhs._bytesPerLine;
+    _pitch[0] = rhs._pitch[0];
+    _pitch[1] = rhs._pitch[1];
+    _pitch[2] = rhs._pitch[2];
+    _pitch[3] = rhs._pitch[3];
+    _planeOffset[0] = rhs._planeOffset[0];
+    _planeOffset[1] = rhs._planeOffset[1];
+    _planeOffset[2] = rhs._planeOffset[2];
+    _planeOffset[3] = rhs._planeOffset[3];
     _originalImage = rhs._originalImage;
     _originalImageQt = rhs._originalImageQt;
     return *this;
+}
+
+
+bool Image::allocate(unsigned width, unsigned height, ImageFormat format)
+{
+    bool ret = false;
+    unsigned frameSize = 0;
+    switch (format)
+    {
+    default:
+    case ImageFormatAutomatic:
+    case ImageFormatInvalid:
+    case ImageFormatRaw:
+        Q_ASSERT_X(false, __FUNCTION__, "invalid frame format");
+        break;
+    case ImageFormatRGB24:
+    case ImageFormatBGR24:
+        {
+            frameSize = width * height * 3;
+            _pitch[0] = width * 3;
+            _pitch[1] = _pitch[2] = _pitch[3] = 0;
+            _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+        }
+        break;
+    case ImageFormatRGB32:
+    case ImageFormatARGB32:
+    case ImageFormatBGR32:
+    case ImageFormatABGR32:
+    case ImageFormatFloat:
+        {
+            frameSize = width * height * 4;
+            _pitch[0] = width * 4;
+            _pitch[1] = _pitch[2] = _pitch[3] = 0;
+            _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+        }
+        break;
+    case ImageFormatYUV444:
+        {
+            frameSize = width * height * 3;
+            _pitch[0] = _pitch[1] = _pitch[2] = width * 3;
+            _pitch[3] = 0;
+            _planeOffset[0] = 0;
+            _planeOffset[1] = width * height * 3;
+            _planeOffset[2] = _planeOffset[1] << 1;
+            _planeOffset[3] = 0;
+        }
+        break;
+    case ImageFormatYUV422:
+        {
+            frameSize = width * height * 2;
+            _pitch[0] = width;
+            _pitch[1] = _pitch[2] = width / 2;
+            _pitch[3] = 0;
+            _planeOffset[0] = 0;
+            _planeOffset[1] = width * height;
+            _planeOffset[2] = _planeOffset[1] + (_planeOffset[1] >> 1);
+            _planeOffset[3] = 0;
+        }
+        break;
+    case ImageFormatYUV420:
+        {
+            frameSize = width * height + (width / 2 * height/2);
+            _pitch[0] = width;
+            _pitch[1] = _pitch[2] = width / 2;
+            _pitch[3] = 0;
+            _planeOffset[0] = 0;
+            _planeOffset[1] = width * height;
+            _planeOffset[2] = _planeOffset[1] + (_planeOffset[1] >> 2);
+            _planeOffset[3] = 0;
+        }
+        break;
+
+    case ImageFormatYUYV:
+    case ImageFormatUYVY:
+        {
+            frameSize = width * height * 2;
+            _pitch[0] = width;
+            _pitch[1] = _pitch[2] = _pitch[3] = 0;
+            _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+        }
+        break;
+    }
+    if(frameSize)
+    {
+        _data = malloc(frameSize);
+        _width = width;
+        _height = height;
+        _format = format;
+        ret = _data != NULL;
+    }
+    return ret;
 }
 
 std::string Image::imageFormatToString(ImageFormat format)

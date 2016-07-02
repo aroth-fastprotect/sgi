@@ -825,7 +825,7 @@ const sgi::Image * convertImage(const osg::Image * image)
     if(imageFormat != sgi::Image::ImageFormatInvalid)
     {
         ret = new sgi::Image(imageFormat, origin,
-                            image->data(), image->getTotalDataSize(),
+                            const_cast<unsigned char*>(image->data()), image->getTotalDataSize(),
                             image->s(), image->t(), image->r(), image->getRowStepInBytes(),
                             image);
     }
@@ -834,7 +834,7 @@ const sgi::Image * convertImage(const osg::Image * image)
         QImage * qimage = new QImage;
         osgImageToQImage(image, qimage);
         ret = new sgi::Image(imageFormat, origin,
-            image->data(), image->getTotalDataSize(),
+            const_cast<unsigned char*>(image->data()), image->getTotalDataSize(),
             image->s(), image->t(), image->r(), image->getRowStepInBytes(),
             qimage);
     }

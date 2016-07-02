@@ -318,12 +318,13 @@ public:
     };
     static std::string originToString(Origin o);
 
-    Image(ImageFormat format=ImageFormatInvalid, Origin origin=OriginDefault, const void * data=NULL, size_t length=0,
+    Image(ImageFormat format=ImageFormatInvalid);
+    Image(ImageFormat format, Origin origin=OriginDefault, void * data=NULL, size_t length=0,
           unsigned width=0, unsigned height=0, unsigned depth=0, unsigned bytesPerLine=0,
           const osg::Referenced * originalImage=NULL);
-	Image(ImageFormat format = ImageFormatInvalid, Origin origin = OriginDefault, const void * data = NULL, size_t length = 0,
-		unsigned width = 0, unsigned height = 0, unsigned depth = 0, unsigned bytesPerLine = 0,
-		QImage * originalImage = NULL);
+    Image(ImageFormat format, Origin origin=OriginDefault, void * data=NULL, size_t length=0,
+          unsigned width=0, unsigned height=0, unsigned depth=0, unsigned bytesPerLine=0,
+          QImage * originalImage=NULL);
     Image(QImage * originalImage);
     Image(const Image & rhs);
     Image & operator=(const Image & rhs);
@@ -331,25 +332,28 @@ public:
 
     ImageFormat format() const { return _format; }
     const void * data() const { return _data; }
-    const void * data() { return _data; }
+    void * data() { return _data; }
     size_t length() const { return _length; }
     unsigned width() const { return _width; }
     unsigned height() const { return _height; }
     unsigned depth() const { return _depth; }
-    unsigned bytesPerLine() const { return _bytesPerLine; }
+    unsigned pitch(unsigned index=0) const { return _pitch[index]; }
+    unsigned planeOffset(unsigned index=0) const { return _planeOffset[index]; }
     const osg::Referenced * originalImage() const { return _originalImage.get(); }
 	QImage * originalImageQt() const { return _originalImageQt; }
     Origin origin() const { return _origin; }
+    bool allocate(unsigned width, unsigned height, ImageFormat format);
 
 protected:
     ImageFormat _format;
     Origin _origin;
-    const void * _data;
+    void * _data;
     size_t _length;
     unsigned _width;
     unsigned _height;
     unsigned _depth;
-    unsigned _bytesPerLine;
+    unsigned _pitch[4];
+    unsigned _planeOffset[4];
     osg::ref_ptr<const osg::Referenced> _originalImage;
 	QImage * _originalImageQt;
 };
