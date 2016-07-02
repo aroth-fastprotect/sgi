@@ -2,13 +2,85 @@
 
 #include <QMainWindow>
 #include <osgViewer/CompositeViewer>
+#include <sstream>
 
 namespace osgQt {
     class GraphicsWindowQt;
 }
 
+namespace osgEarth {
+    class MapNode;
+    namespace Util {
+        namespace Controls {
+            class Control;
+            class Container;
+            class LabelControl;
+        }
+    }
+}
+
 class QTimer;
 class QPaintEvent;
+
+/**
+    * Parses a set of built-in example arguments. Any Controls created by parsing
+    * command-line parameters will appear in the lower-left corner of the display.
+    */
+class TEVMapNodeHelper
+{
+public:
+    /**
+        * Loads a map file and processes all the built-in example command line
+        * arguments and XML externals.
+        */
+    osg::Group* load(
+        osg::ArgumentParser& args,
+        osgViewer::View*     view,
+        osgEarth::Util::Controls::Container* userContainer = 0L);
+
+    void parse(
+        osgEarth::MapNode*             mapNode,
+        osg::ArgumentParser& args,
+        osgViewer::View*     view,
+        osg::Group*          parentGroup,
+        osgEarth::Util::Controls::LabelControl* userLabel);
+
+    /**
+        * Takes an existing map node and processes all the built-in example command
+        * line arguments and mapNode externals.
+        */
+    void parse(
+        osgEarth::MapNode*             mapNode,
+        osg::ArgumentParser& args,
+        osgViewer::View*     view,
+        osg::Group*          parentGroup =0L,
+        osgEarth::Util::Controls::Container* userContainer=0L);
+
+    /**
+        * Configures a view with a stock set of event handlers that are useful
+        * for demos, and performs some other common view configuration for osgEarth.
+        */
+    void configureView( osgViewer::View* view ) const;
+
+    void setupInitialPosition( osgViewer::View* view, int viewpointNum=-1, const std::string & viewpointName=std::string() ) const;
+
+    osg::Group * setupRootGroup(osg::Group * root);
+
+    /**
+        * Returns a usage string
+        */
+    std::string usage() const;
+
+    QString errorMessages() const;
+
+    const std::vector<std::string> & files() const {
+        return m_files;
+    }
+
+private:
+    std::stringstream m_errorMessages;
+    std::vector<std::string> m_files;
+};
 
 class ViewerWidget : public QMainWindow, public osgViewer::CompositeViewer
 {
@@ -17,7 +89,9 @@ public:
     ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent=0);
     virtual ~ViewerWidget();
 
-    osgViewer::View * mainView();
+    osgViewer::View * view();
+    bool createCamera();
+    void setData(osg::Node * node);
 
 protected slots:
     void onTimer();
@@ -30,5 +104,5 @@ protected:
 protected:
     QTimer * _timer;
     osg::ref_ptr<osgQt::GraphicsWindowQt> _mainGW;
-    osg::ref_ptr<osgViewer::View> _mainView;
+    osg::ref_ptr<osgViewer::View> _view;
 };
