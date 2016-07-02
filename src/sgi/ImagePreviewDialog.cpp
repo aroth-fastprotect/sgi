@@ -254,6 +254,8 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
 	QList<int> sizes = QList<int>() << (w * 3 / 4) << (w / 4);
 	ui->splitter->setSizes(sizes);
 
+    ui->scrollArea->setWidgetResizable(true);
+
 	ui->tabWidget->setCurrentIndex(0);
 }
 
@@ -292,14 +294,12 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::setImageInfo(const std::string 
 	ui->scrollArea->horizontalScrollBar()->setValue(0);
 	ui->scrollArea->verticalScrollBar()->setValue(0);
 
-	fitToWindowAction->setEnabled(true);
-
-	if (fitToWindowAction->isChecked())
-		fitToWindow();
-	else
-		normalSize();
-
-	updateToolbar();
+    bool fitToWindow = fitToWindowAction->isChecked();
+    ui->scrollArea->setWidgetResizable(fitToWindow);
+    if (!fitToWindow) {
+        normalSize();
+    }
+    updateToolbar();
 }
 
 //! [9]
@@ -370,7 +370,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 
 	normalSizeAction = new QAction(tr("&Normal Size"), _dialog);
 	normalSizeAction->setIcon(QIcon::fromTheme("zoom-original"));
-	normalSizeAction->setShortcut(tr("Ctrl+O"));
+	normalSizeAction->setShortcut(tr("Ctrl+0"));
 	normalSizeAction->setEnabled(false);
 	connect(normalSizeAction, &QAction::triggered, this, &ImagePreviewDialogImpl::normalSize);
 
@@ -378,6 +378,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 	fitToWindowAction->setIcon(QIcon::fromTheme("zoom-fit-best"));
 	fitToWindowAction->setEnabled(false);
 	fitToWindowAction->setCheckable(true);
+    fitToWindowAction->setChecked(true);
 	fitToWindowAction->setShortcut(tr("Ctrl+F"));
 	connect(fitToWindowAction, &QAction::triggered, this, &ImagePreviewDialogImpl::fitToWindow);
 
@@ -396,7 +397,6 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 	connect(flipVerticalAction, &QAction::triggered, this, &ImagePreviewDialogImpl::flipVertical);
 
     imageFormat = new QComboBox(_dialog);
-
     imageFormat->addItem(tr("Automatic"), QVariant::fromValue((int)Image::ImageFormatAutomatic));
     imageFormat->addItem(tr("RGB 24-bit"), QVariant::fromValue((int)Image::ImageFormatRGB24));
     imageFormat->addItem(tr("RGB 32-bit"), QVariant::fromValue((int)Image::ImageFormatRGB32));
@@ -418,6 +418,8 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 	toolBar->addAction(fitToWindowAction);
 	toolBar->addAction(flipHorizontalAction);
 	toolBar->addAction(flipVerticalAction);
+
+    updateToolbar();
 }
 //! [20]
 
@@ -425,6 +427,10 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 void ImagePreviewDialog::ImagePreviewDialogImpl::updateToolbar()
 //! [21] //! [22]
 {
+    bool isImageOk = _dialog->_image.valid();
+    imageFormat->setEnabled(isImageOk);
+    saveAction->setEnabled(isImageOk);
+    fitToWindowAction->setEnabled(isImageOk);
 	zoomInAction->setEnabled(!fitToWindowAction->isChecked());
 	zoomOutAction->setEnabled(!fitToWindowAction->isChecked());
 	normalSizeAction->setEnabled(!fitToWindowAction->isChecked());
@@ -1157,6 +1163,7 @@ void ImagePreviewDialog::refreshImpl()
         _priv->ui->imageLabel->setPixmap(QPixmap::fromImage(qimg));
     else
         _priv->ui->imageLabel->setPixmap(QPixmap());
+    _priv->ui->imageLabel->setScaledContents(!_priv->fitToWindowAction->isChecked());
 
     std::stringstream ss;
     ss << "<i>Info for displayed image:</i><br/>\r\n";
