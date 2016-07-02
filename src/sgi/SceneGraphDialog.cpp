@@ -128,29 +128,34 @@ void SceneGraphDialog::init()
     mainLayout->insertWidget(0, _toolBar);
 
     _comboBoxPath = new QComboBox(_toolBar);
-    connect(_comboBoxPath, SIGNAL(activated(int)), this, SLOT(selectItemFromPath(int)));
+    connect(_comboBoxPath, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this, &SceneGraphDialog::selectItemFromPath);
 
     _actionReloadSelected = new QAction(tr("Reload"), this);
-	_actionReloadSelected->setIcon(QIcon::fromTheme("view-refresh"));
-    connect(_actionReloadSelected, SIGNAL(triggered()), this, SLOT(reloadSelectedItem()));
+    _actionReloadSelected->setToolTip(tr("Reload only the selected item and its childs"));
+	_actionReloadSelected->setIcon(QIcon::fromTheme("edit-undo"));
+    connect(_actionReloadSelected, &QAction::triggered, this, &SceneGraphDialog::reloadSelectedItem);
 
     _actionReload = new QAction(tr("Reload All"), this);
+    _actionReload->setToolTip(tr("Reload all items in the tree and all their children"));
 	_actionReload->setIcon(QIcon::fromTheme("system-reboot"));
-	connect(_actionReload, SIGNAL(triggered()), this, SLOT(reload()));
+	connect(_actionReload, &QAction::triggered, this, &SceneGraphDialog::reload);
 
     _actionItemPrevious = new QAction(tr("Previous"), this);
+    _actionItemPrevious->setToolTip(tr("Select the previous item from the combo box"));
 	_actionItemPrevious->setIcon(QIcon::fromTheme("arrow-left"));
-    connect(_actionItemPrevious, SIGNAL(triggered()), this, SLOT(itemPrevious()));
+    connect(_actionItemPrevious, &QAction::triggered, this, &SceneGraphDialog::itemPrevious);
     _actionItemNext = new QAction(tr("Next"), this);
+    _actionItemNext->setToolTip(tr("Select the next item from the combo box"));
 	_actionItemNext->setIcon(QIcon::fromTheme("arrow-right"));
-	connect(_actionItemNext, SIGNAL(triggered()), this, SLOT(itemNext()));
+	connect(_actionItemNext, &QAction::triggered, this, &SceneGraphDialog::itemNext);
 
     _spinBoxRefreshTime = new QSpinBox(_toolBar);
+    _spinBoxRefreshTime->setToolTip(tr("Automatically reloads the information every X seconds."));
     _spinBoxRefreshTime->setMinimum(0);
     _spinBoxRefreshTime->setMaximum(600);
     _spinBoxRefreshTime->setPrefix("Refresh ");
     _spinBoxRefreshTime->setSuffix("s");
-    connect(_spinBoxRefreshTime, SIGNAL(valueChanged(int)), this, SLOT(refreshTimeChanged(int)));
+    connect(_spinBoxRefreshTime, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &SceneGraphDialog::refreshTimeChanged);
 
     _toolBar->addAction(_actionReloadSelected);
     _toolBar->addAction(_actionReload);
@@ -164,7 +169,7 @@ void SceneGraphDialog::init()
     QToolButton * toolsMenuButton = new QToolButton(this);
     toolsMenuButton->setMenu(_toolsMenu);
     toolsMenuButton->setText(tr("Tools"));
-	toolsMenuButton->setIcon(QIcon::fromTheme("applications-system"));
+	toolsMenuButton->setIcon(QIcon::fromTheme("tool-measure"));
     toolsMenuButton->setPopupMode(QToolButton::MenuButtonPopup);
 
     _toolBar->addWidget(toolsMenuButton);
@@ -706,7 +711,7 @@ void SceneGraphDialog::refreshTimeChanged ( int n )
     if(!_refreshTimer)
     {
         _refreshTimer = new QTimer(this);
-        connect(_refreshTimer, SIGNAL(timeout()), this, SLOT(refreshTimerExpired()));
+        connect(_refreshTimer, &QTimer::timeout, this, &SceneGraphDialog::refreshTimerExpired);
     }
     if(n > 0)
         _refreshTimer->start(n * 1000);
