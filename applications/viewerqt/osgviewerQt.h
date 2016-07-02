@@ -80,11 +80,13 @@ public:
     const std::vector<std::string> & files() const {
         return m_files;
     }
+    bool onlyImages() const { return _onlyImages; }
 
 private:
     std::stringstream m_errorMessages;
     std::vector<std::string> m_files;
     osgEarth::Util::MapNodeHelper * _mapNodeHelper;
+    bool _onlyImages;
 };
 
 class ViewerWidget : public QMainWindow, public osgViewer::CompositeViewer

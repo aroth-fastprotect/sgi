@@ -568,8 +568,11 @@ bool iequals(const std::string& a, const std::string& b)
 }
 
 TEVMapNodeHelper::TEVMapNodeHelper()
+    : m_errorMessages()
+    , m_files()
+    , _mapNodeHelper(new osgEarth::Util::MapNodeHelper)
+    , _onlyImages(false)
 {
-    _mapNodeHelper = new osgEarth::Util::MapNodeHelper;
 }
 
 TEVMapNodeHelper::~TEVMapNodeHelper()
@@ -675,6 +678,7 @@ TEVMapNodeHelper::load(osg::ArgumentParser& args,
     osgDB::Registry * registry = osgDB::Registry::instance();
     bool hasAtLeastOneNode = false;
     bool hasAtLeastOneObject = false;
+    bool hasAtLeastOneImage = false;
 
     // a root node to hold everything:
     bool previousWasOption = false;
@@ -724,7 +728,6 @@ TEVMapNodeHelper::load(osg::ArgumentParser& args,
                             rr = osgDB::readRefHeightFieldFile(arg,registry->getOptions());
                         if(rr.validObject())
                         {
-                            hasAtLeastOneObject = true;
                             if (rr.validNode())
                             {
                                 hasAtLeastOneNode = true;
@@ -734,7 +737,7 @@ TEVMapNodeHelper::load(osg::ArgumentParser& args,
                             }
                             else if(rr.validImage())
                             {
-                                hasAtLeastOneNode = true;
+                                hasAtLeastOneImage = true;
                                 osg::ref_ptr<osg::Image> image = rr.takeImage();
                                 osg::Node * node = sgi::osg_helpers::createNodeForImage(image.get());
                                 sgi::osg_helpers::tagNodeForObjectTree(node, arg);
@@ -742,6 +745,7 @@ TEVMapNodeHelper::load(osg::ArgumentParser& args,
                             }
                             else
                             {
+                                hasAtLeastOneObject = true;
                                 osg::UserDataContainer * container = root->getOrCreateUserDataContainer();
                                 osg::ref_ptr<osg::Object> obj = rr.takeObject();
                                 //obj->setUserValue("sgi_tree_item", true);
@@ -783,11 +787,14 @@ TEVMapNodeHelper::load(osg::ArgumentParser& args,
             i++;
     }
 
-    if ( !hasAtLeastOneNode && !hasAtLeastOneObject )
+    if ( !hasAtLeastOneNode && !hasAtLeastOneObject && !hasAtLeastOneImage)
     {
-        m_errorMessages << "No .earth file or 3D model file specified in the command line." << std::endl;
+        m_errorMessages << "No .earth, 3D model or image file/url specified in the command line." << std::endl;
         return 0L;
     }
+
+    // check if we only got one image and nothing else
+    _onlyImages = ( !hasAtLeastOneNode && !hasAtLeastOneObject && hasAtLeastOneImage);
 
     osg::ref_ptr<osgEarth::MapNode> mapNode = osgEarth::MapNode::findMapNode(root);
     if(mapNode.valid())
@@ -1074,6 +1081,7 @@ main(int argc, char** argv)
     osg::Node* node = helper.load( arguments, view );
     if ( node )
     {
+        bool showImagePreviewDialog = helper.onlyImages() ? true : false;
 		osg::ref_ptr<osg::Group> root = new osg::Group;
 		root->addChild(node);
 
@@ -1085,6 +1093,7 @@ main(int argc, char** argv)
             else
                 opts = new osgDB::Options;
             opts->setPluginStringData("showSceneGraphDialog", showSceneGraphInspector ? "1" : "0");
+            opts->setPluginStringData("showImagePreviewDialog", showImagePreviewDialog ? "1" : "0");
             osg::ref_ptr<osg::Node> sgi_loader = osgDB::readRefNodeFile(".sgi_loader", opts);
             if(sgi_loader.valid())
                 root->addChild(sgi_loader);

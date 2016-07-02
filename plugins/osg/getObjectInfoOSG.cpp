@@ -58,6 +58,8 @@ WRITE_OBJECT_FILE_IMPL_REGISTER(osg::Object)
 WRITE_OBJECT_FILE_IMPL_REGISTER(osg::Node)
 WRITE_OBJECT_FILE_IMPL_REGISTER(osg::Image)
 
+CONVERT_TO_IMAGE_CONVERT_IMPL_DECLARE_AND_REGISTER(osg::Image)
+
 using namespace sgi::osg_helpers;
 
 //--------------------------------------------------------------------------------
@@ -520,6 +522,17 @@ bool writeObjectFileImpl<osg::Image>::process(const std::string& filename, const
         break;
     }
     return ret;
+}
+
+//--------------------------------------------------------------------------------
+// convertToImageConvertImpl
+//--------------------------------------------------------------------------------
+bool convertToImageConvertImpl<osg::Image>::convert()
+{
+    osg::Image* object = getObject<osg::Image,SGIItemOsg>();
+
+    *_image = const_cast<sgi::Image*>(osg_helpers::convertImage(object));
+    return true;
 }
 
 } // namespace osg_plugin

@@ -63,7 +63,7 @@ public:
 	virtual IHostCallback * hostCallback() = 0;
 	virtual void setHostCallback(IHostCallback * callback) = 0;
 
-    virtual bool generateItem(osg::ref_ptr<SGIItemBase> & item, const SGIHostItemBase * object) = 0;
+    virtual bool generateItem(SGIItemBasePtr & item, const SGIHostItemBase * object) = 0;
 
     virtual bool writePrettyHTML(std::basic_ostream<char>& os, const SGIHostItemBase * object, bool table=true) = 0;
     virtual bool writePrettyHTML(std::basic_ostream<char>& os, const SGIItemBase * item, bool table=true) = 0;
@@ -118,6 +118,7 @@ public:
     virtual bool inputDialogString(QWidget *parent, std::string & text, const std::string & label, const std::string & windowTitle, InputDialogStringEncoding encoding=InputDialogStringEncodingSystem, SGIItemBase * item=NULL) = 0;
     virtual bool inputDialogText(QWidget *parent, std::string & text, const std::string & label, const std::string & windowTitle, InputDialogStringEncoding encoding=InputDialogStringEncodingSystem, SGIItemBase * item=NULL) = 0;
     virtual bool inputDialogInteger(QWidget *parent, int & number, const std::string & label, const std::string & windowTitle, int minNumber, int maxNumber, int step=1, SGIItemBase * item=NULL) = 0;
+    virtual bool inputDialogInteger64(QWidget *parent, int64_t & number, const std::string & label, const std::string & windowTitle, int64_t minNumber, int64_t maxNumber, int step=1, SGIItemBase * item=NULL) = 0;
     virtual bool inputDialogDouble(QWidget *parent, double & number, const std::string & label, const std::string & windowTitle, double minNumber, double maxNumber, int decimals=1, SGIItemBase * item=NULL) = 0;
     virtual bool inputDialogBitmask(QWidget *parent, unsigned & number, const std::string & label, const std::string & windowTitle, SGIItemBase * item=NULL) = 0;
     virtual bool inputDialogColor(QWidget *parent, Color & color, const std::string & label, const std::string & windowTitle, SGIItemBase * item=NULL) = 0;
@@ -153,6 +154,9 @@ public:
     virtual bool registerNamedEnumValue(const std::string & enumname, int value, const std::string & valuename) = 0;
     virtual bool registerNamedEnumValues(const std::string & enumname, const std::map<int, std::string> & values) = 0;
     virtual bool namedEnumValueToString(const std::string & enumname, std::string & text, int value) = 0;
+
+    virtual bool convertToImage(ImagePtr & image, const SGIHostItemBase * object) = 0;
+    virtual bool convertToImage(ImagePtr & image, const SGIItemBase * item) = 0;
 };
 
 class SGIPluginInterface : public osg::Object
@@ -238,6 +242,12 @@ public:
         virtual bool repaint() = 0;
     };
     virtual GUIAdapter * getGUIAdapter() = 0;
+    class ConvertToImage
+    {
+    public:
+        virtual bool convert(ImagePtr & image, const SGIItemBase * object) = 0;
+    };
+    virtual ConvertToImage * getConvertToImage() = 0;
 
     static SGIPluginHostInterface * hostInterface() { return _hostInterface; }
 

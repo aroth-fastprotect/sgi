@@ -183,16 +183,14 @@ bool actionHandlerImpl<MenuActionWidgetGrab>::execute()
     SGIItemBasePtr pixmapItem;
     _hostInterface->generateItem(pixmapItem, &pixmapHostItem);
 
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogImagePreview, menu()->parentWidget(), hostCallback());
-    ret = _hostInterface->openSettingsDialog(dialog, pixmapItem, info);
-    if(ret)
+    IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), pixmapItem.get());
+
+    if(dialog.valid())
     {
-        if(dialog.valid())
-            dialog->show();
+        dialog->setObject(pixmapItem.get(), hostCallback());
+        dialog->show();
     }
-    return ret;
+    return true;
 }
 
 bool actionHandlerImpl<MenuActionWidgetSetVisibility>::execute()
@@ -309,8 +307,8 @@ bool actionHandlerImpl<MenuActionObjectModifyProperty>::execute()
     case QVariant::LongLong:
         {
             qlonglong propertyValueInt = propertyValue.value<qlonglong>();
-            bool gotInput = _hostInterface->inputDialogInteger(menuAction()->menu()->parentWidget(),
-                (int&)propertyValueInt, propertyName, "Set property " + propertyName, std::numeric_limits<qlonglong>::min(), std::numeric_limits<qlonglong>::max(), 1, _item);
+            bool gotInput = _hostInterface->inputDialogInteger64(menuAction()->menu()->parentWidget(),
+                (int64_t&)propertyValueInt, propertyName, "Set property " + propertyName, std::numeric_limits<qlonglong>::min(), std::numeric_limits<qlonglong>::max(), 1, _item);
             if (gotInput)
             {
                 propertyValue = QVariant::fromValue(propertyValueInt);
@@ -321,8 +319,8 @@ bool actionHandlerImpl<MenuActionObjectModifyProperty>::execute()
     case QVariant::ULongLong:
         {
             qulonglong propertyValueInt = propertyValue.value<qulonglong>();
-            bool gotInput = _hostInterface->inputDialogInteger(menuAction()->menu()->parentWidget(),
-                (int&)propertyValueInt, propertyName, "Set property " + propertyName, std::numeric_limits<qulonglong>::min(), std::numeric_limits<qulonglong>::max(), 1, _item);
+            bool gotInput = _hostInterface->inputDialogInteger64(menuAction()->menu()->parentWidget(),
+                (int64_t&)propertyValueInt, propertyName, "Set property " + propertyName, std::numeric_limits<qulonglong>::min(), std::numeric_limits<qulonglong>::max(), 1, _item);
             if (gotInput)
             {
                 propertyValue = QVariant::fromValue(propertyValueInt);

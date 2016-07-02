@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sgi/plugins/GetObjectInfoImpl>
+#include <sgi/plugins/ConvertToImageImpl>
 #include <sgi/plugins/SGIHostItemOsg.h>
 
 namespace osg {
@@ -117,6 +118,11 @@ WRITE_OBJECT_FILE_IMPL_TEMPLATE()
 WRITE_OBJECT_FILE_IMPL_DECLARE(osg::Object)
 WRITE_OBJECT_FILE_IMPL_DECLARE(osg::Node)
 WRITE_OBJECT_FILE_IMPL_DECLARE(osg::Image)
+
+//--------------------------------------------------------------------------------
+// convertToImageConvertImpl
+//--------------------------------------------------------------------------------
+CONVERT_TO_IMAGE_CONVERT_IMPL_TEMPLATE()
 
 } // namespace osg_plugin
 } // namespace sgi

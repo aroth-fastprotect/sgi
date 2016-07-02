@@ -501,7 +501,8 @@ typedef SGIPluginImplementationT<       generateItemImpl,
                                         settingsDialogCreateImpl,
                                         defaultPluginGuiAdapterParentWidgetImpl,
                                         guiAdapterSetViewImpl,
-                                        getOrCreateObjectLoggerImpl
+                                        getOrCreateObjectLoggerImpl,
+                                        convertToImageConvertImpl
                                         >
     SGIPluginImpl;
 } // namespace osg_plugin

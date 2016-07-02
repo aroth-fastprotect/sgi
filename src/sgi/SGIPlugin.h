@@ -44,6 +44,7 @@ public:
         , contextMenuInterface(NULL)
         , settingsDialogInterface(NULL)
         , guiAdapterInterface(NULL)
+        , convertToImage(NULL)
         , _pluginScore(0)
     {
     }
@@ -59,6 +60,7 @@ public:
         , contextMenuInterface(rhs.contextMenuInterface)
         , settingsDialogInterface(rhs.settingsDialogInterface)
         , guiAdapterInterface(rhs.guiAdapterInterface)
+        , convertToImage(rhs.convertToImage)
         , _pluginScore(rhs._pluginScore)
     {
     }
@@ -75,6 +77,7 @@ public:
     SGIPluginInterface::ContextMenu*        contextMenuInterface;
     SGIPluginInterface::SettingsDialog*     settingsDialogInterface;
     SGIPluginInterface::GUIAdapter*         guiAdapterInterface;
+    SGIPluginInterface::ConvertToImage*     convertToImage;
     unsigned                                _pluginScore;
 };
 
@@ -153,6 +156,9 @@ public:
 
     bool parentWidget(QWidgetPtr & widget, const SGIHostItemBase * item);
     bool parentWidget(QWidgetPtr & widget, SGIItemBase * item);
+
+    bool convertToImage(ImagePtr & image, const SGIHostItemBase * item);
+    bool convertToImage(ImagePtr & image, const SGIItemBase * item);
 
 public:
     static SGIPlugins * instance(bool erase=false);

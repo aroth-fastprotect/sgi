@@ -15,7 +15,9 @@
 #include "SGIPlugin.h"
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/helpers/qt>
+#include <sgi/helpers/osg>
 
+#include <iostream>
 
 namespace sgi {
 
@@ -264,6 +266,11 @@ ImagePreviewDialog::ImagePreviewDialogImpl::~ImagePreviewDialogImpl()
 void ImagePreviewDialog::ImagePreviewDialogImpl::refresh()
 {
 	setNodeInfo(_dialog->_item.get());
+    if(!_dialog->_image.valid())
+    {
+        if(_dialog->_hostInterface->convertToImage(_dialog->_itemImage, _dialog->_item.get()))
+            _dialog->_image = _dialog->_itemImage;
+    }
     setImageInfo(_dialog->_image.get());
 	_dialog->refreshImpl();
 }
@@ -1020,8 +1027,10 @@ bool convertImageToQImage_BGR32(const sgi::Image * image, QImage & qimage)
 
 QImage convertImageToQImage(const sgi::Image * image, Image::ImageFormat destFormat)
 {
-    bool convertOk = false;
     QImage ret;
+    if(!image)
+        return ret;
+    bool convertOk = false;
     switch (destFormat)
     {
     case Image::ImageFormatInvalid:

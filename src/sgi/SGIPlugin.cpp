@@ -322,6 +322,10 @@ public:
         {
             return _impl->inputDialogInteger(parent, number, label, windowTitle, minNumber, maxNumber, step, item);
         }
+        bool inputDialogInteger64(QWidget *parent, int64_t & number, const std::string & label, const std::string & windowTitle, int64_t minNumber, int64_t maxNumber, int step, SGIItemBase * item)
+        {
+            return _impl->inputDialogInteger64(parent, number, label, windowTitle, minNumber, maxNumber, step, item);
+        }
         bool inputDialogDouble(QWidget *parent, double & number, const std::string & label, const std::string & windowTitle, double minNumber, double maxNumber, int decimals, SGIItemBase * item)
         {
             return _impl->inputDialogDouble(parent, number, label, windowTitle, minNumber, maxNumber, decimals, item);
@@ -373,6 +377,15 @@ public:
         bool namedEnumValueToString(const std::string & enumname, std::string & text, int value)
         {
             return _impl->namedEnumValueToString(enumname, text, value);
+        }
+
+        bool convertToImage(ImagePtr & image, const SGIHostItemBase * object)
+        {
+            return _impl->convertToImage(image, object);
+        }
+        bool convertToImage(ImagePtr & image, const SGIItemBase * item)
+        {
+            return _impl->convertToImage(image, item);
         }
 
     private:
@@ -579,6 +592,7 @@ public:
                 info.contextMenuInterface = info.pluginInterface->getContextMenu();
                 info.settingsDialogInterface = info.pluginInterface->getSettingsDialog();
                 info.guiAdapterInterface = info.pluginInterface->getGUIAdapter();
+                info.convertToImage = info.pluginInterface->getConvertToImage();
                 if(info.settingsDialogInterface)
                     info.pluginUIInterface = info.pluginInterface;
             }
@@ -1260,6 +1274,25 @@ public:
         }
         return ok;
     }
+    bool inputDialogInteger64(QWidget *parent, int64_t & number, const std::string & label, const std::string & windowTitle, int64_t minNumber, int64_t maxNumber, int step, SGIItemBase * item)
+    {
+        QString qwindowTitle;
+        if(item)
+        {
+            std::string objectDisplayName;
+            getObjectDisplayName(objectDisplayName, item, true);
+            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+        }
+        else
+            qwindowTitle = fromLocal8Bit(windowTitle);
+        bool ok = false;
+        int newNumber = QInputDialog::getInt(parent, qwindowTitle, fromLocal8Bit(label), number, minNumber, maxNumber, step, &ok);
+        if(ok)
+        {
+            number = newNumber;
+        }
+        return ok;
+    }
     bool inputDialogDouble(QWidget *parent, double & number, const std::string & label, const std::string & windowTitle, double minNumber, double maxNumber, int decimals, SGIItemBase * item)
     {
         QString qwindowTitle;
@@ -1576,6 +1609,34 @@ public:
         while(item != NULL && !ret);
         return ret;
     }
+
+    bool convertToImage(ImagePtr & image, const SGIHostItemBase * object)
+    {
+        osg::ref_ptr<SGIItemBase> item;
+        if(generateItem(item, object))
+            return convertToImage(image, item);
+        else
+            return false;
+    }
+    bool convertToImage(ImagePtr & image, const SGIItemBase * item)
+    {
+        bool ret = false;
+        do
+        {
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
+            if(pluginInfo)
+            {
+                if(pluginInfo && pluginInfo->convertToImage)
+                {
+                    ret = pluginInfo->convertToImage->convert(image, item);
+                }
+            }
+            item = item->nextBase();
+        }
+        while(item != NULL && !ret);
+        return ret;
+    }
+
     void shutdown()
     {
         for(auto it = _plugins.begin(); it != _plugins.end(); ++it)
@@ -2014,4 +2075,14 @@ bool SGIPlugins::parentWidget(QWidgetPtr & widget, const SGIHostItemBase * item)
 bool SGIPlugins::parentWidget(QWidgetPtr & widget, SGIItemBase * item)
 {
     return _impl->parentWidget(widget, item);
+}
+
+bool SGIPlugins::convertToImage(ImagePtr & image, const SGIHostItemBase * item)
+{
+    return _impl->convertToImage(image, item);
+}
+
+bool SGIPlugins::convertToImage(ImagePtr & image, const SGIItemBase * item)
+{
+    return _impl->convertToImage(image, item);
 }

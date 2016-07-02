@@ -21,6 +21,7 @@
 #include "WritePrettyHTMLImpl"
 #include "ObjectLoggerImpl"
 #include "GuiAdapterImpl"
+#include "ConvertToImageImpl"
 
 namespace sgi {
 
@@ -188,6 +189,15 @@ public:
     bool execute(IObjectLoggerPtr & logger) { return false; }
 };
 
+///-----------------------
+template<typename T>
+class defaultPluginConvertToImageConvertImpl {
+public:
+    typedef sgi::details::constexpr_false accept;
+    defaultPluginConvertToImageConvertImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL) {}
+    bool convert(ImagePtr & /*image*/) { return false; }
+};
+
 template<   typename pluginGenerateItemImpl=defaultPluginGenerateItemImpl,
             template<typename> class pluginWritePrettyHTMLImpl=defaultPluginWritePrettyHTMLImpl,
             template<typename> class pluginGetObjectNameImpl=defaultPluginGetObjectInfoStringImpl,
@@ -206,7 +216,8 @@ template<   typename pluginGenerateItemImpl=defaultPluginGenerateItemImpl,
             template<unsigned> class pluginSettingsDialogCreateImpl=defaultPluginSettingsDialogCreateImpl,
             template<typename> class pluginGuiAdapterParentWidgetImpl=defaultPluginGuiAdapterParentWidgetImpl,
             template<typename> class pluginGuiAdapterSetViewImpl=defaultPluginGuiAdapterSetViewImpl,
-            template<typename> class pluginGetOrCreateLoggerImpl=defaultPluginGetOrCreateLoggerImpl
+            template<typename> class pluginGetOrCreateLoggerImpl=defaultPluginGetOrCreateLoggerImpl,
+            template<typename> class pluginConverToImageConvertImpl=defaultPluginConvertToImageConvertImpl
             >
 class SGIPluginImplementationT : public SGIPluginInterface
 {
@@ -220,6 +231,7 @@ public:
          , _contextMenu(hostInterface)
          , _settingsDialog(hostInterface)
          , _guiAdapter(hostInterface)
+         , _convertToImage(hostInterface)
     {
     }
     SGIPluginImplementationT(const SGIPluginImplementationT & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
@@ -231,6 +243,7 @@ public:
          , _contextMenu(rhs._hostInterface)
          , _settingsDialog(rhs._hostInterface)
          , _guiAdapter(rhs._hostInterface)
+         , _convertToImage(rhs._hostInterface)
     {
     }
 
@@ -442,6 +455,24 @@ public:
     {
         return &_guiAdapter;
     }
+    class ConvertToImageImpl : public ConvertToImage
+    {
+    public:
+        ConvertToImageImpl(SGIPluginHostInterface * hostInterface)
+            : _hostInterface(hostInterface)
+        {
+        }
+        virtual bool convert(ImagePtr & image, const SGIItemBase * object)
+        {
+            return convertToImageConvertImplBaseT<pluginConverToImageConvertImpl>::call(_hostInterface, image, object);
+        }
+    private:
+        SGIPluginHostInterface * _hostInterface;
+    };
+    virtual ConvertToImage * getConvertToImage()
+    {
+        return &_convertToImage;
+    }
 
 protected:
     template<typename T>
@@ -477,6 +508,7 @@ private:
     ContextMenuImpl _contextMenu;
     SettingsDialogImpl _settingsDialog;
     GUIAdapterImpl _guiAdapter;
+    ConvertToImageImpl _convertToImage;
 };
 
 

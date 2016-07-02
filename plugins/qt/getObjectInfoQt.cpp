@@ -23,6 +23,9 @@ GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(QIcon)
 GET_OBJECT_PATH_IMPL_DECLARE_AND_REGISTER(QObject)
 GET_OBJECT_PATH_IMPL_DECLARE_AND_REGISTER(QMetaObject)
 
+CONVERT_TO_IMAGE_CONVERT_IMPL_DECLARE_AND_REGISTER(QImage)
+CONVERT_TO_IMAGE_CONVERT_IMPL_DECLARE_AND_REGISTER(QPixmap)
+
 using namespace sgi::qt_helpers;
 
 std::string getObjectNameImpl<QObject>::process()
@@ -180,6 +183,24 @@ SGIItemBasePtrPath getObjectPathImpl<QMetaObject>::process()
     }
     std::reverse(ret.begin(), ret.end());
     return ret;
+}
+
+//--------------------------------------------------------------------------------
+// convertToImageConvertImpl
+//--------------------------------------------------------------------------------
+bool convertToImageConvertImpl<QImage>::convert()
+{
+    QImage * object = getObject<QImage, SGIItemQtPaintDevice>();
+    *_image = new sgi::Image(object);
+    return true;
+}
+
+bool convertToImageConvertImpl<QPixmap>::convert()
+{
+    QPixmap * object = getObject<QPixmap, SGIItemQtPaintDevice>();
+    QImage img = object->toImage();
+    *_image = new sgi::Image(&img);
+    return true;
 }
 
 } // namespace qt_plugin
