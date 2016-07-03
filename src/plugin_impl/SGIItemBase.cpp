@@ -494,10 +494,14 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format)
     switch (format)
     {
     default:
-    case ImageFormatAutomatic:
     case ImageFormatInvalid:
-    case ImageFormatRaw:
         Q_ASSERT_X(false, __FUNCTION__, "invalid frame format");
+        break;
+    case ImageFormatAutomatic:
+        Q_ASSERT_X(false, __FUNCTION__, "invalid frame format, automatic");
+        break;
+    case ImageFormatRaw:
+        Q_ASSERT_X(false, __FUNCTION__, "invalid frame format, raw");
         break;
     case ImageFormatRGB24:
     case ImageFormatBGR24:
