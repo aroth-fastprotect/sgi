@@ -43,6 +43,18 @@ public:
 
     SGIItemBase *           item() const;
 
+    enum DisplayChannel {
+        DisplayChannelAll = 0,
+        DisplayChannelGrayscale,
+        DisplayChannelRed,
+        DisplayChannelGreen,
+        DisplayChannelBlue,
+        DisplayChannelAlpha,
+        DisplayChannelLuminance,
+        DisplayChannelHue,
+        DisplayChannelSaturation,
+    };
+
 public slots:
     void setLabel(const QString & label);
     void showBesideParent();

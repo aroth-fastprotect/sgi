@@ -165,6 +165,85 @@ void ImagePreviewDialog::Histogram::calculate(const QImage & image)
 	}
 };
 
+bool selectDisplayChannel(QImage & src, QImage & dest, ImagePreviewDialog::DisplayChannel channel)
+{
+    if(src.isNull())
+        return false;
+
+    if(channel == ImagePreviewDialog::DisplayChannelAll)
+        dest = src;
+    else
+    {
+        dest = QImage(src.width(), src.height(), QImage::Format_ARGB32);
+        for (int y = 0; y < src.height(); y++) {
+            for (int x = 0; x < src.width(); x++) {
+                QRgb src_pixel = src.pixel(x, y);
+                QRgb dest_pixel = 0;
+                switch(channel)
+                {
+                case ImagePreviewDialog::DisplayChannelAll:
+                    dest_pixel = src_pixel;
+                    break;
+                case ImagePreviewDialog::DisplayChannelGrayscale:
+                    {
+                        int v = qGray(src_pixel) & 0xff;
+                        dest_pixel = qRgb(v, v, v);
+                    }
+                    break;
+                case ImagePreviewDialog::DisplayChannelRed:
+                    {
+                        int v = qRed(src_pixel) & 0xff;
+                        dest_pixel = qRgb(v, 0, 0);
+                    }
+                    break;
+                case ImagePreviewDialog::DisplayChannelGreen:
+                    {
+                        int v = qGreen(src_pixel) & 0xff;
+                        dest_pixel = qRgb(0, v, 0);
+                    }
+                    break;
+                case ImagePreviewDialog::DisplayChannelBlue:
+                    {
+                        int v = qBlue(src_pixel) & 0xff;
+                        dest_pixel = qRgb(0, 0, v);
+                    }
+                    break;
+                case ImagePreviewDialog::DisplayChannelAlpha:
+                    {
+                        int v = qAlpha(src_pixel) & 0xff;
+                        // display the alpha channel as grayscale image
+                        dest_pixel = qRgb(v, v, v);
+                    }
+                    break;
+                case ImagePreviewDialog::DisplayChannelLuminance:
+                    {
+                        int v = QColor(src_pixel).lightness();
+                        // display the luminance channel as grayscale image
+                        dest_pixel = qRgb(v, v, v);
+                    }
+                    break;
+                case ImagePreviewDialog::DisplayChannelHue:
+                    {
+                        int v = QColor(src_pixel).hslHue();
+                        // display the hue channel as grayscale image
+                        dest_pixel = qRgb(v, v, v);
+                    }
+                    break;
+                case ImagePreviewDialog::DisplayChannelSaturation:
+                    {
+                        int v = QColor(src_pixel).hslSaturation();
+                        // display the saturation channel as grayscale image
+                        dest_pixel = qRgb(v, v, v);
+                    }
+                    break;
+                }
+                dest.setPixel(x, y, dest_pixel);
+            }
+        }
+    }
+    return true;
+}
+
 class ImagePreviewDialog::ImagePreviewDialogImpl : public QObject, public IImagePreviewDialog
 {
 public:
@@ -177,6 +256,7 @@ public:
     void setImageInfo(const std::string & infoText);
 
     Image::ImageFormat currentImageFormat() const;
+    DisplayChannel currentDisplayChannel() const;
 
     // Actions
     void zoomIn();
@@ -189,8 +269,8 @@ public:
     void flipHorizontal();
     void flipVertical();
     void imageFormatChanged(int index);
+    void displayChannelChanged(int index);
 
-    void applyFlip();
 	void setNodeInfo(const SGIItemBase * item);
     void setImageInfo(const Image * image);
 
@@ -221,6 +301,7 @@ public:
     QAction *                       flipHorizontalAction;
     QAction *                       flipVerticalAction;
     QComboBox *                     imageFormat;
+    QComboBox *                     displayChannel;
     QString                         labelText;
     double                          scaleFactor;
     bool                            initialRefresh;
@@ -277,12 +358,18 @@ private:
         case ffmpeg::AV_PIX_FMT_NONE: ret = Image::ImageFormatInvalid; break;
         case ffmpeg::AV_PIX_FMT_RGB24: ret = Image::ImageFormatRGB24; break;
         case ffmpeg::AV_PIX_FMT_BGR24: ret = Image::ImageFormatBGR24; break;
+        //case ffmpeg::AV_PIX_FMT_RGB32: ret = Image::ImageFormatRGB32; break;
+        //case ffmpeg::AV_PIX_FMT_BGR32: ret = Image::ImageFormatBGR32; break;
 
         case ffmpeg::AV_PIX_FMT_PAL8:
         case ffmpeg::AV_PIX_FMT_ARGB:
-        case ffmpeg::AV_PIX_FMT_RGBA: ret = Image::ImageFormatARGB32; break;
+        case ffmpeg::AV_PIX_FMT_RGBA:
+            ret = Image::ImageFormatARGB32;
+            break;
         case ffmpeg::AV_PIX_FMT_ABGR:
-        case ffmpeg::AV_PIX_FMT_BGRA: ret = Image::ImageFormatABGR32; break;
+        case ffmpeg::AV_PIX_FMT_BGRA:
+            ret = Image::ImageFormatABGR32;
+            break;
 
         case ffmpeg::AV_PIX_FMT_YUVJ420P:
         case ffmpeg::AV_PIX_FMT_YUV420P: ret = Image::ImageFormatYUV420; break;
@@ -292,6 +379,8 @@ private:
         case ffmpeg::AV_PIX_FMT_YUV444P: ret = Image::ImageFormatYUV444; break;
         case ffmpeg::AV_PIX_FMT_YUYV422: ret = Image::ImageFormatYUYV; break;
         case ffmpeg::AV_PIX_FMT_UYVY422: ret = Image::ImageFormatUYVY; break;
+        case ffmpeg::AV_PIX_FMT_GRAY8: ret = Image::ImageFormatGray; break;
+        case ffmpeg::AV_PIX_FMT_YA8: ret = Image::ImageFormatLuminanceAlpha; break;
         default:
             Q_ASSERT_X(false, __FUNCTION__, "Unhandled frame format from avcodec");
             break;
@@ -325,59 +414,11 @@ private:
         case Image::ImageFormatAlpha: ret = ffmpeg::AV_PIX_FMT_RGB24; break;
         case Image::ImageFormatDepth: ret = ffmpeg::AV_PIX_FMT_RGB24; break;
         case Image::ImageFormatLuminance: ret = ffmpeg::AV_PIX_FMT_GRAY8; break;
-        case Image::ImageFormatLuminanceAlpha: ret = ffmpeg::AV_PIX_FMT_GRAY8; break;
+        case Image::ImageFormatLuminanceAlpha: ret = ffmpeg::AV_PIX_FMT_YA8; break;
+        case Image::ImageFormatInvalid:
         default: ret = ffmpeg::AV_PIX_FMT_NONE; break;
         }
         return ret;
-    }
-
-    /// @brief scale function for interleaved pixel formats (like rgb or yuyv)
-    /// @note buffer of destination frame must be large enough for the rescaled frame
-    /// @param pixelFormat pixel format of the frame (e.g. AV_PIX_FMT_RGB24)
-    /// @param src source frame
-    /// @param dest destination frame
-    static void interleaved_scale(ffmpeg::AVPixelFormat pixelFormat, const sgi::Image& src, sgi::Image& dest)
-    {
-        const uint8_t* srcdata = reinterpret_cast<const uint8_t*>(src.data());
-        const int srcPitch[1] = { (int)src.width() };
-        const unsigned srcPlaneOffset[1] = { 0 };
-        const uint8_t* srcPlanes[1] = { srcdata + srcPlaneOffset[0] };
-
-        uint8_t* dstdata = reinterpret_cast<uint8_t*>(dest.data());
-        int dstPitch[1] = { (int)dest.width() };
-        const unsigned dstPlaneOffset[1] = { 0 };
-        uint8_t * dstPlanes[1] = { dstdata + dstPlaneOffset[0] };
-
-        ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), pixelFormat,
-            dest.width(), dest.height(), pixelFormat,
-            SWS_BILINEAR, NULL, NULL, NULL);
-        sws_scale(ctx, srcPlanes, srcPitch, 0, src.height(), dstPlanes, dstPitch);
-        sws_freeContext(ctx);
-    }
-
-    /// @brief scale function for interleaved pixel formats (like YUV420)
-    /// @note buffer of destination frame must be large enough for the rescaled frame
-    /// @note this function assumes that the frame used three planes
-    /// @param pixelFormat pixel format of the frame (e.g. AV_PIX_FMT_YUV420P)
-    /// @param src source frame
-    /// @param dest destination frame
-    static void planar_scale(ffmpeg::AVPixelFormat pixelFormat, const sgi::Image& src, sgi::Image& dest)
-    {
-        const uint8_t* srcdata = reinterpret_cast<const uint8_t*>(src.data());
-        const int srcPitch[3] = { (int)src.width(), (int)src.width(), (int)src.width() };
-        const unsigned srcPlaneOffset[3] = { 0, 0, 0 };
-        const uint8_t* srcPlanes[3] = { srcdata + srcPlaneOffset[0], srcdata + srcPlaneOffset[1], srcdata + srcPlaneOffset[2] };
-
-        uint8_t* dstdata = reinterpret_cast<uint8_t*>(dest.data());
-        int dstPitch[3] = { (int)dest.width(), (int)dest.width(), (int)dest.width() };
-        const unsigned dstPlaneOffset[3] = { 0, 0, 0 };
-        uint8_t * dstPlanes[3] = { dstdata + dstPlaneOffset[0], dstdata + dstPlaneOffset[1], dstdata + dstPlaneOffset[2] };
-
-        ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), pixelFormat,
-            dest.width(), dest.height(), pixelFormat,
-            SWS_BILINEAR, NULL, NULL, NULL);
-        sws_scale(ctx, srcPlanes, srcPitch, 0, src.height(), dstPlanes, dstPitch);
-        sws_freeContext(ctx);
     }
 
     static bool convert(const sgi::Image& src, sgi::Image& dest)
@@ -397,6 +438,7 @@ private:
         const unsigned destPlaneOffset[4] = { dest.planeOffset(0), dest.planeOffset(1), dest.planeOffset(2), dest.planeOffset(3) };
         uint8_t* destPlanes[4] = { destdata + destPlaneOffset[0], destdata + destPlaneOffset[1], destdata + destPlaneOffset[2], destdata + destPlaneOffset[3] };
 
+        Q_ASSERT(sws_getContext != NULL);
         ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
             dest.width(), dest.height(), destPixelFormat,
             SWS_BILINEAR, NULL, NULL, NULL);
@@ -423,9 +465,11 @@ private:
         const unsigned dstPlaneOffset[1] = { 0  };
         uint8_t * dstPlanes[1] = { dstdata + dstPlaneOffset[0] };
 
+        Q_ASSERT(sws_getContext != NULL);
         ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
                                                   dest.width(), dest.height(),
-                                                  //ffmpeg::AV_PIX_FMT_ARGB,
+                                                  // The QImage::Format_ARGB32 is the BGRA format on ffmpeg side, with the more
+                                                  // obvious ffmpeg::AV_PIX_FMT_ARGB the red-blue colors are swapped.
                                                   ffmpeg::AV_PIX_FMT_BGRA,
                                                   SWS_BILINEAR, NULL, NULL, NULL);
         sws_scale(ctx, srcPlanes, srcPitch, 0, src.height(), dstPlanes, dstPitch);
@@ -654,7 +698,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 	flipVerticalAction->setCheckable(true);
 	connect(flipVerticalAction, &QAction::triggered, this, &ImagePreviewDialogImpl::flipVertical);
 
-    imageFormat = new QComboBox(_dialog);
+    imageFormat = new QComboBox(toolBar);
     imageFormat->addItem(tr("Automatic"), QVariant::fromValue((int)Image::ImageFormatAutomatic));
     imageFormat->addItem(tr("RGB 24-bit"), QVariant::fromValue((int)Image::ImageFormatRGB24));
     imageFormat->addItem(tr("RGB 32-bit"), QVariant::fromValue((int)Image::ImageFormatRGB32));
@@ -665,9 +709,25 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
     imageFormat->addItem(tr("YUV 4:2:0"), QVariant::fromValue((int)Image::ImageFormatYUV420));
     imageFormat->addItem(tr("YUV 4:2:2"), QVariant::fromValue((int)Image::ImageFormatYUV422));
     imageFormat->addItem(tr("YUV 4:4:4"), QVariant::fromValue((int)Image::ImageFormatYUV444));
-    connect(imageFormat, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ImagePreviewDialogImpl::imageFormatChanged);
+    imageFormat->addItem(tr("Grayscale"), QVariant::fromValue((int)Image::ImageFormatGray));
+    imageFormat->addItem(tr("Red"), QVariant::fromValue((int)Image::ImageFormatRed));
+    imageFormat->addItem(tr("Green"), QVariant::fromValue((int)Image::ImageFormatGreen));
+    imageFormat->addItem(tr("Blue"), QVariant::fromValue((int)Image::ImageFormatBlue));
+    imageFormat->addItem(tr("Alpha"), QVariant::fromValue((int)Image::ImageFormatAlpha));
+
+    displayChannel = new QComboBox(toolBar);
+    displayChannel->addItem(tr("All"), QVariant::fromValue((int)DisplayChannelAll));
+    displayChannel->addItem(tr("Grayscale"), QVariant::fromValue((int)DisplayChannelGrayscale));
+    displayChannel->addItem(tr("Red"), QVariant::fromValue((int)DisplayChannelRed));
+    displayChannel->addItem(tr("Green"), QVariant::fromValue((int)DisplayChannelGreen));
+    displayChannel->addItem(tr("Blue"), QVariant::fromValue((int)DisplayChannelBlue));
+    displayChannel->addItem(tr("Alpha"), QVariant::fromValue((int)DisplayChannelAlpha));
+    displayChannel->addItem(tr("Luminance"), QVariant::fromValue((int)DisplayChannelLuminance));
+    displayChannel->addItem(tr("Hue"), QVariant::fromValue((int)DisplayChannelHue));
+    displayChannel->addItem(tr("Saturation"), QVariant::fromValue((int)DisplayChannelSaturation));
 
     toolBar->addWidget(imageFormat);
+    toolBar->addWidget(displayChannel);
     toolBar->addAction(refreshAction);
 	toolBar->addAction(saveAction);
 	toolBar->addAction(zoomInAction);
@@ -676,6 +736,10 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 	toolBar->addAction(fitToWindowAction);
 	toolBar->addAction(flipHorizontalAction);
 	toolBar->addAction(flipVerticalAction);
+
+    // do the connects at the end to avoid trouble when new items are added and signals fired
+    connect(imageFormat, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ImagePreviewDialogImpl::imageFormatChanged);
+    connect(displayChannel, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ImagePreviewDialogImpl::displayChannelChanged);
 
     updateToolbar();
 }
@@ -719,28 +783,25 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::adjustScrollBar(QScrollBar *scr
 		+ ((factor - 1) * scrollBar->pageStep() / 2)));
 }
 //! [26]
-
-void ImagePreviewDialog::ImagePreviewDialogImpl::applyFlip()
-{
-	const QPixmap * pixmap = ui->imageLabel->pixmap();
-	if (pixmap)
-	{
-		QImage mirroredImage = originalImage.mirrored(flipHorizontalAction->isChecked(), flipVerticalAction->isChecked());
-		ui->imageLabel->setPixmap(QPixmap::fromImage(mirroredImage));
-	}
-}
-
 void ImagePreviewDialog::ImagePreviewDialogImpl::flipHorizontal()
 {
-	applyFlip();
+    // just refresh the actual change is done in refreshImpl
+    refresh();
 }
 
 void ImagePreviewDialog::ImagePreviewDialogImpl::flipVertical()
 {
-	applyFlip();
+    // just refresh the actual change is done in refreshImpl
+    refresh();
 }
 
 void ImagePreviewDialog::ImagePreviewDialogImpl::imageFormatChanged(int index)
+{
+    // just refresh the actual change is done in refreshImpl
+    refresh();
+}
+
+void ImagePreviewDialog::ImagePreviewDialogImpl::displayChannelChanged(int index)
 {
     // just refresh the actual change is done in refreshImpl
     refresh();
@@ -948,6 +1009,13 @@ Image::ImageFormat ImagePreviewDialog::ImagePreviewDialogImpl::currentImageForma
 {
     int index = imageFormat->currentIndex();
     Image::ImageFormat ret = (Image::ImageFormat)imageFormat->itemData(index, Qt::UserRole).toInt();
+    return ret;
+}
+
+ImagePreviewDialog::DisplayChannel ImagePreviewDialog::ImagePreviewDialogImpl::currentDisplayChannel() const
+{
+    int index = displayChannel->currentIndex();
+    DisplayChannel ret = (DisplayChannel)displayChannel->itemData(index, Qt::UserRole).toInt();
     return ret;
 }
 
@@ -1426,7 +1494,21 @@ void ImagePreviewDialog::refreshImpl()
     _priv->ui->imageLabel->setText(QString());
     _priv->originalImage = qimg;
     if(!qimg.isNull())
-        _priv->ui->imageLabel->setPixmap(QPixmap::fromImage(qimg));
+    {
+        QImage qimgDisplay;
+        DisplayChannel channel = _priv->currentDisplayChannel();
+        selectDisplayChannel(qimg, qimgDisplay, channel);
+
+        QPixmap actualDisplayedPixmap;
+        if(_priv->flipHorizontalAction->isChecked() || _priv->flipVerticalAction->isChecked())
+        {
+            QImage mirroredImage = qimgDisplay.mirrored(_priv->flipHorizontalAction->isChecked(), _priv->flipVerticalAction->isChecked());
+            actualDisplayedPixmap = QPixmap::fromImage(mirroredImage);
+        }
+        else
+            actualDisplayedPixmap = QPixmap::fromImage(qimgDisplay);
+        _priv->ui->imageLabel->setPixmap(actualDisplayedPixmap);
+    }
     else
         _priv->ui->imageLabel->setPixmap(QPixmap());
     _priv->ui->imageLabel->setScaledContents(!_priv->fitToWindowAction->isChecked());
