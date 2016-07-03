@@ -490,7 +490,7 @@ Image & Image::operator=(const Image & rhs)
 bool Image::allocate(unsigned width, unsigned height, ImageFormat format)
 {
     bool ret = false;
-    unsigned frameSize = 0;
+    _length = 0;
     switch (format)
     {
     default:
@@ -506,7 +506,7 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format)
     case ImageFormatRGB24:
     case ImageFormatBGR24:
         {
-            frameSize = width * height * 3;
+            _length = width * height * 3;
             _pitch[0] = width * 3;
             _pitch[1] = _pitch[2] = _pitch[3] = 0;
             _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
@@ -518,7 +518,7 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format)
     case ImageFormatABGR32:
     case ImageFormatFloat:
         {
-            frameSize = width * height * 4;
+            _length = width * height * 4;
             _pitch[0] = width * 4;
             _pitch[1] = _pitch[2] = _pitch[3] = 0;
             _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
@@ -526,7 +526,7 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format)
         break;
     case ImageFormatYUV444:
         {
-            frameSize = width * height * 3;
+            _length = width * height * 3;
             _pitch[0] = _pitch[1] = _pitch[2] = width * 3;
             _pitch[3] = 0;
             _planeOffset[0] = 0;
@@ -537,7 +537,7 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format)
         break;
     case ImageFormatYUV422:
         {
-            frameSize = width * height * 2;
+            _length = width * height * 2;
             _pitch[0] = width;
             _pitch[1] = _pitch[2] = width / 2;
             _pitch[3] = 0;
@@ -549,7 +549,7 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format)
         break;
     case ImageFormatYUV420:
         {
-            frameSize = width * height + (width / 2 * height/2);
+            _length = width * height + (width / 2 * height/2);
             _pitch[0] = width;
             _pitch[1] = _pitch[2] = width / 2;
             _pitch[3] = 0;
@@ -563,16 +563,34 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format)
     case ImageFormatYUYV:
     case ImageFormatUYVY:
         {
-            frameSize = width * height * 2;
+            _length = width * height * 2;
+            _pitch[0] = width;
+            _pitch[1] = _pitch[2] = _pitch[3] = 0;
+            _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+        }
+        break;
+    case ImageFormatGray:
+    case ImageFormatRed:
+    case ImageFormatGreen:
+    case ImageFormatBlue:
+    case ImageFormatAlpha:
+        {
+            // only one channel with 8-bit color data
+            _length = width * height;
             _pitch[0] = width;
             _pitch[1] = _pitch[2] = _pitch[3] = 0;
             _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
         }
         break;
     }
-    if(frameSize)
+    if(_data)
     {
-        _data = malloc(frameSize);
+        free(_data);
+        _data = NULL;
+    }
+    if(_length)
+    {
+        _data = malloc(_length);
         _width = width;
         _height = height;
         _format = format;
