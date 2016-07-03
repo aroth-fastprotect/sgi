@@ -27,11 +27,11 @@ class QPaintEvent;
     * Parses a set of built-in example arguments. Any Controls created by parsing
     * command-line parameters will appear in the lower-left corner of the display.
     */
-class TEVMapNodeHelper
+class osgViewerQtMapNodeHelper
 {
 public:
-    TEVMapNodeHelper();
-    ~TEVMapNodeHelper();
+    osgViewerQtMapNodeHelper();
+    ~osgViewerQtMapNodeHelper();
 
     /**
         * Loads a map file and processes all the built-in example command line

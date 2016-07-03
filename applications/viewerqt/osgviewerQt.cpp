@@ -567,7 +567,7 @@ bool iequals(const std::string& a, const std::string& b)
     return true;
 }
 
-TEVMapNodeHelper::TEVMapNodeHelper()
+osgViewerQtMapNodeHelper::osgViewerQtMapNodeHelper()
     : m_errorMessages()
     , m_files()
     , _mapNodeHelper(new osgEarth::Util::MapNodeHelper)
@@ -575,13 +575,13 @@ TEVMapNodeHelper::TEVMapNodeHelper()
 {
 }
 
-TEVMapNodeHelper::~TEVMapNodeHelper()
+osgViewerQtMapNodeHelper::~osgViewerQtMapNodeHelper()
 {
     delete _mapNodeHelper;
 }
 
 
-void TEVMapNodeHelper::setupInitialPosition( osgViewer::View* view, int viewpointNum, const std::string & viewpointName ) const
+void osgViewerQtMapNodeHelper::setupInitialPosition( osgViewer::View* view, int viewpointNum, const std::string & viewpointName ) const
 {
     osgGA::CameraManipulator * manip = view->getCameraManipulator();
 
@@ -649,7 +649,7 @@ void TEVMapNodeHelper::setupInitialPosition( osgViewer::View* view, int viewpoin
 }
 
 std::string
-TEVMapNodeHelper::usage() const
+osgViewerQtMapNodeHelper::usage() const
 {
     std::string msg = osgEarth::Stringify()
         << "    --nosgi              : do not add SceneGraphInspector\n"
@@ -665,13 +665,13 @@ TEVMapNodeHelper::usage() const
     return _mapNodeHelper->usage() + msg;
 }
 
-std::string TEVMapNodeHelper::errorMessages() const
+std::string osgViewerQtMapNodeHelper::errorMessages() const
 {
     return m_errorMessages.str();
 }
 
 osg::Group*
-TEVMapNodeHelper::load(osg::ArgumentParser& args,
+osgViewerQtMapNodeHelper::load(osg::ArgumentParser& args,
                     osgViewer::View* view,
                     osgEarth::Util::Controls::Container* userContainer)
 {
@@ -832,7 +832,7 @@ TEVMapNodeHelper::load(osg::ArgumentParser& args,
     return root;
 }
 
-osg::Group * TEVMapNodeHelper::setupRootGroup(osg::Group * root)
+osg::Group * osgViewerQtMapNodeHelper::setupRootGroup(osg::Group * root)
 {
     osg::Group * ret;
 
@@ -1075,7 +1075,7 @@ main(int argc, char** argv)
     view->getCamera()->setNearFarRatio(0.00002);
     //view->getCamera()->setSmallFeatureCullingPixelSize(-1.0f);
 
-    TEVMapNodeHelper helper;
+    osgViewerQtMapNodeHelper helper;
     // load an earth file, and support all or our example command-line options
     // and earth file <external> tags
     osg::Node* node = helper.load( arguments, view );
@@ -1145,12 +1145,12 @@ main(int argc, char** argv)
             msg += QString::fromLocal8Bit(argv[i]);
         }
         msg += "\r\n";
-        msg += QString::fromStdString(TEVMapNodeHelper().usage());
+        msg += QString::fromStdString(helper.usage());
 #ifdef _WIN32
         // Only Windows we have to show a message box with the usage information, because
         // on Windoof a GUI application does not have a console output.
         if(allocConsole)
-            std::cerr << msg << std::endl;
+            std::cerr << msg.toStdString() << std::endl;
         QMessageBox::information(NULL, QCoreApplication::applicationFilePath(), msg);
 #else
         std::cerr << msg.toStdString() << std::endl;
