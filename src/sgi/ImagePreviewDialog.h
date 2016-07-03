@@ -68,8 +68,6 @@ signals:
 protected:
     void refreshImpl();
 	void refreshStatistics(const QImage & image);
-    bool openImpl(const QString & filename);
-    bool saveImpl(const QString & filename);
 
     void                    setNodeInfo(const SGIItemBase * item);
 

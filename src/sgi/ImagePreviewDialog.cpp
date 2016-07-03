@@ -247,6 +247,7 @@ bool selectDisplayChannel(QImage & src, QImage & dest, ImagePreviewDialog::Displ
 class ImagePreviewDialog::ImagePreviewDialogImpl : public QObject, public IImagePreviewDialog
 {
 public:
+    static std::map<Image::ImageFormat, QString> ImageFormatDisplayText;
 	ImagePreviewDialogImpl(ImagePreviewDialog * dialog_);
 	~ImagePreviewDialogImpl();
     void createToolbar();
@@ -263,8 +264,8 @@ public:
     void zoomOut();
     void normalSize();
     void fitToWindow();
-    void save();
-    void open();
+    void saveImageAs();
+    void openImageAs();
     void refresh();
     void flipHorizontal();
     void flipVertical();
@@ -290,10 +291,10 @@ public:
 
     ImagePreviewDialog *        _dialog;
     Ui_ImagePreviewDialog *     ui;
+    Image                           reinterpretedImage;
 	QImage							originalImage;
     QToolBar *                      toolBar;
     QAction *                       refreshAction;
-    QAction *                       saveAction;
     QAction *                       zoomInAction;
     QAction *                       zoomOutAction;
     QAction *                       normalSizeAction;
@@ -308,6 +309,8 @@ public:
 	Histogram						histogram;
 	bool							histogramReady;
 };
+
+std::map<Image::ImageFormat, QString> ImagePreviewDialog::ImagePreviewDialogImpl::ImageFormatDisplayText;
 
 class SWScale
 {
@@ -513,6 +516,16 @@ public:
         }
         return ret;
     }
+    static bool convertToQImage(const sgi::Image& src, QImage & dest)
+    {
+        bool ret;
+        ret = load();
+        if(ret)
+        {
+            ret = to_qimage_argb32(src, dest);
+        }
+        return ret;
+    }
 };
 
 QLibrary * SWScale::library = NULL;
@@ -527,7 +540,6 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
     , ui(NULL)
     , toolBar(NULL)
     , refreshAction(NULL)
-    , saveAction(NULL)
     , zoomInAction(NULL)
     , zoomOutAction(NULL)
     , normalSizeAction(NULL)
@@ -541,10 +553,27 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
 	, histogram()
 	, histogramReady(false)
 {
+    if(ImageFormatDisplayText.empty())
+    {
+        ImageFormatDisplayText[Image::ImageFormatAutomatic] = tr("Automatic");
+        ImageFormatDisplayText[Image::ImageFormatRGB24] = tr("RGB 24-bit");
+        ImageFormatDisplayText[Image::ImageFormatRGB32] = tr("RGB 32-bit");
+        ImageFormatDisplayText[Image::ImageFormatARGB32] = tr("ARGB 32-bit");
+        ImageFormatDisplayText[Image::ImageFormatBGR24] = tr("BGR 24-bit");
+        ImageFormatDisplayText[Image::ImageFormatBGR32] = tr("BGR 32-bit");
+        ImageFormatDisplayText[Image::ImageFormatABGR32] = tr("ABGR 32-bit");
+        ImageFormatDisplayText[Image::ImageFormatYUV420] = tr("YUV 4:2:0");
+        ImageFormatDisplayText[Image::ImageFormatYUV422] = tr("YUV 4:2:2");
+        ImageFormatDisplayText[Image::ImageFormatYUV444] = tr("YUV 4:4:4");
+        ImageFormatDisplayText[Image::ImageFormatGray] = tr("Grayscale");
+        ImageFormatDisplayText[Image::ImageFormatRed] = tr("Red");
+        ImageFormatDisplayText[Image::ImageFormatGreen] = tr("Green");
+        ImageFormatDisplayText[Image::ImageFormatBlue] = tr("Blue");
+        ImageFormatDisplayText[Image::ImageFormatAlpha] = tr("Alpha");
+    }
 	ui = new Ui_ImagePreviewDialog;
 	ui->setupUi(_dialog);
 
-	connect(ui->buttonBox->button(QDialogButtonBox::Save), &QPushButton::clicked, this, &ImagePreviewDialogImpl::save);
 	connect(ui->buttonBox->button(QDialogButtonBox::Close), &QPushButton::clicked, _dialog, &ImagePreviewDialog::reject);
 
 	ui->imageLabel->setBackgroundRole(QPalette::Base);
@@ -652,12 +681,6 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 	refreshAction->setEnabled(_dialog->_item.valid());
 	connect(refreshAction, &QAction::triggered, this, &ImagePreviewDialogImpl::refresh);
 
-	saveAction = new QAction(tr("&Save..."), _dialog);
-	saveAction->setIcon(QIcon::fromTheme("document-save"));
-	saveAction->setShortcut(tr("Ctrl+S"));
-	saveAction->setEnabled(_dialog->_item.valid());
-	connect(saveAction, &QAction::triggered, this, &ImagePreviewDialogImpl::save);
-
 	zoomInAction = new QAction(tr("Zoom &In (25%)"), _dialog);
 	zoomInAction->setIcon(QIcon::fromTheme("zoom-in"));
 	zoomInAction->setShortcut(tr("Ctrl++"));
@@ -698,22 +721,49 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 	flipVerticalAction->setCheckable(true);
 	connect(flipVerticalAction, &QAction::triggered, this, &ImagePreviewDialogImpl::flipVertical);
 
+    QMenu * saveMenu = new QMenu(_dialog);
+    for(const auto & it : ImageFormatDisplayText)
+    {
+        QAction * saveAction = new QAction(it.second, saveMenu);
+        if(it.first == Image::ImageFormatAutomatic)
+        {
+            saveAction->setShortcut(tr("Ctrl+S"));
+            saveAction->setToolTip(tr("Save image..."));
+        }
+        else
+            saveAction->setToolTip(tr("Save image as %1...").arg(it.second));
+        saveAction->setIcon(QIcon::fromTheme("document-save"));
+        saveAction->setData(QVariant::fromValue((int)it.first));
+        connect(saveAction, &QAction::triggered, this, &ImagePreviewDialogImpl::saveImageAs);
+        saveMenu->addAction(saveAction);
+    }
+    QPushButton * saveButton = ui->buttonBox->button(QDialogButtonBox::Save);
+    saveButton->setMenu(saveMenu);
+
+    QMenu * openMenu = new QMenu(_dialog);
+    for(const auto & it : ImageFormatDisplayText)
+    {
+        QAction * openAction = new QAction(it.second, openMenu);
+        if(it.first == Image::ImageFormatAutomatic)
+        {
+            openAction->setShortcut(tr("Ctrl+O"));
+            openAction->setToolTip(tr("Open image..."));
+        }
+        else
+            openAction->setToolTip(tr("Open image as %1...").arg(it.second));
+        openAction->setToolTip(tr("Open image as %1").arg(it.second));
+        openAction->setIcon(QIcon::fromTheme("document-open"));
+        openAction->setData(QVariant::fromValue((int)it.first));
+        connect(openAction, &QAction::triggered, this, &ImagePreviewDialogImpl::openImageAs);
+        openMenu->addAction(openAction);
+    }
+    QPushButton * openButton = ui->buttonBox->button(QDialogButtonBox::Open);
+    openButton->setMenu(openMenu);
+
     imageFormat = new QComboBox(toolBar);
-    imageFormat->addItem(tr("Automatic"), QVariant::fromValue((int)Image::ImageFormatAutomatic));
-    imageFormat->addItem(tr("RGB 24-bit"), QVariant::fromValue((int)Image::ImageFormatRGB24));
-    imageFormat->addItem(tr("RGB 32-bit"), QVariant::fromValue((int)Image::ImageFormatRGB32));
-    imageFormat->addItem(tr("ARGB 32-bit"), QVariant::fromValue((int)Image::ImageFormatARGB32));
-    imageFormat->addItem(tr("BGR 24-bit"), QVariant::fromValue((int)Image::ImageFormatBGR24));
-    imageFormat->addItem(tr("BGR 32-bit"), QVariant::fromValue((int)Image::ImageFormatBGR32));
-    imageFormat->addItem(tr("ABGR 32-bit"), QVariant::fromValue((int)Image::ImageFormatABGR32));
-    imageFormat->addItem(tr("YUV 4:2:0"), QVariant::fromValue((int)Image::ImageFormatYUV420));
-    imageFormat->addItem(tr("YUV 4:2:2"), QVariant::fromValue((int)Image::ImageFormatYUV422));
-    imageFormat->addItem(tr("YUV 4:4:4"), QVariant::fromValue((int)Image::ImageFormatYUV444));
-    imageFormat->addItem(tr("Grayscale"), QVariant::fromValue((int)Image::ImageFormatGray));
-    imageFormat->addItem(tr("Red"), QVariant::fromValue((int)Image::ImageFormatRed));
-    imageFormat->addItem(tr("Green"), QVariant::fromValue((int)Image::ImageFormatGreen));
-    imageFormat->addItem(tr("Blue"), QVariant::fromValue((int)Image::ImageFormatBlue));
-    imageFormat->addItem(tr("Alpha"), QVariant::fromValue((int)Image::ImageFormatAlpha));
+    imageFormat->setToolTip(tr("Re-interpret image format"));
+    for(const auto & it : ImageFormatDisplayText)
+        imageFormat->addItem(it.second, QVariant::fromValue((int)it.first));
 
     displayChannel = new QComboBox(toolBar);
     displayChannel->addItem(tr("All"), QVariant::fromValue((int)DisplayChannelAll));
@@ -729,7 +779,6 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
     toolBar->addWidget(imageFormat);
     toolBar->addWidget(displayChannel);
     toolBar->addAction(refreshAction);
-	toolBar->addAction(saveAction);
 	toolBar->addAction(zoomInAction);
 	toolBar->addAction(zoomOutAction);
 	toolBar->addAction(normalSizeAction);
@@ -751,7 +800,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::updateToolbar()
 {
     bool isImageOk = _dialog->_image.valid();
     imageFormat->setEnabled(isImageOk);
-    saveAction->setEnabled(isImageOk);
+    //saveAction->setEnabled(isImageOk);
     fitToWindowAction->setEnabled(isImageOk);
 	zoomInAction->setEnabled(!fitToWindowAction->isChecked());
 	zoomOutAction->setEnabled(!fitToWindowAction->isChecked());
@@ -807,28 +856,155 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::displayChannelChanged(int index
     refresh();
 }
 
-void ImagePreviewDialog::ImagePreviewDialogImpl::open()
+void ImagePreviewDialog::ImagePreviewDialogImpl::openImageAs()
 {
+    QAction * action = static_cast<QAction*>(sender());
+    if(!action)
+        return;
 	static QString lastDir = QDir::currentPath();
-	QString fileName = QFileDialog::getOpenFileName(_dialog,
-		tr("Open image file"), lastDir);
-	if (!fileName.isEmpty())
-	{
-		lastDir = fileName;
-		_dialog->openImpl(fileName);
-	}
+    QString fileName;
+    Image::ImageFormat targetFormat = (Image::ImageFormat)action->data().toInt();
+    if(targetFormat == Image::ImageFormatAutomatic)
+    {
+        fileName = QFileDialog::getOpenFileName(_dialog, tr("Open image file"), lastDir);
+    }
+    else
+    {
+        QString formatText = ImageFormatDisplayText[targetFormat];
+        fileName = QFileDialog::getOpenFileName(_dialog, tr("Open image file as %1").arg(formatText), lastDir);
+    }
+    if (!fileName.isEmpty())
+    {
+        bool result = false;
+        lastDir = fileName;
+        switch(targetFormat)
+        {
+        case Image::ImageFormatAutomatic:
+        case Image::ImageFormatRGB24:
+        case Image::ImageFormatRGB32:
+        case Image::ImageFormatARGB32:
+        case Image::ImageFormatIndexed8:
+        case Image::ImageFormatBGR24:
+        case Image::ImageFormatBGR32:
+        case Image::ImageFormatABGR32:
+            {
+                QImageReader reader(fileName);
+                QImage image = reader.read();
+                result = !image.isNull();
+                if(result)
+                {
+                    originalImage = image;
+                    Image * loadedImage = new Image(&image);
+                    loadedImage->reinterpretFormat(targetFormat);
+                    _dialog->_image = loadedImage;
+                }
+            }
+            break;
+        case Image::ImageFormatYUV420:
+        case Image::ImageFormatYUV422:
+        case Image::ImageFormatYUV444:
+        case Image::ImageFormatYUYV:
+        case Image::ImageFormatUYVY:
+            {
+                QFile f(fileName);
+                if(f.open(QIODevice::ReadOnly))
+                {
+                    QByteArray data = f.readAll();
+                    result = !data.isEmpty();
+                    if(result)
+                    {
+                        originalImage = QImage();
+                        Image::Origin origin = Image::OriginDefault;
+                        int width = 0;
+                        int height = 0;
+                        int depth = 0;
+                        int bytesPerLine = 0;
+                        _dialog->_image = new Image(targetFormat, origin, data.data(), data.size(), width, height, depth, bytesPerLine, (QImage*)NULL);
+                    }
+                    f.close();
+                }
+            }
+            break;
+        }
+        if(!result)
+        {
+            QMessageBox::critical(_dialog, tr("Open failed"), tr("Failed to open image from %1").arg(fileName));
+        }
+        else
+            refresh();
+    }
 }
 
-void ImagePreviewDialog::ImagePreviewDialogImpl::save()
+void ImagePreviewDialog::ImagePreviewDialogImpl::saveImageAs()
 {
-	static QString lastDir = QDir::currentPath();
-	QString fileName = QFileDialog::getSaveFileName(_dialog,
-		tr("Save image file"), lastDir);
-	if (!fileName.isEmpty())
-	{
-		lastDir = fileName;
-		_dialog->saveImpl(fileName);
-	}
+    QAction * action = static_cast<QAction*>(sender());
+    if(!action)
+        return;
+    const QPixmap * pixmap = ui->imageLabel->pixmap();
+    static QString lastDir = QDir::currentPath();
+    QString fileName;
+    Image::ImageFormat targetFormat = (Image::ImageFormat)action->data().toInt();
+    if(targetFormat == Image::ImageFormatAutomatic)
+    {
+        fileName = QFileDialog::getSaveFileName(_dialog, tr("Save image file"), lastDir);
+    }
+    else
+    {
+        QString formatText = ImageFormatDisplayText[targetFormat];
+        fileName = QFileDialog::getSaveFileName(_dialog, tr("Save image file as %1").arg(formatText), lastDir);
+    }
+    if (!fileName.isEmpty())
+    {
+        Image tempImage;
+        bool result = true;
+        if(targetFormat != Image::ImageFormatAutomatic)
+        {
+            result = SWScale::convert(*_dialog->_image.get(), targetFormat, tempImage);
+        }
+        lastDir = fileName;
+        switch(targetFormat)
+        {
+        case Image::ImageFormatAutomatic:
+            if(pixmap)
+            {
+                QImageWriter writer(fileName);
+                result = writer.write(pixmap->toImage());
+            }
+            break;
+        case Image::ImageFormatRGB24:
+        case Image::ImageFormatRGB32:
+        case Image::ImageFormatARGB32:
+        case Image::ImageFormatIndexed8:
+        case Image::ImageFormatBGR24:
+        case Image::ImageFormatBGR32:
+        case Image::ImageFormatABGR32:
+            if(pixmap)
+            {
+                QImageWriter writer(fileName);
+                result = writer.write(pixmap->toImage());
+            }
+            break;
+        case Image::ImageFormatYUV420:
+        case Image::ImageFormatYUV422:
+        case Image::ImageFormatYUV444:
+        case Image::ImageFormatYUYV:
+        case Image::ImageFormatUYVY:
+            {
+                QFile f(fileName);
+                if(f.open(QIODevice::WriteOnly|QIODevice::Truncate))
+                {
+                    int written = f.write((const char*)tempImage.data(), tempImage.length());
+                    result = (written == tempImage.length());
+                    f.close();
+                }
+            }
+            break;
+        }
+        if(!result)
+        {
+            QMessageBox::critical(_dialog, tr("Save failed"), tr("Failed to save image to %1").arg(fileName));
+        }
+    }
 }
 
 
@@ -1481,12 +1657,18 @@ void ImagePreviewDialog::refreshImpl()
     }
 
     Image::ImageFormat format = _priv->currentImageFormat();
+    bool useReinterpretedImage = false;
+    if(_image.valid())
+    {
+        _priv->reinterpretedImage = *_image.get();
+        useReinterpretedImage = _priv->reinterpretedImage.reinterpretFormat(format);
+    }
 #if defined(SGI_USE_FFMPEG)
     QImage qimg;
     if(_image.valid())
-        SWScale::convertToQImage(*_image.get(), format, qimg);
+        SWScale::convertToQImage( useReinterpretedImage ? _priv->reinterpretedImage : (*_image.get()), qimg);
 #else
-    QImage qimg = convertImageToQImage(_image.get(), format);
+    QImage qimg = convertImageToQImage(useReinterpretedImage ? &_priv->reinterpretedImage : _image.get(), format);
 #endif
 
 	refreshStatistics(qimg);
@@ -1523,32 +1705,6 @@ void ImagePreviewDialog::refreshImpl()
     else
         ss << "<b>No image</b>";
     _priv->setImageInfo(ss.str());
-}
-
-bool ImagePreviewDialog::openImpl(const QString & filename)
-{
-    bool ret = false;
-    QImageReader reader(filename);
-    QImage image = reader.read();
-    ret = !image.isNull();
-    if(ret)
-    {
-        //setImage(image);
-    }
-    return ret;
-}
-
-
-bool ImagePreviewDialog::saveImpl(const QString & filename)
-{
-    bool ret = false;
-    const QPixmap * pixmap = _priv->ui->imageLabel->pixmap();
-    if(pixmap)
-    {
-        QImageWriter writer(filename);
-        ret = writer.write(pixmap->toImage());
-    }
-    return ret;
 }
 
 SGIItemBase * ImagePreviewDialog::getView()
