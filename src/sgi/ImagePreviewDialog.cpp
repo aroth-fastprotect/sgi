@@ -250,13 +250,18 @@ private:
     {
         if(!loadAttempted)
         {
-            library = new QLibrary("swscale.so");
+            library = new QLibrary("swscale");
             if(library->load())
             {
                 sws_getContext = (pfn_sws_getContext)library->resolve("sws_getContext");
                 sws_scale = (pfn_sws_scale)library->resolve("sws_scale");
                 sws_freeContext = (pfn_sws_freeContext)library->resolve("sws_freeContext");
                 ready = (sws_getContext != NULL && sws_scale != NULL && sws_freeContext != NULL);
+                std::cout << "Loaded swscale library " << library->fileName() << " ready=" << ready << std::endl;
+            }
+            else
+            {
+                std::cerr << "Failed to load swscale library: " << library->errorString() << std::endl;
             }
             loadAttempted = true;
         }
@@ -419,8 +424,10 @@ private:
         uint8_t * dstPlanes[1] = { dstdata + dstPlaneOffset[0] };
 
         ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
-            dest.width(), dest.height(), ffmpeg::AV_PIX_FMT_ARGB,
-            SWS_BILINEAR, NULL, NULL, NULL);
+                                                  dest.width(), dest.height(),
+                                                  //ffmpeg::AV_PIX_FMT_ARGB,
+                                                  ffmpeg::AV_PIX_FMT_BGRA,
+                                                  SWS_BILINEAR, NULL, NULL, NULL);
         sws_scale(ctx, srcPlanes, srcPitch, 0, src.height(), dstPlanes, dstPitch);
         sws_freeContext(ctx);
         return true;
@@ -430,7 +437,7 @@ public:
     static bool convert(const sgi::Image& src, Image::ImageFormat destFormat, sgi::Image& dest)
     {
         bool ret;
-        if(destFormat == src.format())
+        if(destFormat == src.format() || destFormat == Image::ImageFormatAutomatic)
         {
             dest = src;
             ret = true;
@@ -453,7 +460,13 @@ public:
         sgi::Image tmpImage;
         ret = convert(src, destFormat, tmpImage);
         if(ret)
-            ret = to_qimage_argb32(tmpImage, dest);
+        {
+            ret = load();
+            if(ret)
+            {
+                ret = to_qimage_argb32(tmpImage, dest);
+            }
+        }
         return ret;
     }
 };
@@ -1402,7 +1415,8 @@ void ImagePreviewDialog::refreshImpl()
     Image::ImageFormat format = _priv->currentImageFormat();
 #if defined(SGI_USE_FFMPEG)
     QImage qimg;
-    SWScale::convertToQImage(*_image.get(), format, qimg);
+    if(_image.valid())
+        SWScale::convertToQImage(*_image.get(), format, qimg);
 #else
     QImage qimg = convertImageToQImage(_image.get(), format);
 #endif
