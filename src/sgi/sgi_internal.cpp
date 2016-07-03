@@ -232,9 +232,11 @@ bool writePrettyHTMLImpl<Image>::process(std::basic_ostream<char>& os)
             os << "<tr><td>height</td><td>" << object->height() << "</td></tr>" << std::endl;
             os << "<tr><td>depth</td><td>" << object->depth() << "</td></tr>" << std::endl;
             os << "<tr><td>pitch</td><td>" << object->pitch(0) << "," << object->pitch(1) << "," << object->pitch(2) << "," << object->pitch(3) << "</td></tr>" << std::endl;
+            os << "<tr><td>planeOffset</td><td>" << object->planeOffset(0) << "," << object->planeOffset(1) << "," << object->planeOffset(2) << "," << object->planeOffset(3) << "</td></tr>" << std::endl;
             os << "<tr><td>origin</td><td>" << Image::originToString(object->origin()) << "</td></tr>" << std::endl;
             os << "<tr><td>format</td><td>" << Image::imageFormatToString(object->format()) << "</td></tr>" << std::endl;
             os << "<tr><td>data</td><td>" << object->data() << "</td></tr>" << std::endl;
+            os << "<tr><td>length</td><td>" << object->length() << "</td></tr>" << std::endl;
             os << "<tr><td>originalImage</td><td>" << object->originalImage() << "</td></tr>" << std::endl;
             os << "<tr><td>originalImageQt</td><td>" << object->originalImageQt() << "</td></tr>" << std::endl;
 
