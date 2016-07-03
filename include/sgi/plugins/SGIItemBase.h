@@ -343,6 +343,8 @@ public:
 	QImage * originalImageQt() const { return _originalImageQt; }
     Origin origin() const { return _origin; }
     bool allocate(unsigned width, unsigned height, ImageFormat format);
+    void free();
+    bool reinterpretFormat(ImageFormat targetFormat);
 
 protected:
     ImageFormat _format;
@@ -356,6 +358,7 @@ protected:
     unsigned _planeOffset[4];
     osg::ref_ptr<const osg::Referenced> _originalImage;
 	QImage * _originalImageQt;
+    bool _allocated;
 };
 
 } // namespace sgi

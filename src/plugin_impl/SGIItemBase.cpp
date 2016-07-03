@@ -378,6 +378,7 @@ Image::Image(ImageFormat format)
     : _format(format), _origin(OriginDefault), _data(NULL), _length(0)
     , _width(0), _height(0), _depth(0), _pitch { 0, 0, 0, 0 }, _planeOffset{0, 0, 0, 0}
     , _originalImage(NULL), _originalImageQt(NULL)
+    , _allocated(false)
 {
 }
 
@@ -387,6 +388,7 @@ Image::Image(ImageFormat format, Origin origin, void * data, size_t length,
     : _format(format), _origin(origin), _data(data), _length(length)
     , _width(width), _height(height), _depth(depth), _pitch { bytesPerLine, 0, 0, 0 }, _planeOffset{0, 0, 0, 0}
     , _originalImage(originalImage), _originalImageQt(NULL)
+    , _allocated(false)
 {
 
 }
@@ -396,6 +398,7 @@ Image::Image(ImageFormat format, Origin origin, void * data, size_t length,
     : _format(format), _origin(origin), _data(data), _length(length)
     , _width(width), _height(height), _depth(depth), _pitch { bytesPerLine, 0, 0, 0 }, _planeOffset{0, 0, 0, 0}
     , _originalImage(NULL), _originalImageQt((originalImage)?new QImage(*originalImage):NULL)
+    , _allocated(false)
 {
 
 }
@@ -443,6 +446,7 @@ Image::Image(QImage * originalImage)
     , _width(originalImage->width()), _height(originalImage->height()), _depth(1), _pitch { (unsigned)originalImage->bytesPerLine(), 0, 0, 0 }
     , _planeOffset{0, 0, 0, 0}
     , _originalImage(NULL), _originalImageQt((originalImage) ? new QImage(*originalImage) : NULL)
+    , _allocated(false)
 {
     _data = _originalImageQt->bits();
     _length = _originalImageQt->byteCount();
@@ -454,14 +458,14 @@ Image::Image(const Image & rhs)
     , _pitch { rhs._pitch[0], rhs._pitch[1], rhs._pitch[2], rhs._pitch[3] }
     , _planeOffset { rhs._planeOffset[0], rhs._planeOffset[1], rhs._planeOffset[2], rhs._planeOffset[3] }
     , _originalImage(rhs._originalImage), _originalImageQt(rhs._originalImageQt)
+    , _allocated(rhs._allocated)
 {
 
 }
 
 Image::~Image()
 {
-    if (_originalImageQt)
-        delete _originalImageQt;
+    free();
 }
 
 Image & Image::operator=(const Image & rhs)
@@ -486,10 +490,25 @@ Image & Image::operator=(const Image & rhs)
     return *this;
 }
 
+void Image::free()
+{
+    if (_originalImageQt)
+    {
+        delete _originalImageQt;
+        _originalImageQt = NULL;
+    }
+    if(_allocated && _data)
+    {
+        ::free(_data);
+        _data = NULL;
+    }
+}
+
 
 bool Image::allocate(unsigned width, unsigned height, ImageFormat format)
 {
     bool ret = false;
+    free();
     _length = 0;
     switch (format)
     {
@@ -583,11 +602,6 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format)
         }
         break;
     }
-    if(_data)
-    {
-        free(_data);
-        _data = NULL;
-    }
     if(_length)
     {
         _data = malloc(_length);
@@ -595,6 +609,137 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format)
         _height = height;
         _format = format;
         ret = _data != NULL;
+        _allocated = ret;
+    }
+    return ret;
+}
+
+bool Image::reinterpretFormat(ImageFormat targetFormat)
+{
+    bool ret = false;
+    switch(_format)
+    {
+    case Image::ImageFormatRed:
+    case Image::ImageFormatGreen:
+    case Image::ImageFormatBlue:
+    case Image::ImageFormatAlpha:
+    case Image::ImageFormatGray:
+        {
+            // reinterpret a single channel image as a full color image
+            switch(targetFormat)
+            {
+            case Image::ImageFormatYUV444:
+                ret = (_height % 3) == 0;
+                if(ret)
+                {
+                    unsigned planeHeight = _height / 3;
+                    unsigned planeLength = planeHeight * _width;
+                    // split single plane into three separate ones
+                    _planeOffset[0] = 0;
+                    _planeOffset[1] = planeLength;
+                    _planeOffset[2] = planeLength + planeLength;
+                    _planeOffset[3] = 0;
+                    _pitch[0] = _width;
+                    _pitch[1] = _width;
+                    _pitch[2] = _width;
+                    _pitch[3] = 0;
+                    _height = planeHeight;
+                }
+                break;
+            case Image::ImageFormatYUV422:
+                ret = (_height % 2) == 0;
+                if(ret)
+                {
+                    unsigned luma_planeHeight = _height / 2;
+                    unsigned chroma_planeHeight = luma_planeHeight / 2;
+                    unsigned luma_planeLength = luma_planeHeight * _width;
+                    unsigned chroma_planeLength = chroma_planeHeight * _width;
+                    // split single plane into three separate ones
+                    _planeOffset[0] = 0;
+                    _planeOffset[1] = luma_planeLength;
+                    _planeOffset[2] = luma_planeLength + chroma_planeLength;
+                    _planeOffset[3] = 0;
+                    _pitch[0] = _width;
+                    _pitch[1] = _width;
+                    _pitch[2] = _width;
+                    _pitch[3] = 0;
+                    _height = luma_planeHeight;
+                }
+                break;
+            case Image::ImageFormatYUV420:
+                ret = ((_height+_height) % 3) == 0;
+                if(ret)
+                {
+                    unsigned luma_planeHeight = (_height + _height)/ 3;
+                    unsigned chroma_planeHeight = luma_planeHeight / 2;
+                    unsigned luma_planeLength = luma_planeHeight * _width;
+                    unsigned chroma_planeLength = chroma_planeHeight * (_width/2);
+                    // split single plane into three separate ones
+                    _planeOffset[0] = 0;
+                    _planeOffset[1] = luma_planeLength;
+                    _planeOffset[2] = luma_planeLength + chroma_planeLength;
+                    _planeOffset[3] = 0;
+                    _pitch[0] = _width;
+                    _pitch[1] = _width / 2;
+                    _pitch[2] = _width / 2;
+                    _pitch[3] = 0;
+                    _height = luma_planeHeight;
+                }
+                break;
+            case Image::ImageFormatYUYV:
+            case Image::ImageFormatUYVY:
+                {
+                    // it's a YUV422 color format all in one plane
+                    ret = (_height % 2) == 0;
+                    if(ret)
+                    {
+                        unsigned luma_planeHeight = _height / 2;
+                        // split single plane into three separate ones
+                        _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+                        _pitch[0] = _width;
+                        _pitch[1] = _pitch[2] = _pitch[3] = 0;
+                        _height = luma_planeHeight;
+                    }
+                }
+                break;
+            }
+        }
+        break;
+    case ImageFormatBGR32:
+    case ImageFormatRGB32:
+    case ImageFormatARGB32:
+    case ImageFormatABGR32:
+        // reinterpret a 32-bit image and reinterpret the colors (helpful for wrong color
+        // display)
+        switch(targetFormat)
+        {
+        case ImageFormatBGR32:
+        case ImageFormatRGB32:
+        case ImageFormatARGB32:
+        case ImageFormatABGR32:
+            // just accept this, no special handling required
+            ret = true;
+        }
+        break;
+    case ImageFormatBGR24:
+    case ImageFormatRGB24:
+    case ImageFormatYUV444:
+        // reinterpret a 24-bit image and reinterpret the colors (helpful for wrong color
+        // display)
+        switch(targetFormat)
+        {
+        case ImageFormatBGR24:
+        case ImageFormatRGB24:
+        case ImageFormatYUV444:
+            // just accept this, no special handling required
+            ret = true;
+        }
+        break;
+    }
+    if(ret)
+    {
+        // we got the desired format, so take the targetFormat as new format
+        _format = targetFormat;
     }
     return ret;
 }
