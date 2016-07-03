@@ -22,6 +22,7 @@
 #include <osgDB/Registry>
 #include <osgUtil/CullVisitor>
 #include <osgViewer/View>
+#include <osg/ValueObject>
 
 #include <QApplication>
 
