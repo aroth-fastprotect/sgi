@@ -222,8 +222,9 @@ template<   typename pluginGenerateItemImpl=defaultPluginGenerateItemImpl,
 class SGIPluginImplementationT : public SGIPluginInterface
 {
 public:
-    SGIPluginImplementationT(SGIPluginHostInterface * hostInterface=NULL)
+    SGIPluginImplementationT(SGIPluginHostInterface * hostInterface=NULL, unsigned requiredInterfaceVersion=SGIPLUGIN_HOSTINTERFACE_CURRENT_VERSION)
         : SGIPluginInterface(hostInterface)
+         , _requiredInterfaceVersion(requiredInterfaceVersion)
          , _writePrettyHTML(hostInterface)
          , _objectInfo(hostInterface)
          , _objectTree(hostInterface)
@@ -236,6 +237,7 @@ public:
     }
     SGIPluginImplementationT(const SGIPluginImplementationT & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
         : SGIPluginInterface(rhs, copyop)
+         , _requiredInterfaceVersion(rhs._requiredInterfaceVersion)
          , _writePrettyHTML(rhs._hostInterface)
          , _objectInfo(rhs._hostInterface)
          , _objectTree(rhs._hostInterface)
@@ -246,12 +248,14 @@ public:
          , _convertToImage(rhs._hostInterface)
     {
     }
-
+    virtual unsigned getRequiredInterfaceVersion()
+    {
+        return _requiredInterfaceVersion;
+    }
     virtual unsigned getPluginScore()
     {
         return 0;
     }
-
     virtual bool generateItem(const SGIHostItemBase * object, SGIItemBasePtr & item)
     {
         return pluginGenerateItemImpl::generate(object, item);
@@ -501,6 +505,7 @@ protected:
     }
 
 private:
+    unsigned _requiredInterfaceVersion;
     WritePrettyHTMLImpl _writePrettyHTML;
     ObjectInfoImpl _objectInfo;
     ObjectTreeImpl _objectTree;
@@ -541,33 +546,15 @@ protected:
             { \
                 if ( !acceptsExtension(osgDB::getLowerCaseFileExtension( file_name ))) \
                     return osgDB::ReaderWriter::ReadResult::FILE_NOT_HANDLED; \
+                const unsigned * hostInterfaceVersion = reinterpret_cast<const unsigned*>(options->getPluginData("hostInterfaceVersion")); \
+                if(!hostInterfaceVersion || *hostInterfaceVersion != SGIPLUGIN_HOSTINTERFACE_CURRENT_VERSION) {\
+                    return osgDB::ReaderWriter::ReadResult::ERROR_IN_READING_FILE; \
+                } \
                 const sgi::SGIPluginHostInterface * hostInterface = reinterpret_cast<const sgi::SGIPluginHostInterface *>(options->getPluginData("hostInterface")); \
                 return osgDB::ReaderWriter::ReadResult( new sgi::SGIPlugin_##plugin_name##_Implementation(const_cast<sgi::SGIPluginHostInterface *>(hostInterface)) ); \
             } \
     }; \
     sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = NULL; \
     REGISTER_OSGPLUGIN(sgi_##plugin_name, SGIPlugin##plugin_name##ReaderWriter)
-
-#define SGIUI_PLUGIN_IMPLEMENT(plugin_name) \
-    class SGIUIPlugin##plugin_name##ReaderWriter : public sgi::SGIPluginReaderWriter { \
-        public: \
-            SGIUIPlugin##plugin_name##ReaderWriter() \
-            { \
-                setName("SGI UI Plugin " #plugin_name); \
-                supportsExtension( SGI_QUOTE(sgiui_##plugin_name##_plugin), "SGI UI Plugin " #plugin_name ); \
-            } \
-            virtual ~SGIUIPlugin##plugin_name##ReaderWriter() {} \
-            virtual const char* libraryName() { return SGI_QUOTE(sgiui_##plugin_name##_plugin); } \
-            virtual const char* className() { return SGI_QUOTE(SGIUIPlugin##plugin_name##ReaderWriter); } \
-            virtual osgDB::ReaderWriter::ReadResult readObject(const std::string& file_name, const Options* options) const \
-            { \
-                if ( !acceptsExtension(osgDB::getLowerCaseFileExtension( file_name ))) \
-                    return osgDB::ReaderWriter::ReadResult::FILE_NOT_HANDLED; \
-                const sgi::SGIPluginHostInterface * hostInterface = reinterpret_cast<const sgi::SGIPluginHostInterface *>(options->getPluginData("hostInterface")); \
-                return osgDB::ReaderWriter::ReadResult( new sgi::SGIUIPlugin_##plugin_name##_Implementation(const_cast<sgi::SGIPluginHostInterface *>(hostInterface)) ); \
-            } \
-    }; \
-    sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = NULL; \
-    REGISTER_OSGPLUGIN(sgiui_##plugin_name, SGIUIPlugin##plugin_name##ReaderWriter)
 
 } // namespace sgi

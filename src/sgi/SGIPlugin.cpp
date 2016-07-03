@@ -64,7 +64,6 @@ public:
 
     enum PluginType {
         PluginTypeModel = 0,
-        PluginTypeUI
     };
 
     SGIPluginsImpl()
@@ -134,6 +133,10 @@ public:
             : _impl(impl)
             {
             }
+        unsigned version()
+        {
+            return SGIPLUGIN_HOSTINTERFACE_CURRENT_VERSION;
+        }
 		IHostCallback * defaultHostCallback() 
 		{
 			return _impl->defaultHostCallback();
@@ -523,11 +526,6 @@ public:
         return ".sgi_" + name + "_plugin";
     }
 
-    static std::string createLibraryNameForPluginUI(const std::string& name)
-    {
-        return ".sgiui_" + name + "_plugin";
-    }
-
     const PluginInfo * loadInternalPlugin()
     {
         PluginMap::iterator it = _plugins.find(SGIPlugin_internal::PluginName);
@@ -544,8 +542,8 @@ public:
                 info.objectLoggerInterface = info.pluginInterface->getObjectLogger();
                 info.contextMenuInterface = info.pluginInterface->getContextMenu();
                 info.settingsDialogInterface = info.pluginInterface->getSettingsDialog();
-                if(info.settingsDialogInterface)
-                    info.pluginUIInterface = info.pluginInterface;
+                info.guiAdapterInterface = info.pluginInterface->getGUIAdapter();
+                info.convertToImage = info.pluginInterface->getConvertToImage();
             }
             it = _plugins.insert(PluginMap::value_type(info.pluginName, info)).first;
         }
@@ -553,7 +551,7 @@ public:
     }
 
     /// @brief load the given plugin
-    /// @note only loads the model plugin (not the UI)
+    /// @note only loads the model plugin
     /// @param name internal name of the plugin to load without any prefix or suffix
     /// @param filename optional filename of the library to load
     /// @return pointer to plugin info struct
@@ -573,6 +571,8 @@ public:
                 else
                     _pluginLoadOpts = new osgDB::Options();
                 _pluginLoadOpts->setPluginData("hostInterface", &_hostInterface);
+                unsigned hostInterfaceVersion = _hostInterface.version();
+                _pluginLoadOpts->setPluginData("hostInterfaceVersion", &hostInterfaceVersion);
             }
 
             std::string pluginFilename = createLibraryNameForPlugin(name);
@@ -583,44 +583,30 @@ public:
 			}
             if (info.pluginInterface)
             {
-                info.pluginFilename = filename;
-                info._pluginScore = info.pluginInterface->getPluginScore();
-                info.writePrettyHTMLInterface = info.pluginInterface->getWritePrettyHTML();
-                info.objectInfoInterface = info.pluginInterface->getObjectInfo();
-                info.objectTreeInterface = info.pluginInterface->getObjectTree();
-                info.objectLoggerInterface = info.pluginInterface->getObjectLogger();
-                info.contextMenuInterface = info.pluginInterface->getContextMenu();
-                info.settingsDialogInterface = info.pluginInterface->getSettingsDialog();
-                info.guiAdapterInterface = info.pluginInterface->getGUIAdapter();
-                info.convertToImage = info.pluginInterface->getConvertToImage();
-                if(info.settingsDialogInterface)
-                    info.pluginUIInterface = info.pluginInterface;
+                if(info.pluginInterface->getRequiredInterfaceVersion() != _hostInterface.version())
+                {
+                    // release the plugin because version does not match
+                    std::cout << "Drop plugin " << name << "(" << pluginFilename << ") because to version mismatch " <<
+                        info.pluginInterface->getRequiredInterfaceVersion() << "!=" << _hostInterface.version() << std::endl;
+                    info.pluginInterface = NULL;
+                }
+                else
+                {
+                    info.pluginFilename = filename;
+                    info._pluginScore = info.pluginInterface->getPluginScore();
+                    info.writePrettyHTMLInterface = info.pluginInterface->getWritePrettyHTML();
+                    info.objectInfoInterface = info.pluginInterface->getObjectInfo();
+                    info.objectTreeInterface = info.pluginInterface->getObjectTree();
+                    info.objectLoggerInterface = info.pluginInterface->getObjectLogger();
+                    info.contextMenuInterface = info.pluginInterface->getContextMenu();
+                    info.settingsDialogInterface = info.pluginInterface->getSettingsDialog();
+                    info.guiAdapterInterface = info.pluginInterface->getGUIAdapter();
+                    info.convertToImage = info.pluginInterface->getConvertToImage();
+                }
             }
             it = _plugins.insert(PluginMap::value_type(name, info)).first;
         }
         return &it->second;
-    }
-
-    bool loadPluginUI(PluginInfo & info)
-    {
-        bool ret = false;
-        if(!info.pluginUIInterface)
-        {
-			std::string pluginFilename = createLibraryNameForPluginUI(info.pluginName);
-			{
-				DisableLibraryLoadErrors disable_load_errors;
-				osgDB::ReaderWriter::ReadResult result = osgDB::Registry::instance()->readObject(pluginFilename, _pluginLoadOpts.get(), false);
-				info.pluginUIInterface = (SGIPluginInterface*)result.getObject();
-			}
-            if (info.pluginUIInterface)
-            {
-                info.settingsDialogInterface = info.pluginUIInterface->getSettingsDialog();
-                ret = (info.settingsDialogInterface != NULL);
-            }
-        }
-        else
-            ret = true;
-        return ret;
     }
 
     PluginFileNameList listAllAvailablePlugins(PluginType pluginType=PluginTypeModel)
@@ -639,7 +625,6 @@ public:
             switch(pluginType)
             {
             case PluginTypeModel: pos = basename.find("osgdb_sgi_"); break;
-            case PluginTypeUI: pos = basename.find("osgdb_sgiui_"); break;
             default: pos = std::string::npos; break;
             }
             if (pos == std::string::npos)
@@ -653,7 +638,6 @@ public:
             switch(pluginType)
             {
             case PluginTypeModel: pluginName = std::string(basename.begin()+pos+10,basename.begin()+posSuffix); break;
-            case PluginTypeUI: pluginName = std::string(basename.begin()+pos+12,basename.begin()+posSuffix); break;
             default: break;
             }
 
@@ -664,7 +648,6 @@ public:
                 switch(pluginType)
                 {
                 case PluginTypeModel: expectedFilename = std::string("osgdb_sgi_") + pluginName + std::string("_plugin") + postfix; break;
-                case PluginTypeUI: expectedFilename = std::string("osgdb_sgiui_") + pluginName + std::string("_plugin") + postfix; break;
                 default: pos = std::string::npos; break;
                 }
                 if(basename_no_ext == expectedFilename)
@@ -1151,13 +1134,9 @@ public:
         do
         {
             const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
-            if(pluginInfo)
+            if(pluginInfo && pluginInfo->settingsDialogInterface)
             {
-                if(loadPluginUI(*const_cast<PluginInfo *>(pluginInfo)) &&
-                    pluginInfo->settingsDialogInterface)
-                {
-                    ret = pluginInfo->settingsDialogInterface->create(dialog, item, info);
-                }
+                ret = pluginInfo->settingsDialogInterface->create(dialog, item, info);
             }
             item = item->nextBase();
         }

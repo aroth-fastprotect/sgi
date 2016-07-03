@@ -36,7 +36,6 @@ public:
         : pluginName()
         , pluginFilename()
         , pluginInterface(NULL)
-        , pluginUIInterface(NULL)
         , writePrettyHTMLInterface(NULL)
         , objectInfoInterface(NULL)
         , objectTreeInterface(NULL)
@@ -52,7 +51,6 @@ public:
         : pluginName(rhs.pluginName)
         , pluginFilename(rhs.pluginFilename)
         , pluginInterface(rhs.pluginInterface)
-        , pluginUIInterface(rhs.pluginUIInterface)
         , writePrettyHTMLInterface(rhs.writePrettyHTMLInterface)
         , objectInfoInterface(rhs.objectInfoInterface)
         , objectTreeInterface(rhs.objectTreeInterface)
@@ -69,7 +67,6 @@ public:
     std::string                             pluginName;
     std::string                             pluginFilename;
     osg::ref_ptr<SGIPluginInterface>        pluginInterface;
-    osg::ref_ptr<SGIPluginInterface>        pluginUIInterface;
     SGIPluginInterface::WritePrettyHTML*    writePrettyHTMLInterface;
     SGIPluginInterface::ObjectInfo*         objectInfoInterface;
     SGIPluginInterface::ObjectTree*         objectTreeInterface;

@@ -56,9 +56,12 @@ typedef osg::ref_ptr<IContextMenuAction> IContextMenuActionPtr;
 
 typedef QWidget * QWidgetPtr;
 
+#define SGIPLUGIN_HOSTINTERFACE_CURRENT_VERSION 3
+
 class SGIPluginHostInterface
 {
 public:
+    virtual unsigned version() = 0;
 	virtual IHostCallback * defaultHostCallback() = 0;
 	virtual IHostCallback * hostCallback() = 0;
 	virtual void setHostCallback(IHostCallback * callback) = 0;
@@ -175,6 +178,7 @@ public:
     {
     }
 
+    virtual unsigned getRequiredInterfaceVersion() = 0;
     virtual unsigned getPluginScore() = 0;
 
     virtual bool generateItem(const SGIHostItemBase * object, SGIItemBasePtr & item) = 0;
