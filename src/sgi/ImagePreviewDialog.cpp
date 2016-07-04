@@ -334,7 +334,11 @@ private:
     {
         if(!loadAttempted)
         {
+#ifdef _WIN32
+            library = new QLibrary("swscale-4");
+#else
             library = new QLibrary("swscale");
+#endif
             if(library->load())
             {
                 sws_getContext = (pfn_sws_getContext)library->resolve("sws_getContext");
