@@ -318,13 +318,23 @@ public:
     };
     static std::string originToString(Origin o);
 
+    struct ImageSize {
+        ImageSize(Image::ImageFormat f, unsigned w, unsigned h, unsigned d=1)
+            : format(f), width(w), height(h), depth(d) {}
+        Image::ImageFormat format;
+        unsigned width;
+        unsigned height;
+        unsigned depth;
+    };
+    typedef std::vector<ImageSize> ImageSizeList;
+
     Image(ImageFormat format=ImageFormatInvalid);
-    Image(ImageFormat format, Origin origin=OriginDefault, void * data=NULL, size_t length=0,
-          unsigned width=0, unsigned height=0, unsigned depth=0, unsigned bytesPerLine=0,
-          const osg::Referenced * originalImage=NULL);
-    Image(ImageFormat format, Origin origin=OriginDefault, void * data=NULL, size_t length=0,
-          unsigned width=0, unsigned height=0, unsigned depth=0, unsigned bytesPerLine=0,
-          QImage * originalImage=NULL);
+    explicit Image(ImageFormat format, Origin origin, void * data, size_t length,
+          unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
+          const osg::Referenced * originalImage);
+    explicit Image(ImageFormat format, Origin origin, void * data, size_t length,
+          unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
+          QImage * originalImage);
     Image(QImage * originalImage);
     Image(const Image & rhs);
     Image & operator=(const Image & rhs);
@@ -345,6 +355,7 @@ public:
     bool allocate(unsigned width, unsigned height, ImageFormat format);
     void free();
     bool reinterpretFormat(ImageFormat targetFormat);
+    bool guessImageSizes(ImageSizeList & possibleSizes) const;
 
 protected:
     ImageFormat _format;

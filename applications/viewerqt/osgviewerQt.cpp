@@ -40,6 +40,7 @@
 #include <osg/io_utils>
 
 #include <sgi/helpers/osg_helper_nodes>
+#include <sgi/plugins/SGIItemBase.h>
 
 namespace std {
 

@@ -458,7 +458,7 @@ Image::Image(const Image & rhs)
     , _pitch { rhs._pitch[0], rhs._pitch[1], rhs._pitch[2], rhs._pitch[3] }
     , _planeOffset { rhs._planeOffset[0], rhs._planeOffset[1], rhs._planeOffset[2], rhs._planeOffset[3] }
     , _originalImage(rhs._originalImage), _originalImageQt(rhs._originalImageQt)
-    , _allocated(rhs._allocated)
+    , _allocated(false)
 {
 
 }
@@ -470,9 +470,11 @@ Image::~Image()
 
 Image & Image::operator=(const Image & rhs)
 {
+    free();
     _format = rhs._format;
     _origin = rhs._origin;
     _data = rhs._data;
+    _allocated = false;
     _length = rhs._length;
     _width = rhs._width;
     _height = rhs._height;
@@ -740,6 +742,97 @@ bool Image::reinterpretFormat(ImageFormat targetFormat)
     {
         // we got the desired format, so take the targetFormat as new format
         _format = targetFormat;
+    }
+    return ret;
+}
+
+bool Image::guessImageSizes(ImageSizeList & possibleSizes) const
+{
+    bool ret = false;
+    possibleSizes.clear();
+    quint64 totalNumberOfPixels = 0;
+    switch(_format)
+    {
+    case Image::ImageFormatARGB32:
+    case Image::ImageFormatRGB32:
+    case Image::ImageFormatABGR32:
+    case Image::ImageFormatBGR32:
+    case Image::ImageFormatFloat:
+        ret = (_length % 4 == 0);
+        if(ret)
+            totalNumberOfPixels = _length / 4;
+        break;
+    case Image::ImageFormatRGB24:
+    case Image::ImageFormatBGR24:
+    case Image::ImageFormatYUV444:
+        ret = (_length % 3 == 0);
+        if(ret)
+            totalNumberOfPixels = _length / 3;
+        break;
+    case Image::ImageFormatYUV422:
+    case Image::ImageFormatYUYV:
+    case Image::ImageFormatUYVY:
+        ret = (_length % 2 == 0);
+        if(ret)
+            totalNumberOfPixels = _length / 2;
+        break;
+    case Image::ImageFormatYUV420:
+        ret = ((_length*2) % 3 == 0);
+        if(ret)
+            totalNumberOfPixels = (_length*2) / 3;
+    }
+    if(ret)
+    {
+        double d = sqrt(totalNumberOfPixels);
+        if(fmod(d, 1.0) == 0)
+        {
+            // got a square image
+            int width = std::floor(d);
+            int height = width;
+            possibleSizes.push_back(ImageSize(_format, width, height));
+        }
+        else
+        {
+            const int size_step_size = 8;
+            const int min_height = 16;
+            const int min_width = 16;
+            int max_width = totalNumberOfPixels / min_height;
+            int start_width = (int)std::floor(d)/size_step_size * size_step_size;
+            // adjust to next matching 8-pixel width
+            start_width = (start_width / size_step_size) * size_step_size;
+
+            for(int width = start_width; width <= max_width; width += size_step_size)
+            {
+                int height_4_3 = (width * 3) / 4;
+                int height_16_9 = (width * 9) / 16;
+                int total_4_3 = width * height_4_3;
+                int total_16_9 = width * height_16_9;
+                if(total_4_3 == totalNumberOfPixels)
+                {
+                    possibleSizes.push_back(ImageSize(_format, width, height_4_3));
+                }
+                if(total_16_9 == totalNumberOfPixels)
+                {
+                    possibleSizes.push_back(ImageSize(_format, width, height_16_9));
+                }
+            }
+            for(int width = start_width; width >= min_width; width -= size_step_size)
+            {
+                int height_4_3 = (width * 3) / 4;
+                int height_16_9 = (width * 9) / 16;
+                int total_4_3 = width * height_4_3;
+                int total_16_9 = width * height_16_9;
+                if(total_4_3 == totalNumberOfPixels)
+                {
+                    possibleSizes.push_back(ImageSize(_format, width, height_4_3));
+                }
+                if(total_16_9 == totalNumberOfPixels)
+                {
+                    possibleSizes.push_back(ImageSize(_format, width, height_16_9));
+                }
+            }
+
+        }
     }
     return ret;
 }
