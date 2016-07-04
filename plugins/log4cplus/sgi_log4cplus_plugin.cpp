@@ -7,7 +7,7 @@
 #include <sgi/plugins/SGIPluginImpl.h>
 #include <sgi/plugins/SGIPluginInterface.h>
 #include <sgi/plugins/SGIHostItemLog4cplus.h>
-#include <sgi/plugins/SGIHostItemOsg.h>
+#include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/plugins/GenerateItemImpl>
 #include <sgi/SGIItemInternal>
 
