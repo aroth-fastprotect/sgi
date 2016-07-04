@@ -69,8 +69,10 @@ public:
     SGIPluginsImpl()
         : _pluginsLoaded(false)
         , _hostInterface(this)
-		, _defaultHostCallback(new DefaultHostCallback(this))
+        , _hostInterfaceVersion(0)
+        , _defaultHostCallback(new DefaultHostCallback(this))
     {
+        _hostInterfaceVersion = _hostInterface.version();
         {
             const std::string& value_type = details::StaticTypeName<sgi::SGIItemType>::name();
             registerNamedEnum(value_type, "SGIItemType", false);
@@ -571,8 +573,7 @@ public:
                 else
                     _pluginLoadOpts = new osgDB::Options();
                 _pluginLoadOpts->setPluginData("hostInterface", &_hostInterface);
-                unsigned hostInterfaceVersion = _hostInterface.version();
-                _pluginLoadOpts->setPluginData("hostInterfaceVersion", &hostInterfaceVersion);
+                _pluginLoadOpts->setPluginData("hostInterfaceVersion", &_hostInterfaceVersion);
             }
 
             std::string pluginFilename = createLibraryNameForPlugin(name);
@@ -1756,6 +1757,7 @@ private:
     PluginMap   _plugins;
     osg::ref_ptr<osgDB::Options> _pluginLoadOpts;
     HostInterface _hostInterface;
+    unsigned _hostInterfaceVersion;
 	IHostCallbackPtr _defaultHostCallback;
 	IHostCallbackPtr _hostCallback;
     NamedEnumType _namedEnums;
