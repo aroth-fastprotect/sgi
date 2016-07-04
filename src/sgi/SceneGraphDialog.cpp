@@ -545,7 +545,7 @@ bool SceneGraphDialog::buildTree(ObjectTreeItem * treeItem, SGIItemBase * item)
     // internal item is useful especially in these cases to investigate why the
     // call to build tree failed.
     InternalItemData internalItemData(item);;
-    SGIHostItemOsg hostItemInternal(new ReferencedInternalItemData(internalItemData));
+    SGIHostItemInternal hostItemInternal(new ReferencedInternalItemData(internalItemData));
     treeItem->addChild("Internal", &hostItemInternal);
 
     QTreeWidgetItem * treeItemQt = treeItem->treeItem();
