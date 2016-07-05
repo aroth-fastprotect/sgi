@@ -269,6 +269,8 @@ public:
     void refresh();
     void flipHorizontal();
     void flipVertical();
+    void imageWidthChanged(int index);
+    void imageHeightChanged(int index);
     void imageFormatChanged(int index);
     void displayChannelChanged(int index);
 
@@ -301,6 +303,8 @@ public:
     QAction *                       fitToWindowAction;
     QAction *                       flipHorizontalAction;
     QAction *                       flipVerticalAction;
+    QComboBox *                     imageWidth;
+    QComboBox *                     imageHeight;
     QComboBox *                     imageFormat;
     QComboBox *                     displayChannel;
     QString                         labelText;
@@ -334,11 +338,7 @@ private:
     {
         if(!loadAttempted)
         {
-#ifdef _WIN32
-            library = new QLibrary("swscale-4");
-#else
-            library = new QLibrary("swscale");
-#endif
+            library = new QLibrary(SGI_SWSCALE_LIBRARYNAME);
             if(library->load())
             {
                 sws_getContext = (pfn_sws_getContext)library->resolve("sws_getContext");
@@ -550,6 +550,8 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
     , fitToWindowAction(NULL)
     , flipHorizontalAction(NULL)
     , flipVerticalAction(NULL)
+    , imageWidth(NULL)
+    , imageHeight(NULL)
     , imageFormat(NULL)
 	, labelText()
 	, scaleFactor(1.0)
@@ -764,6 +766,18 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
     QPushButton * openButton = ui->buttonBox->button(QDialogButtonBox::Open);
     openButton->setMenu(openMenu);
 
+    imageWidth = new QComboBox(toolBar);
+    imageWidth->setEditable(true);
+    imageWidth->setToolTip(tr("Width of the image"));
+    for (unsigned w : { 16, 32, 64, 128, 256, 640, 720, 800, 1024, 1240, 1980, 2048 })
+        imageWidth->addItem(QString::number(w), w);
+
+    imageHeight = new QComboBox(toolBar);
+    imageHeight->setEditable(true);
+    imageHeight->setToolTip(tr("Height of the image"));
+    for (unsigned w : { 16, 32, 64, 128, 256, 388, 480, 600, 768, 1024, 1080, 2048 })
+        imageWidth->addItem(QString::number(w), w);
+
     imageFormat = new QComboBox(toolBar);
     imageFormat->setToolTip(tr("Re-interpret image format"));
     for(const auto & it : ImageFormatDisplayText)
@@ -780,17 +794,24 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
     displayChannel->addItem(tr("Hue"), QVariant::fromValue((int)DisplayChannelHue));
     displayChannel->addItem(tr("Saturation"), QVariant::fromValue((int)DisplayChannelSaturation));
 
+    toolBar->addWidget(imageWidth);
+    toolBar->addWidget(imageHeight);
+    toolBar->addSeparator();
     toolBar->addWidget(imageFormat);
     toolBar->addWidget(displayChannel);
     toolBar->addAction(refreshAction);
+    toolBar->addSeparator();
 	toolBar->addAction(zoomInAction);
 	toolBar->addAction(zoomOutAction);
 	toolBar->addAction(normalSizeAction);
 	toolBar->addAction(fitToWindowAction);
+    toolBar->addSeparator();
 	toolBar->addAction(flipHorizontalAction);
 	toolBar->addAction(flipVerticalAction);
 
     // do the connects at the end to avoid trouble when new items are added and signals fired
+    connect(imageWidth, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ImagePreviewDialogImpl::imageWidthChanged);
+    connect(imageHeight, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ImagePreviewDialogImpl::imageHeightChanged);
     connect(imageFormat, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ImagePreviewDialogImpl::imageFormatChanged);
     connect(displayChannel, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ImagePreviewDialogImpl::displayChannelChanged);
 
@@ -843,6 +864,18 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::flipHorizontal()
 }
 
 void ImagePreviewDialog::ImagePreviewDialogImpl::flipVertical()
+{
+    // just refresh the actual change is done in refreshImpl
+    refresh();
+}
+
+void ImagePreviewDialog::ImagePreviewDialogImpl::imageWidthChanged(int index)
+{
+    // just refresh the actual change is done in refreshImpl
+    refresh();
+}
+
+void ImagePreviewDialog::ImagePreviewDialogImpl::imageHeightChanged(int index)
 {
     // just refresh the actual change is done in refreshImpl
     refresh();
@@ -1693,10 +1726,16 @@ void ImagePreviewDialog::refreshImpl()
         }
         else
             actualDisplayedPixmap = QPixmap::fromImage(qimgDisplay);
+        _priv->imageWidth->setCurrentText(QString::number(_image->width()));
+        _priv->imageHeight->setCurrentText(QString::number(_image->height()));
         _priv->ui->imageLabel->setPixmap(actualDisplayedPixmap);
     }
     else
+    {
+        _priv->imageWidth->setCurrentText(tr("N/A"));
+        _priv->imageHeight->setCurrentText(tr("N/A"));
         _priv->ui->imageLabel->setPixmap(QPixmap());
+    }
     _priv->ui->imageLabel->setScaledContents(!_priv->fitToWindowAction->isChecked());
 
     std::stringstream ss;
@@ -1744,6 +1783,10 @@ void ImagePreviewDialog::setObject(SGIItemBase * item, const sgi::Image * image,
 {
     _item = item;
     _image = image;
+    if (!_image.valid())
+        _workImage = NULL;
+    else
+        _workImage = new Image(*image);
     _priv->labelText = qt_helpers::fromLocal8Bit(description);
     if(callback)
         _hostCallback = callback;
@@ -1753,6 +1796,10 @@ void ImagePreviewDialog::setObject(SGIItemBase * item, const sgi::Image * image,
 void ImagePreviewDialog::setImage(const sgi::Image * image)
 {
     _image = image;
+    if (!_image.valid())
+        _workImage = NULL;
+    else
+        _workImage = new Image(*image);
     emit triggerOnObjectChanged();
 }
 

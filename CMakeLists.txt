@@ -78,6 +78,11 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 	OPTION(SGI_PLUGIN_LOG4CPLUS "Enable log4cplus plugin" ${LOG4CPLUS_FOUND})
     OPTION(SGI_UNITTESTS "Enable SGI unitests" ON)
     OPTION(SGI_USE_FFMPEG "Use ffmpeg/swscale for image operations" ON)
+	IF(WIN32)
+		SET(SGI_SWSCALE_LIBRARYNAME "swscale-4" CACHE STRING "name of the swscale library")
+	ELSE()
+		SET(SGI_SWSCALE_LIBRARYNAME "swscale" CACHE STRING "name of the swscale library")
+	ENDIF()
 
 	SET(SGI_PLUGIN_IMPL_LIBRARY osgSGI-plugin-impl)
 

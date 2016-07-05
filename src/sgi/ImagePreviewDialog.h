@@ -91,6 +91,7 @@ protected:
     SGIItemBasePtr                  _item;
     ConstImagePtr                   _image;
     ImagePtr                        _itemImage;
+    ImagePtr                        _workImage;
     SGIPluginHostInterface *        _hostInterface;
     ImagePreviewDialogImpl *        _priv;
     // use a simple raw-ptr to the interface to avoid a circular ref-ptr
