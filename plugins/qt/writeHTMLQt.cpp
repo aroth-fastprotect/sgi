@@ -267,7 +267,9 @@ bool writePrettyHTMLImpl<QWidget>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add QWidget properties
-            os << "<tr><td>winId</td><td>" << object->winId() << "</td></tr>" << std::endl;
+            // DO NOT call winId() here, because this would trigger the widget to change
+            // into a native window.
+            //os << "<tr><td>winId</td><td>" << object->winId() << "</td></tr>" << std::endl;
             os << "<tr><td>internalWinId</td><td>" << object->internalWinId() << "</td></tr>" << std::endl;
             os << "<tr><td>effectiveWinId</td><td>" << object->effectiveWinId() << "</td></tr>" << std::endl;
 
