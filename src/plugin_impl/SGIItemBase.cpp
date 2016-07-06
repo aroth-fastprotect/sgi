@@ -409,16 +409,16 @@ namespace {
         Image::ImageFormat imageFormat;
         switch (format)
         {
-        case QImage::Format_Invalid:imageFormat = sgi::Image::ImageFormatInvalid; break;
-        case QImage::Format_Mono: imageFormat = sgi::Image::ImageFormatMono; break;
-        case QImage::Format_MonoLSB: imageFormat = sgi::Image::ImageFormatMonoLSB; break;
-        case QImage::Format_Indexed8: imageFormat = sgi::Image::ImageFormatIndexed8; break;
-        case QImage::Format_RGB32: imageFormat = sgi::Image::ImageFormatRGB32; break;
+        case QImage::Format_Invalid:imageFormat = Image::ImageFormatInvalid; break;
+        case QImage::Format_Mono: imageFormat = Image::ImageFormatMono; break;
+        case QImage::Format_MonoLSB: imageFormat = Image::ImageFormatMonoLSB; break;
+        case QImage::Format_Indexed8: imageFormat = Image::ImageFormatIndexed8; break;
+        case QImage::Format_RGB32: imageFormat = Image::ImageFormatRGB32; break;
         case QImage::Format_RGBA8888:
         case QImage::Format_RGBA8888_Premultiplied:
         case QImage::Format_ARGB32_Premultiplied:
-        case QImage::Format_ARGB32: imageFormat = sgi::Image::ImageFormatARGB32; break;
-        case QImage::Format_RGB888: imageFormat = sgi::Image::ImageFormatRGB24; break;
+        case QImage::Format_ARGB32: imageFormat = Image::ImageFormatARGB32; break;
+        case QImage::Format_RGB888: imageFormat = Image::ImageFormatRGB24; break;
         case QImage::Format_RGB16:
         case QImage::Format_ARGB8565_Premultiplied:
         case QImage::Format_RGB666:
@@ -433,7 +433,7 @@ namespace {
         case QImage::Format_RGB30:
         case QImage::Format_A2RGB30_Premultiplied:
         default:
-            imageFormat = sgi::Image::ImageFormatRaw;
+            imageFormat = Image::ImageFormatRaw;
             break;
         }
         return imageFormat;
@@ -450,6 +450,16 @@ Image::Image(QImage * originalImage)
 {
     _data = _originalImageQt->bits();
     _length = _originalImageQt->byteCount();
+}
+
+Image::Image(ImageFormat format, void * data, size_t length, bool copyData)
+    : _format(format), _origin(OriginDefault), _data(copyData ? malloc(length) : data), _length(length)
+    , _width(0), _height(0), _depth(0), _pitch{ 0, 0, 0, 0 }, _planeOffset{ 0, 0, 0, 0 }
+    , _originalImage(NULL), _originalImageQt(NULL)
+    , _allocated(copyData)
+{
+    if (copyData)
+        memcpy(_data, data, length);
 }
 
 Image::Image(const Image & rhs)
@@ -744,6 +754,105 @@ bool Image::reinterpretFormat(ImageFormat targetFormat)
         _format = targetFormat;
     }
     return ret;
+}
+
+bool Image::reinterpret(const ImageSize & size)
+{
+    return reinterpret(size.format, size.width, size.height, size.depth);
+}
+
+bool Image::reinterpret(ImageFormat format, unsigned width, unsigned height, unsigned depth)
+{
+    _width = width;
+    _height = height;
+    _depth = depth;
+    _format = format;
+    switch (format)
+    {
+    default:
+    case ImageFormatInvalid:
+        Q_ASSERT_X(false, __FUNCTION__, "invalid frame format");
+        break;
+    case ImageFormatAutomatic:
+        Q_ASSERT_X(false, __FUNCTION__, "invalid frame format, automatic");
+        break;
+    case ImageFormatRaw:
+        Q_ASSERT_X(false, __FUNCTION__, "invalid frame format, raw");
+        break;
+    case ImageFormatRGB24:
+    case ImageFormatBGR24:
+        {
+            _pitch[0] = width * 3;
+            _pitch[1] = _pitch[2] = _pitch[3] = 0;
+            _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+        }
+        break;
+    case ImageFormatRGB32:
+    case ImageFormatARGB32:
+    case ImageFormatBGR32:
+    case ImageFormatABGR32:
+    case ImageFormatFloat:
+        {
+            _pitch[0] = width * 4;
+            _pitch[1] = _pitch[2] = _pitch[3] = 0;
+            _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+        }
+        break;
+    case ImageFormatYUV444:
+        {
+            _pitch[0] = _pitch[1] = _pitch[2] = width * 3;
+            _pitch[3] = 0;
+            _planeOffset[0] = 0;
+            _planeOffset[1] = width * height * 3;
+            _planeOffset[2] = _planeOffset[1] << 1;
+            _planeOffset[3] = 0;
+        }
+        break;
+    case ImageFormatYUV422:
+        {
+            _pitch[0] = width;
+            _pitch[1] = _pitch[2] = width / 2;
+            _pitch[3] = 0;
+            _planeOffset[0] = 0;
+            _planeOffset[1] = width * height;
+            _planeOffset[2] = _planeOffset[1] + (_planeOffset[1] >> 1);
+            _planeOffset[3] = 0;
+        }
+        break;
+    case ImageFormatYUV420:
+        {
+            _pitch[0] = width;
+            _pitch[1] = _pitch[2] = width / 2;
+            _pitch[3] = 0;
+            _planeOffset[0] = 0;
+            _planeOffset[1] = width * height;
+            _planeOffset[2] = _planeOffset[1] + (_planeOffset[1] >> 2);
+            _planeOffset[3] = 0;
+        }
+        break;
+
+    case ImageFormatYUYV:
+    case ImageFormatUYVY:
+        {
+            _pitch[0] = width;
+            _pitch[1] = _pitch[2] = _pitch[3] = 0;
+            _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+        }
+        break;
+    case ImageFormatGray:
+    case ImageFormatRed:
+    case ImageFormatGreen:
+    case ImageFormatBlue:
+    case ImageFormatAlpha:
+        {
+            // only one channel with 8-bit color data
+            _pitch[0] = width;
+            _pitch[1] = _pitch[2] = _pitch[3] = 0;
+            _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+        }
+        break;
+    }
+    return true;
 }
 
 bool Image::guessImageSizes(ImageSizeList & possibleSizes) const

@@ -254,7 +254,6 @@ public:
     void updateToolbar();
     void scaleImage(double factor);
     static void adjustScrollBar(QScrollBar *scrollBar, double factor);
-    void setImageInfo(const std::string & infoText);
 
     Image::ImageFormat currentImageFormat() const;
     DisplayChannel currentDisplayChannel() const;
@@ -432,7 +431,7 @@ private:
     {
         ffmpeg::AVPixelFormat srcPixelFormat = ImageFormatToAVCodec(src.format());
         ffmpeg::AVPixelFormat destPixelFormat = ImageFormatToAVCodec(dest.format());
-        if(srcPixelFormat == ffmpeg::AV_PIX_FMT_NONE)
+        if (srcPixelFormat == ffmpeg::AV_PIX_FMT_NONE || src.width() == 0 || src.height() == 0 || dest.width() == 0 || dest.height() == 0)
             return false;
 
         const uint8_t* srcdata = reinterpret_cast<const uint8_t*>(src.data());
@@ -457,7 +456,7 @@ private:
     static bool to_qimage_argb32(const sgi::Image& src, QImage& dest)
     {
         ffmpeg::AVPixelFormat srcPixelFormat = ImageFormatToAVCodec(src.format());
-        if(srcPixelFormat == ffmpeg::AV_PIX_FMT_NONE)
+        if(srcPixelFormat == ffmpeg::AV_PIX_FMT_NONE || src.width() == 0 || src.height() == 0)
             return false;
 
         const uint8_t* srcdata = reinterpret_cast<const uint8_t*>(src.data());
@@ -604,39 +603,7 @@ ImagePreviewDialog::ImagePreviewDialogImpl::~ImagePreviewDialogImpl()
 
 void ImagePreviewDialog::ImagePreviewDialogImpl::refresh()
 {
-	setNodeInfo(_dialog->_item.get());
-    if(!_dialog->_image.valid())
-    {
-        if(_dialog->_hostInterface->convertToImage(_dialog->_itemImage, _dialog->_item.get()))
-            _dialog->_image = _dialog->_itemImage;
-    }
-    setImageInfo(_dialog->_image.get());
 	_dialog->refreshImpl();
-}
-
-void ImagePreviewDialog::ImagePreviewDialogImpl::setImageInfo(const std::string & infoText)
-{
-	if (labelText.isEmpty())
-		ui->labelImage->setText(qt_helpers::fromLocal8Bit(infoText));
-	else
-		ui->labelImage->setText(labelText + QString("\r\n") + qt_helpers::fromLocal8Bit(infoText));
-
-	const QPixmap * p = ui->labelImage->pixmap();
-	int width = p ? p->width() : 0;
-	int height = p ? p->height() : 0;
-	ui->scrollArea->horizontalScrollBar()->setMaximum(width);
-	ui->scrollArea->verticalScrollBar()->setMaximum(height);
-	ui->scrollArea->horizontalScrollBar()->setPageStep((width / 10));
-	ui->scrollArea->verticalScrollBar()->setMaximum((height / 10));
-	ui->scrollArea->horizontalScrollBar()->setValue(0);
-	ui->scrollArea->verticalScrollBar()->setValue(0);
-
-    bool fitToWindow = fitToWindowAction->isChecked();
-    ui->scrollArea->setWidgetResizable(fitToWindow);
-    if (!fitToWindow) {
-        normalSize();
-    }
-    updateToolbar();
 }
 
 //! [9]
@@ -775,8 +742,8 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
     imageHeight = new QComboBox(toolBar);
     imageHeight->setEditable(true);
     imageHeight->setToolTip(tr("Height of the image"));
-    for (unsigned w : { 16, 32, 64, 128, 256, 388, 480, 600, 768, 1024, 1080, 2048 })
-        imageWidth->addItem(QString::number(w), w);
+    for (unsigned h : { 16, 32, 64, 128, 256, 388, 480, 600, 768, 1024, 1080, 2048 })
+        imageHeight->addItem(QString::number(h), h);
 
     imageFormat = new QComboBox(toolBar);
     imageFormat->setToolTip(tr("Re-interpret image format"));
@@ -931,9 +898,10 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::openImageAs()
                 if(result)
                 {
                     originalImage = image;
-                    Image * loadedImage = new Image(&image);
-                    loadedImage->reinterpretFormat(targetFormat);
-                    _dialog->_image = loadedImage;
+                    _dialog->_workImage = new Image(&image);
+                    _dialog->_workImage->reinterpretFormat(targetFormat);
+                    _dialog->_image = _dialog->_workImage;
+                    _dialog->_itemImage = nullptr;
                 }
             }
             break;
@@ -951,12 +919,14 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::openImageAs()
                     if(result)
                     {
                         originalImage = QImage();
-                        Image::Origin origin = Image::OriginDefault;
-                        int width = 0;
-                        int height = 0;
-                        int depth = 0;
-                        int bytesPerLine = 0;
-                        _dialog->_image = new Image(targetFormat, origin, data.data(), data.size(), width, height, depth, bytesPerLine, (QImage*)NULL);
+                        _dialog->_workImage = new Image(targetFormat, data.data(), data.size());
+                        std::vector<Image::ImageSize> sizes;
+                        if (_dialog->_workImage->guessImageSizes(sizes) && !sizes.empty())
+                        {
+                            _dialog->_workImage->reinterpret(sizes.front());
+                        }
+                        _dialog->_image = _dialog->_workImage;
+                        _dialog->_itemImage = nullptr;
                     }
                     f.close();
                 }
@@ -1693,17 +1663,24 @@ void ImagePreviewDialog::refreshImpl()
         setWindowTitle(tr("Image Viewer - No image available"));
     }
 
-    Image::ImageFormat format = _priv->currentImageFormat();
-    bool useReinterpretedImage = false;
-    if(_image.valid())
+    // get image from the item if no image has been explicitly specified by the caller
+    if (!_image.valid() && _item.valid())
     {
-        _priv->reinterpretedImage = *_image.get();
-        useReinterpretedImage = _priv->reinterpretedImage.reinterpretFormat(format);
+        if (_hostInterface->convertToImage(_itemImage, _item.get()))
+        {
+            _image = _itemImage;
+            _workImage = _itemImage;
+        }
     }
+
+    Image::ImageFormat format = _priv->currentImageFormat();
+    if(_workImage.valid())
+        _workImage->reinterpretFormat(format);
+
 #if defined(SGI_USE_FFMPEG)
     QImage qimg;
-    if(_image.valid())
-        SWScale::convertToQImage( useReinterpretedImage ? _priv->reinterpretedImage : (*_image.get()), qimg);
+    if(_workImage.valid())
+        SWScale::convertToQImage( *_workImage.get(), qimg);
 #else
     QImage qimg = convertImageToQImage(useReinterpretedImage ? &_priv->reinterpretedImage : _image.get(), format);
 #endif
@@ -1738,6 +1715,19 @@ void ImagePreviewDialog::refreshImpl()
     }
     _priv->ui->imageLabel->setScaledContents(!_priv->fitToWindowAction->isChecked());
 
+    {
+        int width = _workImage.valid() ? _workImage->width() : 0;
+        int height = _workImage.valid() ? _workImage->height() : 0;
+        _priv->ui->scrollArea->horizontalScrollBar()->setMaximum(width);
+        _priv->ui->scrollArea->verticalScrollBar()->setMaximum(height);
+        _priv->ui->scrollArea->horizontalScrollBar()->setPageStep((width / 10));
+        _priv->ui->scrollArea->verticalScrollBar()->setMaximum((height / 10));
+        _priv->ui->scrollArea->horizontalScrollBar()->setValue(0);
+        _priv->ui->scrollArea->verticalScrollBar()->setValue(0);
+        bool fitToWindow = _priv->fitToWindowAction->isChecked();
+        _priv->ui->scrollArea->setWidgetResizable(fitToWindow);
+    }
+
     std::stringstream ss;
     ss << "<i>Info for displayed image:</i><br/>\r\n";
     if(!qimg.isNull())
@@ -1747,7 +1737,10 @@ void ImagePreviewDialog::refreshImpl()
     }
     else
         ss << "<b>No image</b>";
-    _priv->setImageInfo(ss.str());
+    _priv->ui->labelImage->setText(qt_helpers::fromLocal8Bit(ss.str()));
+    _priv->setImageInfo(_workImage);
+    _priv->setNodeInfo(_item.get());
+    _priv->updateToolbar();
 }
 
 SGIItemBase * ImagePreviewDialog::getView()

@@ -69,8 +69,6 @@ protected:
     void refreshImpl();
 	void refreshStatistics(const QImage & image);
 
-    void                    setNodeInfo(const SGIItemBase * item);
-
     void                    triggerRepaint();
     SGIItemBase *           getView();
 

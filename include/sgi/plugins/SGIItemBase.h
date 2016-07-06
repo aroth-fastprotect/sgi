@@ -329,6 +329,7 @@ public:
     typedef std::vector<ImageSize> ImageSizeList;
 
     Image(ImageFormat format=ImageFormatInvalid);
+    explicit Image(ImageFormat format, void * data, size_t length, bool copyData=true);
     explicit Image(ImageFormat format, Origin origin, void * data, size_t length,
           unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
           const osg::Referenced * originalImage);
@@ -356,6 +357,8 @@ public:
     void free();
     bool reinterpretFormat(ImageFormat targetFormat);
     bool guessImageSizes(ImageSizeList & possibleSizes) const;
+    bool reinterpret(const ImageSize & size);
+    bool reinterpret(ImageFormat format, unsigned width, unsigned height, unsigned depth = 1);
 
 protected:
     ImageFormat _format;
