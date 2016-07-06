@@ -107,6 +107,9 @@ public:
     bool reinterpret(ImageFormat format, unsigned width, unsigned height, unsigned depth = 1);
 
 protected:
+    void loadPitchAndPlaneOffsets();
+
+protected:
     ImageFormat _format;
     Origin _origin;
     void * _data;

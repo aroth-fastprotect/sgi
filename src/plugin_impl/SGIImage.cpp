@@ -25,7 +25,9 @@ Image::Image(ImageFormat format, Origin origin, void * data, size_t length,
 {
     if (copyData)
         memcpy(_data, data, length);
+    loadPitchAndPlaneOffsets();
 }
+
 Image::Image(ImageFormat format, Origin origin, void * data, size_t length,
     unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
     QImage * originalImage, bool copyData)
@@ -36,6 +38,7 @@ Image::Image(ImageFormat format, Origin origin, void * data, size_t length,
 {
     if (copyData)
         memcpy(_data, data, length);
+    loadPitchAndPlaneOffsets();
 }
 
 namespace {
@@ -101,6 +104,7 @@ Image::Image(ImageFormat format, void * data, size_t length, bool copyData)
 {
     if (copyData)
         memcpy(_data, data, length);
+    loadPitchAndPlaneOffsets();
 }
 
 Image::Image(const Image & rhs)
@@ -143,6 +147,95 @@ Image & Image::operator=(const Image & rhs)
     return *this;
 }
 
+void Image::loadPitchAndPlaneOffsets()
+{
+    switch (_format)
+    {
+    default:
+    case ImageFormatInvalid:
+        Q_ASSERT_X(false, __FUNCTION__, "invalid frame format");
+        break;
+    case ImageFormatAutomatic:
+        Q_ASSERT_X(false, __FUNCTION__, "invalid frame format, automatic");
+        break;
+    case ImageFormatRaw:
+        Q_ASSERT_X(false, __FUNCTION__, "invalid frame format, raw");
+        break;
+    case ImageFormatRGB24:
+    case ImageFormatBGR24:
+    {
+        _pitch[0] = _width * 3;
+        _pitch[1] = _pitch[2] = _pitch[3] = 0;
+        _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+    }
+    break;
+    case ImageFormatRGB32:
+    case ImageFormatARGB32:
+    case ImageFormatBGR32:
+    case ImageFormatABGR32:
+    case ImageFormatFloat:
+    {
+        _pitch[0] = _width * 4;
+        _pitch[1] = _pitch[2] = _pitch[3] = 0;
+        _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+    }
+    break;
+    case ImageFormatYUV444:
+    {
+        _pitch[0] = _pitch[1] = _pitch[2] = _width * 3;
+        _pitch[3] = 0;
+        _planeOffset[0] = 0;
+        _planeOffset[1] = _width * _height * 3;
+        _planeOffset[2] = _planeOffset[1] << 1;
+        _planeOffset[3] = 0;
+    }
+    break;
+    case ImageFormatYUV422:
+    {
+        _pitch[0] = _width;
+        _pitch[1] = _pitch[2] = _width / 2;
+        _pitch[3] = 0;
+        _planeOffset[0] = 0;
+        _planeOffset[1] = _width * _height;
+        _planeOffset[2] = _planeOffset[1] + (_planeOffset[1] >> 1);
+        _planeOffset[3] = 0;
+    }
+    break;
+    case ImageFormatYUV420:
+    {
+        _pitch[0] = _width;
+        _pitch[1] = _pitch[2] = _width / 2;
+        _pitch[3] = 0;
+        _planeOffset[0] = 0;
+        _planeOffset[1] = _width * _height;
+        _planeOffset[2] = _planeOffset[1] + (_planeOffset[1] >> 2);
+        _planeOffset[3] = 0;
+    }
+    break;
+
+    case ImageFormatYUYV:
+    case ImageFormatUYVY:
+    {
+        _pitch[0] = _width;
+        _pitch[1] = _pitch[2] = _pitch[3] = 0;
+        _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+    }
+    break;
+    case ImageFormatGray:
+    case ImageFormatRed:
+    case ImageFormatGreen:
+    case ImageFormatBlue:
+    case ImageFormatAlpha:
+    {
+        // only one channel with 8-bit color data
+        _pitch[0] = _width;
+        _pitch[1] = _pitch[2] = _pitch[3] = 0;
+        _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+    }
+    break;
+    }
+}
+
 void Image::free()
 {
     if (_originalImageQt)
@@ -177,82 +270,36 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format)
         break;
     case ImageFormatRGB24:
     case ImageFormatBGR24:
-        {
-            _length = width * height * 3;
-            _pitch[0] = width * 3;
-            _pitch[1] = _pitch[2] = _pitch[3] = 0;
-            _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
-        }
+        _length = width * height * 3;
         break;
     case ImageFormatRGB32:
     case ImageFormatARGB32:
     case ImageFormatBGR32:
     case ImageFormatABGR32:
     case ImageFormatFloat:
-        {
-            _length = width * height * 4;
-            _pitch[0] = width * 4;
-            _pitch[1] = _pitch[2] = _pitch[3] = 0;
-            _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
-        }
+        _length = width * height * 4;
         break;
     case ImageFormatYUV444:
-        {
-            _length = width * height * 3;
-            _pitch[0] = _pitch[1] = _pitch[2] = width * 3;
-            _pitch[3] = 0;
-            _planeOffset[0] = 0;
-            _planeOffset[1] = width * height * 3;
-            _planeOffset[2] = _planeOffset[1] << 1;
-            _planeOffset[3] = 0;
-        }
+        _length = width * height * 3;
         break;
     case ImageFormatYUV422:
-        {
-            _length = width * height * 2;
-            _pitch[0] = width;
-            _pitch[1] = _pitch[2] = width / 2;
-            _pitch[3] = 0;
-            _planeOffset[0] = 0;
-            _planeOffset[1] = width * height;
-            _planeOffset[2] = _planeOffset[1] + (_planeOffset[1] >> 1);
-            _planeOffset[3] = 0;
-        }
+        _length = width * height * 2;
         break;
     case ImageFormatYUV420:
-        {
-            _length = width * height + (width / 2 * height/2);
-            _pitch[0] = width;
-            _pitch[1] = _pitch[2] = width / 2;
-            _pitch[3] = 0;
-            _planeOffset[0] = 0;
-            _planeOffset[1] = width * height;
-            _planeOffset[2] = _planeOffset[1] + (_planeOffset[1] >> 2);
-            _planeOffset[3] = 0;
-        }
+        _length = width * height + (width / 2 * height/2);
         break;
 
     case ImageFormatYUYV:
     case ImageFormatUYVY:
-        {
-            _length = width * height * 2;
-            _pitch[0] = width;
-            _pitch[1] = _pitch[2] = _pitch[3] = 0;
-            _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
-        }
+        _length = width * height * 2;
         break;
     case ImageFormatGray:
     case ImageFormatRed:
     case ImageFormatGreen:
     case ImageFormatBlue:
     case ImageFormatAlpha:
-        {
-            // only one channel with 8-bit color data
-            _length = width * height;
-            _pitch[0] = width;
-            _pitch[1] = _pitch[2] = _pitch[3] = 0;
-            _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
-        }
+        // only one channel with 8-bit color data
+        _length = width * height;
         break;
     }
     if(_length)
@@ -261,6 +308,7 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format)
         _width = width;
         _height = height;
         _format = format;
+        loadPitchAndPlaneOffsets();
         ret = _data != NULL;
         _allocated = ret;
     }
@@ -408,91 +456,7 @@ bool Image::reinterpret(ImageFormat format, unsigned width, unsigned height, uns
     _height = height;
     _depth = depth;
     _format = format;
-    switch (format)
-    {
-    default:
-    case ImageFormatInvalid:
-        Q_ASSERT_X(false, __FUNCTION__, "invalid frame format");
-        break;
-    case ImageFormatAutomatic:
-        Q_ASSERT_X(false, __FUNCTION__, "invalid frame format, automatic");
-        break;
-    case ImageFormatRaw:
-        Q_ASSERT_X(false, __FUNCTION__, "invalid frame format, raw");
-        break;
-    case ImageFormatRGB24:
-    case ImageFormatBGR24:
-        {
-            _pitch[0] = width * 3;
-            _pitch[1] = _pitch[2] = _pitch[3] = 0;
-            _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
-        }
-        break;
-    case ImageFormatRGB32:
-    case ImageFormatARGB32:
-    case ImageFormatBGR32:
-    case ImageFormatABGR32:
-    case ImageFormatFloat:
-        {
-            _pitch[0] = width * 4;
-            _pitch[1] = _pitch[2] = _pitch[3] = 0;
-            _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
-        }
-        break;
-    case ImageFormatYUV444:
-        {
-            _pitch[0] = _pitch[1] = _pitch[2] = width * 3;
-            _pitch[3] = 0;
-            _planeOffset[0] = 0;
-            _planeOffset[1] = width * height * 3;
-            _planeOffset[2] = _planeOffset[1] << 1;
-            _planeOffset[3] = 0;
-        }
-        break;
-    case ImageFormatYUV422:
-        {
-            _pitch[0] = width;
-            _pitch[1] = _pitch[2] = width / 2;
-            _pitch[3] = 0;
-            _planeOffset[0] = 0;
-            _planeOffset[1] = width * height;
-            _planeOffset[2] = _planeOffset[1] + (_planeOffset[1] >> 1);
-            _planeOffset[3] = 0;
-        }
-        break;
-    case ImageFormatYUV420:
-        {
-            _pitch[0] = width;
-            _pitch[1] = _pitch[2] = width / 2;
-            _pitch[3] = 0;
-            _planeOffset[0] = 0;
-            _planeOffset[1] = width * height;
-            _planeOffset[2] = _planeOffset[1] + (_planeOffset[1] >> 2);
-            _planeOffset[3] = 0;
-        }
-        break;
-
-    case ImageFormatYUYV:
-    case ImageFormatUYVY:
-        {
-            _pitch[0] = width;
-            _pitch[1] = _pitch[2] = _pitch[3] = 0;
-            _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
-        }
-        break;
-    case ImageFormatGray:
-    case ImageFormatRed:
-    case ImageFormatGreen:
-    case ImageFormatBlue:
-    case ImageFormatAlpha:
-        {
-            // only one channel with 8-bit color data
-            _pitch[0] = width;
-            _pitch[1] = _pitch[2] = _pitch[3] = 0;
-            _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
-        }
-        break;
-    }
+    loadPitchAndPlaneOffsets();
     return true;
 }
 
