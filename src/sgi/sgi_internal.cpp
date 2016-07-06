@@ -463,6 +463,7 @@ bool objectTreeBuildImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeItem)
         }
         break;
     default:
+        ret = callNextHandler(treeItem);
         break;
     }
     return ret;
@@ -494,7 +495,7 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
     SGIHostItemInternal hostItem(SGIPlugins::instance());
     treeItem->addChild(std::string(), &hostItem);
 
-    treeItem->addChild(std::string(), _item);
+    treeItem->addChild(std::string("ISceneGraphDialog"), _item);
     return true;
 }
 
