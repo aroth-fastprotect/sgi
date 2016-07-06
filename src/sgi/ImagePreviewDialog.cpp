@@ -597,8 +597,8 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
 
 ImagePreviewDialog::ImagePreviewDialogImpl::~ImagePreviewDialogImpl()
 {
-	delete ui;
     delete _dialog;
+    delete ui;
 }
 
 void ImagePreviewDialog::ImagePreviewDialogImpl::refresh()
@@ -631,12 +631,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::normalSize()
 void ImagePreviewDialog::ImagePreviewDialogImpl::fitToWindow()
 //! [13] //! [14]
 {
-	bool fitToWindow = fitToWindowAction->isChecked();
-	ui->scrollArea->setWidgetResizable(fitToWindow);
-	if (!fitToWindow) {
-		normalSize();
-	}
-	updateToolbar();
+    refresh();
 }
 //! [14]
 
@@ -806,7 +801,8 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::scaleImage(double factor)
 {
 	Q_ASSERT(ui->imageLabel->pixmap());
 	scaleFactor *= factor;
-	ui->imageLabel->resize(scaleFactor * ui->imageLabel->pixmap()->size());
+    ui->imageLabel->setScaledContents(true);
+    ui->imageLabel->resize(scaleFactor * ui->imageLabel->pixmap()->size());
 
 	adjustScrollBar(ui->scrollArea->horizontalScrollBar(), factor);
 	adjustScrollBar(ui->scrollArea->verticalScrollBar(), factor);
@@ -1093,6 +1089,7 @@ void ImagePreviewDialog::init()
 
 ImagePreviewDialog::~ImagePreviewDialog()
 {
+    _priv->_dialog = NULL;
 }
 
 void ImagePreviewDialog::showEvent(QShowEvent * event)
@@ -1713,7 +1710,6 @@ void ImagePreviewDialog::refreshImpl()
         _priv->imageHeight->setCurrentText(tr("N/A"));
         _priv->ui->imageLabel->setPixmap(QPixmap());
     }
-    _priv->ui->imageLabel->setScaledContents(!_priv->fitToWindowAction->isChecked());
 
     {
         int width = _workImage.valid() ? _workImage->width() : 0;
@@ -1726,6 +1722,7 @@ void ImagePreviewDialog::refreshImpl()
         _priv->ui->scrollArea->verticalScrollBar()->setValue(0);
         bool fitToWindow = _priv->fitToWindowAction->isChecked();
         _priv->ui->scrollArea->setWidgetResizable(fitToWindow);
+        _priv->ui->imageLabel->setScaledContents(fitToWindow);
     }
 
     std::stringstream ss;
