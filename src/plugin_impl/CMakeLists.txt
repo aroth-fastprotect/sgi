@@ -4,6 +4,7 @@ ENDIF()
 
 SET(TARGET_SRC
     SGIItemBase.cpp
+	SGIImage.cpp
     ObjectTreeImpl.cpp
     functionImplBase.cpp
     osg_helpers.cpp

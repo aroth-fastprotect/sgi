@@ -74,6 +74,7 @@ LIST(APPEND TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIHostItemQt.h
 
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemBase.h
+	${SGI_INCLUDE_DIR}/sgi/plugins/SGIImage.h
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIPluginImpl.h
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIPluginInterface.h
 

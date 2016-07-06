@@ -7,6 +7,7 @@
 #include <sgi/plugins/ImagePreviewDialog>
 #include <sgi/plugins/SettingsDialog>
 #include <sgi/plugins/SGIHostItemQt.h>
+#include <sgi/plugins/SGIImage.h>
 #include <sgi/helpers/qt>
 #include <sgi/helpers/qt_widgets>
 

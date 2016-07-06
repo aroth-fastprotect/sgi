@@ -7,6 +7,7 @@
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SGIHostItemQt.h>
 #include <sgi/plugins/SGIProxyItem.h>
+#include <sgi/plugins/SGIImage.h>
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/SGIItemInternal>
 #include "SGIPlugin.h"

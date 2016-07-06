@@ -15,6 +15,7 @@
 #include "ui_ImagePreviewDialog.h"
 #include "SGIPlugin.h"
 #include <sgi/plugins/SGIHostItemInternal.h>
+#include <sgi/plugins/SGIImage.h>
 #include <sgi/helpers/qt>
 #include <sgi/helpers/osg>
 
