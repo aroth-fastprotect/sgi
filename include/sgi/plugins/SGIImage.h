@@ -46,6 +46,16 @@ public:
         ImageFormatRaw = 1000,
     };
     static std::string imageFormatToString(ImageFormat format);
+    enum ColorSpace {
+        ColorSpaceInvalid = -1,
+        ColorSpaceAutomatic = 0,
+        ColorSpaceRGB,
+        ColorSpaceYUV_ITU_R_BT_601, /* used by SDTV video and JPEG */
+        ColorSpaceYUV_ITU_R_BT_709, /* used by HDTV video */
+        ColorSpaceYUV_ITU_R_BT_2020,
+        ColorSpaceCYMK,
+    };
+    static std::string colorSpaceToString(ColorSpace colorspace);
 
     enum Origin {
         OriginBottomLeft,
@@ -68,14 +78,14 @@ public:
     explicit Image(ImageFormat format, void * data, size_t length, bool copyData=true);
     explicit Image(ImageFormat format, Origin origin, void * data, size_t length,
           unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
-          const osg::Referenced * originalImage);
+          const osg::Referenced * originalImage, bool copyData = false);
     explicit Image(ImageFormat format, Origin origin, void * data, size_t length,
           unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
-          QImage * originalImage);
-    Image(QImage * originalImage);
+          QImage * originalImage, bool copyData = false);
+    Image(QImage * originalImage, bool copyData = false);
     Image(const Image & rhs);
     Image & operator=(const Image & rhs);
-    ~Image();
+    virtual ~Image();
 
     ImageFormat format() const { return _format; }
     const void * data() const { return _data; }

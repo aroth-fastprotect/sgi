@@ -13,6 +13,7 @@
 #include <QGLWidget>
 
 #include <sgi/plugins/SGIItemBase.h>
+#include <sgi/plugins/SGIImage.h>
 #include <sgi/helpers/string>
 #include <sgi/helpers/rtti>
 #include <sgi/helpers/osg>

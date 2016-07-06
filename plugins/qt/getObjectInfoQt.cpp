@@ -4,6 +4,7 @@
 #include <sgi/helpers/rtti>
 
 #include <sgi/plugins/SGIHostItemQt.h>
+#include <sgi/plugins/SGIImage.h>
 #include <sgi/plugins/SGIItemQt>
 
 namespace sgi {

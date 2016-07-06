@@ -17,23 +17,25 @@ Image::Image(ImageFormat format)
 
 Image::Image(ImageFormat format, Origin origin, void * data, size_t length,
         unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
-        const osg::Referenced * originalImage)
-    : _format(format), _origin(origin), _data(data), _length(length)
+        const osg::Referenced * originalImage, bool copyData)
+    : _format(format), _origin(origin), _data(copyData ? malloc(length) : data), _length(length)
     , _width(width), _height(height), _depth(depth), _pitch { bytesPerLine, 0, 0, 0 }, _planeOffset{0, 0, 0, 0}
     , _originalImage(originalImage), _originalImageQt(NULL)
-    , _allocated(false)
+    , _allocated(copyData)
 {
-
+    if (copyData)
+        memcpy(_data, data, length);
 }
 Image::Image(ImageFormat format, Origin origin, void * data, size_t length,
     unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
-    QImage * originalImage)
-    : _format(format), _origin(origin), _data(data), _length(length)
+    QImage * originalImage, bool copyData)
+    : _format(format), _origin(origin), _data(copyData ? malloc(length) : data), _length(length)
     , _width(width), _height(height), _depth(depth), _pitch { bytesPerLine, 0, 0, 0 }, _planeOffset{0, 0, 0, 0}
     , _originalImage(NULL), _originalImageQt((originalImage)?new QImage(*originalImage):NULL)
-    , _allocated(false)
+    , _allocated(copyData)
 {
-
+    if (copyData)
+        memcpy(_data, data, length);
 }
 
 namespace {
@@ -73,7 +75,7 @@ namespace {
     }
 }
 
-Image::Image(QImage * originalImage)
+Image::Image(QImage * originalImage, bool copyData)
     : _format(imageFormatFromQImage(originalImage->format()))
     , _origin(OriginTopLeft), _data(NULL), _length(0)
     , _width(originalImage->width()), _height(originalImage->height()), _depth(1), _pitch { (unsigned)originalImage->bytesPerLine(), 0, 0, 0 }
@@ -81,8 +83,14 @@ Image::Image(QImage * originalImage)
     , _originalImage(NULL), _originalImageQt((originalImage) ? new QImage(*originalImage) : NULL)
     , _allocated(false)
 {
-    _data = _originalImageQt->bits();
     _length = _originalImageQt->byteCount();
+    if (copyData)
+    {
+        _data = malloc(_length);
+        memcpy(_data, _originalImageQt->bits(), _length);
+    }
+    else
+        _data = _originalImageQt->bits();
 }
 
 Image::Image(ImageFormat format, void * data, size_t length, bool copyData)
@@ -620,6 +628,29 @@ std::string Image::imageFormatToString(ImageFormat format)
             ret = ss.str();
         }
         break;
+    }
+    return ret;
+}
+
+std::string Image::colorSpaceToString(ColorSpace colorspace)
+{
+    std::string ret;
+    switch (colorspace)
+    {
+    case ColorSpaceInvalid: ret = "invalid"; break;
+    case ColorSpaceAutomatic: ret = "invalid"; break;
+    case ColorSpaceRGB: ret = "RGB"; break;
+    case ColorSpaceYUV_ITU_R_BT_601: ret = "YUV ITU-R BT.601"; break;
+    case ColorSpaceYUV_ITU_R_BT_709: ret = "YUV ITU-R BT.709"; break;
+    case ColorSpaceYUV_ITU_R_BT_2020: ret = "YUV ITU-R BT.2020"; break;
+    case ColorSpaceCYMK: ret = "invalid"; break;
+    default:
+    {
+        std::stringstream ss;
+        ss << "Unknown(" << (int)colorspace << ')';
+        ret = ss.str();
+    }
+    break;
     }
     return ret;
 }
