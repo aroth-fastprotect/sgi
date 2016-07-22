@@ -3,6 +3,7 @@
 #include "string_helpers.h"
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SGIHostItemOsgEarth.h>
+#include <sgi/plugins/SGIHostItemInternal.h>
 #include "../osg/SGIItemOsg"
 #include "SGIItemOsgEarth"
 
@@ -1642,7 +1643,7 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
 {
     ISceneGraphDialog * object = static_cast<ISceneGraphDialog*>(item<SGIItemInternal>()->object());
 
-	SGIHostItemOsg hostItem(new SGIProxyItemT<RegistrySingleton>(_hostInterface, "osgEarth::Registry"));
+	SGIHostItemInternal hostItem(new SGIProxyItemT<RegistrySingleton>(_hostInterface, "osgEarth::Registry"));
 	treeItem->addChild(std::string(), &hostItem);
 
 	SGIItemOsg * osgitem = dynamic_cast<SGIItemOsg *>(object->item());

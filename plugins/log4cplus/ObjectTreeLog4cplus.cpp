@@ -5,7 +5,7 @@
 #include <sgi/SGIItemInternal>
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SGIProxyItem.h>
-#include <sgi/plugins/SGIHostItemOsg.h>
+#include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/helpers/string>
 #include <log4cplus/hierarchy.h>
 
@@ -222,7 +222,7 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
 {
     ISceneGraphDialog * object = static_cast<ISceneGraphDialog*>(item<SGIItemInternal>()->object());
 
-    SGIHostItemOsg hostItem(new SGIProxyItemT<LoggerRootSingleton>(_hostInterface, "log4cplus::RootLogger"));
+    SGIHostItemInternal hostItem(new SGIProxyItemT<LoggerRootSingleton>(_hostInterface, "log4cplus::RootLogger"));
     treeItem->addChild(std::string(), &hostItem);
     return true;
 }

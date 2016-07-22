@@ -8,6 +8,7 @@
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SGIProxyItem.h>
 #include <sgi/plugins/SGIHostItemQt.h>
+#include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/helpers/string>
 
 #include <osg/UserDataContainer>
@@ -3738,10 +3739,10 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
 {
     ISceneGraphDialog * object = static_cast<ISceneGraphDialog*>(item<SGIItemInternal>()->object());
 
-    SGIHostItemOsg dbRegistryHostItem(new SGIProxyItemT<RegistrySingleton>(_hostInterface, "osgDB::Registry"));
+    SGIHostItemInternal dbRegistryHostItem(new SGIProxyItemT<RegistrySingleton>(_hostInterface, "osgDB::Registry"));
     treeItem->addChild(std::string(), &dbRegistryHostItem);
 
-    SGIHostItemOsg defaultFontHostItem(new SGIProxyItemT<DefaultFontSingleton>(_hostInterface, "osgText::DefaultFont"));
+    SGIHostItemInternal defaultFontHostItem(new SGIProxyItemT<DefaultFontSingleton>(_hostInterface, "osgText::DefaultFont"));
     treeItem->addChild(std::string(), &defaultFontHostItem);
 
     SGIItemOsg * osgitem = dynamic_cast<SGIItemOsg *>(object->item());

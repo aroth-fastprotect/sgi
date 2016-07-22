@@ -17,11 +17,11 @@
 #include "ObjectTreeQt.h"
 #include "SGIItemQt"
 #include <sgi/plugins/SGIHostItemQt.h>
+#include <sgi/plugins/SGIHostItemInternal.h>
 
 #include <sgi/SGIItemInternal>
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SGIProxyItem.h>
-#include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/helpers/string>
 #include <sgi/helpers/qt>
 #include <sgi/helpers/qt_widgetwindow>
@@ -422,7 +422,7 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
 {
     ISceneGraphDialog * object = static_cast<ISceneGraphDialog*>(item<SGIItemInternal>()->object());
 
-    SGIHostItemOsg hostItem(new SGIProxyItemT<QApplicationSingleton>(_hostInterface, "QApplication"));
+    SGIHostItemInternal hostItem(new SGIProxyItemT<QApplicationSingleton>(_hostInterface, "QApplication"));
     treeItem->addChild(std::string(), &hostItem);
     return true;
 }
