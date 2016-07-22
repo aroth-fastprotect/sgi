@@ -114,8 +114,18 @@ bool writePrettyHTMLImpl<ReferencedInternalItemData>::process(std::basic_ostream
             if(_table)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
+            SGIProxyItemBase * proxyObject = dynamic_cast<SGIProxyItemBase*>(data.get());
+
             os << "<tr><td>this</td><td>" << (void*)data.get() << "</td></tr>" << std::endl;
             os << "<tr><td>type</td><td>" << helpers::getRTTITypename_html(data.get()) << "</td></tr>" << std::endl;
+            os << "<tr><td>proxy</td><td>" << (proxyObject?"true":"false") << "</td></tr>" << std::endl;
+            if(proxyObject)
+            {
+                os << "<tr><td>proxyName</td><td>" << proxyObject->name() << "</td></tr>" << std::endl;
+                os << "<tr><td>proxyDisplayName</td><td>" << proxyObject->displayName() << "</td></tr>" << std::endl;
+                os << "<tr><td>proxyTypeName</td><td>" << proxyObject->typeName() << "</td></tr>" << std::endl;
+                os << "<tr><td>realItem</td><td>" << (void*)proxyObject->realItem(false) << "</td></tr>" << std::endl;
+            }
 
             os << "<tr><td>itemType</td><td>" << enumValueToString(data->type()) << "</td></tr>" << std::endl;
             os << "<tr><td>flags</td><td>0x" << std::hex << data->flags() << std::dec << "</td></tr>" << std::endl;
@@ -331,6 +341,9 @@ std::string getObjectTypeImpl<SGIProxyItemBase>::process()
     }
     else
         ret = object->typeName();
+    std::cout << __FUNCTION__ << " ret " << ret << std::endl;
+    if(ret.empty())
+        ret = "sgi::SGIProxyItemBase";
     return ret;
 }
 
@@ -368,6 +381,8 @@ std::string getObjectDisplayNameImpl<SGIProxyItemBase>::process()
     }
     else
         ret = object->displayName();
+    if(ret.empty())
+        object->name();
     return ret;
 }
 
