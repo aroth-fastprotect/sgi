@@ -17,6 +17,13 @@
 
 #include "sgi/helpers/rtti"
 
+#define OBJECTTREE_PROXYITEM_GET_INSTANCE true
+#define CONTEXTMENU_PROXYITEM_GET_INSTANCE true
+#define WRITE_PRETTY_HTML_PROXYITEM_GET_INSTANCE true
+#define GET_OBJECT_NAME_PROXYITEM_GET_INSTANCE false
+#define GET_OBJECT_TYPE_PROXYITEM_GET_INSTANCE false
+#define GET_OBJECT_DISPLAYNAME_PROXYITEM_GET_INSTANCE false
+
 sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = NULL;
 
 SGI_OBJECT_INFO_BEGIN(osg::Referenced)
@@ -49,12 +56,38 @@ GENERATE_IMPL_NO_ACCEPT(osg::Object)
 
 
 WRITE_PRETTY_HTML_IMPL_TEMPLATE()
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(SGIPlugins)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(Image)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 
+bool writePrettyHTMLImpl<osg::Referenced>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    osg::Referenced * object = getObject<osg::Referenced,SGIItemInternal>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+            os << "<tr><td>this</td><td>" << std::hex << (void*)object << std::dec << "</td></tr>" << std::endl;
+            os << "<tr><td>typename</td><td>" << helpers::getRTTITypename_html(object) << "</td></tr>" << std::endl;
+            os << "<tr><td>refCount</td><td>" << (object?object->referenceCount():0) << "</td></tr>" << std::endl;
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        // no more forwarding
+        break;
+    }
+    return ret;
+}
 
 bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
 {
@@ -124,7 +157,7 @@ bool writePrettyHTMLImpl<ReferencedInternalItemData>::process(std::basic_ostream
                 os << "<tr><td>proxyName</td><td>" << proxyObject->name() << "</td></tr>" << std::endl;
                 os << "<tr><td>proxyDisplayName</td><td>" << proxyObject->displayName() << "</td></tr>" << std::endl;
                 os << "<tr><td>proxyTypeName</td><td>" << proxyObject->typeName() << "</td></tr>" << std::endl;
-                os << "<tr><td>realItem</td><td>" << (void*)proxyObject->realItem(false) << "</td></tr>" << std::endl;
+                os << "<tr><td>realItem</td><td>" << helpers::getRTTIObjectNameAndType_html(proxyObject->realItem(false)) << "</td></tr>" << std::endl;
             }
 
             os << "<tr><td>itemType</td><td>" << enumValueToString(data->type()) << "</td></tr>" << std::endl;
@@ -132,7 +165,7 @@ bool writePrettyHTMLImpl<ReferencedInternalItemData>::process(std::basic_ostream
             os << "<tr><td>score</td><td>" << data->score() << "</td></tr>" << std::endl;
             os << "<tr><td>typeName</td><td>" << helpers::demangle_html(data->typeName()) << "</td></tr>" << std::endl;
             os << "<tr><td>number</td><td>" << data->number() << "</td></tr>" << std::endl;
-            os << "<tr><td>userData</td><td>" << (void*)data->userData<osg::Referenced>() << "</td></tr>" << std::endl;
+            os << "<tr><td>userData</td><td>" << helpers::getRTTIObjectNameAndType_html(data->userData<osg::Referenced>()) << "</td></tr>" << std::endl;
             os << "<tr><td>root</td><td>" << (void*)data->rootBase() << "</td></tr>" << std::endl;
             os << "<tr><td>prev</td><td>" << (void*)data->previousBase() << "</td></tr>" << std::endl;
             os << "<tr><td>next</td><td>" << (void*)data->nextBase() << "</td></tr>" << std::endl;
@@ -198,10 +231,18 @@ bool writePrettyHTMLImpl<ReferencedInternalInfoData>::process(std::basic_ostream
 bool writePrettyHTMLImpl<SGIProxyItemBase>::process(std::basic_ostream<char>& os)
 {
     SGIProxyItemBase * object = getObject<SGIProxyItemBase,SGIItemInternal>();
-    bool ret;
-    SGIItemBase * realObject = object->realItem(true);
-    if(realObject)
-        ret = _hostInterface->writePrettyHTML(os, realObject);
+    bool ret = false;
+    if(WRITE_PRETTY_HTML_PROXYITEM_GET_INSTANCE)
+    {
+        SGIItemBase * realObject = object->realItem(true);
+        if(realObject)
+            ret = _hostInterface->writePrettyHTML(os, realObject);
+        else
+        {
+            os <<  "<i>NULL</i>";
+            ret = true;
+        }
+    }
     else
     {
         switch(itemType())
@@ -215,9 +256,22 @@ bool writePrettyHTMLImpl<SGIProxyItemBase>::process(std::basic_ostream<char>& os
                 os << "<tr><td>proxyName</td><td>" << object->name() << "</td></tr>" << std::endl;
                 os << "<tr><td>proxyDisplayName</td><td>" << object->displayName() << "</td></tr>" << std::endl;
                 os << "<tr><td>proxyTypeName</td><td>" << object->typeName() << "</td></tr>" << std::endl;
+                os << "<tr><td>realItem</td><td>" << helpers::getRTTIObjectNameAndType_html(object->realItem(false)) << "</td></tr>" << std::endl;
 
                 if(_table)
                     os << "</table>" << std::endl;
+            }
+            break;
+        case SGIItemTypeProxyRealItem:
+            {
+                SGIItemBase * realObject = object->realItem(true);
+                if(realObject)
+                    ret = _hostInterface->writePrettyHTML(os, realObject);
+                else
+                {
+                    os <<  "<i>NULL</i>";
+                    ret = true;
+                }
             }
             break;
         default:
@@ -248,24 +302,64 @@ bool writePrettyHTMLImpl<Image>::process(std::basic_ostream<char>& os)
             os << "<tr><td>format</td><td>" << Image::imageFormatToString(object->format()) << "</td></tr>" << std::endl;
             os << "<tr><td>data</td><td>" << object->data() << "</td></tr>" << std::endl;
             os << "<tr><td>length</td><td>" << object->length() << "</td></tr>" << std::endl;
-            os << "<tr><td>originalImage</td><td>" << object->originalImage() << "</td></tr>" << std::endl;
-            os << "<tr><td>originalImageQt</td><td>" << object->originalImageQt() << "</td></tr>" << std::endl;
+            os << "<tr><td>originalImage</td><td>" << helpers::getRTTIObjectNameAndType_html(object->originalImage()) << "</td></tr>" << std::endl;
+            os << "<tr><td>originalImageQt</td><td>" << helpers::getRTTIObjectNameAndType_html(object->originalImageQt()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
         }
         break;
     default:
+        callNextHandler(os);
         break;
     }
     return true;
 }
+
+bool writePrettyHTMLImpl<ISceneGraphDialog>::process(std::basic_ostream<char>& os)
+{
+    ISceneGraphDialog * object = getObject<ISceneGraphDialog,SGIItemInternal>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>dialog</td><td>" << helpers::getRTTIObjectNameAndType_html(object->getDialog()) << "</td></tr>" << std::endl;
+            os << "<tr><td>visible</td><td>" << (object->isVisible()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>host callback</td><td>" << helpers::getRTTIObjectNameAndType_html(object->getHostCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>toolsMenu</td><td>" << helpers::getRTTIObjectNameAndType_html(object->toolsMenu()) << "</td></tr>" << std::endl;
+            os << "<tr><td>selectedItem</td><td>" << helpers::getRTTIObjectNameAndType_html(object->selectedItem()) << "</td></tr>" << std::endl;
+            os << "<tr><td>rootItem</td><td>" << helpers::getRTTIObjectNameAndType_html(object->rootItem()) << "</td></tr>" << std::endl;
+            os << "<tr><td>item</td><td>" << helpers::getRTTIObjectNameAndType_html(object->item()) << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+        }
+        break;
+    default:
+        callNextHandler(os);
+        break;
+    }
+    return true;
+}
+
 GET_OBJECT_NAME_IMPL_TEMPLATE()
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(Image)
+
+std::string getObjectNameImpl<osg::Referenced>::process()
+{
+    osg::Referenced * object = getObject<osg::Referenced,SGIItemInternal>();
+    return helpers::getRTTIObjectNameAndType(object);
+}
 
 std::string getObjectNameImpl<ReferencedInternalItemData>::process()
 {
@@ -290,24 +384,39 @@ std::string getObjectNameImpl<Image>::process()
 std::string getObjectNameImpl<SGIProxyItemBase>::process()
 {
     SGIProxyItemBase * object = getObject<SGIProxyItemBase,SGIItemInternal>();
-    SGIItemBase * realObject = object->realItem(false);
+    SGIItemBase * realObject = object->realItem(GET_OBJECT_NAME_PROXYITEM_GET_INSTANCE);
     std::string ret;
-    if(realObject)
+    switch(itemType())
     {
-        if(!_hostInterface->getObjectName(ret, realObject))
+    case SGIItemTypeProxyRealItem:
+        if(realObject)
+        {
+            if(!_hostInterface->getObjectName(ret, realObject))
+                ret = object->name();
+        }
+        else
             ret = object->name();
-    }
-    else
+        break;
+    default:
         ret = object->name();
+        break;
+    }
     return ret;
 }
 
 GET_OBJECT_TYPE_IMPL_TEMPLATE()
+GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(Image)
+
+std::string getObjectTypeImpl<osg::Referenced>::process()
+{
+    osg::Referenced * object = getObject<osg::Referenced, SGIItemInternal>();
+    return helpers::getRTTITypename(object);
+}
 
 std::string getObjectTypeImpl<ReferencedInternalItemData>::process()
 {
@@ -332,7 +441,7 @@ std::string getObjectTypeImpl<Image>::process()
 std::string getObjectTypeImpl<SGIProxyItemBase>::process()
 {
     SGIProxyItemBase * object = getObject<SGIProxyItemBase,SGIItemInternal>();
-    SGIItemBase * realObject = object->realItem(false);
+    SGIItemBase * realObject = object->realItem(GET_OBJECT_TYPE_PROXYITEM_GET_INSTANCE);
     std::string ret;
     if(realObject)
     {
@@ -341,18 +450,24 @@ std::string getObjectTypeImpl<SGIProxyItemBase>::process()
     }
     else
         ret = object->typeName();
-    std::cout << __FUNCTION__ << " ret " << ret << std::endl;
     if(ret.empty())
         ret = "sgi::SGIProxyItemBase";
     return ret;
 }
 
 GET_OBJECT_DISPLAYNAME_IMPL_TEMPLATE()
+GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(Image)
+
+std::string getObjectDisplayNameImpl<osg::Referenced>::process()
+{
+    osg::Referenced * object = getObject<osg::Referenced, SGIItemInternal>();
+    return helpers::getRTTIObjectNameAndType(object);
+}
 
 std::string getObjectDisplayNameImpl<ReferencedInternalItemData>::process()
 {
@@ -372,7 +487,7 @@ std::string getObjectDisplayNameImpl<SGIPlugins>::process()
 std::string getObjectDisplayNameImpl<SGIProxyItemBase>::process()
 {
     SGIProxyItemBase * object = getObject<SGIProxyItemBase,SGIItemInternal>();
-    SGIItemBase * realObject = object->realItem(false);
+    SGIItemBase * realObject = object->realItem(GET_OBJECT_DISPLAYNAME_PROXYITEM_GET_INSTANCE);
     std::string ret;
     if(realObject)
     {
@@ -382,7 +497,7 @@ std::string getObjectDisplayNameImpl<SGIProxyItemBase>::process()
     else
         ret = object->displayName();
     if(ret.empty())
-        object->name();
+        ret = object->name();
     return ret;
 }
 
@@ -454,11 +569,34 @@ bool objectTreeBuildImpl<SGIProxyItemBase>::build(IObjectTreeItem * treeItem)
 {
     SGIProxyItemBase * object = getObject<SGIProxyItemBase,SGIItemInternal>();
     bool ret;
-    SGIItemBase * realObject = object->realItem(true);
+    bool getInstance = (itemType() == SGIItemTypeProxyRealItem)?true:OBJECTTREE_PROXYITEM_GET_INSTANCE;
+    SGIItemBase * realObject = object->realItem(getInstance);
     if(realObject)
         ret = _hostInterface->objectTreeBuildTree(treeItem, realObject);
     else
-        ret = callNextHandler(treeItem);
+    {
+        bool ret = false;
+        switch(itemType())
+        {
+        case SGIItemTypeObject:
+            {
+                ret = callNextHandler(treeItem);
+                if(!OBJECTTREE_PROXYITEM_GET_INSTANCE)
+                {
+                    treeItem->addChild("Real item", _item->clone<SGIItemInternal>(SGIItemTypeProxyRealItem));
+                    ret = true;
+                }
+            }
+            break;
+        case SGIItemTypeProxyRealItem:
+            ret = false;
+            break;
+        default:
+            ret = callNextHandler(treeItem);
+            break;
+        }
+        return ret;
+    }
     return ret;
 }
 
@@ -475,6 +613,15 @@ bool objectTreeBuildImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeItem)
             SGIHostItemQt dialog(object->getDialog());
             if(dialog.hasObject())
                 treeItem->addChild("Dialog", &dialog);
+
+            SGIHostItemInternal hostCallback(object->getHostCallback());
+            if(hostCallback.hasObject())
+                treeItem->addChild("Host callback", &hostCallback);
+
+            SGIHostItemInternal toolsMenu(object->toolsMenu());
+            if(toolsMenu.hasObject())
+                treeItem->addChild("Tools menu", &toolsMenu);
+
             ret = true;
         }
         break;
@@ -492,11 +639,32 @@ bool contextMenuPopulateImpl<SGIProxyItemBase>::populate(IContextMenuItem * menu
 {
     SGIProxyItemBase * object = getObject<SGIProxyItemBase,SGIItemInternal>();
     bool ret;
-    SGIItemBase * realObject = object->realItem(true);
+    bool getInstance = (itemType() == SGIItemTypeProxyRealItem)?true:CONTEXTMENU_PROXYITEM_GET_INSTANCE;
+    SGIItemBase * realObject = object->realItem(getInstance);
     if(realObject)
         ret = _hostInterface->contextMenuPopulate(menuItem, realObject);
     else
-        ret = callNextHandler(menuItem);
+    {
+        switch(itemType())
+        {
+        case SGIItemTypeObject:
+            {
+                ret = callNextHandler(menuItem);
+                if(!CONTEXTMENU_PROXYITEM_GET_INSTANCE)
+                {
+                    menuItem->addMenu("Real item", _item->clone<SGIItemInternal>(SGIItemTypeProxyRealItem));
+                    ret = true;
+                }
+            }
+            break;
+        case SGIItemTypeProxyRealItem:
+            ret = false;
+            break;
+        default:
+            ret = callNextHandler(menuItem);
+            break;
+        }
+    }
     return ret;
 }
 
@@ -520,8 +688,8 @@ typedef generateItemImplT<generateItemAcceptImpl, SGIItemInternal> generateItemI
 typedef SGIPluginImplementationT<       generateItemImpl,
                                         writePrettyHTMLImpl,
                                         getObjectNameImpl,
-                                        getObjectNameImpl,
-                                        defaultPluginGetObjectInfoStringImpl,
+                                        getObjectDisplayNameImpl,
+                                        getObjectTypeImpl,
                                         defaultPluginGetObjectPathImpl,
                                         defaultPluginGetObjectInfoStringImpl,
                                         defaultPluginGetObjectInfoStringImpl,

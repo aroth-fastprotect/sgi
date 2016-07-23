@@ -68,12 +68,8 @@ using namespace sgi::osg_helpers;
 //--------------------------------------------------------------------------------
 std::string getObjectNameImpl<osg::Referenced>::process()
 {
-    osg::Referenced * object = static_cast<osg::Referenced*>(item<SGIItemOsg>()->object());
-    std::stringstream ss;
-    ss << helpers::getRTTITypenameShort(object) << "(" << (void*)object << ")";
-    std::string ret;
-    ret = ss.str();
-    return ret;
+    osg::Referenced * object = getObject<osg::Referenced, SGIItemOsg>();
+    return helpers::getRTTIObjectNameAndType(object);
 }
 
 std::string getObjectNameImpl<osg::Object>::process()
@@ -204,12 +200,8 @@ std::string getObjectNameImpl<osgDB::BaseSerializer>::process()
 //--------------------------------------------------------------------------------
 std::string getObjectDisplayNameImpl<osg::Referenced>::process()
 {
-    osg::Referenced * object = static_cast<osg::Referenced*>(item<SGIItemOsg>()->object());
-    std::stringstream ss;
-    ss << helpers::getRTTITypenameShort(object) << "(" << (void*)object << ")";
-    std::string ret;
-    ret = ss.str();
-    return ret;
+    osg::Referenced * object = getObject<osg::Referenced, SGIItemOsg>();
+    return helpers::getRTTIObjectNameAndType(object);
 }
 
 std::string getObjectDisplayNameImpl<osg::Object>::process()
@@ -252,9 +244,8 @@ std::string getObjectDisplayNameImpl<osgDB::BaseSerializer>::process()
 //--------------------------------------------------------------------------------
 std::string getObjectTypeImpl<osg::Referenced>::process()
 {
-    osg::Referenced * object = static_cast<osg::Referenced*>(item<SGIItemOsg>()->object());
-    std::string ret = helpers::getRTTITypename(object);
-    return ret;
+    osg::Referenced * object = getObject<osg::Referenced, SGIItemOsg>();
+    return helpers::getRTTITypename(object);
 }
 
 std::string getObjectTypeImpl<osg::Object>::process()

@@ -25,6 +25,7 @@ enum SGIItemType
     SGIItemTypeCallbacks,
     SGIItemTypeSettings,
     SGIItemTypeObjectLogger,
+    SGIItemTypeProxyRealItem,
 
     SGIItemTypeDefaultPluginBase = 0x1000,
     SGIItemTypePluginBaseOsg = SGIItemTypeDefaultPluginBase + 0x0000,
