@@ -3929,7 +3929,7 @@ bool writePrettyHTMLImpl<osg::BarrierOperation>::process(std::basic_ostream<char
 bool writePrettyHTMLImpl<osg::OperationQueue>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::OperationQueue * object = static_cast<osg::OperationQueue*>(item<SGIItemOsg>()->object());
+    OperationQueueAccess * object = static_cast<OperationQueueAccess*>(static_cast<osg::OperationQueue*>(item<SGIItemOsg>()->object()));
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3940,7 +3940,16 @@ bool writePrettyHTMLImpl<osg::OperationQueue>::process(std::basic_ostream<char>&
             // add object properties first
             callNextHandler(os);
 
-            os << "<tr><td>numOperationsInQueue</td><td>0x" << const_cast<osg::OperationQueue *>(object)->getNumOperationsInQueue() << "</td></tr>" << std::endl;
+            OperationQueueAccess::Operations operations;
+            object->getOperations(operations);
+
+            os << "<tr><td>numOperationsInQueue</td><td>" << operations.size()  << "</td></tr>" << std::endl;
+            os << "<tr><td>operations</td><td><ol>";
+            for (const auto & op : operations)
+            {
+                os << "<li>" << osg_helpers::getObjectNameAndType(op.get()) << "</li>";
+            }
+            os << "</ol></td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;

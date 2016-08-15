@@ -54,9 +54,9 @@ public:
         const_iterator begin() const { return _pagedLODs.begin(); }
         const_iterator end() const { return _pagedLODs.end(); }
     };
-    const SetBasedPagedLODList * activePagedLODList() const
+    PagedLODList * activePagedLODList() const
     {
-        return (const SetBasedPagedLODList*)_activePagedLODList.get();
+        return _activePagedLODList.get();
     }
 
     typedef std::list< osg::ref_ptr<DatabaseRequest> > RequestList;

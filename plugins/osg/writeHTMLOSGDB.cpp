@@ -549,8 +549,11 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
     case SGIItemTypeActivePagedLODs:
         {
             os << "<ul>";
-            const DatabasePagerAccessor::SetBasedPagedLODList * list = access->activePagedLODList();
-            for(DatabasePagerAccessor::SetBasedPagedLODList::const_iterator it = list->begin(); it != list->end(); it++)
+            DatabasePagerAccessor * access = (DatabasePagerAccessor*)object;
+
+            osgDB::DatabasePager::PagedLODList * activePagedLODList = access->activePagedLODList();
+            const DatabasePagerAccessor::SetBasedPagedLODList * list = static_cast<const DatabasePagerAccessor::SetBasedPagedLODList *>(activePagedLODList);
+            for (DatabasePagerAccessor::SetBasedPagedLODList::const_iterator it = list->begin(); it != list->end(); it++)
             {
                 const osg::observer_ptr<osg::PagedLOD> & value = *it;
                 osg::ref_ptr<osg::PagedLOD> node;

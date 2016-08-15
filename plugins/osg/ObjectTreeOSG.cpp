@@ -2391,9 +2391,14 @@ bool objectTreeBuildImpl<osgDB::DatabasePager>::build(IObjectTreeItem * treeItem
         if(ret)
         {
             DatabasePagerAccessor * access = (DatabasePagerAccessor*)object;
-            unsigned numberOfPagedLODs = access->numberOfPagedLODs();
-            if(numberOfPagedLODs)
-                treeItem->addChild(helpers::str_plus_count("PagedLODs", numberOfPagedLODs), cloneItem<SGIItemOsg>(SGIItemTypeActivePagedLODs));
+
+            osgDB::DatabasePager::PagedLODList * activePagedLODList = access->activePagedLODList();
+            SGIHostItemOsg activePagedLODListItem(activePagedLODList);
+            if (activePagedLODListItem.hasObject())
+            {
+                unsigned numberOfPagedLODs = activePagedLODList->size();
+                treeItem->addChild(helpers::str_plus_count("PagedLODs", numberOfPagedLODs), &activePagedLODListItem);
+            }
 
             treeItem->addChild(helpers::str_plus_count("Threads", object->getNumDatabaseThreads()), cloneItem<SGIItemOsg>(SGIItemTypeThreads));
 
@@ -2416,7 +2421,9 @@ bool objectTreeBuildImpl<osgDB::DatabasePager>::build(IObjectTreeItem * treeItem
     case SGIItemTypeActivePagedLODs:
         {
             DatabasePagerAccessor * access = (DatabasePagerAccessor*)object;
-            const DatabasePagerAccessor::SetBasedPagedLODList * list = access->activePagedLODList();
+
+            osgDB::DatabasePager::PagedLODList * activePagedLODList = access->activePagedLODList();
+            const DatabasePagerAccessor::SetBasedPagedLODList * list = static_cast<const DatabasePagerAccessor::SetBasedPagedLODList *>(activePagedLODList);
             for(DatabasePagerAccessor::SetBasedPagedLODList::const_iterator it = list->begin(); it != list->end(); it++)
             {
                 const osg::observer_ptr<osg::PagedLOD> & value = *it;
