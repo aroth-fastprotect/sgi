@@ -1,5 +1,6 @@
 #pragma once
 #include <osg/ShaderComposer>
+#include <osg/OperationThread>
 
 namespace sgi {
 namespace osg_plugin {
@@ -53,6 +54,18 @@ public:
     {
         OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
         c = _collectMap;
+    }
+};
+
+class OperationQueueAccess : public osg::OperationQueue
+{
+public:
+    typedef std::list< osg::ref_ptr<osg::Operation> > Operations;
+
+    void getOperations(Operations & ops)
+    {
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_operationsMutex);
+        ops = _operations;
     }
 };
 
