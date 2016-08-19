@@ -142,9 +142,11 @@ public:
         QMenu * menu = getOrCreateNamedMenu(_menu, fromLocal8Bit(name), userData);
         return addChild(new ContextMenuItem(_contextMenu, menu));
     }
-
-    QMenu * menu() { return _menu; }
-    const QMenu * menu() const { return _menu; }
+    
+    IContextMenu * menu() override
+    {
+        return _contextMenu->menuInterface();
+    }
 
 protected:
     IContextMenuItem * addChild(ContextMenuItem * child)
