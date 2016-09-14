@@ -28,5 +28,26 @@ inline static const std::string html_encode(const std::string & str)
     return ret;
 }
 
+class a_href
+{
+    const std::string & _url;
+public:
+    inline a_href(const std::string & url)
+        : _url(url)
+    {
+    }
+    inline void write(std::basic_ostream<char>& os) const
+    {
+        if (!_url.empty())
+            os << "<a href=\"" << _url << "\">" << _url << "</a>";
+    }
+};
+
+inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const a_href & link)
+{
+    link.write(os);
+    return os;
+}
+
 } // namespace helpers
 } // namespace sgi
