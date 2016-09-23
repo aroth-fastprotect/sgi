@@ -104,6 +104,7 @@ enum MenuAction {
     MenuActionProxyNodeLoadingExternalReferenceMode,
     MenuActionProxyNodeForceLoad,
     MenuActionProxyNodeSetDatabasePath,
+    MenuActionProxyNodeToggleCenterMarker,
     MenuActionLODSetRangeMode,
     MenuActionPagedLODDisableExternalChildrenPaging,
     MenuActionPagedLODNumChildrenThatCannotBeExpired,

@@ -1381,6 +1381,7 @@ bool contextMenuPopulateImpl<osg::LOD>::populate(IContextMenuItem * menuItem)
             }
             menuItem->addSimpleAction(MenuActionProxyNodeSetCenter, helpers::str_plus_info("Center", object->getCenter()), _item);
             menuItem->addSimpleAction(MenuActionProxyNodeSetRadius, helpers::str_plus_info("Radius", object->getRadius()), _item);
+            menuItem->addBoolAction(MenuActionProxyNodeToggleCenterMarker, "Show center marker", _item, false);
 
             IContextMenuItem * rangeModeMenu = menuItem->addModeMenu(MenuActionLODSetRangeMode, "Range mode", _item, centerMode);
             if(rangeModeMenu)

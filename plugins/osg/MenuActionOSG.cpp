@@ -58,6 +58,7 @@
 #include "stateset_helpers.h"
 #include "SettingsDialogOSG.h"
 #include "DrawableHelper.h"
+#include "NodeHelper.h"
 #include "ManipulateObject.h"
 
 #undef max
@@ -118,6 +119,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraComputeNearFarMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetCenterMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetCenter)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetRadius)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeToggleCenterMarker)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeLoadingExternalReferenceMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeForceLoad)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetDatabasePath)
@@ -1027,6 +1029,18 @@ bool actionHandlerImpl<MenuActionProxyNodeSetRadius>::execute()
         proxynode->setCenterMode((osg::ProxyNode::CenterMode)menuAction()->mode());
     else if(lod)
         lod->setCenterMode((osg::LOD::CenterMode)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionProxyNodeToggleCenterMarker>::execute()
+{
+    osg::ProxyNode * proxynode = getObject<osg::ProxyNode, SGIItemOsg, DynamicCaster>();
+    osg::LOD * lod = getObject<osg::LOD, SGIItemOsg, DynamicCaster>();
+    ToggleCenterMarkerVisitor tcmv(menuAction()->state());
+    if (proxynode)
+        proxynode->accept(tcmv);
+    else if(lod)
+        lod->accept(tcmv);
     return true;
 }
 

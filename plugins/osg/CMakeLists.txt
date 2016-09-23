@@ -26,6 +26,7 @@ SET(TARGET_SRC
     stateset_helpers.cpp
     std_ostream_osgtext.cpp
     DrawableHelper.cpp
+	NodeHelper.cpp
 
     SettingsDialogOSG.cpp
     CameraSettings.cpp
@@ -55,7 +56,9 @@ SET(TARGET_H
     GUIAdapterOSG.h
 
     DrawableHelper.h
+	NodeHelper.h
     ManipulateObject.h
+
     )
 fast_configure_file(SGIItemOsg ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsg COPY_ONLY)
 
