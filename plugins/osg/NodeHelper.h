@@ -34,10 +34,14 @@ public:
     AxisGeometry(const AxisGeometry& obj,const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
     virtual ~AxisGeometry();
 
-    META_Object(terra3d-common-osg, AxisGeometry);
+    const char* libraryName() const { return "osgdb_sgi_osg"; }
+    const char* className() const { return "AxisGeometry"; }
 
 public:
     void                    set(const osg::Vec3d & up, const osg::Vec3d & front, const osg::Vec3d & side);
+
+    const osg::Vec3 &       position() const;
+    void                    setPosition(const osg::Vec3 & position);
 
     const osg::Vec3 &       length() const { return m_length; }
     void                    setLength(float length);
@@ -65,11 +69,14 @@ public:
     AxisGeode(const AxisGeode& obj,const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
     virtual ~AxisGeode();
 
-    META_Node(terra3d-common-osg, AxisGeode);
-
+    const char* libraryName() const { return "osgdb_sgi_osg"; }
+    const char* className() const { return "AxisGeode"; }
 
 public:
     void                    set(const osg::Vec3d & up, const osg::Vec3d & front, const osg::Vec3d & side);
+
+    const osg::Vec3 &       position() const;
+    void                    setPosition(const osg::Vec3 & position);
 
     const osg::Vec3 &       length() const;
     void                    setLength(float length);
@@ -91,10 +98,14 @@ public:
     AxisBillboard(const AxisBillboard& obj,const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
     virtual ~AxisBillboard();
 
-    META_Node(terra3d-common-osg, AxisBillboard);
+    const char* libraryName() const { return "osgdb_sgi_osg"; }
+    const char* className() const { return "AxisBillboard"; }
 
 public:
     void                    set(const osg::Vec3d & up, const osg::Vec3d & front, const osg::Vec3d & side);
+
+    const osg::Vec3 &       position() const;
+    void                    setPosition(const osg::Vec3 & position);
 
     const osg::Vec3 &       length() const;
     void                    setLength(float length);
@@ -116,7 +127,8 @@ public:
     AxisGroup(const AxisGroup& obj,const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
     virtual ~AxisGroup();
 
-    META_Node(terra3d-common-osg, AxisGroup);
+    const char* libraryName() const { return "osgdb_sgi_osg"; }
+    const char* className() const { return "AxisGroup"; }
 
     virtual void            traverse(osg::NodeVisitor& nv);
 
@@ -125,6 +137,9 @@ public:
     
     bool                    autoSize() const;
     void                    setAutoSize(bool enable);
+
+    const osg::Vec3 &       position() const;
+    void                    setPosition(const osg::Vec3 & position);
 
     const osg::Vec3 &       length() const;
     void                    setLength(float length);
@@ -161,7 +176,8 @@ public:
     LineGeode(const LineGeode& obj,const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
     virtual ~LineGeode();
 
-    META_Node(terra3d-common-osg, LineGeode);
+    const char* libraryName() const { return "osgdb_sgi_osg"; }
+    const char* className() const { return "LineGeode"; }
 
 
 public:
@@ -199,8 +215,9 @@ public:
     BoundingBoxGeode(const BoundingBoxGeode& obj,const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
     virtual ~BoundingBoxGeode();
 
-    META_Node(terra3d-common-osg, BoundingBoxGeode);
-    
+    const char* libraryName() const { return "osgdb_sgi_osg"; }
+    const char* className() const { return "BoundingBoxGeode"; }
+
     void                    set(const osg::BoundingBox & bbox);
 
     ColorScheme             colorScheme() const;
@@ -243,8 +260,9 @@ public:
     PointGeode(const PointGeode& obj,const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
     virtual ~PointGeode();
 
-    META_Node(terra3d-common-osg, PointGeode);
-    
+    const char* libraryName() const { return "osgdb_sgi_osg"; }
+    const char* className() const { return "PointGeode"; }
+
     void                    set(const osg::Vec3d & pt, const osg::Vec3d & size=osg::Vec3d(1,1,1));
 
     ColorScheme             colorScheme() const;
@@ -276,7 +294,8 @@ public:
     PlaneGeode(const PlaneGeode& obj,const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
     virtual ~PlaneGeode();
 
-    META_Node(terra3d-common-osg, PlaneGeode);
+    const char* libraryName() const { return "osgdb_sgi_osg"; }
+    const char* className() const { return "PlaneGeode"; }
 
     ColorScheme             colorScheme() const;
     void                    setColorScheme(ColorScheme scheme);
@@ -290,6 +309,49 @@ protected:
 
 protected:
     osg::ref_ptr<osg::ShapeDrawable>  m_plane;
+    ColorScheme             m_colorScheme;
+};
+
+class MarkerGeometry : public osg::Geometry
+{
+public:
+    enum ColorScheme {
+        ColorSchemePrimary,
+        ColorSchemeSecondary,
+        ColorSchemeDefault = ColorSchemePrimary
+    };
+
+    MarkerGeometry(const osg::Vec3 & pos = osg::Vec3(), float length = 10.0f, ColorScheme scheme = ColorSchemeDefault);
+    MarkerGeometry(const osg::Vec3 & pos, const osg::Vec3 & upVector, float length = 10.0f, ColorScheme scheme = ColorSchemeDefault);
+
+    /** Copy constructor using CopyOp to manage deep vs shallow copy.*/
+    MarkerGeometry(const MarkerGeometry& obj, const osg::CopyOp& copyop = osg::CopyOp::SHALLOW_COPY);
+    virtual ~MarkerGeometry();
+
+    const char* libraryName() const { return "osgdb_sgi_osg"; }
+    const char* className() const { return "MarkerGeometry"; }
+
+public:
+    const osg::Vec3 &       position() const;
+    void                    setPosition(const osg::Vec3 & position);
+
+    const osg::Vec3 &       upVector() const;
+    void                    setUpVector(const osg::Vec3 & up);
+
+    const float &           length() const { return m_length; }
+    void                    setLength(float length);
+
+    ColorScheme             colorScheme() const { return m_colorScheme; }
+    void                    setColorScheme(ColorScheme scheme);
+
+protected:
+    void                    applyLength();
+    void                    applyColorScheme();
+
+protected:
+    osg::Vec3               m_pos;
+    osg::Vec3               m_upVector;
+    float                   m_length;
     ColorScheme             m_colorScheme;
 };
 

@@ -5,6 +5,7 @@
 #include <osg/MatrixTransform>
 #include <osg/PagedLOD>
 #include <osg/ProxyNode>
+#include <osg/Depth>
 #include <osgText/Text>
 #include <osgUtil/CullVisitor>
 #include <osg/ComputeBoundsVisitor>
@@ -112,6 +113,17 @@ void AxisGeometry::setLength(const osg::Vec3 & length)
     applyLength();
 }
 
+const osg::Vec3 & AxisGeometry::position() const
+{
+    return m_pos;
+}
+
+void AxisGeometry::setPosition(const osg::Vec3 & position)
+{
+    m_pos = position;
+    applyLength();
+}
+
 void AxisGeometry::setColorScheme(ColorScheme scheme)
 {
     m_colorScheme = scheme;
@@ -180,6 +192,16 @@ void AxisGeode::setLength(const osg::Vec3 & length)
     return m_geom->setLength(length);
 }
 
+const osg::Vec3 & AxisGeode::position() const
+{
+    return m_geom->position();
+}
+
+void AxisGeode::setPosition(const osg::Vec3 & position)
+{
+    m_geom->setPosition(position);
+}
+
 AxisGeometry::ColorScheme AxisGeode::colorScheme() const
 { 
     return m_geom->colorScheme();
@@ -225,6 +247,16 @@ void AxisBillboard::setLength(float length)
 void AxisBillboard::setLength(const osg::Vec3 & length)
 {
     return m_geom->setLength(length);
+}
+
+const osg::Vec3 & AxisBillboard::position() const
+{
+    return m_geom->position();
+}
+
+void AxisBillboard::setPosition(const osg::Vec3 & position)
+{
+    m_geom->setPosition(position);
 }
 
 AxisGeometry::ColorScheme AxisBillboard::colorScheme() const
@@ -295,6 +327,16 @@ void AxisGroup::setLength(float length)
 void AxisGroup::setLength(const osg::Vec3 & length)
 {
     return m_geode->setLength(length);
+}
+
+const osg::Vec3 & AxisGroup::position() const
+{
+    return m_geode->position();
+}
+
+void AxisGroup::setPosition(const osg::Vec3 & position)
+{
+    m_geode->setPosition(position);
 }
 
 AxisGeometry::ColorScheme AxisGroup::colorScheme() const
@@ -788,13 +830,153 @@ void PlaneGeode::applyColorScheme()
 }
 
 
-namespace {
-    class CenterMarker : public AxisGeode
+MarkerGeometry::MarkerGeometry(const osg::Vec3 & pos, float length, ColorScheme scheme)
+    : osg::Geometry()
+    , m_pos(pos)
+    , m_upVector(pos)
+    , m_length(length)
+    , m_colorScheme(scheme)
+{
+    m_upVector.normalize();
+    setVertexArray(new osg::Vec3Array(2));
+    setColorArray(new osg::Vec4Array(2), osg::Array::BIND_PER_VERTEX);
+    addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 6));
+
+    getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+
+    applyLength();
+    applyColorScheme();
+}
+
+
+MarkerGeometry::MarkerGeometry(const osg::Vec3 & pos, const osg::Vec3 & upVector, float length, ColorScheme scheme)
+    : osg::Geometry()
+    , m_pos(pos)
+    , m_upVector(upVector)
+    , m_length(length)
+    , m_colorScheme(scheme)
+{
+    setVertexArray(new osg::Vec3Array(2));
+    setColorArray(new osg::Vec4Array(2), osg::Array::BIND_PER_VERTEX);
+    addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 6));
+
+    getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+
+    applyLength();
+    applyColorScheme();
+}
+
+MarkerGeometry::MarkerGeometry(const MarkerGeometry& obj, const osg::CopyOp& copyop/* =osg::CopyOp::SHALLOW_COPY */)
+    : osg::Geometry(obj, copyop)
+    , m_pos(obj.m_pos)
+    , m_length(obj.m_length)
+    , m_colorScheme(obj.m_colorScheme)
+{
+}
+
+MarkerGeometry::~MarkerGeometry()
+{
+}
+
+void MarkerGeometry::applyLength()
+{
+    osg::Vec3Array * vertices = (osg::Vec3Array *)getVertexArray();
+    (*vertices)[0] = m_pos;
+    (*vertices)[1] = m_pos + m_upVector * m_length;
+    setVertexArray(vertices);
+}
+
+void MarkerGeometry::applyColorScheme()
+{
+    osg::Vec4Array * colors = (osg::Vec4Array *)getColorArray();
+    switch (m_colorScheme)
     {
+    case ColorSchemePrimary:
+    default:
+        (*colors)[0] = osg::Vec4(0.0f, 0.0f, 1.0f, 1.0f);
+        (*colors)[1] = osg::Vec4(0.0f, 0.0f, 1.0f, 1.0f);
+        break;
+    case ColorSchemeSecondary:
+        (*colors)[0] = osg::Vec4(0.0f, 1.0f, 1.0f, 1.0f);
+        (*colors)[1] = osg::Vec4(0.0f, 1.0f, 1.0f, 1.0f);
+        break;
+    }
+    setColorArray(colors, osg::Array::BIND_PER_VERTEX);
+}
+
+void MarkerGeometry::setLength(float length)
+{
+    m_length = length;
+    applyLength();
+}
+
+const osg::Vec3 & MarkerGeometry::position() const
+{
+    return m_pos;
+}
+
+void MarkerGeometry::setPosition(const osg::Vec3 & position)
+{
+    m_pos = position;
+    applyLength();
+}
+
+const osg::Vec3 & MarkerGeometry::upVector() const
+{
+    return m_upVector;
+}
+
+void MarkerGeometry::setUpVector(const osg::Vec3 & upVector)
+{
+    m_upVector = upVector;
+    applyLength();
+}
+
+void MarkerGeometry::setColorScheme(ColorScheme scheme)
+{
+    m_colorScheme = scheme;
+    applyColorScheme();
+}
+
+namespace {
+    class CenterMarker : public osg::Group
+    {
+    private:
+        MarkerGeometry * geom;
+        osgText::Text * text;
     public:
-        CenterMarker(const osg::Vec3f & center, float radius)
-            : AxisGeode(center, radius)
+        CenterMarker(const std::string & name, const osg::Vec3f & center, float radius)
+            : geom(new MarkerGeometry(center, radius))
+            , text(new osgText::Text)
         {
+            std::stringstream ss;
+            ss << name << std::endl << radius;
+            text->setPosition(center);
+            text->setText(ss.str());
+            // osgText::Text turns on depth writing by default, even if you turned it off.
+            text->setEnableDepthWrites(false);
+
+            text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+            text->setAxisAlignment(osgText::Text::SCREEN);
+            text->setDrawMode(osgText::Text::TEXT);
+            text->setAlignment(osgText::Text::CENTER_BOTTOM);
+            //text->setFont(m_font.get());
+            text->setFontResolution(24, 24);
+            text->setCharacterSize(20.0f);
+            text->setColor(osg::Vec4(1,1,1,1));
+            text->setBackdropType(osgText::Text::OUTLINE);
+            text->setBackdropOffset(0.1f, 0.1f);
+            text->setBackdropImplementation(osgText::Text::POLYGON_OFFSET);
+            text->setBackdropColor(osg::Vec4(0,0,0,1));
+
+            addChild(geom);
+            addChild(text);
+
+            osg::StateSet * stateSet = getOrCreateStateSet();
+
+            stateSet->setAttributeAndModes(new osg::Program(), osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+            stateSet->setMode(GL_BLEND, osg::StateAttribute::ON);
+            stateSet->setAttributeAndModes(new osg::Depth(osg::Depth::ALWAYS, 0, 1, false), 1);
 
         }
     };
@@ -826,14 +1008,26 @@ namespace {
     template<class T>
     bool addCenterMarker(T * node, const osg::Vec3f & center, float radius)
     {
-        CenterMarker * marker = new CenterMarker(center, radius);
+        CenterMarker * marker = nullptr;
+        const std::string & name = node->getName();
+        std::string::size_type idx = name.rfind('/');
+        if (idx != std::string::npos)
+            marker = new CenterMarker(name.substr(idx+1), center, radius);
+        else
+            marker = new CenterMarker(std::string(), center, radius);
         node->addChild(marker);
         return true;
     }
     template<>
     bool addCenterMarker<osg::LOD>(osg::LOD * node, const osg::Vec3f & center, float radius)
     {
-        CenterMarker * marker = new CenterMarker(center, radius);
+        CenterMarker * marker = nullptr;
+        const std::string & name = node->getName();
+        std::string::size_type idx = name.rfind('/');
+        if (idx != std::string::npos)
+            marker = new CenterMarker(name.substr(idx + 1), center, radius);
+        else
+            marker = new CenterMarker(std::string(), center, radius);
         node->addChild(marker, 0, FLT_MAX);
         return true;
     }
