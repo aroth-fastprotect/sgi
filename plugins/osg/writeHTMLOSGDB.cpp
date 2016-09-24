@@ -775,6 +775,14 @@ bool writePrettyHTMLImpl<osgDB::FileList>::process(std::basic_ostream<char>& os)
     return ret;
 }
 
+#if OSG_VERSION_GREATER_OR_EQUAL(3,5,0)
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgDB::ObjectWrapperAssociate & a)
+{
+    os << "firstVersion " << a._firstVersion << ", lastVersion " << a._lastVersion << " " << a._name;
+    return os;
+}
+#endif
+
 bool writePrettyHTMLImpl<osgDB::ObjectWrapper>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -796,11 +804,19 @@ bool writePrettyHTMLImpl<osgDB::ObjectWrapper>::process(std::basic_ostream<char>
             os << "<tr><td>updated version</td><td>" << object->getUpdatedVersion() << "</td></tr>" << std::endl;
 
             os << "<tr><td>associates</td><td><ul>";
+#if OSG_VERSION_GREATER_OR_EQUAL(3,5,0)
+            const osgDB::ObjectWrapper::RevisionAssociateList & associates = object->getAssociates();
+            for(osgDB::ObjectWrapper::RevisionAssociateList::const_iterator it = associates.begin(); it != associates.end(); it++)
+            {
+                os << "<li>" << *it << "</li>";
+            }
+#else
             const osgDB::StringList & associates = object->getAssociates();
             for(osgDB::StringList::const_iterator it = associates.begin(); it != associates.end(); it++)
             {
                 os << "<li>" << *it << "</li>";
             }
+#endif
             os << "</ul></td></tr>" << std::endl;
 
 #if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
