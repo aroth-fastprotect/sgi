@@ -6,6 +6,7 @@
 #include <osg/PagedLOD>
 #include <osg/ProxyNode>
 #include <osg/Depth>
+#include <osg/LineWidth>
 #include <osgText/Text>
 #include <osgUtil/CullVisitor>
 #include <osg/ComputeBoundsVisitor>
@@ -154,6 +155,126 @@ void AxisGeometry::set(const osg::Vec3d & front, const osg::Vec3d & right, const
     (*vertices)[5] = m_pos + v * m_length.z();
     setVertexArray (vertices);
 }
+
+CircleGeometry::CircleGeometry(const osg::Vec3 & pos, float radius, ColorScheme scheme)
+    : osg::Geometry()
+    , m_pos(pos)
+    , m_rotation()
+    , m_radius(radius)
+    , m_colorScheme(scheme)
+{
+    osg::Vec3d upVector = pos;
+    upVector.normalize();
+    m_rotation.makeRotate(osg::Vec3d(0, 0, 1), upVector);
+
+    setVertexArray(new osg::Vec3Array(36));
+    setColorArray(new osg::Vec4Array(1), osg::Array::BIND_OVERALL);
+    addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINE_LOOP, 0, 36));
+
+    getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+
+    applyRadius();
+    applyColorScheme();
+}
+
+CircleGeometry::CircleGeometry(const osg::Vec3 & pos, const osg::Vec3 & upVector, float radius, ColorScheme scheme)
+    : osg::Geometry()
+    , m_pos(pos)
+    , m_rotation()
+    , m_radius(radius)
+    , m_colorScheme(scheme)
+{
+    m_rotation.makeRotate(osg::Vec3d(0, 0, 1), osg::Vec3d(upVector));
+
+    setVertexArray(new osg::Vec3Array(36));
+    setColorArray(new osg::Vec4Array(1), osg::Array::BIND_OVERALL);
+    addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINE_LOOP, 0, 36));
+
+    getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+
+    applyRadius();
+    applyColorScheme();
+}
+
+CircleGeometry::CircleGeometry(const CircleGeometry& obj, const osg::CopyOp& copyop/* =osg::CopyOp::SHALLOW_COPY */)
+    : osg::Geometry(obj, copyop)
+    , m_pos(obj.m_pos)
+    , m_rotation(obj.m_rotation)
+    , m_radius(obj.m_radius)
+    , m_colorScheme(obj.m_colorScheme)
+{
+}
+
+CircleGeometry::~CircleGeometry()
+{
+}
+
+void CircleGeometry::applyRadius()
+{
+    osg::Vec3Array * vertices = (osg::Vec3Array *)getVertexArray();
+
+    unsigned numCirclePoints = vertices->getNumElements();
+    for (unsigned n = 0; n < numCirclePoints; ++n)
+    {
+        float angle = ((float)((double)n  * (osg::PI * 2.0)) / (float)numCirclePoints);
+        float x1 = m_radius * cos(angle);
+        float y1 = m_radius * sin(angle);
+        osg::Vec3d v(x1, y1, 0.f);
+        (*vertices)[n] = m_pos + (m_rotation * v);
+    }
+    setVertexArray(vertices);
+}
+
+void CircleGeometry::applyColorScheme()
+{
+    osg::Vec4Array * colors = (osg::Vec4Array *)getColorArray();
+    switch (m_colorScheme)
+    {
+    case ColorSchemePrimary:
+    default:
+        (*colors)[0] = osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f);
+        break;
+    case ColorSchemeSecondary:
+        (*colors)[0] = osg::Vec4(1.0f, 0.0f, 1.0f, 1.0f);
+        break;
+    }
+    setColorArray(colors, osg::Array::BIND_OVERALL);
+}
+
+void CircleGeometry::setRadius(float radius)
+{
+    m_radius = radius;
+    applyRadius();
+}
+
+const osg::Vec3 & CircleGeometry::position() const
+{
+    return m_pos;
+}
+
+void CircleGeometry::setPosition(const osg::Vec3 & position)
+{
+    m_pos = position;
+    applyRadius();
+}
+
+const osg::Quat & CircleGeometry::rotation() const
+{
+    return m_rotation;
+}
+
+void CircleGeometry::setRotation(const osg::Quat & rotation)
+{
+    m_rotation = rotation;
+    applyRadius();
+}
+
+void CircleGeometry::setColorScheme(ColorScheme scheme)
+{
+    m_colorScheme = scheme;
+    applyColorScheme();
+}
+
 
 AxisGeode::AxisGeode(const osg::Vec3 & pos, float length, AxisGeometry::ColorScheme scheme)
     : osg::Geode()
@@ -938,48 +1059,53 @@ void MarkerGeometry::setColorScheme(ColorScheme scheme)
     applyColorScheme();
 }
 
+CenterMarker::CenterMarker(const std::string & name, const osg::Vec3d & center, float radius)
+    : geom(nullptr)
+    , circle(nullptr)
+    , text(nullptr)
+{
+    osg::Vec3d upVector = center;
+    upVector.normalize();
+
+    geom = new MarkerGeometry(osg::Vec3(), upVector, radius);
+    circle = new CircleGeometry(osg::Vec3(), upVector, radius);
+    text = new osgText::Text;
+
+    setMatrix(osg::Matrixd::translate(center));
+    std::stringstream ss;
+    ss << name << std::endl << radius;
+    text->setPosition(osg::Vec3());
+    text->setText(ss.str());
+    // osgText::Text turns on depth writing by default, even if you turned it off.
+    text->setEnableDepthWrites(false);
+
+    text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+    text->setAxisAlignment(osgText::Text::SCREEN);
+    text->setDrawMode(osgText::Text::TEXT);
+    text->setAlignment(osgText::Text::CENTER_BOTTOM);
+    //text->setFont(m_font.get());
+    text->setFontResolution(24, 24);
+    text->setCharacterSize(20.0f);
+    text->setColor(osg::Vec4(1,1,1,1));
+    text->setBackdropType(osgText::Text::OUTLINE);
+    text->setBackdropOffset(0.1f, 0.1f);
+    text->setBackdropImplementation(osgText::Text::POLYGON_OFFSET);
+    text->setBackdropColor(osg::Vec4(0,0,0,1));
+
+    addChild(geom);
+    addChild(circle);
+    addChild(text);
+
+    osg::StateSet * stateSet = getOrCreateStateSet();
+
+    stateSet->setAttribute(new osg::LineWidth(2.0f));
+    stateSet->setAttributeAndModes(new osg::Program(), osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+    stateSet->setMode(GL_BLEND, osg::StateAttribute::ON);
+    stateSet->setAttributeAndModes(new osg::Depth(osg::Depth::ALWAYS, 0, 1, false), 1);
+
+}
+
 namespace {
-    class CenterMarker : public osg::Group
-    {
-    private:
-        MarkerGeometry * geom;
-        osgText::Text * text;
-    public:
-        CenterMarker(const std::string & name, const osg::Vec3f & center, float radius)
-            : geom(new MarkerGeometry(center, radius))
-            , text(new osgText::Text)
-        {
-            std::stringstream ss;
-            ss << name << std::endl << radius;
-            text->setPosition(center);
-            text->setText(ss.str());
-            // osgText::Text turns on depth writing by default, even if you turned it off.
-            text->setEnableDepthWrites(false);
-
-            text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-            text->setAxisAlignment(osgText::Text::SCREEN);
-            text->setDrawMode(osgText::Text::TEXT);
-            text->setAlignment(osgText::Text::CENTER_BOTTOM);
-            //text->setFont(m_font.get());
-            text->setFontResolution(24, 24);
-            text->setCharacterSize(20.0f);
-            text->setColor(osg::Vec4(1,1,1,1));
-            text->setBackdropType(osgText::Text::OUTLINE);
-            text->setBackdropOffset(0.1f, 0.1f);
-            text->setBackdropImplementation(osgText::Text::POLYGON_OFFSET);
-            text->setBackdropColor(osg::Vec4(0,0,0,1));
-
-            addChild(geom);
-            addChild(text);
-
-            osg::StateSet * stateSet = getOrCreateStateSet();
-
-            stateSet->setAttributeAndModes(new osg::Program(), osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
-            stateSet->setMode(GL_BLEND, osg::StateAttribute::ON);
-            stateSet->setAttributeAndModes(new osg::Depth(osg::Depth::ALWAYS, 0, 1, false), 1);
-
-        }
-    };
     bool hasCenterMarker(osg::Group * node)
     {
         bool ret = false;
@@ -1006,7 +1132,7 @@ namespace {
         return ret;
     }
     template<class T>
-    bool addCenterMarker(T * node, const osg::Vec3f & center, float radius)
+    bool addCenterMarker(T * node, const osg::Vec3d & center, float radius)
     {
         CenterMarker * marker = nullptr;
         const std::string & name = node->getName();
@@ -1019,7 +1145,7 @@ namespace {
         return true;
     }
     template<>
-    bool addCenterMarker<osg::LOD>(osg::LOD * node, const osg::Vec3f & center, float radius)
+    bool addCenterMarker<osg::LOD>(osg::LOD * node, const osg::Vec3d & center, float radius)
     {
         CenterMarker * marker = nullptr;
         const std::string & name = node->getName();
@@ -1041,7 +1167,6 @@ namespace {
             addCenterMarker(node, node->getCenter(), node->getRadius());
     }
 
-
     std::string use_togglecentermarker(const std::string & uri, bool on)
     {
         if(on)
@@ -1050,6 +1175,55 @@ namespace {
             return uri + "(0)." TOGGLECENTERMARKER_PL_EXTENSION;
     }
 
+    bool isToggleCenterMarker(const std::string & uri)
+    {
+        return (osgDB::getFileExtension(uri).compare(TOGGLECENTERMARKER_PL_EXTENSION) == 0);
+    }
+
+}
+
+
+QueryCenterMarkerVisitor::QueryCenterMarkerVisitor()
+    : osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN)
+    , _on(false)
+{
+}
+
+
+void QueryCenterMarkerVisitor::apply(osg::ProxyNode& node)
+{
+    for (unsigned n = 0; !_on && n < node.getNumFileNames(); n++)
+    {
+        const std::string & uri = node.getFileName(n);
+        if (isToggleCenterMarker(uri))
+            _on = true;
+    }
+    if (!_on)
+        _on = hasCenterMarker(&node);
+    if(!_on)
+        traverse(node);
+}
+
+void QueryCenterMarkerVisitor::apply(osg::Group& node)
+{
+    if (!_on)
+        _on = hasCenterMarker(&node);
+    if (!_on)
+        traverse(node);
+}
+
+void QueryCenterMarkerVisitor::apply(osg::PagedLOD& node)
+{
+    for (unsigned n = 0; !_on && n < node.getNumFileNames(); n++)
+    {
+        const std::string & uri = node.getFileName(n);
+        if (isToggleCenterMarker(uri))
+            _on = true;
+    }
+    if (!_on)
+        _on = hasCenterMarker(&node);
+    if (!_on)
+        traverse(node);
 }
 
 ToggleCenterMarkerVisitor::ToggleCenterMarkerVisitor(bool on)

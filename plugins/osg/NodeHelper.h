@@ -2,6 +2,7 @@
 
 #include <osg/Geometry>
 #include <osg/Billboard>
+#include <osg/MatrixTransform>
 
 namespace osg {
     class ShapeDrawable;
@@ -57,6 +58,49 @@ protected:
 protected:
     osg::Vec3               m_pos;
     osg::Vec3               m_length;
+    ColorScheme             m_colorScheme;
+};
+
+class CircleGeometry : public osg::Geometry
+{
+public:
+    enum ColorScheme {
+        ColorSchemePrimary,
+        ColorSchemeSecondary,
+        ColorSchemeDefault = ColorSchemePrimary
+    };
+
+    CircleGeometry(const osg::Vec3 & pos = osg::Vec3(), float radius = 10.0f, ColorScheme scheme = ColorSchemeDefault);
+    CircleGeometry(const osg::Vec3 & pos, const osg::Vec3 & upVector, float radius, ColorScheme scheme = ColorSchemeDefault);
+
+    /** Copy constructor using CopyOp to manage deep vs shallow copy.*/
+    CircleGeometry(const CircleGeometry& obj, const osg::CopyOp& copyop = osg::CopyOp::SHALLOW_COPY);
+    virtual ~CircleGeometry();
+
+    const char* libraryName() const { return "osgdb_sgi_osg"; }
+    const char* className() const { return "CircleGeometry"; }
+
+public:
+    const osg::Vec3 &       position() const;
+    void                    setPosition(const osg::Vec3 & position);
+
+    const osg::Quat &       rotation() const;
+    void                    setRotation(const osg::Quat & rotation);
+
+    float                   radius() const { return m_radius; }
+    void                    setRadius(float radius);
+
+    ColorScheme             colorScheme() const { return m_colorScheme; }
+    void                    setColorScheme(ColorScheme scheme);
+
+protected:
+    void                    applyRadius();
+    void                    applyColorScheme();
+
+protected:
+    osg::Vec3               m_pos;
+    osg::Quat               m_rotation;
+    float                   m_radius;
     ColorScheme             m_colorScheme;
 };
 
@@ -353,6 +397,34 @@ protected:
     osg::Vec3               m_upVector;
     float                   m_length;
     ColorScheme             m_colorScheme;
+};
+
+class CenterMarker : public osg::MatrixTransform
+{
+private:
+    MarkerGeometry * geom;
+    CircleGeometry * circle;
+    osgText::Text * text;
+public:
+    CenterMarker(const std::string & name, const osg::Vec3d & center, float radius);
+
+    const char* libraryName() const { return "osgdb_sgi_osg"; }
+    const char* className() const { return "CenterMarker"; }
+};
+
+class QueryCenterMarkerVisitor : public osg::NodeVisitor
+{
+    bool _on;
+public:
+    QueryCenterMarkerVisitor();
+
+    bool isOn() const {
+        return _on;
+    }
+
+    void apply(osg::ProxyNode& node) override;
+    void apply(osg::Group& node) override;
+    void apply(osg::PagedLOD& node) override;
 };
 
 class ToggleCenterMarkerVisitor : public osg::NodeVisitor

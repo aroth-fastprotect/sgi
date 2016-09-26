@@ -82,6 +82,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeLookAt)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeCreateStateSet)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeStripTextures)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeOptimizerRun)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeToggleCenterMarker)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectLogger)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectLoggerVisible)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectLoggerActive)
@@ -119,7 +120,6 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraComputeNearFarMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetCenterMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetCenter)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetRadius)
-ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeToggleCenterMarker)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeLoadingExternalReferenceMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeForceLoad)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetDatabasePath)
@@ -568,6 +568,14 @@ bool actionHandlerImpl<MenuActionNodeOptimizerRun>::execute()
 	MenuActionOptimizerRunMode mode = (MenuActionOptimizerRunMode)menuAction()->mode();
 	manipulateObject<OptimizerRun>(object, mode);
 	return true;
+}
+
+bool actionHandlerImpl<MenuActionNodeToggleCenterMarker>::execute()
+{
+    osg::Node * object = getObject<osg::Node, SGIItemOsg>();
+    ToggleCenterMarkerVisitor tcmv(menuAction()->state());
+    object->accept(tcmv);
+    return true;
 }
 
 bool actionHandlerImpl<MenuActionObjectLogger>::execute()
@@ -1030,18 +1038,6 @@ bool actionHandlerImpl<MenuActionProxyNodeSetRadius>::execute()
         proxynode->setCenterMode((osg::ProxyNode::CenterMode)menuAction()->mode());
     else if(lod)
         lod->setCenterMode((osg::LOD::CenterMode)menuAction()->mode());
-    return true;
-}
-
-bool actionHandlerImpl<MenuActionProxyNodeToggleCenterMarker>::execute()
-{
-    osg::ProxyNode * proxynode = getObject<osg::ProxyNode, SGIItemOsg, DynamicCaster>();
-    osg::LOD * lod = getObject<osg::LOD, SGIItemOsg, DynamicCaster>();
-    ToggleCenterMarkerVisitor tcmv(menuAction()->state());
-    if (proxynode)
-        proxynode->accept(tcmv);
-    else if(lod)
-        lod->accept(tcmv);
     return true;
 }
 
