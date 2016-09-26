@@ -1235,7 +1235,7 @@ bool contextMenuPopulateImpl<osg::Camera>::populate(IContextMenuItem * menuItem)
 
 bool contextMenuPopulateImpl<osg::View>::populate(IContextMenuItem * menuItem)
 {
-    osg::View * object = dynamic_cast<osg::View*>(item<SGIItemOsg>()->object());
+    osg::View * object = getObject<osg::View, SGIItemOsg, DynamicCaster>();
     bool ret = false;
     switch(itemType())
     {
@@ -1243,6 +1243,25 @@ bool contextMenuPopulateImpl<osg::View>::populate(IContextMenuItem * menuItem)
         ret = callNextHandler(menuItem);
         if(ret)
         {
+            SGIHostItemOsg camera(object->getCamera());
+            if (camera.hasObject())
+                menuItem->addMenu("Camera", &camera);
+
+            SGIHostItemOsg light(object->getLight());
+            if (light.hasObject())
+                menuItem->addMenu("Light", &light);
+
+            IContextMenuItem * lightingModeMenu = menuItem->addModeMenu(MenuActionViewLightingMode, "Lighting mode", _item, object->getLightingMode());
+            if (lightingModeMenu)
+            {
+                lightingModeMenu->addModeAction("No light", osg::View::NO_LIGHT);
+                lightingModeMenu->addModeAction("Sky light", osg::View::SKY_LIGHT);
+                lightingModeMenu->addModeAction("Headlight", osg::View::HEADLIGHT);
+            }
+
+            SGIHostItemOsg stats(object->getStats());
+            if (stats.hasObject())
+                menuItem->addMenu("Stats", &stats);
         }
         break;
     default:
@@ -1254,7 +1273,7 @@ bool contextMenuPopulateImpl<osg::View>::populate(IContextMenuItem * menuItem)
 
 bool contextMenuPopulateImpl<osgViewer::View>::populate(IContextMenuItem * menuItem)
 {
-    osgViewer::View * object = dynamic_cast<osgViewer::View*>(item<SGIItemOsg>()->object());
+    osgViewer::View * object = getObject<osgViewer::View, SGIItemOsg, DynamicCaster>();
     bool ret = false;
     switch(itemType())
     {
@@ -1262,11 +1281,7 @@ bool contextMenuPopulateImpl<osgViewer::View>::populate(IContextMenuItem * menuI
         ret = callNextHandler(menuItem);
         if(ret)
         {
-            SGIHostItemOsg camera(object->getCamera());
-            if(camera.hasObject())
-                menuItem->addMenu("Camera", &camera);
-
-			menuItem->addSimpleAction(MenuActionViewCaptureScreenshot, "Capture screenshot", _item);
+			menuItem->addSimpleAction(MenuActionViewCaptureScreenshot, "Capture screen shot", _item);
 
             SGIHostItemOsg cameraManipulator(object->getCameraManipulator());
             if(cameraManipulator.hasObject())

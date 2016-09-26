@@ -198,6 +198,7 @@ enum MenuAction {
     MenuActionAnimationManagerBaseAutomaticLink,
     MenuActionAnimationManagerBaseDirty,
 
+    MenuActionViewLightingMode,
 	MenuActionViewCaptureScreenshot,
 
 	MenuActionViewerBaseMaxFrameRate,

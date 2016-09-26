@@ -265,6 +265,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolFindView)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolDistanceToCamera)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolFindClosestNodeToCamera)
 
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewLightingMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewCaptureScreenshot)
 
 using namespace sgi::osg_helpers;
@@ -3617,6 +3618,16 @@ bool actionHandlerImpl<MenuActionToolFindView>::execute()
     }
     return true;
 }
+
+
+bool actionHandlerImpl<MenuActionViewLightingMode>::execute()
+{
+    osg::View * object = getObject<osg::View, SGIItemOsg, DynamicCaster>();
+    object->setLightingMode((osg::View::LightingMode)menuAction()->mode());
+    return true;
+}
+
+
 
 class CaptureImage : public osgViewer::ScreenCaptureHandler::CaptureOperation
 {
