@@ -800,9 +800,9 @@ const sgi::Image * convertImage(const osg::Image * image)
     case GL_RGB8:
     case GL_RGB: imageFormat = sgi::Image::ImageFormatRGB24; break;
     case GL_RGBA8:
-    case GL_RGBA:imageFormat = sgi::Image::ImageFormatARGB32; break;
+    case GL_RGBA:imageFormat = sgi::Image::ImageFormatRGBA32; break;
     case GL_BGR: imageFormat = sgi::Image::ImageFormatBGR24; break;
-    case GL_BGRA:imageFormat = sgi::Image::ImageFormatABGR32; break;
+    case GL_BGRA:imageFormat = sgi::Image::ImageFormatBGRA32; break;
     case GL_DEPTH_COMPONENT:imageFormat = sgi::Image::ImageFormatDepth; break;
     case GL_RED:imageFormat = sgi::Image::ImageFormatRed; break;
     case GL_GREEN:imageFormat = sgi::Image::ImageFormatGreen; break;
@@ -815,7 +815,7 @@ const sgi::Image * convertImage(const osg::Image * image)
     case GL_COMPRESSED_LUMINANCE_ALPHA:imageFormat = sgi::Image::ImageFormatLuminanceAlpha; break;
     case GL_COMPRESSED_INTENSITY:imageFormat = sgi::Image::ImageFormatGray; break;
     case GL_COMPRESSED_RGB:imageFormat = sgi::Image::ImageFormatRGB24; break;
-    case GL_COMPRESSED_RGBA:imageFormat = sgi::Image::ImageFormatARGB32; break;
+    case GL_COMPRESSED_RGBA:imageFormat = sgi::Image::ImageFormatRGBA32; break;
     case GL_COMPRESSED_RGB_S3TC_DXT1_EXT: imageFormat = sgi::Image::ImageFormatDXT1; break;
     case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT: imageFormat = sgi::Image::ImageFormatDXT1Alpha; break;
     case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT: imageFormat = sgi::Image::ImageFormatDXT3; break;

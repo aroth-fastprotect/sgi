@@ -9,7 +9,7 @@ namespace sgi {
 
 Image::Image(ImageFormat format)
     : _format(format), _origin(OriginDefault), _data(NULL), _length(0)
-    , _width(0), _height(0), _depth(0), _pitch { 0, 0, 0, 0 }, _planeOffset{0, 0, 0, 0}
+    , _width(0), _height(0), _depth(0), _pitch { 0, 0, 0, 0 }, _lines{ 0, 0, 0, 0 }, _planeOffset{0, 0, 0, 0}
     , _originalImage(NULL), _originalImageQt(NULL)
     , _allocated(false)
 {
@@ -19,7 +19,8 @@ Image::Image(ImageFormat format, Origin origin, void * data, size_t length,
         unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
         const osg::Referenced * originalImage, bool copyData)
     : _format(format), _origin(origin), _data(copyData ? malloc(length) : data), _length(length)
-    , _width(width), _height(height), _depth(depth), _pitch { bytesPerLine, 0, 0, 0 }, _planeOffset{0, 0, 0, 0}
+    , _width(width), _height(height), _depth(depth), _pitch { bytesPerLine, 0, 0, 0 }, _lines{ height, 0, 0, 0 }
+    , _planeOffset{0, 0, 0, 0}
     , _originalImage(originalImage), _originalImageQt(NULL)
     , _allocated(copyData)
 {
@@ -32,7 +33,8 @@ Image::Image(ImageFormat format, Origin origin, void * data, size_t length,
     unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
     QImage * originalImage, bool copyData)
     : _format(format), _origin(origin), _data(copyData ? malloc(length) : data), _length(length)
-    , _width(width), _height(height), _depth(depth), _pitch { bytesPerLine, 0, 0, 0 }, _planeOffset{0, 0, 0, 0}
+    , _width(width), _height(height), _depth(depth), _pitch{ bytesPerLine, 0, 0, 0 }, _lines{ height, 0, 0, 0 }
+    , _planeOffset { 0, 0, 0, 0 }
     , _originalImage(NULL), _originalImageQt((originalImage)?new QImage(*originalImage):NULL)
     , _allocated(copyData)
 {
@@ -81,7 +83,9 @@ namespace {
 Image::Image(QImage * originalImage, bool copyData)
     : _format(imageFormatFromQImage(originalImage->format()))
     , _origin(OriginTopLeft), _data(NULL), _length(0)
-    , _width(originalImage->width()), _height(originalImage->height()), _depth(1), _pitch { (unsigned)originalImage->bytesPerLine(), 0, 0, 0 }
+    , _width(originalImage->width()), _height(originalImage->height()), _depth(1)
+    , _pitch { (unsigned)originalImage->bytesPerLine(), 0, 0, 0 }
+    , _lines{ (unsigned)originalImage->height(), 0, 0, 0 }
     , _planeOffset{0, 0, 0, 0}
     , _originalImage(NULL), _originalImageQt((originalImage) ? new QImage(*originalImage) : NULL)
     , _allocated(false)
@@ -98,7 +102,7 @@ Image::Image(QImage * originalImage, bool copyData)
 
 Image::Image(ImageFormat format, void * data, size_t length, bool copyData)
     : _format(format), _origin(OriginDefault), _data(copyData ? malloc(length) : data), _length(length)
-    , _width(0), _height(0), _depth(0), _pitch{ 0, 0, 0, 0 }, _planeOffset{ 0, 0, 0, 0 }
+    , _width(0), _height(0), _depth(0), _pitch{ 0, 0, 0, 0 }, _lines{ 0, 0, 0, 0 }, _planeOffset{ 0, 0, 0, 0 }
     , _originalImage(NULL), _originalImageQt(NULL)
     , _allocated(copyData)
 {
@@ -111,6 +115,7 @@ Image::Image(const Image & rhs)
     : _format(rhs._format), _origin(rhs._origin), _data(rhs._data), _length(rhs._length)
     , _width(rhs._width), _height(rhs._height), _depth(rhs._depth)
     , _pitch { rhs._pitch[0], rhs._pitch[1], rhs._pitch[2], rhs._pitch[3] }
+    , _lines{ rhs._lines[0], rhs._lines[1], rhs._lines[2], rhs._lines[3] }
     , _planeOffset { rhs._planeOffset[0], rhs._planeOffset[1], rhs._planeOffset[2], rhs._planeOffset[3] }
     , _originalImage(rhs._originalImage), _originalImageQt(rhs._originalImageQt)
     , _allocated(false)
@@ -138,6 +143,10 @@ Image & Image::operator=(const Image & rhs)
     _pitch[1] = rhs._pitch[1];
     _pitch[2] = rhs._pitch[2];
     _pitch[3] = rhs._pitch[3];
+    _lines[0] = rhs._lines[0];
+    _lines[1] = rhs._lines[1];
+    _lines[2] = rhs._lines[2];
+    _lines[3] = rhs._lines[3];
     _planeOffset[0] = rhs._planeOffset[0];
     _planeOffset[1] = rhs._planeOffset[1];
     _planeOffset[2] = rhs._planeOffset[2];
@@ -166,17 +175,23 @@ void Image::loadPitchAndPlaneOffsets()
     {
         _pitch[0] = _width * 3;
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
+        _lines[0] = _height;
+        _lines[1] = _lines[2] = _lines[3] = 0;
         _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
     }
     break;
     case ImageFormatRGB32:
+    case ImageFormatRGBA32:
     case ImageFormatARGB32:
     case ImageFormatBGR32:
+    case ImageFormatBGRA32:
     case ImageFormatABGR32:
     case ImageFormatFloat:
     {
         _pitch[0] = _width * 4;
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
+        _lines[0] = _height;
+        _lines[1] = _lines[2] = _lines[3] = 0;
         _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
     }
     break;
@@ -184,6 +199,8 @@ void Image::loadPitchAndPlaneOffsets()
     {
         _pitch[0] = _pitch[1] = _pitch[2] = _width * 3;
         _pitch[3] = 0;
+        _lines[0] = _lines[1] = _lines[2] = _height;
+        _lines[3] = 0;
         _planeOffset[0] = 0;
         _planeOffset[1] = _width * _height * 3;
         _planeOffset[2] = _planeOffset[1] << 1;
@@ -195,6 +212,8 @@ void Image::loadPitchAndPlaneOffsets()
         _pitch[0] = _width;
         _pitch[1] = _pitch[2] = _width / 2;
         _pitch[3] = 0;
+        _lines[0] = _lines[1] = _lines[2] = _height;
+        _lines[3] = 0;
         _planeOffset[0] = 0;
         _planeOffset[1] = _width * _height;
         _planeOffset[2] = _planeOffset[1] + (_planeOffset[1] >> 1);
@@ -206,6 +225,9 @@ void Image::loadPitchAndPlaneOffsets()
         _pitch[0] = _width;
         _pitch[1] = _pitch[2] = _width / 2;
         _pitch[3] = 0;
+        _lines[0] = _height;
+        _lines[1] = _lines[2] = _height / 2;
+        _lines[3] = 0;
         _planeOffset[0] = 0;
         _planeOffset[1] = _width * _height;
         _planeOffset[2] = _planeOffset[1] + (_planeOffset[1] >> 2);
@@ -218,6 +240,8 @@ void Image::loadPitchAndPlaneOffsets()
     {
         _pitch[0] = _width;
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
+        _lines[0] = _height;
+        _lines[1] = _lines[2] = _lines[3] = 0;
         _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
     }
     break;
@@ -230,6 +254,8 @@ void Image::loadPitchAndPlaneOffsets()
         // only one channel with 8-bit color data
         _pitch[0] = _width;
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
+        _lines[0] = _height;
+        _lines[1] = _lines[2] = _lines[3] = 0;
         _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
     }
     break;
@@ -273,8 +299,10 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format)
         _length = width * height * 3;
         break;
     case ImageFormatRGB32:
+    case ImageFormatRGBA32:
     case ImageFormatARGB32:
     case ImageFormatBGR32:
+    case ImageFormatBGRA32:
     case ImageFormatABGR32:
     case ImageFormatFloat:
         _length = width * height * 4;
@@ -408,7 +436,9 @@ bool Image::reinterpretFormat(ImageFormat targetFormat)
         break;
     case ImageFormatBGR32:
     case ImageFormatRGB32:
+    case ImageFormatRGBA32:
     case ImageFormatARGB32:
+    case ImageFormatBGRA32:
     case ImageFormatABGR32:
         // reinterpret a 32-bit image and reinterpret the colors (helpful for wrong color
         // display)
@@ -417,7 +447,9 @@ bool Image::reinterpretFormat(ImageFormat targetFormat)
         case ImageFormatBGR32:
         case ImageFormatRGB32:
         case ImageFormatARGB32:
+        case ImageFormatRGBA32:
         case ImageFormatABGR32:
+        case ImageFormatBGRA32:
             // just accept this, no special handling required
             ret = true;
         }
@@ -468,8 +500,10 @@ bool Image::guessImageSizes(ImageSizeList & possibleSizes) const
     switch(_format)
     {
     case Image::ImageFormatARGB32:
+    case Image::ImageFormatRGBA32:
     case Image::ImageFormatRGB32:
     case Image::ImageFormatABGR32:
+    case Image::ImageFormatBGRA32:
     case Image::ImageFormatBGR32:
     case Image::ImageFormatFloat:
         ret = (_length % 4 == 0);
@@ -585,6 +619,8 @@ std::string Image::imageFormatToString(ImageFormat format)
     case ImageFormatDXT3: ret = "DXT3"; break;
     case ImageFormatDXT5: ret = "DXT5"; break;
     case ImageFormatRaw: ret = "raw"; break;
+    case ImageFormatRGBA32: ret = "RGBA32"; break;
+    case ImageFormatBGRA32: ret = "BGRA32"; break;
     default:
         {
             std::stringstream ss;
@@ -634,6 +670,15 @@ std::string Image::originToString(Origin o)
         }
         break;
     }
+    return ret;
+}
+
+unsigned Image::planeEndOffset(unsigned index) const
+{ 
+    unsigned ret = 0;
+    if (index > 0)
+        ret = planeOffset(index - 1);
+    ret += _pitch[index] * _lines[index];
     return ret;
 }
 

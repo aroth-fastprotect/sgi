@@ -370,12 +370,16 @@ private:
 
         case ffmpeg::AV_PIX_FMT_PAL8:
         case ffmpeg::AV_PIX_FMT_ARGB:
-        case ffmpeg::AV_PIX_FMT_RGBA:
             ret = Image::ImageFormatARGB32;
             break;
+        case ffmpeg::AV_PIX_FMT_RGBA:
+            ret = Image::ImageFormatRGBA32;
+            break;
         case ffmpeg::AV_PIX_FMT_ABGR:
-        case ffmpeg::AV_PIX_FMT_BGRA:
             ret = Image::ImageFormatABGR32;
+            break;
+        case ffmpeg::AV_PIX_FMT_BGRA:
+            ret = Image::ImageFormatBGRA32;
             break;
 
         case ffmpeg::AV_PIX_FMT_YUVJ420P:
@@ -401,6 +405,7 @@ private:
         {
         case Image::ImageFormatRGB24: ret = ffmpeg::AV_PIX_FMT_RGB24; break;
         case Image::ImageFormatRGB32: ret = ffmpeg::AV_PIX_FMT_RGB32; break;
+        case Image::ImageFormatRGBA32: ret = ffmpeg::AV_PIX_FMT_RGBA; break;
         case Image::ImageFormatARGB32: ret = ffmpeg::AV_PIX_FMT_ARGB; break;
         case Image::ImageFormatMono: ret = ffmpeg::AV_PIX_FMT_MONOBLACK; break;
         case Image::ImageFormatMonoLSB: ret = ffmpeg::AV_PIX_FMT_MONOBLACK; break;
@@ -408,6 +413,7 @@ private:
         //case Image::ImageFormatFloat: ret = ffmpeg::AV_PIX_FMT_FLOAT; break;
         case Image::ImageFormatBGR24: ret = ffmpeg::AV_PIX_FMT_BGR24; break;
         case Image::ImageFormatBGR32: ret = ffmpeg::AV_PIX_FMT_BGR32; break;
+        case Image::ImageFormatBGRA32: ret = ffmpeg::AV_PIX_FMT_BGRA; break;
         case Image::ImageFormatABGR32: ret = ffmpeg::AV_PIX_FMT_ABGR; break;
         case Image::ImageFormatYUV420: ret = ffmpeg::AV_PIX_FMT_YUV420P; break;
         case Image::ImageFormatYUV422: ret = ffmpeg::AV_PIX_FMT_YUV422P; break;
@@ -454,33 +460,60 @@ private:
         return true;
     }
 
-    static bool to_qimage_argb32(const sgi::Image& src, QImage& dest)
+    static bool to_qimage_argb32(const sgi::Image& src, QImage& dest, bool horizontalFlip=false)
     {
         ffmpeg::AVPixelFormat srcPixelFormat = ImageFormatToAVCodec(src.format());
         if(srcPixelFormat == ffmpeg::AV_PIX_FMT_NONE || src.width() == 0 || src.height() == 0)
             return false;
 
-        const uint8_t* srcdata = reinterpret_cast<const uint8_t*>(src.data());
-        const int srcPitch[4] = { (int)src.pitch(0), (int)src.pitch(1), (int)src.pitch(2), (int)src.pitch(3) };
-        const unsigned srcPlaneOffset[4] = { src.planeOffset(0), src.planeOffset(1), src.planeOffset(2), src.planeOffset(3) };
-        const uint8_t* srcPlanes[4] = { srcdata + srcPlaneOffset[0], srcdata + srcPlaneOffset[1], srcdata + srcPlaneOffset[2], srcdata + srcPlaneOffset[3] };
+        if(!horizontalFlip)
+        {
+            const uint8_t* srcdata = reinterpret_cast<const uint8_t*>(src.data());
+            const int srcPitch[4] = { (int)src.pitch(0), (int)src.pitch(1), (int)src.pitch(2), (int)src.pitch(3) };
+            const unsigned srcPlaneOffset[4] = { src.planeOffset(0), src.planeOffset(1), src.planeOffset(2), src.planeOffset(3) };
+            const uint8_t* srcPlanes[4] = { srcdata + srcPlaneOffset[0], srcdata + srcPlaneOffset[1], srcdata + srcPlaneOffset[2], srcdata + srcPlaneOffset[3] };
 
-        dest = QImage(src.width(), src.height(), QImage::Format_ARGB32);
+            dest = QImage(src.width(), src.height(), QImage::Format_ARGB32);
 
-        uint8_t* dstdata = reinterpret_cast<uint8_t*>(dest.bits());
-        int dstPitch[1] = { (int)dest.bytesPerLine() };
-        const unsigned dstPlaneOffset[1] = { 0  };
-        uint8_t * dstPlanes[1] = { dstdata + dstPlaneOffset[0] };
+            uint8_t* dstdata = reinterpret_cast<uint8_t*>(dest.bits());
+            int dstPitch[1] = { (int)dest.bytesPerLine() };
+            const unsigned dstPlaneOffset[1] = { 0  };
+            uint8_t * dstPlanes[1] = { dstdata + dstPlaneOffset[0] };
 
-        Q_ASSERT(sws_getContext != NULL);
-        ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
-                                                  dest.width(), dest.height(),
-                                                  // The QImage::Format_ARGB32 is the BGRA format on ffmpeg side, with the more
-                                                  // obvious ffmpeg::AV_PIX_FMT_ARGB the red-blue colors are swapped.
-                                                  ffmpeg::AV_PIX_FMT_BGRA,
-                                                  SWS_BILINEAR, NULL, NULL, NULL);
-        sws_scale(ctx, srcPlanes, srcPitch, 0, src.height(), dstPlanes, dstPitch);
-        sws_freeContext(ctx);
+            Q_ASSERT(sws_getContext != NULL);
+            ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
+                                                      dest.width(), dest.height(),
+                                                      // The QImage::Format_ARGB32 is the BGRA format on ffmpeg side, with the more
+                                                      // obvious ffmpeg::AV_PIX_FMT_ARGB the red-blue colors are swapped.
+                                                      ffmpeg::AV_PIX_FMT_BGRA,
+                                                      SWS_BILINEAR, NULL, NULL, NULL);
+            sws_scale(ctx, srcPlanes, srcPitch, 0, src.height(), dstPlanes, dstPitch);
+            sws_freeContext(ctx);
+        }
+        else
+        {
+            const uint8_t* srcdata = reinterpret_cast<const uint8_t*>(src.data());
+            const int srcPitch[4] = { -(int)src.pitch(0), -(int)src.pitch(1), -(int)src.pitch(2), -(int)src.pitch(3) };
+            const unsigned srcPlaneOffset[4] = { src.planeEndOffset(0), src.planeEndOffset(1), src.planeEndOffset(2), src.planeEndOffset(3) };
+            const uint8_t* srcPlanes[4] = { srcdata + srcPlaneOffset[0], srcdata + srcPlaneOffset[1], srcdata + srcPlaneOffset[2], srcdata + srcPlaneOffset[3] };
+
+            dest = QImage(src.width(), src.height(), QImage::Format_ARGB32);
+
+            uint8_t* dstdata = reinterpret_cast<uint8_t*>(dest.bits());
+            int dstPitch[1] = { (int)dest.bytesPerLine() };
+            const unsigned dstPlaneOffset[1] = { 0  };
+            uint8_t * dstPlanes[1] = { dstdata + dstPlaneOffset[0] };
+
+            Q_ASSERT(sws_getContext != NULL);
+            ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
+                                                      dest.width(), dest.height(),
+                                                      // The QImage::Format_ARGB32 is the BGRA format on ffmpeg side, with the more
+                                                      // obvious ffmpeg::AV_PIX_FMT_ARGB the red-blue colors are swapped.
+                                                      ffmpeg::AV_PIX_FMT_BGRA,
+                                                      SWS_BILINEAR, NULL, NULL, NULL);
+            sws_scale(ctx, srcPlanes, srcPitch, 0, src.height(), dstPlanes, dstPitch);
+            sws_freeContext(ctx);
+        }
         return true;
     }
 
@@ -515,7 +548,8 @@ public:
             ret = load();
             if(ret)
             {
-                ret = to_qimage_argb32(tmpImage, dest);
+                bool horizontalFlip = src.origin() == sgi::Image::OriginBottomLeft;
+                ret = to_qimage_argb32(tmpImage, dest, horizontalFlip);
             }
         }
         return ret;
@@ -526,7 +560,8 @@ public:
         ret = load();
         if(ret)
         {
-            ret = to_qimage_argb32(src, dest);
+            bool horizontalFlip = src.origin() == sgi::Image::OriginBottomLeft;
+            ret = to_qimage_argb32(src, dest, horizontalFlip);
         }
         return ret;
     }
@@ -564,9 +599,11 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
         ImageFormatDisplayText[Image::ImageFormatAutomatic] = tr("Automatic");
         ImageFormatDisplayText[Image::ImageFormatRGB24] = tr("RGB 24-bit");
         ImageFormatDisplayText[Image::ImageFormatRGB32] = tr("RGB 32-bit");
+        ImageFormatDisplayText[Image::ImageFormatRGBA32] = tr("RGBA 32-bit");
         ImageFormatDisplayText[Image::ImageFormatARGB32] = tr("ARGB 32-bit");
         ImageFormatDisplayText[Image::ImageFormatBGR24] = tr("BGR 24-bit");
         ImageFormatDisplayText[Image::ImageFormatBGR32] = tr("BGR 32-bit");
+        ImageFormatDisplayText[Image::ImageFormatBGRA32] = tr("BGRA 32-bit");
         ImageFormatDisplayText[Image::ImageFormatABGR32] = tr("ABGR 32-bit");
         ImageFormatDisplayText[Image::ImageFormatYUV420] = tr("YUV 4:2:0");
         ImageFormatDisplayText[Image::ImageFormatYUV422] = tr("YUV 4:2:2");

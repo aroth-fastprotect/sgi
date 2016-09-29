@@ -43,6 +43,8 @@ public:
         ImageFormatDXT1Alpha,
         ImageFormatDXT3,
         ImageFormatDXT5,
+        ImageFormatRGBA32,
+        ImageFormatBGRA32,
         ImageFormatRaw = 1000,
     };
     static std::string imageFormatToString(ImageFormat format);
@@ -95,7 +97,9 @@ public:
     unsigned height() const { return _height; }
     unsigned depth() const { return _depth; }
     unsigned pitch(unsigned index=0) const { return _pitch[index]; }
+    unsigned lines(unsigned index=0) const { return _lines[index]; }
     unsigned planeOffset(unsigned index=0) const { return _planeOffset[index]; }
+    unsigned planeEndOffset(unsigned index = 0) const;
     const osg::Referenced * originalImage() const { return _originalImage.get(); }
 	QImage * originalImageQt() const { return _originalImageQt; }
     Origin origin() const { return _origin; }
@@ -118,6 +122,7 @@ protected:
     unsigned _height;
     unsigned _depth;
     unsigned _pitch[4];
+    unsigned _lines[4];
     unsigned _planeOffset[4];
     osg::ref_ptr<const osg::Referenced> _originalImage;
 	QImage * _originalImageQt;
