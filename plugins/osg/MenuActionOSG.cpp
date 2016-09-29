@@ -11,6 +11,7 @@
 #include <sgi/plugins/SettingsDialog>
 #include <sgi/plugins/ImagePreviewDialog>
 #include <sgi/plugins/ObjectTree>
+#include <sgi/plugins/SGIImage.h>
 #include <sgi/SGIItemInternal>
 #include <sgi/helpers/string>
 
@@ -1816,12 +1817,25 @@ bool actionHandlerImpl<MenuActionGeometryColor>::execute()
 
 bool actionHandlerImpl<MenuActionImagePreview>::execute()
 {
-    osg::Image * object = getObject<osg::Image,SGIItemOsg>();
+    osg::Image * image = getObject<osg::Image,SGIItemOsg, DynamicCaster>();
+    osg::Texture * texture = getObject<osg::Texture, SGIItemOsg, DynamicCaster>();
     IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), _item.get());
 
     if(dialog.valid())
     {
-        dialog->setObject(_item.get(), osg_helpers::convertImage(object), std::string(), hostCallback());
+        if(image)
+            dialog->setObject(_item.get(), osg_helpers::convertImage(image), std::string(), hostCallback());
+        else if (texture)
+        {
+            osg::ref_ptr<const sgi::Image> textureImage;
+            for (unsigned n = 0; n < texture->getNumImages() && !textureImage.valid(); ++n)
+            {
+                textureImage = osg_helpers::convertImage(texture->getImage(n));
+            }
+            dialog->setObject(_item.get(), textureImage, std::string(), hostCallback());
+        }
+        else
+            dialog->setObject(_item.get(), nullptr, std::string(), hostCallback());
         dialog->show();
     }
 

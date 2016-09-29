@@ -1479,15 +1479,18 @@ bool objectTreeBuildImpl<osg::Texture>::build(IObjectTreeItem * treeItem)
             if(readPBuffer.hasObject())
                 treeItem->addChild("ReadPBuffer", &readPBuffer);
 
-            SGIHostItemOsg txtobj(object->getTextureObject(contextID));
-            if (txtobj.hasObject())
-                treeItem->addChild("TextureObject", &txtobj);
+            if (contextID != ~0u)
+            {
+                SGIHostItemOsg txtobj(object->getTextureObject(contextID));
+                if (txtobj.hasObject())
+                    treeItem->addChild("TextureObject", &txtobj);
 
 #if OSG_VERSION_LESS_OR_EQUAL(3,4,0)
-            SGIHostItemOsg txtobjmgr(osg::Texture::getTextureObjectManager(contextID));
-            if (txtobjmgr.hasObject())
-                treeItem->addChild("TextureObjectManager", &txtobjmgr);
+                SGIHostItemOsg txtobjmgr(osg::Texture::getTextureObjectManager(contextID));
+                if (txtobjmgr.hasObject())
+                    treeItem->addChild("TextureObjectManager", &txtobjmgr);
 #endif
+            }
 
             for (unsigned n = 0; n < object->getNumImages(); ++n)
             {
@@ -1563,9 +1566,7 @@ bool objectTreeBuildImpl<osg::Texture2D>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            SGIHostItemOsg image(object->getImage());
-            if(image.hasObject())
-                treeItem->addChild("Image", &image);
+            // texture is already added by osg::Texture
         }
         break;
     default:
@@ -1585,9 +1586,7 @@ bool objectTreeBuildImpl<osg::Texture3D>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            SGIHostItemOsg image(object->getImage());
-            if(image.hasObject())
-                treeItem->addChild("Image", &image);
+            // texture is already added by osg::Texture
         }
         break;
     default:
