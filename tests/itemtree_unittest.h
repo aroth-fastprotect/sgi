@@ -8,5 +8,6 @@ class itemtree_unittest : public QObject
 private slots:
     void initTestCase();
     void cleanupTestCase();
+    void test_no_object();
     void test_qobject();
 };
