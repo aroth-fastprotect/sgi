@@ -1621,7 +1621,7 @@ public:
     {
         for(auto it = _plugins.begin(); it != _plugins.end(); ++it)
         {
-            PluginInfo & pluginInfo = it->second;
+            const PluginInfo & pluginInfo = it->second;
             if(pluginInfo.pluginInterface)
                 pluginInfo.pluginInterface->shutdown();
         }

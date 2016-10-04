@@ -43,7 +43,7 @@ class ObjectLoggerDialog::ObjectLoggerDialogImpl : public IObjectLoggerDialog
 public:
     ObjectLoggerDialogImpl(ObjectLoggerDialog * dialog)
         : _dialog(dialog) {}
-
+    virtual                 ~ObjectLoggerDialogImpl() { delete _dialog; }
     virtual QDialog *       getDialog() override { return _dialog; }
     virtual IHostCallback * getHostCallback() override { return _dialog->getHostCallback(); }
     virtual bool            addItem(SGIItemBase * item, bool alsoChilds=true) override { return _dialog->addItem(item, alsoChilds); }

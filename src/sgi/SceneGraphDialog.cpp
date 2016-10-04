@@ -47,7 +47,7 @@ class SceneGraphDialog::SceneGraphDialogImpl : public ISceneGraphDialog
 public:
     SceneGraphDialogImpl(SceneGraphDialog * dialog)
         : _dialog(dialog) {}
-    virtual                 ~SceneGraphDialogImpl() {}
+    virtual                 ~SceneGraphDialogImpl() { delete _dialog; }
     virtual QDialog *       getDialog() { return _dialog; }
     virtual IHostCallback * getHostCallback() { return _dialog->_hostCallback; }
     virtual IContextMenu *  toolsMenu() { return _dialog->toolsMenu(); }
