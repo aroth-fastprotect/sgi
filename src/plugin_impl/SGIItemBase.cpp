@@ -250,6 +250,9 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, const osg::CopyOp & co
         previous_cloned = clonedItem;
         current = current->nextBase();
     }
+    // release any temp references
+    previous_cloned = NULL;
+    current = NULL;
     return ret.release();
 }
 
@@ -279,6 +282,9 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, unsigned number, const
         previous_cloned = clonedItem;
         current = current->nextBase();
     }
+    // release any temp references
+    previous_cloned = NULL;
+    current = NULL;
     return ret.release();
 }
 
@@ -307,6 +313,9 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, osg::Referenced * user
         previous_cloned = clonedItem;
         current = current->nextBase();
     }
+    // release any temp references
+    previous_cloned = NULL;
+    current = NULL;
     return ret.release();
 }
 
@@ -336,6 +345,9 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, unsigned number, osg::
         previous_cloned = clonedItem;
         current = current->nextBase();
     }
+    // release any temp references
+    previous_cloned = NULL;
+    current = NULL;
     return ret.release();
 }
 
