@@ -17,12 +17,30 @@
    <property name="spacing">
     <number>0</number>
    </property>
-   <property name="margin">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
     <number>0</number>
    </property>
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
-     <property name="margin">
+     <property name="leftMargin">
+      <number>9</number>
+     </property>
+     <property name="topMargin">
+      <number>9</number>
+     </property>
+     <property name="rightMargin">
+      <number>9</number>
+     </property>
+     <property name="bottomMargin">
       <number>9</number>
      </property>
      <item>
@@ -144,22 +162,6 @@
     </hint>
    </hints>
   </connection>
-  <connection>
-   <sender>treeWidget</sender>
-   <signal>itemSelectionChanged()</signal>
-   <receiver>SceneGraphDialog</receiver>
-   <slot>onItemSelectionChanged()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>244</x>
-     <y>345</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>481</x>
-     <y>345</y>
-    </hint>
-   </hints>
-  </connection>
  </connections>
  <slots>
   <slot>onItemExpanded(QTreeWidgetItem*)</slot>
@@ -168,6 +170,5 @@
   <slot>onItemActivated(QTreeWidgetItem*,int)</slot>
   <slot>onItemContextMenu(QPoint)</slot>
   <slot>onItemClicked(QTreeWidgetItem*,int)</slot>
-  <slot>onItemSelectionChanged()</slot>
  </slots>
 </ui>

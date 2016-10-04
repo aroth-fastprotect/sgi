@@ -98,111 +98,94 @@
   </layout>
  </widget>
  <resources/>
-  <connections>
-    <connection>
-      <sender>treeWidget</sender>
-      <signal>itemExpanded(QTreeWidgetItem*)</signal>
-      <receiver>ObjectLoggerDialog</receiver>
-      <slot>onItemExpanded(QTreeWidgetItem*)</slot>
-      <hints>
-        <hint type="sourcelabel">
-          <x>178</x>
-          <y>374</y>
-        </hint>
-        <hint type="destinationlabel">
-          <x>350</x>
-          <y>388</y>
-        </hint>
-      </hints>
-    </connection>
-    <connection>
-      <sender>treeWidget</sender>
-      <signal>itemCollapsed(QTreeWidgetItem*)</signal>
-      <receiver>ObjectLoggerDialog</receiver>
-      <slot>onItemCollapsed(QTreeWidgetItem*)</slot>
-      <hints>
-        <hint type="sourcelabel">
-          <x>178</x>
-          <y>374</y>
-        </hint>
-        <hint type="destinationlabel">
-          <x>350</x>
-          <y>388</y>
-        </hint>
-      </hints>
-    </connection>
-    <connection>
-      <sender>treeWidget</sender>
-      <signal>itemActivated(QTreeWidgetItem*,int)</signal>
-      <receiver>ObjectLoggerDialog</receiver>
-      <slot>onItemActivated(QTreeWidgetItem*,int)</slot>
-      <hints>
-        <hint type="sourcelabel">
-          <x>178</x>
-          <y>374</y>
-        </hint>
-        <hint type="destinationlabel">
-          <x>350</x>
-          <y>388</y>
-        </hint>
-      </hints>
-    </connection>
-    <connection>
-      <sender>treeWidget</sender>
-      <signal>customContextMenuRequested(QPoint)</signal>
-      <receiver>ObjectLoggerDialog</receiver>
-      <slot>onItemContextMenu(QPoint)</slot>
-      <hints>
-        <hint type="sourcelabel">
-          <x>243</x>
-          <y>270</y>
-        </hint>
-        <hint type="destinationlabel">
-          <x>481</x>
-          <y>285</y>
-        </hint>
-      </hints>
-    </connection>
-    <connection>
-      <sender>treeWidget</sender>
-      <signal>itemClicked(QTreeWidgetItem*,int)</signal>
-      <receiver>ObjectLoggerDialog</receiver>
-      <slot>onItemClicked(QTreeWidgetItem*,int)</slot>
-      <hints>
-        <hint type="sourcelabel">
-          <x>243</x>
-          <y>331</y>
-        </hint>
-        <hint type="destinationlabel">
-          <x>481</x>
-          <y>345</y>
-        </hint>
-      </hints>
-    </connection>
-    <connection>
-      <sender>treeWidget</sender>
-      <signal>itemSelectionChanged()</signal>
-      <receiver>ObjectLoggerDialog</receiver>
-      <slot>onItemSelectionChanged()</slot>
-      <hints>
-        <hint type="sourcelabel">
-          <x>244</x>
-          <y>345</y>
-        </hint>
-        <hint type="destinationlabel">
-          <x>481</x>
-          <y>345</y>
-        </hint>
-      </hints>
-    </connection>
-  </connections>
-  <slots>
-    <slot>onItemExpanded(QTreeWidgetItem*)</slot>
-    <slot>onItemCollapsed(QTreeWidgetItem*)</slot>
-    <slot>onItemSelected(QTreeWidgetItem*,QTreeWidgetItem*)</slot>
-    <slot>onItemActivated(QTreeWidgetItem*,int)</slot>
-    <slot>onItemContextMenu(QPoint)</slot>
-    <slot>onItemClicked(QTreeWidgetItem*,int)</slot>
-    <slot>onItemSelectionChanged()</slot>
-  </slots>
+ <connections>
+  <connection>
+   <sender>treeWidget</sender>
+   <signal>itemExpanded(QTreeWidgetItem*)</signal>
+   <receiver>ObjectLoggerDialog</receiver>
+   <slot>onItemExpanded(QTreeWidgetItem*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>374</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>350</x>
+     <y>388</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>treeWidget</sender>
+   <signal>itemCollapsed(QTreeWidgetItem*)</signal>
+   <receiver>ObjectLoggerDialog</receiver>
+   <slot>onItemCollapsed(QTreeWidgetItem*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>374</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>350</x>
+     <y>388</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>treeWidget</sender>
+   <signal>itemActivated(QTreeWidgetItem*,int)</signal>
+   <receiver>ObjectLoggerDialog</receiver>
+   <slot>onItemActivated(QTreeWidgetItem*,int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>374</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>350</x>
+     <y>388</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>treeWidget</sender>
+   <signal>customContextMenuRequested(QPoint)</signal>
+   <receiver>ObjectLoggerDialog</receiver>
+   <slot>onItemContextMenu(QPoint)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>243</x>
+     <y>270</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>481</x>
+     <y>285</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>treeWidget</sender>
+   <signal>itemClicked(QTreeWidgetItem*,int)</signal>
+   <receiver>ObjectLoggerDialog</receiver>
+   <slot>onItemClicked(QTreeWidgetItem*,int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>243</x>
+     <y>331</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>481</x>
+     <y>345</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>onItemExpanded(QTreeWidgetItem*)</slot>
+  <slot>onItemCollapsed(QTreeWidgetItem*)</slot>
+  <slot>onItemSelected(QTreeWidgetItem*,QTreeWidgetItem*)</slot>
+  <slot>onItemActivated(QTreeWidgetItem*,int)</slot>
+  <slot>onItemContextMenu(QPoint)</slot>
+  <slot>onItemClicked(QTreeWidgetItem*,int)</slot>
+ </slots>
 </ui>

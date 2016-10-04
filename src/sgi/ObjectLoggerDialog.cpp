@@ -344,21 +344,6 @@ void ObjectLoggerDialog::onItemActivated(QTreeWidgetItem * item, int column)
     setNodeInfo(itemData.item());
 }
 
-void ObjectLoggerDialog::onItemSelectionChanged()
-{
-	QTreeWidgetItem * item = ui->treeWidget->currentItem();
-	if (item)
-	{
-		QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-		//_selectedTreeItem = new ObjectTreeItem(item);
-		setNodeInfo(itemData.item());
-	}
-	else
-	{
-		//_selectedTreeItem = NULL;
-		setNodeInfo(NULL);
-	}
-}
 bool ObjectLoggerDialog::buildTree(ObjectTreeItem * treeItem, SGIItemBase * item)
 {
     bool ret = SGIPlugins::instance()->objectTreeBuildTree(treeItem, item);

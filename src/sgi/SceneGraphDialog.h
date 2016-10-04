@@ -60,7 +60,6 @@ public slots:
     void					onItemClicked(QTreeWidgetItem * item, int column);
 	void					onItemActivated(QTreeWidgetItem * item, int column);
 	void					onItemContextMenu(QPoint pt);
-    void                    onItemSelectionChanged();
 
 protected slots:
     void                    selectItemFromPath(int index);

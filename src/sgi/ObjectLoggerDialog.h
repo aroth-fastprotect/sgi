@@ -52,7 +52,6 @@ public slots:
     void                    onItemClicked(QTreeWidgetItem * item, int column);
     void                    onItemActivated(QTreeWidgetItem * item, int column);
     void                    onItemContextMenu(QPoint pt);
-	void                    onItemSelectionChanged();
     void                    reload();
     void                    reloadTree();
     void                    reloadLog();
