@@ -428,7 +428,6 @@ void ContextMenu::slotPopulateItemMenu()
 
 void ContextMenu::slotClearItemMenu()
 {
-	return;
     QMenu * menu = qobject_cast<QMenu *>(sender());
     if(menu)
     {
