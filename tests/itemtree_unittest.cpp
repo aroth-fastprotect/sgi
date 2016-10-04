@@ -56,8 +56,8 @@ void itemtree_unittest::test_qobject()
     ISceneGraphDialogPtr dialog;
 
     QObject * obj = new QObjectT<ObjectTypeRoot>("test_qobject");
-    QObject * child1 = new QObjectT<ObjectTypeChild>("child1");
-    QObject * child2 = new QObjectT<ObjectTypeChild>("child2");
+    QObject * child1 = new QObjectT<ObjectTypeChild>("child1", obj);
+    QObject * child2 = new QObjectT<ObjectTypeChild>("child2", obj);
 
     SGIHostItemQt hostItem(obj);
 
