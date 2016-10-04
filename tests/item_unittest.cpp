@@ -296,7 +296,7 @@ void item_unittest::contextMenu()
     menu->hide();
     ctxIface->setObject((SGIItemBase*)NULL);
 
-    QCOMPARE(getRefCount(ctxIface.get()), 1u);
+    QCOMPARE(getRefCount(ctxIface.get()), 1);
     // release the menu
     ctxIface = NULL;
     item = NULL;

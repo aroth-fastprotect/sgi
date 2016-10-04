@@ -192,12 +192,12 @@ private:
 namespace internal {
     class ReferencedAccess : public osg::Referenced {
     public:
-        unsigned getRefCount() const { return _refCount; }
+        int getRefCount() const { return _refCount; }
     };
 }
 
 template<typename T>
-unsigned getRefCount(const T * ref) {
+int getRefCount(const T * ref) {
     return static_cast<const internal::ReferencedAccess*>(static_cast<const osg::Referenced*>(ref))->getRefCount();
 }
 
