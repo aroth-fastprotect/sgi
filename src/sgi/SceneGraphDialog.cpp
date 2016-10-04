@@ -188,6 +188,9 @@ void SceneGraphDialog::closeEvent(QCloseEvent * event)
     _contextMenu = NULL;
     _rootTreeItem = NULL;
     _selectedTreeItem = NULL;
+    _itemSelf = NULL;
+    _itemToolsMenu = NULL;
+
     /*
     delete _comboBoxPath;
     _comboBoxPath = NULL;
