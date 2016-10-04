@@ -478,8 +478,40 @@ bool actionHandlerImpl<MenuActionTileSourceUpdateMetaData>::execute()
 
 bool actionHandlerImpl<MenuActionTileBlacklistClear>::execute()
 {
-    osgEarth::TileBlacklist * object = getObject<osgEarth::TileBlacklist,SGIItemOsg,DynamicCaster>();
-    object->clear();
+    osgEarth::TileBlacklist * tileblacklist = getObject<osgEarth::TileBlacklist,SGIItemOsg,DynamicCaster>();
+    osgEarth::TerrainLayer * terrainlayer = getObject<osgEarth::TerrainLayer, SGIItemOsg, DynamicCaster>();
+    osgEarth::TileSource * tilesource = getObject<osgEarth::TileSource, SGIItemOsg, DynamicCaster>();
+    osgEarth::Map * map = getObject<osgEarth::Map, SGIItemOsg, DynamicCaster>();
+    osgEarth::MapNode * mapnode = getObject<osgEarth::MapNode, SGIItemOsg, DynamicCaster>();
+    if (terrainlayer)
+        tilesource = terrainlayer->getTileSource();
+    if (tilesource)
+        tileblacklist = tilesource->getBlacklist();
+    if (tileblacklist)
+        tileblacklist->clear();
+    if (mapnode || map)
+    {
+        if(!map && mapnode)
+            map = mapnode->getMap();
+        Q_ASSERT(map != NULL);
+        osgEarth::MapFrame frame(map);
+        for (osgEarth::ElevationLayer * elevationLayer : frame.elevationLayers())
+        {
+            tilesource = elevationLayer->getTileSource();
+            if (tilesource)
+                tileblacklist = tilesource->getBlacklist();
+            if (tileblacklist)
+                tileblacklist->clear();
+        }
+        for (osgEarth::ImageLayer * imageLayer : frame.imageLayers())
+        {
+            tilesource = imageLayer->getTileSource();
+            if (tilesource)
+                tileblacklist = tilesource->getBlacklist();
+            if (tileblacklist)
+                tileblacklist->clear();
+        }
+    }
     return true;
 }
 

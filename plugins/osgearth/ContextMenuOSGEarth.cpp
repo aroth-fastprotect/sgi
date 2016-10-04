@@ -148,6 +148,12 @@ bool contextMenuPopulateImpl<osgEarth::Map>::populate(IContextMenuItem * menuIte
                 if(cache.hasObject())
                     menuItem->addMenu("Cache", &cache);
 
+                IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+                if (manipulateMenu)
+                {
+                    manipulateMenu->addSimpleAction(MenuActionTileBlacklistClear, "Clear blacklist", _item);
+                }
+
                 const osgEarth::MapOptions & mapOptions = object->getMapOptions();
                 osgEarth::CachePolicy::Usage cachePolicyUsage = mapOptions.cachePolicy().value().usage().value();
 
@@ -370,8 +376,9 @@ bool contextMenuPopulateImpl<osgEarth::MapNode>::populate(IContextMenuItem * men
 				IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
 				if (manipulateMenu)
 				{
-					menuItem->addSimpleAction(MenuActionAddExtension, "Add extension...", _item);
-				}
+                    manipulateMenu->addSimpleAction(MenuActionAddExtension, "Add extension...", _item);
+                    manipulateMenu->addSimpleAction(MenuActionTileBlacklistClear, "Clear blacklist", _item);
+                }
 
                 SGIHostItemOsg map(object->getMap());
                 if(map.hasObject())
@@ -423,6 +430,12 @@ bool contextMenuPopulateImpl<osgEarth::TerrainLayer>::populate(IContextMenuItem 
         ret = callNextHandler(menuItem);
         if(ret)
         {
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+            {
+                manipulateMenu->addSimpleAction(MenuActionTileBlacklistClear, "Clear blacklist", _item);
+            }
+
             menuItem->addBoolAction(MenuActionTerrainLayerEnable, "Enable", _item, object->getEnabled());
             menuItem->addBoolAction(MenuActionTerrainLayerVisible, "Visible", _item, object->getVisible());
 
@@ -763,6 +776,12 @@ bool contextMenuPopulateImpl<osgEarth::TileSource>::populate(IContextMenuItem * 
             SGIHostItemOsg profile(object->getProfile());
             if(profile.hasObject())
                 menuItem->addMenu("Profile", &profile);
+
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+            {
+                manipulateMenu->addSimpleAction(MenuActionTileBlacklistClear, "Clear blacklist", _item);
+            }
 
             SGIHostItemOsg blacklist(object->getBlacklist());
             if(blacklist.hasObject())
