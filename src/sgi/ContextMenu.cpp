@@ -428,16 +428,6 @@ void ContextMenu::slotPopulateItemMenu()
 
 void ContextMenu::slotClearItemMenu()
 {
-    QMenu * menu = qobject_cast<QMenu *>(sender());
-    if(menu)
-    {
-        QAction * action = menu->menuAction();
-        QtMenuSGIItem itemData = action->data().value<QtMenuSGIItem>();
-        if(itemData.hasItem())
-        {
-            menu->clear();
-        }
-    }
 }
 
 void ContextMenu::slotSimpleItemAction()
