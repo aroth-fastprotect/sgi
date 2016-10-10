@@ -197,7 +197,7 @@ protected:
 
         QActionGroup * actionGroup = new QActionGroup(newMenu);
         actionGroup->setExclusive(true);
-        connect(actionGroup, SIGNAL(triggered(QAction *)), _contextMenu, SLOT(slotActionGroup(QAction *)));
+        connect(actionGroup, &QActionGroup::triggered, _contextMenu, &ContextMenu::slotActionGroup);
 
         newMenu->setTitle(itemText);
         newMenu->menuAction()->setData(QVariant::fromValue(itemData));
