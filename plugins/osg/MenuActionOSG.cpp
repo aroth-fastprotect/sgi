@@ -84,6 +84,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeCreateStateSet)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeStripTextures)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeOptimizerRun)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeToggleCenterMarker)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeRenderInfo)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectLogger)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectLoggerVisible)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectLoggerActive)
@@ -175,12 +176,12 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextureAllocateMipmapLevels)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableToggleDisabled)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionGeodeAddShapeDrawable)
-ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionGeodeRenderInfoDrawable)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeDrawableColor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableUseDisplayList)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableSupportsDisplayList)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableDirtyDisplayList)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableUseVBO)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableRenderInfoDrawCallback)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionGeometryColor)
 
@@ -576,6 +577,13 @@ bool actionHandlerImpl<MenuActionNodeToggleCenterMarker>::execute()
     osg::Node * object = getObject<osg::Node, SGIItemOsg>();
     ToggleCenterMarkerVisitor tcmv(menuAction()->state());
     object->accept(tcmv);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionNodeRenderInfo>::execute()
+{
+    osg::Node * node = getObject<osg::Node, SGIItemOsg>();
+    RenderInfo::enable(node, menuAction()->state());
     return true;
 }
 
@@ -1797,6 +1805,14 @@ bool actionHandlerImpl<MenuActionDrawableUseVBO>::execute()
 	return true;
 }
 
+bool actionHandlerImpl<MenuActionDrawableRenderInfoDrawCallback>::execute()
+{
+    osg::Drawable * object = getObject<osg::Drawable, SGIItemOsg>();
+    RenderInfo::installDrawCallback(object, menuAction()->state());
+    triggerRepaint();
+    return true;
+}
+
 bool actionHandlerImpl<MenuActionGeometryColor>::execute()
 {
     osg::Geometry * object = getObject<osg::Geometry,SGIItemOsg>();
@@ -1881,13 +1897,6 @@ bool actionHandlerImpl<MenuActionGeodeAddShapeDrawable>::execute()
         object->addDrawable(newDrawable.get());
         triggerRepaint();
     }
-    return true;
-}
-
-bool actionHandlerImpl<MenuActionGeodeRenderInfoDrawable>::execute()
-{
-    osg::Geode * object = getObject<osg::Geode,SGIItemOsg>();
-    RenderInfoDrawable::enable(object, menuAction()->state());
     return true;
 }
 

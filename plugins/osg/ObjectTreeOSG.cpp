@@ -162,6 +162,8 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgAnimation::Animation)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgAnimation::AnimationManagerBase)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawable)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(RenderInfoGeometry)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawCallback)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedPickerBase)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedPicker)
@@ -2154,6 +2156,10 @@ bool objectTreeBuildImpl<osgGA::GUIEventAdapter>::build(IObjectTreeItem * treeIt
     case SGIItemTypeObject:
         if(ret)
         {
+            SGIHostItemOsg context(object->getGraphicsContext());
+            if (context.hasObject())
+                treeItem->addChild("GraphicsContext", &context);
+
 //             ReferencedPicker * picker = new ReferencedPicker(const_cast<osgGA::GUIEventAdapter*>(object));
 //             buildTree(0, item, picker , SGIItemTypeObject, tr("osgEarth Picker"));
 //
@@ -3396,132 +3402,156 @@ bool objectTreeBuildImpl<osgAnimation::AnimationManagerBase>::build(IObjectTreeI
     return ret;
 }
 
-bool objectTreeBuildImpl<RenderInfoDrawable>::build(IObjectTreeItem * treeItem)
+bool objectTreeBuildImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, IObjectTreeItem * treeItem, SGIItemBase * item, const RenderInfoData & data)
 {
-    RenderInfoDrawable * object = getObject<RenderInfoDrawable,SGIItemOsg>();
-    bool ret;
-    switch(itemType())
+    bool ret = false;
+    SGIItemBase * itemNext = item->nextBase();
+    switch (item->type())
     {
     case SGIItemTypeObject:
-        ret = callNextHandler(treeItem);
-        if(ret)
+        ret = hostInterface->objectTreeBuildTree(treeItem, itemNext);
+        if (ret)
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            treeItem->addChild(helpers::str_plus_count("States", hashedState.size()), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoState, ~0u));
+            const RenderInfoData::HashedState & hashedState = data.hashedState();
+            treeItem->addChild(helpers::str_plus_count("States", hashedState.size()), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoState, ~0u));
         }
         break;
     case SGIItemTypeRenderInfoState:
+    {
+        const RenderInfoData::HashedState & hashedState = data.hashedState();
+        if (item->number() == ~0u)
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            if(itemNumber() == ~0u)
+            for (RenderInfoData::HashedState::const_iterator it = hashedState.begin(); it != hashedState.end(); it++)
             {
-                for(RenderInfoDrawable::HashedState::const_iterator it = hashedState.begin(); it != hashedState.end(); it++)
-                {
-                    const unsigned & hash = it->first;
-                    treeItem->addChild(helpers::str_plus_hex("State", hash), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoState, hash));
-                }
+                const unsigned & hash = it->first;
+                treeItem->addChild(helpers::str_plus_hex("State", hash), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoState, hash));
             }
-            else
-            {
-                RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
-                if(it != hashedState.end())
-                {
-                    const RenderInfoDrawable::State & state = it->second;
-
-                    SGIHostItemOsg view(state.view);
-                    treeItem->addChild("View", &view);
-
-                    SGIHostItemOsg capturedStateSet(state.capturedStateSet);
-                    treeItem->addChild("CapturedStateSet", &capturedStateSet);
-
-                    SGIHostItemOsg combinedStateSet(state.combinedStateSet);
-                    treeItem->addChild("CombinedStateSet", &combinedStateSet);
-
-                    treeItem->addChild(helpers::str_plus_count("StateSetStack", state.stateSetStack.size()), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoStateSetStack, itemNumber()));
-                    treeItem->addChild(helpers::str_plus_count("RenderBinStack", state.renderBinStack.size()), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoRenderBinStack, itemNumber()));
-                    treeItem->addChild(helpers::str_plus_count("CameraStack", state.cameraStack.size()), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoCameraStack, itemNumber()));
-                    treeItem->addChild(helpers::str_plus_count("AppliedProgramSet", state.appliedProgamSet.size()), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoAppliedProgramSet, itemNumber()));
-                }
-            }
-            ret = true;
         }
-        break;
-    case SGIItemTypeRenderInfoStateSetStack:
+        else
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
-            if(it != hashedState.end())
+            RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
+            if (it != hashedState.end())
             {
-                const RenderInfoDrawable::State & state = it->second;
-                const RenderInfoDrawable::StateSetStack & lastStack = state.stateSetStack;
-                for(RenderInfoDrawable::StateSetStack::const_iterator it = lastStack.begin(); it != lastStack.end(); it++)
-                {
-                    SGIHostItemOsg child(*it);
-                    treeItem->addChild(std::string(), &child);
-                }
+                const RenderInfoData::State & state = it->second;
+
+                SGIHostItemOsg view(state.view);
+                treeItem->addChild("View", &view);
+
+                SGIHostItemOsg capturedStateSet(state.capturedStateSet);
+                treeItem->addChild("CapturedStateSet", &capturedStateSet);
 
                 SGIHostItemOsg combinedStateSet(state.combinedStateSet);
                 treeItem->addChild("CombinedStateSet", &combinedStateSet);
 
+                treeItem->addChild(helpers::str_plus_count("StateSetStack", state.stateSetStack.size()), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoStateSetStack, item->number()));
+                treeItem->addChild(helpers::str_plus_count("RenderBinStack", state.renderBinStack.size()), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoRenderBinStack, item->number()));
+                treeItem->addChild(helpers::str_plus_count("CameraStack", state.cameraStack.size()), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoCameraStack, item->number()));
+                treeItem->addChild(helpers::str_plus_count("AppliedProgramSet", state.appliedProgamSet.size()), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoAppliedProgramSet, item->number()));
             }
-            ret = true;
         }
-        break;
+        ret = true;
+    }
+    break;
+    case SGIItemTypeRenderInfoStateSetStack:
+    {
+        const RenderInfoData::HashedState & hashedState = data.hashedState();
+        RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
+        if (it != hashedState.end())
+        {
+            const RenderInfoData::State & state = it->second;
+            const RenderInfoData::StateSetStack & lastStack = state.stateSetStack;
+            for (RenderInfoData::StateSetStack::const_iterator it = lastStack.begin(); it != lastStack.end(); it++)
+            {
+                SGIHostItemOsg child(*it);
+                treeItem->addChild(std::string(), &child);
+            }
+
+            SGIHostItemOsg combinedStateSet(state.combinedStateSet);
+            treeItem->addChild("CombinedStateSet", &combinedStateSet);
+
+        }
+        ret = true;
+    }
+    break;
     case SGIItemTypeRenderInfoRenderBinStack:
+    {
+        const RenderInfoData::HashedState & hashedState = data.hashedState();
+        RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
+        if (it != hashedState.end())
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
-            if(it != hashedState.end())
+            const RenderInfoData::State & state = it->second;
+            const RenderInfoData::RenderBinStack & lastStack = state.renderBinStack;
+            for (RenderInfoData::RenderBinStack::const_iterator it = lastStack.begin(); it != lastStack.end(); it++)
             {
-                const RenderInfoDrawable::State & state = it->second;
-                const RenderInfoDrawable::RenderBinStack & lastStack = state.renderBinStack;
-                for(RenderInfoDrawable::RenderBinStack::const_iterator it = lastStack.begin(); it != lastStack.end(); it++)
-                {
-                    SGIHostItemOsg child(*it);
-                    treeItem->addChild(std::string(), &child);
-                }
+                SGIHostItemOsg child(*it);
+                treeItem->addChild(std::string(), &child);
             }
-            ret = true;
         }
-        break;
+        ret = true;
+    }
+    break;
     case SGIItemTypeRenderInfoCameraStack:
+    {
+        const RenderInfoData::HashedState & hashedState = data.hashedState();
+        RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
+        if (it != hashedState.end())
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
-            if(it != hashedState.end())
+            const RenderInfoData::State & state = it->second;
+            const RenderInfoData::CameraStack & lastStack = state.cameraStack;
+            for (RenderInfoData::CameraStack::const_iterator it = lastStack.begin(); it != lastStack.end(); it++)
             {
-                const RenderInfoDrawable::State & state = it->second;
-                const RenderInfoDrawable::CameraStack & lastStack = state.cameraStack;
-                for(RenderInfoDrawable::CameraStack::const_iterator it = lastStack.begin(); it != lastStack.end(); it++)
-                {
-                    SGIHostItemOsg child(*it);
-                    treeItem->addChild(std::string(), &child);
-                }
+                SGIHostItemOsg child(*it);
+                treeItem->addChild(std::string(), &child);
             }
-            ret = true;
         }
-        break;
+        ret = true;
+    }
+    break;
     case SGIItemTypeRenderInfoAppliedProgramSet:
+    {
+        const RenderInfoData::HashedState & hashedState = data.hashedState();
+        RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
+        if (it != hashedState.end())
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
-            if(it != hashedState.end())
+            const RenderInfoData::State & state = it->second;
+            const RenderInfoData::PerContextProgramSet & set = state.appliedProgamSet;
+            for (RenderInfoData::PerContextProgramSet::const_iterator it = set.begin(); it != set.end(); it++)
             {
-                const RenderInfoDrawable::State & state = it->second;
-                const RenderInfoDrawable::PerContextProgramSet & set = state.appliedProgamSet;
-                for(RenderInfoDrawable::PerContextProgramSet::const_iterator it = set.begin(); it != set.end(); it++)
-                {
-                    SGIHostItemOsg child(*it);
-                    treeItem->addChild(std::string(), &child);
-                }
+                SGIHostItemOsg child(*it);
+                treeItem->addChild(std::string(), &child);
             }
-            ret = true;
         }
-        break;
+        ret = true;
+    }
+    break;
     default:
-        ret = callNextHandler(treeItem);
+        ret = hostInterface->objectTreeBuildTree(treeItem, itemNext);
         break;
     }
+    return ret;
+}
+
+bool objectTreeBuildImpl<RenderInfoDrawCallback>::build(IObjectTreeItem * treeItem)
+{
+    RenderInfoDrawCallback * object = getObject<RenderInfoDrawCallback, SGIItemOsg, DynamicCaster>();
+    const RenderInfoData & data = object->data();
+    bool ret = objectTreeBuildImpl_RenderInfoData(_hostInterface, treeItem, _item, data);
+    return ret;
+}
+
+bool objectTreeBuildImpl<RenderInfoDrawable>::build(IObjectTreeItem * treeItem)
+{
+    RenderInfoDrawable * object = getObject<RenderInfoDrawable,SGIItemOsg>();
+    const RenderInfoData & data = object->data();
+    bool ret = objectTreeBuildImpl_RenderInfoData(_hostInterface, treeItem, _item, data);
+    return ret;
+}
+
+bool objectTreeBuildImpl<RenderInfoGeometry>::build(IObjectTreeItem * treeItem)
+{
+    RenderInfoGeometry * object = getObject<RenderInfoGeometry, SGIItemOsg>();
+    const RenderInfoData & data = object->data();
+    bool ret = objectTreeBuildImpl_RenderInfoData(_hostInterface, treeItem, _item, data);
     return ret;
 }
 

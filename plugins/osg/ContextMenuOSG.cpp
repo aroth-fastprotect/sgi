@@ -309,6 +309,8 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
                 manipulateMenu->addBoolAction(MenuActionNodeCullingActive, "Culling Active", _item, object->getCullingActive());
                 manipulateMenu->addSimpleAction(MenuActionNodeStripTextures, "Strip textures", _item);
 
+                manipulateMenu->addBoolAction(MenuActionNodeRenderInfo, "Render info", _item, RenderInfo::isPresent(object));
+
                 manipulateMenu->addBoolAction(MenuActionNodeToggleCenterMarker, "Show center marker", _item, false);
             }
 
@@ -1010,7 +1012,6 @@ bool contextMenuPopulateImpl<osg::Geode>::populate(IContextMenuItem * menuItem)
                     addShapeMenu->addModeAction("Cylinder", MenuActionAddShapeCylinder);
                     addShapeMenu->addModeAction("Capsule", MenuActionAddShapeCapsule);
                 }
-                manipulateMenu->addBoolAction(MenuActionGeodeRenderInfoDrawable, "Render info", _item, RenderInfoDrawable::isPresent(object));
             }
         }
         break;
@@ -1462,6 +1463,7 @@ bool contextMenuPopulateImpl<osg::Drawable>::populate(IContextMenuItem * menuIte
 				manipulateMenu->addBoolAction(MenuActionDrawableSupportsDisplayList, "Supports display list", _item, object->getSupportsDisplayList());
 				manipulateMenu->addSimpleAction(MenuActionDrawableDirtyDisplayList, "Dirty display list", _item);
 				manipulateMenu->addBoolAction(MenuActionDrawableUseVBO, "Use VBO", _item, object->getUseVertexBufferObjects());
+                manipulateMenu->addBoolAction(MenuActionDrawableRenderInfoDrawCallback, "Render info draw callback", _item, RenderInfo::hasDrawCallback(object));
 			}
 
             SGIHostItemOsg shape(object->getShape());
@@ -2117,6 +2119,10 @@ bool contextMenuPopulateImpl<osgGA::GUIEventAdapter>::populate(IContextMenuItem 
         ret = callNextHandler(menuItem);
         if(ret)
         {
+            SGIHostItemOsg context(object->getGraphicsContext());
+            if (context.hasObject())
+                menuItem->addMenu("GraphicsContext", &context);
+
             menuItem->addSimpleAction(MenuActionEventAdapterHitTest, "Hit test", _item);
         }
         break;

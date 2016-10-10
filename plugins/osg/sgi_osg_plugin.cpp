@@ -291,6 +291,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Object)
     osg::BufferData, osg::BufferObject, osg::View, osg::Uniform, osg::ShaderComposer,
     osg::NodeVisitor, osg::RenderBuffer, osg::ShaderComponent,
     osg::RefMatrixd, osg::RefMatrixf, osg::Callback,
+    osg::Drawable::DrawCallback,
     osgAnimation::Animation,
     osgAnimation::AnimationUpdateCallbackBase,
     osgDB::Options, osgDB::ReaderWriter, osgDB::DatabaseRevision, osgDB::DatabaseRevisions, osgDB::FileList,
@@ -302,7 +303,12 @@ SGI_OBJECT_INFO_BEGIN(osg::Object)
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::Callback)
-    osg::NodeCallback, osg::StateAttributeCallback, osg::UniformCallback
+    osg::NodeCallback, 
+    osg::StateAttributeCallback, 
+    osg::UniformCallback,
+    osg::Drawable::CullCallback,
+    osg::Drawable::EventCallback,
+    osg::Drawable::UpdateCallback
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgGA::EventHandler)
@@ -343,6 +349,9 @@ SGI_OBJECT_INFO_BEGIN(osg::BufferObject)
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osg::Drawable)
     osg::Geometry, osgText::TextBase, osg::ShapeDrawable, RenderInfoDrawable
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::Geometry)
+    RenderInfoGeometry
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osg::GraphicsContext)
     osgViewer::GraphicsWindow
@@ -418,6 +427,10 @@ SGI_OBJECT_INFO_BEGIN(osg::NodeCallback)
     osgAnimation::AnimationManagerBase,
     osgAnimation::AnimationUpdateCallback<osg::NodeCallback>,
     osgAnimation::Skeleton::UpdateSkeleton
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osg::Drawable::DrawCallback)
+    RenderInfoDrawCallback
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgAnimation::AnimationUpdateCallback<osg::NodeCallback>)

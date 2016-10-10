@@ -8,62 +8,121 @@
 namespace sgi {
 namespace osg_plugin {
 
-RenderInfoDrawable::RenderInfoDrawable()
-{
-}
-
-RenderInfoDrawable::RenderInfoDrawable(const RenderInfoDrawable & rhs, const osg::CopyOp & copyOp)
-    : osg::Drawable(rhs, copyOp)
-    , _hashedState(rhs._hashedState)
-{
-}
-
-bool RenderInfoDrawable::isPresent(osg::Geode * geode)
+bool RenderInfo::isPresent(osg::Node * node)
 {
     bool ret = false;
-    unsigned numDrawables = geode->getNumDrawables();
-    for(unsigned n = 0; !ret && n < numDrawables; n++)
+    osg::Group* group = node->asGroup();
+    osg::Geode* geode = node->asGeode();
+    if (geode)
     {
-        RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(geode->getDrawable(n));
-        ret = (renderInfoDrawable != NULL);
+        unsigned numDrawables = geode->getNumDrawables();
+        for (unsigned n = 0; !ret && n < numDrawables; n++)
+        {
+            RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(geode->getDrawable(n));
+            ret = (renderInfoDrawable != NULL);
+        }
+    }
+    else if (group)
+    {
+        unsigned numChilds = group->getNumChildren();
+        for (unsigned n = 0; !ret && n < numChilds; n++)
+        {
+            RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(group->getChild(n));
+            ret = (renderInfoDrawable != NULL);
+        }
     }
     return ret;
 }
 
-bool RenderInfoDrawable::enable(osg::Geode * geode, bool enable)
+bool RenderInfo::enable(osg::Node * node, bool enable)
 {
     bool ret = false;
-    if(!enable)
+    osg::Group* group = node->asGroup();
+    osg::Geode* geode = node->asGeode();
+    if (!enable)
     {
-        unsigned numDrawables = geode->getNumDrawables();
-        for(unsigned n = 0; !ret && n < numDrawables; n++)
+        if (geode)
         {
-            RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(geode->getDrawable(n));
-            if(renderInfoDrawable)
+            unsigned numDrawables = geode->getNumDrawables();
+            for (unsigned n = 0; !ret && n < numDrawables; n++)
             {
-                geode->removeDrawables(n, 1);
-                ret = true;
+                RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(geode->getDrawable(n));
+                if (renderInfoDrawable)
+                {
+                    geode->removeDrawables(n, 1);
+                    ret = true;
+                }
+            }
+        }
+        else if(group)
+        {
+            unsigned numChilds = group->getNumChildren();
+            for (unsigned n = 0; !ret && n < numChilds; n++)
+            {
+                RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(group->getChild(n));
+                if (renderInfoDrawable)
+                {
+                    group->removeChild(n, 1);
+                    ret = true;
+                }
             }
         }
     }
     else
     {
-        unsigned numDrawables = geode->getNumDrawables();
-        for(unsigned n = 0; !ret && n < numDrawables; n++)
+        if (geode)
         {
-            RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(geode->getDrawable(n));
-            ret = (renderInfoDrawable != NULL);
+            unsigned numDrawables = geode->getNumDrawables();
+            for (unsigned n = 0; !ret && n < numDrawables; n++)
+            {
+                RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(geode->getDrawable(n));
+                ret = (renderInfoDrawable != NULL);
+            }
         }
-        if(!ret)
+        else if (group)
         {
-            geode->addDrawable(new RenderInfoDrawable());
+            unsigned numChilds = group->getNumChildren();
+            for (unsigned n = 0; !ret && n < numChilds; n++)
+            {
+                RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(group->getChild(n));
+                ret = (renderInfoDrawable != NULL);
+            }
+        }
+        if (!ret)
+        {
+            if(geode)
+                geode->addDrawable(new RenderInfoDrawable());
+            else if(group)
+                group->addChild(new RenderInfoDrawable());
             ret = true;
         }
     }
     return ret;
 }
 
-void RenderInfoDrawable::copyStateSetStack(StateSetStack & dest, const std::vector<const osg::StateSet*> & src)
+bool RenderInfo::hasDrawCallback(osg::Drawable* node)
+{
+    osg::Drawable::DrawCallback * cb = node->getDrawCallback();
+    RenderInfoDrawCallback* rcb = dynamic_cast<RenderInfoDrawCallback*>(cb);
+    return (rcb != NULL);
+}
+
+bool RenderInfo::installDrawCallback(osg::Drawable* node, bool enable)
+{
+    osg::Drawable::DrawCallback * cb = node->getDrawCallback();
+    RenderInfoDrawCallback* rcb = dynamic_cast<RenderInfoDrawCallback*>(cb);
+    if (rcb && !enable)
+        node->setDrawCallback(NULL);
+    else if (!rcb && enable)
+        node->setDrawCallback(new RenderInfoDrawCallback);
+    return true;
+}
+
+RenderInfoData::RenderInfoData()
+{
+}
+
+void RenderInfoData::copyStateSetStack(StateSetStack & dest, const std::vector<const osg::StateSet*> & src)
 {
     dest.clear();
     dest.resize(src.size());
@@ -75,7 +134,7 @@ void RenderInfoDrawable::copyStateSetStack(StateSetStack & dest, const std::vect
     }
 }
 
-void RenderInfoDrawable::copyRenderBinStack(RenderBinStack & dest, const std::vector<osgUtil::RenderBin*> & src)
+void RenderInfoData::copyRenderBinStack(RenderBinStack & dest, const std::vector<osgUtil::RenderBin*> & src)
 {
     dest.clear();
     dest.resize(src.size());
@@ -89,7 +148,7 @@ void RenderInfoDrawable::copyRenderBinStack(RenderBinStack & dest, const std::ve
 #endif
 }
 
-void RenderInfoDrawable::copyCameraStack(CameraStack & dest, const std::vector<osg::Camera*> & src)
+void RenderInfoData::copyCameraStack(CameraStack & dest, const std::vector<osg::Camera*> & src)
 {
     dest.clear();
     dest.resize(src.size());
@@ -103,7 +162,7 @@ void RenderInfoDrawable::copyCameraStack(CameraStack & dest, const std::vector<o
 #endif
 }
 
-void RenderInfoDrawable::copyPerContextProgramSet(PerContextProgramSet & dest, const std::set<const osg::Program::PerContextProgram* > & src)
+void RenderInfoData::copyPerContextProgramSet(PerContextProgramSet & dest, const std::set<const osg::Program::PerContextProgram* > & src)
 {
     dest.clear();
 #if OSG_VERSION_GREATER_THAN(3,3,1)
@@ -127,7 +186,8 @@ namespace {
     {
         if (sizeof(register_t) > sizeof(unsigned)) {
             return unsigned(((key >> (8 * sizeof(uint) - 1)) ^ key) & (~0U));
-        } else {
+        }
+        else {
             return unsigned(key & (~0U));
         }
     }
@@ -136,7 +196,7 @@ namespace {
     unsigned refPathHash(const std::vector<T*> & path)
     {
         unsigned ret = 0;
-        for(typename std::vector<T*>::const_iterator it = path.begin(); it != path.end(); it++)
+        for (typename std::vector<T*>::const_iterator it = path.begin(); it != path.end(); it++)
         {
             register_t r = (register_t)(void*)(*it);
             ret ^= register_t_to_unsigned(r);
@@ -148,7 +208,7 @@ namespace {
     unsigned refPathHash(const std::vector< osg::ref_ptr<T> > & path)
     {
         unsigned ret = 0;
-        for(typename std::vector< osg::ref_ptr<T> >::const_iterator it = path.begin(); it != path.end(); it++)
+        for (typename std::vector< osg::ref_ptr<T> >::const_iterator it = path.begin(); it != path.end(); it++)
         {
             const osg::ref_ptr<T> & cur = *it;
             register_t r = (register_t)(void*)(cur.get());
@@ -156,7 +216,7 @@ namespace {
         }
         return ret;
     }
-    
+
     class StateAccess : public osg::State
     {
     public:
@@ -171,8 +231,7 @@ namespace {
 }
 
 
-
-void RenderInfoDrawable::drawImplementation(osg::RenderInfo& renderInfo) const
+void RenderInfoData::copyRenderInfo(osg::RenderInfo& renderInfo)
 {
     StateAccess * state = (StateAccess*)renderInfo.getState();
     osg::State::StateSetStack& stateSetStack = state->getStateSetStack();
@@ -185,14 +244,14 @@ void RenderInfoDrawable::drawImplementation(osg::RenderInfo& renderInfo) const
 
     unsigned hashStateSetStack = refPathHash(stateSetStack);
 
-    State & currentState = const_cast<RenderInfoDrawable*>(this)->_hashedState[hashStateSetStack];
-    
+    RenderInfoData::State & currentState = _hashedState[hashStateSetStack];
+
     currentState.capturedStateSet = new osg::StateSet;
     state->captureCurrentState(*currentState.capturedStateSet.get());
-    
+
 #if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
     const osg::State::UniformMap & uniformMap = state->getUniformMap();
-    for(osg::State::UniformMap::const_iterator it = uniformMap.begin(); it != uniformMap.end(); it++)
+    for (osg::State::UniformMap::const_iterator it = uniformMap.begin(); it != uniformMap.end(); it++)
     {
         const osg::State::UniformStack& us = it->second;
         if (!us.uniformVec.empty())
@@ -202,26 +261,104 @@ void RenderInfoDrawable::drawImplementation(osg::RenderInfo& renderInfo) const
     }
 #endif
 
-    copyStateSetStack(currentState.stateSetStack, stateSetStack);
+    RenderInfoData::copyStateSetStack(currentState.stateSetStack, stateSetStack);
 #if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
-    copyRenderBinStack(currentState.renderBinStack, renderBinStack);
-    copyCameraStack(currentState.cameraStack, cameraStack);
+    RenderInfoData::copyRenderBinStack(currentState.renderBinStack, renderBinStack);
+    RenderInfoData::copyCameraStack(currentState.cameraStack, cameraStack);
 #else
     //copyPerContextProgramSet(currentState.appliedProgamSet, appliedProgramObjectSet);
 #endif
     currentState.combinedStateSet = new osg::StateSet;;
-    for(auto it = currentState.stateSetStack.begin(); it != currentState.stateSetStack.end(); ++it)
+    for (auto it = currentState.stateSetStack.begin(); it != currentState.stateSetStack.end(); ++it)
     {
         currentState.combinedStateSet->merge(*(it->get()));
     }
     currentState.view = renderInfo.getView();
 
-/*
+    /*
     copyStateSetStack(const_cast<RenderInfoDrawable*>(this)->_lastStateSetStack, stateSetStack);
     copyRenderBinStack(const_cast<RenderInfoDrawable*>(this)->_lastRenderBinStack, renderBinStack);
     copyCameraStack(const_cast<RenderInfoDrawable*>(this)->_lastCameraStack, cameraStack);
     const_cast<RenderInfoDrawable*>(this)->_lastView = renderInfo.getView();
     */
+}
+
+
+RenderInfoDrawable::RenderInfoDrawable()
+{
+}
+
+RenderInfoDrawable::RenderInfoDrawable(const RenderInfoDrawable & rhs, const osg::CopyOp & copyOp)
+    : osg::Drawable(rhs, copyOp)
+    , _data(rhs._data)
+{
+}
+
+const RenderInfoData & RenderInfoDrawable::data() const
+{
+    return _data;
+}
+
+void RenderInfoDrawable::drawImplementation(osg::RenderInfo& renderInfo) const
+{
+    const_cast<RenderInfoData&>(_data).copyRenderInfo(renderInfo);
+}
+
+RenderInfoGeometry::RenderInfoGeometry(osg::Geometry * geometry)
+    : osg::Geometry()
+    , _childGeometry(geometry)
+{
+    if (geometry)
+        setChildGeometry(geometry);
+}
+
+RenderInfoGeometry::RenderInfoGeometry(const RenderInfoGeometry & rhs, const osg::CopyOp & copyOp)
+    : osg::Geometry(rhs, copyOp)
+    , _data(rhs._data)
+{
+}
+
+const RenderInfoData & RenderInfoGeometry::data() const
+{
+    return _data;
+}
+
+void RenderInfoGeometry::setChildGeometry(osg::Geometry * geometry)
+{
+    setStateSet(geometry->getStateSet());
+    setUserData(geometry->getUserData());
+    _primitives = geometry->getPrimitiveSetList();
+    _vertexArray = geometry->getVertexArray();
+    _normalArray = geometry->getNormalArray();
+    _colorArray = geometry->getColorArray();
+    _secondaryColorArray = geometry->getSecondaryColorArray();
+    _fogCoordArray = geometry->getFogCoordArray();
+    _texCoordList = geometry->getTexCoordArrayList();
+    _vertexAttribList = geometry->getVertexAttribArrayList();
+    _useVertexBufferObjects = geometry->getUseVertexBufferObjects();
+    _childGeometry = geometry;
+}
+
+void RenderInfoGeometry::drawImplementation(osg::RenderInfo& renderInfo) const
+{
+    if (_childGeometry.valid())
+        _childGeometry->drawImplementation(renderInfo);
+    const_cast<RenderInfoData&>(_data).copyRenderInfo(renderInfo);
+}
+
+RenderInfoDrawCallback::RenderInfoDrawCallback()
+{
+}
+
+const RenderInfoData & RenderInfoDrawCallback::data() const
+{
+    return _data;
+}
+
+void RenderInfoDrawCallback::drawImplementation(osg::RenderInfo& renderInfo, const osg::Drawable* drawable) const
+{
+    const_cast<RenderInfoData&>(_data).copyRenderInfo(renderInfo);
+    drawable->drawImplementation(renderInfo);
 }
 
 } // namespace osg_plugin

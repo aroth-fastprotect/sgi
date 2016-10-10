@@ -193,6 +193,8 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ShaderComposer)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ShaderComponent)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawable)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(RenderInfoGeometry)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawCallback)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(OpenThreads::Thread)
 
@@ -6295,117 +6297,218 @@ bool writePrettyHTMLImpl<osg::ShaderComponent>::process(std::basic_ostream<char>
     return ret;
 }
 
-bool writePrettyHTMLImpl<RenderInfoDrawable>::process(std::basic_ostream<char>& os)
+bool writePrettyHTMLImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, std::basic_ostream<char>& os, bool table, SGIItemBase * item, const RenderInfoData & data)
 {
     bool ret = false;
-    RenderInfoDrawable* object = getObject<RenderInfoDrawable, SGIItemOsg>();
-    switch(itemType())
+    SGIItemBase * itemNext = item->nextBase();
+    switch(item->type())
     {
     case SGIItemTypeObject:
         {
-            if(_table)
+            if(table)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
             // add referenced properties first
-            callNextHandler(os);
+            ret = hostInterface->writePrettyHTML(os, itemNext);
 
-            // add remaining node properties
-/*
-            os << "<tr><td>lastView</td><td>" << osg_helpers::getObjectNameAndType(object->lastView()) << "</td></tr>" << std::endl;
-            {
-                const RenderInfoDrawable::StateSetStack & lastStack = object->lastStateSetStack();
-                os << "<tr><td>lastStateSetStack</td><td>" << lastStack.size() << " elements</td></tr>" << std::endl;
-            }
-            {
-                const RenderInfoDrawable::RenderBinStack & lastStack = object->lastRenderBinStack();
-                os << "<tr><td>lastRenderBinStack</td><td>" << lastStack.size() << " elements</td></tr>" << std::endl;
-            }
-            {
-                const RenderInfoDrawable::CameraStack & lastStack = object->lastCameraStack();
-                os << "<tr><td>lastCameraStack</td><td>" << lastStack.size() << " elements</td></tr>" << std::endl;
-            }
-*/
-            if(_table)
+            if(table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeRenderInfoState:
+        {
+            if (item->number() == ~0u)
+            {
+                const RenderInfoData::HashedState & hashedState = data.hashedState();
+                if(hashedState.empty())
+                    os << "No states available.." << std::endl;
+                else
+                {
+                    os << "<ul>";
+                    for (const auto & it : hashedState)
+                    {
+                        const RenderInfoData::State & state = it.second;
+                        os << "<li>0x" << std::hex << it.first << "<br/>";
+                        os << "stateSetStack=#" << state.stateSetStack.size() << "<br/>" << std::endl;
+                        os << "renderBinStack=#" << state.renderBinStack.size() << "<br/>" << std::endl;
+                        os << "cameraStack=#" << state.cameraStack.size() << "<br/>" << std::endl;
+                        os << "appliedProgamSet=#" << state.appliedProgamSet.size() << "<br/>" << std::endl;
+                        os << "</li>" << std::endl;
+                    }
+                    os << "</ul>";
+                }
+            }
+            else
+            {
+                const RenderInfoData::HashedState & hashedState = data.hashedState();
+                RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
+                if (it != hashedState.end())
+                {
+                    const RenderInfoData::State & state = it->second;
+                    os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+                    os << "<tr><td>state</td><td>0x" << std::hex << it->first << "</td></tr>" << std::endl;
+                    os << "<tr><td>stateSetStack</td><td>" << state.stateSetStack.size() << " items</td></tr>" << std::endl;
+                    os << "<tr><td>renderBinStack</td><td>" << state.renderBinStack.size() << " items</td></tr>" << std::endl;
+                    os << "<tr><td>cameraStack</td><td>" << state.cameraStack.size() << " items</td></tr>" << std::endl;
+                    os << "<tr><td>appliedProgamSet</td><td>" << state.appliedProgamSet.size() << " items</td></tr>" << std::endl;
+                    os << "<tr><td>view</td><td>" << osg_helpers::getObjectNameAndType(state.view.get(), true) << "</td></tr>" << std::endl;
+                    os << "<tr><td>capturedStateSet</td><td>" << osg_helpers::getObjectNameAndType(state.capturedStateSet.get(), true) << "</td></tr>" << std::endl;
+                    os << "<tr><td>combinedStateSet</td><td>" << osg_helpers::getObjectNameAndType(state.combinedStateSet.get(), true) << "</td></tr>" << std::endl;
+                    os << "</table>" << std::endl;
+                }
+                else
+                {
+                    os << "<b>state <i>" << item->number() << "</i> not found<b>" << std::endl;
+                }
+            }
             ret = true;
         }
         break;
     case SGIItemTypeRenderInfoStateSetStack:
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
-            if(it != hashedState.end())
+            if (item->number() == ~0u)
             {
-                os << "<ol>";
-                const RenderInfoDrawable::State & state = it->second;
-                const RenderInfoDrawable::StateSetStack & set = state.stateSetStack;
-                for(RenderInfoDrawable::StateSetStack::const_iterator it = set.begin(); it != set.end(); it++)
+                const RenderInfoData::HashedState & hashedState = data.hashedState();
+                os << "<ul>";
+                for (const auto & state : hashedState)
                 {
-                    os << "<li>" << osg_helpers::getObjectNameAndType((*it).get(), true) << "</li>" << std::endl;
+                    os << "<li>" << state.first << "</li>" << std::endl;
                 }
-                os << "</ol>";
+                os << "</ul>";
+            }
+            else
+            {
+                const RenderInfoData::HashedState & hashedState = data.hashedState();
+                RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
+                if (it != hashedState.end())
+                {
+                    const RenderInfoData::State & state = it->second;
+                    const RenderInfoData::StateSetStack & set = state.stateSetStack;
+                    if(set.empty())
+                        os << "StateSet stack of state <i>" << item->number() << "</i> is empty." << std::endl;
+                    else
+                    {
+                        os << "<ol>";
+                        for (RenderInfoData::StateSetStack::const_iterator it = set.begin(); it != set.end(); it++)
+                        {
+                            os << "<li>" << osg_helpers::getObjectNameAndType((*it).get(), true) << "</li>" << std::endl;
+                        }
+                        os << "</ol>";
+                    }
+                }
+                else
+                {
+                    os << "<b>state <i>" << item->number() << "</i> not found<b>" << std::endl;
+                }
             }
             ret = true;
         }
         break;
     case SGIItemTypeRenderInfoRenderBinStack:
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
+            const RenderInfoData::HashedState & hashedState = data.hashedState();
+            RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
             if(it != hashedState.end())
             {
-                os << "<ol>";
-                const RenderInfoDrawable::State & state = it->second;
-                const RenderInfoDrawable::RenderBinStack & set = state.renderBinStack;
-                for(RenderInfoDrawable::RenderBinStack::const_iterator it = set.begin(); it != set.end(); it++)
+                const RenderInfoData::State & state = it->second;
+                const RenderInfoData::RenderBinStack & set = state.renderBinStack;
+                if (set.empty())
+                    os << "render bin stack of state <i>" << item->number() << "</i> is empty." << std::endl;
+                else
                 {
-                    os << "<li>" << osg_helpers::getObjectNameAndType((*it).get(), true) << "</li>" << std::endl;
+                    os << "<ol>";
+                    for (RenderInfoData::RenderBinStack::const_iterator it = set.begin(); it != set.end(); it++)
+                    {
+                        os << "<li>" << osg_helpers::getObjectNameAndType((*it).get(), true) << "</li>" << std::endl;
+                    }
+                    os << "</ol>";
                 }
-                os << "</ol>";
+            }
+            else
+            {
+                os << "<b>state <i>" << item->number() << "</i> not found<b>" << std::endl;
             }
             ret = true;
         }
         break;
     case SGIItemTypeRenderInfoCameraStack:
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
+            const RenderInfoData::HashedState & hashedState = data.hashedState();
+            RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
             if(it != hashedState.end())
             {
-                os << "<ol>";
-                const RenderInfoDrawable::State & state = it->second;
-                const RenderInfoDrawable::CameraStack & set = state.cameraStack;
-                for(RenderInfoDrawable::CameraStack::const_iterator it = set.begin(); it != set.end(); it++)
+                const RenderInfoData::State & state = it->second;
+                const RenderInfoData::CameraStack & set = state.cameraStack;
+                if (set.empty())
+                    os << "camara stack of state <i>" << item->number() << "</i> is empty." << std::endl;
+                else
                 {
-                    os << "<li>" << osg_helpers::getObjectNameAndType((*it).get(), true) << "</li>" << std::endl;
+                    os << "<ol>";
+                    for (RenderInfoData::CameraStack::const_iterator it = set.begin(); it != set.end(); it++)
+                    {
+                        os << "<li>" << osg_helpers::getObjectNameAndType((*it).get(), true) << "</li>" << std::endl;
+                    }
+                    os << "</ol>";
                 }
-                os << "</ol>";
+            }
+            else
+            {
+                os << "<b>state <i>" << item->number() << "</i> not found<b>" << std::endl;
             }
             ret = true;
         }
         break;
     case SGIItemTypeRenderInfoAppliedProgramSet:
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
+            const RenderInfoData::HashedState & hashedState = data.hashedState();
+            RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
             if(it != hashedState.end())
             {
                 os << "<ol>";
-                const RenderInfoDrawable::State & state = it->second;
-                const RenderInfoDrawable::PerContextProgramSet & set = state.appliedProgamSet;
-                for(RenderInfoDrawable::PerContextProgramSet::const_iterator it = set.begin(); it != set.end(); it++)
+                const RenderInfoData::State & state = it->second;
+                const RenderInfoData::PerContextProgramSet & set = state.appliedProgamSet;
+                for(RenderInfoData::PerContextProgramSet::const_iterator it = set.begin(); it != set.end(); it++)
                 {
                     os << "<li>" << osg_helpers::getObjectNameAndType((*it).get()) << "</li>" << std::endl;
                 }
                 os << "</ol>";
             }
+            else
+            {
+                os << "<b>state <i>" << item->number() << "</i> not found<b>" << std::endl;
+            }
             ret = true;
         }
         break;
     default:
-        ret = callNextHandler(os);
+        ret = hostInterface->writePrettyHTML(os, itemNext, table);
         break;
     }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<RenderInfoDrawCallback>::process(std::basic_ostream<char>& os)
+{
+    RenderInfoDrawCallback * object = getObject<RenderInfoDrawCallback, SGIItemOsg, DynamicCaster>();
+    const RenderInfoData & data = object->data();
+    bool ret = writePrettyHTMLImpl_RenderInfoData(_hostInterface, os, _table, _item, data);
+    return ret;
+}
+
+bool writePrettyHTMLImpl<RenderInfoDrawable>::process(std::basic_ostream<char>& os)
+{
+    RenderInfoDrawable * object = getObject<RenderInfoDrawable, SGIItemOsg>();
+    const RenderInfoData & data = object->data();
+    bool ret = writePrettyHTMLImpl_RenderInfoData(_hostInterface, os, _table, _item, data);
+    return ret;
+}
+
+bool writePrettyHTMLImpl<RenderInfoGeometry>::process(std::basic_ostream<char>& os)
+{
+    RenderInfoGeometry * object = getObject<RenderInfoGeometry, SGIItemOsg>();
+    const RenderInfoData & data = object->data();
+    bool ret = writePrettyHTMLImpl_RenderInfoData(_hostInterface, os, _table, _item, data);
     return ret;
 }
 

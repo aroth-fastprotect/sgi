@@ -1,6 +1,6 @@
 #pragma once
 
-#include <osg/Drawable>
+#include <osg/Geometry>
 #include <osg/Program>
 
 namespace osgUtil {
@@ -47,15 +47,24 @@ private:
     osg::ref_ptr<osg::Drawable::DrawCallback>   _oldCallback;
 };
 
-class RenderInfoDrawable : public osg::Drawable
+class RenderInfo
+{
+private:
+    RenderInfo();
+    RenderInfo(const RenderInfo & rhs);
+
+public:
+    static bool isPresent(osg::Node * node);
+    static bool enable(osg::Node * node, bool enable);
+
+    static bool hasDrawCallback(osg::Drawable* node);
+    static bool installDrawCallback(osg::Drawable* node, bool enable);
+};
+
+class RenderInfoData
 {
 public:
-    RenderInfoDrawable();
-    RenderInfoDrawable(const RenderInfoDrawable & rhs, const osg::CopyOp & copyOp=osg::CopyOp::SHALLOW_COPY);
-
-    META_Object(sgi-osg, RenderInfoDrawable);
-
-    virtual void drawImplementation(osg::RenderInfo& renderInfo) const;
+    RenderInfoData();
 
 public:
     typedef osg::ref_ptr<osg::StateSet> StateSetPtr;
@@ -89,7 +98,7 @@ public:
         //AttributeVec            attributeVec;
     };
 
-    typedef std::map<osg::StateAttribute::TypeMemberPair,AttributeStack> AttributeMap;
+    typedef std::map<osg::StateAttribute::TypeMemberPair, AttributeStack> AttributeMap;
 
     struct State {
         StateSetStack stateSetStack;
@@ -102,16 +111,16 @@ public:
     };
 
     typedef std::map<unsigned, State> HashedState;
-/*
+    /*
     const StateSetStack & lastStateSetStack() const { return _lastStateSetStack; }
     const RenderBinStack & lastRenderBinStack() const { return _lastRenderBinStack; }
     const CameraStack & lastCameraStack() const { return _lastCameraStack; }
     const osg::View * lastView() const { return _lastView.get(); }
-*/
+    */
     const HashedState & hashedState() const { return _hashedState; }
 
-    static bool isPresent(osg::Geode * geode);
-    static bool enable(osg::Geode * geode, bool enable);
+public:
+    void copyRenderInfo(osg::RenderInfo & info);
 
 protected:
     static void copyStateSetStack(StateSetStack & dest, const std::vector<const osg::StateSet*> & src);
@@ -120,13 +129,62 @@ protected:
     static void copyPerContextProgramSet(PerContextProgramSet & dest, const std::set<const osg::Program::PerContextProgram* > & src);
 
 protected:
-/*
+    /*
     StateSetStack _lastStateSetStack;
     RenderBinStack _lastRenderBinStack;
     CameraStack _lastCameraStack;
     osg::ref_ptr<osg::View> _lastView;
     */
     HashedState _hashedState;
+};
+
+class RenderInfoDrawable : public osg::Drawable
+{
+public:
+    RenderInfoDrawable();
+    RenderInfoDrawable(const RenderInfoDrawable & rhs, const osg::CopyOp & copyOp=osg::CopyOp::SHALLOW_COPY);
+
+    META_Object(sgi-osg, RenderInfoDrawable);
+
+    virtual void drawImplementation(osg::RenderInfo& renderInfo) const;
+
+    const RenderInfoData & data() const;
+
+protected:
+    RenderInfoData _data;
+};
+
+class RenderInfoGeometry : public osg::Geometry
+{
+public:
+    RenderInfoGeometry(osg::Geometry * geometry=NULL);
+    RenderInfoGeometry(const RenderInfoGeometry & rhs, const osg::CopyOp & copyOp = osg::CopyOp::SHALLOW_COPY);
+
+    META_Object(sgi-osg, RenderInfoGeometry);
+
+    virtual void drawImplementation(osg::RenderInfo& renderInfo) const;
+
+    const RenderInfoData & data() const;
+
+protected:
+    void setChildGeometry(osg::Geometry * geometry);
+
+protected:
+    RenderInfoData _data;
+    osg::ref_ptr<osg::Geometry> _childGeometry;
+};
+
+class RenderInfoDrawCallback : public osg::Drawable::DrawCallback
+{
+public:
+    RenderInfoDrawCallback();
+
+    void drawImplementation(osg::RenderInfo& /*renderInfo*/, const osg::Drawable* /*drawable*/) const override;
+
+    const RenderInfoData & data() const;
+
+protected:
+    RenderInfoData _data;
 };
 
 } // namespace osg_plugin

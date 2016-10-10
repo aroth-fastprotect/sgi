@@ -332,8 +332,13 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
                 }
 
                 SGIHostItemBasePtr hostItem = _options.getHostItem();
-                if(!hostItem.valid())
-                    hostItem = new SGIHostItemOsg(&ea);
+                if (!hostItem.valid())
+                {
+                    if (aa.asView())
+                        hostItem = new SGIHostItemOsg(aa.asView());
+                    else
+                        hostItem = new SGIHostItemOsg(&ea);
+                }
                 ret = contextMenu(hostItem, x, y);
             }
 
