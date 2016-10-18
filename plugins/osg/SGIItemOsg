@@ -28,6 +28,7 @@ enum SGIItemType_osg
     SGIItemTypeGraphicsContextOperations,
     SGIItemTypeGraphicsContextGLExtensions,
     SGIItemTypeImage,
+    SGIItemTypeImageMipMap,
     SGIItemTypeShaders,
     SGIItemTypeShaderSource,
     SGIItemTypeShaderCodeInjectionMap,

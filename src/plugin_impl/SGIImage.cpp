@@ -259,6 +259,39 @@ void Image::loadPitchAndPlaneOffsets()
         _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
     }
     break;
+    case ImageFormatLuminance:
+    case ImageFormatLuminanceAlpha:
+    {
+        // only one channel with 8-bit color data
+        _pitch[0] = _width;
+        _pitch[1] = _pitch[2] = _pitch[3] = 0;
+        _lines[0] = _height;
+        _lines[1] = _lines[2] = _lines[3] = 0;
+        _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+    }
+    break;
+    case ImageFormatDXT1:
+    case ImageFormatDXT1Alpha:
+    {
+        // from http://www.gamedev.net/topic/615440-calculating-pitch-of-a-dxt-compressed-texture/
+        _pitch[0] = ((_width + 3u) / 4u) * 8u;
+        _pitch[1] = _pitch[2] = _pitch[3] = 0;
+        _lines[0] = _height;
+        _lines[1] = _lines[2] = _lines[3] = 0;
+        _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+    }
+    break;
+    case ImageFormatDXT3:
+    case ImageFormatDXT5:
+    {
+        // from http://www.gamedev.net/topic/615440-calculating-pitch-of-a-dxt-compressed-texture/
+        _pitch[0] = ((_width + 3u) / 4u) * 16u;
+        _pitch[1] = _pitch[2] = _pitch[3] = 0;
+        _lines[0] = _height;
+        _lines[1] = _lines[2] = _lines[3] = 0;
+        _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+    }
+    break;
     }
 }
 

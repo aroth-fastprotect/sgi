@@ -769,13 +769,11 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
     case SGIItemTypeStateSetTextureModeList:
         {
             unsigned itemNumber = _item->number();
-            unsigned textureUnit = 0;
-            unsigned count = 0;
             const osg::StateSet::TextureModeList & textureModeList = object->getTextureModeList();
-
-            for (osg::StateSet::TextureModeList::const_iterator it = textureModeList.begin(); it != textureModeList.end(); it++, textureUnit++)
+            unsigned textureUnit = 0;
+            if (itemNumber == ~0u)
             {
-                if(itemNumber == ~0u || itemNumber == textureUnit)
+                for (osg::StateSet::TextureModeList::const_iterator it = textureModeList.begin(); it != textureModeList.end(); it++, textureUnit++)
                 {
                     const osg::StateSet::ModeList & modeList = *it;
                     for (osg::StateSet::ModeList::const_iterator it2 = modeList.begin(); it2 != modeList.end(); it2++)
@@ -1611,6 +1609,21 @@ bool objectTreeBuildImpl<osg::Image>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg pbo(object->getPixelBufferObject());
             if(pbo.hasObject())
                 treeItem->addChild("PBO", &pbo);
+
+            if (object->getNumMipmapLevels() > 1)
+            {
+                treeItem->addChildIfNotExists(helpers::str_plus_count("MipMaps", object->getNumMipmapLevels()), cloneItem<SGIItemOsg>(SGIItemTypeImageMipMap, ~0u));
+            }
+        }
+        break;
+    case SGIItemTypeImageMipMap:
+        {
+            if (itemNumber() == ~0u)
+            {
+                for(unsigned i = 0; i < object->getNumMipmapLevels(); ++i)
+                    treeItem->addChildIfNotExists(helpers::str_plus_number("Level", i), cloneItem<SGIItemOsg>(SGIItemTypeImageMipMap, i));
+            }
+            ret = true;
         }
         break;
     default:

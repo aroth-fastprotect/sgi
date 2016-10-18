@@ -1793,8 +1793,8 @@ bool contextMenuPopulateImpl<osg::Texture>::populate(IContextMenuItem * menuItem
             }
 
             menuItem->addBoolAction(MenuActionTextureSetResizeNonPowerOfTwoHint, "Resize NPOT", _item, object->getResizeNonPowerOfTwoHint());
-            menuItem->addBoolAction(MenuActionTextureUseHardwareMipMapGeneration, "Use hardware MipMap Generation", _item, object->getUseHardwareMipMapGeneration());
-            menuItem->addBoolAction(MenuActionTextureUnRefImageDataAfterApply, "UnRef image data after apply", _item, object->getUnRefImageDataAfterApply());
+            menuItem->addBoolAction(MenuActionTextureUseHardwareMipMapGeneration, "Use hardware MipMap generation", _item, object->getUseHardwareMipMapGeneration());
+            menuItem->addBoolAction(MenuActionTextureUnRefImageDataAfterApply, "Unref image data after apply", _item, object->getUnRefImageDataAfterApply());
 
         }
         break;

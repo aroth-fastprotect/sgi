@@ -2312,6 +2312,41 @@ bool writePrettyHTMLImpl<osg::Image>::process(std::basic_ostream<char>& os)
             ret = true;
         }
         break;
+    case SGIItemTypeImageMipMap:
+        {
+            if (itemNumber() == ~0u)
+            {
+                os << "<ol>";
+                for (unsigned i = 0; i < object->getNumMipmapLevels(); ++i)
+                {
+                    unsigned offset = object->getMipmapOffset(i);
+                    unsigned next_offset = (i + 1 < object->getNumMipmapLevels()) ? object->getMipmapOffset(i + 1) : object->getTotalSizeInBytesIncludingMipmaps();
+                    unsigned size = next_offset - offset;
+                    os << "<li>" << helpers::str_plus_number("Level", i) << " offset=" << offset << " size=" << size << "</li>" << std::endl;
+                }
+                os << "</ol>";
+            }
+            else
+            {
+                unsigned i = itemNumber();
+                if (_table)
+                    os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+                unsigned offset = object->getMipmapOffset(i);
+                unsigned next_offset = (i + 1 < object->getNumMipmapLevels()) ? object->getMipmapOffset(i + 1) : object->getTotalSizeInBytesIncludingMipmaps();
+                unsigned size = next_offset - offset;
+                
+                os << "<tr><td>Level</td><td>" << i << "</td></tr>" << std::endl;
+                os << "<tr><td>offset</td><td>" << offset << "</td></tr>" << std::endl;
+                os << "<tr><td>size</td><td>" << size << "</td></tr>" << std::endl;
+
+                if (_table)
+                    os << "</table>" << std::endl;
+            }
+            ret = true;
+        }
+        break;
+
     default:
         ret = callNextHandler(os);
         break;
