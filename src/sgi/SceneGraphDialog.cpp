@@ -63,7 +63,6 @@ public:
 	virtual SGIItemBase *   item() const { return _dialog->item(); }
 	virtual const SGIItemBasePtrPath & itemPath() const { return _dialog->itemPath(); }
 
-private:
     SceneGraphDialog * _dialog;
 };
 
@@ -76,7 +75,6 @@ public:
     virtual ISceneGraphDialog * getDialog() { return _dialog->dialogInterface(); }
     virtual IContextMenu *      toolsMenu() { return _dialog->toolsMenu(); }
 
-private:
     SceneGraphDialog * _dialog;
 };
 
@@ -109,7 +107,20 @@ SceneGraphDialog::~SceneGraphDialog()
 		delete ui;
 		ui = NULL;
 	}
-	_interface = NULL;
+    if (_toolsMenuInterface)
+    {
+        // tell interface that this instance is already gone, so no need to
+        // delete again
+        static_cast<ToolsMenuImpl*>(_toolsMenuInterface.get())->_dialog = NULL;
+        _toolsMenuInterface = NULL;
+    }
+    if (_interface)
+    {
+        // tell interface that this instance is already gone, so no need to
+        // delete again
+        static_cast<SceneGraphDialogImpl*>(_interface)->_dialog = NULL;
+        _interface = NULL;
+    }
 }
 
 void SceneGraphDialog::init()
