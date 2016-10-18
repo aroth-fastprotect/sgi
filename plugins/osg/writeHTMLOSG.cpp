@@ -1105,7 +1105,7 @@ bool writePrettyHTMLImpl<osg::Cylinder>::process(std::basic_ostream<char>& os)
         break;
     default:
         // add Shape properties first
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
@@ -1145,7 +1145,7 @@ bool writePrettyHTMLImpl<osg::Cone>::process(std::basic_ostream<char>& os)
         break;
     default:
         // add Shape properties first
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
@@ -1183,7 +1183,7 @@ bool writePrettyHTMLImpl<osg::Capsule>::process(std::basic_ostream<char>& os)
         break;
     default:
         // add Shape properties first
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
@@ -1214,7 +1214,7 @@ bool writePrettyHTMLImpl<osg::InfinitePlane>::process(std::basic_ostream<char>& 
         break;
     default:
         // add Shape properties first
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
@@ -1257,7 +1257,7 @@ bool writePrettyHTMLImpl<osg::TriangleMesh>::process(std::basic_ostream<char>& o
         break;
     default:
         // add Shape properties first
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
@@ -1305,7 +1305,7 @@ bool writePrettyHTMLImpl<osg::HeightField>::process(std::basic_ostream<char>& os
 		break;
     default:
         // add Shape properties first
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
@@ -1353,7 +1353,7 @@ bool writePrettyHTMLImpl<osg::CompositeShape>::process(std::basic_ostream<char>&
         break;
     default:
         // add Shape properties first
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
@@ -1380,7 +1380,7 @@ bool writePrettyHTMLImpl<osg::ConvexHull>::process(std::basic_ostream<char>& os)
         break;
     default:
         // add Shape properties first
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
@@ -1440,7 +1440,7 @@ bool writePrettyHTMLImpl<osg::Drawable>::process(std::basic_ostream<char>& os)
         }
         break;
     default:
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
