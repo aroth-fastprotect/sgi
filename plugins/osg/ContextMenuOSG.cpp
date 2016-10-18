@@ -1773,7 +1773,7 @@ bool contextMenuPopulateImpl<osg::Texture>::populate(IContextMenuItem * menuItem
 
             IContextMenuItem * minFilterMenu = menuItem->addModeMenu(MenuActionTextureSetMinFilter, "Min filter", _item, object->getFilter(osg::Texture::MIN_FILTER));
             if(minFilterMenu)
-            {
+            { 
                 minFilterMenu->addModeAction("Linear", osg::Texture::LINEAR);
                 minFilterMenu->addModeAction("Linear, MipMap linear", osg::Texture::LINEAR_MIPMAP_LINEAR);
                 minFilterMenu->addModeAction("Linear, MipMap nearest", osg::Texture::LINEAR_MIPMAP_NEAREST);
@@ -1781,7 +1781,7 @@ bool contextMenuPopulateImpl<osg::Texture>::populate(IContextMenuItem * menuItem
                 minFilterMenu->addModeAction("Nearest, MipMap linear", osg::Texture::NEAREST_MIPMAP_LINEAR);
                 minFilterMenu->addModeAction("Nearest, MipMap nearest", osg::Texture::NEAREST_MIPMAP_NEAREST);
             }
-            IContextMenuItem * magFilterMenu = menuItem->addModeMenu(MenuActionTextureSetMinFilter, "Mag filter", _item, object->getFilter(osg::Texture::MAG_FILTER));
+            IContextMenuItem * magFilterMenu = menuItem->addModeMenu(MenuActionTextureSetMagFilter, "Mag filter", _item, object->getFilter(osg::Texture::MAG_FILTER));
             if(magFilterMenu)
             {
                 magFilterMenu->addModeAction("Linear", osg::Texture::LINEAR);
