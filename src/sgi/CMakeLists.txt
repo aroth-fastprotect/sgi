@@ -40,6 +40,7 @@ SET(TARGET_H
 	entrypoint.h
 	ReferencedPicker.h
 	sgi_internal.h
+	dxt.h
 )
 
 LIST(APPEND TARGET_H
@@ -126,6 +127,7 @@ SET(TARGET_SRC
 	QTextDialog.cpp
 	DoubleInputDialog.cpp
 	ImagePreviewDialog.cpp
+	dxt.cpp
 )
 
 SET(TARGET_LIBRARIES_VARS

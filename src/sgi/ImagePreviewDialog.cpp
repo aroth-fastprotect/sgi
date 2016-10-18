@@ -26,6 +26,8 @@ namespace ffmpeg {
 }
 #endif
 
+#include "dxt.h"
+
 #include <iostream>
 
 namespace sgi {
@@ -434,7 +436,7 @@ private:
         return ret;
     }
 
-    static bool convert(const sgi::Image& src, sgi::Image& dest)
+    static bool convert_with_avcodec(const sgi::Image& src, sgi::Image& dest)
     {
         ffmpeg::AVPixelFormat srcPixelFormat = ImageFormatToAVCodec(src.format());
         ffmpeg::AVPixelFormat destPixelFormat = ImageFormatToAVCodec(dest.format());
@@ -460,7 +462,7 @@ private:
         return true;
     }
 
-    static bool to_qimage_argb32(const sgi::Image& src, QImage& dest, bool horizontalFlip=false)
+    static bool to_qimage_argb32_with_avcodec(const sgi::Image& src, QImage& dest, bool horizontalFlip=false)
     {
         ffmpeg::AVPixelFormat srcPixelFormat = ImageFormatToAVCodec(src.format());
         if(srcPixelFormat == ffmpeg::AV_PIX_FMT_NONE || src.width() == 0 || src.height() == 0)
@@ -515,6 +517,97 @@ private:
             sws_freeContext(ctx);
         }
         return true;
+    }
+
+    static DDS_COMPRESSION_TYPE ImageFormatToDDS(Image::ImageFormat format)
+    {
+        DDS_COMPRESSION_TYPE ret = DDS_COMPRESS_NONE;
+        switch (format)
+        {
+        case Image::ImageFormatDXT1: ret = DDS_COMPRESS_BC1; break;
+        case Image::ImageFormatDXT1Alpha: ret = DDS_COMPRESS_BC1; break;
+        case Image::ImageFormatDXT3: ret = DDS_COMPRESS_BC2; break;
+        case Image::ImageFormatDXT5: ret = DDS_COMPRESS_BC3; break;
+        default: ret = DDS_COMPRESS_NONE; break;
+        }
+        return ret;
+    }
+
+    static bool convert_dxt(const sgi::Image& src, sgi::Image& dest)
+    {
+        bool ret;
+        sgi::Image tmp;
+        ret = tmp.allocate(src.width(), src.height(), Image::ImageFormatBGRA32, src.origin());
+        if (ret)
+        {
+            int format = ImageFormatToDDS(src.format());
+            const int bytes_per_pixel = 4;
+            const int normalize_blocks = 0;
+            // actually the image is decoded into BGRA32
+            ret = (dxt_decompress((unsigned char*)tmp.data(), (unsigned char*)src.data(), format, src.length(), src.width(), src.height(), bytes_per_pixel, normalize_blocks) != 0);
+            if (ret)
+            {
+                ret = convert_with_avcodec(tmp, dest);
+                tmp.free();
+            }
+        }
+        return ret;
+    }
+
+    static bool to_qimage_argb32_dxt(const sgi::Image& src, QImage& dest, bool horizontalFlip = false)
+    {
+        bool ret;
+        sgi::Image tmp;
+        ret = tmp.allocate(src.width(), src.height(), Image::ImageFormatBGRA32, src.origin());
+        if (ret)
+        {
+            int format = ImageFormatToDDS(src.format());
+            const int bytes_per_pixel = 4;
+            const int normalize_blocks = 0;
+            // actually the image is decoded into BGRA32
+            ret = (dxt_decompress((unsigned char*)tmp.data(), (unsigned char*)src.data(), format, src.length(), src.width(), src.height(), bytes_per_pixel, normalize_blocks) != 0);
+            if (ret)
+            {
+                ret = to_qimage_argb32_with_avcodec(tmp, dest, !horizontalFlip);
+            }
+        }
+        return ret;
+    }
+
+    static bool convert(const sgi::Image& src, sgi::Image& dest)
+    {
+        bool ret;
+        switch (src.format())
+        {
+        case Image::ImageFormatDXT1:
+        case Image::ImageFormatDXT1Alpha:
+        case Image::ImageFormatDXT3:
+        case Image::ImageFormatDXT5:
+            ret = convert_dxt(src, dest);
+            break;
+        default:
+            ret = convert_with_avcodec(src, dest);
+            break;
+        }
+        return ret;
+    }
+
+    static bool to_qimage_argb32(const sgi::Image& src, QImage& dest, bool horizontalFlip = false)
+    {
+        bool ret;
+        switch (src.format())
+        {
+        case Image::ImageFormatDXT1:
+        case Image::ImageFormatDXT1Alpha:
+        case Image::ImageFormatDXT3:
+        case Image::ImageFormatDXT5:
+            ret = to_qimage_argb32_dxt(src, dest, horizontalFlip);
+            break;
+        default:
+            ret = to_qimage_argb32_with_avcodec(src, dest, horizontalFlip);
+            break;
+        }
+        return ret;
     }
 
 public:
@@ -1715,7 +1808,7 @@ void ImagePreviewDialog::refreshImpl()
 #if defined(SGI_USE_FFMPEG)
     QImage qimg;
     if(_workImage.valid())
-        SWScale::convertToQImage( *_workImage.get(), qimg);
+        SWScale::convertToQImage( *_workImage.get(), format, qimg);
 #else
     QImage qimg = convertImageToQImage(useReinterpretedImage ? &_priv->reinterpretedImage : _image.get(), format);
 #endif

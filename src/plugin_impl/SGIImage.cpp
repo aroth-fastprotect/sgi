@@ -310,7 +310,7 @@ void Image::free()
 }
 
 
-bool Image::allocate(unsigned width, unsigned height, ImageFormat format)
+bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin origin)
 {
     bool ret = false;
     free();
@@ -369,6 +369,7 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format)
         _width = width;
         _height = height;
         _format = format;
+        _origin = origin;
         loadPitchAndPlaneOffsets();
         ret = _data != NULL;
         _allocated = ret;
