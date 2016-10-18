@@ -72,7 +72,7 @@ public:
         QAction * action = new QAction(itemText, _menu);
         action->setData(QVariant::fromValue(itemData));
         _menu->addAction(action);
-        connect(action, SIGNAL(triggered()), _contextMenu, SLOT(slotSimpleItemAction()));
+        connect(action, &QAction::triggered, _contextMenu, &ContextMenu::slotSimpleItemAction);
         return action;
     }
     bool addBoolAction(unsigned actionId, const std::string & name, SGIItemBase * item, bool state, osg::Referenced * userData=NULL)
@@ -95,7 +95,7 @@ public:
         action->setCheckable(true);
         action->setChecked(state);
         _menu->addAction(action);
-        connect(action, SIGNAL(triggered(bool)), _contextMenu, SLOT(slotBoolItemAction(bool)));
+        connect(action, &QAction::triggered, _contextMenu, &ContextMenu::slotBoolItemAction);
         return action;
     }
 
@@ -172,7 +172,7 @@ protected:
         newMenu->setTitle(itemText);
         newMenu->menuAction()->setData(QVariant::fromValue(itemData));
         connect(newMenu, &QMenu::aboutToShow, _contextMenu, &ContextMenu::slotPopulateItemMenu);
-        connect(newMenu, &QMenu::aboutToHide, _contextMenu, &ContextMenu::slotClearItemMenu);
+        connect(newMenu, &QMenu::hide, _contextMenu, &ContextMenu::slotClearItemMenu);
         // ... and finally add the new sub-menu to the menu
         _menu->addMenu(newMenu);
         return addChild(new ContextMenuItem(_contextMenu, newMenu));
@@ -347,7 +347,7 @@ ContextMenu::ContextMenu(bool onlyRootItem, QWidget * parent)
     , _onlyRootItem(onlyRootItem)
 {
     connect(this, &QMenu::aboutToShow, this, &ContextMenu::slotPopulateItemMenu);
-    connect(this, &QMenu::aboutToHide, this, &ContextMenu::slotClearItemMenu);
+    connect(this, &QMenu::hide, this, &ContextMenu::slotClearItemMenu);
 	connect(this, &ContextMenu::triggerPopup, this, &ContextMenu::popup);
 	connect(this, &ContextMenu::triggerUpdateMenu, this, &ContextMenu::updateMenu);
 }
@@ -361,7 +361,7 @@ ContextMenu::ContextMenu(SGIItemBase * item, IHostCallback* callback, bool onlyR
 {
     populate();
     connect(this, &QMenu::aboutToShow, this, &ContextMenu::slotPopulateItemMenu);
-    connect(this, &QMenu::aboutToHide, this, &ContextMenu::slotClearItemMenu);
+    connect(this, &QMenu::hide, this, &ContextMenu::slotClearItemMenu);
 	connect(this, &ContextMenu::triggerPopup, this, &ContextMenu::popup);
 	connect(this, &ContextMenu::triggerUpdateMenu, this, &ContextMenu::updateMenu);
 }
@@ -428,6 +428,16 @@ void ContextMenu::slotPopulateItemMenu()
 
 void ContextMenu::slotClearItemMenu()
 {
+    QMenu * menu = qobject_cast<QMenu *>(sender());
+    if (menu)
+    {
+        QAction * action = menu->menuAction();
+        QtMenuSGIItem itemData = action->data().value<QtMenuSGIItem>();
+        if (itemData.hasItem())
+        {
+            menu->clear();
+        }
+    }
 }
 
 void ContextMenu::slotSimpleItemAction()
