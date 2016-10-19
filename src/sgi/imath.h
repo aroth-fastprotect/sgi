@@ -23,21 +23,8 @@
 #ifndef IMATH_H
 #define IMATH_H
 
-#ifndef MIN
-# ifdef __GNUC__
-#  define MIN(a, b)  ({typeof(a) _a=(a), typeof(b) _b=(b); _a < _b ? _a : _b;})
-# else
-#  define MIN(a, b)  ((a) < (b) ? (a) : (b))
-# endif
-#endif
-
-#ifndef MAX
-# ifdef __GNUC__
-#  define MAX(a, b)  ({typeof(a) _a=(a), typeof(b) _b=(b); _a > _b ? _a : _b;})
-# else
-#  define MAX(a, b)  ((a) > (b) ? (a) : (b))
-# endif
-#endif
+#define MIN(a, b) std::min(a,b)
+#define MAX(a, b) std::max(a,b)
 
 #define IS_POW2(x)     (!((x) & ((x) - 1)))
 #define IS_MUL4(x)     (((x) & 3) == 0)
