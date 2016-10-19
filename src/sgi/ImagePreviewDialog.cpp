@@ -600,16 +600,6 @@ private:
         uint32_t gray = range != 0 ? floor((float(p - min) / float(range)) * 255.0f) : 0.0f;
         return QIMAGE_GRAY(gray);
     }
-    template<>
-    static inline uint32_t compute_pixel<char>(const char & p, const char & max, const char & min, const char & range)
-    {
-        return QIMAGE_GRAY((unsigned char)p);
-    }
-    template<>
-    static inline uint32_t compute_pixel<unsigned char>(const unsigned char & p, const unsigned char & max, const unsigned char & min, const unsigned char & range)
-    {
-        return QIMAGE_GRAY(p);
-    }
 #if 0
     template<>
     static inline uint32_t compute_pixel<short>(const short & p, const short & max, const short & min, const short & range)
@@ -810,6 +800,18 @@ public:
         return ret;
     }
 };
+
+template<>
+inline uint32_t SWScale::compute_pixel<char>(const char & p, const char & max, const char & min, const char & range)
+{
+    return QIMAGE_GRAY((unsigned char)p);
+}
+template<>
+inline uint32_t SWScale::compute_pixel<unsigned char>(const unsigned char & p, const unsigned char & max, const unsigned char & min, const unsigned char & range)
+{
+    return QIMAGE_GRAY(p);
+}
+
 
 QLibrary * SWScale::library = NULL;
 bool SWScale::loadAttempted = false;

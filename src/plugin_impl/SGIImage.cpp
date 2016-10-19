@@ -3,6 +3,7 @@
 
 #include <sgi/plugins/SGIImage.h>
 #include <sstream>
+#include <cmath>
 #include <QImage>
 
 namespace sgi {
@@ -567,7 +568,7 @@ bool Image::guessImageSizes(ImageSizeList & possibleSizes) const
     }
     if(ret)
     {
-        double d = sqrt(totalNumberOfPixels);
+        double d = std::sqrt(totalNumberOfPixels);
         if(fmod(d, 1.0) == 0)
         {
             // got a square image
