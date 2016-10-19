@@ -7,18 +7,18 @@
 
 namespace sgi {
 
-Image::Image(ImageFormat format)
-    : _format(format), _origin(OriginDefault), _data(NULL), _length(0)
+Image::Image(ImageFormat format, DataType type)
+    : _format(format), _dataType(type), _origin(OriginDefault), _data(NULL), _length(0)
     , _width(0), _height(0), _depth(0), _pitch { 0, 0, 0, 0 }, _lines{ 0, 0, 0, 0 }, _planeOffset{0, 0, 0, 0}
     , _originalImage(NULL), _originalImageQt(NULL)
     , _allocated(false)
 {
 }
 
-Image::Image(ImageFormat format, Origin origin, void * data, size_t length,
+Image::Image(ImageFormat format, DataType type, Origin origin, void * data, size_t length,
         unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
         const osg::Referenced * originalImage, bool copyData)
-    : _format(format), _origin(origin), _data(copyData ? malloc(length) : data), _length(length)
+    : _format(format), _dataType(type), _origin(origin), _data(copyData ? malloc(length) : data), _length(length)
     , _width(width), _height(height), _depth(depth), _pitch { bytesPerLine, 0, 0, 0 }, _lines{ height, 0, 0, 0 }
     , _planeOffset{0, 0, 0, 0}
     , _originalImage(originalImage), _originalImageQt(NULL)
@@ -29,10 +29,10 @@ Image::Image(ImageFormat format, Origin origin, void * data, size_t length,
     loadPitchAndPlaneOffsets();
 }
 
-Image::Image(ImageFormat format, Origin origin, void * data, size_t length,
+Image::Image(ImageFormat format, DataType type, Origin origin, void * data, size_t length,
     unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
     QImage * originalImage, bool copyData)
-    : _format(format), _origin(origin), _data(copyData ? malloc(length) : data), _length(length)
+    : _format(format), _dataType(type), _origin(origin), _data(copyData ? malloc(length) : data), _length(length)
     , _width(width), _height(height), _depth(depth), _pitch{ bytesPerLine, 0, 0, 0 }, _lines{ height, 0, 0, 0 }
     , _planeOffset { 0, 0, 0, 0 }
     , _originalImage(NULL), _originalImageQt((originalImage)?new QImage(*originalImage):NULL)
@@ -82,6 +82,7 @@ namespace {
 
 Image::Image(QImage * originalImage, bool copyData)
     : _format(imageFormatFromQImage(originalImage->format()))
+    , _dataType(DataTypeUnsignedByte)
     , _origin(OriginTopLeft), _data(NULL), _length(0)
     , _width(originalImage->width()), _height(originalImage->height()), _depth(1)
     , _pitch { (unsigned)originalImage->bytesPerLine(), 0, 0, 0 }
@@ -100,8 +101,8 @@ Image::Image(QImage * originalImage, bool copyData)
         _data = _originalImageQt->bits();
 }
 
-Image::Image(ImageFormat format, void * data, size_t length, bool copyData)
-    : _format(format), _origin(OriginDefault), _data(copyData ? malloc(length) : data), _length(length)
+Image::Image(ImageFormat format, DataType type, void * data, size_t length, bool copyData)
+    : _format(format), _dataType(type), _origin(OriginDefault), _data(copyData ? malloc(length) : data), _length(length)
     , _width(0), _height(0), _depth(0), _pitch{ 0, 0, 0, 0 }, _lines{ 0, 0, 0, 0 }, _planeOffset{ 0, 0, 0, 0 }
     , _originalImage(NULL), _originalImageQt(NULL)
     , _allocated(copyData)
@@ -112,7 +113,7 @@ Image::Image(ImageFormat format, void * data, size_t length, bool copyData)
 }
 
 Image::Image(const Image & rhs)
-    : _format(rhs._format), _origin(rhs._origin), _data(rhs._data), _length(rhs._length)
+    : _format(rhs._format), _dataType(rhs._dataType), _origin(rhs._origin), _data(rhs._data), _length(rhs._length)
     , _width(rhs._width), _height(rhs._height), _depth(rhs._depth)
     , _pitch { rhs._pitch[0], rhs._pitch[1], rhs._pitch[2], rhs._pitch[3] }
     , _lines{ rhs._lines[0], rhs._lines[1], rhs._lines[2], rhs._lines[3] }
@@ -132,6 +133,7 @@ Image & Image::operator=(const Image & rhs)
 {
     free();
     _format = rhs._format;
+    _dataType = rhs._dataType;
     _origin = rhs._origin;
     _data = rhs._data;
     _allocated = false;
@@ -619,6 +621,65 @@ bool Image::guessImageSizes(ImageSizeList & possibleSizes) const
     return ret;
 }
 
+unsigned Image::bitsPerPixel() const
+{
+    unsigned ret = 0;
+    switch (_format)
+    {
+    default:
+    case ImageFormatInvalid: 
+        ret = 0; break;
+    case ImageFormatRGB24: 
+    case ImageFormatBGR24:
+        ret = 24; break;
+    case ImageFormatARGB32:
+    case ImageFormatRGB32: 
+    case ImageFormatBGR32:
+    case ImageFormatABGR32:
+    case ImageFormatRGBA32:
+    case ImageFormatBGRA32:
+        ret = 32; break;
+    case ImageFormatYUV420:
+    case ImageFormatYUV422:
+    case ImageFormatYUV444:
+    case ImageFormatYUYV:
+    case ImageFormatUYVY:
+        ret = 16;
+        break;
+    case ImageFormatMono: 
+    case ImageFormatMonoLSB: 
+        ret = 1; 
+        break;
+    case ImageFormatIndexed8: 
+        ret = 8;
+        break;
+    case ImageFormatFloat: 
+        ret = 32; 
+        break;
+    case ImageFormatGray:
+    case ImageFormatRed:
+    case ImageFormatGreen:
+    case ImageFormatBlue:
+    case ImageFormatAlpha:
+    case ImageFormatLuminance:
+    case ImageFormatLuminanceAlpha:
+    case ImageFormatDepth:
+        ret = bitsForDataElement(_dataType);
+        break;
+    case ImageFormatDXT1: 
+    case ImageFormatDXT1Alpha: 
+        // 4x4 pixels go into 8 bytes
+        ret = 4; 
+        break;
+    case ImageFormatDXT3:
+    case ImageFormatDXT5:
+        // 4x4 pixels go into 16 bytes
+        ret = 8;
+        break;
+    }
+    return ret;
+}
+
 std::string Image::imageFormatToString(ImageFormat format)
 {
     std::string ret;
@@ -672,12 +733,12 @@ std::string Image::colorSpaceToString(ColorSpace colorspace)
     switch (colorspace)
     {
     case ColorSpaceInvalid: ret = "invalid"; break;
-    case ColorSpaceAutomatic: ret = "invalid"; break;
+    case ColorSpaceAutomatic: ret = "auto"; break;
     case ColorSpaceRGB: ret = "RGB"; break;
     case ColorSpaceYUV_ITU_R_BT_601: ret = "YUV ITU-R BT.601"; break;
     case ColorSpaceYUV_ITU_R_BT_709: ret = "YUV ITU-R BT.709"; break;
     case ColorSpaceYUV_ITU_R_BT_2020: ret = "YUV ITU-R BT.2020"; break;
-    case ColorSpaceCYMK: ret = "invalid"; break;
+    case ColorSpaceCYMK: ret = "CYMK"; break;
     default:
     {
         std::stringstream ss;
@@ -685,6 +746,54 @@ std::string Image::colorSpaceToString(ColorSpace colorspace)
         ret = ss.str();
     }
     break;
+    }
+    return ret;
+}
+
+std::string Image::dataTypeToString(DataType type)
+{
+    std::string ret;
+    switch (type)
+    {
+    case DataTypeInvalid: ret = "invalid"; break;
+    case DataTypeUnsignedByte: ret = "u8"; break;
+    case DataTypeSignedByte: ret = "i8"; break;
+    case DataTypeUnsignedShort: ret = "u16"; break;
+    case DataTypeSignedShort: ret = "i16"; break;
+    case DataTypeUnsignedInt: ret = "u32"; break;
+    case DataTypeSignedInt: ret = "i32"; break;
+    case DataTypeFloat32: ret = "f32"; break;
+    case DataTypeFloat64: ret = "f64"; break;
+    default:
+    {
+        std::stringstream ss;
+        ss << "Unknown(" << (int)type << ')';
+        ret = ss.str();
+    }
+    break;
+    }
+    return ret;
+}
+
+unsigned Image::bitsForDataElement(DataType type)
+{
+    unsigned ret = 0;
+    switch (type)
+    {
+    case DataTypeUnsignedByte: 
+    case DataTypeSignedByte: 
+        ret = 8; break;
+    case DataTypeUnsignedShort: 
+    case DataTypeSignedShort: 
+        ret = 16; break;
+    case DataTypeUnsignedInt:
+    case DataTypeSignedInt:
+        ret = 32; break;
+    case DataTypeFloat32:
+        ret = 32; break;
+    case DataTypeFloat64:
+        ret = 64; break;
+    default: ret = 0; break;
     }
     return ret;
 }

@@ -392,7 +392,11 @@ private:
         case ffmpeg::AV_PIX_FMT_YUV444P: ret = Image::ImageFormatYUV444; break;
         case ffmpeg::AV_PIX_FMT_YUYV422: ret = Image::ImageFormatYUYV; break;
         case ffmpeg::AV_PIX_FMT_UYVY422: ret = Image::ImageFormatUYVY; break;
-        case ffmpeg::AV_PIX_FMT_GRAY8: ret = Image::ImageFormatGray; break;
+        case ffmpeg::AV_PIX_FMT_GRAY8: 
+        case ffmpeg::AV_PIX_FMT_GRAY16BE:
+        case ffmpeg::AV_PIX_FMT_GRAY16LE:
+            ret = Image::ImageFormatGray;
+            break;
         case ffmpeg::AV_PIX_FMT_YA8: ret = Image::ImageFormatLuminanceAlpha; break;
         default:
             Q_ASSERT_X(false, __FUNCTION__, "Unhandled frame format from avcodec");
@@ -400,7 +404,7 @@ private:
         }
         return ret;
     }
-    static ffmpeg::AVPixelFormat ImageFormatToAVCodec(Image::ImageFormat format)
+    static ffmpeg::AVPixelFormat ImageFormatToAVCodec(Image::ImageFormat format, Image::DataType dataType)
     {
         ffmpeg::AVPixelFormat ret = ffmpeg::AV_PIX_FMT_NONE;
         switch (format)
@@ -422,14 +426,24 @@ private:
         case Image::ImageFormatYUV444: ret = ffmpeg::AV_PIX_FMT_YUV444P; break;
         case Image::ImageFormatYUYV: ret = ffmpeg::AV_PIX_FMT_YUYV422; break;
         case Image::ImageFormatUYVY: ret = ffmpeg::AV_PIX_FMT_UYVY422; break;
-        case Image::ImageFormatGray: ret = ffmpeg::AV_PIX_FMT_GRAY8; break;
-        case Image::ImageFormatRed: ret = ffmpeg::AV_PIX_FMT_GRAY8; break;
-        case Image::ImageFormatGreen: ret = ffmpeg::AV_PIX_FMT_GRAY8; break;
-        case Image::ImageFormatBlue: ret = ffmpeg::AV_PIX_FMT_GRAY8; break;
+        case Image::ImageFormatGray: 
+        case Image::ImageFormatRed:
+        case Image::ImageFormatGreen:
+        case Image::ImageFormatBlue:
+        case Image::ImageFormatLuminance:
+        case Image::ImageFormatLuminanceAlpha:
+            switch (dataType)
+            {
+            case Image::DataTypeSignedShort:
+                ret = ffmpeg::AV_PIX_FMT_GRAY16LE;
+                break;
+            default:
+                ret = ffmpeg::AV_PIX_FMT_GRAY8;
+                break;
+            }
+            break;
         case Image::ImageFormatAlpha: ret = ffmpeg::AV_PIX_FMT_RGB24; break;
         case Image::ImageFormatDepth: ret = ffmpeg::AV_PIX_FMT_RGB24; break;
-        case Image::ImageFormatLuminance: ret = ffmpeg::AV_PIX_FMT_GRAY8; break;
-        case Image::ImageFormatLuminanceAlpha: ret = ffmpeg::AV_PIX_FMT_YA8; break;
         case Image::ImageFormatInvalid:
         default: ret = ffmpeg::AV_PIX_FMT_NONE; break;
         }
@@ -438,8 +452,8 @@ private:
 
     static bool convert_with_avcodec(const sgi::Image& src, sgi::Image& dest)
     {
-        ffmpeg::AVPixelFormat srcPixelFormat = ImageFormatToAVCodec(src.format());
-        ffmpeg::AVPixelFormat destPixelFormat = ImageFormatToAVCodec(dest.format());
+        ffmpeg::AVPixelFormat srcPixelFormat = ImageFormatToAVCodec(src.format(), src.dataType());
+        ffmpeg::AVPixelFormat destPixelFormat = ImageFormatToAVCodec(dest.format(), src.dataType());
         if (srcPixelFormat == ffmpeg::AV_PIX_FMT_NONE || src.width() == 0 || src.height() == 0 || dest.width() == 0 || dest.height() == 0)
             return false;
 
@@ -464,7 +478,7 @@ private:
 
     static bool to_qimage_argb32_with_avcodec(const sgi::Image& src, QImage& dest, bool horizontalFlip=false)
     {
-        ffmpeg::AVPixelFormat srcPixelFormat = ImageFormatToAVCodec(src.format());
+        ffmpeg::AVPixelFormat srcPixelFormat = ImageFormatToAVCodec(src.format(), src.dataType());
         if(srcPixelFormat == ffmpeg::AV_PIX_FMT_NONE || src.width() == 0 || src.height() == 0)
             return false;
 
@@ -574,6 +588,135 @@ private:
         return ret;
     }
 
+#define QIMAGE_RGB32(a, r,g,b) \
+    ((a << 24) | (r << 16) | (g << 8) | b)
+
+#define QIMAGE_RGB24(r,g,b) QIMAGE_RGB32(0xff,r,g,b)
+#define QIMAGE_GRAY(gr) QIMAGE_RGB32(0xff,gr,gr,gr)
+
+    template<typename ELEM_TYPE>
+    static inline uint32_t compute_pixel(const ELEM_TYPE & p, const ELEM_TYPE & max, const ELEM_TYPE & min, const ELEM_TYPE & range)
+    {
+        uint32_t gray = range != 0 ? floor((float(p - min) / float(range)) * 255.0f) : 0.0f;
+        return QIMAGE_GRAY(gray);
+    }
+    template<>
+    static inline uint32_t compute_pixel<char>(const char & p, const char & max, const char & min, const char & range)
+    {
+        return QIMAGE_GRAY((unsigned char)p);
+    }
+    template<>
+    static inline uint32_t compute_pixel<unsigned char>(const unsigned char & p, const unsigned char & max, const unsigned char & min, const unsigned char & range)
+    {
+        return QIMAGE_GRAY(p);
+    }
+#if 0
+    template<>
+    static inline uint32_t compute_pixel<short>(const short & p, const short & max, const short & min, const short & range)
+    {
+        return QIMAGE_GRAY(p);
+    }
+    template<>
+    static inline uint32_t compute_pixel<unsigned short>(const unsigned short & p, const unsigned short & max, const unsigned short & min, const unsigned short & range)
+    {
+        return QIMAGE_GRAY(p);
+    }
+    template<>
+    static inline uint32_t compute_pixel<int>(const int & p, const int & max, const int & min, const int & range)
+    {
+        return QIMAGE_GRAY(p);
+    }
+    template<>
+    static inline uint32_t compute_pixel<unsigned int>(const unsigned int & p, const unsigned int & max, const unsigned int & min, const unsigned int & range)
+    {
+        return QIMAGE_GRAY(p);
+    }
+#endif
+    
+
+
+    template<typename ELEM_TYPE>
+    static bool to_qimage_argb32_single_channel_impl(const sgi::Image& src, QImage& dest, bool horizontalFlip)
+    {
+        dest = QImage(src.width(), src.height(), QImage::Format_ARGB32);
+
+        size_t src_elem_size = sizeof(ELEM_TYPE);
+        const uint8_t * src_data = reinterpret_cast<const uint8_t *>(src.data());
+        uint8_t * dest_data = reinterpret_cast<uint8_t *>(dest.bits());
+        const size_t dest_elem_size = 4; // RGB32
+        unsigned pitch0 = src.pitch(0);
+        ELEM_TYPE elem_min = std::numeric_limits<ELEM_TYPE>::max();
+        ELEM_TYPE elem_max = std::numeric_limits<ELEM_TYPE>::min();
+        for (unsigned x = 0; x < src.width(); ++x)
+        {
+            for (unsigned y = 0; y < src.height(); ++y)
+            {
+                size_t src_offset = (y * pitch0) + (x * src_elem_size);
+                size_t dest_offset = (y * pitch0) + (x * dest_elem_size);
+                const ELEM_TYPE * src_pixel = reinterpret_cast<const ELEM_TYPE *>(src_data + src_offset);
+                elem_min = std::min(elem_min, *src_pixel);
+                elem_max = std::max(elem_max, *src_pixel);
+            }
+        }
+        ELEM_TYPE elem_range = elem_max - elem_min;
+        for (unsigned x = 0; x < src.width(); ++x)
+        {
+            for (unsigned y = 0; y < src.height(); ++y)
+            {
+                size_t src_offset = (y * pitch0) + (x * src_elem_size);
+                size_t dest_offset = (y * pitch0) + (x * dest_elem_size);
+                const ELEM_TYPE * src_pixel = reinterpret_cast<const ELEM_TYPE *>(src_data + src_offset);
+                uint32_t * dest_pixel = reinterpret_cast<uint32_t *>(dest_data + dest_offset);
+                *dest_pixel = compute_pixel<ELEM_TYPE>(*src_pixel, elem_min, elem_max, elem_range);
+            }
+        }
+        return true;
+    }
+
+    static bool to_qimage_argb32_single_channel(const sgi::Image& src, QImage& dest, bool horizontalFlip = false)
+    {
+        bool ret = false;
+        switch (src.format())
+        {
+        case Image::ImageFormatGray:
+        case Image::ImageFormatRed:
+        case Image::ImageFormatGreen:
+        case Image::ImageFormatBlue:
+        case Image::ImageFormatLuminance:
+        case Image::ImageFormatLuminanceAlpha:
+        case Image::ImageFormatDepth:
+            switch (src.dataType())
+            {
+            case Image::DataTypeSignedByte:
+                ret = to_qimage_argb32_single_channel_impl<char>(src, dest, horizontalFlip);
+                break;
+            case Image::DataTypeUnsignedByte:
+                ret = to_qimage_argb32_single_channel_impl<unsigned char>(src, dest, horizontalFlip);
+                break;
+            case Image::DataTypeSignedShort:
+                ret = to_qimage_argb32_single_channel_impl<short>(src, dest, horizontalFlip);
+                break;
+            case Image::DataTypeUnsignedShort:
+                ret = to_qimage_argb32_single_channel_impl<unsigned short>(src, dest, horizontalFlip);
+                break;
+            case Image::DataTypeSignedInt:
+                ret = to_qimage_argb32_single_channel_impl<int>(src, dest, horizontalFlip);
+                break;
+            case Image::DataTypeUnsignedInt:
+                ret = to_qimage_argb32_single_channel_impl<unsigned int>(src, dest, horizontalFlip);
+                break;
+            case Image::DataTypeFloat32:
+                ret = to_qimage_argb32_single_channel_impl<float>(src, dest, horizontalFlip);
+                break;
+            case Image::DataTypeFloat64:
+                ret = to_qimage_argb32_single_channel_impl<double>(src, dest, horizontalFlip);
+                break;
+            }
+            break;
+        }
+        return ret;
+    }
+
     static bool convert(const sgi::Image& src, sgi::Image& dest)
     {
         bool ret;
@@ -594,7 +737,7 @@ private:
 
     static bool to_qimage_argb32(const sgi::Image& src, QImage& dest, bool horizontalFlip = false)
     {
-        bool ret;
+        bool ret = false;
         switch (src.format())
         {
         case Image::ImageFormatDXT1:
@@ -602,6 +745,14 @@ private:
         case Image::ImageFormatDXT3:
         case Image::ImageFormatDXT5:
             ret = to_qimage_argb32_dxt(src, dest, horizontalFlip);
+            break;
+        case Image::ImageFormatGray:
+        case Image::ImageFormatRed:
+        case Image::ImageFormatGreen:
+        case Image::ImageFormatBlue:
+        case Image::ImageFormatLuminance:
+        case Image::ImageFormatLuminanceAlpha:
+            ret = to_qimage_argb32_single_channel(src, dest, horizontalFlip);
             break;
         default:
             ret = to_qimage_argb32_with_avcodec(src, dest, horizontalFlip);
@@ -706,6 +857,7 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
         ImageFormatDisplayText[Image::ImageFormatGreen] = tr("Green");
         ImageFormatDisplayText[Image::ImageFormatBlue] = tr("Blue");
         ImageFormatDisplayText[Image::ImageFormatAlpha] = tr("Alpha");
+        ImageFormatDisplayText[Image::ImageFormatFloat] = tr("Float 32-bit");
     }
 	ui = new Ui_ImagePreviewDialog;
 	ui->setupUi(_dialog);
@@ -1046,7 +1198,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::openImageAs()
                     if(result)
                     {
                         originalImage = QImage();
-                        _dialog->_workImage = new Image(targetFormat, data.data(), data.size());
+                        _dialog->_workImage = new Image(targetFormat, Image::DataTypeUnsignedByte, data.data(), data.size());
                         std::vector<Image::ImageSize> sizes;
                         if (_dialog->_workImage->guessImageSizes(sizes) && !sizes.empty())
                         {

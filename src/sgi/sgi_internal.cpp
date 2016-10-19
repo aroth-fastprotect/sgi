@@ -300,6 +300,8 @@ bool writePrettyHTMLImpl<Image>::process(std::basic_ostream<char>& os)
             os << "<tr><td>planeOffset</td><td>" << object->planeOffset(0) << "," << object->planeOffset(1) << "," << object->planeOffset(2) << "," << object->planeOffset(3) << "</td></tr>" << std::endl;
             os << "<tr><td>origin</td><td>" << Image::originToString(object->origin()) << "</td></tr>" << std::endl;
             os << "<tr><td>format</td><td>" << Image::imageFormatToString(object->format()) << "</td></tr>" << std::endl;
+            os << "<tr><td>dataType</td><td>" << Image::dataTypeToString(object->dataType()) << "</td></tr>" << std::endl;
+            os << "<tr><td>bitsPerPixel</td><td>" << object->bitsPerPixel() << "</td></tr>" << std::endl;
             os << "<tr><td>data</td><td>" << object->data() << "</td></tr>" << std::endl;
             os << "<tr><td>length</td><td>" << object->length() << "</td></tr>" << std::endl;
             os << "<tr><td>originalImage</td><td>" << helpers::getRTTIObjectNameAndType_html(object->originalImage()) << "</td></tr>" << std::endl;

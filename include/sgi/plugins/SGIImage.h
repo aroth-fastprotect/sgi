@@ -58,6 +58,20 @@ public:
         ColorSpaceCYMK,
     };
     static std::string colorSpaceToString(ColorSpace colorspace);
+    enum DataType {
+        DataTypeInvalid = -1,
+        DataTypeUnsignedByte,
+        DataTypeSignedByte,
+        DataTypeUnsignedShort,
+        DataTypeSignedShort,
+        DataTypeUnsignedInt,
+        DataTypeSignedInt,
+        DataTypeFloat32,
+        DataTypeFloat64,
+        DataTypeDouble = DataTypeFloat64,
+    };
+    static std::string dataTypeToString(DataType type);
+    static unsigned bitsForDataElement(DataType type);
 
     enum Origin {
         OriginBottomLeft,
@@ -76,12 +90,12 @@ public:
     };
     typedef std::vector<ImageSize> ImageSizeList;
 
-    Image(ImageFormat format=ImageFormatInvalid);
-    explicit Image(ImageFormat format, void * data, size_t length, bool copyData=true);
-    explicit Image(ImageFormat format, Origin origin, void * data, size_t length,
+    Image(ImageFormat format=ImageFormatInvalid, DataType type=DataTypeInvalid);
+    explicit Image(ImageFormat format, DataType type, void * data, size_t length, bool copyData=true);
+    explicit Image(ImageFormat format, DataType type, Origin origin, void * data, size_t length,
           unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
           const osg::Referenced * originalImage, bool copyData = false);
-    explicit Image(ImageFormat format, Origin origin, void * data, size_t length,
+    explicit Image(ImageFormat format, DataType type, Origin origin, void * data, size_t length,
           unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
           QImage * originalImage, bool copyData = false);
     Image(QImage * originalImage, bool copyData = false);
@@ -90,6 +104,7 @@ public:
     virtual ~Image();
 
     ImageFormat format() const { return _format; }
+    DataType dataType() const { return _dataType; }
     const void * data() const { return _data; }
     void * data() { return _data; }
     size_t length() const { return _length; }
@@ -109,12 +124,14 @@ public:
     bool guessImageSizes(ImageSizeList & possibleSizes) const;
     bool reinterpret(const ImageSize & size);
     bool reinterpret(ImageFormat format, unsigned width, unsigned height, unsigned depth = 1);
+    unsigned bitsPerPixel() const;
 
 protected:
     void loadPitchAndPlaneOffsets();
 
 protected:
     ImageFormat _format;
+    DataType _dataType;
     Origin _origin;
     void * _data;
     size_t _length;

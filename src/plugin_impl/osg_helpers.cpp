@@ -794,6 +794,7 @@ const sgi::Image * convertImage(const osg::Image * image)
 
     sgi::Image * ret = NULL;
     sgi::Image::ImageFormat imageFormat;
+    sgi::Image::DataType dataType;
     switch(image->getPixelFormat())
     {
     case 0:imageFormat = sgi::Image::ImageFormatInvalid; break;
@@ -822,10 +823,22 @@ const sgi::Image * convertImage(const osg::Image * image)
     case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT: imageFormat = sgi::Image::ImageFormatDXT5; break;
     default: imageFormat = sgi::Image::ImageFormatRaw; break;
     }
+    switch (image->getDataType())
+    {
+    case GL_BYTE: dataType = sgi::Image::DataTypeSignedByte; break;
+    case GL_UNSIGNED_BYTE: dataType = sgi::Image::DataTypeUnsignedByte; break;
+    case GL_SHORT: dataType = sgi::Image::DataTypeSignedShort; break;
+    case GL_UNSIGNED_SHORT: dataType = sgi::Image::DataTypeUnsignedShort; break;
+    case GL_INT: dataType = sgi::Image::DataTypeSignedInt; break;
+    case GL_UNSIGNED_INT: dataType = sgi::Image::DataTypeUnsignedInt; break;
+    case GL_FLOAT: dataType = sgi::Image::DataTypeFloat32; break;
+    case GL_DOUBLE: dataType = sgi::Image::DataTypeDouble; break;
+    default: dataType = sgi::Image::DataTypeInvalid; break;
+    }
     sgi::Image::Origin origin = (image->getOrigin() == osg::Image::TOP_LEFT) ? sgi::Image::OriginTopLeft : sgi::Image::OriginBottomLeft;
     if(imageFormat != sgi::Image::ImageFormatInvalid)
     {
-        ret = new sgi::Image(imageFormat, origin,
+        ret = new sgi::Image(imageFormat, dataType, origin,
                             const_cast<unsigned char*>(image->data()), image->getTotalDataSize(),
                             image->s(), image->t(), image->r(), image->getRowStepInBytes(),
                             image);
@@ -834,7 +847,7 @@ const sgi::Image * convertImage(const osg::Image * image)
     {
         QImage * qimage = new QImage;
         osgImageToQImage(image, qimage);
-        ret = new sgi::Image(imageFormat, origin,
+        ret = new sgi::Image(imageFormat, dataType, origin,
             const_cast<unsigned char*>(image->data()), image->getTotalDataSize(),
             image->s(), image->t(), image->r(), image->getRowStepInBytes(),
             qimage);
