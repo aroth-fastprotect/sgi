@@ -831,4 +831,17 @@ unsigned Image::planeEndOffset(unsigned index) const
     return ret;
 }
 
+const void * Image::pixelPtr(unsigned x, int unsigned y, unsigned z, unsigned plane) const
+{
+    const void * ret = nullptr;
+    if (_data)
+    {
+        const uint8_t * src_data = reinterpret_cast<const uint8_t *>(_data);
+        unsigned src_bits = bitsForDataElement(_dataType);
+        size_t src_offset = _planeOffset[plane] + ((y * _pitch[plane]) + (x * src_bits / 8));
+        ret = src_data + src_offset;
+    }
+    return ret;
+}
+
 } // namespace sgi

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <QDialog>
+#include <QLabel>
 #include "sgi/plugins/ImagePreviewDialog"
 
 QT_BEGIN_NAMESPACE
@@ -23,6 +24,19 @@ typedef osg::ref_ptr<Image> ImagePtr;
 class SGIPluginHostInterface;
 class IContextMenu;
 typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
+
+class ImagePreviewLabel : public QLabel
+{
+    Q_OBJECT
+public:
+    ImagePreviewLabel(QWidget *parent = 0, Qt::WindowFlags f = 0);
+
+signals:
+    void mouseMoved(float x, float y);
+
+protected:
+    virtual void mouseMoveEvent(QMouseEvent *ev) override;
+};
 
 class ImagePreviewDialog : public QDialog
 {
@@ -59,6 +73,9 @@ public slots:
     void setLabel(const QString & label);
     void showBesideParent();
     void onObjectChanged();
+
+protected slots:
+    void onMouseMoved(float x, float y);
 
 signals:
     void                    triggerOnObjectChanged();

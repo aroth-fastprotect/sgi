@@ -126,6 +126,13 @@ public:
     bool reinterpret(ImageFormat format, unsigned width, unsigned height, unsigned depth = 1);
     unsigned bitsPerPixel() const;
 
+    const void * pixelPtr(unsigned x, int unsigned y, unsigned z = 0, unsigned plane=0) const;
+    template<typename PXTYPE>
+    const PXTYPE * pixel(unsigned x, int unsigned y, unsigned z = 0, unsigned plane = 0) const
+    {
+        return reinterpret_cast<const PXTYPE*>(pixelPtr(x, y, z, plane));
+    }
+
 protected:
     void loadPitchAndPlaneOffsets();
 

@@ -9,6 +9,7 @@
 #include <QImageWriter>
 #include <QImageReader>
 #include <QLibrary>
+#include <QMouseEvent>
 
 #include "ImagePreviewDialog.moc"
 #include "ImagePreviewDialog.h"
@@ -31,6 +32,137 @@ namespace ffmpeg {
 #include <iostream>
 
 namespace sgi {
+
+/// @see http://www.andrewnoske.com/wiki/Code_-_heatmaps_and_color_gradients
+class ColorGradient
+{
+private:
+    struct ColorPoint  // Internal class used to store colors at different points in the gradient.
+    {
+        float r, g, b;      // Red, green and blue values of our color.
+        float val;        // Position of our color along the gradient (between 0 and 1).
+        ColorPoint(float red=0, float green=0, float blue=0, float value=0)
+            : r(red), g(green), b(blue), val(value) {}
+    };
+    std::vector<ColorPoint> color;      // An array of color points in ascending value.
+    ColorPoint invalidColor;
+
+public:
+    /// @see https://en.wikipedia.org/wiki/Heat_map
+    enum NamedGradient {
+        FivePoint,
+        Monochrome,
+        MonochromeInverse,
+        Heat,
+    };
+    //-- Default constructor:
+    ColorGradient(NamedGradient type=FivePoint)
+    { 
+        switch (type)
+        {
+        default:
+        case FivePoint: createFivePointGradient(); break;
+        case Monochrome: createMonochromeGradient(); break;
+        case MonochromeInverse: createMonochromeInverseGradient(); break;
+        case Heat: createHeatGradient(); break;
+        }
+    }
+
+    //-- Inserts a new color point into its correct position:
+    void addColorPoint(float red, float green, float blue, float value)
+    {
+        for (unsigned i = 0; i < color.size(); i++) {
+            if (value < color[i].val) {
+                color.insert(color.begin() + i, ColorPoint(red, green, blue, value));
+                return;
+            }
+        }
+        color.push_back(ColorPoint(red, green, blue, value));
+    }
+
+    //-- Inserts a new color point into its correct position:
+    void clearGradient() { color.clear(); }
+
+    //-- Places a 5 color heatmap gradient into the "color" vector:
+    void createFivePointGradient()
+    {
+        color.clear();
+        color.push_back(ColorPoint(0, 0, 1, 0.0f));      // Blue.
+        color.push_back(ColorPoint(0, 1, 1, 0.25f));     // Cyan.
+        color.push_back(ColorPoint(0, 1, 0, 0.5f));      // Green.
+        color.push_back(ColorPoint(1, 1, 0, 0.75f));     // Yellow.
+        color.push_back(ColorPoint(1, 0, 0, 1.0f));      // Red.
+        invalidColor = ColorPoint(1, 0, 0, 0.0f); // black
+    }
+
+    void createMonochromeGradient()
+    {
+        color.clear();
+        color.push_back(ColorPoint(0, 0, 0, 0.0f));      // Black.
+        color.push_back(ColorPoint(1, 1, 1, 1.0f));      // White.
+        invalidColor = ColorPoint(0, 1, 1, 0.0f);     // Cyan.
+    }
+
+    void createMonochromeInverseGradient()
+    {
+        color.clear();
+        color.push_back(ColorPoint(1, 1, 1, 0.0f));      // White.
+        color.push_back(ColorPoint(0, 0, 0, 1.0f));      // Black.
+        invalidColor = ColorPoint(0, 1, 1, 0.0f);     // Cyan.
+    }
+
+    void createHeatGradient()
+    {
+        color.clear();
+        color.push_back(ColorPoint(0, 0, 1, 0.0f));      // Blue.
+        color.push_back(ColorPoint(1, 0, 0, 1.0f));      // Red.
+        invalidColor = ColorPoint(0, 1, 0, 0.0f);      // Green.
+    }
+
+    //-- Inputs a (value) between 0 and 1 and outputs the (red), (green) and (blue)
+    //-- values representing that position in the gradient.
+    void getColorAtValue(const float value, float &red, float &green, float &blue) const
+    {
+        if (color.size() == 0)
+            return;
+
+        for (unsigned i = 0; i < color.size(); i++)
+        {
+            const ColorPoint &currC = color[i];
+            if (value < currC.val)
+            {
+                const ColorPoint &prevC = color[std::max(0u, i - 1)];
+                float valueDiff = (prevC.val - currC.val);
+                float fractBetween = (valueDiff == 0) ? 0 : (value - currC.val) / valueDiff;
+                red = (prevC.r - currC.r)*fractBetween + currC.r;
+                green = (prevC.g - currC.g)*fractBetween + currC.g;
+                blue = (prevC.b - currC.b)*fractBetween + currC.b;
+                return;
+            }
+        }
+        red = color.back().r;
+        green = color.back().g;
+        blue = color.back().b;
+        return;
+    }
+
+    QRgb getColor(const float value) const
+    {
+        float r, g, b;
+        getColorAtValue(value, r, g, b);
+        return qRgba(r * 255.0f, g * 255.0f, b * 255.0f, 255);
+    }
+    void getInvalidColor(float &red, float &green, float &blue) const
+    {
+        red = invalidColor.r;
+        green = invalidColor.g;
+        blue = invalidColor.b;
+    }
+    QRgb getInvalidColor() const
+    {
+        return qRgba(invalidColor.r * 255.0f, invalidColor.g * 255.0f, invalidColor.b * 255.0f, 255);
+    }
+};
 
 class ImagePreviewDialog::Histogram
 {
@@ -593,29 +725,34 @@ private:
 #define QIMAGE_GRAY(gr) QIMAGE_RGB32(0xff,gr,gr,gr)
 
     template<typename ELEM_TYPE>
-    static inline QRgb compute_pixel(const ELEM_TYPE & p, const ELEM_TYPE & max, const ELEM_TYPE & min, const ELEM_TYPE & range)
+    static inline QRgb compute_pixel(const ColorGradient & colorGradient, const ELEM_TYPE & p, const ELEM_TYPE & min, const ELEM_TYPE & max, const ELEM_TYPE & range)
     {
-        uint32_t gray = range != 0 ? floor((float(p - min) / float(range)) * 255.0f) : 0.0f;
-        return QIMAGE_GRAY(gray);
+        if (range != 0)
+        {
+            float value = float(p - min) / float(range);
+            return colorGradient.getColor(value);
+        }
+        else
+            return colorGradient.getInvalidColor();
     }
 #if 0
     template<>
-    static inline uint32_t compute_pixel<short>(const short & p, const short & max, const short & min, const short & range)
+    static inline uint32_t compute_pixel<short>(const short & p, const short & min, const short & max, const short & range)
     {
         return QIMAGE_GRAY(p);
     }
     template<>
-    static inline uint32_t compute_pixel<unsigned short>(const unsigned short & p, const unsigned short & max, const unsigned short & min, const unsigned short & range)
+    static inline uint32_t compute_pixel<unsigned short>(const unsigned short & p, const unsigned short & min, const unsigned short & max, const unsigned short & range)
     {
         return QIMAGE_GRAY(p);
     }
     template<>
-    static inline uint32_t compute_pixel<int>(const int & p, const int & max, const int & min, const int & range)
+    static inline uint32_t compute_pixel<int>(const int & p, const int & min, const int & max, const int & range)
     {
         return QIMAGE_GRAY(p);
     }
     template<>
-    static inline uint32_t compute_pixel<unsigned int>(const unsigned int & p, const unsigned int & max, const unsigned int & min, const unsigned int & range)
+    static inline uint32_t compute_pixel<unsigned int>(const unsigned int & p, const unsigned int & min, const unsigned int & max, const unsigned int & range)
     {
         return QIMAGE_GRAY(p);
     }
@@ -624,7 +761,7 @@ private:
 
 
     template<typename ELEM_TYPE>
-    static bool to_qimage_argb32_single_channel_impl(const sgi::Image& src, QImage& dest, bool horizontalFlip)
+    static bool to_qimage_argb32_single_channel_impl(const sgi::Image& src, QImage& dest, const ColorGradient & colorGradient, bool horizontalFlip)
     {
         dest = QImage(src.width(), src.height(), QImage::Format_ARGB32);
 
@@ -655,13 +792,13 @@ private:
                 size_t dest_offset = (y * pitch0) + (x * dest_elem_size);
                 const ELEM_TYPE * src_pixel = reinterpret_cast<const ELEM_TYPE *>(src_data + src_offset);
                 QRgb* dest_pixel = reinterpret_cast<QRgb*>(dest_data + dest_offset);
-                *dest_pixel = compute_pixel<ELEM_TYPE>(*src_pixel, elem_min, elem_max, elem_range);
+                *dest_pixel = compute_pixel<ELEM_TYPE>(colorGradient, *src_pixel, elem_min, elem_max, elem_range);
             }
         }
         return true;
     }
 
-    static bool to_qimage_argb32_single_channel(const sgi::Image& src, QImage& dest, bool horizontalFlip = false)
+    static bool to_qimage_argb32_single_channel(const sgi::Image& src, QImage& dest, const ColorGradient & colorGradient, bool horizontalFlip = false)
     {
         bool ret = false;
         switch (src.format())
@@ -676,28 +813,28 @@ private:
             switch (src.dataType())
             {
             case Image::DataTypeSignedByte:
-                ret = to_qimage_argb32_single_channel_impl<char>(src, dest, horizontalFlip);
+                ret = to_qimage_argb32_single_channel_impl<char>(src, dest, colorGradient, horizontalFlip);
                 break;
             case Image::DataTypeUnsignedByte:
-                ret = to_qimage_argb32_single_channel_impl<unsigned char>(src, dest, horizontalFlip);
+                ret = to_qimage_argb32_single_channel_impl<unsigned char>(src, dest, colorGradient, horizontalFlip);
                 break;
             case Image::DataTypeSignedShort:
-                ret = to_qimage_argb32_single_channel_impl<short>(src, dest, horizontalFlip);
+                ret = to_qimage_argb32_single_channel_impl<short>(src, dest, colorGradient, horizontalFlip);
                 break;
             case Image::DataTypeUnsignedShort:
-                ret = to_qimage_argb32_single_channel_impl<unsigned short>(src, dest, horizontalFlip);
+                ret = to_qimage_argb32_single_channel_impl<unsigned short>(src, dest, colorGradient, horizontalFlip);
                 break;
             case Image::DataTypeSignedInt:
-                ret = to_qimage_argb32_single_channel_impl<int>(src, dest, horizontalFlip);
+                ret = to_qimage_argb32_single_channel_impl<int>(src, dest, colorGradient, horizontalFlip);
                 break;
             case Image::DataTypeUnsignedInt:
-                ret = to_qimage_argb32_single_channel_impl<unsigned int>(src, dest, horizontalFlip);
+                ret = to_qimage_argb32_single_channel_impl<unsigned int>(src, dest, colorGradient, horizontalFlip);
                 break;
             case Image::DataTypeFloat32:
-                ret = to_qimage_argb32_single_channel_impl<float>(src, dest, horizontalFlip);
+                ret = to_qimage_argb32_single_channel_impl<float>(src, dest, colorGradient, horizontalFlip);
                 break;
             case Image::DataTypeFloat64:
-                ret = to_qimage_argb32_single_channel_impl<double>(src, dest, horizontalFlip);
+                ret = to_qimage_argb32_single_channel_impl<double>(src, dest, colorGradient, horizontalFlip);
                 break;
             }
             break;
@@ -723,6 +860,8 @@ private:
         return ret;
     }
 
+    static ColorGradient s_defaultColorGradient;
+
     static bool to_qimage_argb32(const sgi::Image& src, QImage& dest, bool horizontalFlip = false)
     {
         bool ret = false;
@@ -740,7 +879,7 @@ private:
         case Image::ImageFormatBlue:
         case Image::ImageFormatLuminance:
         case Image::ImageFormatLuminanceAlpha:
-            ret = to_qimage_argb32_single_channel(src, dest, horizontalFlip);
+            ret = to_qimage_argb32_single_channel(src, dest, s_defaultColorGradient, horizontalFlip);
             break;
         default:
             ret = to_qimage_argb32_with_avcodec(src, dest, horizontalFlip);
@@ -800,14 +939,23 @@ public:
 };
 
 template<>
-inline QRgb SWScale::compute_pixel<char>(const char & p, const char & max, const char & min, const char & range)
+inline QRgb SWScale::compute_pixel<float>(const ColorGradient & colorGradient, const float & p, const float & min, const float & max, const float & range)
 {
-    return QIMAGE_GRAY((unsigned char)p);
-}
-template<>
-inline QRgb SWScale::compute_pixel<unsigned char>(const unsigned char & p, const unsigned char & max, const unsigned char & min, const unsigned char & range)
-{
-    return QIMAGE_GRAY(p);
+    if (range != 0)
+    {
+        if (std::isnan(p))
+            return colorGradient.getInvalidColor();
+        else
+        {
+            float value = float(p - min) / float(range);
+            if (std::isnan(value))
+                return colorGradient.getInvalidColor();
+            else
+                return colorGradient.getColor(value);
+        }
+    }
+    else
+        return colorGradient.getInvalidColor();
 }
 
 
@@ -817,6 +965,7 @@ bool SWScale::ready = false;
 SWScale::pfn_sws_getContext SWScale::sws_getContext = NULL;
 SWScale::pfn_sws_scale SWScale::sws_scale = NULL;
 SWScale::pfn_sws_freeContext SWScale::sws_freeContext = NULL;
+ColorGradient sgi::SWScale::s_defaultColorGradient(ColorGradient::MonochromeInverse);
 
 ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewDialog * dialog_)
     : _dialog(dialog_)
@@ -863,6 +1012,7 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
 	ui->setupUi(_dialog);
 
 	connect(ui->buttonBox->button(QDialogButtonBox::Close), &QPushButton::clicked, _dialog, &ImagePreviewDialog::reject);
+    connect(ui->imageLabel, &ImagePreviewLabel::mouseMoved, _dialog, &ImagePreviewDialog::onMouseMoved);
 
 	ui->imageLabel->setBackgroundRole(QPalette::Base);
 	ui->scrollArea->setBackgroundRole(QPalette::Dark);
@@ -2086,5 +2236,97 @@ SGIItemBase * ImagePreviewDialog::item() const
 {
     return _item.get();
 }
+
+void ImagePreviewDialog::onMouseMoved(float x, float y)
+{
+    QString str;
+    if (_workImage.valid())
+    {
+        int px_x = qRound(x * _workImage->width());
+        int px_y = qRound(y * _workImage->height());
+        QString px_value;
+
+        switch (_workImage->format())
+        {
+        case Image::ImageFormatABGR32:
+            break;
+        case Image::ImageFormatDepth:
+        case Image::ImageFormatFloat:
+            {
+                const float * px = _workImage->pixel<float>(px_x, px_y);
+                px_value = px ? QString::number(*px) : tr("N/A");
+            }
+            break;
+        case Image::ImageFormatRed:
+        case Image::ImageFormatGreen:
+        case Image::ImageFormatBlue:
+        case Image::ImageFormatAlpha:
+        case Image::ImageFormatGray:
+        case Image::ImageFormatLuminance:
+        case Image::ImageFormatLuminanceAlpha:
+            {
+                switch (_workImage->dataType())
+                {
+                case Image::DataTypeUnsignedByte:
+                case Image::DataTypeSignedByte:
+                    {
+                        const unsigned char * px = _workImage->pixel<unsigned char>(px_x, px_y);
+                        px_value = px ? QString::number(*px) : tr("N/A");
+                    }
+                    break;
+                case Image::DataTypeUnsignedShort:
+                case Image::DataTypeSignedShort:
+                    {
+                        const unsigned short * px = _workImage->pixel<unsigned short>(px_x, px_y);
+                        px_value = px ? QString::number(*px) : tr("N/A");
+                    }
+                    break;
+                case Image::DataTypeUnsignedInt:
+                case Image::DataTypeSignedInt:
+                    {
+                        const unsigned int * px = _workImage->pixel<unsigned int>(px_x, px_y);
+                        px_value = px ? QString::number(*px) : tr("N/A");
+                    }
+                    break;
+                case Image::DataTypeFloat32:
+                    {
+                        const float * px = _workImage->pixel<float>(px_x, px_y);
+                        px_value = px ? QString::number(*px) : tr("N/A");
+                    }
+                    break;
+                case Image::DataTypeFloat64:
+                    {
+                        const double * px = _workImage->pixel<double>(px_x, px_y);
+                        px_value = px ? QString::number(*px) : tr("N/A");
+                    }
+                    break;
+                }
+            }
+            break;
+        }
+
+        str = tr("X=%1, Y=%2, value=%3").arg(px_x).arg(px_y).arg(px_value);
+    }
+    else
+        str = tr("X=%1, Y=%2").arg(x).arg(y);
+    _priv->ui->mouseinfo->setText(str);
+}
+
+ImagePreviewLabel::ImagePreviewLabel(QWidget *parent, Qt::WindowFlags f)
+    : QLabel(parent, f)
+{
+    setMouseTracking(true);
+}
+
+void ImagePreviewLabel::mouseMoveEvent(QMouseEvent *ev)
+{
+    QLabel::mouseMoveEvent(ev);
+    
+    float x = float(ev->x()) / float(width());
+    float y = float(ev->y()) / float(height());
+
+    emit mouseMoved(x, y);
+}
+
 
 } // namespace sgi
