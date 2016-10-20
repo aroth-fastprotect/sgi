@@ -588,14 +588,12 @@ private:
         return ret;
     }
 
-#define QIMAGE_RGB32(a, r,g,b) \
-    ((a << 24) | (r << 16) | (g << 8) | b)
-
+#define QIMAGE_RGB32(a,r,g,b) qRgba(r,g,b,a)
 #define QIMAGE_RGB24(r,g,b) QIMAGE_RGB32(0xff,r,g,b)
 #define QIMAGE_GRAY(gr) QIMAGE_RGB32(0xff,gr,gr,gr)
 
     template<typename ELEM_TYPE>
-    static inline uint32_t compute_pixel(const ELEM_TYPE & p, const ELEM_TYPE & max, const ELEM_TYPE & min, const ELEM_TYPE & range)
+    static inline QRgb compute_pixel(const ELEM_TYPE & p, const ELEM_TYPE & max, const ELEM_TYPE & min, const ELEM_TYPE & range)
     {
         uint32_t gray = range != 0 ? floor((float(p - min) / float(range)) * 255.0f) : 0.0f;
         return QIMAGE_GRAY(gray);
@@ -656,7 +654,7 @@ private:
                 size_t src_offset = (y * pitch0) + (x * src_elem_size);
                 size_t dest_offset = (y * pitch0) + (x * dest_elem_size);
                 const ELEM_TYPE * src_pixel = reinterpret_cast<const ELEM_TYPE *>(src_data + src_offset);
-                uint32_t * dest_pixel = reinterpret_cast<uint32_t *>(dest_data + dest_offset);
+                QRgb* dest_pixel = reinterpret_cast<QRgb*>(dest_data + dest_offset);
                 *dest_pixel = compute_pixel<ELEM_TYPE>(*src_pixel, elem_min, elem_max, elem_range);
             }
         }
@@ -802,12 +800,12 @@ public:
 };
 
 template<>
-inline uint32_t SWScale::compute_pixel<char>(const char & p, const char & max, const char & min, const char & range)
+inline QRgb SWScale::compute_pixel<char>(const char & p, const char & max, const char & min, const char & range)
 {
     return QIMAGE_GRAY((unsigned char)p);
 }
 template<>
-inline uint32_t SWScale::compute_pixel<unsigned char>(const unsigned char & p, const unsigned char & max, const unsigned char & min, const unsigned char & range)
+inline QRgb SWScale::compute_pixel<unsigned char>(const unsigned char & p, const unsigned char & max, const unsigned char & min, const unsigned char & range)
 {
     return QIMAGE_GRAY(p);
 }

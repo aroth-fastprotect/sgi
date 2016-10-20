@@ -190,6 +190,7 @@ void Image::loadPitchAndPlaneOffsets()
     case ImageFormatBGRA32:
     case ImageFormatABGR32:
     case ImageFormatFloat:
+    case ImageFormatDepth:
     {
         _pitch[0] = _width * 4;
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
@@ -241,7 +242,7 @@ void Image::loadPitchAndPlaneOffsets()
     case ImageFormatYUYV:
     case ImageFormatUYVY:
     {
-        _pitch[0] = _width;
+        _pitch[0] = _width + (_width / 2);
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
         _lines[0] = _height;
         _lines[1] = _lines[2] = _lines[3] = 0;
@@ -253,20 +254,11 @@ void Image::loadPitchAndPlaneOffsets()
     case ImageFormatGreen:
     case ImageFormatBlue:
     case ImageFormatAlpha:
-    {
-        // only one channel with 8-bit color data
-        _pitch[0] = _width;
-        _pitch[1] = _pitch[2] = _pitch[3] = 0;
-        _lines[0] = _height;
-        _lines[1] = _lines[2] = _lines[3] = 0;
-        _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
-    }
-    break;
     case ImageFormatLuminance:
     case ImageFormatLuminanceAlpha:
     {
         // only one channel with 8-bit color data
-        _pitch[0] = _width;
+        _pitch[0] = (_width * bitsForDataElement(_dataType)) / 8;
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
         _lines[0] = _height;
         _lines[1] = _lines[2] = _lines[3] = 0;
@@ -295,6 +287,18 @@ void Image::loadPitchAndPlaneOffsets()
         _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
     }
     break;
+    case ImageFormatMono:
+    case ImageFormatMonoLSB:
+    case ImageFormatIndexed8:
+    {
+        _pitch[0] = _width;
+        _pitch[1] = _pitch[2] = _pitch[3] = 0;
+        _lines[0] = _height;
+        _lines[1] = _lines[2] = _lines[3] = 0;
+        _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+    }
+    break;
+
     }
 }
 
@@ -372,6 +376,7 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
         _width = width;
         _height = height;
         _format = format;
+        _dataType = DataTypeUnsignedByte;
         _origin = origin;
         loadPitchAndPlaneOffsets();
         ret = _data != NULL;
