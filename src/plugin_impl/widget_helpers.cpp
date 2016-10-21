@@ -12,7 +12,7 @@ HighlightWidget::HighlightWidget(QWidget *parent)
     , _timer(new QTimer(this))
 	, _counter(0)
 {
-    init(330, 10000);
+    init(DEFAULT_INTERVAL, DEFAULT_AUTOCLOSE_TIME);
 }
 
 HighlightWidget::HighlightWidget(unsigned interval, unsigned autoCloseTime, QWidget *parent)
