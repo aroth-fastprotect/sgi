@@ -3,6 +3,7 @@
 
 #include <sstream>
 #include <vector>
+#include <sgi/Export>
 
 namespace sgi {
 namespace helpers {
@@ -114,8 +115,8 @@ inline void str_append(std::string & str, const INT_TYPE & n, const char seperat
     str = buf.str();
 }
 
-void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size);
-std::string joinStrings(const std::vector<std::string>& input, char delim);
+SGI_EXPORT void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size);
+SGI_EXPORT std::string joinStrings(const std::vector<std::string>& input, char delim);
 
 } // namespace helpers
 } // namespace sgi

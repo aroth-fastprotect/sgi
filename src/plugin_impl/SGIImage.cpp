@@ -1,5 +1,5 @@
 // kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// SGI - Copyright (C) 2012-2016 FAST Protect, Andreas Roth
 
 #include <sgi/plugins/SGIImage.h>
 #include <sstream>

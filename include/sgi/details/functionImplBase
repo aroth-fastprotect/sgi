@@ -8,6 +8,8 @@
 #include <sgi/details/static_type_name>
 #include <sgi/details/type_list>
 #include <sgi/details/caster>
+#include <sgi/Export>
+
 #include <typeindex>
 #include <unordered_map>
 
@@ -184,7 +186,7 @@ private:
     InterfaceWrapper _iface;
 };
 
-class functionImplBase
+class SGI_EXPORT functionImplBase
 {
 public:
     functionImplBase(SGIPluginHostInterface * hostInterface, SGIItemBase * item=NULL);

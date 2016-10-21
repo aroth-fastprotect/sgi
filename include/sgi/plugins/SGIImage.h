@@ -1,16 +1,17 @@
 // kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// SGI - Copyright (C) 2012-2016 FAST Protect, Andreas Roth
 
 #pragma once
 #include <osg/Object>
 #include <osg/ref_ptr>
 #include <osg/observer_ptr>
+#include <sgi/Export>
 
 class QImage;
 
 namespace sgi {
 
-class Image : public osg::Referenced
+class SGI_EXPORT Image : public osg::Referenced
 {
 public:
     enum ImageFormat {
@@ -99,6 +100,7 @@ public:
           unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
           QImage * originalImage, bool copyData = false);
     Image(QImage * originalImage, bool copyData = false);
+
     Image(const Image & rhs);
     Image & operator=(const Image & rhs);
     virtual ~Image();
@@ -116,7 +118,7 @@ public:
     unsigned planeOffset(unsigned index=0) const { return _planeOffset[index]; }
     unsigned planeEndOffset(unsigned index = 0) const;
     const osg::Referenced * originalImage() const { return _originalImage.get(); }
-	QImage * originalImageQt() const { return _originalImageQt; }
+    QImage * originalImageQt() const { return _originalImageQt; }
     Origin origin() const { return _origin; }
     bool allocate(unsigned width, unsigned height, ImageFormat format, Origin origin=OriginDefault);
     void free();
@@ -149,7 +151,7 @@ protected:
     unsigned _lines[4];
     unsigned _planeOffset[4];
     osg::ref_ptr<const osg::Referenced> _originalImage;
-	QImage * _originalImageQt;
+    QImage * _originalImageQt;
     bool _allocated;
 };
 

@@ -178,7 +178,7 @@ public:
     OBJECT_TREE_BUILD_ROOT_IMPL_DECLARE(__type) \
     OBJECT_TREE_BUILD_ROOT_IMPL_REGISTER(__type)
 
-class ObjectTreeItem : public IObjectTreeItem
+class SGI_EXPORT ObjectTreeItem : public IObjectTreeItem
 {
 public:
     static SGIPluginHostInterface * s_hostInterface;

@@ -843,15 +843,6 @@ const sgi::Image * convertImage(const osg::Image * image)
                             image->s(), image->t(), image->r(), image->getRowStepInBytes(),
                             image);
     }
-    else
-    {
-        QImage * qimage = new QImage;
-        osgImageToQImage(image, qimage);
-        ret = new sgi::Image(imageFormat, dataType, origin,
-            const_cast<unsigned char*>(image->data()), image->getTotalDataSize(),
-            image->s(), image->t(), image->r(), image->getRowStepInBytes(),
-            qimage);
-    }
     return ret;
 }
 

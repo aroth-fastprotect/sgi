@@ -1,5 +1,5 @@
 // kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// SGI - Copyright (C) 2012-2016 FAST Protect, Andreas Roth
 
 #pragma once
 #include <osg/Object>
@@ -7,6 +7,7 @@
 #include <osg/observer_ptr>
 #include <vector>
 #include <typeinfo>
+#include <sgi/Export>
 
 class QImage;
 
@@ -61,7 +62,7 @@ public:
     virtual unsigned pluginScore() const = 0;
 };
 
-class SGIItemBase : public osg::Object
+class SGI_EXPORT SGIItemBase : public osg::Object
 {
 public:
     static unsigned getTotalItemCount();

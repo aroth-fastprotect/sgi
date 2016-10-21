@@ -3,13 +3,14 @@
 #pragma once
 
 #include <QWidget>
+#include <sgi/Export>
 
 class QTimer;
 
 namespace sgi {
 namespace qt_helpers {
 
-class HighlightWidget : public QWidget
+class SGI_EXPORT HighlightWidget : public QWidget
 {
     Q_OBJECT
 
