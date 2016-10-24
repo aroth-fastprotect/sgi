@@ -31,9 +31,8 @@
 
 #include "stdafx.h"
 #include "dxt.h"
-#include "endian.h"
-#include "imath.h"
-#include "dds.h"
+#include "dxt_endian.h"
+#include "dxt_imath.h"
 #include "dxt_tables.h"
 
 /* extract 4x4 BGRA block */
