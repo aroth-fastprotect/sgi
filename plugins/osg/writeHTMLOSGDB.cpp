@@ -168,10 +168,72 @@ bool writePrettyHTMLImpl<osgDB::Registry>::process(std::basic_ostream<char>& os)
     return ret;
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgDB::Options::CacheHintOptions & t)
+{
+    if (t == osgDB::Options::CACHE_NONE)
+        os << "none";
+    else
+    {
+        std::vector<std::string> l;
+        if (t & osgDB::Options::CACHE_ARCHIVES)
+            l.push_back("archives");
+        if (t & osgDB::Options::CACHE_NODES)
+            l.push_back("nodes");
+        if (t & osgDB::Options::CACHE_IMAGES)
+            l.push_back("images");
+        if (t & osgDB::Options::CACHE_HEIGHTFIELDS)
+            l.push_back("heightfields");
+        if (t & osgDB::Options::CACHE_OBJECTS)
+            l.push_back("objects");
+        if (t & osgDB::Options::CACHE_SHADERS)
+            l.push_back("shaders");
+        os << helpers::joinStrings(l, ',');
+    }
+    return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgDB::Options::PrecisionHint & t)
+{
+    if (t == osgDB::Options::FLOAT_PRECISION_ALL)
+        os << "float";
+    else
+    {
+        std::vector<std::string> l;
+        if (t & osgDB::Options::DOUBLE_PRECISION_VERTEX)
+            l.push_back("double vertex");
+        if (t & osgDB::Options::DOUBLE_PRECISION_NORMAL)
+            l.push_back("double normal");
+        if (t & osgDB::Options::DOUBLE_PRECISION_COLOR)
+            l.push_back("double color");
+        if (t & osgDB::Options::DOUBLE_PRECISION_SECONDARY_COLOR)
+            l.push_back("double second color");
+        if (t & osgDB::Options::DOUBLE_PRECISION_FOG_COORD)
+            l.push_back("double fog coord");
+        if (t & osgDB::Options::DOUBLE_PRECISION_TEX_COORD)
+            l.push_back("double tex coord");
+        if (t & osgDB::Options::DOUBLE_PRECISION_VERTEX_ATTRIB)
+            l.push_back("double vertex attrib");
+        os << helpers::joinStrings(l, ',');
+    }
+    return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgDB::Options::BuildKdTreesHint & t)
+{
+    switch (t)
+    {
+    case osgDB::Options::NO_PREFERENCE: os << "NO_PREFERENCE"; break;
+    case osgDB::Options::DO_NOT_BUILD_KDTREES: os << "DO_NOT_BUILD_KDTREES"; break;
+    case osgDB::Options::BUILD_KDTREES: os << "BUILD_KDTREES"; break;
+    default: os << "unknown" << (int)t; break;
+    }
+    return os;
+}
+
 bool writePrettyHTMLImpl<osgDB::Options>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osgDB::Options * object = getObject<osgDB::Options,SGIItemOsg>();
+    OptionsAccess * object = static_cast<OptionsAccess *>(getObject<osgDB::Options, SGIItemOsg>());
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -198,7 +260,25 @@ bool writePrettyHTMLImpl<osgDB::Options>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>authentication map</td><td>" << (object->getAuthenticationMap()?"true":"false") << "</td></tr>" << std::endl;
 
-            os << "<tr><td>plugin data</td><td>not available yet</td></tr>" << std::endl;
+            const OptionsAccess::PluginDataMap & pluginData = object->getPluginDataMap();
+            os << "<tr><td>plugin data</td><td><ul>";
+            for(auto it = pluginData.begin(); it != pluginData.end(); ++it)
+            {
+                const std::string & key = it->first;
+                const void * data = it->second;
+                os << "<li>" << key << "=" << data << "</li>" << std::endl;
+            }
+            os << "<ul></td></tr>" << std::endl;
+
+            const OptionsAccess::PluginStringDataMap & pluginStringData = object->getPluginStringDataMap();
+            os << "<tr><td>plugin string data</td><td><ul>";
+            for (auto it = pluginStringData.begin(); it != pluginStringData.end(); ++it)
+            {
+                const std::string & key = it->first;
+                const std::string & data = it->second;
+                os << "<li>" << key << "=" << data << "</li>" << std::endl;
+            }
+            os << "<ul></td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;

@@ -91,6 +91,22 @@ public:
     Mode                getMode() const { return _mode; }
 };
 
+class OptionsAccess : public osgDB::Options
+{
+public:
+    typedef std::map<std::string, void*> PluginDataMap;
+    typedef std::map<std::string, std::string> PluginStringDataMap;
+
+    const PluginDataMap & getPluginDataMap() const 
+    {
+        return _pluginData;
+    }
+    const PluginStringDataMap & getPluginStringDataMap() const
+    {
+        return _pluginStringData;
+    }
+};
+
 } // namespace osg_plugin
 } // namespace sgi
 

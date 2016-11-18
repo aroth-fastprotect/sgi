@@ -104,6 +104,7 @@ enum MenuAction {
     MenuActionProxyNodeSetRadius,
     MenuActionProxyNodeLoadingExternalReferenceMode,
     MenuActionProxyNodeForceLoad,
+    MenuActionProxyNodeReload,
     MenuActionProxyNodeSetDatabasePath,
     MenuActionLODSetRangeMode,
     MenuActionPagedLODDisableExternalChildrenPaging,

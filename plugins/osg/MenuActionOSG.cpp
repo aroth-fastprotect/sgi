@@ -124,6 +124,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetCenter)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetRadius)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeLoadingExternalReferenceMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeForceLoad)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeReload)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetDatabasePath)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLODSetRangeMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionPagedLODDisableExternalChildrenPaging)
@@ -1064,17 +1065,17 @@ bool actionHandlerImpl<MenuActionProxyNodeLoadingExternalReferenceMode>::execute
     return true;
 }
 
-bool actionHandlerImpl<MenuActionProxyNodeForceLoad>::execute()
+bool forceLoadingProxyNode(osg::ProxyNode * object)
 {
-    osg::ProxyNode * object = getObject<osg::ProxyNode, SGIItemOsg>();
+    bool ret = false;
     unsigned numFilenames = object->getNumFileNames();
     unsigned numChildren = object->getNumChildren();
-    if(numFilenames > numChildren)
+    if (numFilenames > numChildren)
     {
         osg::Camera* camera = findFirstParentOfType<osg::Camera>(object);
-        osgViewer::View * viewptr = camera?dynamic_cast<osgViewer::View*>(camera->getView()):NULL;
+        osgViewer::View * viewptr = camera ? dynamic_cast<osgViewer::View*>(camera->getView()) : NULL;
         osg::NodePathList nodepaths = object->getParentalNodePaths();
-        if(!nodepaths.empty() && viewptr)
+        if (!nodepaths.empty() && viewptr)
         {
             osg::NodePath nodepath = nodepaths.front();
             const osgDB::DatabasePager * pager = viewptr->getDatabasePager();
@@ -1082,14 +1083,36 @@ bool actionHandlerImpl<MenuActionProxyNodeForceLoad>::execute()
             osg::ref_ptr<osg::Referenced> opts = object->getDatabaseOptions();
             const std::string & databasePath = object->getDatabasePath();
 
-            for(unsigned int i=numChildren; i<numFilenames; ++i)
+            for (unsigned int i = numChildren; i < numFilenames; ++i)
             {
                 const std::string & filename = object->getFileName(i);
                 const float priority = 1.0f;
                 const_cast<osgDB::DatabasePager*>(pager)->requestNodeFile(databasePath + filename, nodepath, priority, fs, object->getDatabaseRequest(i), opts);
+                ret = true;
             }
         }
     }
+    return ret;
+}
+
+bool actionHandlerImpl<MenuActionProxyNodeForceLoad>::execute()
+{
+    osg::ProxyNode * object = getObject<osg::ProxyNode, SGIItemOsg>();
+    forceLoadingProxyNode(object);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionProxyNodeReload>::execute()
+{
+    osg::ProxyNode * object = getObject<osg::ProxyNode, SGIItemOsg>();
+    unsigned num = object->getNumFileNames();
+    std::vector<std::string> filenames(num);
+    for (unsigned i = 0; i < num; ++i)
+        filenames[i] = object->getFileName(i);
+    object->removeChildren(0, object->getNumChildren());
+    for (unsigned i = 0; i < num; ++i)
+        object->setFileName(i, filenames[i]);
+    forceLoadingProxyNode(object);
     return true;
 }
 

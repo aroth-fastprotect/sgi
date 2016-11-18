@@ -1367,8 +1367,11 @@ bool contextMenuPopulateImpl<osg::ProxyNode>::populate(IContextMenuItem * menuIt
                 loadingModeMenu->addModeAction("No loading", osg::ProxyNode::NO_AUTOMATIC_LOADING);
             }
             IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
-            if(manipulateMenu)
+            if (manipulateMenu)
+            {
                 manipulateMenu->addSimpleAction(MenuActionProxyNodeForceLoad, "Force load", _item);
+                manipulateMenu->addSimpleAction(MenuActionProxyNodeReload, "Reload", _item);
+            }
 
         }
         break;
