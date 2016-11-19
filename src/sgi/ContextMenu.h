@@ -19,7 +19,20 @@ typedef std::list<SGIDataItemBasePtr> SGIDataItemBasePtrList;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrVector;
 
-class ContextMenu : public QMenu
+class ContextMenuBase : public QMenu
+{
+    Q_OBJECT
+public:
+    ContextMenuBase(QWidget *parent = 0);
+    virtual ~ContextMenuBase();
+signals:
+    void hidden();
+
+protected:
+    void hideEvent(QHideEvent *event) override;
+};
+
+class ContextMenu : public ContextMenuBase
 {
     Q_OBJECT
 public:

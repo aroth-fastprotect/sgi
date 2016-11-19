@@ -7,6 +7,18 @@
 #include <QMetaType>
 #include <sgi/plugins/SGIDataItemBase.h>
 
+#if !defined(Q_VERIFY)
+# if !defined(QT_NO_DEBUG)
+#  define Q_VERIFY Q_ASSERT
+# else
+#  define Q_VERIFY(expr)  \
+    do                    \
+    {                     \
+        (void) (expr);    \
+    } while (0)
+# endif
+#endif
+
 class QVariant;
 class QVariant;
 class QString;

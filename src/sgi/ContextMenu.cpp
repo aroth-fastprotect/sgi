@@ -20,6 +20,21 @@ namespace sgi {
 
 using namespace qt_helpers;
 
+ContextMenuBase::ContextMenuBase(QWidget *parent)
+    : QMenu(parent)
+{
+}
+
+ContextMenuBase::~ContextMenuBase()
+{
+}
+
+void ContextMenuBase::hideEvent(QHideEvent *event)
+{
+    QMenu::hideEvent(event);
+    emit hidden();
+}
+
 class ContextMenu::ContextMenuItem : public IContextMenuItem
 {
 public:
@@ -142,7 +157,7 @@ public:
         QMenu * menu = getOrCreateNamedMenu(_menu, fromLocal8Bit(name), userData);
         return addChild(new ContextMenuItem(_contextMenu, menu));
     }
-    
+
     IContextMenu * menu() override
     {
         return _contextMenu->menuInterface();
@@ -156,7 +171,7 @@ protected:
     }
     IContextMenuItem * addMenuImpl(const std::string & name, SGIItemBase * item, osg::Referenced * userData)
     {
-        QMenu * newMenu = new QMenu(_menu);
+        ContextMenuBase * newMenu = new ContextMenuBase(_menu);
         QtMenuSGIItem itemData(item);
         itemData.setUserData(userData);
         QString itemText;
@@ -171,8 +186,8 @@ protected:
 
         newMenu->setTitle(itemText);
         newMenu->menuAction()->setData(QVariant::fromValue(itemData));
-        connect(newMenu, &QMenu::aboutToShow, _contextMenu, &ContextMenu::slotPopulateItemMenu);
-        connect(newMenu, &QMenu::hide, _contextMenu, &ContextMenu::slotClearItemMenu);
+        Q_VERIFY(connect(newMenu, &QMenu::aboutToShow, _contextMenu, &ContextMenu::slotPopulateItemMenu));
+        Q_VERIFY(connect(newMenu, &ContextMenuBase::hidden, _contextMenu, &ContextMenu::slotClearItemMenu, Qt::QueuedConnection));
         // ... and finally add the new sub-menu to the menu
         _menu->addMenu(newMenu);
         return addChild(new ContextMenuItem(_contextMenu, newMenu));
@@ -197,7 +212,7 @@ protected:
 
         QActionGroup * actionGroup = new QActionGroup(newMenu);
         actionGroup->setExclusive(true);
-        connect(actionGroup, &QActionGroup::triggered, _contextMenu, &ContextMenu::slotActionGroup);
+        Q_VERIFY(connect(actionGroup, &QActionGroup::triggered, _contextMenu, &ContextMenu::slotActionGroup));
 
         newMenu->setTitle(itemText);
         newMenu->menuAction()->setData(QVariant::fromValue(itemData));
@@ -340,30 +355,30 @@ public:
 };
 
 ContextMenu::ContextMenu(bool onlyRootItem, QWidget * parent)
-    : QMenu(parent)
+    : ContextMenuBase(parent)
     , _interface(new ContextMenuImpl(this))
     , _item()
     , _hostCallback(NULL)
     , _onlyRootItem(onlyRootItem)
 {
-    connect(this, &QMenu::aboutToShow, this, &ContextMenu::slotPopulateItemMenu);
-    connect(this, &QMenu::hide, this, &ContextMenu::slotClearItemMenu);
-	connect(this, &ContextMenu::triggerPopup, this, &ContextMenu::popup);
-	connect(this, &ContextMenu::triggerUpdateMenu, this, &ContextMenu::updateMenu);
+    Q_VERIFY(connect(this, &QMenu::aboutToShow, this, &ContextMenu::slotPopulateItemMenu));
+    Q_VERIFY(connect(this, &ContextMenuBase::hidden, this, &ContextMenu::slotClearItemMenu, Qt::QueuedConnection));
+	Q_VERIFY(connect(this, &ContextMenu::triggerPopup, this, &ContextMenu::popup));
+	Q_VERIFY(connect(this, &ContextMenu::triggerUpdateMenu, this, &ContextMenu::updateMenu));
 }
 
 ContextMenu::ContextMenu(SGIItemBase * item, IHostCallback* callback, bool onlyRootItem, QWidget *parent)
-    : QMenu(parent)
+    : ContextMenuBase(parent)
     , _interface(new ContextMenuImpl(this))
     , _item(item)
     , _hostCallback(callback)
     , _onlyRootItem(onlyRootItem)
 {
     populate();
-    connect(this, &QMenu::aboutToShow, this, &ContextMenu::slotPopulateItemMenu);
-    connect(this, &QMenu::hide, this, &ContextMenu::slotClearItemMenu);
-	connect(this, &ContextMenu::triggerPopup, this, &ContextMenu::popup);
-	connect(this, &ContextMenu::triggerUpdateMenu, this, &ContextMenu::updateMenu);
+    Q_VERIFY(connect(this, &QMenu::aboutToShow, this, &ContextMenu::slotPopulateItemMenu));
+    Q_VERIFY(connect(this, &ContextMenuBase::hidden, this, &ContextMenu::slotClearItemMenu, Qt::QueuedConnection));
+	Q_VERIFY(connect(this, &ContextMenu::triggerPopup, this, &ContextMenu::popup));
+	Q_VERIFY(connect(this, &ContextMenu::triggerUpdateMenu, this, &ContextMenu::updateMenu));
 }
 
 ContextMenu::~ContextMenu()
@@ -429,6 +444,7 @@ void ContextMenu::slotPopulateItemMenu()
 void ContextMenu::slotClearItemMenu()
 {
     QMenu * menu = qobject_cast<QMenu *>(sender());
+    qDebug() << "slotClearItemMenu()" << this << menu;
     if (menu)
     {
         QAction * action = menu->menuAction();
