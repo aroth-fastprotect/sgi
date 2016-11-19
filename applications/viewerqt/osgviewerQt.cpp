@@ -337,184 +337,6 @@ osg::NotifySeverity severityFromString(const std::string & input)
     return ret;
 }
 
-namespace {
-
-    static inline QRgb qt_gl_convertToGLFormatHelper(QRgb src_pixel, GLenum texture_format)
-    {
-        if (texture_format == GL_BGRA) {
-            if (QSysInfo::ByteOrder == QSysInfo::BigEndian) {
-                return ((src_pixel << 24) & 0xff000000)
-                    | ((src_pixel >> 24) & 0x000000ff)
-                    | ((src_pixel << 8) & 0x00ff0000)
-                    | ((src_pixel >> 8) & 0x0000ff00);
-            }
-            else {
-                return src_pixel;
-            }
-        }
-        else {  // GL_RGBA
-            if (QSysInfo::ByteOrder == QSysInfo::BigEndian) {
-                return (src_pixel << 8) | ((src_pixel >> 24) & 0xff);
-            }
-            else {
-                return ((src_pixel << 16) & 0xff0000)
-                    | ((src_pixel >> 16) & 0xff)
-                    | (src_pixel & 0xff00ff00);
-            }
-        }
-    }
-
-    QRgb qt_gl_convertToGLFormat(QRgb src_pixel, GLenum texture_format)
-    {
-        return qt_gl_convertToGLFormatHelper(src_pixel, texture_format);
-    }
-
-    static void convertToGLFormatHelper(QImage &dst, const QImage &img, GLenum texture_format)
-    {
-        Q_ASSERT(dst.depth() == 32);
-        Q_ASSERT(img.depth() == 32);
-
-        if (dst.size() != img.size()) {
-            int target_width = dst.width();
-            int target_height = dst.height();
-            qreal sx = target_width / qreal(img.width());
-            qreal sy = target_height / qreal(img.height());
-
-            quint32 *dest = (quint32 *)dst.scanLine(0); // NB! avoid detach here
-            uchar *srcPixels = (uchar *)img.scanLine(img.height() - 1);
-            int sbpl = img.bytesPerLine();
-            int dbpl = dst.bytesPerLine();
-
-            int ix = int(0x00010000 / sx);
-            int iy = int(0x00010000 / sy);
-
-            quint32 basex = int(0.5 * ix);
-            quint32 srcy = int(0.5 * iy);
-
-            // scale, swizzle and mirror in one loop
-            while (target_height--) {
-                const uint *src = (const quint32 *)(srcPixels - (srcy >> 16) * sbpl);
-                int srcx = basex;
-                for (int x = 0; x < target_width; ++x) {
-                    dest[x] = qt_gl_convertToGLFormatHelper(src[srcx >> 16], texture_format);
-                    srcx += ix;
-                }
-                dest = (quint32 *)(((uchar *)dest) + dbpl);
-                srcy += iy;
-            }
-        }
-        else {
-            const int width = img.width();
-            const int height = img.height();
-            const uint *p = (const uint*)img.scanLine(img.height() - 1);
-            uint *q = (uint*)dst.scanLine(0);
-
-            if (texture_format == GL_BGRA) {
-                if (QSysInfo::ByteOrder == QSysInfo::BigEndian) {
-                    // mirror + swizzle
-                    for (int i = 0; i < height; ++i) {
-                        const uint *end = p + width;
-                        while (p < end) {
-                            *q = ((*p << 24) & 0xff000000)
-                                | ((*p >> 24) & 0x000000ff)
-                                | ((*p << 8) & 0x00ff0000)
-                                | ((*p >> 8) & 0x0000ff00);
-                            p++;
-                            q++;
-                        }
-                        p -= 2 * width;
-                    }
-                }
-                else {
-                    p = (const uint*)img.scanLine(0);
-                    for (int i = 0; i < height; ++i) {
-                        const uint *end = p + width;
-                        while (p < end) {
-                            *q = ((*p << 16) & 0xff0000) | ((*p >> 16) & 0xff) | (*p & 0xff00ff00);
-                            p++;
-                            q++;
-                        }
-                        //p -= 2 * width;
-                    }
-                    /*
-                    const uint bytesPerLine = img.bytesPerLine();
-                    for (int i = 0; i < height; ++i) {
-                        memcpy(q, p, bytesPerLine);
-                        q += width;
-                        p -= width;
-                    }
-                    */
-                }
-            }
-            else {
-                if (QSysInfo::ByteOrder == QSysInfo::BigEndian) {
-                    for (int i = 0; i < height; ++i) {
-                        const uint *end = p + width;
-                        while (p < end) {
-                            *q = (*p << 8) | ((*p >> 24) & 0xff);
-                            p++;
-                            q++;
-                        }
-                        p -= 2 * width;
-                    }
-                }
-                else {
-                    for (int i = 0; i < height; ++i) {
-                        const uint *end = p + width;
-                        while (p < end) {
-                            *q = ((*p << 16) & 0xff0000) | ((*p >> 16) & 0xff) | (*p & 0xff00ff00);
-                            p++;
-                            q++;
-                        }
-                        p -= 2 * width;
-                    }
-                }
-            }
-        }
-    }
-
-    QImage convertToGLFormat(const QImage& img)
-    {
-        QImage res(img.size(), QImage::Format_ARGB32);
-        convertToGLFormatHelper(res, img.convertToFormat(QImage::Format_ARGB32), GL_BGRA);
-        return res;
-    }
-}
-
-bool osgImageToQImage(const osg::Image * image, QImage * qimage)
-{
-    bool ret = false;
-    QImage::Format format;
-    switch (image->getPixelFormat())
-    {
-    case GL_RGB:
-        format = QImage::Format_RGB888;
-        break;
-    case GL_RGBA:
-        //format = QImage::Format_ARGB32;
-        format = QImage::Format_ARGB32_Premultiplied;
-        break;
-    case GL_LUMINANCE:
-        format = QImage::Format_Indexed8;
-        break;
-    default:
-        format = QImage::Format_Invalid;
-        break;
-    }
-
-    if (format != QImage::Format_Invalid)
-    {
-        int bytesPerLine = image->getRowSizeInBytes();
-        int width = image->s();
-        int height = image->t();
-        *qimage = QImage(image->data(), width, height, bytesPerLine, format);
-        *qimage = convertToGLFormat(*qimage);
-        //ret = ret.mirrored(false, true);
-        ret = true;
-    }
-    return ret;
-}
-
 class KeyboardDumpHandler : public osgGA::GUIEventHandler
 {
 public:
@@ -851,7 +673,7 @@ void setupWidgetAutoCloseTimer(QWidget * widget, int milliseconds)
 
 ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     : QMainWindow(parent)
-    , osgViewer::CompositeViewer(arguments)
+    , _viewer(new osgViewer::CompositeViewer(arguments))
     , _timer(new QTimer(this))
 {
     int screenNum = -1;
@@ -862,17 +684,17 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
 
 #if QT_VERSION >= 0x050000
     // Qt5 is currently crashing and reporting "Cannot make QOpenGLContext current in a different thread" when the viewer is run multi-threaded, this is regression from Qt4
-    setThreadingModel(osgViewer::ViewerBase::SingleThreaded);
+    _viewer->setThreadingModel(osgViewer::ViewerBase::SingleThreaded);
 #endif
 
     // disable the default setting of viewer.done() by pressing Escape.
-    setKeyEventSetsDone(0);
+    _viewer->setKeyEventSetsDone(0);
 
     _mainGW = createGraphicsWindow(0,0,QMainWindow::width(),QMainWindow::height());
     setCentralWidget(_mainGW->getGLWidget());
 
     _view = new osgViewer::View;
-    addView( _view );
+    _viewer->addView( _view );
 
     osg::Camera* camera = _view->getCamera();
     camera->setGraphicsContext( _mainGW );
@@ -932,13 +754,13 @@ osgQt::GraphicsWindowQt* ViewerWidget::createGraphicsWindow( int x, int y, int w
 
 void ViewerWidget::onTimer()
 {
-    frame();
+    _viewer->frame();
 }
 
 void ViewerWidget::paintEvent( QPaintEvent* event )
 {
     QMainWindow::paintEvent(event);
-    frame();
+    _viewer->frame();
 }
 
 
@@ -1042,20 +864,6 @@ main(int argc, char** argv)
     if ( !arguments.read("--numHttpThreads", numHttpThreads) )
         numHttpThreads = -1;
 
-    std::string imagefilename;
-    while (arguments.read("--image", imagefilename))
-    {
-        osg::ref_ptr<osg::Image> img = osgDB::readImageFile(imagefilename);
-        if (img.valid())
-        {
-            QFileInfo fi(QString::fromStdString(imagefilename));
-            QString base = fi.baseName();
-            QImage qimg;
-            osgImageToQImage(img.get(), &qimg);
-            qimg.save(QString("/tmp/qt_%1.png").arg(base));
-        }
-    }
-
     /*
     std::cout << "showSceneGraphInspector=" << showSceneGraphInspector << std::endl;
     std::cout << "addKeyDumper=" << addKeyDumper << std::endl;
@@ -1128,7 +936,7 @@ main(int argc, char** argv)
             filelist += QString::fromStdString(f);
         }
 
-        myMainWindow->setWindowTitle("tev - " + filelist);
+        myMainWindow->setWindowTitle("osgViewerQt - " + filelist);
 
         ret = app.exec();
         //viewer->removeView(view);

@@ -89,7 +89,7 @@ private:
     bool _onlyImages;
 };
 
-class ViewerWidget : public QMainWindow, public osgViewer::CompositeViewer
+class ViewerWidget : public QMainWindow
 {
     Q_OBJECT
 public:
@@ -112,4 +112,5 @@ protected:
     QTimer * _timer;
     osg::ref_ptr<osgQt::GraphicsWindowQt> _mainGW;
     osg::ref_ptr<osgViewer::View> _view;
+    osg::ref_ptr<osgViewer::CompositeViewer> _viewer;
 };
