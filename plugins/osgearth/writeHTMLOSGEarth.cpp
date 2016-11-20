@@ -503,7 +503,7 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osgEarth::GeoCircle & o
     if(srs)
         os << srs->getName();
     else
-        os << "&lt;null&gt;";
+        os << "(null)";
     os << "</td></tr>" << std::endl;
     os << std::setprecision(12);
     os << "<tr><td>radius</td><td>" << object.getRadius() << "</td></tr>" << std::endl;
@@ -519,7 +519,7 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osgEarth::GeoExtent & o
     if(srs)
         os << srs->getName();
     else
-        os << "&lt;null&gt;";
+        os << "(null)";
     os << "</td></tr>" << std::endl;
     os << std::setprecision(12);
     os << "<tr><td>north</td><td>" << object.north() << "</td></tr>" << std::endl;
@@ -562,7 +562,7 @@ bool writePrettyHTMLImpl<osgEarth::Profile>::process(std::basic_ostream<char>& o
             if(srs)
                 os << srs->getName();
             else
-                os << "&lt;null&gt;";
+                os << "(null)";
             os << "</td></tr>" << std::endl;
 
             if(_table)
@@ -660,13 +660,13 @@ bool writePrettyHTMLImpl<osgEarth::TerrainLayer>::process(std::basic_ostream<cha
             if(profile)
                 os << profile->toString();
             else
-                os << "&lt;null&gt;";
+                os << "(null)";
             os << "</td></tr>" << std::endl;
             os << "<tr><td>targetProfileHint</td><td>";
             if(targetProfileHint)
                 os << targetProfileHint->toString();
             else
-                os << "&lt;null&gt;";
+                os << "(null)";
             os << "</td></tr>" << std::endl;
             os << "<tr><td>dynamic</td><td>" << (object->isDynamic()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>cacheOnly</td><td>" <<  (object->isCacheOnly()?"true":"false") << "</td></tr>" << std::endl;
@@ -866,13 +866,13 @@ bool writePrettyHTMLImpl<osgEarth::Map>::process(std::basic_ostream<char>& os)
             if(object->getProfile())
                 os << object->getProfile()->toString();
             else
-                os << "&lt;null&gt;";
+                os << "(null)";
             os << "</td></tr>" << std::endl;
             os << "<tr><td>profile no vdatum</td><td>";
             if(object->getProfileNoVDatum())
                 os << object->getProfileNoVDatum()->toString();
             else
-                os << "&lt;null&gt;";
+                os << "(null)";
             os << "</td></tr>" << std::endl;
             os << "<tr><td>geocentric</td><td>" << (object->isGeocentric()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>cache</td><td>" << getObjectNameAndType(object->getCache(), true) << "</td></tr>" << std::endl;

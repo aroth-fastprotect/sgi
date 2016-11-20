@@ -127,7 +127,7 @@ bool writePrettyHTMLImpl<QMetaObject>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>this</td><td>" << std::hex << (void*)object << std::dec << "</td></tr>" << std::endl;
             os << "<tr><td>typename</td><td>" << helpers::getRTTITypename_html(object) << "</td></tr>" << std::endl;
-            os << "<tr><td>classname</td><td>" << (object?object->className():"&lt;null&gt;") << "</td></tr>" << std::endl;
+            os << "<tr><td>classname</td><td>" << (object?object->className():"(null)") << "</td></tr>" << std::endl;
 
             os << "<tr><td>class info</td><td><ol>";
             int classInfoOffset = object?object->classInfoOffset():0;

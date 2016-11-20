@@ -258,7 +258,19 @@ bool writePrettyHTMLImpl<osgDB::Options>::process(std::basic_ostream<char>& os)
             os << "<tr><td>precision hint</td><td>" << object->getPrecisionHint() << "</td></tr>" << std::endl;
             os << "<tr><td>build KD tree hint</td><td>" << object->getBuildKdTreesHint() << "</td></tr>" << std::endl;
 
-            os << "<tr><td>authentication map</td><td>" << (object->getAuthenticationMap()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>authentication map</td><td>" << osg_helpers::getObjectNameAndType(object->getAuthenticationMap()) << "</td></tr>" << std::endl;
+
+            os << "<tr><td>terrain</td><td>";
+            osg::ref_ptr<osg::Node> terrain;
+            object->getTerrain().lock(terrain);
+            os << osg_helpers::getObjectNameAndType(terrain.get());
+            os << "</td></tr>" << std::endl;
+
+            os << "<tr><td>parent group</td><td>";
+            osg::ref_ptr<osg::Group> parentGroup;
+            object->getParentGroup().lock(parentGroup);
+            os << osg_helpers::getObjectNameAndType(parentGroup.get());
+            os << "</td></tr>" << std::endl;
 
             const OptionsAccess::PluginDataMap & pluginData = object->getPluginDataMap();
             os << "<tr><td>plugin data</td><td><ul>";

@@ -2349,6 +2349,25 @@ bool objectTreeBuildImpl<osgDB::Options>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg fileCache(object->getFileCache());
             if(fileCache.hasObject())
                 treeItem->addChild("FileCache", &fileCache);
+
+            SGIHostItemOsg authenticationMap(object->getAuthenticationMap());
+            if(authenticationMap.hasObject())
+                treeItem->addChild("AuthenticationMap", &authenticationMap);
+
+            osg::ref_ptr<osg::Node> terrain;
+            if(object->getTerrain().lock(terrain) && terrain.valid())
+            {
+                SGIHostItemOsg item(terrain.get());
+                treeItem->addChild("Terrain", &item);
+            }
+
+            osg::ref_ptr<osg::Group> parentGroup;
+            if(object->getParentGroup().lock(parentGroup) && parentGroup.valid())
+            {
+                SGIHostItemOsg item(parentGroup.get());
+                treeItem->addChild("ParentGroup", &item);
+            }
+
         }
         break;
     case SGIItemTypeCallbacks:

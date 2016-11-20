@@ -127,14 +127,14 @@ bool writePrettyHTMLImpl<osgUtil::RenderLeaf>::process(std::basic_ostream<char>&
             if(object->_projection.valid())
                 writePrettyHTML(os, *object->_projection.get(), MatrixUsageTypePerspective, (osg::Node*)NULL);
             else
-                os << "&lt;null&gt;";
+                os << "(null)";
             os << "</td></tr>" << std::endl;
 
             os << "<tr><td>modelview</td><td>";
             if(object->_modelview.valid())
                 writePrettyHTML(os, *object->_modelview.get(), MatrixUsageTypeModelView, (osg::Node*)NULL);
             else
-                os << "&lt;null&gt;";
+                os << "(null)";
             os << "</td></tr>" << std::endl;
 
 

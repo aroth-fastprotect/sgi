@@ -260,7 +260,7 @@ bool writePrettyHTMLImpl<osg::Transform>::process(std::basic_ostream<char>& os)
                 writePrettyHTML(os, m, MatrixUsageTypeModelView, object);
             }
             else
-                os << "&lt;null&gt;" << std::endl;
+                os << "(null)" << std::endl;
             os << "</td></tr>" << std::endl;
 
             os << "<tr><td>worldToLocalMatrix</td><td>";
@@ -271,7 +271,7 @@ bool writePrettyHTMLImpl<osg::Transform>::process(std::basic_ostream<char>& os)
                 writePrettyHTML(os, m, MatrixUsageTypeModelView, object);
             }
             else
-                os << "&lt;null&gt;" << std::endl;
+                os << "(null)" << std::endl;
             os << "</td></tr>" << std::endl;
 
             if(_table)
@@ -1240,14 +1240,14 @@ bool writePrettyHTMLImpl<osg::TriangleMesh>::process(std::basic_ostream<char>& o
             if(vertices)
                 os << vertices->getNumElements() << " elements";
             else
-                os << "&lt;null&gt;";
+                os << "(null)";
             os << "</td></tr>" << std::endl;
             os << "<tr><td>vertices</td><td>";
             osg::IndexArray * indices = object->getIndices();
             if(indices)
                 os << indices->getNumElements() << " elements";
             else
-                os << "&lt;null&gt;";
+                os << "(null)";
             os << "</td></tr>" << std::endl;
 
             if(_table)
