@@ -1,9 +1,11 @@
 #include "stdafx.h"
 #include "DrawableHelper.h"
 #include <osg/Geode>
+#include <osg/Texture2D>
 #include <osg/StateSet>
 #include <osg/Version>
 #include <osgUtil/RenderBin>
+#include <osgViewer/View>
 
 namespace sgi {
 namespace osg_plugin {
@@ -359,6 +361,137 @@ void RenderInfoDrawCallback::drawImplementation(osg::RenderInfo& renderInfo, con
 {
     const_cast<RenderInfoData&>(_data).copyRenderInfo(renderInfo);
     drawable->drawImplementation(renderInfo);
+}
+
+CameraCaptureCallback::CameraCaptureCallback(GLenum readBuffer, osg::Image * image, bool depth)
+    : _readBuffer(readBuffer)
+    , _depth(depth)
+    , _image(image)
+{
+}
+
+void CameraCaptureCallback::operator () (osg::RenderInfo& renderInfo) const
+{
+#if !defined(OSG_GLES1_AVAILABLE) && !defined(OSG_GLES2_AVAILABLE)
+    glReadBuffer(_readBuffer);
+#else
+    osg::notify(osg::NOTICE)<<"Error: GLES unable to do glReadBuffer"<<std::endl;
+#endif
+
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+    osg::GraphicsContext* gc = renderInfo.getState()->getGraphicsContext();
+    if (gc->getTraits())
+    {
+        GLenum pixelFormat;
+
+        if(_depth)
+            pixelFormat = GL_DEPTH_COMPONENT;
+        else
+        {
+            if (gc->getTraits()->alpha)
+                pixelFormat = GL_RGBA;
+            else
+                pixelFormat = GL_RGB;
+        }
+
+        osg::Viewport* viewport = renderInfo.getCurrentCamera()->getViewport();
+        int width = viewport->width();
+        int height = viewport->height();
+        _image->readPixels(0, 0, width, height, pixelFormat, _depth?GL_FLOAT:GL_UNSIGNED_BYTE);
+    }
+}
+
+osg::Geometry* createImageGeometry(float s,float t, osg::Image::Origin origin, osg::Texture * texture)
+{
+    osg::Geometry* geom = NULL;
+    float y = 1.0;
+    float x = y*(s/t);
+
+    float texcoord_y_b = (origin == osg::Image::BOTTOM_LEFT) ? 0.0f : 1.0f;
+    float texcoord_y_t = (origin == osg::Image::BOTTOM_LEFT) ? 1.0f : 0.0f;
+    float texcoord_x = 1.0f;
+
+    // set up the drawstate.
+    osg::StateSet* dstate = new osg::StateSet;
+    dstate->setMode(GL_CULL_FACE,osg::StateAttribute::OFF);
+    dstate->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
+    dstate->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
+
+    geom = new osg::Geometry;
+    geom->setStateSet(dstate);
+
+    osg::Vec3Array* coords = new osg::Vec3Array(4);
+    (*coords)[0].set(-x,0.0f,y);
+    (*coords)[1].set(-x,0.0f,-y);
+    (*coords)[2].set(x,0.0f,-y);
+    (*coords)[3].set(x,0.0f,y);
+    geom->setVertexArray(coords);
+
+    osg::Vec2Array* tcoords = new osg::Vec2Array(4);
+    (*tcoords)[0].set(0.0f*texcoord_x,texcoord_y_t);
+    (*tcoords)[1].set(0.0f*texcoord_x,texcoord_y_b);
+    (*tcoords)[2].set(1.0f*texcoord_x,texcoord_y_b);
+    (*tcoords)[3].set(1.0f*texcoord_x,texcoord_y_t);
+    geom->setTexCoordArray(0,tcoords);
+
+    osg::Vec4Array* colours = new osg::Vec4Array(1);
+    (*colours)[0].set(1.0f,1.0f,1.0,1.0f);
+    geom->setColorArray(colours, osg::Array::BIND_OVERALL);
+
+    geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS,0,4));
+
+    return geom;
+}
+
+osg::Geometry* createGeometryForImage(osg::Image* image,float s,float t)
+{
+    osg::Geometry* geom = NULL;
+    if (image && s>0 && t>0)
+    {
+        osg::Texture2D* texture = new osg::Texture2D;
+        texture->setFilter(osg::Texture::MIN_FILTER,osg::Texture::LINEAR);
+        texture->setFilter(osg::Texture::MAG_FILTER,osg::Texture::LINEAR);
+        texture->setResizeNonPowerOfTwoHint(false);
+        geom = createImageGeometry(s, t, image->getOrigin(), texture);
+    }
+    return geom;
+}
+osg::Geometry * createGeometryForImage(osg::Image* image)
+{
+    return createGeometryForImage(image,image->s(),image->t());
+}
+
+osg::Geometry * createGeometryForTexture(osg::Texture* texture)
+{
+    return createImageGeometry(texture->getTextureWidth(), texture->getTextureHeight(), osg::Image::BOTTOM_LEFT, texture);
+}
+
+bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, osg::ref_ptr<osg::Image> & image)
+{
+    osg::ref_ptr<osg::Camera> slaveCamera = new osg::Camera;
+    slaveCamera->setViewport(0, 0, texture->getTextureWidth(), texture->getTextureHeight());
+    slaveCamera->setProjectionMatrixAsOrtho2D(0.0, texture->getTextureWidth(), 0.0, texture->getTextureHeight());
+    osg::ref_ptr<osg::Geometry> geom = createGeometryForTexture(texture);
+    slaveCamera->addChild(geom);
+
+    image = new osg::Image;
+
+    //GLenum buffer = m_viewer->getCamera()->getGraphicsContext()->getTraits()->doubleBuffer ? GL_BACK : GL_FRONT;
+    GLenum buffer = GL_FRONT;
+    slaveCamera->setFinalDrawCallback(new CameraCaptureCallback(buffer, image, false));
+
+    osgViewer::View* view = dynamic_cast<osgViewer::View*>(masterCamera->getView());
+    osgViewer::ViewerBase * viewer = view ? view->getViewerBase() : nullptr;
+
+    if(viewer)
+    {
+        // Do rendering with capture callback
+        masterCamera->addChild(slaveCamera);
+        viewer->renderingTraversals();
+        masterCamera->removeChild(slaveCamera);
+        slaveCamera->setFinalDrawCallback(0);
+    }
+    return false;
 }
 
 } // namespace osg_plugin

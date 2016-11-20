@@ -1866,10 +1866,27 @@ bool actionHandlerImpl<MenuActionImagePreview>::execute()
             dialog->setObject(_item.get(), osg_helpers::convertImage(image), std::string(), hostCallback());
         else if (texture)
         {
+            bool imageOk = false;
             osg::ref_ptr<const sgi::Image> textureImage;
             for (unsigned n = 0; n < texture->getNumImages() && !textureImage.valid(); ++n)
             {
-                textureImage = osg_helpers::convertImage(texture->getImage(n));
+                osg::Image * txtimg = texture->getImage(n);
+                if(txtimg)
+                {
+                    textureImage = osg_helpers::convertImage(txtimg);
+                    if(textureImage.valid())
+                        imageOk = true;
+                }
+            }
+            if(!imageOk)
+            {
+                osg::Camera * camera = findCamera(texture);
+                if(camera)
+                {
+                    osg::ref_ptr<osg::Image> image;
+                    if(convertTextureToImage(camera, texture, image))
+                        textureImage = osg_helpers::convertImage(image);
+                }
             }
             dialog->setObject(_item.get(), textureImage, std::string(), hostCallback());
         }

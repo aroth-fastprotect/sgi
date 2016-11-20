@@ -187,5 +187,24 @@ protected:
     RenderInfoData _data;
 };
 
+class CameraCaptureCallback : public osg::Camera::DrawCallback
+{
+public:
+    CameraCaptureCallback(GLenum readBuffer, osg::Image *image, bool depth);
+    void operator () (osg::RenderInfo& renderInfo) const override;
+
+protected:
+    GLenum _readBuffer;
+    mutable OpenThreads::Mutex  _mutex;
+    bool _depth;
+    osg::ref_ptr<osg::Image> _image;
+};
+
+osg::Geometry* createGeometryForImage(osg::Image* image,float s,float t);
+osg::Geometry * createGeometryForImage(osg::Image* image);
+osg::Geometry * createGeometryForTexture(osg::Texture* texture);
+bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, osg::ref_ptr<osg::Image> & image);
+
+
 } // namespace osg_plugin
 } // namespace sgi
