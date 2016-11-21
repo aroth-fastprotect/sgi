@@ -2250,6 +2250,51 @@ void ImagePreviewDialog::onMouseMoved(float x, float y)
         switch (_workImage->format())
         {
         case Image::ImageFormatABGR32:
+        case Image::ImageFormatARGB32:
+        case Image::ImageFormatBGRA32:
+        case Image::ImageFormatRGBA32:
+        case Image::ImageFormatBGR32:
+        case Image::ImageFormatRGB32:
+            {
+                const quint32 * px = _workImage->pixel<quint32>(px_x, px_y);
+                if (px)
+                {
+                    const quint8 * pxe = (const quint8 *)px;
+                    QColor color;
+                    switch (_workImage->format())
+                    {
+                    case Image::ImageFormatBGR32:
+                    case Image::ImageFormatABGR32: color.setRgb(pxe[3], pxe[2], pxe[1], pxe[0]); break;
+                    case Image::ImageFormatRGB32:
+                    case Image::ImageFormatARGB32: color.setRgb(pxe[1], pxe[2], pxe[3], pxe[0]); break;
+                    case Image::ImageFormatBGRA32: color.setRgb(pxe[2], pxe[1], pxe[1], pxe[3]); break;
+                    case Image::ImageFormatRGBA32: color.setRgb(pxe[0], pxe[1], pxe[2], pxe[3]); break;
+                    default: Q_ASSERT(false); break;
+                    }
+                    px_value = QColor(color).name();
+                }
+                else
+                    px_value = tr("N/A");
+            }
+            break;
+        case Image::ImageFormatBGR24:
+        case Image::ImageFormatRGB24:
+            {
+                const quint8 * pxe = _workImage->pixel<quint8>(px_x, px_y);
+                if (pxe)
+                {
+                    QColor color;
+                    switch (_workImage->format())
+                    {
+                    case Image::ImageFormatBGR24:color.setRgb(pxe[2], pxe[1], pxe[0], 255); break;
+                    case Image::ImageFormatRGB24: color.setRgb(pxe[0], pxe[1], pxe[2], 255); break;
+                    default: Q_ASSERT(false); break;
+                    }
+                    px_value = QColor(color).name();
+                }
+                else
+                    px_value = tr("N/A");
+            }
             break;
         case Image::ImageFormatDepth:
         case Image::ImageFormatFloat:
