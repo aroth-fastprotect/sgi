@@ -270,6 +270,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolFindClosestNodeToCamera)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewLightingMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewCaptureScreenshot)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewPortModify)
 
 using namespace sgi::osg_helpers;
 
@@ -3773,6 +3774,30 @@ bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
 	}
 	return true;
 }
+
+bool actionHandlerImpl<MenuActionViewPortModify>::execute()
+{
+    osg::Viewport * object = getObject<osg::Viewport, SGIItemOsg>();
+    std::stringstream ss;
+    ss << object->x() << ' ' << object->y() << ' ' << object->width() << ' ' << object->height();
+    std::string str = ss.str();
+    bool ret;
+    ret = _hostInterface->inputDialogString(menu()->parentWidget(),
+        str,
+        "Viewport:", "Modify viewport",
+        SGIPluginHostInterface::InputDialogStringEncodingSystem,
+        _item
+    );
+    if (ret)
+    {
+        double x, y, w, h;
+        std::stringstream ss(str);
+        ss >> x >> y >> w >> h;
+        object->setViewport(x, y, w, h);
+    }
+    return true;
+}
+
 
 } // namespace osg_plugin
 } // namespace sgi

@@ -66,6 +66,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::PositionAttitudeTransform)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::AutoTransform)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Billboard)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::CameraView)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Viewport)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Camera)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::View)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::ProxyNode)
@@ -1162,6 +1163,28 @@ bool contextMenuPopulateImpl<osg::Billboard>::populate(IContextMenuItem * menuIt
                 modeMenu->addModeAction("Rotate to World", osg::Billboard::POINT_ROT_WORLD);
                 modeMenu->addModeAction("Axial rotation", osg::Billboard::AXIAL_ROT);
             }
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::Viewport>::populate(IContextMenuItem * menuItem)
+{
+    osg::Viewport * object = static_cast<osg::Viewport*>(item<SGIItemOsg>()->object());
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+                manipulateMenu->addSimpleAction(MenuActionViewPortModify, "Modify...", _item);
         }
         break;
     default:

@@ -202,6 +202,7 @@ enum MenuAction {
 
     MenuActionViewLightingMode,
 	MenuActionViewCaptureScreenshot,
+    MenuActionViewPortModify,
 
 	MenuActionViewerBaseMaxFrameRate,
 	MenuActionViewerBaseMaxRunFrameScheme,

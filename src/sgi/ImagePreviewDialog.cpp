@@ -2168,6 +2168,7 @@ void ImagePreviewDialog::refreshImpl()
     else
         ss << "<b>No image</b>";
     _priv->ui->labelImage->setText(qt_helpers::fromLocal8Bit(ss.str()));
+    _priv->ui->mouseinfo->setText(QString());
     _priv->setImageInfo(_workImage);
     _priv->setNodeInfo(_item.get());
     _priv->updateToolbar();
