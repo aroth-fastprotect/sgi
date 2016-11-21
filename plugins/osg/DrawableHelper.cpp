@@ -4,9 +4,11 @@
 #include <osg/Texture2D>
 #include <osg/StateSet>
 #include <osg/Version>
+#include <osg/ComputeBoundsVisitor>
 #include <osgUtil/RenderBin>
 #include <osgViewer/View>
 
+#include <osgDB/WriteFile>
 #include <iostream>
 
 namespace sgi {
@@ -471,13 +473,45 @@ osg::Geometry * createGeometryForTexture(osg::Texture* texture)
 bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, osg::ref_ptr<osg::Image> & image)
 {
     osg::ref_ptr<osg::Camera> slaveCamera = new osg::Camera;
+    slaveCamera->setReferenceFrame(osg::Camera::ABSOLUTE_RF);
+    slaveCamera->setGraphicsContext(masterCamera->getGraphicsContext());
+    slaveCamera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    slaveCamera->setClearColor(osg::Vec4(0.0, 0.4, 0.5, 0.0));
+    slaveCamera->setAllowEventFocus(false);
+    // normally the depth test is inverted, although the user can
+    // change that.
+    slaveCamera->setClearDepth(0.0);
+    slaveCamera->setDrawBuffer(GL_FRONT);
+    slaveCamera->setReadBuffer(GL_FRONT);
+    slaveCamera->setProjectionResizePolicy(osg::Camera::FIXED);
+    //slaveCamera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);
+    slaveCamera->setCullingMode(osg::CullSettings::NO_CULLING);
+    slaveCamera->setComputeNearFarMode(osg::CullSettings::DO_NOT_COMPUTE_NEAR_FAR);
+
     slaveCamera->setViewport(0, 0, texture->getTextureWidth(), texture->getTextureHeight());
     slaveCamera->setProjectionMatrixAsOrtho2D(0.0, texture->getTextureWidth(), 0.0, texture->getTextureHeight());
     osg::ref_ptr<osg::Geometry> geom = createGeometryForTexture(texture);
+
+//     osg::ComputeBoundsVisitor v;
+//     geom->accept(v);
+//     osg::BoundingBox bb = v.getBoundingBox();
+
+    osg::Vec3d center(0, 0, 0.0);
+    osg::Vec3d eye(0.0, -1.0, 0.0);
+    osg::Vec3d up(0, 0, 1);
+
+    osg::Matrixd matrix;
+    matrix.makeLookAt(eye, center, up);
+    slaveCamera->setViewMatrix(matrix);
+
     slaveCamera->addChild(geom);
 
     image = new osg::Image;
+    image->allocateImage(texture->getTextureWidth(), texture->getTextureHeight(), 1, GL_RGBA, GL_UNSIGNED_BYTE);
     slaveCamera->attach(osg::Camera::COLOR_BUFFER, image.get(), 0, 0);
+
+    osgDB::writeNodeFile(*slaveCamera, "/tmp/slave_cam.osgb");
+    osgDB::writeNodeFile(*geom, "/tmp/slave_cam_geom.osgb");
 
     std::cout << "convertTextureToImage " << masterCamera << " txt=" << texture << " img=" << image.get() << std::endl;
 
@@ -496,6 +530,8 @@ bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, o
         masterCamera->addChild(slaveCamera);
         viewer->renderingTraversals();
         masterCamera->removeChild(slaveCamera);
+
+        osgDB::writeImageFile(*image, "/tmp/slave_cam_image.png");
         //slaveCamera->setFinalDrawCallback(0);
     }
     return true;
