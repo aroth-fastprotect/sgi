@@ -118,6 +118,8 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProgramAddShader)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraCullSettings)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraClearColor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraComputeNearFarMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraViewMatrix)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraProjectionMatrix)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetCenterMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetCenter)
@@ -273,6 +275,76 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewCaptureScreenshot)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewPortModify)
 
 using namespace sgi::osg_helpers;
+
+namespace {
+    std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
+        std::stringstream ss(s);
+        std::string item;
+        while (std::getline(ss, item, delim)) {
+            elems.push_back(item);
+        }
+        return elems;
+    }
+    double toDouble(const std::string & s)
+    {
+        char * end = nullptr;
+        double ret = strtod(s.c_str(), &end);
+        if (end > s.c_str())
+            return ret;
+        else
+            return 0.0;
+    }
+
+    bool inputDialogMatrix(SGIItemBase * item, SGIPluginHostInterface * hostInterface, QWidget * parent, osg::Matrixd & matrix, const std::string & label, const std::string & windowTitle)
+    {
+        std::stringstream os;
+        for (int row = 0; row < 4; ++row) {
+            for (int col = 0; col < 4; ++col)
+                os << matrix(row, col) << " ";
+            os << std::endl;
+        }
+        std::string value = os.str();
+        bool ret;
+        ret = hostInterface->inputDialogText(parent,
+            value,
+            label, windowTitle,
+            SGIPluginHostInterface::InputDialogStringEncodingSystem,
+            item
+        );
+        if (ret)
+        {
+            ret = false;
+            osg::Matrixd newMatrix = matrix;
+            std::istringstream iss(value);
+            std::vector<std::string> lines;
+            split(value, '\n', lines);
+            if (lines.size() == 4)
+            {
+                ret = true;
+                for (unsigned row = 0; row < 4; row++)
+                {
+                    const std::string & line = lines[row];
+                    std::vector<std::string> elems;
+                    split(line, ' ', elems);
+                    if (elems.size() == 4)
+                    {
+                        for (unsigned col = 0; col < 4; col++)
+                        {
+                            const std::string & elem = elems[col];
+                            double v = toDouble(elem);
+                            newMatrix(row, col) = v;
+                        }
+                    }
+                    else
+                        ret = false;
+                }
+            }
+            if (ret)
+                matrix = newMatrix;
+        }
+        return ret;
+    }
+}
 
 bool actionHandlerImpl<MenuActionObjectInfo>::execute()
 {
@@ -1233,6 +1305,28 @@ bool actionHandlerImpl<MenuActionCameraComputeNearFarMode>::execute()
     return true;
 }
 
+bool actionHandlerImpl<MenuActionCameraViewMatrix>::execute()
+{
+    osg::Camera * object = getObject<osg::Camera, SGIItemOsg>();
+    osg::Matrixd matrix = object->getViewMatrix();
+    if (inputDialogMatrix(_item, _hostInterface, menu()->parentWidget(), matrix, "Matrix:", "Modify projection matrix"))
+    {
+        object->setViewMatrix(matrix);
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionCameraProjectionMatrix>::execute()
+{
+    osg::Camera * object = getObject<osg::Camera, SGIItemOsg>();
+    osg::Matrixd matrix = object->getProjectionMatrix();
+    if (inputDialogMatrix(_item, _hostInterface, menu()->parentWidget(), matrix, "Matrix:", "Modify projection matrix"))
+    {
+        object->setProjectionMatrix(matrix);
+    }
+    return true;
+}
+
 bool actionHandlerImpl<MenuActionUniformDirty>::execute()
 {
     osg::Uniform * object = getObject<osg::Uniform, SGIItemOsg>();
@@ -1335,17 +1429,6 @@ bool actionHandlerImpl<MenuActionBufferDirty>::execute()
             ss >> d[n]; \
         } \
     }
-
-namespace {
-    std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
-        std::stringstream ss(s);
-        std::string item;
-        while (std::getline(ss, item, delim)) {
-            elems.push_back(item);
-        }
-        return elems;
-    }
-}
 
 bool actionHandlerImpl<MenuActionArrayDataEdit>::execute()
 {

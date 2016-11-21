@@ -474,7 +474,7 @@ bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, o
 {
     osg::ref_ptr<osg::Camera> slaveCamera = new osg::Camera;
     slaveCamera->setReferenceFrame(osg::Camera::ABSOLUTE_RF);
-    slaveCamera->setGraphicsContext(masterCamera->getGraphicsContext());
+    //slaveCamera->setGraphicsContext(masterCamera->getGraphicsContext());
     slaveCamera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     slaveCamera->setClearColor(osg::Vec4(0.0, 0.4, 0.5, 0.0));
     slaveCamera->setAllowEventFocus(false);
@@ -507,8 +507,8 @@ bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, o
     slaveCamera->addChild(geom);
 
     image = new osg::Image;
-    image->allocateImage(texture->getTextureWidth(), texture->getTextureHeight(), 1, GL_RGBA, GL_UNSIGNED_BYTE);
-    slaveCamera->attach(osg::Camera::COLOR_BUFFER, image.get(), 0, 0);
+    //image->allocateImage(texture->getTextureWidth(), texture->getTextureHeight(), 1, GL_RGBA, GL_UNSIGNED_BYTE);
+    //slaveCamera->attach(osg::Camera::COLOR_BUFFER, image.get(), 0, 0);
 
     osgDB::writeNodeFile(*slaveCamera, "/tmp/slave_cam.osgb");
     osgDB::writeNodeFile(*geom, "/tmp/slave_cam_geom.osgb");
@@ -516,7 +516,7 @@ bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, o
     std::cout << "convertTextureToImage " << masterCamera << " txt=" << texture << " img=" << image.get() << std::endl;
 
     //GLenum buffer = m_viewer->getCamera()->getGraphicsContext()->getTraits()->doubleBuffer ? GL_BACK : GL_FRONT;
-//    GLenum buffer = GL_FRONT;
+    GLenum buffer = GL_FRONT;
     //slaveCamera->setFinalDrawCallback(new CameraCaptureCallback(buffer, image, false));
 
     osgViewer::View* view = dynamic_cast<osgViewer::View*>(masterCamera->getView());

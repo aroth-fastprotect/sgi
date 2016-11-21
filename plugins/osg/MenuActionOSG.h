@@ -99,6 +99,8 @@ enum MenuAction {
     MenuActionCameraClearColor,
     MenuActionCameraCullSettings,
     MenuActionCameraComputeNearFarMode,
+    MenuActionCameraViewMatrix, 
+    MenuActionCameraProjectionMatrix,
     MenuActionProxyNodeSetCenterMode,
     MenuActionProxyNodeSetCenter,
     MenuActionProxyNodeSetRadius,

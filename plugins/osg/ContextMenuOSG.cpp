@@ -1219,8 +1219,11 @@ bool contextMenuPopulateImpl<osg::Camera>::populate(IContextMenuItem * menuItem)
                 computeNearFarModeMenu->addModeAction("Near using primitives", osg::Camera::COMPUTE_NEAR_USING_PRIMITIVES);
             }
             IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
-            if(manipulateMenu)
-                manipulateMenu->addSimpleAction(MenuActionProxyNodeForceLoad, "Force load", _item);
+            if (manipulateMenu)
+            {
+                manipulateMenu->addSimpleAction(MenuActionCameraViewMatrix, "View matrix", _item);
+                manipulateMenu->addSimpleAction(MenuActionCameraProjectionMatrix, "Projection matrix", _item);
+            }
 
             menuItem->addSimpleAction(MenuActionCameraClearColor, "Clear color...", _item);
             menuItem->addSimpleAction(MenuActionCameraCullSettings, "Cull settings...", _item);
