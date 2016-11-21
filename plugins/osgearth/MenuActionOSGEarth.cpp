@@ -92,8 +92,6 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionControlActive)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionControlAbsorbEvents)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionControlVisible)
 
-ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionImagePreviewRGBA)
-
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLevelDBDatabaseRead)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLevelDBDatabaseWrite)
 
@@ -717,27 +715,6 @@ bool actionHandlerImpl<MenuActionControlCanvasDirty>::execute()
     osgEarth::Util::Controls::ControlCanvas * object = getObject<osgEarth::Util::Controls::ControlCanvas, SGIItemOsg>();
     ControlCanvasAccess* access = (ControlCanvasAccess*)object;
     access->dirty();
-    return true;
-}
-
-bool actionHandlerImpl<MenuActionImagePreviewRGBA>::execute()
-{
-    osg::Image * object = getObject<osg::Image, SGIItemOsg>();
-
-    osg::ref_ptr<osg::Image> rgbaImage = osgEarth::ImageUtils::convertToRGBA8(object);
-    SGIHostItemOsg hostItem(rgbaImage.get());
-
-    osg::ref_ptr<SGIItemBase> item;
-    if(_hostInterface->generateItem(item, &hostItem))
-    {
-        IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), item.get());
-
-        if(dialog.valid())
-        {
-            dialog->setObject(item.get(), osg_helpers::convertImage(object), std::string(), hostCallback());
-            dialog->show();
-        }
-    }
     return true;
 }
 

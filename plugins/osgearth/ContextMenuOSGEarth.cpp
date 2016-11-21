@@ -34,7 +34,6 @@ class SGIItemOsg;
 namespace osgearth_plugin {
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Node)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Image)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Registry)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Map)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNode)
@@ -73,26 +72,6 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
             {
                 manipulateMenu->addSimpleAction(MenuActionNodeRegenerateShaders, "Re-generate shaders", _item);
             }
-        }
-        break;
-    default:
-        ret = callNextHandler(menuItem);
-        break;
-    }
-    return ret;
-}
-
-bool contextMenuPopulateImpl<osg::Image>::populate(IContextMenuItem * menuItem)
-{
-    osg::Image* object = getObject<osg::Image,SGIItemOsg>();
-    bool ret = false;
-    switch(itemType())
-    {
-    case SGIItemTypeObject:
-        ret = callNextHandler(menuItem);
-        if(ret)
-        {
-            menuItem->addSimpleAction(MenuActionImagePreviewRGBA, "Preview RGBA", _item);
         }
         break;
     default:

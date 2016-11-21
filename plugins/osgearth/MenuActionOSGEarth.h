@@ -65,8 +65,6 @@ enum MenuAction {
     MenuActionControlAbsorbEvents,
     MenuActionControlVisible,
 
-    MenuActionImagePreviewRGBA,
-
 	MenuActionLevelDBDatabaseRead,
 	MenuActionLevelDBDatabaseWrite,
 
