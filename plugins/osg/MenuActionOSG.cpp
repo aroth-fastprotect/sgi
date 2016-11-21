@@ -3724,10 +3724,11 @@ bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
 {
 	SGIItemOsg * osgitem = static_cast<SGIItemOsg*>(_item.get());
 
+    osgViewer::View * view = nullptr;
 	osgViewer::ViewerBase * viewerbase = dynamic_cast<osgViewer::ViewerBase *>(osgitem->object());
 	if(!viewerbase)
 	{
-		osgViewer::View * view = dynamic_cast<osgViewer::View*>(osgitem->object());
+		view = dynamic_cast<osgViewer::View*>(osgitem->object());
 		if(view)
 			viewerbase = view->getViewerBase();
 		else if (osg::Camera * camera = dynamic_cast<osg::Camera*>(osgitem->object()))
@@ -3748,7 +3749,7 @@ bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
 
 		osgViewer::ViewerBase::Views views;
 		viewerbase->getViews(views);
-		if (!views.empty())
+		if (!views.empty() || view)
 		{
 			bool stopThreads = false;
 			if(!viewerbase->areThreadsRunning())
@@ -3756,8 +3757,14 @@ bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
 				viewerbase->startThreading();
 				stopThreads = true;
 			}
-			views.front()->requestRedraw();
-			handler->wait();
+            if (viewerbase->getThreadingModel() != osgViewer::ViewerBase::SingleThreaded)
+            {
+                if(!view)
+                    views.front()->requestRedraw();
+                else
+                    view->requestRedraw();
+                handler->wait();
+            }
 			if (stopThreads)
 				viewerbase->stopThreading();
 			osg::ref_ptr<osg::Image> image = handler->takeImage();
