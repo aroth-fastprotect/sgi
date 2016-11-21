@@ -7,6 +7,8 @@
 #include <osgUtil/RenderBin>
 #include <osgViewer/View>
 
+#include <iostream>
+
 namespace sgi {
 namespace osg_plugin {
 
@@ -475,23 +477,28 @@ bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, o
     slaveCamera->addChild(geom);
 
     image = new osg::Image;
+    slaveCamera->attach(osg::Camera::COLOR_BUFFER, image.get(), 0, 0);
+
+    std::cout << "convertTextureToImage " << masterCamera << " txt=" << texture << " img=" << image.get() << std::endl;
 
     //GLenum buffer = m_viewer->getCamera()->getGraphicsContext()->getTraits()->doubleBuffer ? GL_BACK : GL_FRONT;
-    GLenum buffer = GL_FRONT;
-    slaveCamera->setFinalDrawCallback(new CameraCaptureCallback(buffer, image, false));
+//    GLenum buffer = GL_FRONT;
+    //slaveCamera->setFinalDrawCallback(new CameraCaptureCallback(buffer, image, false));
 
     osgViewer::View* view = dynamic_cast<osgViewer::View*>(masterCamera->getView());
     osgViewer::ViewerBase * viewer = view ? view->getViewerBase() : nullptr;
 
     if(viewer)
     {
+        std::cout << "convertTextureToImage viewer=" << viewer << std::endl;
+
         // Do rendering with capture callback
         masterCamera->addChild(slaveCamera);
         viewer->renderingTraversals();
         masterCamera->removeChild(slaveCamera);
-        slaveCamera->setFinalDrawCallback(0);
+        //slaveCamera->setFinalDrawCallback(0);
     }
-    return false;
+    return true;
 }
 
 } // namespace osg_plugin

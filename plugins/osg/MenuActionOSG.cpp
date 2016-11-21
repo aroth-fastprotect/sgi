@@ -1868,6 +1868,7 @@ bool actionHandlerImpl<MenuActionImagePreview>::execute()
         {
             bool imageOk = false;
             osg::ref_ptr<const sgi::Image> textureImage;
+            /*
             for (unsigned n = 0; n < texture->getNumImages() && !textureImage.valid(); ++n)
             {
                 osg::Image * txtimg = texture->getImage(n);
@@ -1878,6 +1879,7 @@ bool actionHandlerImpl<MenuActionImagePreview>::execute()
                         imageOk = true;
                 }
             }
+            */
             if(!imageOk)
             {
                 osg::Camera * camera = findCamera(texture);
