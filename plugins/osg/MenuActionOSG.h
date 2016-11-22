@@ -228,6 +228,11 @@ enum MenuAction {
     MenuActionToolDistanceToCamera,
     MenuActionToolFindAllStateSets,
     MenuActionToolFindClosestNodeToCamera,
+
+    MenuActionTexEnvMode,
+    MenuActionTexEnvColor,
+    MenuActionTexEnvFilterLodBias,
+
 };
 
 struct TextureAttributePair {

@@ -177,6 +177,10 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextureDirtyTextureObject)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextureDirtyTextureParameters)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextureAllocateMipmapLevels)
 
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTexEnvMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTexEnvColor)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTexEnvFilterLodBias)
+
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableToggleDisabled)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionGeodeAddShapeDrawable)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeDrawableColor)
@@ -1876,6 +1880,39 @@ bool actionHandlerImpl<MenuActionTextureAllocateMipmapLevels>::execute()
 	object->allocateMipmapLevels();
 	triggerRepaint();
 	return true;
+}
+
+bool actionHandlerImpl<MenuActionTexEnvMode>::execute()
+{
+    osg::TexEnv * object = getObject<osg::TexEnv, SGIItemOsg>();
+    object->setMode((osg::TexEnv::Mode)menuAction()->mode());
+    triggerRepaint();
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTexEnvColor>::execute()
+{
+    osg::TexEnv * object = getObject<osg::TexEnv, SGIItemOsg>();
+    sgi::Color color = osgColor(object->getColor());
+    if (_hostInterface->inputDialogColor(menu()->parentWidget(), color, "Color", "Select color", _item))
+    {
+        object->setColor(osgColor(color));
+        triggerRepaint();
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTexEnvFilterLodBias>::execute()
+{
+    osg::TexEnvFilter * object = getObject<osg::TexEnvFilter, SGIItemOsg>();
+    double value = object->getLodBias();
+    bool gotInput = _hostInterface->inputDialogDouble(menuAction()->menu()->parentWidget(), value, "Value", "Set Lod bias", 0.0, 1000.0, 1, _item);
+    if (gotInput)
+    {
+        object->setLodBias(value);
+        triggerRepaint();
+    }
+    return true;
 }
 
 bool actionHandlerImpl<MenuActionDrawableUseDisplayList>::execute()

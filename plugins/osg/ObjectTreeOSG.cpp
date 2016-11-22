@@ -834,11 +834,11 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
     case SGIItemTypeStateSetTextureAttributeLists:
         {
             unsigned itemNumber = _item->number();
-            unsigned childNo = 0;
+            unsigned textureUnit = 0;
             const osg::StateSet::TextureAttributeList & textureAttributes = object->getTextureAttributeList();
-            for(osg::StateSet::TextureAttributeList::const_iterator it = textureAttributes.begin(); it != textureAttributes.end(); it++, childNo++)
+            for(osg::StateSet::TextureAttributeList::const_iterator it = textureAttributes.begin(); it != textureAttributes.end(); it++, textureUnit++)
             {
-                if(itemNumber == ~0u || childNo == itemNumber)
+                if(itemNumber == ~0u || textureUnit == itemNumber)
                 {
                     unsigned attrChildNo = 0;
                     const osg::StateSet::AttributeList & attributes = *it;
@@ -852,7 +852,7 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
                         //const osg::StateAttribute::OverrideValue & overrideValue = attrpair.second;
 
                         std::stringstream ss;
-                        ss << '#' << member << ':' << type << ' ' << attr->getName();
+                        ss << helpers::str_plus_number("Texture", textureUnit) << '/' << member << ':' << type << ' ' << attr->getName();
                         SGIHostItemOsg attrItem(attr.get());
                         treeItem->addChild(ss.str(), &attrItem);
                     }

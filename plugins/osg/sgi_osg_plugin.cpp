@@ -54,6 +54,7 @@
 #include <osg/Texture3D>
 #include <osg/TextureRectangle>
 #include <osg/TexGen>
+#include <osg/TexEnvFilter>
 #include <osg/Shape>
 #include <osg/ClusterCullingCallback>
 
@@ -385,7 +386,7 @@ SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::StateAttribute)
     osg::FrameBufferObject, osg::Light, osg::Texture, osg::Viewport, osg::Program,
-    osg::ClipPlane, osg::TexEnv, osg::TexMat, osg::TexGen, osg::Material, osg::ColorMask,
+    osg::ClipPlane, osg::TexEnv, osg::TexEnvFilter, osg::TexMat, osg::TexGen, osg::Material, osg::ColorMask,
     osg::LightModel, osg::CullFace, osg::Point, osg::Depth, osg::PolygonStipple,
     osg::LineStipple, osg::LineWidth, osg::Stencil, osg::PolygonMode, osg::PolygonOffset,
     osg::BlendFunc, osg::BlendColor, osg::BlendEquation

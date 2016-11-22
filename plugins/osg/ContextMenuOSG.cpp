@@ -22,6 +22,9 @@
 #include <osg/ShapeDrawable>
 #include <osg/Texture2D>
 #include <osg/Texture3D>
+#include <osg/TexEnv>
+#include <osg/TexEnvFilter>
+#include <osg/TexMat>
 #include <osg/ClipNode>
 #include <osg/Depth>
 #include <osg/Material>
@@ -89,6 +92,9 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::StateAttribute)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Texture)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Texture2D)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Texture3D)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::TexEnv)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::TexEnvFilter)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::TexMat)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::ClipNode)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::GraphicsContext)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Shader)
@@ -143,11 +149,11 @@ namespace {
         childMenu->addModeAction("Override Off", StateAttributeModeValueOverrideOff);
         childMenu->addModeAction("Protected", StateAttributeModeValueProtected);
     }
-    static IContextMenuItem * createTextureAttributeMenu(unsigned textureUnit, osg::StateAttribute::Type type, IContextMenuItem * menuItem,
+    static IContextMenuItem * createTextureAttributeMenu(unsigned textureUnit, unsigned member, osg::StateAttribute::Type type, IContextMenuItem * menuItem,
                                              SGIItemBase * item, osg::StateAttribute * attr, const osg::StateAttribute::OverrideValue value)
     {
         std::stringstream ss;
-        ss << helpers::str_plus_number("Texture", textureUnit) << '/' << type;
+        ss << helpers::str_plus_number("Texture", textureUnit) << '/' << member << ':' << type;
 
         StateAttributeModeValue currentMode = getStateAttributeModeFromOverrideValue(value);
         IContextMenuItem * childMenu = menuItem->addModeMenu(MenuActionStateSetTextureAttributeSet, ss.str(), item, currentMode, new ReferencedDataTextureAttributePair(TextureAttributePair(textureUnit, attr)));
@@ -487,7 +493,7 @@ bool contextMenuPopulateImpl<osg::StateSet>::populate(IContextMenuItem * menuIte
                         const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
                         const osg::StateAttribute::OverrideValue & value = attrpair.second;
 
-                        createTextureAttributeMenu(member, type, menuItem, _item, attr, value);
+                        createTextureAttributeMenu(textureunit, member, type, menuItem, _item, attr, value);
                     }
                 }
             }
@@ -1862,6 +1868,74 @@ bool contextMenuPopulateImpl<osg::Texture3D>::populate(IContextMenuItem * menuIt
     case SGIItemTypeObject:
         ret = callNextHandler(menuItem);
         if(ret)
+        {
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::TexEnv>::populate(IContextMenuItem * menuItem)
+{
+    osg::TexEnv * object = static_cast<osg::TexEnv*>(item<SGIItemOsg>()->object());
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            IContextMenuItem * modeMenu = menuItem->addModeMenu(MenuActionTexEnvMode, "Mode", _item, object->getMode());
+            if (modeMenu)
+            {
+                modeMenu->addModeAction("DECAL", osg::TexEnv::DECAL);
+                modeMenu->addModeAction("MODULATE", osg::TexEnv::MODULATE);
+                modeMenu->addModeAction("BLEND", osg::TexEnv::BLEND);
+                modeMenu->addModeAction("REPLACE", osg::TexEnv::REPLACE);
+                modeMenu->addModeAction("ADD", osg::TexEnv::ADD);
+            }
+            menuItem->addSimpleAction(MenuActionTexEnvColor, "Color...", _item);
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::TexEnvFilter>::populate(IContextMenuItem * menuItem)
+{
+    osg::TexEnvFilter * object = static_cast<osg::TexEnvFilter*>(item<SGIItemOsg>()->object());
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            menuItem->addSimpleAction(MenuActionTexEnvFilterLodBias, helpers::str_plus_number("LOD Bias", object->getLodBias()), _item);
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::TexMat>::populate(IContextMenuItem * menuItem)
+{
+    osg::TexMat * object = static_cast<osg::TexMat*>(item<SGIItemOsg>()->object());
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
         {
         }
         break;
