@@ -3896,12 +3896,14 @@ bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
 			}
             if (viewerbase->getThreadingModel() != osgViewer::ViewerBase::SingleThreaded)
             {
-                if(!view)
+                if (!view)
                     views.front()->requestRedraw();
                 else
                     view->requestRedraw();
                 handler->wait();
             }
+            else
+                viewerbase->renderingTraversals();
 			if (stopThreads)
 				viewerbase->stopThreading();
 			osg::ref_ptr<osg::Image> image = handler->takeImage();

@@ -4850,6 +4850,9 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
             writePrettyHTML(os, static_cast<osg::CullSettings*>(object));
 
             // add remaining camera properties
+            os << "<tr><td>view</td><td>" << osg_helpers::getObjectNameAndType(object->getView(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>graphicsContext</td><td>" << osg_helpers::getObjectNameAndType(object->getGraphicsContext(), true) << "</td></tr>" << std::endl;
+
             os << "<tr><td>clear color</td><td>"
                 << vec4fToHtmlColor(object->getClearColor())
                 << "</td></tr>" << std::endl;
@@ -4881,14 +4884,23 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
             os << "<tr><td>readBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getReadBuffer()) << "</td></tr>" << std::endl;
             os << "<tr><td>projResizePolicy</td><td>" << object->getProjectionResizePolicy() << "</td></tr>" << std::endl;
 
-            os << "<tr><td>bufferAttachmentMap</td><td><ul>";
+            os << "<tr><td>bufferAttachmentMap</td><td>";
             const osg::Camera::BufferAttachmentMap & bufferAttachmentMap = object->getBufferAttachmentMap();
-            for(auto it = bufferAttachmentMap.begin(); it != bufferAttachmentMap.end(); ++it)
+            if (bufferAttachmentMap.empty())
             {
-                const osg::Camera::BufferComponent & buffercomponent = it->first;
-                os << "<li>" << buffercomponent << "</li>";
+                os << "<i>empty</i>";
             }
-            os << "</ul></td></tr>" << std::endl;
+            else
+            {
+                os << "<ul>";
+                for (auto it = bufferAttachmentMap.begin(); it != bufferAttachmentMap.end(); ++it)
+                {
+                    const osg::Camera::BufferComponent & buffercomponent = it->first;
+                    os << "<li>" << buffercomponent << "</li>";
+                }
+                os << "</ul>";
+            }
+            os << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;

@@ -402,6 +402,9 @@ void CameraCaptureCallback::operator () (osg::RenderInfo& renderInfo) const
         int width = viewport->width();
         int height = viewport->height();
         _image->readPixels(0, 0, width, height, pixelFormat, _depth?GL_FLOAT:GL_UNSIGNED_BYTE);
+
+        osgDB::writeImageFile(*_image, "/tmp/slave_cam_image_.png");
+
     }
 }
 
@@ -474,20 +477,17 @@ bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, o
 {
     osg::ref_ptr<osg::Camera> slaveCamera = new osg::Camera;
     slaveCamera->setReferenceFrame(osg::Camera::ABSOLUTE_RF);
-    //slaveCamera->setGraphicsContext(masterCamera->getGraphicsContext());
+    slaveCamera->setGraphicsContext(masterCamera->getGraphicsContext());
     slaveCamera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    slaveCamera->setClearColor(osg::Vec4(0.0, 0.4, 0.5, 0.0));
+    slaveCamera->setClearColor(osg::Vec4(0.0, 0.0, 0.0, 1.0));
     slaveCamera->setAllowEventFocus(false);
-    // normally the depth test is inverted, although the user can
-    // change that.
-    slaveCamera->setClearDepth(0.0);
     slaveCamera->setDrawBuffer(GL_FRONT);
     slaveCamera->setReadBuffer(GL_FRONT);
     slaveCamera->setProjectionResizePolicy(osg::Camera::FIXED);
     //slaveCamera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);
     slaveCamera->setCullingMode(osg::CullSettings::NO_CULLING);
     slaveCamera->setComputeNearFarMode(osg::CullSettings::DO_NOT_COMPUTE_NEAR_FAR);
-
+    slaveCamera->setRenderOrder(osg::Camera::NESTED_RENDER);
     slaveCamera->setViewport(0, 0, texture->getTextureWidth(), texture->getTextureHeight());
     slaveCamera->setProjectionMatrixAsOrtho2D(0.0, texture->getTextureWidth(), 0.0, texture->getTextureHeight());
     osg::ref_ptr<osg::Geometry> geom = createGeometryForTexture(texture);
@@ -497,7 +497,7 @@ bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, o
 //     osg::BoundingBox bb = v.getBoundingBox();
 
     osg::Vec3d center(0, 0, 0.0);
-    osg::Vec3d eye(0.0, -1.0, 0.0);
+    osg::Vec3d eye(0.0, -10.0, 0.0);
     osg::Vec3d up(0, 0, 1);
 
     osg::Matrixd matrix;
@@ -515,9 +515,9 @@ bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, o
 
     std::cout << "convertTextureToImage " << masterCamera << " txt=" << texture << " img=" << image.get() << std::endl;
 
-    //GLenum buffer = m_viewer->getCamera()->getGraphicsContext()->getTraits()->doubleBuffer ? GL_BACK : GL_FRONT;
     GLenum buffer = GL_FRONT;
-    //slaveCamera->setFinalDrawCallback(new CameraCaptureCallback(buffer, image, false));
+    //GLenum buffer = masterCamera->getGraphicsContext()->getTraits()->doubleBuffer ? GL_BACK : GL_FRONT;
+    slaveCamera->setFinalDrawCallback(new CameraCaptureCallback(buffer, image, false));
 
     osgViewer::View* view = dynamic_cast<osgViewer::View*>(masterCamera->getView());
     osgViewer::ViewerBase * viewer = view ? view->getViewerBase() : nullptr;
@@ -528,12 +528,15 @@ bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, o
 
         // Do rendering with capture callback
         masterCamera->addChild(slaveCamera);
+        view->addSlave(slaveCamera, false);
         viewer->renderingTraversals();
+        unsigned idx = view->findSlaveIndexForCamera(slaveCamera);
+        view->removeSlave(idx);
         masterCamera->removeChild(slaveCamera);
 
         osgDB::writeImageFile(*image, "/tmp/slave_cam_image.png");
-        //slaveCamera->setFinalDrawCallback(0);
     }
+    slaveCamera->setFinalDrawCallback(0);
     return true;
 }
 
