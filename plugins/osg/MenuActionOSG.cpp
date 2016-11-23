@@ -3863,20 +3863,42 @@ bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
 
     osgViewer::View * view = nullptr;
 	osgViewer::ViewerBase * viewerbase = dynamic_cast<osgViewer::ViewerBase *>(osgitem->object());
+    osg::Camera * camera = nullptr;
+    osg::Camera * masterCamera = nullptr;
 	if(!viewerbase)
 	{
 		view = dynamic_cast<osgViewer::View*>(osgitem->object());
 		if(view)
 			viewerbase = view->getViewerBase();
-		else if (osg::Camera * camera = dynamic_cast<osg::Camera*>(osgitem->object()))
+		else if (camera = dynamic_cast<osg::Camera*>(osgitem->object()))
 		{
 			view = dynamic_cast<osgViewer::View*>(camera->getView());
 			if(view)
 				viewerbase = view->getViewerBase();
+
+            for (auto * parent : camera->getParents())
+            {
+                osg::Camera * nextCamera = findFirstParentOfType<osg::Camera>(parent);
+                if (nextCamera)
+                {
+                    view = dynamic_cast<osgViewer::View*>(nextCamera->getView());
+                    if (view)
+                    {
+                        masterCamera = nextCamera;
+                        viewerbase = view->getViewerBase();
+                        break;
+                    }
+                }
+            }
 		}
 	}
 	
-	if(viewerbase)
+    osg::ref_ptr<osg::Image> image;
+    if (camera)
+    {
+        captureCameraImage(camera, image, masterCamera);
+    }
+    else if(viewerbase)
 	{
 		osg::ref_ptr<osgViewer::ScreenCaptureHandler> capture = new osgViewer::ScreenCaptureHandler;
 		capture->setFramesToCapture(1);
@@ -3906,18 +3928,19 @@ bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
                 viewerbase->renderingTraversals();
 			if (stopThreads)
 				viewerbase->stopThreading();
-			osg::ref_ptr<osg::Image> image = handler->takeImage();
-			if (image.valid())
-			{
-				IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), _item.get());
-				if (dialog.valid())
-				{
-					dialog->setObject(_item.get(), convertImage(image), std::string(), hostCallback());
-					dialog->show();
-				}
-			}
+			image = handler->takeImage();
 		}
 	}
+    if (image.valid())
+    {
+        IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), _item.get());
+        if (dialog.valid())
+        {
+            dialog->setObject(_item.get(), convertImage(image), std::string(), hostCallback());
+            dialog->show();
+        }
+    }
+
 	return true;
 }
 

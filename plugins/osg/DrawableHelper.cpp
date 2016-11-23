@@ -408,6 +408,55 @@ void CameraCaptureCallback::operator () (osg::RenderInfo& renderInfo) const
     }
 }
 
+bool captureCameraImage(osg::Camera * camera, osg::ref_ptr<osg::Image> & image, osg::Camera * masterCamera)
+{
+    image = new osg::Image;
+
+    GLenum buffer = GL_FRONT;
+    bool modifiedGraphicsContext = false;
+    bool useMasterCamera = false;
+    if (camera->getGraphicsContext())
+        buffer = camera->getGraphicsContext()->getTraits()->doubleBuffer ? GL_BACK : GL_FRONT;
+    else if (masterCamera && masterCamera->getGraphicsContext())
+    {
+        camera->setGraphicsContext(masterCamera->getGraphicsContext());
+        modifiedGraphicsContext = true;
+        buffer = masterCamera->getGraphicsContext()->getTraits()->doubleBuffer ? GL_BACK : GL_FRONT;
+    }
+
+    osg::ref_ptr<osg::Camera::DrawCallback> cb = camera->getFinalDrawCallback();
+    camera->setFinalDrawCallback(new CameraCaptureCallback(buffer, image, false));
+
+    osgViewer::View* view = dynamic_cast<osgViewer::View*>(camera->getView());
+    if (!view && masterCamera)
+    {
+        view = dynamic_cast<osgViewer::View*>(masterCamera->getView());
+        useMasterCamera = true;
+    }
+    osgViewer::ViewerBase * viewer = view ? view->getViewerBase() : nullptr;
+
+    if (viewer)
+    {
+        if (useMasterCamera)
+        {
+            // Do rendering with capture callback
+            view->addSlave(camera, false);
+            viewer->renderingTraversals();
+            unsigned idx = view->findSlaveIndexForCamera(camera);
+            view->removeSlave(idx);
+        }
+        else
+        {
+            // Do rendering with capture callback
+            viewer->renderingTraversals();
+        }
+    }
+//     if (modifiedGraphicsContext)
+//         camera->setGraphicsContext(nullptr);
+    camera->setFinalDrawCallback(cb.get());
+    return true;
+}
+
 osg::Geometry* createImageGeometry(float s,float t, osg::Image::Origin origin, osg::Texture * texture)
 {
     osg::Geometry* geom = NULL;

@@ -204,7 +204,7 @@ osg::Geometry* createGeometryForImage(osg::Image* image,float s,float t);
 osg::Geometry * createGeometryForImage(osg::Image* image);
 osg::Geometry * createGeometryForTexture(osg::Texture* texture);
 bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, osg::ref_ptr<osg::Image> & image);
-
+bool captureCameraImage(osg::Camera * camera, osg::ref_ptr<osg::Image> & image, osg::Camera * masterCamera=NULL);
 
 } // namespace osg_plugin
 } // namespace sgi
