@@ -759,8 +759,13 @@ bool contextMenuPopulateImpl<osg::BufferData>::populate(IContextMenuItem * menuI
             if(manipulateMenu)
             {
                 manipulateMenu->addSimpleAction(MenuActionBufferDirty, "Dirty", _item);
+                manipulateMenu->addSimpleAction(MenuActionBufferDataEdit, "Edit...", _item);
             }
         }
+        break;
+    case SGIItemTypeArrayData:
+        menuItem->addSimpleAction(MenuActionBufferDataEdit, "Edit...", _item);
+        ret = true;
         break;
     default:
         ret = callNextHandler(menuItem);
@@ -793,12 +798,10 @@ bool contextMenuPopulateImpl<osg::Array>::populate(IContextMenuItem * menuItem)
                 bindingMenu->addModeAction("Off", osg::Array::BIND_OFF);
                 bindingMenu->addModeAction("Overall", osg::Array::BIND_OVERALL);
                 bindingMenu->addModeAction("Per primitive set", osg::Array::BIND_PER_PRIMITIVE_SET);
-                bindingMenu->addModeAction("Per vertix", osg::Array::BIND_PER_VERTEX);
+                bindingMenu->addModeAction("Per vertex", osg::Array::BIND_PER_VERTEX);
             }
             menuItem->addBoolAction(MenuActionArrayNormalize, "Normalize", _item, object->getNormalize());
             menuItem->addBoolAction(MenuActionArrayPreserveDataType, "Preserve data type", _item, object->getPreserveDataType());
-
-
         }
         break;
     default:

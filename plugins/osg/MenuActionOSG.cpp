@@ -1407,6 +1407,23 @@ bool actionHandlerImpl<MenuActionUniformEdit>::execute()
 bool actionHandlerImpl<MenuActionBufferDataEdit>::execute()
 {
     osg::BufferData * object = getObject<osg::BufferData,SGIItemOsg>();
+    osg::Array* array = object->asArray();
+    osg::PrimitiveSet* primitiveSet = object->asPrimitiveSet();
+    osg::Image* image = object->asImage();
+    if (array)
+    {
+    }
+    else if (primitiveSet)
+    {
+    }
+    else if (image)
+    {
+        SGIHostItemOsg item(image);
+        IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), &item);
+        if (dialog.valid())
+            dialog->show();
+    }
+
     return true;
 }
 
