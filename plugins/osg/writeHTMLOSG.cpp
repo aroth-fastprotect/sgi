@@ -223,6 +223,8 @@ namespace {
 
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::PrimitiveSet::Mode & t);
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::PrimitiveSet::Type & t);
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Transform::ReferenceFrame & t)
 {
@@ -1562,13 +1564,13 @@ void writePrettyHTMLGeometryVertexIndicies(std::basic_ostream<char>& os, const o
 
 void writePrettyHTMLGeometryTexCoords(std::basic_ostream<char>& os, const osg::Geometry * object, int number, bool brief)
 {
-    for(unsigned texcoordNo = 0; texcoordNo < object->getNumTexCoordArrays(); texcoordNo++)
+    for(unsigned textureUnit = 0; textureUnit < object->getNumTexCoordArrays(); textureUnit++)
     {
-        if(texcoordNo == number || number < 0)
+        if(textureUnit == number || number < 0)
         {
-            const osg::Vec2Array * texcoords = (const osg::Vec2Array *)object->getTexCoordArray(texcoordNo);
+            const osg::Vec2Array * texcoords = (const osg::Vec2Array *)object->getTexCoordArray(textureUnit);
             size_t numcoords = (texcoords?texcoords->size():0);
-            os << numcoords << " in texcoords[" << texcoordNo << "]<br/>" << std::endl;
+            os << helpers::str_plus_number("Texture", textureUnit) << " " << numcoords << " elements<br/>" << std::endl;
             if(!brief)
             {
                 os << "<ol>";
@@ -1652,10 +1654,17 @@ bool writePrettyHTMLImpl<osg::Geometry>::process(std::basic_ostream<char>& os)
         {
             os << "<ol>";
             unsigned numTexCoordArrays = object->getNumTexCoordArrays();
-            for(unsigned i = 0; i < numTexCoordArrays; i++)
+            for(unsigned textureUnit = 0; textureUnit < numTexCoordArrays; textureUnit++)
             {
-                osg::Array * texcoords = object->getTexCoordArray(i);
-                os << "<li>" << osg_helpers::getObjectNameAndType(texcoords, true) << "</li>";
+                osg::Array * texcoords = object->getTexCoordArray(textureUnit);
+                os << "<li>" << helpers::str_plus_number("Texture", textureUnit) << ':';
+                if (texcoords)
+                {
+                    os << " size=" << texcoords->getNumElements();
+                    os << " type=" << texcoords->getDataType();
+                }
+                os << ' ' << osg_helpers::getObjectNameAndType(texcoords, true);
+                os << "</li>";
             }
             os << "</ol>";
             ret = true;
@@ -1667,8 +1676,16 @@ bool writePrettyHTMLImpl<osg::Geometry>::process(std::basic_ostream<char>& os)
             unsigned numPrimitiveSets = object->getNumPrimitiveSets();
             for(unsigned i = 0; i < numPrimitiveSets; i++)
             {
+                os << "<li>";
                 osg::PrimitiveSet * primset = object->getPrimitiveSet(i);
-                os << "<li>" << osg_helpers::getObjectNameAndType(primset, true) << "</li>";
+                if (primset)
+                {
+                    os << " mode=" << (osg::PrimitiveSet::Mode)primset->getMode();
+                    os << " type=" << primset->getType();
+                    os << " num=" << primset->getNumIndices();
+                    os << " ";
+                }
+                os << osg_helpers::getObjectNameAndType(primset, true) << "</li>";
             }
             os << "</ol>";
             ret = true;
@@ -1869,6 +1886,29 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Pr
     return os;
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::PrimitiveSet::Mode & t)
+{
+    switch (t)
+    {
+    case osg::PrimitiveSet::POINTS: os << "GL_POINTS"; break;
+    case osg::PrimitiveSet::LINES: os << "GL_LINES"; break;
+    case osg::PrimitiveSet::LINE_STRIP: os << "GL_LINE_STRIP"; break;
+    case osg::PrimitiveSet::LINE_LOOP: os << "GL_LINE_LOOP"; break;
+    case osg::PrimitiveSet::TRIANGLES: os << "GL_TRIANGLES"; break;
+    case osg::PrimitiveSet::TRIANGLE_STRIP: os << "GL_TRIANGLE_STRIP"; break;
+    case osg::PrimitiveSet::TRIANGLE_FAN: os << "GL_TRIANGLE_FAN"; break;
+    case osg::PrimitiveSet::QUADS: os << "GL_QUADS"; break;
+    case osg::PrimitiveSet::QUAD_STRIP: os << "GL_QUAD_STRIP"; break;
+    case osg::PrimitiveSet::POLYGON: os << "GL_POLYGON"; break;
+    case osg::PrimitiveSet::LINES_ADJACENCY: os << "GL_LINES_ADJACENCY"; break;
+    case osg::PrimitiveSet::TRIANGLES_ADJACENCY: os << "GL_TRIANGLES_ADJACENCY"; break;
+    case osg::PrimitiveSet::TRIANGLE_STRIP_ADJACENCY: os << "GL_TRIANGLE_STRIP_ADJACENCY"; break;
+    case osg::PrimitiveSet::PATCHES: os << "GL_PATCHES"; break;
+    default: os << "unknown" << (int)t; break;
+    }
+    return os;
+}
+
 bool writePrettyHTMLImpl<osg::PrimitiveSet>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -1884,9 +1924,9 @@ bool writePrettyHTMLImpl<osg::PrimitiveSet>::process(std::basic_ostream<char>& o
             callNextHandler(os);
 
             // add remaining PrimitiveSet properties
-            os << "<tr><td>type</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getMode()) << "</td></tr>" << std::endl;
+            os << "<tr><td>type</td><td>" << object->getType() << "</td></tr>" << std::endl;
             os << "<tr><td>numInstances</td><td>" << object->getNumInstances() << "</td></tr>" << std::endl;
-            os << "<tr><td>mode</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getMode()) << "</td></tr>" << std::endl;
+            os << "<tr><td>mode</td><td>" << (osg::PrimitiveSet::Mode)object->getMode() << "</td></tr>" << std::endl;
             os << "<tr><td>data ptr</td><td>" << (void*)object->getDataPointer() << "</td></tr>" << std::endl;
             os << "<tr><td>total data size</td><td>" << object->getTotalDataSize() << "</td></tr>" << std::endl;
             os << "<tr><td>supportsBufferObject</td><td>" << (object->supportsBufferObject()?"true":"false") << "</td></tr>" << std::endl;

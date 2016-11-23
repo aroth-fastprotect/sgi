@@ -649,11 +649,11 @@ bool objectTreeBuildImpl<osg::Geometry>::build(IObjectTreeItem * treeItem)
     case SGIItemTypeDrawableTexCoordsList:
         {
             unsigned numTexCoordArrays = object->getNumTexCoordArrays();
-            for(unsigned i = 0; i < numTexCoordArrays; i++)
+            for(unsigned textureUnit = 0; textureUnit < numTexCoordArrays; textureUnit++)
             {
-                SGIHostItemOsg texCoordArray(object->getTexCoordArray(i));
+                SGIHostItemOsg texCoordArray(object->getTexCoordArray(textureUnit));
                 if(texCoordArray.hasObject())
-                    treeItem->addChild(helpers::str_plus_count(helpers::str_plus_number("TexCoord", i).c_str(), ((const osg::Array * )texCoordArray.object())->getNumElements()), &texCoordArray);
+                    treeItem->addChild(helpers::str_plus_count(helpers::str_plus_number("Texture", textureUnit).c_str(), ((const osg::Array * )texCoordArray.object())->getNumElements()), &texCoordArray);
             }
             ret = true;
         }
