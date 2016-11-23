@@ -303,7 +303,7 @@ std::string getObjectSuggestedFilenameImpl<osg::Image>::process()
 
 std::string getObjectSuggestedFilenameExtensionImpl<osg::Object>::process()
 {
-    return "osgx";
+    return "osgb";
 }
 
 std::string getObjectSuggestedFilenameExtensionImpl<osg::Image>::process()
@@ -334,7 +334,7 @@ std::string getObjectSuggestedFilenameExtensionImpl<osg::HeightField>::process()
 std::vector<std::string> getObjectFilenameFiltersImpl<osg::Object>::process()
 {
     std::vector<std::string> ret;
-    ret.push_back("OSG Files (*.osgx *.osgt *.osgb *.osg *.ive)");
+    ret.push_back("OSG Files (*.osgb *.osgx *.osgt *.osg *.ive)");
     return ret;
 }
 
@@ -451,20 +451,24 @@ bool writeObjectFileImpl<osg::Object>::process(const std::string& filename, cons
 {
     osg::Object* object = getObject<osg::Object,SGIItemOsg>();
     bool ret = false;
-    const bool noOptimizer = true;
-    osg::ref_ptr<osgDB::Options> cloned_opts =
-        options ? static_cast<osgDB::Options*>(options->clone(osg::CopyOp::SHALLOW_COPY)) :
-        osgDB::Registry::instance()->getOptions();
-
-    if(!cloned_opts.valid())
-        cloned_opts = new osgDB::Options;
-
-    cloned_opts->setPluginStringData("noOptimizer",(noOptimizer==true)?"true":"false");
 
     switch(itemType())
     {
     case SGIItemTypeObject:
-        ret = osgDB::writeObjectFile(*object, filename, cloned_opts);
+        {
+            const bool noOptimizer = true;
+            osg::ref_ptr<osgDB::Options> cloned_opts =
+                options ? static_cast<osgDB::Options*>(options->clone(osg::CopyOp::SHALLOW_COPY)) :
+                osgDB::Registry::instance()->getOptions();
+
+            if(!cloned_opts.valid())
+                cloned_opts = new osgDB::Options;
+
+            cloned_opts->setPluginStringData("noOptimizer",(noOptimizer==true)?"true":"false");
+            cloned_opts->setPluginStringData("WriteImageHint", "IncludeData");
+
+            ret = osgDB::writeObjectFile(*object, filename, cloned_opts);
+        }
         break;
     }
     return ret;
