@@ -128,6 +128,8 @@ public:
     enum InputDialogFilenameType { InputDialogFilenameOpen, InputDialogFilenameSave };
     virtual bool inputDialogFilename(QWidget *parent, InputDialogFilenameType type, std::string & filename, const std::vector<std::string> & filters, const std::string & windowTitle, SGIItemBase * item=NULL) = 0;
     virtual bool inputDialogImage(QWidget *parent, Image & image, const std::string & label, const std::string & windowTitle, SGIItemBase * item=NULL) = 0;
+    virtual bool inputDialogQuat(QWidget *parent, Quat & quat, const std::string & label, const std::string & windowTitle, SGIItemBase * item=NULL) = 0;
+    virtual bool inputDialogMatrix(QWidget *parent, Matrix & matrix, MatrixUsage usage, const std::string & label, const std::string & windowTitle, SGIItemBase * item=NULL) = 0;
 
     template<typename VALUE_TYPE>
     bool inputDialogValueAsString(QWidget *parent, VALUE_TYPE & v, const std::string & label, const std::string & windowTitle, InputDialogStringEncoding encoding=InputDialogStringEncodingSystem, SGIItemBase * item=NULL)

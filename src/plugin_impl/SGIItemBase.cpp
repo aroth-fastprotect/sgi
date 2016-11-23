@@ -4,6 +4,7 @@
 #include <sgi/plugins/SGIItemBase.h>
 #include <sgi/plugins/SGIProxyItem.h>
 #include <sstream>
+#include <cmath>
 
 #include <QImage>
 
@@ -383,6 +384,146 @@ const SGIItemBase * SGIProxyItemBase::realItem(bool getInstance) const
     if (!_realItem.valid() && getInstance)
         const_cast<SGIProxyItemBase*>(this)->_realItem = const_cast<SGIProxyItemBase*>(this)->getRealInstance();
     return _realItem;
+}
+
+
+Quat::value_type Quat::length() const
+{
+    return sqrt( _v[0]*_v[0] + _v[1]*_v[1] + _v[2]*_v[2] + _v[3]*_v[3]);
+}
+
+
+#define SET_ROW(row, v1, v2, v3, v4 )    \
+    _mat[(row)][0] = (v1); \
+    _mat[(row)][1] = (v2); \
+    _mat[(row)][2] = (v3); \
+    _mat[(row)][3] = (v4);
+
+#define INNER_PRODUCT(a,b,r,c) \
+     ((a)._mat[r][0] * (b)._mat[0][c]) \
+    +((a)._mat[r][1] * (b)._mat[1][c]) \
+    +((a)._mat[r][2] * (b)._mat[2][c]) \
+    +((a)._mat[r][3] * (b)._mat[3][c])
+
+
+Matrix::Matrix( value_type a00, value_type a01, value_type a02, value_type a03,
+                  value_type a10, value_type a11, value_type a12, value_type a13,
+                  value_type a20, value_type a21, value_type a22, value_type a23,
+                  value_type a30, value_type a31, value_type a32, value_type a33)
+{
+    SET_ROW(0, a00, a01, a02, a03 )
+    SET_ROW(1, a10, a11, a12, a13 )
+    SET_ROW(2, a20, a21, a22, a23 )
+    SET_ROW(3, a30, a31, a32, a33 )
+}
+
+void Matrix::set( value_type a00, value_type a01, value_type a02, value_type a03,
+                   value_type a10, value_type a11, value_type a12, value_type a13,
+                   value_type a20, value_type a21, value_type a22, value_type a23,
+                   value_type a30, value_type a31, value_type a32, value_type a33)
+{
+    SET_ROW(0, a00, a01, a02, a03 )
+    SET_ROW(1, a10, a11, a12, a13 )
+    SET_ROW(2, a20, a21, a22, a23 )
+    SET_ROW(3, a30, a31, a32, a33 )
+}
+
+void Matrix::makeIdentity()
+{
+    SET_ROW(0,    1, 0, 0, 0 )
+    SET_ROW(1,    0, 1, 0, 0 )
+    SET_ROW(2,    0, 0, 1, 0 )
+    SET_ROW(3,    0, 0, 0, 1 )
+}
+
+void Matrix::makeRotate( const Quat& quat )
+{
+    makeIdentity();
+
+    setRotate(quat);
+}
+
+#define QX  q._v[0]
+#define QY  q._v[1]
+#define QZ  q._v[2]
+#define QW  q._v[3]
+
+void Matrix::setRotate(const Quat& q)
+{
+    double length2 = q.length2();
+    if (std::fabs(length2) <= std::numeric_limits<double>::min())
+    {
+        _mat[0][0] = 0.0; _mat[1][0] = 0.0; _mat[2][0] = 0.0;
+        _mat[0][1] = 0.0; _mat[1][1] = 0.0; _mat[2][1] = 0.0;
+        _mat[0][2] = 0.0; _mat[1][2] = 0.0; _mat[2][2] = 0.0;
+    }
+    else
+    {
+        double rlength2;
+        // normalize quat if required.
+        // We can avoid the expensive sqrt in this case since all 'coefficients' below are products of two q components.
+        // That is a square of a square root, so it is possible to avoid that
+        if (length2 != 1.0)
+        {
+            rlength2 = 2.0/length2;
+        }
+        else
+        {
+            rlength2 = 2.0;
+        }
+
+        // Source: Gamasutra, Rotating Objects Using Quaternions
+        //
+        //http://www.gamasutra.com/features/19980703/quaternions_01.htm
+
+        double wx, wy, wz, xx, yy, yz, xy, xz, zz, x2, y2, z2;
+
+        // calculate coefficients
+        x2 = rlength2*QX;
+        y2 = rlength2*QY;
+        z2 = rlength2*QZ;
+
+        xx = QX * x2;
+        xy = QX * y2;
+        xz = QX * z2;
+
+        yy = QY * y2;
+        yz = QY * z2;
+        zz = QZ * z2;
+
+        wx = QW * x2;
+        wy = QW * y2;
+        wz = QW * z2;
+
+        // Note.  Gamasutra gets the matrix assignments inverted, resulting
+        // in left-handed rotations, which is contrary to OpenGL and OSG's
+        // methodology.  The matrix assignment has been altered in the next
+        // few lines of code to do the right thing.
+        // Don Burns - Oct 13, 2001
+        _mat[0][0] = 1.0 - (yy + zz);
+        _mat[1][0] = xy - wz;
+        _mat[2][0] = xz + wy;
+
+
+        _mat[0][1] = xy + wz;
+        _mat[1][1] = 1.0 - (xx + zz);
+        _mat[2][1] = yz - wx;
+
+        _mat[0][2] = xz - wy;
+        _mat[1][2] = yz + wx;
+        _mat[2][2] = 1.0 - (xx + yy);
+    }
+
+#if 0
+    _mat[0][3] = 0.0;
+    _mat[1][3] = 0.0;
+    _mat[2][3] = 0.0;
+
+    _mat[3][0] = 0.0;
+    _mat[3][1] = 0.0;
+    _mat[3][2] = 0.0;
+    _mat[3][3] = 1.0;
+#endif
 }
 
 } // namespace sgi

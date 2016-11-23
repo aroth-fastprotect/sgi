@@ -101,6 +101,8 @@ SET(TARGET_UI
 	ObjectLoggerDialog.ui
 	QTextDialog.ui
 	DoubleInputDialog.ui
+	QuatInputDialog.ui
+	MatrixInputDialog.ui
     ImagePreviewDialog.ui
     )
 
@@ -111,6 +113,8 @@ SET(TARGET_MOC_H
 	QtProxy.h
 	QTextDialog.h
 	DoubleInputDialog.h
+	QuatInputDialog.h
+	MatrixInputDialog.h
 	ImagePreviewDialog.h
 )
 
@@ -127,6 +131,8 @@ SET(TARGET_SRC
 	QtProxy.cpp
 	QTextDialog.cpp
 	DoubleInputDialog.cpp
+	QuatInputDialog.cpp
+	MatrixInputDialog.cpp
 	ImagePreviewDialog.cpp
 	dxt.cpp
 )

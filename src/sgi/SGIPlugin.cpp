@@ -15,6 +15,8 @@
 #include "sgi_internal.h"
 #include "QTextDialog.h"
 #include "DoubleInputDialog.h"
+#include "QuatInputDialog.h"
+#include "MatrixInputDialog.h"
 #include <sgi/plugins/ImagePreviewDialog>
 #include <sgi/plugins/ObjectLoggerDialog>
 #include <sgi/plugins/SceneGraphDialog>
@@ -350,6 +352,14 @@ public:
         bool inputDialogImage(QWidget *parent, Image & image, const std::string & label, const std::string & windowTitle, SGIItemBase * item)
         {
             return _impl->inputDialogImage(parent, image, label, windowTitle, item);
+        }
+        bool inputDialogQuat(QWidget *parent, Quat & quat, const std::string & label, const std::string & windowTitle, SGIItemBase * item)
+        {
+            return _impl->inputDialogQuat(parent, quat, label, windowTitle, item);
+        }
+        bool inputDialogMatrix(QWidget *parent, Matrix & matrix, MatrixUsage usage, const std::string & label, const std::string & windowTitle, SGIItemBase * item)
+        {
+            return _impl->inputDialogMatrix(parent, matrix, usage, label, windowTitle, item);
         }
         bool setView(SGIItemBase * view, const SGIItemBase * item, double animationTime = -1.0)
         {
@@ -1220,7 +1230,7 @@ public:
         }
         else
             qwindowTitle = fromLocal8Bit(windowTitle);
-        
+
         QString qtext = copyStringFromStdString(text, encoding);
         QTextDialog dialog(parent);
         dialog.setWindowTitle(qwindowTitle);
@@ -1442,6 +1452,55 @@ public:
         */
         return ok;
     }
+    bool inputDialogQuat(QWidget *parent, Quat & quat, const std::string & label, const std::string & windowTitle, SGIItemBase * item)
+    {
+        QString qwindowTitle;
+        if(item)
+        {
+            std::string objectDisplayName;
+            getObjectDisplayName(objectDisplayName, item, true);
+            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+        }
+        else
+            qwindowTitle = fromLocal8Bit(windowTitle);
+        bool ok = false;
+        QuatInputDialog dlg(parent);
+        dlg.setWindowTitle(qwindowTitle);
+        dlg.setLabel(fromLocal8Bit(label));
+        //dlg.setDecimals(decimals);
+        dlg.setValue(quat);
+        ok = (dlg.exec() == QDialog::Accepted);
+        if(ok)
+        {
+            quat = dlg.value();
+        }
+        return ok;
+    }
+    bool inputDialogMatrix(QWidget *parent, Matrix & matrix, MatrixUsage usage, const std::string & label, const std::string & windowTitle, SGIItemBase * item)
+    {
+        QString qwindowTitle;
+        if(item)
+        {
+            std::string objectDisplayName;
+            getObjectDisplayName(objectDisplayName, item, true);
+            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+        }
+        else
+            qwindowTitle = fromLocal8Bit(windowTitle);
+        bool ok = false;
+        MatrixInputDialog dlg(parent);
+        dlg.setWindowTitle(qwindowTitle);
+        dlg.setLabel(fromLocal8Bit(label));
+        //dlg.setDecimals(decimals);
+        dlg.setValue(matrix);
+        ok = (dlg.exec() == QDialog::Accepted);
+        if(ok)
+        {
+            matrix = dlg.value();
+        }
+        return ok;
+    }
+
     bool setView(SGIItemBase * view, const SGIItemBase * item, double animationTime = -1.0)
     {
         bool ret = false;
