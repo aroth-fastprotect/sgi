@@ -90,6 +90,10 @@ LIST(APPEND TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/plugins/ObjectLoggerDialog
     ${SGI_INCLUDE_DIR}/sgi/plugins/ImagePreviewDialog
 
+	${SGI_INCLUDE_DIR}/sgi/plugins/Matrix
+	${SGI_INCLUDE_DIR}/sgi/plugins/Quat
+	${SGI_INCLUDE_DIR}/sgi/plugins/Vector
+
     ${SGI_INCLUDE_DIR}/sgi/plugins/SettingsDialogImpl
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGISettingsDialogImpl
     ${SGI_INCLUDE_DIR}/sgi/plugins/WritePrettyHTMLImpl

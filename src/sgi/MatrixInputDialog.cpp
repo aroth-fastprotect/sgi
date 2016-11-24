@@ -1,10 +1,13 @@
 #include "stdafx.h"
-#include <sgi/plugins/SGIItemBase.h>
+#include <sgi/plugins/Matrix>
 #include "MatrixInputDialog.h"
 #include "MatrixInputDialog.moc"
 
+#include <unordered_map>
 #include <QPushButton>
 #include <QTextStream>
+
+#include <osg/Matrixd>
 
 #include <ui_MatrixInputDialog.h>
 
@@ -13,6 +16,17 @@
 #endif
 
 namespace sgi {
+
+    QTextStream & operator<< (QTextStream & ts, const osg::Vec3d & v)
+    {
+        ts << v.x() << ',' << v.y() << ',' << v.z();
+        return ts;
+    }
+    QTextStream & operator<< (QTextStream & ts, const osg::Quat & q)
+    {
+        ts << q.x() << ',' << q.y() << ',' << q.z() << q.w();
+        return ts;
+    }
 
 
 void MatrixInputDialog::formatMatrixValue(const Matrix & matrix, QString & text, MatrixUsage usage)
@@ -29,25 +43,175 @@ void MatrixInputDialog::formatMatrixValue(const Matrix & matrix, QString & text,
             ts << endl;
         }
         break;
+    case MatrixUsageProjectionPerspective:
+        {
+            osg::Matrixd pm(matrix.ptr());
+            double fovy, aspectRatio, zNear, zFar;
+            pm.getPerspective(fovy, aspectRatio, zNear, zFar);
+            ts << "fovy: " << fovy << endl;
+            ts << "aspectRatio: " << aspectRatio << endl;
+            ts << "zNear: " << zNear << endl;
+            ts << "zFar: " << zFar << endl;
+        }
+        break;
+    case MatrixUsageProjectionOrtho:
+        {
+            osg::Matrixd pm(matrix.ptr());
+            double left, right, bottom, top, zNear, zFar;
+            pm.getOrtho(left, right, bottom, top, zNear, zFar);
+            ts << "left: " << left << endl;
+            ts << "right: " << right << endl;
+            ts << "bottom: " << bottom << endl;
+            ts << "top: " << top << endl;
+            ts << "zNear: " << zNear << endl;
+            ts << "zFar: " << zFar << endl;
+        }
+        break;
+    case MatrixUsageProjectionOrtho2D:
+        {
+            osg::Matrixd pm(matrix.ptr());
+            double left, right, bottom, top, zNear, zFar;
+            pm.getOrtho(left, right, bottom, top, zNear, zFar);
+            ts << "left: " << left << endl;
+            ts << "right: " << right << endl;
+            ts << "bottom: " << bottom << endl;
+            ts << "top: " << top << endl;
+        }
+        break;
+    case MatrixUsageProjectionFrustum:
+        {
+            osg::Matrixd pm(matrix.ptr());
+            double left, right, bottom, top, zNear, zFar;
+            pm.getFrustum(left, right, bottom, top, zNear, zFar);
+            ts << "left: " << left << endl;
+            ts << "right: " << right << endl;
+            ts << "bottom: " << bottom << endl;
+            ts << "top: " << top << endl;
+            ts << "zNear: " << zNear << endl;
+            ts << "zFar: " << zFar << endl;
+        }
+        break;
+    case MatrixUsageView:
+        {
+            osg::Matrixd pm(matrix.ptr());
+            osg::Vec3d eye, center, up;
+            pm.getLookAt(eye, center, up);
+            ts << "eye: " << eye << endl;
+            ts << "center: " << center << endl;
+            ts << "up: " << up << endl;
+        }
+        break;
+    case MatrixUsageModel:
+        {
+            osg::Matrixd pm(matrix.ptr());
+            osg::Vec3d translate, scale;
+            osg::Quat rotation, so;
+            pm.decompose(translate, rotation, scale, so);
+            ts << "translate: " << translate << endl;
+            ts << "rotation: " << rotation << endl;
+            ts << "scale: " << scale << endl;
+            ts << "so: " << so << endl;
+        }
+        break;
     }
     ts.flush();
+}
+
+typedef QMap<QString, QString> QStringMap;
+
+namespace {
+    double readDouble(const QStringMap & map, const QString & key, bool & ok)
+    {
+        double ret = 0;
+        if (ok)
+        {
+            auto it = map.find(key);
+            if (it != map.end())
+            {
+                const QString & value = it.value();
+                ret = value.toDouble(&ok);
+            }
+        }
+        return ret;
+    }
+    osg::Vec3d readVec3d(const QStringMap & map, const QString & key, bool & ok)
+    {
+        osg::Vec3d ret;
+        if (ok)
+        {
+            auto it = map.find(key);
+            if (it != map.end())
+            {
+                const QString & value = it.value();
+                QStringList elems = value.split(',', QString::SkipEmptyParts);
+                if (elems.size() == 3)
+                {
+                    bool x_ok = false, y_ok = false, z_ok = false;
+                    double x = elems[0].toDouble(&x_ok);
+                    double y = elems[1].toDouble(&y_ok);
+                    double z = elems[2].toDouble(&z_ok);
+                    ok = (x_ok && y_ok && z_ok);
+                    if (ok)
+                        ret.set(x, y, z);
+                }
+            }
+        }
+        return ret;
+    }
+    osg::Quat readQuat(const QStringMap & map, const QString & key, bool & ok)
+    {
+        osg::Quat ret;
+        if (ok)
+        {
+            auto it = map.find(key);
+            if (it != map.end())
+            {
+                const QString & value = it.value();
+                QStringList elems = value.split(',', QString::SkipEmptyParts);
+                if (elems.size() == 4)
+                {
+                    bool x_ok = false, y_ok = false, z_ok = false, w_ok = false;
+                    double x = elems[0].toDouble(&x_ok);
+                    double y = elems[1].toDouble(&y_ok);
+                    double z = elems[2].toDouble(&z_ok);
+                    double w = elems[3].toDouble(&w_ok);
+                    ok = (x_ok && y_ok && z_ok && w_ok);
+                    if (ok)
+                        ret.set(x, y, z, w);
+                }
+            }
+        }
+        return ret;
+    }
 }
 
 bool MatrixInputDialog::parseMatrixValue(Matrix & matrix, const QString & text, MatrixUsage usage, bool * ok)
 {
     bool ret = false;
     QStringList lines = text.split(QChar('\n'));
+    QStringMap kvmap;
+    for (const QString & line : lines)
+    {
+        int index = line.indexOf(QChar(':'));
+        if (index > 0)
+        {
+            QString key = line.mid(0, index).trimmed();
+            QString value = line.mid(index+1).trimmed();
+            if(!value.isEmpty())
+                kvmap[key] = value;
+        }
+    }
     switch(usage)
     {
     case MatrixUsageUnknown:
     default:
         ret = lines.size() == 4;
-        for(unsigned row = 0; ret && row < lines.size(); ++row)
+        for(unsigned row = 0; ret && row < (unsigned)lines.size(); ++row)
         {
             const QString & line = lines[row];
             QStringList elems = line.split(' ');
             ret = elems.size() == 4;
-            for(unsigned col = 0; ret && col < elems.size(); ++col)
+            for(unsigned col = 0; ret && col < (unsigned)elems.size(); ++col)
             {
                 const QString & elem = elems[col];
                 bool v_ok = false;
@@ -59,6 +223,109 @@ bool MatrixInputDialog::parseMatrixValue(Matrix & matrix, const QString & text, 
             }
         }
         break;
+    case MatrixUsageProjectionPerspective:
+        {
+            bool v_ok = true;
+            double fovy = readDouble(kvmap, "fovy", v_ok);
+            double aspectRatio = readDouble(kvmap, "aspectratio", v_ok);
+            double zNear = readDouble(kvmap, "znear", v_ok);
+            double zFar = readDouble(kvmap, "zfar", v_ok);
+            if (v_ok)
+            {
+                osg::Matrixd m;
+                m.makePerspective(fovy, aspectRatio, zNear, zFar);
+                matrix.set(m.ptr());
+                ret = true;
+            }
+        }
+        break;
+    case MatrixUsageProjectionOrtho:
+        {
+            bool v_ok = true;
+            double left = readDouble(kvmap, "left", v_ok);
+            double right = readDouble(kvmap, "right", v_ok);
+            double bottom = readDouble(kvmap, "bottom", v_ok);
+            double top = readDouble(kvmap, "top", v_ok);
+            double zNear = readDouble(kvmap, "znear", v_ok);
+            double zFar = readDouble(kvmap, "zfar", v_ok);
+            if (v_ok)
+            {
+                osg::Matrixd m;
+                m.makeOrtho(left, right, bottom, top, zNear, zFar);
+                matrix.set(m.ptr());
+                ret = true;
+            }
+        }
+        break;
+    case MatrixUsageProjectionOrtho2D:
+        {
+            bool v_ok = true;
+            double left = readDouble(kvmap, "left", v_ok);
+            double right = readDouble(kvmap, "right", v_ok);
+            double bottom = readDouble(kvmap, "bottom", v_ok);
+            double top = readDouble(kvmap, "top", v_ok);
+            if (v_ok)
+            {
+                osg::Matrixd m;
+                m.makeOrtho2D(left, right, bottom, top);
+                matrix.set(m.ptr());
+                ret = true;
+            }
+        }
+        break;
+    case MatrixUsageProjectionFrustum:
+        {
+            bool v_ok = true;
+            double left = readDouble(kvmap, "left", v_ok);
+            double right = readDouble(kvmap, "right", v_ok);
+            double bottom = readDouble(kvmap, "bottom", v_ok);
+            double top = readDouble(kvmap, "top", v_ok);
+            double zNear = readDouble(kvmap, "znear", v_ok);
+            double zFar = readDouble(kvmap, "zfar", v_ok);
+            if (v_ok)
+            {
+                osg::Matrixd m;
+                m.makeFrustum(left, right, bottom, top, zNear, zFar);
+                matrix.set(m.ptr());
+                ret = true;
+            }
+        }
+        break;
+    case MatrixUsageView:
+        {
+            bool v_ok = true;
+            osg::Vec3d eye = readVec3d(kvmap, "eye", v_ok);
+            osg::Vec3d center = readVec3d(kvmap, "center", v_ok);
+            osg::Vec3d up = readVec3d(kvmap, "up", v_ok);
+            if (v_ok)
+            {
+                osg::Matrixd m;
+                m.makeLookAt(eye, center, up);
+                matrix.set(m.ptr());
+                ret = true;
+            }
+        }
+        break;
+    case MatrixUsageModel:
+        {
+            bool v_ok = true;
+            osg::Vec3d translate = readVec3d(kvmap, "translate", v_ok);
+            osg::Vec3d scale = readVec3d(kvmap, "scale", v_ok);
+            osg::Quat so = readQuat(kvmap, "so", v_ok);
+            osg::Quat rotation = readQuat(kvmap, "rotation", v_ok);
+            if (v_ok)
+            {
+                osg::Matrixd m = osg::Matrixd::identity();
+                m.postMultTranslate(translate);
+                m.postMultTranslate(scale);
+                m.postMultRotate(rotation);
+                m.postMultRotate(so);
+                matrix.set(m.ptr());
+                ret = true;
+            }
+        }
+        break;
+
     }
     if(ok)
         *ok = ret;
@@ -69,11 +336,15 @@ MatrixInputDialog::MatrixInputDialog(QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
     , ui(NULL)
     , _original_value()
+    , _original_usage(MatrixUsageUnknown)
     , _value()
+    , _usage(MatrixUsageUnknown)
 {
     ui = new Ui_MatrixInputDialog;
     ui->setupUi( this );
 
+    ui->tabWidget->setCurrentWidget(ui->tabUser);
+    ui->representationComboBoxRaw->setEnabled(false);
     fillMatrixUsageType(ui->representationComboBoxRaw, MatrixUsageUnknown);
     fillMatrixUsageType(ui->representationComboBoxUser, MatrixUsageUnknown);
 
@@ -95,7 +366,10 @@ void MatrixInputDialog::fillMatrixUsageType(QComboBox * comboBox, MatrixUsage us
     comboBox->addItem(tr("Raw"), MatrixUsageUnknown);
     comboBox->addItem(tr("Model"), MatrixUsageModel);
     comboBox->addItem(tr("View"), MatrixUsageView);
-    comboBox->addItem(tr("Projection"), MatrixUsageProjection);
+    comboBox->addItem(tr("Perspective projection"), MatrixUsageProjectionPerspective);
+    comboBox->addItem(tr("Orthographic projection"), MatrixUsageProjectionOrtho);
+    comboBox->addItem(tr("Orthographic 2D projection"), MatrixUsageProjectionOrtho2D);
+    comboBox->addItem(tr("Projection frustum"), MatrixUsageProjectionFrustum);
     int index = comboBox->findData(QVariant((int)usage));
     comboBox->setCurrentIndex(index);
 }
@@ -121,7 +395,9 @@ void MatrixInputDialog::formatMatrixValue(QPlainTextEdit * textEdit, MatrixUsage
 {
     QString text;
     formatMatrixValue(text, usage);
+    textEdit->blockSignals(true);
     textEdit->setPlainText(text);
+    textEdit->blockSignals(false);
 }
 
 
@@ -137,12 +413,13 @@ QString MatrixInputDialog::label() const
 
 void MatrixInputDialog::reset()
 {
-    setValue(_original_value);
+    setValue(_original_value, _usage);
 }
 
-void MatrixInputDialog::setOriginalValue(const Matrix & value)
+void MatrixInputDialog::setOriginalValue(const Matrix & value, MatrixUsage usage)
 {
     _original_value = value;
+    _original_usage = usage;
 }
 
 const Matrix & MatrixInputDialog::originalValue() const
@@ -150,9 +427,19 @@ const Matrix & MatrixInputDialog::originalValue() const
     return _original_value;
 }
 
-void MatrixInputDialog::setValue(const Matrix & value)
+void MatrixInputDialog::setValue(const Matrix & value, MatrixUsage usage)
 {
     _value = value;
+    _usage = usage;
+
+    int index = ui->representationComboBoxUser->findData(QVariant((int)usage));
+    ui->representationComboBoxUser->blockSignals(true);
+    ui->representationComboBoxUser->setCurrentIndex(index);
+    ui->representationComboBoxUser->blockSignals(false);
+
+    MatrixUsage rawUsage = (MatrixUsage)ui->representationComboBoxRaw->itemData(ui->representationComboBoxRaw->currentIndex()).toInt();
+    formatMatrixValue(ui->textEditRaw, rawUsage);
+    formatMatrixValue(ui->textEditUser, usage);
 }
 
 const Matrix & MatrixInputDialog::value() const

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDialog>
+#include <sgi/plugins/Matrix>
 
 QT_BEGIN_NAMESPACE
 class Ui_MatrixInputDialog;
@@ -22,10 +23,10 @@ public slots:
     void                    setLabel(const QString & message);
     QString                 label() const;
 
-    void                    setValue(const Matrix & value);
+    void                    setValue(const Matrix & value, MatrixUsage usage);
     const Matrix &          value() const;
 
-    void                    setOriginalValue(const Matrix & value);
+    void                    setOriginalValue(const Matrix & value, MatrixUsage usage);
     const Matrix &          originalValue() const;
 
     void                    setDecimals(int decimals);
@@ -55,7 +56,9 @@ protected:
 
 private:
     Matrix                  _original_value;
+    MatrixUsage             _original_usage;
     Matrix                  _value;
+    MatrixUsage             _usage;
 
 private:  // for now
     Ui_MatrixInputDialog* ui;

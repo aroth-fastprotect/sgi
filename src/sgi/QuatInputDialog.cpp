@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include <sgi/plugins/SGIItemBase.h>
+#include <sgi/plugins/Quat>
 #include "QuatInputDialog.h"
 #include "QuatInputDialog.moc"
 

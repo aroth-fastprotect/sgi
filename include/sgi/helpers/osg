@@ -12,6 +12,9 @@
 #include <osg/NodeVisitor>
 #include <sgi/helpers/rtti>
 
+#include <sgi/plugins/Matrix>
+#include <sgi/plugins/Quat>
+
 namespace osg {
     class Referenced;
     class Object;

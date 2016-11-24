@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDialog>
+#include <sgi/plugins/Quat>
 
 QT_BEGIN_NAMESPACE
 class Ui_QuatInputDialog;

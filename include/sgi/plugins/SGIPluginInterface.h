@@ -6,6 +6,7 @@
 #include "SGIItemBase.h"
 #include <map>
 #include <sstream>
+#include "Matrix"
 
 class QWidget;
 
@@ -53,6 +54,12 @@ typedef osg::ref_ptr<IContextMenuItem> IContextMenuItemPtr;
 
 class IContextMenuAction;
 typedef osg::ref_ptr<IContextMenuAction> IContextMenuActionPtr;
+
+class Matrix;
+class Quat;
+class Vector2;
+class Vector3;
+class Vector4;
 
 typedef QWidget * QWidgetPtr;
 

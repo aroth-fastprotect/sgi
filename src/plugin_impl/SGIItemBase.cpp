@@ -3,6 +3,8 @@
 
 #include <sgi/plugins/SGIItemBase.h>
 #include <sgi/plugins/SGIProxyItem.h>
+#include <sgi/plugins/Matrix>
+#include <sgi/plugins/Quat>
 #include <sstream>
 #include <cmath>
 
