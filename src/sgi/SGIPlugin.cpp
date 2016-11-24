@@ -1468,6 +1468,7 @@ public:
         dlg.setWindowTitle(qwindowTitle);
         dlg.setLabel(fromLocal8Bit(label));
         //dlg.setDecimals(decimals);
+        dlg.setOriginalValue(quat);
         dlg.setValue(quat);
         ok = (dlg.exec() == QDialog::Accepted);
         if(ok)
@@ -1492,6 +1493,7 @@ public:
         dlg.setWindowTitle(qwindowTitle);
         dlg.setLabel(fromLocal8Bit(label));
         //dlg.setDecimals(decimals);
+        dlg.setOriginalValue(matrix);
         dlg.setValue(matrix);
         ok = (dlg.exec() == QDialog::Accepted);
         if(ok)

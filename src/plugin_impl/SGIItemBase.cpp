@@ -12,6 +12,18 @@ namespace sgi {
 // some method implementations from SGIItemBase which are only
 // used within the SGI base and not in any plugin or caller.
 
+namespace math {
+#if defined(_MSC_VER)
+    inline bool isNaN(double v) { return _isnan(v)!=0; }
+#elif defined(__ANDROID__)
+    inline bool isNaN(float v) { return isnan(v); }
+    inline bool isNaN(double v) { return isnan(v); }
+#else
+    inline bool isNaN(float v) { return std::isnan(v); }
+    inline bool isNaN(double v) { return std::isnan(v); }
+#endif
+} // namespace math
+
 namespace {
     static unsigned s_ItemCount = 0;
 }
@@ -392,6 +404,11 @@ Quat::value_type Quat::length() const
     return sqrt( _v[0]*_v[0] + _v[1]*_v[1] + _v[2]*_v[2] + _v[3]*_v[3]);
 }
 
+bool Quat::isNaN() const
+{
+    return math::isNaN(_v[0]) || math::isNaN(_v[1]) || math::isNaN(_v[2]) || math::isNaN(_v[3]);
+}
+
 
 #define SET_ROW(row, v1, v2, v3, v4 )    \
     _mat[(row)][0] = (v1); \
@@ -442,6 +459,16 @@ void Matrix::makeRotate( const Quat& quat )
 
     setRotate(quat);
 }
+
+bool Matrix::isNaN() const
+{
+    return math::isNaN(_mat[0][0]) || math::isNaN(_mat[0][1]) || math::isNaN(_mat[0][2]) || math::isNaN(_mat[0][3]) ||
+            math::isNaN(_mat[1][0]) || math::isNaN(_mat[1][1]) || math::isNaN(_mat[1][2]) || math::isNaN(_mat[1][3]) ||
+            math::isNaN(_mat[2][0]) || math::isNaN(_mat[2][1]) || math::isNaN(_mat[2][2]) || math::isNaN(_mat[2][3]) ||
+            math::isNaN(_mat[3][0]) || math::isNaN(_mat[3][1]) || math::isNaN(_mat[3][2]) || math::isNaN(_mat[3][3]);
+
+}
+
 
 #define QX  q._v[0]
 #define QY  q._v[1]

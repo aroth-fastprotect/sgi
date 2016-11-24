@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>265</height>
+    <width>586</width>
+    <height>431</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
@@ -28,119 +28,85 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Representation</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="representationComboBox">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QFormLayout" name="formLayout">
-     <item row="0" column="0">
-      <widget class="QLabel" name="label_x">
-       <property name="text">
-        <string>X</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout">
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <widget class="QWidget" name="tabUser">
+      <attribute name="title">
+       <string>User</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <widget class="QSlider" name="horizontalSlider_x">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Representation</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="representationComboBoxUser">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_x"/>
+        <widget class="QPlainTextEdit" name="textEditUser"/>
        </item>
       </layout>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_y">
-       <property name="text">
-        <string>Y</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
+     </widget>
+     <widget class="QWidget" name="tabRaw">
+      <attribute name="title">
+       <string>Raw</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QSlider" name="horizontalSlider_y">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLabel" name="label_2">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Representation</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="representationComboBoxRaw">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_y"/>
-       </item>
-      </layout>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_z">
-       <property name="text">
-        <string>Z</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
-        <widget class="QSlider" name="horizontalSlider_z">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_z"/>
+        <widget class="QPlainTextEdit" name="textEditRaw"/>
        </item>
       </layout>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_w">
-       <property name="text">
-        <string>W</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
-       <item>
-        <widget class="QSlider" name="horizontalSlider_w">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_w"/>
-       </item>
-      </layout>
-     </item>
-    </layout>
+     </widget>
+    </widget>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
@@ -188,5 +154,75 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>representationComboBoxRaw</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>MatrixInputDialog</receiver>
+   <slot>rawRepresentationChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>339</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>292</x>
+     <y>215</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>representationComboBoxUser</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>MatrixInputDialog</receiver>
+   <slot>userRepresentationChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>339</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>292</x>
+     <y>215</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>textEditRaw</sender>
+   <signal>textChanged()</signal>
+   <receiver>MatrixInputDialog</receiver>
+   <slot>rawTextEditChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>292</x>
+     <y>240</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>292</x>
+     <y>215</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>textEditUser</sender>
+   <signal>textChanged()</signal>
+   <receiver>MatrixInputDialog</receiver>
+   <slot>userTextEditChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>292</x>
+     <y>240</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>292</x>
+     <y>215</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>userRepresentationChanged(int)</slot>
+  <slot>rawRepresentationChanged(int)</slot>
+  <slot>rawTextEditChanged()</slot>
+  <slot>userTextEditChanged()</slot>
+ </slots>
 </ui>

@@ -4,6 +4,8 @@
 
 QT_BEGIN_NAMESPACE
 class Ui_MatrixInputDialog;
+class QComboBox;
+class QPlainTextEdit;
 QT_END_NAMESPACE
 
 namespace sgi {
@@ -29,8 +31,27 @@ public slots:
     void                    setDecimals(int decimals);
     int                     decimals() const;
 
+    void                    rawRepresentationChanged(int index);
+    void                    userRepresentationChanged(int index);
+
+    void                    rawTextEditChanged();
+    void                    userTextEditChanged();
+
 protected slots:
     void                    reset();
+
+protected:
+    void                    fillMatrixUsageType(QComboBox * combo, MatrixUsage usage);
+
+    static void             formatMatrixValue(const Matrix & matrix, QString & text, MatrixUsage usage);
+    static bool             parseMatrixValue(Matrix & matrix, const QString & text, MatrixUsage usage, bool * ok=NULL);
+
+    void                    parseMatrixValue(const QString & text, MatrixUsage usage);
+    void                    parseMatrixValue(QPlainTextEdit * textEdit, MatrixUsage usage);
+
+    void                    formatMatrixValue(QString & text, MatrixUsage usage);
+    void                    formatMatrixValue(QPlainTextEdit * textEdit, MatrixUsage usage);
+
 
 private:
     Matrix                  _original_value;

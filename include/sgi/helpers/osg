@@ -111,6 +111,26 @@ inline ::osg::Vec4f osgColor(const sgi::Color & c)
     return ::osg::Vec4f(c.r, c.g, c.b, c.a);
 }
 
+inline sgi::Matrix osgMatrix(const osg::Matrixd & m)
+{
+    return sgi::Matrix(m.ptr());
+}
+
+inline ::osg::Matrixd osgMatrix(const sgi::Matrix & m)
+{
+    return ::osg::Matrixd(m.ptr());
+}
+
+inline sgi::Quat osgQuat(const osg::Quat & q)
+{
+    return sgi::Quat(q.x(), q.y(), q.z(), q.w());
+}
+
+inline ::osg::Quat osgQuat(const sgi::Quat & q)
+{
+    return ::osg::Quat(q.x(), q.y(), q.z(), q.w());
+}
+
 SGI_EXPORT std::string glValueName(unsigned n);
 SGI_EXPORT std::string glOverrideValueName(unsigned n);
 SGI_EXPORT std::string clearMaskToString(unsigned clearMask);

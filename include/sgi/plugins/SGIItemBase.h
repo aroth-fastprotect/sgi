@@ -292,6 +292,9 @@ public:
         _v[3]=w;
     }
 
+    inline bool valid() const { return !isNaN(); }
+    bool isNaN() const;
+
     inline value_type & operator [] (int i) { return _v[i]; }
     inline value_type   operator [] (int i) const { return _v[i]; }
 
@@ -342,6 +345,9 @@ public:
         return *this;
     }
 
+    inline bool valid() const { return !isNaN(); }
+    bool isNaN() const;
+
     inline void set(const Matrix& rhs) { set(rhs.ptr()); }
 
     inline void set(float const * const ptr)
@@ -355,6 +361,9 @@ public:
         value_type* local_ptr = (value_type*)_mat;
         for(int i=0;i<16;++i) local_ptr[i]=(value_type)ptr[i];
     }
+
+    inline value_type& operator()(int row, int col) { return _mat[row][col]; }
+    inline value_type operator()(int row, int col) const { return _mat[row][col]; }
 
     void set(value_type a00, value_type a01, value_type a02,value_type a03,
                 value_type a10, value_type a11, value_type a12,value_type a13,
