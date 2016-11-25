@@ -538,12 +538,17 @@ bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, o
     slaveCamera->setComputeNearFarMode(osg::CullSettings::DO_NOT_COMPUTE_NEAR_FAR);
     slaveCamera->setRenderOrder(osg::Camera::NESTED_RENDER);
     slaveCamera->setViewport(0, 0, texture->getTextureWidth(), texture->getTextureHeight());
-    slaveCamera->setProjectionMatrixAsOrtho2D(0.0, texture->getTextureWidth(), 0.0, texture->getTextureHeight());
+    //slaveCamera->setProjectionMatrixAsOrtho2D(-texture->getTextureWidth() / 2, texture->getTextureWidth() / 2, -texture->getTextureHeight() / 2, texture->getTextureHeight() / 2);
+    //slaveCamera->setProjectionMatrixAsOrtho2D(-2.0, 2.0, -2.0, 2.0);
+    //slaveCamera->setProjectionMatrixAsOrtho2D(-1.0, 1.0, -1.0, 1.0);
     osg::ref_ptr<osg::Geometry> geom = createGeometryForTexture(texture);
 
-//     osg::ComputeBoundsVisitor v;
-//     geom->accept(v);
-//     osg::BoundingBox bb = v.getBoundingBox();
+     osg::ComputeBoundsVisitor v;
+     geom->accept(v);
+     osg::BoundingBox bb = v.getBoundingBox();
+
+     slaveCamera->setProjectionMatrixAsOrtho2D(bb.xMin(), bb.xMax(), bb.zMin(), bb.zMax());
+
 
     osg::Vec3d center(0, 0, 0.0);
     osg::Vec3d eye(0.0, -10.0, 0.0);

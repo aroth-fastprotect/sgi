@@ -1,6 +1,7 @@
 IF(OSGEARTH_FOUND)
 	include_directories(${OSGEARTH_INCLUDE_DIR})
 ENDIF()
+include_directories(.)
 SET(TARGET_SRC
     stdafx.cpp
     sgi_osg_plugin.cpp
@@ -30,6 +31,7 @@ SET(TARGET_SRC
 
     SettingsDialogOSG.cpp
     CameraSettings.cpp
+	ExtraViewDialog.cpp
     )
 
 SET(TARGET_H
@@ -64,9 +66,11 @@ fast_configure_file(SGIItemOsg ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsg COPY_ON
 
 SET(TARGET_MOC_H
     CameraSettings.h
+	ExtraViewDialog.h
     )
 SET(TARGET_UI
     CameraSettings.ui
+	ExtraViewDialog.ui
     )
 
 SET(TARGET_LIBRARIES_VARS

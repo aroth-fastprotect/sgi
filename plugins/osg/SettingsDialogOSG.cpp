@@ -5,15 +5,16 @@
 #include <sgi/plugins/SettingsDialog>
 
 #include <osg/Camera>
-#include <osg/Shape>
 
 #include "CameraSettings.h"
+#include "ExtraViewDialog.h"
 
 namespace sgi {
 namespace osg_plugin {
 
 SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogCamera)
 SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogObjectLogger)
+SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogExtraView)
 
 bool settingsDialogCreateImpl<SettingsDialogCamera>::execute(ISettingsDialogPtr & dialog)
 {
@@ -36,6 +37,14 @@ bool settingsDialogCreateImpl<SettingsDialogObjectLogger>::execute(ISettingsDial
             dialog = new ObjectLoggerDialog(parent(), inspector);
     }
     */
+    return true;
+}
+
+bool settingsDialogCreateImpl<SettingsDialogExtraView>::execute(ISettingsDialogPtr & dialog)
+{
+    osg::Camera * object = getObject<osg::Camera, SGIItemOsg>();
+    ExtraViewDialog * qtdialog = new ExtraViewDialog(parent(), object);
+    dialog = qtdialog->dialogInterface();
     return true;
 }
 

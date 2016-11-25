@@ -120,6 +120,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraClearColor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraComputeNearFarMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraViewMatrix)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraProjectionMatrix)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraLiveView)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetCenterMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetCenter)
@@ -1270,6 +1271,20 @@ bool actionHandlerImpl<MenuActionCameraProjectionMatrix>::execute()
         object->setProjectionMatrix(osgMatrix(matrix));
     }
     return true;
+}
+
+bool actionHandlerImpl<MenuActionCameraLiveView>::execute()
+{
+    ISettingsDialogPtr dialog;
+    bool ret;
+    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogExtraView, menu()->parentWidget(), hostCallback());
+    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
+    if (ret)
+    {
+        if (dialog.valid())
+            dialog->show();
+    }
+    return ret;
 }
 
 bool actionHandlerImpl<MenuActionUniformDirty>::execute()

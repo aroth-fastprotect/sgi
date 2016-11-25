@@ -1214,6 +1214,7 @@ bool contextMenuPopulateImpl<osg::Camera>::populate(IContextMenuItem * menuItem)
         if(ret)
         {
 			menuItem->addSimpleAction(MenuActionViewCaptureScreenshot, "Capture screenshot", _item);
+            menuItem->addSimpleAction(MenuActionCameraLiveView, "Live view", _item);
 
             SGIHostItemOsg graphicscontext(object->getGraphicsContext());
             if(graphicscontext.hasObject())

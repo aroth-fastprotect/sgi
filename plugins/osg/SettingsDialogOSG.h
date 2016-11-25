@@ -13,6 +13,7 @@ enum SettingsDialog {
     SettingsDialogNone = -1,
     SettingsDialogCamera,
     SettingsDialogObjectLogger,
+    SettingsDialogExtraView,
 };
 
 SETTINGS_DIALOG_CREATE_IMPL_TEMPLATE()

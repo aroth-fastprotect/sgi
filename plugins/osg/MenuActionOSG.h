@@ -101,6 +101,7 @@ enum MenuAction {
     MenuActionCameraComputeNearFarMode,
     MenuActionCameraViewMatrix, 
     MenuActionCameraProjectionMatrix,
+    MenuActionCameraLiveView,
     MenuActionProxyNodeSetCenterMode,
     MenuActionProxyNodeSetCenter,
     MenuActionProxyNodeSetRadius,
