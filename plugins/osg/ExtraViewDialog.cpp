@@ -34,22 +34,63 @@ ViewOSG::~ViewOSG()
 void ViewOSG::setCamera(osgViewer::CompositeViewer * viewer, osg::Camera * camera)
 {
     _viewer = viewer;
-    _gfx = createGraphicsWindow(0, 0, QWidget::width(), QWidget::height());
+    osg::GraphicsContext * existingContext = camera->getGraphicsContext();
+    _gfx = createGraphicsWindow(0, 0, QWidget::width(), QWidget::height(), existingContext);
     _widget = _gfx->getGLWidget();
 
     QHBoxLayout * l = new QHBoxLayout;
     l->addWidget(_widget);
     setLayout(l);
 
+    _viewCamera = new osg::Camera;
+    _viewCamera->setGraphicsContext(_gfx.get());
+    _camera = camera;
+
     _view = new osgViewer::View;
-    _view->setCamera(camera);
+    _view->setCamera(_viewCamera.get());
     _viewer->addView(_view);
+
+    updateCamera();
 }
 
-osgQt::GraphicsWindowQt* ViewOSG::createGraphicsWindow(int x, int y, int w, int h, const std::string& name, bool windowDecoration)
+void ViewOSG::updateCamera()
+{
+    osg::ref_ptr<osg::Camera> camera;
+    if (_camera.lock(camera))
+    {
+        _viewCamera->setViewport(camera->getViewport());
+        _viewCamera->setProjectionMatrix(camera->getProjectionMatrix());
+        _viewCamera->setViewMatrix(camera->getViewMatrix());
+        _viewCamera->setTransformOrder(camera->getTransformOrder());
+        _viewCamera->setRenderOrder(camera->getRenderOrder(), camera->getRenderOrderNum());
+        _viewCamera->setRenderTargetImplementation(camera->getRenderTargetImplementation(), camera->getRenderTargetFallback());
+        _viewCamera->setDrawBuffer(camera->getDrawBuffer());
+        _viewCamera->setReadBuffer(camera->getReadBuffer());
+        
+        _viewCamera->setProjectionResizePolicy(camera->getProjectionResizePolicy());
+        _viewCamera->setColorMask(camera->getColorMask());
+
+        _viewCamera->setClearColor(camera->getClearColor());
+        _viewCamera->setClearStencil(camera->getClearStencil());
+        _viewCamera->setClearAccum(camera->getClearAccum());
+        _viewCamera->setClearMask(camera->getClearMask());
+        //_viewCamera->setAllowEventFocus(camera->getAllowEventFocus());
+        _viewCamera->setAllowEventFocus(false);
+
+        unsigned numChilds = camera->getNumChildren();
+        _viewCamera->removeChildren(numChilds, _viewCamera->getNumChildren() - numChilds);
+        for (unsigned n = 0; n < numChilds; ++n)
+        {
+            _viewCamera->setChild(n, camera->getChild(n));
+        }
+    }
+}
+
+osgQt::GraphicsWindowQt* ViewOSG::createGraphicsWindow(int x, int y, int w, int h, osg::GraphicsContext * sharedContext, const std::string& name, bool windowDecoration)
 {
     osg::DisplaySettings* ds = osg::DisplaySettings::instance().get();
     osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
+    traits->sharedContext = sharedContext;
     traits->windowName = name;
     traits->windowDecoration = windowDecoration;
     traits->x = x;
@@ -68,6 +109,7 @@ osgQt::GraphicsWindowQt* ViewOSG::createGraphicsWindow(int x, int y, int w, int 
 void ViewOSG::paintEvent(QPaintEvent* event)
 {
     QWidget::paintEvent(event);
+    updateCamera();
     _viewer->frame();
 }
 
