@@ -32,7 +32,7 @@ public:
     void setCamera(osgViewer::CompositeViewer * viewer, osg::Camera * camera);
 
 protected:
-    osgQt::GraphicsWindowQt* ViewOSG::createGraphicsWindow(int x, int y, int w, int h, osg::GraphicsContext * sharedContext, const std::string& name=std::string(), bool windowDecoration=false);
+    osgQt::GraphicsWindowQt* createGraphicsWindow(int x, int y, int w, int h, osg::GraphicsContext * sharedContext, const std::string& name=std::string(), bool windowDecoration=false);
 
     void paintEvent(QPaintEvent* event) override;
     void resizeEvent(QResizeEvent *event) override;
