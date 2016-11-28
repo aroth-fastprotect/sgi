@@ -425,6 +425,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgDB::
     return os;
 }
 
+extern bool writePrettyHTMLImpl_OpenThreads_Thread(std::basic_ostream<char>& os, OpenThreads::Thread * object);
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::DatabaseThread)
 
 bool writePrettyHTMLImpl<osgDB::DatabasePager::DatabaseThread>::process(std::basic_ostream<char>& os)
@@ -442,6 +443,8 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager::DatabaseThread>::process(std::bas
 
             // add object properties first
             callNextHandler(os);
+
+            writePrettyHTMLImpl_OpenThreads_Thread(os, object);
 
             os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
             os << "<tr><td>mode</td><td>" << access->getMode() << "</td></tr>" << std::endl;
@@ -569,6 +572,30 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager::ReadQueue>::process(std::basic_os
 	return ret;
 }
 
+void writePrettyHTMLImpl_DatabaseRequest(std::basic_ostream<char>& os, const DatabasePagerAccessor::DatabaseRequestAccess * req, bool brief=true)
+{
+    if (brief)
+    {
+        os << "<li>";
+        if (req)
+        {
+            os << osg_helpers::getObjectNameAndType(req) << "&nbsp;";
+            if (!req->_valid)
+                os << "invalid";
+            else
+            {
+                os << req->_fileName << "&nbsp;" << req->_frameNumberLastRequest << '/' << req->_timestampLastRequest << '@' << req->_priorityLastRequest << '#' << req->_numOfRequests;
+            }
+        }
+        else
+            os << "(null)";
+        os << "</li>";
+    }
+    else
+    {
+    }
+}
+
 bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -660,13 +687,13 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
         break;
     case SGIItemTypeDBPagerFileRequests:
         {
-            os << "<ul>";
             DatabasePagerAccessor::RequestList requestList;
             access->copyFileRequests(requestList);
+            os << requestList.size() << " items<br/><ul>";
             for(auto it = requestList.begin(); it != requestList.end(); it++)
             {
                 const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
-                os << "<li>" << osg_helpers::getObjectNameAndType(req) << "</li>";
+                writePrettyHTMLImpl_DatabaseRequest(os, req, true);
             }
             os << "</ul>";
             ret = true;
@@ -674,13 +701,13 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
         break;
     case SGIItemTypeDBPagerHttpRequests:
         {
-            os << "<ul>";
             DatabasePagerAccessor::RequestList requestList;
             access->copyHttpRequests(requestList);
+            os << requestList.size() << " items<br/><ul>";
             for(auto it = requestList.begin(); it != requestList.end(); it++)
             {
                 const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
-                os << "<li>" << osg_helpers::getObjectNameAndType(req) << "</li>";
+                writePrettyHTMLImpl_DatabaseRequest(os, req, true);
             }
             os << "</ul>";
             ret = true;
@@ -688,13 +715,13 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
         break;
     case SGIItemTypeDBPagerDataToCompile:
         {
-            os << "<ul>";
             DatabasePagerAccessor::RequestList requestList;
             access->copyDataToCompile(requestList);
+            os << requestList.size() << " items<br/><ul>";
             for(auto it = requestList.begin(); it != requestList.end(); it++)
             {
                 const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
-                os << "<li>" << osg_helpers::getObjectNameAndType(req) << "</li>";
+                writePrettyHTMLImpl_DatabaseRequest(os, req, true);
             }
             os << "</ul>";
             ret = true;
@@ -702,13 +729,13 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
         break;
     case SGIItemTypeDBPagerDataToMerge:
         {
-            os << "<ul>";
             DatabasePagerAccessor::RequestList requestList;
             access->copyDataToMerge(requestList);
+            os << requestList.size() << " items<br/><ul>";
             for(auto it = requestList.begin(); it != requestList.end(); it++)
             {
                 const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
-                os << "<li>" << osg_helpers::getObjectNameAndType(req) << "</li>";
+                writePrettyHTMLImpl_DatabaseRequest(os, req, true);
             }
             os << "</ul>";
             ret = true;

@@ -2419,7 +2419,7 @@ bool objectTreeBuildImpl<osgDB::ReaderWriter>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osgDB::DatabasePager>::build(IObjectTreeItem * treeItem)
 {
-    osgDB::DatabasePager * object = dynamic_cast<osgDB::DatabasePager*>(item<SGIItemOsg>()->object());
+    DatabasePagerAccessor * object = static_cast<DatabasePagerAccessor*>(dynamic_cast<osgDB::DatabasePager*>(item<SGIItemOsg>()->object()));
     bool ret;
     switch(itemType())
     {
@@ -2427,9 +2427,7 @@ bool objectTreeBuildImpl<osgDB::DatabasePager>::build(IObjectTreeItem * treeItem
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            DatabasePagerAccessor * access = (DatabasePagerAccessor*)object;
-
-            osgDB::DatabasePager::PagedLODList * activePagedLODList = access->activePagedLODList();
+            osgDB::DatabasePager::PagedLODList * activePagedLODList = object->activePagedLODList();
             SGIHostItemOsg activePagedLODListItem(activePagedLODList);
             if (activePagedLODListItem.hasObject())
             {
@@ -2439,10 +2437,10 @@ bool objectTreeBuildImpl<osgDB::DatabasePager>::build(IObjectTreeItem * treeItem
 
             treeItem->addChild(helpers::str_plus_count("Threads", object->getNumDatabaseThreads()), cloneItem<SGIItemOsg>(SGIItemTypeThreads));
 
-            treeItem->addChild(helpers::str_plus_count("File requests", access->getLocalFileRequestListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerFileRequests));
-            treeItem->addChild(helpers::str_plus_count("HTTP requests", access->getHttpRequestListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerHttpRequests));
-            treeItem->addChild(helpers::str_plus_count("Data to compile", access->getDataToCompileListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerDataToCompile));
-            treeItem->addChild(helpers::str_plus_count("Data to merge", access->getDataToMergeListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerDataToMerge));
+            treeItem->addChild(helpers::str_plus_count("File requests", object->getLocalFileRequestListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerFileRequests));
+            treeItem->addChild(helpers::str_plus_count("HTTP requests", object->getHttpRequestListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerHttpRequests));
+            treeItem->addChild(helpers::str_plus_count("Data to compile", object->getDataToCompileListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerDataToCompile));
+            treeItem->addChild(helpers::str_plus_count("Data to merge", object->getDataToMergeListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerDataToMerge));
         }
         break;
     case SGIItemTypeThreads:
@@ -2457,9 +2455,7 @@ bool objectTreeBuildImpl<osgDB::DatabasePager>::build(IObjectTreeItem * treeItem
         break;
     case SGIItemTypeActivePagedLODs:
         {
-            DatabasePagerAccessor * access = (DatabasePagerAccessor*)object;
-
-            osgDB::DatabasePager::PagedLODList * activePagedLODList = access->activePagedLODList();
+            osgDB::DatabasePager::PagedLODList * activePagedLODList = object->activePagedLODList();
             const DatabasePagerAccessor::SetBasedPagedLODList * list = static_cast<const DatabasePagerAccessor::SetBasedPagedLODList *>(activePagedLODList);
             for(DatabasePagerAccessor::SetBasedPagedLODList::const_iterator it = list->begin(); it != list->end(); it++)
             {
@@ -2469,6 +2465,74 @@ bool objectTreeBuildImpl<osgDB::DatabasePager>::build(IObjectTreeItem * treeItem
                 {
                     SGIHostItemOsg child(node);
                     if(child.hasObject())
+                        treeItem->addChild(std::string(), &child);
+                }
+            }
+            ret = true;
+        }
+        break;
+    case SGIItemTypeDBPagerFileRequests:
+        {
+            DatabasePagerAccessor::RequestList requestList;
+            object->copyFileRequests(requestList);
+            if (itemNumber() == ~0u)
+            {
+                for (auto it = requestList.begin(); it != requestList.end(); it++)
+                {
+                    const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
+                    SGIHostItemOsg child(req);
+                    if (child.hasObject())
+                        treeItem->addChild(std::string(), &child);
+                }
+            }
+            ret = true;
+        }
+        break;
+    case SGIItemTypeDBPagerHttpRequests:
+        {
+            DatabasePagerAccessor::RequestList requestList;
+            object->copyHttpRequests(requestList);
+            if (itemNumber() == ~0u)
+            {
+                for (auto it = requestList.begin(); it != requestList.end(); it++)
+                {
+                    const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
+                    SGIHostItemOsg child(req);
+                    if (child.hasObject())
+                        treeItem->addChild(std::string(), &child);
+                }
+            }
+            ret = true;
+        }
+        break;
+    case SGIItemTypeDBPagerDataToCompile:
+        {
+            DatabasePagerAccessor::RequestList requestList;
+            object->copyDataToCompile(requestList);
+            if (itemNumber() == ~0u)
+            {
+                for (auto it = requestList.begin(); it != requestList.end(); it++)
+                {
+                    const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
+                    SGIHostItemOsg child(req);
+                    if (child.hasObject())
+                        treeItem->addChild(std::string(), &child);
+                }
+            }
+            ret = true;
+        }
+        break;
+    case SGIItemTypeDBPagerDataToMerge:
+        {
+            DatabasePagerAccessor::RequestList requestList;
+            object->copyDataToMerge(requestList);
+            if (itemNumber() == ~0u)
+            {
+                for (auto it = requestList.begin(); it != requestList.end(); it++)
+                {
+                    const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
+                    SGIHostItemOsg child(req);
+                    if (child.hasObject())
                         treeItem->addChild(std::string(), &child);
                 }
             }

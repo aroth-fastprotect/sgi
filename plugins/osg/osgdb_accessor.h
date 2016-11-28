@@ -14,7 +14,7 @@ public:
     const DynamicLibraryList & getDynamicLibraryList() const { return _dlList; }
 };
 
-class DatabasePagerAccessor : osgDB::DatabasePager
+class DatabasePagerAccessor : public osgDB::DatabasePager
 {
 public:
 	typedef DatabaseRequest DatabaseRequestAccess;

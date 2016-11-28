@@ -238,6 +238,18 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Tr
     return os;
 }
 
+bool writePrettyHTMLImpl_OpenThreads_Thread(std::basic_ostream<char>& os, OpenThreads::Thread * object)
+{
+    os << "<tr><td>running</td><td>" << (object->isRunning() ? "true" : "false") << "</td></tr>" << std::endl;
+    os << "<tr><td>pid</td><td>" << object->getProcessId() << "</td></tr>" << std::endl;
+    os << "<tr><td>tid</td><td>" << object->getThreadId() << "</td></tr>" << std::endl;
+    os << "<tr><td>testCancel</td><td>" << object->testCancel() << "</td></tr>" << std::endl;
+    os << "<tr><td>schedulePriority</td><td>" << object->getSchedulePriority() << "</td></tr>" << std::endl;
+    os << "<tr><td>schedulePolicy</td><td>" << object->getSchedulePolicy() << "</td></tr>" << std::endl;
+    os << "<tr><td>stackSize</td><td>" << object->getStackSize() << "</td></tr>" << std::endl;
+    return true;
+}
+
 bool writePrettyHTMLImpl<osg::Transform>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -4055,6 +4067,8 @@ bool writePrettyHTMLImpl<osg::OperationThread>::process(std::basic_ostream<char>
             callNextHandler(os);
 
             os << "<tr><td>done</td><td>" << (object->getDone()?"true":"false") << "</td></tr>" << std::endl;
+            writePrettyHTMLImpl_OpenThreads_Thread(os, object);
+
             os << "<tr><td>queue</td><td>";
             const osg::OperationQueue * queue = object->getOperationQueue();
             os << (queue?const_cast<osg::OperationQueue *>(queue)->getNumOperationsInQueue():0) << " operations";
@@ -4085,6 +4099,8 @@ bool writePrettyHTMLImpl<osg::GraphicsThread>::process(std::basic_ostream<char>&
 
             // add object properties first
             callNextHandler(os);
+
+            writePrettyHTMLImpl_OpenThreads_Thread(os, object);
 
             if(_table)
                 os << "</table>" << std::endl;
