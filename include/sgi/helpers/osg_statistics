@@ -1,0 +1,108 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2016 FAST Protect, Andreas Roth
+
+#pragma once
+#include <sgi/Export>
+#include <osg/Version>
+#include <osgUtil/Statistics>
+
+namespace osgText {
+    class TextBase;
+}
+
+namespace sgi {
+
+namespace osg_helpers {
+
+class SGI_EXPORT StatisticsVisitor : public osgUtil::StatsVisitor
+{
+public:
+    typedef std::set<osg::StateAttribute*> StateAttributeSet;
+    typedef std::set<osg::Uniform*> UniformSet;
+
+public:
+    StatisticsVisitor(unsigned int contextID = ~0u);
+    virtual ~StatisticsVisitor();
+
+    virtual void reset();
+    virtual void apply(osg::Node& node);
+    virtual void apply(osg::Group& node);
+    virtual void apply(osg::Transform& node);
+    virtual void apply(osg::LOD& node);
+    virtual void apply(osg::Switch& node);
+    virtual void apply(osg::Geode& node);
+    virtual void apply(osg::Drawable& drawable);
+
+    virtual void apply(osg::PagedLOD& node);
+    virtual void apply(osg::ProxyNode& node);
+    virtual void apply(osg::CoordinateSystemNode& node);
+    virtual void apply(osg::Camera& node);
+    virtual void apply(osg::CameraView& node);
+    virtual void apply(osg::MatrixTransform& node);
+    virtual void apply(osg::PositionAttitudeTransform& node);
+
+    virtual void apply(osg::StateSet& ss);
+
+    virtual void apply(osg::StateAttribute & attr);
+    virtual void apply(osg::Uniform & uniform);
+    virtual void apply(osg::BufferData& buffer);
+    virtual void apply(osg::Texture::TextureObject & to);
+
+    virtual void apply(osgText::TextBase & text);
+
+
+public:
+    void printHTML(std::ostream& out);
+
+protected:
+    virtual void            updateNodeStats(osg::Node & node);
+#if OSG_VERSION_GREATER_THAN(3,3,1)
+    virtual void            updateCallbackStats(osg::Callback * cb);
+#else
+    virtual void            updateCallbackStats(osg::NodeCallback * cb);
+#endif
+
+
+protected:
+    unsigned int _contextID;
+    unsigned int _numInstancedPagedLOD;
+    unsigned int _numInstancedProxyNode;
+    unsigned int _numInstancedCSN;
+    unsigned int _numInstancedCamera;
+    unsigned int _numInstancedCameraView;
+    unsigned int _numInstancedMatrixTransform;
+    unsigned int _numInstancedPAT;
+    unsigned int _numInstancedSceneGraphNode;
+    unsigned int _numEventCallbacks;
+    unsigned int _numUpdateCallbacks;
+    unsigned int _numCullCallbacks;
+    unsigned int _numCullInactive;
+    unsigned int _numCullDisabled;
+    unsigned int _numAnimationCallbacks;
+    unsigned int _numInstancedStateAttribute;
+    unsigned int _numInstancedUniform;
+    unsigned int _estimatedMemory;
+    unsigned int _numInstancedAnimationSkeleton;
+    unsigned int _numInstancedAnimationBone;
+    unsigned int _numInstancedTextBase;
+    unsigned int _numDeprecatedDataGeometries;
+
+    enum { MaxStateAttributeType = osg::StateAttribute::FRAME_BUFFER_OBJECT };
+
+    unsigned int _numInstancedSA[MaxStateAttributeType + 1];
+
+    NodeSet             _pagedlodSet;
+    NodeSet             _proxynodeSet;
+    NodeSet             _csnSet;
+    NodeSet             _cameraSet;
+    NodeSet             _cameraViewSet;
+    NodeSet             _matrixTransformSet;
+    NodeSet             _patSet;
+    StateAttributeSet   _stateAttributeSets[MaxStateAttributeType + 1];
+    UniformSet          _uniformSet;
+    NodeSet             _animationSkeletonSet;
+    NodeSet             _animationBoneSet;
+    NodeSet             _textBaseSet;
+};
+    } // namespace osg_helpers
+} // namespace sgi

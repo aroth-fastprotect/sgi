@@ -8,6 +8,7 @@ SET(TARGET_SRC
     ObjectTreeImpl.cpp
     functionImplBase.cpp
     osg_helpers.cpp
+	osg_statistics.cpp
     qt_helpers.cpp
     widget_helpers.cpp
     string_helpers.cpp
@@ -35,6 +36,7 @@ SET(TARGET_NO_AUTO_VERSION_HEADER 1)
 LIST(APPEND TARGET_LIBRARIES_VARS
     OPENTHREADS_LIBRARY
     OSG_LIBRARY
+	OSGUTIL_LIBRARY
     QT_QTCORE_LIBRARY
     QT_QTGUI_LIBRARY
     )
