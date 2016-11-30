@@ -1,4 +1,5 @@
 #pragma once
+
 namespace osgDB {
     class DynamicLibrary;
 }
@@ -105,6 +106,20 @@ public:
     {
         return _pluginStringData;
     }
+};
+
+class ObjectCacheAccess : public osgDB::ObjectCache
+{
+public:
+    struct Item {
+        std::string name;
+        osg::ref_ptr<osg::Object> object;
+        double timestamp;
+    };
+    typedef std::vector<Item> ItemList;
+
+    unsigned getNumItems();
+    void getItems(ItemList & items);
 };
 
 } // namespace osg_plugin

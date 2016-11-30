@@ -64,6 +64,7 @@
 #define protected public
 #include <osgDB/DatabasePager>
 #undef protected
+#include <osgDB/ObjectCache>
 
 // osgFX headers
 #include <osgFX/Outline>
@@ -265,6 +266,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osgDB::ObjectWrapper,
     osgDB::ObjectWrapperManager,
     osgDB::FileCache,
+    osgDB::ObjectCache,
     osgDB::BaseSerializer,
     osgDB::FindFileCallback,
     osgDB::ReadFileCallback,

@@ -26,6 +26,7 @@
 #include <osgDB/DatabasePager>
 #undef protected
 #include <osgDB/ImagePager>
+#include <osgDB/ObjectCache>
 
 #include <osgViewer/View>
 #include <osgViewer/Renderer>
@@ -117,6 +118,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::ImagePager)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::DatabaseRevision)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::DatabaseRevisions)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::FileCache)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::ObjectCache)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::FileList)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::ObjectWrapper)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::ObjectWrapperManager)
@@ -2251,6 +2253,10 @@ bool objectTreeBuildImpl<osgDB::Registry>::build(IObjectTreeItem * treeItem)
             if(fileCache.hasObject())
                 treeItem->addChild("FileCache", &fileCache);
 
+            SGIHostItemOsg objectCache(object->getObjectCache());
+            if (objectCache.hasObject())
+                treeItem->addChild("ObjectCache", &objectCache);
+
             SGIHostItemOsg opts(object->getOptions());
             if(opts.hasObject())
                 treeItem->addChild("Options", &opts);
@@ -2646,6 +2652,43 @@ bool objectTreeBuildImpl<osgDB::FileList>::build(IObjectTreeItem * treeItem)
     return ret;
 }
 
+bool objectTreeBuildImpl<osgDB::ObjectCache>::build(IObjectTreeItem * treeItem)
+{
+    ObjectCacheAccess * object = static_cast<ObjectCacheAccess *>(getObject<osgDB::ObjectCache, SGIItemOsg>());
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            unsigned num = object->getNumItems();
+            if (num)
+                treeItem->addChild(helpers::str_plus_count("Objects", num), cloneItem<SGIItemOsg>(SGIItemTypeCachedObjects));
+        }
+        break;
+    case SGIItemTypeCachedObjects:
+        {
+            if(itemNumber() == ~0u)
+            {
+                ObjectCacheAccess::ItemList items;
+                object->getItems(items);
+                for (const auto & item : items)
+                {
+                    SGIHostItemOsg sgitem(item.object);
+                    treeItem->addChild(item.name, &sgitem);
+                }
+            }
+            ret = true;
+        }
+        break;
+
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
 bool objectTreeBuildImpl<osgDB::ObjectWrapper>::build(IObjectTreeItem * treeItem)
 {
     osgDB::ObjectWrapper * object = getObject<osgDB::ObjectWrapper, SGIItemOsg>();

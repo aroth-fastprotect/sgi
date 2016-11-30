@@ -9,6 +9,7 @@
 #define protected public
 #include <osgDB/DatabasePager>
 #undef protected
+#include <osgDB/ObjectCache>
 
 #include <osg/ClipNode>
 
@@ -26,6 +27,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::ReaderWriter)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::ImagePager)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::FileCache)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::ObjectCache)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabaseRevision)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabaseRevisions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::FileList)
@@ -790,6 +792,47 @@ bool writePrettyHTMLImpl<osgDB::FileCache>::process(std::basic_ostream<char>& os
     return ret;
 }
 
+bool writePrettyHTMLImpl<osgDB::ObjectCache>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    ObjectCacheAccess * object = static_cast<ObjectCacheAccess *>(getObject<osgDB::ObjectCache, SGIItemOsg>());
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add object properties first
+            callNextHandler(os);
+
+            os << "<tr><td>num items</td><td>" << object->getNumItems() << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeCachedObjects:
+        {
+            ObjectCacheAccess::ItemList items;
+            object->getItems(items);
+            os << "<table border=\'1\' align=\'left\'><tr><th>Name</th><th>Object</th><th>Timestamp</th></tr>" << std::endl;
+            for (const auto & item : items)
+            {
+                os << "<tr><td>" << item.name << "</td><td>" << osg_helpers::getObjectNameAndType(item.object.get()) << "</td><td>" << item.timestamp << "</td></tr>" << std::endl;
+            }
+            os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
 bool writePrettyHTMLImpl<osgDB::DatabaseRevision>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -1073,6 +1116,28 @@ bool writePrettyHTMLImpl<osgDB::BaseSerializer>::process(std::basic_ostream<char
     }
     return ret;
 }
+
+unsigned ObjectCacheAccess::getNumItems()
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_objectCacheMutex);
+    return _objectCache.size();
+}
+
+void ObjectCacheAccess::getItems(ItemList & items)
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_objectCacheMutex);
+    unsigned num = _objectCache.size();
+    items.resize(num);
+    unsigned idx = 0;
+    for (auto it = _objectCache.begin(); it != _objectCache.end(); ++it, ++idx)
+    {
+        Item & item = items[idx];
+        item.name = it->first;
+        item.object = it->second.first;
+        item.timestamp = it->second.second;
+    }
+}
+
 
 } // namespace osg_plugin
 } // namespace sgi
