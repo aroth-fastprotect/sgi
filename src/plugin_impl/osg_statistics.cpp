@@ -94,522 +94,694 @@ namespace osg_helpers {
         return os;
     }
 
-    StatisticsVisitor::StatisticsVisitor(unsigned int contextID)
-        : osgUtil::StatsVisitor()
-        , _contextID(contextID)
-        , _numInstancedPagedLOD(0)
-        , _numInstancedProxyNode(0)
-        , _numInstancedCSN(0)
-        , _numInstancedCamera(0)
-        , _numInstancedCameraView(0)
-        , _numInstancedMatrixTransform(0)
-        , _numInstancedPAT(0)
-        , _numUpdateCallbacks(0)
-        , _numEventCallbacks(0)
-        , _numCullCallbacks(0)
-        , _numCullInactive(0)
-        , _numCullDisabled(0)
-        , _numAnimationCallbacks(0)
-        , _numInstancedStateAttribute(0)
-        , _numInstancedUniform(0)
-        , _estimatedMemory(0)
-        , _numInstancedAnimationSkeleton(0)
-        , _numInstancedAnimationBone(0)
-		, _numInstancedTextBase(0)
-		, _numDeprecatedDataGeometries(0)
-        , _ignoreKnownPagedLODs(false)
-        , _ignoreKnownProxyNodes(false)
+
+MemoryStatisticsVisitor::MemoryStatisticsVisitor(unsigned int contextID, TraversalMode tm)
+    : osg::NodeVisitor(tm)
+    , _contextID(contextID)
+    , _totalSize(0)
+{
+}
+MemoryStatisticsVisitor::~MemoryStatisticsVisitor()
+{
+}
+
+void MemoryStatisticsVisitor::apply(osg::Node& node)
+{
+    if(node.getStateSet())
+        apply(*node.getStateSet());
+    osg::NodeVisitor::apply(node);
+}
+
+void MemoryStatisticsVisitor::apply(osg::BufferData& buffer)
+{
+    _totalSize += buffer.getTotalDataSize();
+}
+
+void MemoryStatisticsVisitor::apply(osg::Texture::TextureObject & to)
+{
+    _totalSize += to._profile._size;
+}
+
+void MemoryStatisticsVisitor::apply(osg::Uniform& uniform)
+{
     {
-        for(int n = 0; n < MaxStateAttributeType; n++)
-            _numInstancedSA[n] = 0;
+        osg::FloatArray * a = uniform.getFloatArray();
+        if(a)
+            _totalSize += a->getTotalDataSize();
     }
-
-    StatisticsVisitor::~StatisticsVisitor()
     {
+        osg::DoubleArray * a = uniform.getDoubleArray();
+        if(a)
+            _totalSize += a->getTotalDataSize();
     }
-
-    void StatisticsVisitor::ignoreKnownPagedLODs(bool enable)
     {
-        _ignoreKnownPagedLODs = enable;
+        osg::IntArray * a = uniform.getIntArray();
+        if(a)
+            _totalSize += a->getTotalDataSize();
     }
-
-    void StatisticsVisitor::ignoreKnownProxyNodes(bool enable)
     {
-        _ignoreKnownProxyNodes = enable;
+        osg::UIntArray * a = uniform.getUIntArray();
+        if(a)
+            _totalSize += a->getTotalDataSize();
     }
+}
 
-    void StatisticsVisitor::reset()
+void MemoryStatisticsVisitor::apply(osg::StateAttribute& attr)
+{
+    switch(attr.getType())
     {
-        _numInstancedPagedLOD = 0;
-        _numInstancedProxyNode = 0;
-        _numInstancedCSN = 0;
-        _numInstancedCamera = 0;
-        _numInstancedCameraView = 0;
-        _numInstancedMatrixTransform = 0;
-        _numInstancedPAT = 0;
-        _numInstancedSceneGraphNode = 0;
-        _numInstancedAnimationSkeleton = 0;
-        _numInstancedAnimationBone = 0;
-		_numInstancedTextBase = 0;
-		_numDeprecatedDataGeometries = 0;
-
-        _numUpdateCallbacks = 0;
-        _numEventCallbacks = 0;
-        _numCullCallbacks = 0;
-        _numCullInactive = 0;
-        _numCullDisabled = 0;
-        _numAnimationCallbacks = 0;
-
-        _numInstancedStateAttribute = 0;
-        for(int n = 0; n < MaxStateAttributeType; n++)
-            _numInstancedSA[n] = 0;
-        _numInstancedUniform = 0;
-        _estimatedMemory = 0;
-
-        _ignoreKnownPagedLODs = false;
-        _ignoreKnownProxyNodes = false;
-
-        _pagedlodSet.clear();
-        _proxynodeSet.clear();
-        _csnSet.clear();
-        _cameraSet.clear();
-        _cameraViewSet.clear();
-        _matrixTransformSet.clear();
-        _patSet.clear();
-        for(int n = 0; n < MaxStateAttributeType; n++)
-            _stateAttributeSets[n].clear();
-        _uniformSet.clear();
-        _animationSkeletonSet.clear();
-        _animationBoneSet.clear();
-		_textBaseSet.clear();
-    }
-
-    void StatisticsVisitor::updateNodeStats(osg::Node & node)
-    {
-#if OSG_VERSION_GREATER_THAN(3,3,1)
-		osg::Callback * cb;
-#else
-		osg::NodeCallback * cb;
-#endif
-		cb = node.getUpdateCallback();
-        while(cb)
+    case osg::StateAttribute::TEXTURE:
         {
-            _numUpdateCallbacks++;
-            updateCallbackStats(cb);
-            cb = cb->getNestedCallback();
-        }
-        cb = node.getEventCallback();
-        while(cb)
-        {
-            _numEventCallbacks++;
-            updateCallbackStats(cb);
-            cb = cb->getNestedCallback();
-        }
-        cb = node.getCullCallback();
-        while(cb)
-        {
-            _numCullCallbacks++;
-            updateCallbackStats(cb);
-            cb = cb->getNestedCallback();
-        }
-        if(!node.isCullingActive())
-            _numCullInactive++;
-        if(!node.getCullingActive())
-            _numCullDisabled++;
-    }
-
-#if OSG_VERSION_GREATER_THAN(3,3,1)
-	void StatisticsVisitor::updateCallbackStats(osg::Callback * cb)
-#else
-	void StatisticsVisitor::updateCallbackStats(osg::NodeCallback * cb)
-#endif
-    {
-        osgAnimation::AnimationManagerBase* anibase = dynamic_cast<osgAnimation::AnimationManagerBase*>(cb);
-        if(anibase)
-            _numAnimationCallbacks++;
-    }
-
-    void StatisticsVisitor::apply(osg::Node& node)
-    {
-        osgUtil::StatsVisitor::apply(node);
-        updateNodeStats(node);
-    }
-
-    void StatisticsVisitor::apply(osg::Group& node)
-    {
-        osgUtil::StatsVisitor::apply(node);
-        updateNodeStats(node);
-    }
-
-    void StatisticsVisitor::apply(osg::Transform& node)
-    {
-        osgUtil::StatsVisitor::apply(node);
-        updateNodeStats(node);
-    }
-
-    void StatisticsVisitor::apply(osg::LOD& node)
-    {
-        osgUtil::StatsVisitor::apply(node);
-        updateNodeStats(node);
-    }
-
-    void StatisticsVisitor::apply(osg::Switch& node)
-    {
-        osgUtil::StatsVisitor::apply(node);
-        updateNodeStats(node);
-    }
-
-    void StatisticsVisitor::apply(osg::Geode& node)
-    {
-        osgUtil::StatsVisitor::apply(node);
-        updateNodeStats(node);
-    }
-
-    void StatisticsVisitor::apply(osg::Drawable& node)
-    {
-        osgUtil::StatsVisitor::apply(node);
-        osg::Geometry* geometry = node.asGeometry();
-        if (geometry)
-        {
-			if (geometry->containsDeprecatedData())
-				++_numDeprecatedDataGeometries;
-
-            osg::Geometry::ArrayList arrays;
-            if(geometry->getArrayList(arrays))
+            osg::Texture * texture = attr.asTexture();
+            if(texture)
             {
-                for(osg::Geometry::ArrayList::const_iterator it = arrays.begin(); it != arrays.end(); it++)
+                bool got_txtobj = false;
+                if (_contextID != ~0u)
                 {
-                    const osg::ref_ptr<osg::Array> & array = *it;
-                    apply(*array.get());
+                    osg::Texture::TextureObject * to = texture->getTextureObject(_contextID);
+                    if (to)
+                    {
+                        got_txtobj = true;
+                        apply(*to);
+                    }
+                }
+                if (!got_txtobj)
+                {
+                    unsigned int numImages = texture->getNumImages();
+                    for (unsigned n = 0; n < numImages; n++)
+                    {
+                        osg::Image * image = texture->getImage(n);
+                        if (image)
+                            apply(*image);
+                    }
                 }
             }
-            const osg::Geometry::PrimitiveSetList & primSets = geometry->getPrimitiveSetList();
-            for(osg::Geometry::PrimitiveSetList::const_iterator it = primSets.begin(); it != primSets.end(); it++)
-            {
-                const osg::ref_ptr<osg::PrimitiveSet> & primset = *it;
-                apply(*primset.get());
-            }
         }
-		else if (osgText::TextBase * textbase = dynamic_cast<osgText::TextBase *>(&node))
-		{
-			apply(*textbase);
-		}
+        break;
+    }
+}
+
+
+void MemoryStatisticsVisitor::apply(osg::StateSet& ss)
+{
+    const osg::StateSet::AttributeList& attributes = ss.getAttributeList();
+    for(osg::StateSet::AttributeList::const_iterator it = attributes.begin(); it != attributes.end(); it++)
+    {
+        const osg::StateAttribute::TypeMemberPair & typememberpair = it->first;
+        const osg::StateAttribute::Type & type = typememberpair.first;
+        const unsigned int & member = typememberpair.second;
+        const osg::StateSet::RefAttributePair & attrpair = it->second;
+        const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
+        const osg::StateAttribute::OverrideValue & value = attrpair.second;
+        apply(*attr);
     }
 
-    void StatisticsVisitor::apply(osg::PagedLOD& node)
+    const osg::StateSet::TextureAttributeList & textureAttributes = ss.getTextureAttributeList();
+    for(osg::StateSet::TextureAttributeList::const_iterator it = textureAttributes.begin(); it != textureAttributes.end(); it++)
     {
-        if(_ignoreKnownPagedLODs)
+        const osg::StateSet::AttributeList & attributes = *it;
+        for(osg::StateSet::AttributeList::const_iterator it2 = attributes.begin(); it2 != attributes.end(); it2++)
         {
-            auto it = _pagedlodSet.find(&node);
-            if(it != _pagedlodSet.end())
-                return;
-        }
-
-        if (node.getStateSet())
-        {
-            apply(*node.getStateSet());
-        }
-
-        ++_numInstancedPagedLOD;
-        _pagedlodSet.insert(&node);
-
-        updateNodeStats(node);
-        traverse(node);
-    }
-
-    void StatisticsVisitor::apply(osg::ProxyNode& node)
-    {
-        if(_ignoreKnownProxyNodes)
-        {
-            auto it = _proxynodeSet.find(&node);
-            if(it != _proxynodeSet.end())
-                return;
-        }
-
-        if (node.getStateSet())
-        {
-            apply(*node.getStateSet());
-        }
-
-        ++_numInstancedProxyNode;
-        _proxynodeSet.insert(&node);
-
-        updateNodeStats(node);
-        traverse(node);
-    }
-
-    void StatisticsVisitor::apply(osg::CoordinateSystemNode& node)
-    {
-        if (node.getStateSet())
-        {
-            apply(*node.getStateSet());
-        }
-
-        ++_numInstancedCSN;
-        _csnSet.insert(&node);
-
-        updateNodeStats(node);
-        traverse(node);
-    }
-
-    void StatisticsVisitor::apply(osg::Camera& node)
-    {
-        if (node.getStateSet())
-        {
-            apply(*node.getStateSet());
-        }
-
-        ++_numInstancedCamera;
-        _cameraSet.insert(&node);
-
-        updateNodeStats(node);
-        traverse(node);
-    }
-
-    void StatisticsVisitor::apply(osg::CameraView& node)
-    {
-        if (node.getStateSet())
-        {
-            apply(*node.getStateSet());
-        }
-
-        ++_numInstancedCameraView;
-        _cameraViewSet.insert(&node);
-
-        updateNodeStats(node);
-        traverse(node);
-    }
-
-    void StatisticsVisitor::apply(osg::BufferData& buffer)
-    {
-        _estimatedMemory += buffer.getTotalDataSize();
-    }
-
-    void StatisticsVisitor::apply(osg::MatrixTransform& node)
-    {
-        if (node.getStateSet())
-        {
-            apply(*node.getStateSet());
-        }
-
-        if(dynamic_cast<osgAnimation::Skeleton*>(&node))
-        {
-            ++_numInstancedAnimationSkeleton;
-            _animationSkeletonSet.insert(&node);
-        }
-        else if(dynamic_cast<osgAnimation::Bone*>(&node))
-        {
-            ++_numInstancedAnimationBone;
-            _animationBoneSet.insert(&node);
-        }
-        else
-        {
-            ++_numInstancedMatrixTransform;
-            _matrixTransformSet.insert(&node);
-        }
-
-        updateNodeStats(node);
-        traverse(node);
-    }
-
-    void StatisticsVisitor::apply(osg::PositionAttitudeTransform& node)
-    {
-        if (node.getStateSet())
-        {
-            apply(*node.getStateSet());
-        }
-
-        ++_numInstancedPAT;
-        _patSet.insert(&node);
-
-        updateNodeStats(node);
-        traverse(node);
-    }
-
-    void StatisticsVisitor::apply(osg::StateSet& ss)
-    {
-        osgUtil::StatsVisitor::apply(ss);
-        const osg::StateSet::AttributeList& attributes = ss.getAttributeList();
-        for(osg::StateSet::AttributeList::const_iterator it = attributes.begin(); it != attributes.end(); it++)
-        {
-            const osg::StateAttribute::TypeMemberPair & typememberpair = it->first;
+            const osg::StateAttribute::TypeMemberPair & typememberpair = it2->first;
             const osg::StateAttribute::Type & type = typememberpair.first;
             const unsigned int & member = typememberpair.second;
-            const osg::StateSet::RefAttributePair & attrpair = it->second;
+            const osg::StateSet::RefAttributePair & attrpair = it2->second;
             const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
             const osg::StateAttribute::OverrideValue & value = attrpair.second;
+
             apply(*attr);
         }
+    }
 
-        const osg::StateSet::TextureAttributeList & textureAttributes = ss.getTextureAttributeList();
-        for(osg::StateSet::TextureAttributeList::const_iterator it = textureAttributes.begin(); it != textureAttributes.end(); it++)
+    const osg::StateSet::UniformList & uniforms = ss.getUniformList();
+    for(osg::StateSet::UniformList::const_iterator it = uniforms.begin(); it != uniforms.end(); it++)
+    {
+        const std::string & name = it->first;
+        const osg::StateAttribute::OverrideValue & overridevalue = it->second.second;
+        const osg::ref_ptr<osg::Uniform> & uniform = it->second.first;
+        apply(*uniform);
+    }
+
+}
+
+
+StatisticsVisitor::StatisticsVisitor(unsigned int contextID)
+    : osgUtil::StatsVisitor()
+    , _contextID(contextID)
+    , _numInstancedPagedLOD(0)
+    , _numInstancedProxyNode(0)
+    , _numInstancedCSN(0)
+    , _numInstancedCamera(0)
+    , _numInstancedCameraView(0)
+    , _numInstancedMatrixTransform(0)
+    , _numInstancedPAT(0)
+    , _numUpdateCallbacks(0)
+    , _numEventCallbacks(0)
+    , _numCullCallbacks(0)
+    , _numCullInactive(0)
+    , _numCullDisabled(0)
+    , _numAnimationCallbacks(0)
+    , _numInstancedStateAttribute(0)
+    , _numInstancedUniform(0)
+    , _estimatedMemoryInstanced(0)
+    , _estimatedMemoryUnique(0)
+    , _numInstancedAnimationSkeleton(0)
+    , _numInstancedAnimationBone(0)
+    , _numInstancedTextBase(0)
+    , _numDeprecatedDataGeometries(0)
+    , _ignoreKnownPagedLODs(false)
+    , _ignoreKnownProxyNodes(false)
+{
+    for(int n = 0; n < MaxStateAttributeType; n++)
+        _numInstancedSA[n] = 0;
+}
+
+StatisticsVisitor::~StatisticsVisitor()
+{
+}
+
+void StatisticsVisitor::ignoreKnownPagedLODs(bool enable)
+{
+    _ignoreKnownPagedLODs = enable;
+}
+
+void StatisticsVisitor::ignoreKnownProxyNodes(bool enable)
+{
+    _ignoreKnownProxyNodes = enable;
+}
+
+void StatisticsVisitor::reset()
+{
+    _numInstancedPagedLOD = 0;
+    _numInstancedProxyNode = 0;
+    _numInstancedCSN = 0;
+    _numInstancedCamera = 0;
+    _numInstancedCameraView = 0;
+    _numInstancedMatrixTransform = 0;
+    _numInstancedPAT = 0;
+    _numInstancedSceneGraphNode = 0;
+    _numInstancedAnimationSkeleton = 0;
+    _numInstancedAnimationBone = 0;
+    _numInstancedTextBase = 0;
+    _numDeprecatedDataGeometries = 0;
+
+    _numUpdateCallbacks = 0;
+    _numEventCallbacks = 0;
+    _numCullCallbacks = 0;
+    _numCullInactive = 0;
+    _numCullDisabled = 0;
+    _numAnimationCallbacks = 0;
+
+    _numInstancedStateAttribute = 0;
+    for(int n = 0; n < MaxStateAttributeType; n++)
+        _numInstancedSA[n] = 0;
+    _numInstancedUniform = 0;
+    _estimatedMemoryInstanced = 0;
+    _estimatedMemoryUnique = 0;
+
+    _ignoreKnownPagedLODs = false;
+    _ignoreKnownProxyNodes = false;
+
+    _pagedlodSet.clear();
+    _proxynodeSet.clear();
+    _csnSet.clear();
+    _cameraSet.clear();
+    _cameraViewSet.clear();
+    _matrixTransformSet.clear();
+    _patSet.clear();
+    for(int n = 0; n < MaxStateAttributeType; n++)
+        _stateAttributeSets[n].clear();
+    _uniformSet.clear();
+    _animationSkeletonSet.clear();
+    _animationBoneSet.clear();
+    _textBaseSet.clear();
+}
+
+void StatisticsVisitor::updateNodeStats(osg::Node & node)
+{
+#if OSG_VERSION_GREATER_THAN(3,3,1)
+    osg::Callback * cb;
+#else
+    osg::NodeCallback * cb;
+#endif
+    cb = node.getUpdateCallback();
+    while(cb)
+    {
+        _numUpdateCallbacks++;
+        updateCallbackStats(cb);
+        cb = cb->getNestedCallback();
+    }
+    cb = node.getEventCallback();
+    while(cb)
+    {
+        _numEventCallbacks++;
+        updateCallbackStats(cb);
+        cb = cb->getNestedCallback();
+    }
+    cb = node.getCullCallback();
+    while(cb)
+    {
+        _numCullCallbacks++;
+        updateCallbackStats(cb);
+        cb = cb->getNestedCallback();
+    }
+    if(!node.isCullingActive())
+        _numCullInactive++;
+    if(!node.getCullingActive())
+        _numCullDisabled++;
+}
+
+#if OSG_VERSION_GREATER_THAN(3,3,1)
+void StatisticsVisitor::updateCallbackStats(osg::Callback * cb)
+#else
+void StatisticsVisitor::updateCallbackStats(osg::NodeCallback * cb)
+#endif
+{
+    osgAnimation::AnimationManagerBase* anibase = dynamic_cast<osgAnimation::AnimationManagerBase*>(cb);
+    if(anibase)
+        _numAnimationCallbacks++;
+}
+
+void StatisticsVisitor::apply(osg::Node& node)
+{
+    osgUtil::StatsVisitor::apply(node);
+    updateNodeStats(node);
+}
+
+void StatisticsVisitor::apply(osg::Group& node)
+{
+    osgUtil::StatsVisitor::apply(node);
+    updateNodeStats(node);
+}
+
+void StatisticsVisitor::apply(osg::Transform& node)
+{
+    osgUtil::StatsVisitor::apply(node);
+    updateNodeStats(node);
+}
+
+void StatisticsVisitor::apply(osg::LOD& node)
+{
+    osgUtil::StatsVisitor::apply(node);
+    updateNodeStats(node);
+}
+
+void StatisticsVisitor::apply(osg::Switch& node)
+{
+    osgUtil::StatsVisitor::apply(node);
+    updateNodeStats(node);
+}
+
+void StatisticsVisitor::apply(osg::Geode& node)
+{
+    osgUtil::StatsVisitor::apply(node);
+    updateNodeStats(node);
+}
+
+void StatisticsVisitor::apply(osg::Drawable& node)
+{
+    osgUtil::StatsVisitor::apply(node);
+    osg::Geometry* geometry = node.asGeometry();
+    if (geometry)
+    {
+        if (geometry->containsDeprecatedData())
+            ++_numDeprecatedDataGeometries;
+
+        osg::Geometry::ArrayList arrays;
+        if(geometry->getArrayList(arrays))
         {
-            const osg::StateSet::AttributeList & attributes = *it;
-            for(osg::StateSet::AttributeList::const_iterator it2 = attributes.begin(); it2 != attributes.end(); it2++)
+            for(osg::Geometry::ArrayList::const_iterator it = arrays.begin(); it != arrays.end(); it++)
             {
-                const osg::StateAttribute::TypeMemberPair & typememberpair = it2->first;
-                const osg::StateAttribute::Type & type = typememberpair.first;
-                const unsigned int & member = typememberpair.second;
-                const osg::StateSet::RefAttributePair & attrpair = it2->second;
-                const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
-                const osg::StateAttribute::OverrideValue & value = attrpair.second;
-
-                apply(*attr);
+                const osg::ref_ptr<osg::Array> & array = *it;
+                apply(*array.get());
             }
         }
-
-        const osg::StateSet::UniformList & uniforms = ss.getUniformList();
-        for(osg::StateSet::UniformList::const_iterator it = uniforms.begin(); it != uniforms.end(); it++)
+        const osg::Geometry::PrimitiveSetList & primSets = geometry->getPrimitiveSetList();
+        for(osg::Geometry::PrimitiveSetList::const_iterator it = primSets.begin(); it != primSets.end(); it++)
         {
-            const std::string & name = it->first;
-            const osg::StateAttribute::OverrideValue & overridevalue = it->second.second;
-            const osg::ref_ptr<osg::Uniform> & uniform = it->second.first;
-            apply(*uniform);
+            const osg::ref_ptr<osg::PrimitiveSet> & primset = *it;
+            apply(*primset.get());
         }
+    }
+    else if (osgText::TextBase * textbase = dynamic_cast<osgText::TextBase *>(&node))
+    {
+        apply(*textbase);
+    }
+}
 
+void StatisticsVisitor::apply(osg::PagedLOD& node)
+{
+    if(_ignoreKnownPagedLODs)
+    {
+        auto it = _pagedlodSet.find(&node);
+        if(it != _pagedlodSet.end())
+            return;
     }
 
-    void StatisticsVisitor::apply(osg::Texture::TextureObject & to)
+    if (node.getStateSet())
     {
-        _estimatedMemory += to._profile._size;
+        apply(*node.getStateSet());
     }
 
-    void StatisticsVisitor::apply(osg::StateAttribute & attr)
-    {
-        ++_numInstancedStateAttribute;
-        _stateAttributeSets[attr.getType()].insert(&attr);
+    ++_numInstancedPagedLOD;
+    _pagedlodSet.insert(&node);
 
-        switch(attr.getType())
+    updateNodeStats(node);
+    traverse(node);
+}
+
+void StatisticsVisitor::apply(osg::ProxyNode& node)
+{
+    if(_ignoreKnownProxyNodes)
+    {
+        auto it = _proxynodeSet.find(&node);
+        if(it != _proxynodeSet.end())
+            return;
+    }
+
+    if (node.getStateSet())
+    {
+        apply(*node.getStateSet());
+    }
+
+    ++_numInstancedProxyNode;
+    _proxynodeSet.insert(&node);
+
+    updateNodeStats(node);
+    traverse(node);
+}
+
+void StatisticsVisitor::apply(osg::CoordinateSystemNode& node)
+{
+    if (node.getStateSet())
+    {
+        apply(*node.getStateSet());
+    }
+
+    ++_numInstancedCSN;
+    _csnSet.insert(&node);
+
+    updateNodeStats(node);
+    traverse(node);
+}
+
+void StatisticsVisitor::apply(osg::Camera& node)
+{
+    if (node.getStateSet())
+    {
+        apply(*node.getStateSet());
+    }
+
+    ++_numInstancedCamera;
+    _cameraSet.insert(&node);
+
+    updateNodeStats(node);
+    traverse(node);
+}
+
+void StatisticsVisitor::apply(osg::CameraView& node)
+{
+    if (node.getStateSet())
+    {
+        apply(*node.getStateSet());
+    }
+
+    ++_numInstancedCameraView;
+    _cameraViewSet.insert(&node);
+
+    updateNodeStats(node);
+    traverse(node);
+}
+
+void StatisticsVisitor::apply(osg::BufferData& buffer)
+{
+    _estimatedMemoryInstanced += buffer.getTotalDataSize();
+}
+
+void StatisticsVisitor::apply(osg::MatrixTransform& node)
+{
+    if (node.getStateSet())
+    {
+        apply(*node.getStateSet());
+    }
+
+    if(dynamic_cast<osgAnimation::Skeleton*>(&node))
+    {
+        ++_numInstancedAnimationSkeleton;
+        _animationSkeletonSet.insert(&node);
+    }
+    else if(dynamic_cast<osgAnimation::Bone*>(&node))
+    {
+        ++_numInstancedAnimationBone;
+        _animationBoneSet.insert(&node);
+    }
+    else
+    {
+        ++_numInstancedMatrixTransform;
+        _matrixTransformSet.insert(&node);
+    }
+
+    updateNodeStats(node);
+    traverse(node);
+}
+
+void StatisticsVisitor::apply(osg::PositionAttitudeTransform& node)
+{
+    if (node.getStateSet())
+    {
+        apply(*node.getStateSet());
+    }
+
+    ++_numInstancedPAT;
+    _patSet.insert(&node);
+
+    updateNodeStats(node);
+    traverse(node);
+}
+
+void StatisticsVisitor::apply(osg::StateSet& ss)
+{
+    osgUtil::StatsVisitor::apply(ss);
+    const osg::StateSet::AttributeList& attributes = ss.getAttributeList();
+    for(osg::StateSet::AttributeList::const_iterator it = attributes.begin(); it != attributes.end(); it++)
+    {
+        const osg::StateAttribute::TypeMemberPair & typememberpair = it->first;
+        const osg::StateAttribute::Type & type = typememberpair.first;
+        const unsigned int & member = typememberpair.second;
+        const osg::StateSet::RefAttributePair & attrpair = it->second;
+        const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
+        const osg::StateAttribute::OverrideValue & value = attrpair.second;
+        apply(*attr);
+    }
+
+    const osg::StateSet::TextureAttributeList & textureAttributes = ss.getTextureAttributeList();
+    for(osg::StateSet::TextureAttributeList::const_iterator it = textureAttributes.begin(); it != textureAttributes.end(); it++)
+    {
+        const osg::StateSet::AttributeList & attributes = *it;
+        for(osg::StateSet::AttributeList::const_iterator it2 = attributes.begin(); it2 != attributes.end(); it2++)
         {
-        case osg::StateAttribute::TEXTURE:
+            const osg::StateAttribute::TypeMemberPair & typememberpair = it2->first;
+            const osg::StateAttribute::Type & type = typememberpair.first;
+            const unsigned int & member = typememberpair.second;
+            const osg::StateSet::RefAttributePair & attrpair = it2->second;
+            const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
+            const osg::StateAttribute::OverrideValue & value = attrpair.second;
+
+            apply(*attr);
+        }
+    }
+
+    const osg::StateSet::UniformList & uniforms = ss.getUniformList();
+    for(osg::StateSet::UniformList::const_iterator it = uniforms.begin(); it != uniforms.end(); it++)
+    {
+        const std::string & name = it->first;
+        const osg::StateAttribute::OverrideValue & overridevalue = it->second.second;
+        const osg::ref_ptr<osg::Uniform> & uniform = it->second.first;
+        apply(*uniform);
+    }
+
+}
+
+void StatisticsVisitor::apply(osg::Texture::TextureObject & to)
+{
+    _estimatedMemoryInstanced += to._profile._size;
+}
+
+void StatisticsVisitor::apply(osg::StateAttribute & attr)
+{
+    ++_numInstancedStateAttribute;
+    _stateAttributeSets[attr.getType()].insert(&attr);
+
+    switch(attr.getType())
+    {
+    case osg::StateAttribute::TEXTURE:
+        {
+            osg::Texture * texture = attr.asTexture();
+            if(texture)
             {
-                osg::Texture * texture = attr.asTexture();
-                if(texture)
+                bool got_txtobj = false;
+                if (_contextID != ~0u)
                 {
-                    bool got_txtobj = false;
-                    if (_contextID != ~0u)
+                    osg::Texture::TextureObject * to = texture->getTextureObject(_contextID);
+                    if (to)
                     {
-                        osg::Texture::TextureObject * to = texture->getTextureObject(_contextID);
-                        if (to)
-                        {
-                            got_txtobj = true;
-                            apply(*to);
-                        }
+                        got_txtobj = true;
+                        apply(*to);
                     }
-                    if (!got_txtobj)
+                }
+                if (!got_txtobj)
+                {
+                    unsigned int numImages = texture->getNumImages();
+                    for (unsigned n = 0; n < numImages; n++)
                     {
-                        unsigned int numImages = texture->getNumImages();
-                        for (unsigned n = 0; n < numImages; n++)
-                        {
-                            osg::Image * image = texture->getImage(n);
-                            if (image)
-                                apply(*image);
-                        }
+                        osg::Image * image = texture->getImage(n);
+                        if (image)
+                            apply(*image);
                     }
                 }
             }
-            break;
         }
-
-        ++_numInstancedSA[attr.getType()];
+        break;
     }
 
-    void StatisticsVisitor::apply(osg::Uniform & uniform)
+    ++_numInstancedSA[attr.getType()];
+}
+
+void StatisticsVisitor::apply(osg::Uniform & uniform)
+{
+    ++_numInstancedUniform;
+    _uniformSet.insert(&uniform);
+
     {
-        ++_numInstancedUniform;
-        _uniformSet.insert(&uniform);
-
-        {
-            osg::FloatArray * a = uniform.getFloatArray();
-            if(a)
-                _estimatedMemory += a->getTotalDataSize();
-        }
-        {
-            osg::DoubleArray * a = uniform.getDoubleArray();
-            if(a)
-                _estimatedMemory += a->getTotalDataSize();
-        }
-        {
-            osg::IntArray * a = uniform.getIntArray();
-            if(a)
-                _estimatedMemory += a->getTotalDataSize();
-        }
-        {
-            osg::UIntArray * a = uniform.getUIntArray();
-            if(a)
-                _estimatedMemory += a->getTotalDataSize();
-        }
+        osg::FloatArray * a = uniform.getFloatArray();
+        if(a)
+            _estimatedMemoryInstanced += a->getTotalDataSize();
     }
-
-	void StatisticsVisitor::apply(osgText::TextBase & text)
-	{
-		++_numInstancedTextBase;
-		_textBaseSet.insert(&text);
-	}
-
-    void StatisticsVisitor::printHTML(std::ostream& out)
     {
-        // automatically call the update to gets the unique vertices and primitives
-        totalUpStats();
-
-        unsigned int unique_primitives = 0;
-        osgUtil::Statistics::PrimitiveCountMap::iterator pcmitr;
-        for(pcmitr = _uniqueStats.GetPrimitivesBegin();
-            pcmitr != _uniqueStats.GetPrimitivesEnd();
-            ++pcmitr)
-        {
-            unique_primitives += pcmitr->second;
-        }
-
-        unsigned int instanced_primitives = 0;
-        for(pcmitr = _instancedStats.GetPrimitivesBegin();
-            pcmitr != _instancedStats.GetPrimitivesEnd();
-            ++pcmitr)
-        {
-            instanced_primitives += pcmitr->second;
-        }
-
-        out << "<table border=\'1\' width=\'100%\'>" << std::endl;
-        out << "<tr><th>Object Type</th><th>Unique</th><th>Instanced</th></tr>" << std::endl;
-        out << "<tr><td>est. memory size</td><td>N/A</td><td>" << _estimatedMemory << "</td></tr>" << std::endl;
-        out << "<tr><td>StateSet</td><td>" << _statesetSet.size() << "</td><td>" << _numInstancedStateSet << "</td></tr>" << std::endl;
-        for(int n = 0; n < MaxStateAttributeType; n++)
-        {
-            out << "<tr><td>StateAttribute " << (osg::StateAttribute::Type)n << "</td><td>"  << _stateAttributeSets[n].size() << "</td><td>" << _numInstancedSA[n] << "</td></tr>" << std::endl;
-        }
-        out << "<tr><td>Uniform</td><td>" << _uniformSet.size() << "</td><td>" << _numInstancedUniform << "</td></tr>" << std::endl;
-
-        out << "<tr><td>Group</td><td>" << _groupSet.size() << "</td><td>" << _numInstancedGroup << "</td></tr>" << std::endl;
-        out << "<tr><td>Camera</td><td>" << _cameraSet.size() << "</td><td>" << _numInstancedCamera << "</td></tr>" << std::endl;
-        out << "<tr><td>CameraView</td><td>" << _cameraViewSet.size() << "</td><td>" << _numInstancedCameraView << "</td></tr>" << std::endl;
-        out << "<tr><td>Transform</td><td>" << _transformSet.size() << "</td><td>" << _numInstancedTransform << "</td></tr>" << std::endl;
-        out << "<tr><td>MatrixTransform</td><td>" << _matrixTransformSet.size() << "</td><td>" << _numInstancedMatrixTransform << "</td></tr>" << std::endl;
-        out << "<tr><td>PositionAttitudeTransform</td><td>" << _patSet.size() << "</td><td>" << _numInstancedPAT << "</td></tr>" << std::endl;
-        out << "<tr><td>LOD</td><td>" << _lodSet.size() << "</td><td>" << _numInstancedLOD << "</td></tr>" << std::endl;
-        out << "<tr><td>PagedLOD</td><td>" << _pagedlodSet.size() << "</td><td>" << _numInstancedPagedLOD << "</td></tr>" << std::endl;
-        out << "<tr><td>ProxyNode</td><td>" << _proxynodeSet.size() << "</td><td>" << _numInstancedProxyNode << "</td></tr>" << std::endl;
-        out << "<tr><td>Switch</td><td>" << _switchSet.size() << "</td><td>" << _numInstancedSwitch << "</td></tr>" << std::endl;
-        out << "<tr><td>animation skeleton</td><td>" << _animationSkeletonSet.size() << "</td><td>" << _numInstancedAnimationSkeleton << "</td></tr>" << std::endl;
-        out << "<tr><td>animation bone</td><td>" << _animationBoneSet.size() << "</td><td>" << _numInstancedAnimationBone << "</td></tr>" << std::endl;
-        out << "<tr><td>Geode</td><td>" << _geodeSet.size() << "</td><td>" << _numInstancedGeode << "</td></tr>" << std::endl;
-        out << "<tr><td>Drawable</td><td>" << _drawableSet.size() << "</td><td>" << _numInstancedDrawable << "</td></tr>" << std::endl;
-        out << "<tr><td>Geometry</td><td>" << _geometrySet.size() << "</td><td>" << _numInstancedGeometry << "</td></tr>" << std::endl;
-		out << "<tr><td>Text base</td><td>" << _textBaseSet.size() << "</td><td>" << _numInstancedTextBase << "</td></tr>" << std::endl;
-        out << "<tr><td>Fast geom.</td><td>" << _fastGeometrySet.size() << "</td><td>" << _numInstancedFastGeometry << "</td></tr>" << std::endl;
-		out << "<tr><td>Deprecated data geom.</td><td>" << "N/A" << "</td><td>" << _numDeprecatedDataGeometries << "</td></tr>" << std::endl;
-		
-        out << "<tr><td>Vertices</td><td>" << _uniqueStats._vertexCount << "</td><td>" << _instancedStats._vertexCount << "</td></tr>" << std::endl;
-        out << "<tr><td>Primitives</td><td>" << unique_primitives << "</td><td>" << instanced_primitives << "</td></tr>" << std::endl;
-
-        out << "<tr><td>event callbacks</td><td>" << _numEventCallbacks << "</td><td>" << _numEventCallbacks << "</td></tr>" << std::endl;
-        out << "<tr><td>update callbacks</td><td>" << _numUpdateCallbacks << "</td><td>" << _numUpdateCallbacks << "</td></tr>" << std::endl;
-        out << "<tr><td>cull callbacks</td><td>" << _numCullCallbacks << "</td><td>" << _numCullCallbacks << "</td></tr>" << std::endl;
-        out << "<tr><td>animation callbacks</td><td>" << _numAnimationCallbacks << "</td><td>" << _numAnimationCallbacks << "</td></tr>" << std::endl;
-        out << "<tr><td>cull inactive</td><td>" << _numCullInactive << "</td><td>" << _numCullInactive << "</td></tr>" << std::endl;
-        out << "<tr><td>cull disabled</td><td>" << _numCullDisabled << "</td><td>" << _numCullDisabled << "</td></tr>" << std::endl;
-
-        out << "</table>" << std::endl;
+        osg::DoubleArray * a = uniform.getDoubleArray();
+        if(a)
+            _estimatedMemoryInstanced += a->getTotalDataSize();
     }
+    {
+        osg::IntArray * a = uniform.getIntArray();
+        if(a)
+            _estimatedMemoryInstanced += a->getTotalDataSize();
+    }
+    {
+        osg::UIntArray * a = uniform.getUIntArray();
+        if(a)
+            _estimatedMemoryInstanced += a->getTotalDataSize();
+    }
+}
+
+void StatisticsVisitor::apply(osgText::TextBase & text)
+{
+    ++_numInstancedTextBase;
+    _textBaseSet.insert(&text);
+}
+
+#define CMU_NODES(__nodelist) \
+    { for(auto node : __nodelist ) { \
+        MemoryStatisticsVisitor msv; \
+        node->accept(msv); \
+        _estimatedMemoryUnique+= msv.totalSize(); \
+    } }
+
+void StatisticsVisitor::computeMemoryUsage()
+{
+    _estimatedMemoryUnique = 0;
+
+    CMU_NODES(_pagedlodSet);
+    CMU_NODES(_proxynodeSet);
+    CMU_NODES(_csnSet);
+    CMU_NODES(_cameraSet);
+    CMU_NODES(_cameraViewSet);
+    CMU_NODES(_matrixTransformSet);
+    CMU_NODES(_patSet);
+    CMU_NODES(_animationSkeletonSet);
+    CMU_NODES(_animationBoneSet);
+    CMU_NODES(_textBaseSet);
+
+    for(int n = 0; n < MaxStateAttributeType; n++)
+    {
+        for(auto sa : _stateAttributeSets[n] ) {
+            MemoryStatisticsVisitor msv;
+            msv.apply(*sa);
+            _estimatedMemoryUnique+= msv.totalSize();
+        }
+    }
+    for(auto uniform : _uniformSet ) {
+        MemoryStatisticsVisitor msv;
+        msv.apply(*uniform);
+        _estimatedMemoryUnique+= msv.totalSize();
+    }
+}
+
+void StatisticsVisitor::printHTML(std::ostream& out)
+{
+    // automatically call the update to gets the unique vertices and primitives
+    totalUpStats();
+    // automatically call the update to gets the unique memory usage
+    computeMemoryUsage();
+
+    unsigned int unique_primitives = 0;
+    osgUtil::Statistics::PrimitiveCountMap::iterator pcmitr;
+    for(pcmitr = _uniqueStats.GetPrimitivesBegin();
+        pcmitr != _uniqueStats.GetPrimitivesEnd();
+        ++pcmitr)
+    {
+        unique_primitives += pcmitr->second;
+    }
+
+    unsigned int instanced_primitives = 0;
+    for(pcmitr = _instancedStats.GetPrimitivesBegin();
+        pcmitr != _instancedStats.GetPrimitivesEnd();
+        ++pcmitr)
+    {
+        instanced_primitives += pcmitr->second;
+    }
+
+    out << "<table border=\'1\' width=\'100%\'>" << std::endl;
+    out << "<tr><th>Object Type</th><th>Unique</th><th>Instanced</th></tr>" << std::endl;
+    out << "<tr><td>est. memory size</td><td>" << _estimatedMemoryUnique << "</td><td>" << _estimatedMemoryInstanced << "</td></tr>" << std::endl;
+    out << "<tr><td>StateSet</td><td>" << _statesetSet.size() << "</td><td>" << _numInstancedStateSet << "</td></tr>" << std::endl;
+    for(int n = 0; n < MaxStateAttributeType; n++)
+    {
+        out << "<tr><td>StateAttribute " << (osg::StateAttribute::Type)n << "</td><td>"  << _stateAttributeSets[n].size() << "</td><td>" << _numInstancedSA[n] << "</td></tr>" << std::endl;
+    }
+    out << "<tr><td>Uniform</td><td>" << _uniformSet.size() << "</td><td>" << _numInstancedUniform << "</td></tr>" << std::endl;
+
+    out << "<tr><td>Group</td><td>" << _groupSet.size() << "</td><td>" << _numInstancedGroup << "</td></tr>" << std::endl;
+    out << "<tr><td>Camera</td><td>" << _cameraSet.size() << "</td><td>" << _numInstancedCamera << "</td></tr>" << std::endl;
+    out << "<tr><td>CameraView</td><td>" << _cameraViewSet.size() << "</td><td>" << _numInstancedCameraView << "</td></tr>" << std::endl;
+    out << "<tr><td>Transform</td><td>" << _transformSet.size() << "</td><td>" << _numInstancedTransform << "</td></tr>" << std::endl;
+    out << "<tr><td>MatrixTransform</td><td>" << _matrixTransformSet.size() << "</td><td>" << _numInstancedMatrixTransform << "</td></tr>" << std::endl;
+    out << "<tr><td>PositionAttitudeTransform</td><td>" << _patSet.size() << "</td><td>" << _numInstancedPAT << "</td></tr>" << std::endl;
+    out << "<tr><td>LOD</td><td>" << _lodSet.size() << "</td><td>" << _numInstancedLOD << "</td></tr>" << std::endl;
+    out << "<tr><td>PagedLOD</td><td>" << _pagedlodSet.size() << "</td><td>" << _numInstancedPagedLOD << "</td></tr>" << std::endl;
+    out << "<tr><td>ProxyNode</td><td>" << _proxynodeSet.size() << "</td><td>" << _numInstancedProxyNode << "</td></tr>" << std::endl;
+    out << "<tr><td>Switch</td><td>" << _switchSet.size() << "</td><td>" << _numInstancedSwitch << "</td></tr>" << std::endl;
+    out << "<tr><td>animation skeleton</td><td>" << _animationSkeletonSet.size() << "</td><td>" << _numInstancedAnimationSkeleton << "</td></tr>" << std::endl;
+    out << "<tr><td>animation bone</td><td>" << _animationBoneSet.size() << "</td><td>" << _numInstancedAnimationBone << "</td></tr>" << std::endl;
+    out << "<tr><td>Geode</td><td>" << _geodeSet.size() << "</td><td>" << _numInstancedGeode << "</td></tr>" << std::endl;
+    out << "<tr><td>Drawable</td><td>" << _drawableSet.size() << "</td><td>" << _numInstancedDrawable << "</td></tr>" << std::endl;
+    out << "<tr><td>Geometry</td><td>" << _geometrySet.size() << "</td><td>" << _numInstancedGeometry << "</td></tr>" << std::endl;
+    out << "<tr><td>Text base</td><td>" << _textBaseSet.size() << "</td><td>" << _numInstancedTextBase << "</td></tr>" << std::endl;
+    out << "<tr><td>Fast geom.</td><td>" << _fastGeometrySet.size() << "</td><td>" << _numInstancedFastGeometry << "</td></tr>" << std::endl;
+    out << "<tr><td>Deprecated data geom.</td><td>" << "N/A" << "</td><td>" << _numDeprecatedDataGeometries << "</td></tr>" << std::endl;
+
+    out << "<tr><td>Vertices</td><td>" << _uniqueStats._vertexCount << "</td><td>" << _instancedStats._vertexCount << "</td></tr>" << std::endl;
+    out << "<tr><td>Primitives</td><td>" << unique_primitives << "</td><td>" << instanced_primitives << "</td></tr>" << std::endl;
+
+    out << "<tr><td>event callbacks</td><td>" << _numEventCallbacks << "</td><td>" << _numEventCallbacks << "</td></tr>" << std::endl;
+    out << "<tr><td>update callbacks</td><td>" << _numUpdateCallbacks << "</td><td>" << _numUpdateCallbacks << "</td></tr>" << std::endl;
+    out << "<tr><td>cull callbacks</td><td>" << _numCullCallbacks << "</td><td>" << _numCullCallbacks << "</td></tr>" << std::endl;
+    out << "<tr><td>animation callbacks</td><td>" << _numAnimationCallbacks << "</td><td>" << _numAnimationCallbacks << "</td></tr>" << std::endl;
+    out << "<tr><td>cull inactive</td><td>" << _numCullInactive << "</td><td>" << _numCullInactive << "</td></tr>" << std::endl;
+    out << "<tr><td>cull disabled</td><td>" << _numCullDisabled << "</td><td>" << _numCullDisabled << "</td></tr>" << std::endl;
+
+    out << "</table>" << std::endl;
+}
 
 } // namespace osg_helpers
 } // namespace sgi

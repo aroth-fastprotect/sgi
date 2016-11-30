@@ -14,6 +14,27 @@ namespace sgi {
 
 namespace osg_helpers {
 
+class SGI_EXPORT MemoryStatisticsVisitor : public osg::NodeVisitor
+{
+public:
+    MemoryStatisticsVisitor(unsigned int contextID=~0u, TraversalMode tm=TRAVERSE_NONE);
+    ~MemoryStatisticsVisitor();
+
+    const unsigned & totalSize() const { return _totalSize; }
+
+    virtual void apply(osg::Node& node);
+    virtual void apply(osg::StateSet& ss);
+    virtual void apply(osg::Uniform& uniform);
+    virtual void apply(osg::StateAttribute& attr);
+
+    virtual void apply(osg::BufferData& buffer);
+    virtual void apply(osg::Texture::TextureObject & to);
+
+protected:
+    unsigned int _contextID;
+    unsigned _totalSize;
+};
+
 class SGI_EXPORT StatisticsVisitor : public osgUtil::StatsVisitor
 {
 public:
@@ -53,7 +74,6 @@ public:
 
     virtual void apply(osgText::TextBase & text);
 
-
 public:
     void printHTML(std::ostream& out);
 
@@ -65,6 +85,7 @@ protected:
     virtual void            updateCallbackStats(osg::NodeCallback * cb);
 #endif
 
+    void computeMemoryUsage();
 
 protected:
     unsigned int _contextID;
@@ -84,7 +105,8 @@ protected:
     unsigned int _numAnimationCallbacks;
     unsigned int _numInstancedStateAttribute;
     unsigned int _numInstancedUniform;
-    unsigned int _estimatedMemory;
+    unsigned int _estimatedMemoryInstanced;
+    unsigned int _estimatedMemoryUnique;
     unsigned int _numInstancedAnimationSkeleton;
     unsigned int _numInstancedAnimationBone;
     unsigned int _numInstancedTextBase;
