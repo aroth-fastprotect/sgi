@@ -117,6 +117,8 @@ namespace osg_helpers {
         , _numInstancedAnimationBone(0)
 		, _numInstancedTextBase(0)
 		, _numDeprecatedDataGeometries(0)
+        , _ignoreKnownPagedLODs(false)
+        , _ignoreKnownProxyNodes(false)
     {
         for(int n = 0; n < MaxStateAttributeType; n++)
             _numInstancedSA[n] = 0;
@@ -124,6 +126,16 @@ namespace osg_helpers {
 
     StatisticsVisitor::~StatisticsVisitor()
     {
+    }
+
+    void StatisticsVisitor::ignoreKnownPagedLODs(bool enable)
+    {
+        _ignoreKnownPagedLODs = enable;
+    }
+
+    void StatisticsVisitor::ignoreKnownProxyNodes(bool enable)
+    {
+        _ignoreKnownProxyNodes = enable;
     }
 
     void StatisticsVisitor::reset()
@@ -153,6 +165,9 @@ namespace osg_helpers {
             _numInstancedSA[n] = 0;
         _numInstancedUniform = 0;
         _estimatedMemory = 0;
+
+        _ignoreKnownPagedLODs = false;
+        _ignoreKnownProxyNodes = false;
 
         _pagedlodSet.clear();
         _proxynodeSet.clear();
@@ -283,6 +298,13 @@ namespace osg_helpers {
 
     void StatisticsVisitor::apply(osg::PagedLOD& node)
     {
+        if(_ignoreKnownPagedLODs)
+        {
+            auto it = _pagedlodSet.find(&node);
+            if(it != _pagedlodSet.end())
+                return;
+        }
+
         if (node.getStateSet())
         {
             apply(*node.getStateSet());
@@ -297,6 +319,13 @@ namespace osg_helpers {
 
     void StatisticsVisitor::apply(osg::ProxyNode& node)
     {
+        if(_ignoreKnownProxyNodes)
+        {
+            auto it = _proxynodeSet.find(&node);
+            if(it != _proxynodeSet.end())
+                return;
+        }
+
         if (node.getStateSet())
         {
             apply(*node.getStateSet());

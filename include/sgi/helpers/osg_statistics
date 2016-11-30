@@ -24,6 +24,9 @@ public:
     StatisticsVisitor(unsigned int contextID = ~0u);
     virtual ~StatisticsVisitor();
 
+    void ignoreKnownPagedLODs(bool enable=true);
+    void ignoreKnownProxyNodes(bool enable=true);
+
     virtual void reset();
     virtual void apply(osg::Node& node);
     virtual void apply(osg::Group& node);
@@ -90,6 +93,9 @@ protected:
     enum { MaxStateAttributeType = osg::StateAttribute::FRAME_BUFFER_OBJECT };
 
     unsigned int _numInstancedSA[MaxStateAttributeType + 1];
+
+    bool _ignoreKnownPagedLODs;
+    bool _ignoreKnownProxyNodes;
 
     NodeSet             _pagedlodSet;
     NodeSet             _proxynodeSet;
