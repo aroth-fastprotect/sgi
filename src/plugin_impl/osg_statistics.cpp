@@ -99,6 +99,8 @@ MemoryStatisticsVisitor::MemoryStatisticsVisitor(unsigned int contextID, Travers
     : osg::NodeVisitor(tm)
     , _contextID(contextID)
     , _totalSize(0)
+    , _textureMemorySize(0)
+    , _primitivesMemorySize(0)
 {
 }
 MemoryStatisticsVisitor::~MemoryStatisticsVisitor()
@@ -107,19 +109,32 @@ MemoryStatisticsVisitor::~MemoryStatisticsVisitor()
 
 void MemoryStatisticsVisitor::apply(osg::Node& node)
 {
+#if 0
     if(node.getStateSet())
         apply(*node.getStateSet());
+#endif
+    osg::NodeVisitor::apply(node);
+}
+
+void MemoryStatisticsVisitor::apply(osg::Drawable& node)
+{
+    _primitivesMemorySize += node.getGLObjectSizeHint();
     osg::NodeVisitor::apply(node);
 }
 
 void MemoryStatisticsVisitor::apply(osg::BufferData& buffer)
 {
-    _totalSize += buffer.getTotalDataSize();
+    if(buffer.asImage())
+        _textureMemorySize += buffer.getTotalDataSize();
+    else if(buffer.asPrimitiveSet())
+        _primitivesMemorySize += buffer.getTotalDataSize();
+    else
+        _totalSize += buffer.getTotalDataSize();
 }
 
 void MemoryStatisticsVisitor::apply(osg::Texture::TextureObject & to)
 {
-    _totalSize += to._profile._size;
+    _textureMemorySize += to._profile._size;
 }
 
 void MemoryStatisticsVisitor::apply(osg::Uniform& uniform)
@@ -178,12 +193,21 @@ void MemoryStatisticsVisitor::apply(osg::StateAttribute& attr)
             }
         }
         break;
+    case osg::StateAttribute::PROGRAM:
+        {
+            osg::Program * program = dynamic_cast<osg::Program*>(&attr);
+            if (program)
+            {
+            }
+        }
+        break;
     }
 }
 
 
 void MemoryStatisticsVisitor::apply(osg::StateSet& ss)
 {
+#if 0
     const osg::StateSet::AttributeList& attributes = ss.getAttributeList();
     for(osg::StateSet::AttributeList::const_iterator it = attributes.begin(); it != attributes.end(); it++)
     {
@@ -221,7 +245,7 @@ void MemoryStatisticsVisitor::apply(osg::StateSet& ss)
         const osg::ref_ptr<osg::Uniform> & uniform = it->second.first;
         apply(*uniform);
     }
-
+#endif
 }
 
 
@@ -243,14 +267,14 @@ StatisticsVisitor::StatisticsVisitor(unsigned int contextID)
     , _numAnimationCallbacks(0)
     , _numInstancedStateAttribute(0)
     , _numInstancedUniform(0)
-    , _estimatedMemoryInstanced(0)
-    , _estimatedMemoryUnique(0)
     , _numInstancedAnimationSkeleton(0)
     , _numInstancedAnimationBone(0)
     , _numInstancedTextBase(0)
     , _numDeprecatedDataGeometries(0)
     , _ignoreKnownPagedLODs(false)
     , _ignoreKnownProxyNodes(false)
+    , _uniqueMemory(NULL)
+    , _instancedMemory(NULL)
 {
     for(int n = 0; n < MaxStateAttributeType; n++)
         _numInstancedSA[n] = 0;
@@ -258,6 +282,10 @@ StatisticsVisitor::StatisticsVisitor(unsigned int contextID)
 
 StatisticsVisitor::~StatisticsVisitor()
 {
+    if (_uniqueMemory)
+        delete _uniqueMemory;
+    if (_instancedMemory)
+        delete _instancedMemory;
 }
 
 void StatisticsVisitor::ignoreKnownPagedLODs(bool enable)
@@ -296,8 +324,12 @@ void StatisticsVisitor::reset()
     for(int n = 0; n < MaxStateAttributeType; n++)
         _numInstancedSA[n] = 0;
     _numInstancedUniform = 0;
-    _estimatedMemoryInstanced = 0;
-    _estimatedMemoryUnique = 0;
+
+    delete _uniqueMemory;
+    _uniqueMemory = NULL;
+
+    delete _instancedMemory;
+    _instancedMemory = NULL;
 
     _ignoreKnownPagedLODs = false;
     _ignoreKnownProxyNodes = false;
@@ -401,6 +433,10 @@ void StatisticsVisitor::apply(osg::Geode& node)
 void StatisticsVisitor::apply(osg::Drawable& node)
 {
     osgUtil::StatsVisitor::apply(node);
+    if (!_instancedMemory)
+        _instancedMemory = new MemoryStatisticsVisitor(_contextID);
+    _instancedMemory->apply(node);
+
     osg::Geometry* geometry = node.asGeometry();
     if (geometry)
     {
@@ -515,7 +551,9 @@ void StatisticsVisitor::apply(osg::CameraView& node)
 
 void StatisticsVisitor::apply(osg::BufferData& buffer)
 {
-    _estimatedMemoryInstanced += buffer.getTotalDataSize();
+    if (!_instancedMemory)
+        _instancedMemory = new MemoryStatisticsVisitor(_contextID);
+    _instancedMemory->apply(buffer);
 }
 
 void StatisticsVisitor::apply(osg::MatrixTransform& node)
@@ -604,7 +642,9 @@ void StatisticsVisitor::apply(osg::StateSet& ss)
 
 void StatisticsVisitor::apply(osg::Texture::TextureObject & to)
 {
-    _estimatedMemoryInstanced += to._profile._size;
+    if (!_instancedMemory)
+        _instancedMemory = new MemoryStatisticsVisitor(_contextID);
+    _instancedMemory->apply(to);
 }
 
 void StatisticsVisitor::apply(osg::StateAttribute & attr)
@@ -652,26 +692,9 @@ void StatisticsVisitor::apply(osg::Uniform & uniform)
     ++_numInstancedUniform;
     _uniformSet.insert(&uniform);
 
-    {
-        osg::FloatArray * a = uniform.getFloatArray();
-        if(a)
-            _estimatedMemoryInstanced += a->getTotalDataSize();
-    }
-    {
-        osg::DoubleArray * a = uniform.getDoubleArray();
-        if(a)
-            _estimatedMemoryInstanced += a->getTotalDataSize();
-    }
-    {
-        osg::IntArray * a = uniform.getIntArray();
-        if(a)
-            _estimatedMemoryInstanced += a->getTotalDataSize();
-    }
-    {
-        osg::UIntArray * a = uniform.getUIntArray();
-        if(a)
-            _estimatedMemoryInstanced += a->getTotalDataSize();
-    }
+    if (!_instancedMemory)
+        _instancedMemory = new MemoryStatisticsVisitor(_contextID);
+    _instancedMemory->apply(uniform);
 }
 
 void StatisticsVisitor::apply(osgText::TextBase & text)
@@ -682,15 +705,28 @@ void StatisticsVisitor::apply(osgText::TextBase & text)
 
 #define CMU_NODES(__nodelist) \
     { for(auto node : __nodelist ) { \
-        MemoryStatisticsVisitor msv; \
-        node->accept(msv); \
-        _estimatedMemoryUnique+= msv.totalSize(); \
+        node->accept(*_uniqueMemory); \
     } }
 
 void StatisticsVisitor::computeMemoryUsage()
 {
-    _estimatedMemoryUnique = 0;
+    if (!_uniqueMemory)
+        _uniqueMemory = new MemoryStatisticsVisitor(_contextID);
 
+    // original sets from this osg::StatisticsVisitor implementation
+    CMU_NODES(_groupSet);
+    CMU_NODES(_transformSet);
+    CMU_NODES(_lodSet);
+    CMU_NODES(_switchSet);
+    CMU_NODES(_geodeSet);
+    CMU_NODES(_drawableSet);
+    //CMU_NODES(_geometrySet);
+    //CMU_NODES(_fastGeometrySet);
+    for (auto ss : _statesetSet) {
+        _uniqueMemory->apply(*ss);
+    }
+
+    // additional sets from this StatisticsVisitor implementation
     CMU_NODES(_pagedlodSet);
     CMU_NODES(_proxynodeSet);
     CMU_NODES(_csnSet);
@@ -705,24 +741,25 @@ void StatisticsVisitor::computeMemoryUsage()
     for(int n = 0; n < MaxStateAttributeType; n++)
     {
         for(auto sa : _stateAttributeSets[n] ) {
-            MemoryStatisticsVisitor msv;
-            msv.apply(*sa);
-            _estimatedMemoryUnique+= msv.totalSize();
+            _uniqueMemory->apply(*sa);
         }
     }
     for(auto uniform : _uniformSet ) {
-        MemoryStatisticsVisitor msv;
-        msv.apply(*uniform);
-        _estimatedMemoryUnique+= msv.totalSize();
+        _uniqueMemory->apply(*uniform);
     }
+}
+
+void StatisticsVisitor::totalUpStats()
+{
+    osgUtil::StatsVisitor::totalUpStats();
+    // automatically call the update to gets the unique memory usage
+    computeMemoryUsage();
 }
 
 void StatisticsVisitor::printHTML(std::ostream& out)
 {
     // automatically call the update to gets the unique vertices and primitives
     totalUpStats();
-    // automatically call the update to gets the unique memory usage
-    computeMemoryUsage();
 
     unsigned int unique_primitives = 0;
     osgUtil::Statistics::PrimitiveCountMap::iterator pcmitr;
@@ -743,7 +780,13 @@ void StatisticsVisitor::printHTML(std::ostream& out)
 
     out << "<table border=\'1\' width=\'100%\'>" << std::endl;
     out << "<tr><th>Object Type</th><th>Unique</th><th>Instanced</th></tr>" << std::endl;
-    out << "<tr><td>est. memory size</td><td>" << _estimatedMemoryUnique << "</td><td>" << _estimatedMemoryInstanced << "</td></tr>" << std::endl;
+
+    out << "<tr><td>est. memory size</td><td>" << (_uniqueMemory?_uniqueMemory->totalSize():0) << "</td><td>"
+        << (_instancedMemory?_instancedMemory->totalSize():0) << "</td></tr>" << std::endl;
+    out << "<tr><td>est. texture memory</td><td>" << (_uniqueMemory ? _uniqueMemory->textureMemorySize() : 0) << "</td><td>"
+        << (_instancedMemory ? _instancedMemory->textureMemorySize() : 0) << "</td></tr>" << std::endl;
+    out << "<tr><td>est. primitives memory</td><td>" << (_uniqueMemory ? _uniqueMemory->primitivesMemorySize() : 0) << "</td><td>"
+        << (_instancedMemory ? _instancedMemory->primitivesMemorySize() : 0) << "</td></tr>" << std::endl;
     out << "<tr><td>StateSet</td><td>" << _statesetSet.size() << "</td><td>" << _numInstancedStateSet << "</td></tr>" << std::endl;
     for(int n = 0; n < MaxStateAttributeType; n++)
     {

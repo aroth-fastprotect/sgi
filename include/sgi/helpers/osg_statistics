@@ -21,8 +21,11 @@ public:
     ~MemoryStatisticsVisitor();
 
     const unsigned & totalSize() const { return _totalSize; }
+    const unsigned & textureMemorySize() const { return _textureMemorySize; }
+    const unsigned & primitivesMemorySize() const { return _primitivesMemorySize; }
 
     virtual void apply(osg::Node& node);
+    virtual void apply(osg::Drawable& node);
     virtual void apply(osg::StateSet& ss);
     virtual void apply(osg::Uniform& uniform);
     virtual void apply(osg::StateAttribute& attr);
@@ -33,6 +36,8 @@ public:
 protected:
     unsigned int _contextID;
     unsigned _totalSize;
+    unsigned _textureMemorySize;
+    unsigned _primitivesMemorySize;
 };
 
 class SGI_EXPORT StatisticsVisitor : public osgUtil::StatsVisitor
@@ -74,6 +79,8 @@ public:
 
     virtual void apply(osgText::TextBase & text);
 
+    virtual void totalUpStats();
+
 public:
     void printHTML(std::ostream& out);
 
@@ -105,8 +112,6 @@ protected:
     unsigned int _numAnimationCallbacks;
     unsigned int _numInstancedStateAttribute;
     unsigned int _numInstancedUniform;
-    unsigned int _estimatedMemoryInstanced;
-    unsigned int _estimatedMemoryUnique;
     unsigned int _numInstancedAnimationSkeleton;
     unsigned int _numInstancedAnimationBone;
     unsigned int _numInstancedTextBase;
@@ -131,6 +136,9 @@ protected:
     NodeSet             _animationSkeletonSet;
     NodeSet             _animationBoneSet;
     NodeSet             _textBaseSet;
+
+    MemoryStatisticsVisitor * _uniqueMemory;
+    MemoryStatisticsVisitor * _instancedMemory;
 };
     } // namespace osg_helpers
 } // namespace sgi
