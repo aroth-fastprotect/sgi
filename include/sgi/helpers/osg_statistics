@@ -20,9 +20,17 @@ public:
     MemoryStatisticsVisitor(unsigned int contextID=~0u, TraversalMode tm=TRAVERSE_NONE);
     ~MemoryStatisticsVisitor();
 
-    const unsigned & totalSize() const { return _totalSize; }
-    const unsigned & textureMemorySize() const { return _textureMemorySize; }
-    const unsigned & primitivesMemorySize() const { return _primitivesMemorySize; }
+    struct SGI_EXPORT Numbers {
+        Numbers();
+        void clear();
+        unsigned totalSize;
+        unsigned textureMemorySize;
+        unsigned primitivesMemorySize;
+    };
+    const Numbers & numbers() const { return _numbers; }
+    const unsigned & totalSize() const { return _numbers.totalSize; }
+    const unsigned & textureMemorySize() const { return _numbers.textureMemorySize; }
+    const unsigned & primitivesMemorySize() const { return _numbers.primitivesMemorySize; }
 
     virtual void apply(osg::Node& node);
     virtual void apply(osg::Drawable& node);
@@ -35,9 +43,7 @@ public:
 
 protected:
     unsigned int _contextID;
-    unsigned _totalSize;
-    unsigned _textureMemorySize;
-    unsigned _primitivesMemorySize;
+    Numbers _numbers;
 };
 
 class SGI_EXPORT StatisticsVisitor : public osgUtil::StatsVisitor
@@ -83,6 +89,7 @@ public:
 
 public:
     void printHTML(std::ostream& out);
+    void getMemoryInfo(MemoryStatisticsVisitor::Numbers & unique, MemoryStatisticsVisitor::Numbers & instanced);
 
 protected:
     virtual void            updateNodeStats(osg::Node & node);

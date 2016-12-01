@@ -94,13 +94,23 @@ namespace osg_helpers {
         return os;
     }
 
+MemoryStatisticsVisitor::Numbers::Numbers()
+    : totalSize(0)
+    , textureMemorySize(0)
+    , primitivesMemorySize(0)
+{
+}
+
+void MemoryStatisticsVisitor::Numbers::clear()
+{
+    totalSize = 0;
+    textureMemorySize = 0;
+    primitivesMemorySize = 0;
+}
 
 MemoryStatisticsVisitor::MemoryStatisticsVisitor(unsigned int contextID, TraversalMode tm)
     : osg::NodeVisitor(tm)
     , _contextID(contextID)
-    , _totalSize(0)
-    , _textureMemorySize(0)
-    , _primitivesMemorySize(0)
 {
 }
 MemoryStatisticsVisitor::~MemoryStatisticsVisitor()
@@ -118,23 +128,23 @@ void MemoryStatisticsVisitor::apply(osg::Node& node)
 
 void MemoryStatisticsVisitor::apply(osg::Drawable& node)
 {
-    _primitivesMemorySize += node.getGLObjectSizeHint();
+    _numbers.primitivesMemorySize += node.getGLObjectSizeHint();
     osg::NodeVisitor::apply(node);
 }
 
 void MemoryStatisticsVisitor::apply(osg::BufferData& buffer)
 {
     if(buffer.asImage())
-        _textureMemorySize += buffer.getTotalDataSize();
+        _numbers.textureMemorySize += buffer.getTotalDataSize();
     else if(buffer.asPrimitiveSet())
-        _primitivesMemorySize += buffer.getTotalDataSize();
+        _numbers.primitivesMemorySize += buffer.getTotalDataSize();
     else
-        _totalSize += buffer.getTotalDataSize();
+        _numbers.totalSize += buffer.getTotalDataSize();
 }
 
 void MemoryStatisticsVisitor::apply(osg::Texture::TextureObject & to)
 {
-    _textureMemorySize += to._profile._size;
+    _numbers.textureMemorySize += to._profile._size;
 }
 
 void MemoryStatisticsVisitor::apply(osg::Uniform& uniform)
@@ -142,22 +152,22 @@ void MemoryStatisticsVisitor::apply(osg::Uniform& uniform)
     {
         osg::FloatArray * a = uniform.getFloatArray();
         if(a)
-            _totalSize += a->getTotalDataSize();
+            _numbers.totalSize += a->getTotalDataSize();
     }
     {
         osg::DoubleArray * a = uniform.getDoubleArray();
         if(a)
-            _totalSize += a->getTotalDataSize();
+            _numbers.totalSize += a->getTotalDataSize();
     }
     {
         osg::IntArray * a = uniform.getIntArray();
         if(a)
-            _totalSize += a->getTotalDataSize();
+            _numbers.totalSize += a->getTotalDataSize();
     }
     {
         osg::UIntArray * a = uniform.getUIntArray();
         if(a)
-            _totalSize += a->getTotalDataSize();
+            _numbers.totalSize += a->getTotalDataSize();
     }
 }
 
@@ -754,6 +764,17 @@ void StatisticsVisitor::totalUpStats()
     osgUtil::StatsVisitor::totalUpStats();
     // automatically call the update to gets the unique memory usage
     computeMemoryUsage();
+}
+
+void StatisticsVisitor::getMemoryInfo(MemoryStatisticsVisitor::Numbers & unique, MemoryStatisticsVisitor::Numbers & instanced)
+{
+    // automatically call the update to gets the unique vertices and primitives
+    totalUpStats();
+
+    if (_uniqueMemory)
+        unique = _uniqueMemory->numbers();
+    if (_instancedMemory)
+        instanced = _instancedMemory->numbers();
 }
 
 void StatisticsVisitor::printHTML(std::ostream& out)
