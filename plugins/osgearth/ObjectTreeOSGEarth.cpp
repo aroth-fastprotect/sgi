@@ -29,6 +29,7 @@
 #include <osgEarth/TaskService>
 #include <osgEarth/StateSetCache>
 #include <osgEarth/OverlayDecorator>
+#include <osgEarth/TraversalData>
 
 #include <osgEarthDrivers/cache_filesystem/FileSystemCache>
 #include <osgEarthDrivers/tms/TMSOptions>
@@ -236,7 +237,7 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
 {
-    osgEarth::MapNode * object = static_cast<osgEarth::MapNode*>(item<SGIItemOsg>()->object());
+    MapNodeAccess * object = static_cast<MapNodeAccess *>(getObject<osgEarth::MapNode, SGIItemOsg>());
     bool ret = false;
     switch(itemType())
     {
@@ -255,6 +256,8 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
 			const auto & extensions = object->getExtensions();
 			if(!extensions.empty())
 				treeItem->addChild("Extensions", cloneItem<SGIItemOsg>(SGIItemTypeExtensions));
+
+            treeItem->addChild("CullData", cloneItem<SGIItemOsg>(SGIItemTypeCullData, ~0u));
 
 			SGIHostItemOsg terrain(access->terrain());
             if(terrain.hasObject())
@@ -281,8 +284,47 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
 				SGIHostItemOsg item(ext);
 				treeItem->addChild(std::string(), &item);
 			}
+            ret = true;
 		}
 		break;
+    case SGIItemTypeCullData:
+        {
+            osg::NodeList cameras;
+            object->getCullDataCameras(cameras);
+            if (itemNumber() == ~0u)
+            {
+                unsigned index = 0;
+                for (const auto & camera : cameras)
+                {
+                    SGIHostItemOsg item(camera);
+                    treeItem->addChild(helpers::str_plus_info("Camera", (void*)camera), cloneItem<SGIItemOsg>(SGIItemTypeCullData, index));
+                    ++index;
+                }
+            }
+            else
+            {
+                unsigned index = 0;
+                for (const auto & camera : cameras)
+                {
+                    if (index == itemNumber())
+                    {
+                        const osgEarth::MapNodeCullData * data = object->getCullDataForCamera(static_cast<osg::Camera*>(camera.get()));
+                        if (data)
+                        {
+                            SGIHostItemOsg stateSet(data->_stateSet.get());
+                            treeItem->addChild("StateSet", &stateSet);
+                            SGIHostItemOsg windowMatrixUniform(data->_windowMatrixUniform.get());
+                            treeItem->addChild("windowMatrixUniform", &windowMatrixUniform);
+                            SGIHostItemOsg cameraAltitudeUniform(data->_cameraAltitudeUniform.get());
+                            treeItem->addChild("CameraAltitudeUniform", &cameraAltitudeUniform);
+                        }
+                    }
+                    ++index;
+                }
+            }
+            ret = true;
+        }
+        break;
     default:
         ret = callNextHandler(treeItem);
         break;

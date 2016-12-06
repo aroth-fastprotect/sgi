@@ -15,6 +15,7 @@ SET(TARGET_SRC
     TileInspectorDialog.cpp
     RetrieveElevationDialog.cpp
     geo_helpers.cpp
+	osgearth_accessor.cpp
     )
 
 SET(TARGET_H

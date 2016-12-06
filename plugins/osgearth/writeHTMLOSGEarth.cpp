@@ -26,6 +26,7 @@
 #include <osgEarth/ElevationQuery>
 #include <osgEarth/ImageUtils>
 #include <osgEarth/LevelDBFactory>
+#include <osgEarth/TraversalData>
 
 #include <osgEarthUtil/LatLongFormatter>
 
@@ -1016,7 +1017,7 @@ bool writePrettyHTMLImpl<osgEarth::Map>::process(std::basic_ostream<char>& os)
 
 bool writePrettyHTMLImpl<osgEarth::MapNode>::process(std::basic_ostream<char>& os)
 {
-    osgEarth::MapNode * object = static_cast<osgEarth::MapNode*>(item<SGIItemOsg>()->object());
+    MapNodeAccess * object = static_cast<MapNodeAccess *>(getObject<osgEarth::MapNode, SGIItemOsg>());
     bool ret = false;
     switch(itemType())
     {
@@ -1028,15 +1029,13 @@ bool writePrettyHTMLImpl<osgEarth::MapNode>::process(std::basic_ostream<char>& o
             // add group properties first
             callNextHandler(os);
 
-			MapNodeAccess * access = (MapNodeAccess*)object;
-
-            os << "<tr><td>map</td><td>" << getObjectNameAndType(const_cast<osgEarth::MapNode *>(object)->getMap()) << "</td></tr>" << std::endl;
-            os << "<tr><td>terrain</td><td>" << getObjectNameAndType(access->terrain()) << "</td></tr>" << std::endl;
-            os << "<tr><td>terrain engine initialized</td><td>" << access->terrainEngineInitialized() << "</td></tr>" << std::endl;
-			os << "<tr><td>terrain engine</td><td>" << getObjectNameAndType(access->terrainEngineNode(), true) << "</td></tr>" << std::endl;
-			os << "<tr><td>terrain engine container</td><td>" << getObjectNameAndType(access->terrainEngineContainer(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>map</td><td>" << getObjectNameAndType(const_cast<MapNodeAccess*>(object)->getMap()) << "</td></tr>" << std::endl;
+            os << "<tr><td>terrain</td><td>" << getObjectNameAndType(object->terrain()) << "</td></tr>" << std::endl;
+            os << "<tr><td>terrain engine initialized</td><td>" << object->terrainEngineInitialized() << "</td></tr>" << std::endl;
+			os << "<tr><td>terrain engine</td><td>" << getObjectNameAndType(object->terrainEngineNode(), true) << "</td></tr>" << std::endl;
+			os << "<tr><td>terrain engine container</td><td>" << getObjectNameAndType(object->terrainEngineContainer(), true) << "</td></tr>" << std::endl;
             os << "<tr><td>modelLayerGroup</td><td>" << getObjectNameAndType(object->getModelLayerGroup(), true) << "</td></tr>" << std::endl;
-            os << "<tr><td>overlayDecorator</td><td>" << getObjectNameAndType(const_cast<osgEarth::MapNode *>(object)->getOverlayDecorator(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>overlayDecorator</td><td>" << getObjectNameAndType(const_cast<MapNodeAccess*>(object)->getOverlayDecorator(), true) << "</td></tr>" << std::endl;
 
 			os << "<tr><td>extensions</td><td>";
 			const auto & extensions = object->getExtensions();
@@ -1075,6 +1074,53 @@ bool writePrettyHTMLImpl<osgEarth::MapNode>::process(std::basic_ostream<char>& o
 			ret = true;
 		}
 		break;
+    case SGIItemTypeCullData:
+        {
+            osg::NodeList cameras;
+            object->getCullDataCameras(cameras);
+            if (itemNumber() == ~0u)
+            {
+                if (cameras.empty())
+                    os << "<i>none</i>";
+                else
+                {
+                    os << cameras.size() << " extensions<br/><ul>";
+                    for (const auto & camera : cameras)
+                    {
+                        os << "<li>" << getObjectNameAndType(camera, true) << "</li>";
+                    }
+                    os << "</ul>";
+                }
+            }
+            else
+            {
+                bool found = false;
+                unsigned index = 0;
+                for (const auto & camera : cameras)
+                {
+                    if (index == itemNumber())
+                    {
+                        const osgEarth::MapNodeCullData * data = object->getCullDataForCamera(static_cast<osg::Camera*>(camera.get()));
+                        if (data)
+                        {
+                            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+                            os << "<tr><td>stateSet</td><td>" << getObjectNameAndType(data->_stateSet.get()) << "</td></tr>" << std::endl;
+                            os << "<tr><td>windowMatrixUniform</td><td>" << getObjectNameAndType(data->_windowMatrixUniform.get()) << "</td></tr>" << std::endl;
+                            os << "<tr><td>cameraAltitude</td><td>" << data->_cameraAltitude << "</td></tr>" << std::endl;
+                            os << "<tr><td>cameraAltitudeUniform</td><td>" << getObjectNameAndType(data->_cameraAltitudeUniform.get()) << "</td></tr>" << std::endl;
+                            os << "</table>" << std::endl;
+                            found = true;
+                        }
+                        break;
+                    }
+                    index++;
+                }
+                if(!found)
+                    os << "<i>N/A</i>";
+            }
+            ret = true;
+        }
+        break;
 	default:
         ret = callNextHandler(os);
         break;

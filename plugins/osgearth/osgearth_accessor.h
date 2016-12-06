@@ -1,9 +1,16 @@
 #pragma once
 
+#ifdef MAPNODE_ACCESS_HACK
+#define private protected
+#endif
+#include <osgEarth/MapNode>
+#ifdef MAPNODE_ACCESS_HACK
+#undef private
+#endif
+
 #include <osgEarthUtil/Controls>
 #include <osgEarthUtil/EarthManipulator>
 #include <osgEarthUtil/AutoClipPlaneHandler>
-#include <osgEarth/MapNode>
 #include <osgEarth/TerrainEngineNode>
 #include <osgEarth/Registry>
 #include <osgEarth/VirtualProgram>
@@ -57,6 +64,9 @@ namespace osgearth_plugin {
 		
 		bool isTerrainProfileActive() const;
 		void toggleTerrainProfile(QWidget * parent);
+
+        bool getCullDataCameras(osg::NodeList & cameras);
+        const osgEarth::MapNodeCullData * getCullDataForCamera(osg::Camera* camera);
 	};
 
     class ControlCanvasAccess : public osgEarth::Util::Controls::ControlCanvas

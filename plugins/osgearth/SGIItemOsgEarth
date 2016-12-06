@@ -37,6 +37,7 @@ enum SGIItemType_osgearth
     SGIItemTypeShaderComposerProgramFunctions,
 	SGIItemTypeBlacklist,
 	SGIItemTypeExtensions,
+    SGIItemTypeCullData,
 	SGIItemTypeDatabases,
     SGIItemTypeChangeset,
     SGIItemTypeInfo,
