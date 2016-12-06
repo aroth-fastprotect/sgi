@@ -47,6 +47,7 @@ enum MenuAction {
     MenuActionNodeLookAt,
     MenuActionNodeCreateStateSet,
     MenuActionNodeStripTextures,
+    MenuActionNodeSmoothingVisitor,
 	MenuActionNodeOptimizerRun,
     MenuActionNodeToggleCenterMarker,
     MenuActionNodeRenderInfo,

@@ -315,6 +315,7 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
                 manipulateMenu->addSimpleAction(MenuActionNodeRecomputeBound, "Recompute bound", _item);
                 manipulateMenu->addBoolAction(MenuActionNodeCullingActive, "Culling Active", _item, object->getCullingActive());
                 manipulateMenu->addSimpleAction(MenuActionNodeStripTextures, "Strip textures", _item);
+                manipulateMenu->addSimpleAction(MenuActionNodeSmoothingVisitor, "Smoothing visitor", _item);
 
                 manipulateMenu->addBoolAction(MenuActionNodeRenderInfo, "Render info", _item, RenderInfo::isPresent(object));
 

@@ -49,6 +49,7 @@
 #include <osgDB/ReadFile>
 #include <osgAnimation/AnimationManagerBase>
 #include <osgUtil/IncrementalCompileOperation>
+#include <osgUtil/SmoothingVisitor>
 
 #include <osgViewer/ViewerEventHandlers>
 
@@ -83,6 +84,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeLookAt)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeCreateStateSet)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeStripTextures)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeOptimizerRun)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeSmoothingVisitor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeToggleCenterMarker)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeRenderInfo)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectLogger)
@@ -590,6 +592,14 @@ bool actionHandlerImpl<MenuActionNodeOptimizerRun>::execute()
 	MenuActionOptimizerRunMode mode = (MenuActionOptimizerRunMode)menuAction()->mode();
 	manipulateObject<OptimizerRun>(object, mode);
 	return true;
+}
+
+bool actionHandlerImpl<MenuActionNodeSmoothingVisitor>::execute()
+{
+    osg::Node * object = getObject<osg::Node, SGIItemOsg>();
+    osgUtil::SmoothingVisitor sv;
+    object->accept(sv);
+    return true;
 }
 
 bool actionHandlerImpl<MenuActionNodeToggleCenterMarker>::execute()
