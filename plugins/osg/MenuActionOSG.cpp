@@ -218,7 +218,8 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAutoTransformSetAutoScaleTran
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraManipulatorAutoComputeHome)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewerBaseMaxFrameRate)
-ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewerBaseMaxRunFrameScheme)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewerBaseRunFrameScheme)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewerBaseThreadingModel)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewerBaseIncrementalCompileOperation)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShaderDirty)
@@ -2403,11 +2404,18 @@ bool actionHandlerImpl<MenuActionViewerBaseMaxFrameRate>::execute()
 	return true;
 }
 
-bool actionHandlerImpl<MenuActionViewerBaseMaxRunFrameScheme>::execute()
+bool actionHandlerImpl<MenuActionViewerBaseRunFrameScheme>::execute()
 {
 	osgViewer::ViewerBase * object = getObject<osgViewer::ViewerBase, SGIItemOsg, DynamicCaster>();
 	object->setRunFrameScheme((osgViewer::ViewerBase::FrameScheme)menuAction()->mode());
 	return true;
+}
+
+bool actionHandlerImpl<MenuActionViewerBaseThreadingModel>::execute()
+{
+    osgViewer::ViewerBase * object = getObject<osgViewer::ViewerBase, SGIItemOsg, DynamicCaster>();
+    object->setThreadingModel((osgViewer::ViewerBase::ThreadingModel)menuAction()->mode());
+    return true;
 }
 
 bool actionHandlerImpl<MenuActionViewerBaseIncrementalCompileOperation>::execute()

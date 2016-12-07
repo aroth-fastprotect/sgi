@@ -209,7 +209,8 @@ enum MenuAction {
     MenuActionViewPortModify,
 
 	MenuActionViewerBaseMaxFrameRate,
-	MenuActionViewerBaseMaxRunFrameScheme,
+	MenuActionViewerBaseRunFrameScheme,
+    MenuActionViewerBaseThreadingModel,
 	MenuActionViewerBaseIncrementalCompileOperation,
 
 	MenuActionIncrementalCompileOperationTargetFrameRate,

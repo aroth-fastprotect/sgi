@@ -2035,12 +2035,22 @@ bool contextMenuPopulateImpl<osgViewer::ViewerBase>::populate(IContextMenuItem *
 
 			menuItem->addSimpleAction(MenuActionViewerBaseMaxFrameRate, helpers::str_plus_count("Max frame rate", object->getRunMaxFrameRate()), _item);
 
-			IContextMenuItem * runFrameSchemeMenu = menuItem->addModeMenu(MenuActionViewerBaseMaxRunFrameScheme, "Run frame scheme", _item, object->getRunFrameScheme());
+			IContextMenuItem * runFrameSchemeMenu = menuItem->addModeMenu(MenuActionViewerBaseRunFrameScheme, "Run frame scheme", _item, object->getRunFrameScheme());
 			if (runFrameSchemeMenu)
 			{
 				runFrameSchemeMenu->addModeAction("On demand", osgViewer::ViewerBase::ON_DEMAND);
 				runFrameSchemeMenu->addModeAction("Continuous", osgViewer::ViewerBase::CONTINUOUS);
 			}
+
+            IContextMenuItem * threadingModelMenu = menuItem->addModeMenu(MenuActionViewerBaseThreadingModel, "Threading model", _item, object->getThreadingModel());
+            if (threadingModelMenu)
+            {
+                threadingModelMenu->addModeAction("SingleThreaded", osgViewer::ViewerBase::SingleThreaded);
+                threadingModelMenu->addModeAction("CullDrawThreadPerContext", osgViewer::ViewerBase::CullDrawThreadPerContext);
+                threadingModelMenu->addModeAction("DrawThreadPerContext", osgViewer::ViewerBase::DrawThreadPerContext);
+                threadingModelMenu->addModeAction("CullThreadPerCameraDrawThreadPerContext", osgViewer::ViewerBase::CullThreadPerCameraDrawThreadPerContext);
+                threadingModelMenu->addModeAction("AutomaticSelection", osgViewer::ViewerBase::AutomaticSelection);
+            }
 			
 			menuItem->addSimpleAction(MenuActionViewerBaseMaxFrameRate, helpers::str_plus_count("Max frame rate", object->getRunMaxFrameRate()), _item);
 
