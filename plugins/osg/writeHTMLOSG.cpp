@@ -149,6 +149,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::StateAttribute)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Image)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObjectSet)
 #if OSG_MIN_VERSION_REQUIRED(3,5,0)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::TextureObjectManager)
 #else
@@ -2717,7 +2718,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Te
 bool writePrettyHTMLImpl<osg::Texture>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Texture * object = static_cast<osg::Texture*>(item<SGIItemOsg>()->object());
+    TextureAccess * object = static_cast<TextureAccess*>(getObject<osg::Texture, SGIItemOsg, DynamicCaster>());
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -2781,6 +2782,25 @@ bool writePrettyHTMLImpl<osg::Texture>::process(std::basic_ostream<char>& os)
             ret = true;
         }
         break;
+    case SGIItemTypeTextureObjects:
+        {
+            TextureAccess::TextureObjectList list = object->getTextureObjectList();
+            if (itemNumber() == ~0u)
+            {
+                os << "<ol>";
+                for (unsigned n = 0; n < list.size(); ++n)
+                {
+                    os << "<li>" << helpers::str_plus_number("Context", n) << "&nbsp;" << osg_helpers::getObjectNameAndType(list[n], true) << "</li>" << std::endl;
+                }
+                os << "</ol>";
+            }
+            else
+            {
+            }
+            ret = true;
+        }
+        break;
+
     default:
         ret = callNextHandler(os);
         break;
@@ -2804,7 +2824,7 @@ void writePrettyHTMLTextureProfile(std::basic_ostream<char>& os, const osg::Text
 bool writePrettyHTMLImpl<osg::Texture::TextureObject>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Texture::TextureObject * object = static_cast<osg::Texture::TextureObject*>(item<SGIItemOsg>()->object());
+    osg::Texture::TextureObject * object = getObject<osg::Texture::TextureObject, SGIItemOsg>();
     switch (itemType())
     {
     case SGIItemTypeObject:
@@ -2841,6 +2861,50 @@ bool writePrettyHTMLImpl<osg::Texture::TextureObject>::process(std::basic_ostrea
     return ret;
 }
 
+bool writePrettyHTMLImpl<osg::Texture::TextureObjectSet>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    TextureObjectSetAccess * object = static_cast<TextureObjectSetAccess*>(getObject<osg::Texture::TextureObjectSet, SGIItemOsg>());
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add Texture properties first
+            callNextHandler(os);
+
+            os << "<tr><td>size</td><td>" << object->size() << "</td></tr>" << std::endl;
+            os << "<tr><td>total objects</td><td>" << object->computeNumTextureObjectsInList() << "</td></tr>" << std::endl;
+            os << "<tr><td>num texture objects</td><td>" << object->getNumOfTextureObjects() << "</td></tr>" << std::endl;
+            os << "<tr><td>num orphans</td><td>" << object->getNumOrphans() << "</td></tr>" << std::endl;
+            os << "<tr><td>num pending orphans</td><td>" << object->getNumPendingOrphans() << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeTextureObjects:
+        {
+            os << "<ul>";
+            TextureObjectSetAccess::TextureObjectList list = object->getTextureObjects();
+            for (auto to : list)
+            {
+                os << "<li>" << osg_helpers::getObjectNameAndType(to.get()) << "</li>" << std::endl;
+            }
+            os << "</ul>";
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
 #if OSG_MIN_VERSION_REQUIRED(3,5,0)
 bool writePrettyHTMLImpl<osg::TextureObjectManager>::process(std::basic_ostream<char>& os)
 #else
@@ -2849,47 +2913,83 @@ bool writePrettyHTMLImpl<osg::Texture::TextureObjectManager>::process(std::basic
 {
     bool ret = false;
 #if OSG_MIN_VERSION_REQUIRED(3,5,0)
-    osg::TextureObjectManager * object = static_cast<osg::TextureObjectManager*>(item<SGIItemOsg>()->object());
+    TextureObjectManagerAccess * object = static_cast<TextureObjectManagerAccess *>(getObject<osg::TextureObjectManager, SGIItemOsg>());
 #else
-    osg::Texture::TextureObjectManager * object = static_cast<osg::Texture::TextureObjectManager*>(item<SGIItemOsg>()->object());
+    TextureObjectManagerAccess * object = static_cast<TextureObjectManagerAccess *>(getObject<osg::Texture::TextureObjectManager, SGIItemOsg>());
 #endif
     switch (itemType())
     {
     case SGIItemTypeObject:
-    {
-        if (_table)
-            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
-        // add Texture properties first
-        callNextHandler(os);
+            // add Texture properties first
+            callNextHandler(os);
 
-        os << "<tr><td>contextID</td><td>" << object->getContextID() << "</td></tr>" << std::endl;
-        os << "<tr><td>num active texture objects</td><td>" << object->getNumberActiveTextureObjects() << "</td></tr>" << std::endl;
-        os << "<tr><td>num orphaned texture objects</td><td>" << object->getNumberOrphanedTextureObjects() << "</td></tr>" << std::endl;
-        os << "<tr><td>current pool size</td><td>" << object->getCurrTexturePoolSize() << "</td></tr>" << std::endl;
-        os << "<tr><td>max pool size</td><td>" << object->getMaxTexturePoolSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>contextID</td><td>" << object->getContextID() << "</td></tr>" << std::endl;
+            os << "<tr><td>num active texture objects</td><td>" << object->getNumberActiveTextureObjects() << "</td></tr>" << std::endl;
+            os << "<tr><td>num orphaned texture objects</td><td>" << object->getNumberOrphanedTextureObjects() << "</td></tr>" << std::endl;
+            os << "<tr><td>current pool size</td><td>" << object->getCurrTexturePoolSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>max pool size</td><td>" << object->getMaxTexturePoolSize() << "</td></tr>" << std::endl;
 
-        os << "<tr><td>frame number</td><td>" << object->getFrameNumber() << "</td></tr>" << std::endl;
-        os << "<tr><td>number of frames</td><td>" << object->getNumberFrames() << "</td></tr>" << std::endl;
-        os << "<tr><td>number deleted</td><td>" << object->getNumberDeleted() << "</td></tr>" << std::endl;
-        os << "<tr><td>delete time</td><td>" << object->getDeleteTime() << "</td></tr>" << std::endl;
-        os << "<tr><td>number generated</td><td>" << object->getNumberGenerated() << "</td></tr>" << std::endl;
-        os << "<tr><td>generate time</td><td>" << object->getGenerateTime() << "</td></tr>" << std::endl;
+            os << "<tr><td>frame number</td><td>" << object->getFrameNumber() << "</td></tr>" << std::endl;
+            os << "<tr><td>number of frames</td><td>" << object->getNumberFrames() << "</td></tr>" << std::endl;
+            os << "<tr><td>number deleted</td><td>" << object->getNumberDeleted() << "</td></tr>" << std::endl;
+            os << "<tr><td>delete time</td><td>" << object->getDeleteTime() << "</td></tr>" << std::endl;
+            os << "<tr><td>number generated</td><td>" << object->getNumberGenerated() << "</td></tr>" << std::endl;
+            os << "<tr><td>generate time</td><td>" << object->getGenerateTime() << "</td></tr>" << std::endl;
 
 #if OSG_VERSION_LESS_OR_EQUAL(3,4,0)
-        os << "<tr><td>number applied</td><td>" << object->getNumberApplied() << "</td></tr>" << std::endl;
-        os << "<tr><td>apply time</td><td>" << object->getApplyTime() << "</td></tr>" << std::endl;
+            os << "<tr><td>number applied</td><td>" << object->getNumberApplied() << "</td></tr>" << std::endl;
+            os << "<tr><td>apply time</td><td>" << object->getApplyTime() << "</td></tr>" << std::endl;
 #endif
 
-        os << "<tr><td>stats</td><td>";
-        object->reportStats(os);
-        os << "</td></tr>" << std::endl;
-
-        if (_table)
-            os << "</table>" << std::endl;
-        ret = true;
-    }
-    break;
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeStatistics:
+        {
+            object->reportStats(os);
+            ret = true;
+        }
+        break;
+    case SGIItemTypeTextureSetMap:
+        {
+            const TextureObjectManagerAccess::TextureSetMap & textureSetMap = object->getTextureSetMap();
+            if (itemNumber() == ~0u)
+            {
+                os << "<table border=\'1\' align=\'left\'><tr>";
+                os << "<th>target</th>";
+                os << "<th>MipMap</th>";
+                os << "<th>internalFormat</th>";
+                os << "<th>width</th>";
+                os << "<th>height</th>";
+                os << "<th>depth</th>";
+                os << "<th>border</th>";
+                os << "<th>size</th>";
+                os << "</tr>" << std::endl;
+                for (auto it = textureSetMap.begin(); it != textureSetMap.end(); ++it)
+                {
+                    const osg::Texture::TextureProfile & p = it->first;
+                    os << "<tr>";
+                    os << "<td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(p._target) << "</td>";
+                    os << "<td>" << p._numMipmapLevels << "</td>";
+                    os << "<td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(p._internalFormat) << "</td>";
+                    os << "<td>" << p._width << "</td>";
+                    os << "<td>" << p._height << "</td>";
+                    os << "<td>" << p._depth << "</td>";
+                    os << "<td>" << p._border << "</td>";
+                    os << "<td>" << p._size << "</td>";
+                    os << "</tr>";
+                }
+                os << "</table>";
+            }
+            ret = true;
+        }
+        break;
     default:
         ret = callNextHandler(os);
         break;
@@ -4116,7 +4216,7 @@ bool writePrettyHTMLImpl<osg::GraphicsThread>::process(std::basic_ostream<char>&
 bool writePrettyHTMLImpl<osg::GraphicsContext>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::GraphicsContext * object = static_cast<osg::GraphicsContext*>(item<SGIItemOsg>()->object());
+    GraphicsContextAccess * object = static_cast<GraphicsContextAccess*>(getObject<osg::GraphicsContext, SGIItemOsg>());
     if(_table)
         os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
@@ -4131,7 +4231,7 @@ bool writePrettyHTMLImpl<osg::GraphicsContext>::process(std::basic_ostream<char>
             os << "<tr><td>valid</td><td>" << (object->valid()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>isRealized</td><td>" << (object->isRealized()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>isCurrent</td><td>" << (object->isCurrent()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>contextId</td><td>" << object->getState()->getContextID() << "</td></tr>" << std::endl;
+            os << "<tr><td>contextId</td><td>" << object->getContextID() << "</td></tr>" << std::endl;
 
             os << "<tr><td>clear color</td><td>"
                 << vec4fToHtmlColor(object->getClearColor())

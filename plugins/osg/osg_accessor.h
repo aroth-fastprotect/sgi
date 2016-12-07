@@ -1,6 +1,9 @@
 #pragma once
+#include <osg/Version>
 #include <osg/ShaderComposer>
 #include <osg/OperationThread>
+#include <osg/ClipNode>
+#include <osg/Texture>
 
 namespace sgi {
 namespace osg_plugin {
@@ -28,13 +31,6 @@ class ClipNodeAccess : public osg::ClipNode
 {
 public:
     osg::StateAttribute::GLModeValue value() const { return _value; }
-};
-
-class ViewerBaseAccess : public osgViewer::ViewerBase
-{
-public:
-    bool requestRedraw() const { return _requestRedraw; }
-    bool requestContinousUpdate() const { return _requestContinousUpdate; }
 };
 
 class ShaderComposerAccess : public osg::ShaderComposer
@@ -66,6 +62,55 @@ public:
     {
         OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_operationsMutex);
         ops = _operations;
+    }
+};
+
+class TextureAccess : public osg::Texture
+{
+public:
+    typedef std::vector< osg::ref_ptr<TextureObject> > TextureObjectList;
+    TextureObjectList getTextureObjectList() const;
+};
+
+class TextureObjectManagerAccess : 
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+    public osg::TextureObjectManager
+#else
+    public osg::Texture::TextureObjectManager
+#endif
+{
+public:
+    typedef std::map< osg::Texture::TextureProfile, osg::ref_ptr<osg::Texture::TextureObjectSet> > TextureSetMap;
+    const TextureSetMap & getTextureSetMap() const {
+        return _textureSetMap;
+    }
+
+    static unsigned hash(const osg::Texture::TextureProfile & profile);
+    static std::string shortName(const osg::Texture::TextureProfile & profile);
+};
+
+class TextureObjectSetAccess :
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+    public osg::TextureObjectSet
+#else
+    public osg::Texture::TextureObjectSet
+#endif
+{
+public:
+    typedef osg::Texture::TextureObject TextureObject;
+    typedef std::list<osg::ref_ptr<TextureObject> > TextureObjectList;
+
+    TextureObjectList getTextureObjects();
+};
+
+class GraphicsContextAccess : public osg::GraphicsContext
+{
+public:
+    unsigned getContextID() const {
+        if (_state.valid())
+            return _state->getContextID();
+        else
+            return ~0u;
     }
 };
 

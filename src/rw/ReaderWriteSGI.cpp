@@ -323,7 +323,9 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
             {
                 float x = ea.getX();
                 float y = ea.getY();
-                osg::Camera * camera = aa.asView()->getCamera();
+                osg::View * view = aa.asView();
+                osg::Camera * camera = view ? view->getCamera() : NULL;
+                OSG_FATAL << "RELEASE " << x << ',' << y << " view=" << view << " cam=" << camera << std::endl;
                 if (camera)
                 {
                     osg::Viewport * viewport = camera->getViewport();

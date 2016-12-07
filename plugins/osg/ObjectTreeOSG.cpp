@@ -48,6 +48,7 @@
 
 #include "osgdb_accessor.h"
 #include "DrawableHelper.h"
+#include "osg_accessor.h"
 #include "osganimation_accessor.h"
 #include "osgviewer_accessor.h"
 #include <sys/stat.h>
@@ -93,6 +94,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::PagedLOD)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::StateAttribute)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObject)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObjectSet)
 #if OSG_MIN_VERSION_REQUIRED(3,5,0)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::TextureObjectManager)
 #else
@@ -1204,7 +1206,7 @@ bool objectTreeBuildImpl<osg::Program::PerContextProgram>::build(IObjectTreeItem
 
 bool objectTreeBuildImpl<osg::GraphicsContext>::build(IObjectTreeItem * treeItem)
 {
-    osg::GraphicsContext * object = getObject<osg::GraphicsContext,SGIItemOsg>();
+    GraphicsContextAccess * object = static_cast<GraphicsContextAccess*>(getObject<osg::GraphicsContext, SGIItemOsg>());
     bool ret = false;
     switch(itemType())
     {
@@ -1223,6 +1225,12 @@ bool objectTreeBuildImpl<osg::GraphicsContext>::build(IObjectTreeItem * treeItem
             SGIHostItemOsg graphicsThread(object->getGraphicsThread());
             if(graphicsThread.hasObject())
                 treeItem->addChild("GraphicsThread", &graphicsThread);
+
+#if OSG_VERSION_LESS_OR_EQUAL(3,4,0)
+            SGIHostItemOsg txtobjmgr(osg::Texture::getTextureObjectManager(object->getContextID()));
+            if (txtobjmgr.hasObject())
+                treeItem->addChild("TextureObjectManager", &txtobjmgr);
+#endif
 
             const osg::GraphicsContext::Cameras & cameras = object->getCameras();
             if(!cameras.empty())
@@ -1467,7 +1475,7 @@ bool objectTreeBuildImpl<osg::StateAttribute>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::Texture>::build(IObjectTreeItem * treeItem)
 {
-    osg::Texture * object = dynamic_cast<osg::Texture*>(item<SGIItemOsg>()->object());
+    TextureAccess * object = static_cast<TextureAccess*>(getObject<osg::Texture,SGIItemOsg,DynamicCaster>());
     bool ret;
     switch(itemType())
     {
@@ -1475,31 +1483,37 @@ bool objectTreeBuildImpl<osg::Texture>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            unsigned contextID = osg_helpers::findContextID(object);
 
             SGIHostItemOsg readPBuffer(object->getReadPBuffer());
             if(readPBuffer.hasObject())
                 treeItem->addChild("ReadPBuffer", &readPBuffer);
 
-            if (contextID != ~0u)
-            {
-                SGIHostItemOsg txtobj(object->getTextureObject(contextID));
-                if (txtobj.hasObject())
-                    treeItem->addChild("TextureObject", &txtobj);
-
-#if OSG_VERSION_LESS_OR_EQUAL(3,4,0)
-                SGIHostItemOsg txtobjmgr(osg::Texture::getTextureObjectManager(contextID));
-                if (txtobjmgr.hasObject())
-                    treeItem->addChild("TextureObjectManager", &txtobjmgr);
-#endif
-            }
+            treeItem->addChild("TextureObjects", cloneItem<SGIItemOsg>(SGIItemTypeTextureObjects, ~0u));
 
             for (unsigned n = 0; n < object->getNumImages(); ++n)
             {
                 SGIHostItemOsg image(object->getImage(n));
                 if (image.hasObject())
-                    treeItem->addChild(helpers::str_plus_count("Image", n), &image);
+                    treeItem->addChild(helpers::str_plus_number("Image", n), &image);
             }
+        }
+        break;
+    case SGIItemTypeTextureObjects:
+        {
+            TextureAccess::TextureObjectList list = object->getTextureObjectList();
+            if (itemNumber() == ~0u)
+            {
+                for (unsigned n = 0; n < list.size(); ++n)
+                {
+                    SGIHostItemOsg item(list[n]);
+                    if (item.hasObject())
+                        treeItem->addChild(helpers::str_plus_number("Context", n), &item);
+                }
+            }
+            else
+            {
+            }
+            ret = true;
         }
         break;
     default:
@@ -1511,7 +1525,7 @@ bool objectTreeBuildImpl<osg::Texture>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::Texture::TextureObject>::build(IObjectTreeItem * treeItem)
 {
-    osg::Texture::TextureObject * object = static_cast<osg::Texture::TextureObject*>(item<SGIItemOsg>()->object());
+    osg::Texture::TextureObject * object = getObject<osg::Texture::TextureObject, SGIItemOsg>();
     bool ret;
     switch (itemType())
     {
@@ -1522,6 +1536,43 @@ bool objectTreeBuildImpl<osg::Texture::TextureObject>::build(IObjectTreeItem * t
             SGIHostItemOsg texture(object->getTexture());
             if (texture.hasObject())
                 treeItem->addChild("Texture", &texture);
+
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osg::Texture::TextureObjectSet>::build(IObjectTreeItem * treeItem)
+{
+    TextureObjectSetAccess * object = static_cast<TextureObjectSetAccess*>(getObject<osg::Texture::TextureObjectSet, SGIItemOsg>());
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsg parent(object->getParent());
+            if (parent.hasObject())
+                treeItem->addChild("Parent", &parent);
+
+            treeItem->addChild("TextureObjects", cloneItem<SGIItemOsg>(SGIItemTypeTextureObjects, ~0u));
+        }
+        break;
+    case SGIItemTypeTextureObjects:
+        {
+            TextureObjectSetAccess::TextureObjectList list = object->getTextureObjects();
+            for (auto to : list)
+            {
+                SGIHostItemOsg item(to.get());
+                if (item.hasObject())
+                    treeItem->addChild(std::string(), &item);
+            }
+            ret = true;
         }
         break;
     default:
@@ -1538,9 +1589,9 @@ bool objectTreeBuildImpl<osg::Texture::TextureObjectManager>::build(IObjectTreeI
 #endif
 {
 #if OSG_MIN_VERSION_REQUIRED(3,5,0)
-    osg::TextureObjectManager * object = static_cast<osg::TextureObjectManager*>(item<SGIItemOsg>()->object());
+    TextureObjectManagerAccess * object = static_cast<TextureObjectManagerAccess *>(getObject<osg::TextureObjectManager, SGIItemOsg>());
 #else
-    osg::Texture::TextureObjectManager * object = static_cast<osg::Texture::TextureObjectManager*>(item<SGIItemOsg>()->object());
+    TextureObjectManagerAccess * object = static_cast<TextureObjectManagerAccess *>(getObject<osg::Texture::TextureObjectManager, SGIItemOsg>());
 #endif
     bool ret;
     switch (itemType())
@@ -1549,6 +1600,46 @@ bool objectTreeBuildImpl<osg::Texture::TextureObjectManager>::build(IObjectTreeI
         ret = callNextHandler(treeItem);
         if (ret)
         {
+            treeItem->addChild("Statistics", cloneItem<SGIItemOsg>(SGIItemTypeStatistics, ~0u));
+
+            const TextureObjectManagerAccess::TextureSetMap & textureSetMap = object->getTextureSetMap();
+            treeItem->addChild(helpers::str_plus_count("TextureSetMap", textureSetMap.size()), cloneItem<SGIItemOsg>(SGIItemTypeTextureSetMap, ~0u));
+        }
+        break;
+    case SGIItemTypeStatistics:
+        ret = true;
+        break;
+    case SGIItemTypeTextureSetMap:
+        {
+            const TextureObjectManagerAccess::TextureSetMap & textureSetMap = object->getTextureSetMap();
+            if (itemNumber() == ~0u)
+            {
+                for (auto it = textureSetMap.begin(); it != textureSetMap.end(); ++it)
+                {
+                    const osg::Texture::TextureProfile & p = it->first;
+                    const osg::ref_ptr<osg::Texture::TextureObjectSet> & s = it->second;
+                    unsigned hash = TextureObjectManagerAccess::hash(p);
+                    std::string name = TextureObjectManagerAccess::shortName(p);
+                    SGIHostItemOsg item(s.get());
+                    //treeItem->addChild(helpers::str_plus_count(name, s.valid() ? s->size() : 0), cloneItem<SGIItemOsg>(SGIItemTypeTextureSetMap, hash));
+                    treeItem->addChild(helpers::str_plus_count(name, s.valid() ? s->size() : 0), &item);
+                }
+            }
+            else
+            {
+                for (auto it = textureSetMap.begin(); it != textureSetMap.end(); ++it)
+                {
+                    const osg::Texture::TextureProfile & p = it->first;
+                    const osg::ref_ptr<osg::Texture::TextureObjectSet> & s = it->second;
+                    unsigned hash = TextureObjectManagerAccess::hash(p);
+                    if (hash == itemNumber())
+                    {
+
+                        break;
+                    }
+                }
+            }
+            ret = true;
         }
         break;
     default:

@@ -17,6 +17,8 @@ SET(TARGET_SRC
 
     getObjectInfoOSG.cpp
 
+	osg_accessor.cpp
+
     ObjectTreeOSG.cpp
     ContextMenuOSG.cpp
     MenuActionOSG.cpp
