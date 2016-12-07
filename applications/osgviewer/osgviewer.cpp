@@ -35,6 +35,8 @@
 
 #include <iostream>
 
+#include <QApplication>
+#include <QTimer>
 
 /** single camera on a single window.*/
 class SingleWindowShared : public osgViewer::ViewConfig
@@ -190,6 +192,26 @@ void SingleWindowShared::configure(osgViewer::View& view) const
     }
 }
 
+class RunCompositeViewer : public QObject {
+
+    osgViewer::CompositeViewer * _viewer;
+public:
+    RunCompositeViewer(osgViewer::CompositeViewer * viewer)
+        : _viewer(viewer)
+    {
+        QTimer * timer = new QTimer;
+        connect(timer, &QTimer::timeout, this, &RunCompositeViewer::onTimer, Qt::DirectConnection);
+        timer->start(20);
+    }
+
+    void onTimer()
+    {
+        _viewer->frame();
+    }
+
+
+};
+
 // class to handle events with a pick
 class CreateViewHandler : public osgGA::GUIEventHandler {
 public:
@@ -254,6 +276,9 @@ public:
 
 int main(int argc, char** argv)
 {
+    QApplication app(argc, argv);
+    QObject::connect(&app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()));
+
     // use an ArgumentParser object to manage the program arguments.
     osg::ArgumentParser arguments(&argc,argv);
 
@@ -454,8 +479,11 @@ int main(int argc, char** argv)
     firstview->setSceneData(root);
 
     viewer.addView(firstview);
+
+
     viewer.realize();
+    auto run = new RunCompositeViewer(&viewer);
+    int ret = app.exec();
 
-    return viewer.run();
-
+    return ret;
 }
