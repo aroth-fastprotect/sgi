@@ -62,18 +62,9 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osgViewer::Vi
     return os;
 }
 
-namespace {
-    class ViewerBaseAccess : public osgViewer::ViewerBase
-    {
-    public:
-        bool requestRedraw() const { return _requestRedraw; }
-        bool requestContinousUpdate() const { return _requestContinousUpdate; }
-    };
-}
-
 bool writePrettyHTMLImpl<osgViewer::ViewerBase>::process(std::basic_ostream<char>& os)
 {
-    osgViewer::ViewerBase * object = dynamic_cast<osgViewer::ViewerBase*>(item<SGIItemOsg>()->object());
+    ViewerBaseAccess * object = static_cast<ViewerBaseAccess*>(getObject<osgViewer::ViewerBase, SGIItemOsg, DynamicCaster>());
     bool ret = false;
     switch(itemType())
     {
@@ -87,7 +78,7 @@ bool writePrettyHTMLImpl<osgViewer::ViewerBase>::process(std::basic_ostream<char
 
             // add remaining node properties
             os << "<tr><td>threadingModel</td><td>" << object->getThreadingModel() << "</td></tr>" << std::endl;
-            os << "<tr><td>bestThreadingModel</td><td>" << const_cast<osgViewer::ViewerBase *>(object)->suggestBestThreadingModel() << "</td></tr>" << std::endl;
+            os << "<tr><td>bestThreadingModel</td><td>" << object->suggestBestThreadingModel() << "</td></tr>" << std::endl;
             os << "<tr><td>threadsRunning</td><td>" << (object->areThreadsRunning()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>done</td><td>" << (object->done()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>keyEventSetsDone</td><td>" << object->getKeyEventSetsDone() << "</td></tr>" << std::endl;
@@ -95,10 +86,8 @@ bool writePrettyHTMLImpl<osgViewer::ViewerBase>::process(std::basic_ostream<char
             os << "<tr><td>releaseContextAtEndOfFrameHint</td><td>" << (object->getReleaseContextAtEndOfFrameHint()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>runFrameScheme</td><td>" << object->getRunFrameScheme() << "</td></tr>" << std::endl;
             os << "<tr><td>runMaxFrameRate</td><td>" << object->getRunMaxFrameRate() << "</td></tr>" << std::endl;
-
-            const ViewerBaseAccess * access = (const ViewerBaseAccess * )object;
-            os << "<tr><td>requestRedraw</td><td>" << (access->requestRedraw()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>requestContinousUpdate</td><td>" << (access->requestContinousUpdate()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>requestRedraw</td><td>" << (object->requestRedraw()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>requestContinousUpdate</td><td>" << (object->requestContinousUpdate()?"true":"false") << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;

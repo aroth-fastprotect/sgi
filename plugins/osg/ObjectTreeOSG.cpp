@@ -1941,7 +1941,7 @@ bool objectTreeBuildImpl<osg::ShaderComponent>::build(IObjectTreeItem * treeItem
 
 bool objectTreeBuildImpl<osgViewer::ViewerBase>::build(IObjectTreeItem * treeItem)
 {
-    osgViewer::ViewerBase * object = dynamic_cast<osgViewer::ViewerBase*>(item<SGIItemOsg>()->object());
+    ViewerBaseAccess * object = static_cast<ViewerBaseAccess*>(getObject<osgViewer::ViewerBase, SGIItemOsg, DynamicCaster>());
     bool ret = false;
     switch(itemType())
     {
