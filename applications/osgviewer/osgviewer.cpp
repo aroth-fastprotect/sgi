@@ -207,6 +207,8 @@ public:
     void onTimer()
     {
         _viewer->frame();
+        if (_viewer->done())
+            qApp->quit();
     }
 
 
