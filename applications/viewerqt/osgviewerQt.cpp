@@ -671,26 +671,12 @@ void setupWidgetAutoCloseTimer(QWidget * widget, int milliseconds)
     closeTimer->start(milliseconds);
 }
 
-ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
+ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared)
     : QMainWindow(parent)
-    , _viewer(new osgViewer::CompositeViewer(arguments))
-    , _timer(new QTimer(this))
+    , _viewer(parent->_viewer)
+    , _timer(NULL)
 {
-    int screenNum = -1;
-    while (arguments.read("--screen",screenNum)) {}
-
-    int x = -1, y = -1, width = -1, height = -1;
-    while (arguments.read("--window",x,y,width,height)) {}
-
-#if QT_VERSION >= 0x050000
-    // Qt5 is currently crashing and reporting "Cannot make QOpenGLContext current in a different thread" when the viewer is run multi-threaded, this is regression from Qt4
-    _viewer->setThreadingModel(osgViewer::ViewerBase::SingleThreaded);
-#endif
-
-    // disable the default setting of viewer.done() by pressing Escape.
-    _viewer->setKeyEventSetsDone(0);
-
-    _mainGW = createGraphicsWindow(0,0,QMainWindow::width(),QMainWindow::height());
+    _mainGW = createGraphicsWindow(0,0,QMainWindow::width(),QMainWindow::height(), (shared)?parent->_mainGW.get():nullptr);
     setCentralWidget(_mainGW->getGLWidget());
 
     _view = new osgViewer::View;
@@ -704,17 +690,56 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     camera->setClearColor( osg::Vec4(0.2, 0.2, 0.6, 1.0) );
     camera->setViewport( new osg::Viewport(0, 0, traits->width, traits->height) );
     camera->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(traits->width)/static_cast<double>(traits->height), 1.0f, 10000.0f );
+}
 
-    if(x >= 0 && y >= 0 && width >= 0 && height >= 0)
+ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
+    : QMainWindow(parent)
+    , _viewer(new osgViewer::CompositeViewer(arguments))
+    , _timer(new QTimer(this))
+{
+    int screenNum = -1;
+    while (arguments.read("--screen", screenNum)) {}
+
+    int x = -1, y = -1, width = -1, height = -1;
+    while (arguments.read("--window", x, y, width, height)) {}
+
+#if QT_VERSION >= 0x050000
+    // Qt5 is currently crashing and reporting "Cannot make QOpenGLContext current in a different thread" when the viewer is run multi-threaded, this is regression from Qt4
+    _viewer->setThreadingModel(osgViewer::ViewerBase::SingleThreaded);
+#endif
+
+    // disable the default setting of viewer.done() by pressing Escape.
+    _viewer->setKeyEventSetsDone(0);
+
+    _mainGW = createGraphicsWindow(0, 0, QMainWindow::width(), QMainWindow::height(), nullptr);
+    setCentralWidget(_mainGW->getGLWidget());
+
+    _view = new osgViewer::View;
+    _viewer->addView(_view);
+
+    osg::Camera* camera = _view->getCamera();
+    camera->setGraphicsContext(_mainGW);
+
+    const osg::GraphicsContext::Traits* traits = _mainGW->getTraits();
+
+    camera->setClearColor(osg::Vec4(0.2, 0.2, 0.6, 1.0));
+    camera->setViewport(new osg::Viewport(0, 0, traits->width, traits->height));
+    camera->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(traits->width) / static_cast<double>(traits->height), 1.0f, 10000.0f);
+
+    if (x >= 0 && y >= 0 && width >= 0 && height >= 0)
     {
         setGeometry(x, y, width, height);
     }
 
-    connect( _timer, SIGNAL(timeout()), this, SLOT(onTimer()) );
-    _timer->start( 10 );
+    connect(_timer, SIGNAL(timeout()), this, SLOT(onTimer()));
+    _timer->start(10);
 }
 
 ViewerWidget::~ViewerWidget()
+{
+}
+
+void ViewerWidget::init()
 {
 }
 
@@ -733,7 +758,7 @@ void ViewerWidget::setData(osg::Node * node)
     _view->setSceneData(node);
 }
 
-osgQt::GraphicsWindowQt* ViewerWidget::createGraphicsWindow( int x, int y, int w, int h, const std::string& name, bool windowDecoration)
+osgQt::GraphicsWindowQt* ViewerWidget::createGraphicsWindow( int x, int y, int w, int h, osg::GraphicsContext * sharedContext, const std::string& name, bool windowDecoration)
 {
     osg::DisplaySettings* ds = osg::DisplaySettings::instance().get();
     osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
@@ -748,6 +773,7 @@ osgQt::GraphicsWindowQt* ViewerWidget::createGraphicsWindow( int x, int y, int w
     traits->stencil = ds->getMinimumNumStencilBits();
     traits->sampleBuffers = ds->getMultiSamples();
     traits->samples = ds->getNumMultiSamples();
+    traits->sharedContext = sharedContext;
 
     return new osgQt::GraphicsWindowQt(traits.get());
 }
@@ -763,7 +789,71 @@ void ViewerWidget::paintEvent( QPaintEvent* event )
     _viewer->frame();
 }
 
+class CreateViewHandler : public osgGA::GUIEventHandler {
+public:
 
+    CreateViewHandler() {}
+    ~CreateViewHandler() {}
+
+    bool handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa)
+    {
+        osgViewer::View* view = dynamic_cast<osgViewer::View*>(&aa);
+        if (!view) return false;
+        switch (ea.getEventType())
+        {
+        case(osgGA::GUIEventAdapter::KEYUP):
+            if (ea.getKey() == 'v' && ea.getModKeyMask() == 0)
+            {
+                viewCloneImpl(view, false);
+            }
+            else if (ea.getKey() == 'V' || (ea.getKey() == 'v' && (ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_SHIFT)))
+            {
+                viewCloneImpl(view, true);
+            }
+            break;
+        default:
+            break;
+        }
+        return false;
+}
+
+    void viewCloneImpl(osgViewer::View * source, bool shared)
+    {
+        osg::Camera * sourceCamera = source->getCamera();
+        ViewerWidget * sourceWidget = nullptr;
+
+
+        osgQt::GraphicsWindowQt* ctx = dynamic_cast<osgQt::GraphicsWindowQt*>(sourceCamera->getGraphicsContext());
+        if (ctx)
+        {
+            QWidget * w = ctx->getGLWidget();
+            if (w)
+                sourceWidget = dynamic_cast<ViewerWidget*>(w->parentWidget());
+        }
+
+        ViewerWidget * nextwidget = new ViewerWidget(sourceWidget, shared);
+        nextwidget->createCamera();
+        osgViewer::View* nextview = nextwidget->view();
+
+        // configure the near/far so we don't clip things that are up close
+        osg::Camera * camera = nextview->getCamera();
+        camera->setNearFarRatio(sourceCamera->getNearFarRatio());
+        camera->setClearColor(sourceCamera->getClearColor());
+        camera->setClearMask(sourceCamera->getClearMask());
+
+        nextview->setSceneData(source->getSceneData());
+
+        nextview->setCameraManipulator(source->getCameraManipulator());
+        for (auto evh : source->getEventHandlers())
+            nextview->addEventHandler(evh);
+
+        if (sourceWidget)
+            nextwidget->setGeometry(sourceWidget->geometry());
+
+        nextwidget->show();
+    }
+
+};
 int
 main(int argc, char** argv)
 {
@@ -927,6 +1017,8 @@ main(int argc, char** argv)
             view->addEventHandler(new KeyboardDumpHandler);
         if(addMouseDumper)
             view->addEventHandler(new MouseDumpHandler);
+
+        view->addEventHandler(new CreateViewHandler);
 
         QString filelist;
         for (const auto & f : helper.files())

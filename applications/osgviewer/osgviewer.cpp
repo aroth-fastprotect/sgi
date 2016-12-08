@@ -199,7 +199,7 @@ public:
     RunCompositeViewer(osgViewer::CompositeViewer * viewer)
         : _viewer(viewer)
     {
-        QTimer * timer = new QTimer;
+        QTimer * timer = new QTimer(this);
         connect(timer, &QTimer::timeout, this, &RunCompositeViewer::onTimer, Qt::DirectConnection);
         timer->start(20);
     }
@@ -214,7 +214,6 @@ public:
 
 };
 
-// class to handle events with a pick
 class CreateViewHandler : public osgGA::GUIEventHandler {
 public:
 
@@ -486,6 +485,8 @@ int main(int argc, char** argv)
     viewer.realize();
     auto run = new RunCompositeViewer(&viewer);
     int ret = app.exec();
+
+    delete run;
 
     return ret;
 }

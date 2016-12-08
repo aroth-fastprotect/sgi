@@ -94,6 +94,7 @@ class ViewerWidget : public QMainWindow
     Q_OBJECT
 public:
     ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent=0);
+    ViewerWidget(ViewerWidget * parent, bool shared);
     virtual ~ViewerWidget();
 
     osgViewer::View * view();
@@ -106,7 +107,10 @@ protected slots:
 protected:
     virtual void paintEvent( QPaintEvent* event );
 
-    osgQt::GraphicsWindowQt* createGraphicsWindow( int x, int y, int w, int h, const std::string& name="", bool windowDecoration=false );
+    osgQt::GraphicsWindowQt* createGraphicsWindow( int x, int y, int w, int h, osg::GraphicsContext * sharedContext, const std::string& name=std::string(), bool windowDecoration=false );
+
+private:
+    void init();
 
 protected:
     QTimer * _timer;
