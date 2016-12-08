@@ -680,7 +680,6 @@ ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared)
     setCentralWidget(_mainGW->getGLWidget());
 
     _view = new osgViewer::View;
-    _viewer->addView( _view );
 
     osg::Camera* camera = _view->getCamera();
     camera->setGraphicsContext( _mainGW );
@@ -690,6 +689,8 @@ ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared)
     camera->setClearColor( osg::Vec4(0.2, 0.2, 0.6, 1.0) );
     camera->setViewport( new osg::Viewport(0, 0, traits->width, traits->height) );
     camera->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(traits->width)/static_cast<double>(traits->height), 1.0f, 10000.0f );
+
+    _viewer->addView(_view);
 }
 
 ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
@@ -703,10 +704,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     int x = -1, y = -1, width = -1, height = -1;
     while (arguments.read("--window", x, y, width, height)) {}
 
-#if QT_VERSION >= 0x050000
-    // Qt5 is currently crashing and reporting "Cannot make QOpenGLContext current in a different thread" when the viewer is run multi-threaded, this is regression from Qt4
-    _viewer->setThreadingModel(osgViewer::ViewerBase::SingleThreaded);
-#endif
+    _viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::ThreadPerContext);
 
     // disable the default setting of viewer.done() by pressing Escape.
     _viewer->setKeyEventSetsDone(0);
