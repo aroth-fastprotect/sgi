@@ -53,7 +53,7 @@ TextureObjectSetAccess::TextureObjectList TextureObjectSetAccess::getTextureObje
 {
     TextureObjectList ret;
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
-    for (TextureObject* to = _head; to != _tail; to = to->_next)
+    for (TextureObject* to = _head; to != NULL; to = to->_next)
     {
         ret.push_back(to);
     }
