@@ -1132,7 +1132,14 @@ void ObjectCacheAccess::getItems(ItemList & items)
     for (auto it = _objectCache.begin(); it != _objectCache.end(); ++it, ++idx)
     {
         Item & item = items[idx];
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+        const FileNameOptionsPair & filename_options = it->first;
+        item.name = filename_options.first;
+        item.options = filename_options.second;
+#else
         item.name = it->first;
+        item.options = nullptr;
+#endif
         item.object = it->second.first;
         item.timestamp = it->second.second;
     }

@@ -80,7 +80,11 @@ class TextureObjectManagerAccess :
 #endif
 {
 public:
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+    typedef std::map< osg::Texture::TextureProfile, osg::ref_ptr<osg::TextureObjectSet> > TextureSetMap;
+#else
     typedef std::map< osg::Texture::TextureProfile, osg::ref_ptr<osg::Texture::TextureObjectSet> > TextureSetMap;
+#endif
     const TextureSetMap & getTextureSetMap() const {
         return _textureSetMap;
     }

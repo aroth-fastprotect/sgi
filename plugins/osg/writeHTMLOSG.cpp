@@ -149,10 +149,11 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::StateAttribute)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Image)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObject)
-WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObjectSet)
 #if OSG_MIN_VERSION_REQUIRED(3,5,0)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::TextureObjectSet)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::TextureObjectManager)
 #else
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObjectSet)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObjectManager)
 #endif
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture1D)
@@ -2861,10 +2862,18 @@ bool writePrettyHTMLImpl<osg::Texture::TextureObject>::process(std::basic_ostrea
     return ret;
 }
 
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+bool writePrettyHTMLImpl<osg::TextureObjectSet>::process(std::basic_ostream<char>& os)
+#else
 bool writePrettyHTMLImpl<osg::Texture::TextureObjectSet>::process(std::basic_ostream<char>& os)
+#endif
 {
     bool ret = false;
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+    TextureObjectSetAccess * object = static_cast<TextureObjectSetAccess*>(getObject<osg::TextureObjectSet, SGIItemOsg>());
+#else
     TextureObjectSetAccess * object = static_cast<TextureObjectSetAccess*>(getObject<osg::Texture::TextureObjectSet, SGIItemOsg>());
+#endif
     switch (itemType())
     {
     case SGIItemTypeObject:

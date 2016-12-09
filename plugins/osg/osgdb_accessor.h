@@ -113,6 +113,7 @@ class ObjectCacheAccess : public osgDB::ObjectCache
 public:
     struct Item {
         std::string name;
+        osg::ref_ptr<const osgDB::Options> options;
         osg::ref_ptr<osg::Object> object;
         double timestamp;
     };

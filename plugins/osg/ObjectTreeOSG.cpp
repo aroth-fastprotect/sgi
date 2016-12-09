@@ -94,10 +94,11 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::PagedLOD)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::StateAttribute)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObject)
-OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObjectSet)
 #if OSG_MIN_VERSION_REQUIRED(3,5,0)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::TextureObjectSet)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::TextureObjectManager)
 #else
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObjectSet)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObjectManager)
 #endif
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture2D)
@@ -1546,9 +1547,17 @@ bool objectTreeBuildImpl<osg::Texture::TextureObject>::build(IObjectTreeItem * t
     return ret;
 }
 
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+bool objectTreeBuildImpl<osg::TextureObjectSet>::build(IObjectTreeItem * treeItem)
+#else
 bool objectTreeBuildImpl<osg::Texture::TextureObjectSet>::build(IObjectTreeItem * treeItem)
+#endif
 {
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+    TextureObjectSetAccess * object = static_cast<TextureObjectSetAccess*>(getObject<osg::TextureObjectSet, SGIItemOsg>());
+#else
     TextureObjectSetAccess * object = static_cast<TextureObjectSetAccess*>(getObject<osg::Texture::TextureObjectSet, SGIItemOsg>());
+#endif
     bool ret;
     switch (itemType())
     {
@@ -1617,7 +1626,11 @@ bool objectTreeBuildImpl<osg::Texture::TextureObjectManager>::build(IObjectTreeI
                 for (auto it = textureSetMap.begin(); it != textureSetMap.end(); ++it)
                 {
                     const osg::Texture::TextureProfile & p = it->first;
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+                    const osg::ref_ptr<osg::TextureObjectSet> & s = it->second;
+#else
                     const osg::ref_ptr<osg::Texture::TextureObjectSet> & s = it->second;
+#endif
                     unsigned hash = TextureObjectManagerAccess::hash(p);
                     std::string name = TextureObjectManagerAccess::shortName(p);
                     SGIHostItemOsg item(s.get());
@@ -1630,7 +1643,11 @@ bool objectTreeBuildImpl<osg::Texture::TextureObjectManager>::build(IObjectTreeI
                 for (auto it = textureSetMap.begin(); it != textureSetMap.end(); ++it)
                 {
                     const osg::Texture::TextureProfile & p = it->first;
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+                    const osg::ref_ptr<osg::TextureObjectSet> & s = it->second;
+#else
                     const osg::ref_ptr<osg::Texture::TextureObjectSet> & s = it->second;
+#endif
                     unsigned hash = TextureObjectManagerAccess::hash(p);
                     if (hash == itemNumber())
                     {

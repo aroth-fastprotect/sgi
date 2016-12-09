@@ -252,10 +252,11 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osg::GLBufferObjectSet,
     osg::Stats,
     osg::Texture::TextureObject,
-    osg::Texture::TextureObjectSet,
 #if OSG_MIN_VERSION_REQUIRED(3,5,0)
     osg::GraphicsObjectManager,
+    osg::TextureObjectSet,
 #else
+    osg::Texture::TextureObjectSet,
     osg::Texture::TextureObjectManager,
 #endif
     osgAnimation::Channel,
