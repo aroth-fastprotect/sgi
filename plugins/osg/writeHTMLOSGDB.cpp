@@ -820,7 +820,11 @@ bool writePrettyHTMLImpl<osgDB::ObjectCache>::process(std::basic_ostream<char>& 
             os << "<table border=\'1\' align=\'left\'><tr><th>Name</th><th>Object</th><th>Timestamp</th></tr>" << std::endl;
             for (const auto & item : items)
             {
-                os << "<tr><td>" << item.name << "</td><td>" << osg_helpers::getObjectNameAndType(item.object.get()) << "</td><td>" << item.timestamp << "</td></tr>" << std::endl;
+                os << "<tr><td>" << item.name;
+                if(item.options.valid())
+                    os << "&nbsp;" << osg_helpers::getObjectNameAndType(item.options.get());
+                os << "</td><td>";
+                os << osg_helpers::getObjectNameAndType(item.object.get()) << "</td><td>" << item.timestamp << "</td></tr>" << std::endl;
             }
             os << "</table>" << std::endl;
             ret = true;
