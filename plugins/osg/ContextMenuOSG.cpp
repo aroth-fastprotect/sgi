@@ -1443,8 +1443,8 @@ bool contextMenuPopulateImpl<osg::LOD>::populate(IContextMenuItem * menuItem)
             IContextMenuItem * rangeModeMenu = menuItem->addModeMenu(MenuActionLODSetRangeMode, "Range mode", _item, centerMode);
             if(rangeModeMenu)
             {
-                centerModeMenu->addModeAction("Distance from eye point", osg::LOD::DISTANCE_FROM_EYE_POINT);
-                centerModeMenu->addModeAction("Pixel size on screen", osg::LOD::PIXEL_SIZE_ON_SCREEN);
+                rangeModeMenu->addModeAction("Distance from eye point", osg::LOD::DISTANCE_FROM_EYE_POINT);
+                rangeModeMenu->addModeAction("Pixel size on screen", osg::LOD::PIXEL_SIZE_ON_SCREEN);
             }
 
         }

@@ -666,6 +666,7 @@ bool writePrettyHTMLImpl<osg::LOD>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             os << "<tr><td>rangeMode</td><td>" << object->getRangeMode() << "</td></tr>" << std::endl;
+            os << "<tr><td>radius</td><td>" << object->getRadius() << "</td></tr>" << std::endl;
             os << "<tr><td>centerMode</td><td>" << object->getCenterMode() << "</td></tr>" << std::endl;
             os << "<tr><td>center</td><td>";
             writePrettyPositionHTML(os, object->getCenter(), object);
