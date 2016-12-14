@@ -534,6 +534,20 @@ void SceneGraphDialog::onItemActivated(QTreeWidgetItem * item, int column)
     setNodeInfo(itemData.item());
 }
 
+void SceneGraphDialog::onItemSelectionChanged()
+{
+    QTreeWidgetItem * item = ui->treeWidget->currentItem();
+    IObjectTreeItemPtr oldItem = _selectedTreeItem;
+    if (item)
+    {
+        QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
+        _selectedTreeItem = new ObjectTreeItem(item, SGIPlugins::instance()->hostInterface());
+    }
+    else
+        _selectedTreeItem = NULL;
+    //d->_impl->itemSelected(oldItem.get(), _selectedTreeItem.get());
+}
+
 bool SceneGraphDialog::buildTree(ObjectTreeItem * treeItem, SGIItemBase * item)
 {
     bool ret = SGIPlugins::instance()->objectTreeBuildTree(treeItem, item);

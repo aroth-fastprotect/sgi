@@ -162,13 +162,29 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>treeWidget</sender>
+   <signal>itemSelectionChanged()</signal>
+   <receiver>SceneGraphDialog</receiver>
+   <slot>onItemSelectionChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>243</x>
+     <y>345</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>481</x>
+     <y>345</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>onItemExpanded(QTreeWidgetItem*)</slot>
   <slot>onItemCollapsed(QTreeWidgetItem*)</slot>
-  <slot>onItemSelected(QTreeWidgetItem*,QTreeWidgetItem*)</slot>
   <slot>onItemActivated(QTreeWidgetItem*,int)</slot>
   <slot>onItemContextMenu(QPoint)</slot>
   <slot>onItemClicked(QTreeWidgetItem*,int)</slot>
+  <slot>onItemSelectionChanged()</slot>
  </slots>
 </ui>

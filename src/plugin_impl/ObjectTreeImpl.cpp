@@ -37,12 +37,12 @@ ObjectTreeImplProxy::ObjectTreeImplProxy(QTreeWidget * widget, IObjectTreeImpl *
 {
     Q_D(ObjectTreeImplProxy);
     d->_widget->setContextMenuPolicy(Qt::CustomContextMenu);
-    QObject::connect(d->_widget, SIGNAL(itemExpanded(QTreeWidgetItem*)), this, SLOT(onItemExpanded(QTreeWidgetItem*)));
-    QObject::connect(d->_widget, SIGNAL(itemCollapsed(QTreeWidgetItem*)), this, SLOT(onItemCollapsed(QTreeWidgetItem*)));
-    QObject::connect(d->_widget, SIGNAL(itemActivated(QTreeWidgetItem*,int)), this, SLOT(onItemActivated(QTreeWidgetItem*,int)));
-    QObject::connect(d->_widget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onItemContextMenu(const QPoint&)));
-    QObject::connect(d->_widget, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(onItemClicked(QTreeWidgetItem*,int)));
-    QObject::connect(d->_widget, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
+    QObject::connect(d->_widget, &QTreeWidget::itemExpanded, this, &ObjectTreeImplProxy::onItemExpanded);
+    QObject::connect(d->_widget, &QTreeWidget::itemCollapsed, this, &ObjectTreeImplProxy::onItemCollapsed);
+    QObject::connect(d->_widget, &QTreeWidget::itemActivated, this, &ObjectTreeImplProxy::onItemActivated);
+    QObject::connect(d->_widget, &QTreeWidget::customContextMenuRequested, this, &ObjectTreeImplProxy::onItemContextMenu);
+    QObject::connect(d->_widget, &QTreeWidget::itemClicked, this, &ObjectTreeImplProxy::onItemClicked);
+    QObject::connect(d->_widget, &QTreeWidget::itemSelectionChanged, this, &ObjectTreeImplProxy::onItemSelectionChanged);
 }
 
 ObjectTreeImplProxy::~ObjectTreeImplProxy()
