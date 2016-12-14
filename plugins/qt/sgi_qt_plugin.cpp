@@ -5,6 +5,7 @@
 #include <sgi/plugins/SGIPluginImpl.h>
 #include <sgi/plugins/SGIPluginInterface.h>
 #include <sgi/plugins/SGIHostItemQt.h>
+#include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/plugins/GenerateItemImpl>
 #include <sgi/SGIItemInternal>
 #include <sgi/plugins/SceneGraphDialog>
@@ -101,7 +102,7 @@ GENERATE_IMPL_TEMPLATE()
 GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
 
 
-typedef generateItemImplT<generateItemAcceptImpl, SGIItemQt, SGIItemQtMeta, SGIItemQtPaintDevice, SGIItemQtSurface, SGIItemQtIcon > generateItemImpl;
+typedef generateItemImplT<generateItemAcceptImpl, SGIItemInternal, SGIItemQt, SGIItemQtMeta, SGIItemQtPaintDevice, SGIItemQtSurface, SGIItemQtIcon > generateItemImpl;
 
 typedef SGIPluginImplementationT<       generateItemImpl,
                                         writePrettyHTMLImpl,

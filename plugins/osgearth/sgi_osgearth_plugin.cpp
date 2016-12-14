@@ -6,9 +6,12 @@
 #include <sgi/plugins/GenerateItemImpl>
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SGIHostItemOsgEarth.h>
+#include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/plugins/SettingsDialog>
+#include <sgi/plugins/SceneGraphDialog>
 #include "../osg/SGIItemOsg"
 #include "SGIItemOsgEarth"
+#include <sgi/SGIItemInternal>
 
 #include "writeHTMLOSGEarth.h"
 #include "writeHTMLOSGEarthConfig.h"
@@ -71,6 +74,7 @@
 using namespace sgi::osgearth_plugin;
 
 SGI_OBJECT_INFO_BEGIN(osg::Referenced)
+    sgi::ISceneGraphDialog,
     osg::Object, osgEarth::Map, osgEarth::Registry, osgEarth::Capabilities, osgEarth::CacheBin,
     osgEarth::Layer, osgEarth::SpatialReference, osgEarth::Profile, osgEarth::Terrain,
     osgEarth::TileBlacklist, osgEarth::Util::Controls::ControlEventHandler,
@@ -351,7 +355,7 @@ private:
     ObjectStorageType   _accepted;
 };
 
-typedef generateItemImplT<generateItemAcceptImpl, SGIItemOsg, SGIItemEarthConfig, SGIItemEarthConfigOptions> generateItemImpl;
+typedef generateItemImplT<generateItemAcceptImpl, SGIItemOsg, SGIItemEarthConfig, SGIItemEarthConfigOptions, SGIItemInternal> generateItemImpl;
 
 typedef SGIPluginImplementationT<       generateItemImpl,
                                         writePrettyHTMLImpl,

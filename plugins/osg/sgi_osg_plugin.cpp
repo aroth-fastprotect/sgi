@@ -5,9 +5,11 @@
 #include <sgi/plugins/SGIPluginInterface.h>
 #include <sgi/plugins/GenerateItemImpl>
 #include <sgi/plugins/SGIHostItemOsg.h>
+#include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SettingsDialog>
 #include "SGIItemOsg"
+#include <sgi/SGIItemInternal>
 
 #include "writeHTMLOSG.h"
 
@@ -238,6 +240,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osg::Object,
     osg::ObserverSet,
     osgDB::Registry,
+    sgi::ISceneGraphDialog,
     sgi::ISceneGraphDialogToolsMenu,
     osg::GraphicsContext::Traits, 
     osg::OperationThread, 
@@ -509,7 +512,7 @@ bool objectInfo_hasCallback(SGIPluginHostInterface * hostInterface, bool & resul
     return ret;
 }
 
-typedef generateItemImplT<generateItemAcceptImpl, SGIItemOsg> generateItemImpl;
+typedef generateItemImplT<generateItemAcceptImpl, SGIItemOsg, SGIItemInternal> generateItemImpl;
 
 typedef SGIPluginImplementationT<       generateItemImpl,
                                         writePrettyHTMLImpl,
