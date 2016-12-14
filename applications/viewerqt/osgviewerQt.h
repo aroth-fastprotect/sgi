@@ -89,6 +89,8 @@ private:
     bool _onlyImages;
 };
 
+class CompositeViewerThread;
+
 class ViewerWidget : public QMainWindow
 {
     Q_OBJECT
@@ -113,7 +115,7 @@ private:
     void init();
 
 protected:
-    QTimer * _timer;
+    CompositeViewerThread * _thread;
     osg::ref_ptr<osgQt::GraphicsWindowQt> _mainGW;
     osg::ref_ptr<osgViewer::View> _view;
     osg::ref_ptr<osgViewer::CompositeViewer> _viewer;

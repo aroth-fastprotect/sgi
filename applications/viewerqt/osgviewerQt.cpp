@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QHBoxLayout>
+#include <QThread>
 
 #include <osg/ValueObject>
 #include <osgViewer/ViewerEventHandlers>
@@ -671,10 +672,63 @@ void setupWidgetAutoCloseTimer(QWidget * widget, int milliseconds)
     closeTimer->start(milliseconds);
 }
 
+class CompositeViewerThread : public QThread
+{
+private:
+    enum { DEFAULT_FRAME_INTERVAL = 25 };
+
+public:
+    /// @brief constructor
+    /// @param viewer pointer to composite viewer
+    CompositeViewerThread(osgViewer::CompositeViewer * viewer, int frameInterval = DEFAULT_FRAME_INTERVAL)
+        : QThread()
+        , m_viewer(viewer)
+        , m_frameInterval(frameInterval)
+    {
+    }
+
+public:
+    void start()
+    {
+        if (!QThread::isRunning())
+            QThread::start();
+    }
+
+    void stop(bool wait = false)
+    {
+        m_viewer->setDone(true);
+        quit();
+        if (wait)
+            QThread::wait();
+    }
+
+    virtual void run()
+    {
+        m_viewer->setDone(false);
+        //osgQt::setViewer(m_viewer);
+        QTimer * timer = new QTimer;
+        connect(timer, &QTimer::timeout, this, &CompositeViewerThread::onTimer, Qt::DirectConnection);
+        timer->start(m_frameInterval);
+        exec();
+        delete timer;
+    }
+
+    void onTimer()
+    {
+        m_viewer->frame();
+        if (m_viewer->done())
+            quit();
+    }
+
+private:
+    osgViewer::CompositeViewer *  m_viewer;
+    int                 m_frameInterval;
+};
+
+
 ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared)
     : QMainWindow(parent)
     , _viewer(parent->_viewer)
-    , _timer(NULL)
 {
     _mainGW = createGraphicsWindow(0,0,QMainWindow::width(),QMainWindow::height(), (shared)?parent->_mainGW.get():nullptr);
     setCentralWidget(_mainGW->getGLWidget());
@@ -696,7 +750,6 @@ ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared)
 ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     : QMainWindow(parent)
     , _viewer(new osgViewer::CompositeViewer(arguments))
-    , _timer(new QTimer(this))
 {
     int screenNum = -1;
     while (arguments.read("--screen", screenNum)) {}
@@ -704,7 +757,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     int x = -1, y = -1, width = -1, height = -1;
     while (arguments.read("--window", x, y, width, height)) {}
 
-    _viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::ThreadPerContext);
+    _viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::DrawThreadPerContext);
 
     // disable the default setting of viewer.done() by pressing Escape.
     _viewer->setKeyEventSetsDone(0);
@@ -713,7 +766,6 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     setCentralWidget(_mainGW->getGLWidget());
 
     _view = new osgViewer::View;
-    _viewer->addView(_view);
 
     osg::Camera* camera = _view->getCamera();
     camera->setGraphicsContext(_mainGW);
@@ -728,13 +780,16 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     {
         setGeometry(x, y, width, height);
     }
+    _viewer->addView(_view);
+    _viewer->realize();
 
-    connect(_timer, SIGNAL(timeout()), this, SLOT(onTimer()));
-    _timer->start(10);
+    _thread = new CompositeViewerThread(_viewer);
+    _thread->start();
 }
 
 ViewerWidget::~ViewerWidget()
 {
+    delete _thread;
 }
 
 void ViewerWidget::init()
@@ -852,6 +907,9 @@ public:
     }
 
 };
+
+
+
 int
 main(int argc, char** argv)
 {
