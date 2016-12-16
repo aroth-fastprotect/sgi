@@ -36,9 +36,19 @@ void QTextDialog::setLabel(const QString & message)
 {
 	ui->label->setText(message);
 }
-void QTextDialog::setText(const QString & text)
+void QTextDialog::setText(const QString & text, TextMode mode)
 {
-	ui->textEdit->setText(text);
+    switch (mode)
+    {
+    case TextModePlain:
+        ui->textEdit->setAcceptRichText(false);
+        ui->textEdit->setPlainText(text);
+        break;
+    case TextModeHTML:
+        ui->textEdit->setAcceptRichText(true);
+        ui->textEdit->setHtml(text);
+        break;
+    }
 }
 
 QString QTextDialog::label() const
@@ -46,9 +56,16 @@ QString QTextDialog::label() const
 	return ui->label->text();
 }
 
-QString QTextDialog::text() const
+QString QTextDialog::text(TextMode mode) const
 {
-	return ui->textEdit->toPlainText();
+    switch (mode)
+    {
+    case TextModePlain:
+        return ui->textEdit->toPlainText();
+    case TextModeHTML:
+        return ui->textEdit->toHtml();
+    }
+    return QString();
 }
 
 void QTextDialog::setReadOnly(bool readOnly)

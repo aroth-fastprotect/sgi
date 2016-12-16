@@ -94,6 +94,8 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelLayerOptions)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSourceOptions)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::FeatureGeomModelOptions)
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::FunctionLocation & t);
+
 using namespace osg_helpers;
 
 bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
@@ -1316,7 +1318,7 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
             osgEarth::ShaderComp::FunctionLocationMap functions;
             access->getFunctions(functions);
             if(!functions.empty())
-                treeItem->addChild(helpers::str_plus_count("Functions", functions.size()), cloneItem<SGIItemOsg>(SGIItemTypeVirtualProgramFunctions));
+                treeItem->addChild(helpers::str_plus_count("Functions", functions.size()), cloneItem<SGIItemOsg>(SGIItemTypeVirtualProgramFunctions, ~0u));
         }
         break;
     case SGIItemTypeVirtualProgramShaderMap:
@@ -1345,7 +1347,7 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
 #if OSGEARTH_VERSION_LESS_THAN(2,7,0)
 				ss << name;
 #else
-				ss << "0x" << std::hex << id;
+                ss << shader->getName() << " Id=0x" << std::hex << id;
 #endif
 				ss << '(' << glOverrideValueName(overrideValue) << ')';
                 SGIHostItemOsg child(shader.get());
@@ -1355,6 +1357,30 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
         }
         break;
     case SGIItemTypeVirtualProgramFunctions:
+        {
+            osgEarth::ShaderComp::FunctionLocationMap functions;
+            access->getFunctions(functions);
+            if (itemNumber() == ~0u)
+            {
+                for (osgEarth::ShaderComp::FunctionLocationMap::const_iterator it = functions.begin(); it != functions.end(); it++)
+                {
+                    const osgEarth::ShaderComp::FunctionLocation & location = it->first;
+                    const osgEarth::ShaderComp::OrderedFunctionMap & orderedFunctions = it->second;
+                    std::stringstream ss;
+                    ss << location;
+                    treeItem->addChild(helpers::str_plus_count(ss.str(), orderedFunctions.size()), cloneItem<SGIItemOsg>(SGIItemTypeVirtualProgramFunctions, (unsigned)location));
+                }
+            }
+            else
+            {
+                osgEarth::ShaderComp::FunctionLocation location = (osgEarth::ShaderComp::FunctionLocation)itemNumber();
+                osgEarth::ShaderComp::FunctionLocationMap::const_iterator it = functions.find(location);
+                if (it != functions.end())
+                {
+
+                }
+            }
+        }
         ret = true;
         break;
     default:

@@ -1740,26 +1740,50 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
         {
             osgEarth::ShaderComp::FunctionLocationMap functions;
             access->getFunctions(functions);
-            os << "<ul>";
-            for(osgEarth::ShaderComp::FunctionLocationMap::const_iterator it = functions.begin(); it != functions.end(); it++)
+            if (itemNumber() == ~0u)
             {
-                const osgEarth::ShaderComp::FunctionLocation & location = it->first;
-                const osgEarth::ShaderComp::OrderedFunctionMap & orderedFunctions = it->second;
-                os << "<li>";
-                os << location << "<ul>";
-                for(osgEarth::ShaderComp::OrderedFunctionMap::const_iterator it = orderedFunctions.begin(); it != orderedFunctions.end(); it++)
+                os << "<ul>";
+                for (osgEarth::ShaderComp::FunctionLocationMap::const_iterator it = functions.begin(); it != functions.end(); it++)
                 {
-                    const float & order = it->first;
+                    const osgEarth::ShaderComp::FunctionLocation & location = it->first;
+                    const osgEarth::ShaderComp::OrderedFunctionMap & orderedFunctions = it->second;
+                    os << "<li>";
+                    os << location << "<ul>";
+                    for (osgEarth::ShaderComp::OrderedFunctionMap::const_iterator it = orderedFunctions.begin(); it != orderedFunctions.end(); it++)
+                    {
+                        const float & order = it->first;
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
-                    const osgEarth::ShaderComp::Function & function = it->second;
-                    os << "<li>order=" << order << "<br/>" << function << "</li>";
+                        const osgEarth::ShaderComp::Function & function = it->second;
+                        os << "<li>order=" << order << "<br/>" << function << "</li>";
 #else
-                    os << "<li>order=" << order << "<br/>" << it->second << "</li>";
+                        os << "<li>order=" << order << "<br/>" << it->second << "</li>";
 #endif
+                    }
+                    os << "</ul></li>";
                 }
-                os << "</ul></li>";
+                os << "</ul>" << std::endl;
             }
-            os << "</ul>" << std::endl;
+            else
+            {
+                osgEarth::ShaderComp::FunctionLocation location = (osgEarth::ShaderComp::FunctionLocation)itemNumber();
+                osgEarth::ShaderComp::FunctionLocationMap::const_iterator it = functions.find(location);
+                if (it != functions.end())
+                {
+                    os << location << "<br/><ul>";
+                    const osgEarth::ShaderComp::OrderedFunctionMap & orderedFunctions = it->second;
+                    for (osgEarth::ShaderComp::OrderedFunctionMap::const_iterator it = orderedFunctions.begin(); it != orderedFunctions.end(); it++)
+                    {
+                        const float & order = it->first;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+                        const osgEarth::ShaderComp::Function & function = it->second;
+                        os << "<li>order=" << order << "<br/>" << function << "</li>";
+#else
+                        os << "<li>order=" << order << "<br/>" << it->second << "</li>";
+#endif
+                    }
+                    os << "</ul>";
+                }
+            }
             ret = true;
         }
         break;

@@ -17,14 +17,20 @@ public:
 	QTextDialog(QWidget *parent = 0, Qt::WindowFlags f = 0);
 	~QTextDialog();
 
+    enum TextMode {
+        TextModePlain,
+        TextModeHTML
+    };
+    Q_ENUMS(TextMode);
+
 public slots:
 	void					setButtons(QDialogButtonBox::StandardButtons buttons);
 	void					setLabel(const QString & message);
-	void					setText(const QString & text);
+	void					setText(const QString & text, TextMode mode=TextModePlain);
 	void					setReadOnly(bool readOnly=true);
 
 	QString					label() const;
-	QString					text() const;
+	QString					text(TextMode mode = TextModePlain) const;
 	bool					isReadOnly() const;
 
 protected:
