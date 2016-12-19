@@ -769,15 +769,15 @@ private:
         const uint8_t * src_data = reinterpret_cast<const uint8_t *>(src.data());
         uint8_t * dest_data = reinterpret_cast<uint8_t *>(dest.bits());
         const size_t dest_elem_size = 4; // RGB32
-        unsigned pitch0 = src.pitch(0);
+        unsigned src_pitch0 = src.pitch(0);
+        unsigned dest_pitch0 = dest.bytesPerLine();
         ELEM_TYPE elem_min = std::numeric_limits<ELEM_TYPE>::max();
         ELEM_TYPE elem_max = std::numeric_limits<ELEM_TYPE>::min();
         for (unsigned x = 0; x < src.width(); ++x)
         {
             for (unsigned y = 0; y < src.height(); ++y)
             {
-                size_t src_offset = (y * pitch0) + (x * src_elem_size);
-                size_t dest_offset = (y * pitch0) + (x * dest_elem_size);
+                size_t src_offset = (y * src_pitch0) + (x * src_elem_size);
                 const ELEM_TYPE * src_pixel = reinterpret_cast<const ELEM_TYPE *>(src_data + src_offset);
                 elem_min = std::min(elem_min, *src_pixel);
                 elem_max = std::max(elem_max, *src_pixel);
@@ -788,8 +788,8 @@ private:
         {
             for (unsigned y = 0; y < src.height(); ++y)
             {
-                size_t src_offset = (y * pitch0) + (x * src_elem_size);
-                size_t dest_offset = (y * pitch0) + (x * dest_elem_size);
+                size_t src_offset = (y * src_pitch0) + (x * src_elem_size);
+                size_t dest_offset = (y * dest_pitch0) + (x * dest_elem_size);
                 const ELEM_TYPE * src_pixel = reinterpret_cast<const ELEM_TYPE *>(src_data + src_offset);
                 QRgb* dest_pixel = reinterpret_cast<QRgb*>(dest_data + dest_offset);
                 *dest_pixel = compute_pixel<ELEM_TYPE>(colorGradient, *src_pixel, elem_min, elem_max, elem_range);
