@@ -1742,6 +1742,30 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Un
         } \
         break
 
+#define writePrettyHTMLImpl_Uniform_Sampler(__gl_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                os << "<i>empty</i>"; \
+            else if( object->getNumElements() == 1) \
+            { \
+                int val; \
+                object->getElement(0, val); \
+                os << "<li>Id=" << val << "</li>" << std::endl; \
+            } \
+            else { \
+                os << "<ol>"; \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    int val; \
+                    object->getElement(n, val); \
+                    os << "<li>Id=" << val << "</li>" << std::endl; \
+                } \
+                os << "</ol>"; \
+            } \
+        } \
+        break
 
 bool writePrettyHTMLImpl<osg::Uniform>::process(std::basic_ostream<char>& os)
 {
@@ -1787,6 +1811,25 @@ bool writePrettyHTMLImpl<osg::Uniform>::process(std::basic_ostream<char>& os)
             //writePrettyHTMLImpl_Uniform_Data(UNSIGNED_INT_VEC2, osg::Vec2ui);
             //writePrettyHTMLImpl_Uniform_Data(UNSIGNED_INT_VEC3, osg::Vec3ui);
             //writePrettyHTMLImpl_Uniform_Data(UNSIGNED_INT_VEC4, osg::Vec4ui);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_1D);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_3D);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_CUBE);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_1D_SHADOW);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_SHADOW);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_1D_ARRAY);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_ARRAY);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_CUBE_MAP_ARRAY);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_1D_ARRAY_SHADOW);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_ARRAY_SHADOW);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_MULTISAMPLE);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_MULTISAMPLE_ARRAY);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_CUBE_SHADOW);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_CUBE_MAP_ARRAY_SHADOW);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_BUFFER);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_RECT);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_RECT_SHADOW);
+
             default:
                 os << "<i>Type " << object->getType() << " not implemented.</i>";
                 break;
