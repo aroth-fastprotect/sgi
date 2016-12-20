@@ -27,6 +27,7 @@ enum SGIItemType_osgearth
     SGIItemTypeMapNode,
     SGIItemTypeVirtualProgramShaderMap,
     SGIItemTypeVirtualProgramFunctions,
+    SGIItemTypeVirtualProgramEffectiveProgram,
     SGIItemTypeOptions,
     SGIItemTypeDataExtents,
     SGIItemTypeConfig,

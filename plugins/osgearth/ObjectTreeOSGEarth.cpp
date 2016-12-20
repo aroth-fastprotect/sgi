@@ -1310,6 +1310,8 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
             if(templateprg.hasObject())
                 treeItem->addChild("Template", &templateprg);
 
+            treeItem->addChild("Effective Program", cloneItem<SGIItemOsg>(SGIItemTypeVirtualProgramEffectiveProgram, ~0u));
+
             osgEarth::VirtualProgram::ShaderMap shadermap;
             access->getShaderMap(shadermap);
             if(!shadermap.empty())
@@ -1380,8 +1382,14 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
 
                 }
             }
+            ret = true;
         }
-        ret = true;
+        break;
+    case SGIItemTypeVirtualProgramEffectiveProgram:
+        {
+
+            ret = true;
+        }
         break;
     default:
         ret = callNextHandler(treeItem);

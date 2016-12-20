@@ -13,7 +13,6 @@ namespace support {
 enum SGIItemType_osg
 {
     SGIItemType_plugin_osg = SGIItemTypePluginBaseOsg,
-    SGIItemTypeStateSetEffective,
     SGIItemTypeStateSetModeList,
     SGIItemTypeStateSetAttributeList,
     SGIItemTypeStateSetTextureModeList,

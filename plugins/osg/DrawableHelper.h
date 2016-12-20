@@ -101,6 +101,7 @@ public:
     typedef std::map<osg::StateAttribute::TypeMemberPair, AttributeStack> AttributeMap;
 
     struct State {
+        osg::ref_ptr<osg::State> state;
         StateSetStack stateSetStack;
         RenderBinStack renderBinStack;
         CameraStack cameraStack;
@@ -127,6 +128,7 @@ protected:
     static void copyRenderBinStack(RenderBinStack & dest, const std::vector<osgUtil::RenderBin*> & src);
     static void copyCameraStack(CameraStack & dest, const std::vector<osg::Camera*> & src);
     static void copyPerContextProgramSet(PerContextProgramSet & dest, const std::set<const osg::Program::PerContextProgram* > & src);
+    static void captureCurrentState(osg::StateSet * dest, osg::State * src);
 
 protected:
     /*

@@ -6004,6 +6004,7 @@ bool writePrettyHTMLImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, 
                     {
                         const RenderInfoData::State & state = it.second;
                         os << "<li>0x" << std::hex << it.first << "<br/>";
+                        os << "contextID=#" << (state.state.valid()?state.state->getContextID():~0u) << "<br/>" << std::endl;
                         os << "stateSetStack=#" << state.stateSetStack.size() << "<br/>" << std::endl;
                         os << "renderBinStack=#" << state.renderBinStack.size() << "<br/>" << std::endl;
                         os << "cameraStack=#" << state.cameraStack.size() << "<br/>" << std::endl;
@@ -6021,7 +6022,9 @@ bool writePrettyHTMLImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, 
                 {
                     const RenderInfoData::State & state = it->second;
                     os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
-                    os << "<tr><td>state</td><td>0x" << std::hex << it->first << "</td></tr>" << std::endl;
+                    os << "<tr><td>hash</td><td>0x" << std::hex << it->first << "</td></tr>" << std::endl;
+                    os << "<tr><td>state</td><td>" << osg_helpers::getObjectNameAndType(state.state.get(), true) << "</td></tr>" << std::endl;
+                    os << "<tr><td>contextID</td><td>" << (state.state.valid() ? state.state->getContextID() : ~0u) << "</td></tr>" << std::endl;
                     os << "<tr><td>stateSetStack</td><td>" << state.stateSetStack.size() << " items</td></tr>" << std::endl;
                     os << "<tr><td>renderBinStack</td><td>" << state.renderBinStack.size() << " items</td></tr>" << std::endl;
                     os << "<tr><td>cameraStack</td><td>" << state.cameraStack.size() << " items</td></tr>" << std::endl;

@@ -184,6 +184,59 @@ void RenderInfoData::copyPerContextProgramSet(PerContextProgramSet & dest, const
 #endif
 }
 
+void RenderInfoData::captureCurrentState(osg::StateSet * dest, osg::State * src)
+{
+    src->captureCurrentState(*dest);
+#if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
+    const osg::State::UniformMap & uniformMap = src->getUniformMap();
+    for (osg::State::UniformMap::const_iterator it = uniformMap.begin(); it != uniformMap.end(); it++)
+    {
+        const osg::State::UniformStack& us = it->second;
+        if (!us.uniformVec.empty())
+        {
+            dest->addUniform(const_cast<osg::Uniform*>(us.uniformVec.back().first));
+        }
+    }
+    const osg::State::TextureModeMapList & textureModeMapList = src->getTextureModeMapList();
+    unsigned textureUnit = 0;
+    for (osg::State::TextureModeMapList::const_iterator it = textureModeMapList.begin(); it != textureModeMapList.end(); ++it, ++textureUnit)
+    {
+        const osg::State::ModeMap & modemap = *it;
+        for (osg::State::ModeMap::const_iterator it2 = modemap.begin(); it2 != modemap.end(); ++it2)
+        {
+            const GLenum & glmode = it2->first;
+            const osg::State::ModeStack & stack = it2->second;
+
+            dest->setTextureMode(textureUnit, glmode, stack.last_applied_value ? osg::StateAttribute::ON : osg::StateAttribute::OFF);
+
+            for (GLuint value : stack.valueVec)
+                dest->setTextureMode(textureUnit, glmode, value);
+        }
+    }
+    const osg::State::TextureAttributeMapList & textureAttributeMapList = src->getTextureAttributeMapList();
+    textureUnit = 0;
+    for (osg::State::TextureAttributeMapList::const_iterator it = textureAttributeMapList.begin(); it != textureAttributeMapList.end(); ++it, ++textureUnit)
+    {
+        const osg::State::AttributeMap & attributemap = *it;
+        for (osg::State::AttributeMap::const_iterator it2 = attributemap.begin(); it2 != attributemap.end(); ++it2)
+        {
+            const osg::StateAttribute::TypeMemberPair & typemem = it2->first;
+            const osg::State::AttributeStack & stack = it2->second;
+
+            if(stack.last_applied_attribute)
+                dest->setTextureAttribute(textureUnit, const_cast<osg::StateAttribute*>(stack.last_applied_attribute), osg::StateAttribute::ON);
+
+            for (const osg::State::AttributePair & attrpair : stack.attributeVec)
+            {
+                const osg::StateAttribute * sa = attrpair.first;
+                const osg::StateAttribute::OverrideValue & overridevalue = attrpair.second;
+                dest->setTextureAttribute(textureUnit, const_cast<osg::StateAttribute*>(sa), overridevalue);
+            }
+        }
+    }
+#endif
+}
+
 namespace {
     typedef unsigned long long register_t;
     typedef unsigned long long ptr_int_t;
@@ -252,20 +305,9 @@ void RenderInfoData::copyRenderInfo(osg::RenderInfo& renderInfo)
 
     RenderInfoData::State & currentState = _hashedState[hashStateSetStack];
 
+    currentState.state = state;
     currentState.capturedStateSet = new osg::StateSet;
-    state->captureCurrentState(*currentState.capturedStateSet.get());
-
-#if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
-    const osg::State::UniformMap & uniformMap = state->getUniformMap();
-    for (osg::State::UniformMap::const_iterator it = uniformMap.begin(); it != uniformMap.end(); it++)
-    {
-        const osg::State::UniformStack& us = it->second;
-        if (!us.uniformVec.empty())
-        {
-            currentState.capturedStateSet->addUniform(const_cast<osg::Uniform*>(us.uniformVec.back().first));
-        }
-    }
-#endif
+    RenderInfoData::captureCurrentState(currentState.capturedStateSet.get(), state);
 
     RenderInfoData::copyStateSetStack(currentState.stateSetStack, stateSetStack);
 #if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)

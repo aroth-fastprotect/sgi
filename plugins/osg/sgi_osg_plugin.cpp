@@ -566,7 +566,6 @@ public:
         registerNamedEnumValue<osg_helpers::GLModeOverrideValue>(osg::StateAttribute::INHERIT, "INHERIT");
         registerNamedEnumValue<osg_helpers::GLModeOverrideValue>(osg::StateAttribute::PROTECTED, "PROTECTED");
 
-        SGIITEMTYPE_NAME(SGIItemTypeStateSetEffective);
         SGIITEMTYPE_NAME(SGIItemTypeStateSetModeList);
         SGIITEMTYPE_NAME(SGIItemTypeStateSetAttributeList);
         SGIITEMTYPE_NAME(SGIItemTypeStateSetTextureModeList);

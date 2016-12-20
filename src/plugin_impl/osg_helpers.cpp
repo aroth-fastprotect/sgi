@@ -821,7 +821,39 @@ const sgi::Image * convertImage(const osg::Image * image)
     case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT: imageFormat = sgi::Image::ImageFormatDXT1Alpha; break;
     case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT: imageFormat = sgi::Image::ImageFormatDXT3; break;
     case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT: imageFormat = sgi::Image::ImageFormatDXT5; break;
-    default: imageFormat = sgi::Image::ImageFormatRaw; break;
+    case GL_RG:
+    case GL_RG_INTEGER:
+    case GL_R8:
+    case GL_R16:
+    case GL_RG8:
+    case GL_RG16:
+    case GL_R16F:
+    case GL_R32F:
+    case GL_RG16F:
+    case GL_RG32F:
+    case GL_R8I:
+    case GL_R8UI:
+    case GL_R16I:
+    case GL_R16UI:
+    case GL_R32I:
+    case GL_R32UI:
+    case GL_RG8I:
+    case GL_RG8UI:
+    case GL_RG16I:
+    case GL_RG16UI:
+    case GL_RG32I:
+    case GL_RG32UI:
+        switch (image->getInternalTextureFormat())
+        {
+        case GL_RED:imageFormat = sgi::Image::ImageFormatRed; break;
+        case GL_GREEN:imageFormat = sgi::Image::ImageFormatGreen; break;
+        case GL_BLUE:imageFormat = sgi::Image::ImageFormatBlue; break;
+        case GL_ALPHA:imageFormat = sgi::Image::ImageFormatAlpha; break;
+        case GL_LUMINANCE: imageFormat = sgi::Image::ImageFormatLuminance; break;
+        default: imageFormat = sgi::Image::ImageFormatInvalid; break;
+        }
+        break;
+    default: imageFormat = sgi::Image::ImageFormatInvalid; break;
     }
     switch (image->getDataType())
     {
