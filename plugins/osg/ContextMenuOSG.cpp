@@ -101,6 +101,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Shader)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Program)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Depth)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Uniform)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::BufferObject)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::BufferData)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Array)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Material)
@@ -736,6 +737,30 @@ bool contextMenuPopulateImpl<osg::Uniform>::populate(IContextMenuItem * menuItem
             else
             {
                 menuItem->addSimpleAction(MenuActionUniformEdit, ss.str(), _item);
+            }
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::BufferObject>::populate(IContextMenuItem * menuItem)
+{
+    osg::BufferObject * object = getObject<osg::BufferObject, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+            {
+                manipulateMenu->addSimpleAction(MenuActionBufferObjectDirty, "Dirty", _item);
             }
         }
         break;

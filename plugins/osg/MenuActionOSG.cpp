@@ -143,6 +143,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionUniformDirty)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionUniformEdit)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionBufferDataEdit)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionBufferDirty)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionBufferObjectDirty)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionArrayDataEdit)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionArrayBinding)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionArrayNormalize)
@@ -1397,6 +1398,13 @@ bool actionHandlerImpl<MenuActionBufferDataEdit>::execute()
 bool actionHandlerImpl<MenuActionBufferDirty>::execute()
 {
     osg::BufferData * object = getObject<osg::BufferData,SGIItemOsg>();
+    object->dirty();
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionBufferObjectDirty>::execute()
+{
+    osg::BufferObject * object = getObject<osg::BufferObject, SGIItemOsg>();
     object->dirty();
     return true;
 }

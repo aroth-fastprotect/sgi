@@ -163,6 +163,7 @@ enum MenuAction {
     MenuActionArrayTrim,
     MenuActionBufferDataEdit,
     MenuActionBufferDirty,
+    MenuActionBufferObjectDirty,
     MenuActionLineWidthSet,
     MenuActionLineStipplePattern,
     MenuActionLineStippleFactor,
