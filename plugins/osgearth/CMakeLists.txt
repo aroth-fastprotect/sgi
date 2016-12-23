@@ -14,6 +14,7 @@ SET(TARGET_SRC
     AutoClipPlaneCullCallbackDialog.cpp
     TileInspectorDialog.cpp
     RetrieveElevationDialog.cpp
+	LODScaleOverrideDialog.cpp
     geo_helpers.cpp
 	osgearth_accessor.cpp
     )
@@ -42,11 +43,13 @@ SET(TARGET_MOC_H
     AutoClipPlaneCullCallbackDialog.h
     TileInspectorDialog.h
     RetrieveElevationDialog.h
+	LODScaleOverrideDialog.h
     )
 SET(TARGET_UI
     AutoClipPlaneCullCallbackDialog.ui
     TileInspectorDialog.ui
     RetrieveElevationDialog.ui
+	LODScaleOverrideDialog.ui
     )
 
 SET(TARGET_LIBRARIES_VARS

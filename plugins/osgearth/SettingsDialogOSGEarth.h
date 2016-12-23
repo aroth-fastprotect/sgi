@@ -14,6 +14,7 @@ enum SettingsDialog {
     SettingsDialogAutoClipPlaneCullCallback,
     SettingsDialogTileInspector,
     SettingsDialogRetrieveElevation,
+    SettingsDialogLODScaleOverride
 };
 
 SETTINGS_DIALOG_CREATE_IMPL_TEMPLATE()

@@ -811,16 +811,15 @@ bool actionHandlerImpl<MenuActionTileKeyAdd>::execute()
 
 bool actionHandlerImpl<MenuActionLODScaleOverrideNodeLODScale>::execute()
 {
-    osgEarth::LODScaleOverrideNode * object = static_cast<osgEarth::LODScaleOverrideNode*>(item<SGIItemOsg>()->object());
-
-    double value = object->getLODScale();
-    bool gotInput = _hostInterface->inputDialogDouble(menuAction()->menu()->parentWidget(), value, "LOD scale", "Set LOD scale", 0.0, 10.0, 2, _item);
-    if (gotInput)
+    ISettingsDialogPtr dialog;
+    bool ret;
+    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogLODScaleOverride, menu()->parentWidget(), hostCallback());
+    ret = _hostInterface->openSettingsDialog(dialog, _item.get(), info);
+    if (ret)
     {
-        object->setLODScale(value);
-        triggerRepaint();
+        if (dialog.valid())
+            dialog->show();
     }
-
     return true;
 }
 
