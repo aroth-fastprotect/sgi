@@ -9,6 +9,7 @@
 
 #include <osg/ObserverNodePath>
 #include <osg/UserDataContainer>
+#include <osg/ValueObject>
 #include <osg/PolygonMode>
 #include <osg/PolygonOffset>
 #include <osg/Material>
@@ -192,6 +193,32 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::GraphicsContext)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::GraphicsContext::Traits)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ShaderComposer)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ShaderComponent)
+
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::StringValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BoolValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::CharValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::UCharValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ShortValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::UShortValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::IntValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::UIntValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::FloatValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::DoubleValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Vec2fValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Vec3fValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Vec4fValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Vec2dValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Vec3dValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Vec4dValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::QuatValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::PlaneValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::MatrixfValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::MatrixdValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BoundingBoxfValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BoundingBoxdValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BoundingSpherefValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BoundingSpheredValueObject)
+
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawable)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(RenderInfoGeometry)
@@ -5546,6 +5573,15 @@ bool writePrettyHTMLImpl<osg::UserDataContainer>::process(std::basic_ostream<cha
             }
             os << "</ol></td></tr>" << std::endl;
 
+            os << "<tr><td>user objects</td><td><ol>";
+            unsigned numUserObjects = object->getNumUserObjects();
+            for (unsigned n = 0; n < numUserObjects; n++)
+            {
+                osg::Object * uobj = object->getUserObject(n);
+                os << "<li>" << osg_helpers::getObjectNameAndType(uobj)<< "</li>";
+            }
+            os << "</ol></td></tr>" << std::endl;
+
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
@@ -6188,6 +6224,77 @@ bool writePrettyHTMLImpl<RenderInfoGeometry>::process(std::basic_ostream<char>& 
     bool ret = writePrettyHTMLImpl_RenderInfoData(_hostInterface, os, _table, _item, data);
     return ret;
 }
+
+
+inline std::ostream& operator << (std::ostream& output, const osg::BoundingBoxf & b)
+{
+    return output << '[' << b._min << ',' << b._max << ']';
+}
+
+inline std::ostream& operator << (std::ostream& output, const osg::BoundingBoxd & b)
+{
+    return output << '[' << b._min << ',' << b._max << ']';
+}
+
+inline std::ostream& operator << (std::ostream& output, const osg::BoundingSpheref & b)
+{
+    return output << '[' << b._center << ',r=' << b._radius<< ']';
+}
+
+inline std::ostream& operator << (std::ostream& output, const osg::BoundingSphered & b)
+{
+    return output << '[' << b._center << ',r=' << b._radius << ']';
+}
+
+#define writePrettyHTML_ValueObject(__c) \
+bool writePrettyHTMLImpl<__c>::process(std::basic_ostream<char>& os) \
+{ \
+    bool ret = false; \
+    __c * object = getObject<__c, SGIItemOsg>(); \
+    switch (itemType()) \
+    { \
+    case SGIItemTypeObject: \
+        {\
+            if (_table)\
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;\
+            callNextHandler(os); \
+            os << "<tr><td>value</td><td>" << object->getValue() << "</td></tr>" << std::endl; \
+            if (_table) \
+                os << "</table>" << std::endl; \
+            ret = true; \
+        } \
+        break; \
+    default: \
+        ret = callNextHandler(os); \
+        break; \
+    } \
+    return ret; \
+}
+
+writePrettyHTML_ValueObject(osg::StringValueObject)
+writePrettyHTML_ValueObject(osg::BoolValueObject)
+writePrettyHTML_ValueObject(osg::CharValueObject)
+writePrettyHTML_ValueObject(osg::UCharValueObject)
+writePrettyHTML_ValueObject(osg::ShortValueObject)
+writePrettyHTML_ValueObject(osg::UShortValueObject)
+writePrettyHTML_ValueObject(osg::IntValueObject)
+writePrettyHTML_ValueObject(osg::UIntValueObject)
+writePrettyHTML_ValueObject(osg::FloatValueObject)
+writePrettyHTML_ValueObject(osg::DoubleValueObject)
+writePrettyHTML_ValueObject(osg::Vec2fValueObject)
+writePrettyHTML_ValueObject(osg::Vec3fValueObject)
+writePrettyHTML_ValueObject(osg::Vec4fValueObject)
+writePrettyHTML_ValueObject(osg::Vec2dValueObject)
+writePrettyHTML_ValueObject(osg::Vec3dValueObject)
+writePrettyHTML_ValueObject(osg::Vec4dValueObject)
+writePrettyHTML_ValueObject(osg::QuatValueObject)
+writePrettyHTML_ValueObject(osg::PlaneValueObject)
+writePrettyHTML_ValueObject(osg::MatrixfValueObject)
+writePrettyHTML_ValueObject(osg::MatrixdValueObject)
+writePrettyHTML_ValueObject(osg::BoundingBoxfValueObject)
+writePrettyHTML_ValueObject(osg::BoundingBoxdValueObject)
+writePrettyHTML_ValueObject(osg::BoundingSpherefValueObject)
+writePrettyHTML_ValueObject(osg::BoundingSpheredValueObject)
 
 bool writePrettyHTMLImpl<sgi::ReferencedPickerBase>::process(std::basic_ostream<char>& os)
 {

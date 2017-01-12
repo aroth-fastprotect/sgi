@@ -266,9 +266,15 @@ bool objectTreeBuildImpl<osg::UserDataContainer>::build(IObjectTreeItem * treeIt
             unsigned numUserObjects = object->getNumUserObjects();
             for(unsigned n = 0; n < numUserObjects; n++)
             {
-                SGIHostItemOsg userDataObject(object->getUserObject(n));
-                if(userDataObject.hasObject())
-                    treeItem->addChild(helpers::str_plus_count("UserDataObject", n), &userDataObject);
+                osg::Object * uobj = object->getUserObject(n);
+                if (uobj)
+                {
+                    SGIHostItemOsg userDataObject(uobj);
+                    if(uobj->getName().empty())
+                        treeItem->addChild(helpers::str_plus_count("UserDataObject", n), &userDataObject);
+                    else
+                        treeItem->addChild(helpers::str_plus_info("UserDataObject", uobj->getName()), &userDataObject);
+                }
             }
         }
         break;

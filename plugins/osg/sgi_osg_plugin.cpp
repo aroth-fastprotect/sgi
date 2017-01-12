@@ -27,6 +27,7 @@
 // osg headers
 #include <osg/Observer>
 #include <osg/UserDataContainer>
+#include <osg/ValueObject>
 #include <osg/Drawable>
 #include <osg/ShapeDrawable>
 #include <osg/MatrixTransform>
@@ -302,6 +303,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Object)
     osg::NodeVisitor, osg::RenderBuffer, osg::ShaderComponent,
     osg::RefMatrixd, osg::RefMatrixf, osg::Callback,
     osg::Drawable::DrawCallback,
+    osg::ValueObject,
     osgAnimation::Animation,
     osgAnimation::AnimationUpdateCallbackBase,
     osgDB::Options, osgDB::ReaderWriter, osgDB::DatabaseRevision, osgDB::DatabaseRevisions, osgDB::FileList,
@@ -319,6 +321,33 @@ SGI_OBJECT_INFO_BEGIN(osg::Callback)
     osg::Drawable::CullCallback,
     osg::Drawable::EventCallback,
     osg::Drawable::UpdateCallback
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osg::ValueObject)
+    osg::StringValueObject,
+    osg::BoolValueObject,
+    osg::CharValueObject,
+    osg::UCharValueObject,
+    osg::ShortValueObject,
+    osg::UShortValueObject,
+    osg::IntValueObject,
+    osg::UIntValueObject,
+    osg::FloatValueObject,
+    osg::DoubleValueObject,
+    osg::Vec2fValueObject,
+    osg::Vec3fValueObject,
+    osg::Vec4fValueObject,
+    osg::Vec2dValueObject,
+    osg::Vec3dValueObject,
+    osg::Vec4dValueObject,
+    osg::QuatValueObject,
+    osg::PlaneValueObject,
+    osg::MatrixfValueObject,
+    osg::MatrixdValueObject,
+    osg::BoundingBoxfValueObject,
+    osg::BoundingBoxdValueObject,
+    osg::BoundingSpherefValueObject,
+    osg::BoundingSpheredValueObject
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgGA::EventHandler)
