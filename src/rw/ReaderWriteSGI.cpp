@@ -491,7 +491,10 @@ public:
                 if(_options.showSceneGraphDialog && !gotImage)
                 {
                     ISceneGraphDialogPtr dialog;
-                    if(_view)
+                    SGIItemBase * existingViewItem = getView();
+                    if (existingViewItem)
+                        dialog = _hostCallback->showSceneGraphDialog(_parent, existingViewItem);
+                    else if(_view)
                     {
                         SGIHostItemOsg viewItem(_view);
                         dialog = _hostCallback->showSceneGraphDialog(_parent, &viewItem);
