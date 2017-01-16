@@ -704,6 +704,7 @@ public:
 
     virtual void run()
     {
+        OpenThreads::Thread::setCurrentThreadName("CompVwr");
         m_viewer->setDone(false);
         //osgQt::setViewer(m_viewer);
         QTimer * timer = new QTimer;
