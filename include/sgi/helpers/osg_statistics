@@ -123,6 +123,8 @@ protected:
     unsigned int _numInstancedAnimationBone;
     unsigned int _numInstancedTextBase;
     unsigned int _numDeprecatedDataGeometries;
+    unsigned int _numInstancedVBODrawables;
+    unsigned int _numInstancedDisplayListDrawables;
 
     enum { MaxStateAttributeType = osg::StateAttribute::FRAME_BUFFER_OBJECT };
 
@@ -143,6 +145,8 @@ protected:
     NodeSet             _animationSkeletonSet;
     NodeSet             _animationBoneSet;
     NodeSet             _textBaseSet;
+    NodeSet             _vboDrawableSet;
+    NodeSet             _displayListDrawableSet;
 
     MemoryStatisticsVisitor * _uniqueMemory;
     MemoryStatisticsVisitor * _instancedMemory;

@@ -281,6 +281,8 @@ StatisticsVisitor::StatisticsVisitor(unsigned int contextID)
     , _numInstancedAnimationBone(0)
     , _numInstancedTextBase(0)
     , _numDeprecatedDataGeometries(0)
+    , _numInstancedVBODrawables(0)
+    , _numInstancedDisplayListDrawables(0)
     , _ignoreKnownPagedLODs(false)
     , _ignoreKnownProxyNodes(false)
     , _uniqueMemory(NULL)
@@ -322,6 +324,8 @@ void StatisticsVisitor::reset()
     _numInstancedAnimationBone = 0;
     _numInstancedTextBase = 0;
     _numDeprecatedDataGeometries = 0;
+    _numInstancedVBODrawables = 0;
+    _numInstancedDisplayListDrawables = 0;
 
     _numUpdateCallbacks = 0;
     _numEventCallbacks = 0;
@@ -357,6 +361,9 @@ void StatisticsVisitor::reset()
     _animationSkeletonSet.clear();
     _animationBoneSet.clear();
     _textBaseSet.clear();
+    _vboDrawableSet.clear();
+    _displayListDrawableSet.clear();
+
 }
 
 void StatisticsVisitor::updateNodeStats(osg::Node & node)
@@ -447,11 +454,24 @@ void StatisticsVisitor::apply(osg::Drawable& node)
         _instancedMemory = new MemoryStatisticsVisitor(_contextID);
     _instancedMemory->apply(node);
 
+    if (node.getUseVertexBufferObjects())
+    {
+        ++_numInstancedVBODrawables;
+        _vboDrawableSet.insert(&node);
+    }
+    else if (node.getUseDisplayList())
+    {
+        ++_numInstancedDisplayListDrawables;
+        _displayListDrawableSet.insert(&node);
+    }
+
     osg::Geometry* geometry = node.asGeometry();
     if (geometry)
     {
         if (geometry->containsDeprecatedData())
             ++_numDeprecatedDataGeometries;
+
+        
 
         osg::Geometry::ArrayList arrays;
         if(geometry->getArrayList(arrays))
@@ -833,6 +853,8 @@ void StatisticsVisitor::printHTML(std::ostream& out)
     out << "<tr><td>Text base</td><td>" << _textBaseSet.size() << "</td><td>" << _numInstancedTextBase << "</td></tr>" << std::endl;
     out << "<tr><td>Fast geom.</td><td>" << _fastGeometrySet.size() << "</td><td>" << _numInstancedFastGeometry << "</td></tr>" << std::endl;
     out << "<tr><td>Deprecated data geom.</td><td>" << "N/A" << "</td><td>" << _numDeprecatedDataGeometries << "</td></tr>" << std::endl;
+    out << "<tr><td>VBO drawables</td><td>" << _vboDrawableSet.size() << "</td><td>" << _numInstancedVBODrawables << "</td></tr>" << std::endl;
+    out << "<tr><td>Display list drawables</td><td>" << _displayListDrawableSet.size() << "</td><td>" << _numInstancedDisplayListDrawables << "</td></tr>" << std::endl;
 
     out << "<tr><td>Vertices</td><td>" << _uniqueStats._vertexCount << "</td><td>" << _instancedStats._vertexCount << "</td></tr>" << std::endl;
     out << "<tr><td>Primitives</td><td>" << unique_primitives << "</td><td>" << instanced_primitives << "</td></tr>" << std::endl;
