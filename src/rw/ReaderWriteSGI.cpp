@@ -590,6 +590,9 @@ public:
         , _installed(false)
     {
         setDataVariance(DYNAMIC);
+        // disable culling initially so this node would not be culled on first render traversal.
+        // after the first pass we can re-enable culling for this node.
+        setCullingActive(false);
 		++numInstances;
     }
     SGIInstallNode(const SGIInstallNode & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
@@ -625,6 +628,7 @@ public:
                     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
                     if(!_installed)
                     {
+                        setCullingActive(true);
                         OSG_NOTICE << LC << "install." << std::endl;
 
                         osgUtil::CullVisitor * cv = dynamic_cast<osgUtil::CullVisitor *>(&nv);
