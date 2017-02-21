@@ -674,7 +674,7 @@ void setupWidgetAutoCloseTimer(QWidget * widget, int milliseconds)
 
 class CompositeViewerThread : public QThread
 {
-private:
+public:
     enum { DEFAULT_FRAME_INTERVAL = 25 };
 
 public:
@@ -730,6 +730,8 @@ private:
 ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared)
     : QMainWindow(parent)
     , _viewer(parent->_viewer)
+    , _thread(nullptr)
+    , _timer(nullptr)
 {
     _mainGW = createGraphicsWindow(0,0,QMainWindow::width(),QMainWindow::height(), (shared)?parent->_mainGW.get():nullptr);
     setCentralWidget(_mainGW->getGLWidget());
@@ -751,12 +753,18 @@ ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared)
 ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     : QMainWindow(parent)
     , _viewer(new osgViewer::CompositeViewer(arguments))
+    , _thread(nullptr)
+    , _timer(nullptr)
 {
     int screenNum = -1;
     while (arguments.read("--screen", screenNum)) {}
 
     int x = -1, y = -1, width = -1, height = -1;
     while (arguments.read("--window", x, y, width, height)) {}
+
+    bool useMainThread = false;
+    if (arguments.read("--use-main-thread"))
+        useMainThread = true;
 
     _viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::DrawThreadPerContext);
 
@@ -784,17 +792,35 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     _viewer->addView(_view);
     _viewer->realize();
 
-    _thread = new CompositeViewerThread(_viewer);
-    _thread->start();
+    if (useMainThread)
+    {
+        _timer = new QTimer(this);
+        connect(_timer, &QTimer::timeout, this, &ViewerWidget::onTimer, Qt::DirectConnection);
+        _timer->start(CompositeViewerThread::DEFAULT_FRAME_INTERVAL);
+    }
+    else
+    {
+        _thread = new CompositeViewerThread(_viewer);
+        _thread->start();
+    }
 }
 
 ViewerWidget::~ViewerWidget()
 {
+    delete _timer;
     delete _thread;
 }
 
 void ViewerWidget::init()
 {
+}
+
+
+void ViewerWidget::onTimer()
+{
+    _viewer->frame();
+    if (_viewer->done())
+        QApplication::quit();
 }
 
 osgViewer::View * ViewerWidget::view()
@@ -830,11 +856,6 @@ osgQt::GraphicsWindowQt* ViewerWidget::createGraphicsWindow( int x, int y, int w
     traits->sharedContext = sharedContext;
 
     return new osgQt::GraphicsWindowQt(traits.get());
-}
-
-void ViewerWidget::onTimer()
-{
-    _viewer->frame();
 }
 
 void ViewerWidget::paintEvent( QPaintEvent* event )

@@ -103,9 +103,6 @@ public:
     bool createCamera();
     void setData(osg::Node * node);
 
-protected slots:
-    void onTimer();
-
 protected:
     virtual void paintEvent( QPaintEvent* event );
 
@@ -113,9 +110,11 @@ protected:
 
 private:
     void init();
+    void onTimer();
 
 protected:
     CompositeViewerThread * _thread;
+    QTimer * _timer;
     osg::ref_ptr<osgQt::GraphicsWindowQt> _mainGW;
     osg::ref_ptr<osgViewer::View> _view;
     osg::ref_ptr<osgViewer::CompositeViewer> _viewer;
