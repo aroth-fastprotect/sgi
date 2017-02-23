@@ -1461,6 +1461,7 @@ bool writePrettyHTMLImpl<osg::Drawable>::process(std::basic_ostream<char>& os)
             os << "<tr><td>supports display list</td><td>" << (object->getSupportsDisplayList()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>use display list</td><td>" << (object->getUseDisplayList()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>use VBO</td><td>" << (object->getUseVertexBufferObjects()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>use VAO</td><td>" << (object->getUseVertexArrayObject() ? "true" : "false") << "</td></tr>" << std::endl;
             os << "<tr><td>shape</td><td>" << osg_helpers::getObjectNameAndType(object->getShape(), true) << "</td></tr>" << std::endl;
             os << "<tr><td>numChildrenRequiringUpdateTraversal</td><td>" << access->getNumChildrenRequiringUpdateTraversal() << "</td></tr>" << std::endl;
             os << "<tr><td>numChildrenRequiringEventTraversal</td><td>" << access->getNumChildrenRequiringEventTraversal() << "</td></tr>" << std::endl;

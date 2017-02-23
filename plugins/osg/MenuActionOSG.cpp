@@ -87,6 +87,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeOptimizerRun)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeSmoothingVisitor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeToggleCenterMarker)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeRenderInfo)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeFixDeprecatedData)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectLogger)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectLoggerVisible)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectLoggerActive)
@@ -195,6 +196,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableUseVBO)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableRenderInfoDrawCallback)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionGeometryColor)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionGeometryFixDeprecatedData)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeCenter)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeRotation)
@@ -616,6 +618,29 @@ bool actionHandlerImpl<MenuActionNodeRenderInfo>::execute()
 {
     osg::Node * node = getObject<osg::Node, SGIItemOsg>();
     RenderInfo::enable(node, menuAction()->state());
+    return true;
+}
+
+class FixDeprecatedDataVisitor : public osg::NodeVisitor
+{
+public:
+    FixDeprecatedDataVisitor()
+        : osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN)
+    {
+    }
+    void apply(osg::Geometry& geometry) override
+    {
+        if(geometry.checkForDeprecatedData())
+            geometry.fixDeprecatedData();
+        osg::NodeVisitor::apply(geometry);
+    }
+};
+
+bool actionHandlerImpl<MenuActionNodeFixDeprecatedData>::execute()
+{
+    osg::Node * node = getObject<osg::Node, SGIItemOsg>();
+    FixDeprecatedDataVisitor fddv;
+    node->accept(fddv);
     return true;
 }
 
@@ -1964,6 +1989,13 @@ bool actionHandlerImpl<MenuActionGeometryColor>::execute()
             triggerRepaint();
         }
     }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionGeometryFixDeprecatedData>::execute()
+{
+    osg::Geometry * object = getObject<osg::Geometry, SGIItemOsg>();
+    object->fixDeprecatedData();
     return true;
 }
 

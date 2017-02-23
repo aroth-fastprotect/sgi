@@ -291,6 +291,25 @@ bool contextMenuPopulateImpl<osg::Object>::populate(IContextMenuItem * menuItem)
     return ret;
 }
 
+
+class HasDeprecatedDataVisitor : public osg::NodeVisitor
+{
+public:
+    bool result;
+    HasDeprecatedDataVisitor()
+        : osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN)
+        , result(false)
+    {
+    }
+    void apply(osg::Geometry& geometry) override
+    {
+        if (geometry.checkForDeprecatedData())
+            result = true;
+        else
+            osg::NodeVisitor::apply(geometry);
+    }
+};
+
 bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
 {
     osg::Node * object = static_cast<osg::Node*>(item<SGIItemOsg>()->object());
@@ -319,6 +338,10 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
                 manipulateMenu->addSimpleAction(MenuActionNodeSmoothingVisitor, "Smoothing visitor", _item);
 
                 manipulateMenu->addBoolAction(MenuActionNodeRenderInfo, "Render info", _item, RenderInfo::isPresent(object));
+                HasDeprecatedDataVisitor hddv;
+                object->accept(hddv);
+                if(hddv.result)
+                    manipulateMenu->addSimpleAction(MenuActionNodeFixDeprecatedData, "Fix deprecated data", _item);
 
                 manipulateMenu->addBoolAction(MenuActionNodeToggleCenterMarker, "Show center marker", _item, false);
             }
@@ -1579,6 +1602,8 @@ bool contextMenuPopulateImpl<osg::Geometry>::populate(IContextMenuItem * menuIte
             if(manipulateMenu)
             {
                 manipulateMenu->addSimpleAction(MenuActionGeometryColor, "Color...", _item);
+                if(object->checkForDeprecatedData())
+                    manipulateMenu->addSimpleAction(MenuActionGeometryFixDeprecatedData, "Fix deprecated data", _item);
             }
         }
         break;
