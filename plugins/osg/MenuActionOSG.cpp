@@ -1397,6 +1397,24 @@ bool actionHandlerImpl<MenuActionUniformEdit>::execute()
     return true;
 }
 
+#define writeDrawElementsDataImpl(__elem_type) \
+    { \
+        const __elem_type * d = (const __elem_type*)object->getDataPointer(); \
+        for(unsigned n = 0; n < object->getNumElements(); n++) \
+            os << d[n] << std::endl; \
+    }
+
+#define readDrawElementsDataImpl(__elem_type) \
+    { \
+        unsigned d = (__elem_type*)object->getElement(); \
+        for(unsigned n = 0; n < tokens.size(); n++) \
+        { \
+            std::istringstream ss(tokens[n]); \
+            ss >> d[n]; \
+        } \
+    }
+
+
 bool actionHandlerImpl<MenuActionBufferDataEdit>::execute()
 {
     osg::BufferData * object = getObject<osg::BufferData,SGIItemOsg>();
@@ -1408,6 +1426,40 @@ bool actionHandlerImpl<MenuActionBufferDataEdit>::execute()
     }
     else if (primitiveSet)
     {
+        std::stringstream os;
+
+        osg::DrawElements* drawElements = primitiveSet->getDrawElements();
+        if(drawElements)
+        {
+            unsigned maxNum = drawElements->getNumIndices();
+            for(unsigned n = 0; n < maxNum; n++)
+                os << drawElements->getElement(n) << std::endl;
+
+            std::string value = os.str();
+            bool ret;
+            ret = _hostInterface->inputDialogText(menu()->parentWidget(),
+                value,
+                "Indices:", "Indices",
+                SGIPluginHostInterface::InputDialogStringEncodingSystem,
+                _item
+                );
+            if(ret)
+            {
+                std::istringstream iss(value);
+                std::vector<std::string> tokens;
+                split(value, '\n', tokens);
+                if(tokens.size() != maxNum)
+                    drawElements->resizeElements(tokens.size());
+
+                for(unsigned n = 0; n < tokens.size(); n++)
+                {
+                    std::istringstream ss(tokens[n]);
+                    unsigned idx = 0;
+                    ss >> idx;
+                    drawElements->setElement(n, idx);
+                }
+            }
+        }
     }
     else if (image)
     {

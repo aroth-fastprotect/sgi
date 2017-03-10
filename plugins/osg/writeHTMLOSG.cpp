@@ -2051,6 +2051,19 @@ bool writePrettyHTMLImpl<osg::DrawElements>::process(std::basic_ostream<char>& o
             ret = true;
         }
         break;
+    case SGIItemTypeDrawElementsIndicies:
+        {
+            os << "<ol start=\"0\">";
+            unsigned numIndices = object->getNumIndices();
+            for(unsigned i = 0; i < numIndices; ++i)
+            {
+                unsigned idx = object->index(i);
+                os << "<li>" << idx << "</li>";
+            }
+            os << "</ol>";
+            ret = true;
+        }
+        break;
     default:
         ret = callNextHandler(os);
         break;
@@ -5766,7 +5779,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg::Array::B
 
 #define writeArrayDataImpl(__elem_type) \
     { \
-        os << "<ol>"; \
+        os << "<ol start=\"0\">"; \
         const __elem_type * d = (const __elem_type*)object->getDataPointer(); \
         for(unsigned n = 0; n < object->getNumElements(); n++) \
             os << "<li>" << d[n] << "</li>"; \
@@ -6239,12 +6252,12 @@ inline std::ostream& operator << (std::ostream& output, const osg::BoundingBoxd 
 
 inline std::ostream& operator << (std::ostream& output, const osg::BoundingSpheref & b)
 {
-    return output << '[' << b._center << ',r=' << b._radius<< ']';
+    return output << '[' << b._center << ",r=" << b._radius<< ']';
 }
 
 inline std::ostream& operator << (std::ostream& output, const osg::BoundingSphered & b)
 {
-    return output << '[' << b._center << ',r=' << b._radius << ']';
+    return output << '[' << b._center << ",r=" << b._radius << ']';
 }
 
 #define writePrettyHTML_ValueObject(__c) \

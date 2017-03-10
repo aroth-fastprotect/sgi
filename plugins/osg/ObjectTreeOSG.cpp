@@ -108,6 +108,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::HeightField)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::BufferData)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Array)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::BufferObject)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::DrawElements)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::State)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::ShaderComposer)
@@ -1864,6 +1865,31 @@ bool objectTreeBuildImpl<osg::BufferObject>::build(IObjectTreeItem * treeItem)
             }
             ret = true;
         }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osg::DrawElements>::build(IObjectTreeItem * treeItem)
+{
+    bool ret;
+    osg::DrawElements * object = getObject<osg::DrawElements, SGIItemOsg>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            unsigned numIndices = object->getNumIndices();
+            if(numIndices)
+                treeItem->addChild(helpers::str_plus_count("Indices", numIndices), cloneItem<SGIItemOsg>(SGIItemTypeDrawElementsIndicies));
+        }
+        break;
+    case SGIItemTypeDrawElementsIndicies:
+        ret = true;
         break;
     default:
         ret = callNextHandler(treeItem);

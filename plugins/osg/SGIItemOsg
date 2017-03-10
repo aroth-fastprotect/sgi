@@ -72,6 +72,7 @@ enum SGIItemType_osg
     SGIItemTypeCachedObjects,
     SGIItemTypeTextureObjects,
     SGIItemTypeTextureSetMap,
+    SGIItemTypeDrawElementsIndicies,
 };
 
 class SGIItemOsg : public SGIItemBase
