@@ -33,6 +33,7 @@ void osgTextAccess::writeAutoTransformCache(std::basic_ostream<char>& os, unsign
 
 	os << "<tr><td>normal</td><td>" << _normal << "</td></tr>" << std::endl;
 
+#if 0
 	AutoTransformCache * atc = (contextID < _autoTransformCache.size()) ? &_autoTransformCache[contextID] : NULL;
 	os << "<tr><td>AutoTransformCache</td><td>" << (void*)atc << "</td></tr>" << std::endl;
 
@@ -61,6 +62,8 @@ void osgTextAccess::writeAutoTransformCache(std::basic_ostream<char>& os, unsign
 		writePrettyHTML(os, atc->_modelview, MatrixUsageTypeModelView, this);
 		os << "</td></tr>" << std::endl;
 	}
+#else
+#endif
 }
 
 

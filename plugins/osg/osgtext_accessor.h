@@ -11,6 +11,7 @@ public:
 
 	float modelSpaceHeight(unsigned int contextID) const
 	{
+#if 0
 		if (contextID > _autoTransformCache.size())
 			return FLT_MIN;
 		const osg::Matrixd & matrix = _autoTransformCache[contextID]._matrix;
@@ -18,6 +19,9 @@ public:
 		osg::Vec3d bottomLeft = osg::Vec3d(_textBB.xMin(), _textBB.yMax(), _textBB.zMin())*matrix;
 
 		return (bottomLeft - topLeft).length();
+#else
+        return FLT_MIN;
+#endif 
 	}
 
 	void writeAutoTransformCache(std::basic_ostream<char>& os, unsigned int contextID);
