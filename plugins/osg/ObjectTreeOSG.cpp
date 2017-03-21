@@ -1822,9 +1822,12 @@ bool objectTreeBuildImpl<osg::Array>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            SGIHostItemOsg vbo(object->getVertexBufferObject());
-            if(vbo.hasObject())
-                treeItem->addChild("VertexBufferObject", &vbo);
+            osg::VertexBufferObject * vbo = object->getVertexBufferObject();
+            if (vbo && vbo != object->getBufferObject())
+            {
+                SGIHostItemOsg vboItem(vbo);
+                treeItem->addChild("VertexBufferObject", &vboItem);
+            }
         }
         break;
     case SGIItemTypeArrayData:
