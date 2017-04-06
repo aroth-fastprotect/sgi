@@ -448,16 +448,11 @@ void ContextMenu::slotClearItemMenu()
     if (menu)
     {
         QAction * action = menu->menuAction();
-        QtMenuSGIItem itemData = action->data().value<QtMenuSGIItem>();
-        if (itemData.hasItem())
-        {
-            menu->clear();
-        }
+        menu->clear();
+        action->setData(QVariant());
     }
     // release all references to the current item
     _item = NULL;
-    menuAction()->setData(QVariant());
-    clear();
 }
 
 void ContextMenu::slotSimpleItemAction()
