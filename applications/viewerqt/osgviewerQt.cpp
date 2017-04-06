@@ -808,6 +808,11 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
 ViewerWidget::~ViewerWidget()
 {
     delete _timer;
+    if (_thread->isRunning())
+    {
+        _thread->quit();
+        _thread->wait();
+    }
     delete _thread;
 }
 
