@@ -105,7 +105,6 @@ protected:
 protected:
     // use a simple raw-ptr to the interface to avoid a circular ref-ptr
     IContextMenuQt *        _interface;
-    SGIItemBasePtr          _item;
     IHostCallbackPtr        _hostCallback;
     QObject *               _qobject;
     bool                    _onlyRootItem;

@@ -454,6 +454,10 @@ void ContextMenu::slotClearItemMenu()
             menu->clear();
         }
     }
+    // release all references to the current item
+    _item = NULL;
+    menuAction()->setData(QVariant());
+    clear();
 }
 
 void ContextMenu::slotSimpleItemAction()
@@ -549,7 +553,6 @@ public:
 ContextMenuQt::ContextMenuQt(QObject * qobject, IHostCallback * callback, bool onlyRootItem, QWidget *parent)
     : QObject(parent)
     , _interface(new ContextMenuQtImpl(this))
-    , _item()
     , _qobject(qobject)
     , _hostCallback(callback)
     , _onlyRootItem(onlyRootItem)

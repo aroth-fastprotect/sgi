@@ -294,7 +294,8 @@ void item_unittest::contextMenu()
     QMenu * menu = ctxIface->getMenu();
     menu->show();
     menu->hide();
-    ctxIface->setObject((SGIItemBase*)NULL);
+    // need to run the main event processor to clean up (deleteLater, etc)
+    QApplication::processEvents();
 
     QCOMPARE(getRefCount(ctxIface.get()), 1);
     // release the menu
@@ -325,7 +326,8 @@ void item_unittest::contextMenuQt()
 	QMenu * menu = ctxIface->getMenu();
 	menu->show();
 	menu->hide();
-	ctxIface->setObject(NULL);
+    // need to run the main event processor to clean up (deleteLater, etc)
+    QApplication::processEvents();
 
 	// release the menu
 	ctxIface = NULL;
