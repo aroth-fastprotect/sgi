@@ -47,7 +47,16 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaMe
     const char *typeName = method.typeName();
     QByteArray signature = method.methodSignature();
 
-    os << method.access() << ":" << typeName << " " << signature.toStdString();
+    os << method.access();
+    switch (method.methodType())
+    {
+    case QMetaMethod::Constructor:
+    case QMetaMethod::Method: 
+        break;
+    case QMetaMethod::Signal: os << " signal"; break;
+    case QMetaMethod::Slot: os << " slot"; break;
+    }
+    os << ":" << typeName << " " << signature.toStdString();
     if(strlen(tag))
         os << " (" << tag << ")";
     return os;
@@ -127,11 +136,11 @@ bool writePrettyHTMLImpl<QMetaObject>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>this</td><td>" << std::hex << (void*)object << std::dec << "</td></tr>" << std::endl;
             os << "<tr><td>typename</td><td>" << helpers::getRTTITypename_html(object) << "</td></tr>" << std::endl;
-            os << "<tr><td>classname</td><td>" << (object?object->className():"(null)") << "</td></tr>" << std::endl;
+            os << "<tr><td>classname</td><td>" << object->className() << "</td></tr>" << std::endl;
 
             os << "<tr><td>class info</td><td><ol>";
-            int classInfoOffset = object?object->classInfoOffset():0;
-            int classInfoCount = object?object->classInfoCount():0;
+            int classInfoOffset = object->classInfoOffset();
+            int classInfoCount = object->classInfoCount();
             for (int i=classInfoOffset; i<classInfoCount; ++i)
             {
                 QMetaClassInfo metaclassInfo = object->classInfo(i);
@@ -140,8 +149,8 @@ bool writePrettyHTMLImpl<QMetaObject>::process(std::basic_ostream<char>& os)
             os << "</ol></td></tr>" << std::endl;
 
             os << "<tr><td>properties</td><td><ol>";
-            int propertyOffset = object?object->propertyOffset():0;
-            int propertyCount = object?object->propertyCount():0;
+            int propertyOffset = object->propertyOffset();
+            int propertyCount = object->propertyCount();
             for (int i=propertyOffset; i<propertyCount; ++i)
             {
                 QMetaProperty property = object->property(i);
@@ -150,8 +159,8 @@ bool writePrettyHTMLImpl<QMetaObject>::process(std::basic_ostream<char>& os)
             os << "</ol></td></tr>" << std::endl;
 
             os << "<tr><td>enumerator</td><td><ol>";
-            int enumeratorOffset = object?object->enumeratorOffset():0;
-            int enumeratorCount = object?object->enumeratorCount():0;
+            int enumeratorOffset = object->enumeratorOffset();
+            int enumeratorCount = object->enumeratorCount();
             for (int i=enumeratorOffset; i<enumeratorCount; ++i)
             {
                 QMetaEnum metaenum = object->enumerator(i);
@@ -161,7 +170,7 @@ bool writePrettyHTMLImpl<QMetaObject>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>constructors</td><td><ol>";
             int constructorOffset = 0;
-            int constructorCount = object?object->constructorCount():0;
+            int constructorCount = object->constructorCount();
             for (int i=constructorOffset; i<constructorCount; ++i)
             {
                 QMetaMethod method = object->constructor(i);
@@ -170,8 +179,8 @@ bool writePrettyHTMLImpl<QMetaObject>::process(std::basic_ostream<char>& os)
             os << "</ol></td></tr>" << std::endl;
 
             os << "<tr><td>methods</td><td><ol>";
-            int methodOffset = object?object->methodOffset():0;
-            int methodCount = object?object->methodCount():0;
+            int methodOffset = object->methodOffset();
+            int methodCount = object->methodCount();
             for (int i=methodOffset; i<methodCount; ++i)
             {
                 QMetaMethod method = object->method(i);

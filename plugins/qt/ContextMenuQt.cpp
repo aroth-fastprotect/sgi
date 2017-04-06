@@ -40,6 +40,7 @@ bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
                 menuItem->addMenu("Meta object", &metaObject); 
 
             menuItem->addMenu("Properties", cloneItem<SGIItemQt>(SGIItemTypeProperties));
+            menuItem->addMenu("Methods", cloneItem<SGIItemQt>(SGIItemTypeMethods));
 
             SGIHostItemQt parent(object->parent());
             if(parent.hasObject())
@@ -48,7 +49,6 @@ bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
             const QObjectList & children = object->children();
             if(!children.empty())
                 menuItem->addMenu(helpers::str_plus_count("Childs", children.size()), cloneItem<SGIItemQt>(SGIItemTypeChilds));
-            //menuItem->addMenu("Methods", cloneItem<SGIItemQt>(SGIItemTypeMethods));
             ret = true;
         }
         break;
@@ -90,7 +90,6 @@ bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
         break;
     case SGIItemTypeMethods:
         {
-            /*
             const QMetaObject * metaObject = object->metaObject();
             while(metaObject)
             {
@@ -99,11 +98,13 @@ bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
                 for (int i=methodOffset; i<methodCount; ++i)
                 {
                     QMetaMethod method = metaObject->method(i);
-                    menuItem->addSimpleAction(MenuActionObjectMethodInvoke, method.signature(), _item, new ReferencedDataMetaMethod(method));
+                    if (method.name() == QString("deleteLater") || method.name().at(0) == QChar('_'))
+                        continue;
+
+                    menuItem->addSimpleAction(MenuActionObjectMethodInvoke, method.methodSignature().toStdString(), _item, new ReferencedDataMetaMethod(method));
                 }
                 metaObject = metaObject->superClass();
             }
-            */
             ret = true;
         }
         break;
