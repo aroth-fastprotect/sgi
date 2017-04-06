@@ -99,23 +99,43 @@ struct SGIOptions
             return defaultValue;
     }
     template<typename T>
-    static T * getObjectOption(const osgDB::Options * options, const std::string & key, T * defaultValue=NULL)
+    static T * getObjectOption(const osgDB::Options * options, const std::string & key, T * defaultValue=NULL, bool * gotOption=NULL)
     {
-        if(!options)
+        if (!options)
+        {
+            if (gotOption)
+                *gotOption = false;
             return defaultValue;
+        }
         const void * data = options->getPluginData(key);
-        if(!data)
+        if (!data)
+        {
+            if (gotOption)
+                *gotOption = false;
             return defaultValue;
+        }
+        if (gotOption)
+            *gotOption = true;
         return static_cast<T*>(const_cast<void*>(data));
     }
     template<typename T>
-    static T getOption(const osgDB::Options * options, const std::string & key, const T & defaultValue=T())
+    static T getOption(const osgDB::Options * options, const std::string & key, const T & defaultValue=T(), bool * gotOption = NULL)
     {
-        if(!options)
+        if (!options)
+        {
+            if (gotOption)
+                *gotOption = false;
             return defaultValue;
+        }
         const void * data = options->getPluginData(key);
-        if(!data)
+        if (!data)
+        {
+            if (gotOption)
+                *gotOption = false;
             return defaultValue;
+        }
+        if (gotOption)
+            *gotOption = true;
         return *static_cast<const T*>(data);
     }
     SGIOptions(const std::string & filename_=std::string(), const osgDB::Options * options=NULL);
@@ -128,23 +148,34 @@ struct SGIOptions
     QWidget * parentWidget;
 	osg::ref_ptr<osg::Referenced> osgReferenced;
     std::string filename;
+    bool usePicketNodeMask;
     unsigned pickerNodeMask;
     osg::ref_ptr<osg::Node> pickerRoot;
 };
 
 template<>
-bool SGIOptions::getOption<bool>(const osgDB::Options * options, const std::string & key, const bool & defaultValue)
+bool SGIOptions::getOption<bool>(const osgDB::Options * options, const std::string & key, const bool & defaultValue, bool * gotOption)
 {
-    if(!options)
+    if (!options)
+    {
+        if (gotOption)
+            *gotOption = false;
         return defaultValue;
+    }
     std::string val = options->getPluginStringData(key);
     if(val.empty())
+    {
+        if (gotOption)
+            *gotOption = false;
         return defaultValue;
+    }
+    if (gotOption)
+        *gotOption = true;
     return string_to_bool(val, defaultValue);
 }
 
 SGIOptions::SGIOptions(const std::string & filename_, const osgDB::Options * options)
-        : qtObject(NULL), filename(filename_), pickerNodeMask(~0u)
+        : qtObject(NULL), filename(filename_), usePicketNodeMask(false), pickerNodeMask(~0u)
 {
     hostCallback = getObjectOption<sgi::IHostCallback>(options, "sgi_host_callback");
     showSceneGraphDialog = getOption<bool>(options, "showSceneGraphDialog");
@@ -152,7 +183,7 @@ SGIOptions::SGIOptions(const std::string & filename_, const osgDB::Options * opt
     osgReferenced = getObjectOption<osg::Referenced>(options, "sgi_osg_referenced");
     qtObject = getObjectOption<QObject>(options, "sgi_qt_object");
     parentWidget = getObjectOption<QWidget>(options, "parentWidget");
-    pickerNodeMask = getOption<unsigned>(options, "pickerNodeMask", ~0u);
+    pickerNodeMask = getOption<unsigned>(options, "pickerNodeMask", ~0u, &usePicketNodeMask);
     pickerRoot = getObjectOption<osg::Node>(options, "pickerRoot");
 }
 
@@ -540,7 +571,7 @@ public:
             ReferencedPickerBase * ret = NULL;
             osg::Node * root = _parent->_options.pickerRoot.get();
             float buffer = 1.0f;
-            unsigned traversalMask = _parent->_options.pickerNodeMask;
+            unsigned traversalMask = _parent->_options.usePicketNodeMask ? _parent->_options.pickerNodeMask : (unsigned)_parent->_view->getCamera()->getCullMask();
 
             switch(type)
             {
