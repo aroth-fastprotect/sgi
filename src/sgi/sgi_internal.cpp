@@ -17,6 +17,10 @@
 
 #include "sgi/helpers/rtti"
 
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
 #define OBJECTTREE_PROXYITEM_GET_INSTANCE true
 #define CONTEXTMENU_PROXYITEM_GET_INSTANCE true
 #define WRITE_PRETTY_HTML_PROXYITEM_GET_INSTANCE true

@@ -35,6 +35,10 @@
 #include "dxt_imath.h"
 #include "dxt_tables.h"
 
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
 /* extract 4x4 BGRA block */
 void extract_block(const unsigned char *src, int x, int y, int w, int h, unsigned char *block)
 {

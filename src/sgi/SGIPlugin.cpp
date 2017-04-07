@@ -10,6 +10,7 @@
 #include <QInputDialog>
 #include <QFileDialog>
 #include <QColorDialog>
+#include <QDebug>
 
 #include "QtProxy.h"
 #include "sgi_internal.h"
@@ -22,6 +23,10 @@
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/ContextMenu>
 #include <sgi/helpers/qt>
+
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
 
 using namespace sgi;
 using namespace sgi::qt_helpers;
@@ -137,6 +142,11 @@ public:
             : _impl(impl)
             {
             }
+        ~HostInterface()
+        {
+            qDebug() << "~HostInterface()" << this << _impl;
+        }
+
         unsigned version()
         {
             return SGIPLUGIN_HOSTINTERFACE_CURRENT_VERSION;
@@ -414,7 +424,7 @@ public:
 			: _impl(impl) {}
 		~DefaultHostCallback()
 		{
-
+            qDebug() << "~DefaultHostCallback()" << this << _impl;
 		}
 
 		IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) override
@@ -1680,6 +1690,7 @@ public:
 
     void shutdown()
     {
+        QtProxy::instance(true);
         for(auto it = _plugins.begin(); it != _plugins.end(); ++it)
         {
             const PluginInfo & pluginInfo = it->second;
@@ -1691,6 +1702,7 @@ public:
         _namedEnums.clear();
 		if (_hostCallback.valid())
 			_hostCallback->shutdown();
+        _hostCallback = NULL;
 		if(_defaultHostCallback.valid())
 			_defaultHostCallback->shutdown();
 		_defaultHostCallback = NULL;

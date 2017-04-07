@@ -453,6 +453,7 @@ void ContextMenu::slotClearItemMenu()
     }
     // release all references to the current item
     _item = NULL;
+    _hostCallback = NULL;
 }
 
 void ContextMenu::slotSimpleItemAction()

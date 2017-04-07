@@ -2,6 +2,10 @@
 #include "entrypoint.h"
 #include "SGIPlugin.h"
 
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
 extern "C" {
 
 static unsigned g_sgiModuleInitCount = 0;

@@ -31,6 +31,10 @@ namespace ffmpeg {
 
 #include <iostream>
 
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
 namespace sgi {
 
 /// @see http://www.andrewnoske.com/wiki/Code_-_heatmaps_and_color_gradients

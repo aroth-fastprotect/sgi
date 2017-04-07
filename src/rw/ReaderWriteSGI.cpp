@@ -50,6 +50,20 @@
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/SGIItemInternal>
 
+#if defined(_DEBUG)
+#if defined(_MSC_VER)
+#include <stdlib.h>
+#include <crtdbg.h>
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#else // defined(_MSC_VER)
+#define DEBUG_NEW new
+#endif // defined(_MSC_VER)
+#endif // defined(_DEBUG)
+
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
 #define LC "[ReaderWriteSGI] "
 
 namespace sgi {
@@ -141,6 +155,20 @@ struct SGIOptions
     SGIOptions(const std::string & filename_=std::string(), const osgDB::Options * options=NULL);
     SGIHostItemBase * getHostItem() const;
 
+    void clear()
+    {
+        hostCallback = NULL;
+        showSceneGraphDialog = false;
+        showImagePreviewDialog = false;
+        qtObject = NULL;
+        parentWidget = NULL;
+        osgReferenced = NULL;
+        filename.clear();
+        usePicketNodeMask = false;
+        pickerNodeMask = 0;
+        pickerRoot = NULL;
+    }
+
     osg::ref_ptr<sgi::IHostCallback> hostCallback;
     bool showSceneGraphDialog;
     bool showImagePreviewDialog;
@@ -215,6 +243,7 @@ public:
 	virtual bool handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa);
 
 	IHostCallback * getHostCallback() { return _hostCallback.get(); }
+    void shutdown();
 
 protected:
 	bool                showSceneGraphDialog(const SGIHostItemBase * item);
@@ -239,9 +268,6 @@ protected:
 	int                 _inspectorContextMenuMouseRightModMask;
 };
 
-
-
-
 SceneGraphInspectorHandler::SceneGraphInspectorHandler(IHostCallback * callback, const SGIOptions & options)
 	: _hostCallback(callback)
 	, _options(options)
@@ -263,6 +289,12 @@ SceneGraphInspectorHandler::SceneGraphInspectorHandler(IHostCallback * callback,
 
 SceneGraphInspectorHandler::~SceneGraphInspectorHandler()
 {
+}
+
+void SceneGraphInspectorHandler::shutdown()
+{
+    _hostCallback = NULL;
+    _picker = NULL;
 }
 
 bool SceneGraphInspectorHandler::showSceneGraphDialog(const SGIHostItemBase * item)
@@ -449,10 +481,14 @@ public:
         , _view(NULL)
         , _hostCallback(new HostCallbackImpl(this, options.hostCallback.valid()?options.hostCallback.get():sgi::defaultHostCallback<sgi::autoload::Osg>()))
         , _options(options)
+        , _inspectorHandler()
     {
         _view = dynamic_cast<osgViewer::View*>(camera->getView());
-        if(_view)
-            _view->addEventHandler(new sgi::SceneGraphInspectorHandler(_hostCallback, _options));
+        if (_view)
+        {
+            _inspectorHandler = new sgi::SceneGraphInspectorHandler(_hostCallback, _options);
+            _view->addEventHandler(_inspectorHandler.get());
+        }
 
         osg::GraphicsContext * ctx = camera->getGraphicsContext();
         if(ctx)
@@ -555,6 +591,19 @@ public:
         return _viewPtr.get();
     }
 
+    void shutdown()
+    {
+        osg::ref_ptr<SceneGraphInspectorHandler> handler;
+        if (_inspectorHandler.lock(handler))
+            handler->shutdown();
+        _inspectorHandler = NULL;
+        _parent = NULL;
+        _view = NULL;
+        _options.clear();
+        _viewPtr = NULL;
+        _hostCallback = NULL;
+    }
+
     class HostCallbackImpl : public HostCallbackBase
     {
     public:
@@ -597,6 +646,11 @@ public:
         {
             return _parent->_parent;
         }
+        virtual void shutdown() override
+        {
+            _parent->shutdown();
+            HostCallbackBase::shutdown();
+        }
 
     private:
         DefaultSGIProxy * _parent;
@@ -608,6 +662,7 @@ private:
     SGIItemBasePtr _viewPtr;
     IHostCallbackPtr _hostCallback;
     sgi::SGIOptions _options;
+    osg::observer_ptr<sgi::SceneGraphInspectorHandler> _inspectorHandler;
 };
 } // namespace sgi
 
