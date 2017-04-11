@@ -2807,20 +2807,31 @@ bool objectTreeBuildImpl<osgDB::ObjectCache>::build(IObjectTreeItem * treeItem)
         {
             unsigned num = object->getNumItems();
             if (num)
-                treeItem->addChild(helpers::str_plus_count("Objects", num), cloneItem<SGIItemOsg>(SGIItemTypeCachedObjects));
+                treeItem->addChild(helpers::str_plus_count("Objects", num), cloneItem<SGIItemOsg>(SGIItemTypeCachedObjects, ~0u));
         }
         break;
     case SGIItemTypeCachedObjects:
         {
-            if(itemNumber() == ~0u)
+            ObjectCacheAccess::ItemList items;
+            object->getItems(items);
+            if (itemNumber() == ~0u)
             {
-                ObjectCacheAccess::ItemList items;
-                object->getItems(items);
-                for (const auto & item : items)
+                for (unsigned i = 0; i < items.size(); ++i)
                 {
-                    SGIHostItemOsg sgitem(item.object);
-                    treeItem->addChild(item.name, &sgitem);
+                    const auto & item = items[i];
+                    treeItem->addChild(helpers::str_plus_info(item.name, i), cloneItem<SGIItemOsg>(SGIItemTypeCachedObjects, i));
                 }
+            }
+            else if(itemNumber() < items.size())
+            {
+                const auto & item = items[itemNumber()];
+                SGIHostItemOsg object(item.object);
+                if(object.hasObject())
+                    treeItem->addChild("Object", &object);
+                SGIHostItemOsg options(item.options);
+                if(options.hasObject())
+                    treeItem->addChild("Options", &options);
+
             }
             ret = true;
         }
@@ -2845,20 +2856,23 @@ bool objectTreeBuildImpl<osgDB::ObjectWrapper>::build(IObjectTreeItem * treeItem
 #if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
             const osgDB::ObjectWrapper::SerializerList & serializers = object->getSerializerList();
             if(!serializers.empty())
-                treeItem->addChild(helpers::str_plus_count("Serializers", serializers.size()), cloneItem<SGIItemOsg>(SGIItemTypeSerializers));
+                treeItem->addChild(helpers::str_plus_count("Serializers", serializers.size()), cloneItem<SGIItemOsg>(SGIItemTypeSerializers, ~0u));
 #endif
         }
         break;
     case SGIItemTypeSerializers:
         {
-#if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
-            const osgDB::ObjectWrapper::SerializerList & serializers = object->getSerializerList();
-            for(auto it = serializers.begin(); it != serializers.end(); it++)
+            if (itemNumber() == ~0u)
             {
-                SGIHostItemOsg serializer((*it).get());
-                treeItem->addChild(std::string(), &serializer);
-            }
+#if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
+                const osgDB::ObjectWrapper::SerializerList & serializers = object->getSerializerList();
+                for(auto it = serializers.begin(); it != serializers.end(); it++)
+                {
+                    SGIHostItemOsg serializer((*it).get());
+                    treeItem->addChild(std::string(), &serializer);
+                }
 #endif
+            }
             ret = true;
         }
         break;

@@ -817,16 +817,34 @@ bool writePrettyHTMLImpl<osgDB::ObjectCache>::process(std::basic_ostream<char>& 
         {
             ObjectCacheAccess::ItemList items;
             object->getItems(items);
-            os << "<table border=\'1\' align=\'left\'><tr><th>Name</th><th>Object</th><th>Timestamp</th></tr>" << std::endl;
-            for (const auto & item : items)
+            if (itemNumber() == ~0u)
             {
-                os << "<tr><td>" << item.name;
-                if(item.options.valid())
-                    os << "&nbsp;" << osg_helpers::getObjectNameAndType(item.options.get());
-                os << "</td><td>";
-                os << osg_helpers::getObjectNameAndType(item.object.get()) << "</td><td>" << item.timestamp << "</td></tr>" << std::endl;
+
+                os << "<table border=\'1\' align=\'left\'><tr><th>Name</th><th>Object</th><th>Timestamp</th></tr>" << std::endl;
+                for (const auto & item : items)
+                {
+                    os << "<tr><td>" << item.name;
+                    if (item.options.valid())
+                        os << "&nbsp;" << osg_helpers::getObjectNameAndType(item.options.get());
+                    os << "</td><td>";
+                    os << osg_helpers::getObjectNameAndType(item.object.get()) << "</td><td>" << item.timestamp << "</td></tr>" << std::endl;
+                }
+                os << "</table>" << std::endl;
             }
-            os << "</table>" << std::endl;
+            else if (itemNumber() < items.size())
+            {
+                const auto & item = items[itemNumber()];
+                os << "<table border=\'1\' align=\'left\'>" << std::endl;
+                os << "<tr><td>name</td><td>" << item.name << "</td></tr>" << std::endl;
+                os << "<tr><td>object</td><td>" << osg_helpers::getObjectNameAndType(item.object) << "</td></tr>" << std::endl;
+                os << "<tr><td>options</td><td>" << osg_helpers::getObjectNameAndType(item.options) << "</td></tr>" << std::endl;
+                os << "<tr><td>timestamp</td><td>" << item.timestamp << "</td></tr>" << std::endl;
+                os << "</table>" << std::endl;
+            }
+            else
+            {
+                os << "Cached object #" << itemNumber() << " does not exist." << std::endl;
+            }
             ret = true;
         }
         break;
