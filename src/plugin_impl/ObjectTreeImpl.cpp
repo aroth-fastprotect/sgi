@@ -91,7 +91,7 @@ void ObjectTreeImplProxy::onItemExpanded(QTreeWidgetItem * item)
         // we are going to re-populate the item with new data,
         // so first remove the old dummy child item.
         QList<QTreeWidgetItem *> children = item->takeChildren();
-        Q_FOREACH(QTreeWidgetItem * child, children)
+        for(QTreeWidgetItem * child : children)
         {
             delete child;
         }
@@ -182,7 +182,7 @@ void ObjectTreeImplProxy::reloadSelectedItem()
             // we are going to re-populate the item with new data,
             // so first remove the old dummy child item.
             QList<QTreeWidgetItem *> children = item->takeChildren();
-            Q_FOREACH(QTreeWidgetItem * child, children)
+            for(QTreeWidgetItem * child : children)
             {
                 delete child;
             }
@@ -240,7 +240,7 @@ IObjectTreeItem * ObjectTreeItem::parent()
 void ObjectTreeItem::clear()
 {
     QList<QTreeWidgetItem*> childs = _item->takeChildren();
-    foreach(QTreeWidgetItem* child, childs)
+    for(QTreeWidgetItem* child : childs)
         delete child;
 }
 
@@ -395,7 +395,7 @@ void ObjectTreeItem::reload()
             // we are going to re-populate the item with new data,
             // so first remove the old dummy child item.
             QList<QTreeWidgetItem *> children = _item->takeChildren();
-            Q_FOREACH(QTreeWidgetItem * child, children)
+            for(QTreeWidgetItem * child : children)
             {
                 delete child;
             }

@@ -113,14 +113,14 @@ bool writePrettyHTMLImpl<QIcon>::process(std::basic_ostream<char>& os)
             os << "<tr><td>cacheKey</td><td>" << object->cacheKey() << "</td></tr>" << std::endl;
 
             os << "<tr><td>availableSizes</td><td><ul>";
-            foreach(const QSize & s, object->availableSizes())
+            for(const QSize & s : object->availableSizes())
             {
                 os << "<li>" << s << "</li>";
             }
             os << "</ul></td></tr>" << std::endl;
 
             os << "<tr><td>themeSearchPaths</td><td><ul>";
-            foreach(const QString & s, object->themeSearchPaths())
+            for(const QString & s : object->themeSearchPaths())
             {
                 os << "<li>" << s << "</li>";
             }

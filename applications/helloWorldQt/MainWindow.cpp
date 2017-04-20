@@ -43,7 +43,7 @@ int main(int argc, char **argv)
     else
         qDebug() << "failed to load sgi.";
 
-    foreach(const QByteArray & format, QImageReader::supportedImageFormats())
+    for(const QByteArray & format : QImageReader::supportedImageFormats())
     {
         qDebug() << "reader " << format;
     }

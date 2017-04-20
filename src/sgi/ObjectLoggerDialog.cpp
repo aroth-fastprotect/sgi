@@ -317,7 +317,7 @@ void ObjectLoggerDialog::onItemExpanded(QTreeWidgetItem * item)
         // we are going to re-populate the item with new data,
         // so first remove the old dummy child item.
         QList<QTreeWidgetItem *> children = item->takeChildren();
-        Q_FOREACH(QTreeWidgetItem * child, children)
+        for(QTreeWidgetItem * child : children)
         {
             delete child;
         }

@@ -225,7 +225,7 @@ protected:
     {
         QMenu * ret = NULL;
         QList<QAction*> actions = menu->actions();
-        foreach(QAction * action, actions)
+        for(QAction * action : actions)
         {
             QMenu * submenu = action->menu();
             if(submenu && action->text() == name)
