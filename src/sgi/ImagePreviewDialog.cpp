@@ -135,7 +135,7 @@ public:
             const ColorPoint &currC = color[i];
             if (value < currC.val)
             {
-                const ColorPoint &prevC = color[std::max(0u, i - 1)];
+                const ColorPoint &prevC = color[ (i > 0) ? (i-1) : 0 ];
                 float valueDiff = (prevC.val - currC.val);
                 float fractBetween = (valueDiff == 0) ? 0 : (value - currC.val) / valueDiff;
                 red = (prevC.r - currC.r)*fractBetween + currC.r;
