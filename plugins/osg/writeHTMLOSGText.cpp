@@ -23,27 +23,12 @@ using namespace sgi::osg_helpers;
 
 void osgTextAccess::writeAutoTransformCache(std::basic_ostream<char>& os, unsigned int contextID)
 {
-	os << "<tr><td>textBB</td><td>";
-	writePrettyHTML(os, _textBB, this);
-	os << "</td></tr>" << std::endl;
-
-	os << "<tr><td>offset</td><td>";
-	writePrettyPositionHTML(os, _offset, this);
-	os << "</td></tr>" << std::endl;
-
-	os << "<tr><td>normal</td><td>" << _normal << "</td></tr>" << std::endl;
-
 #if 0
 	AutoTransformCache * atc = (contextID < _autoTransformCache.size()) ? &_autoTransformCache[contextID] : NULL;
 	os << "<tr><td>AutoTransformCache</td><td>" << (void*)atc << "</td></tr>" << std::endl;
 
 	if (atc)
 	{
-		const osg::Matrixd & matrix = atc->_matrix;
-		osg::Vec3d topLeft = osg::Vec3d(_textBB.xMin(), _textBB.yMin(), _textBB.zMin())*matrix;
-		osg::Vec3d bottomLeft = osg::Vec3d(_textBB.xMin(), _textBB.yMax(), _textBB.zMin())*matrix;
-
-		float modelSpaceHeight = (bottomLeft - topLeft).length();
 		os << "<tr><td>modelSpaceHeight</td><td>" << modelSpaceHeight << "</td></tr>" << std::endl;
 
 		os << "<tr><td>transformedPosition</td><td>";
@@ -62,7 +47,6 @@ void osgTextAccess::writeAutoTransformCache(std::basic_ostream<char>& os, unsign
 		writePrettyHTML(os, atc->_modelview, MatrixUsageTypeModelView, this);
 		os << "</td></tr>" << std::endl;
 	}
-#else
 #endif
 }
 
@@ -144,7 +128,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgText
 
 bool writePrettyHTMLImpl<osgText::TextBase>::process(std::basic_ostream<char>& os)
 {
-    osgText::TextBase * object = static_cast<osgText::TextBase*>(item<SGIItemOsg>()->object());
+    osgTextBaseAccess * object = static_cast<osgTextBaseAccess*>(getObject<osgText::TextBase, SGIItemOsg>());
     bool ret = false;
     switch(itemType())
     {
@@ -184,6 +168,27 @@ bool writePrettyHTMLImpl<osgText::TextBase>::process(std::basic_ostream<char>& o
             os << "<tr><td>kerningType</td><td>" << object->getKerningType() << "</td></tr>" << std::endl;
             os << "<tr><td>lineCount</td><td>" << object->getLineCount() << "</td></tr>" << std::endl;
 
+            os << "<tr><td>offset</td><td>" << object->getOffset() << "</td></tr>" << std::endl;
+            os << "<tr><td>normal</td><td>" << object->getNormal() << "</td></tr>" << std::endl;
+            os << "<tr><td>textBB</td><td>";
+            writePrettyHTML(os, object->getTextBB());
+            os << "</td></tr>" << std::endl;
+
+            os << "<tr><td>matrix</td><td>" << object->getMatrix() << "</td></tr>" << std::endl;
+            os << "<tr><td>primitives</td><td><ul>";
+            for (auto prim : object->getPrimitives())
+                os << "<li>" << prim << "</li>";
+            os << "</ul></td></tr>" << std::endl;
+
+            os << "<tr><td>vbo</td><td>" << getObjectNameAndType(object->getVBO()) << "</td></tr>" << std::endl;
+            os << "<tr><td>ebo</td><td>" << getObjectNameAndType(object->getEBO()) << "</td></tr>" << std::endl;
+
+            os << "<tr><td>coords</td><td>" << object->getCoords() << "</td></tr>" << std::endl;
+            os << "<tr><td>normals</td><td>" << object->getNormals() << "</td></tr>" << std::endl;
+            os << "<tr><td>colorCoords</td><td>" << object->getColorCoords() << "</td></tr>" << std::endl;
+            os << "<tr><td>texCoords</td><td>" << object->getTexCoords() << "</td></tr>" << std::endl;
+            os << "<tr><td>scaleFont</td><td>" << object->getScaleFont() << "</td></tr>" << std::endl;
+
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
@@ -198,8 +203,7 @@ bool writePrettyHTMLImpl<osgText::TextBase>::process(std::basic_ostream<char>& o
 
 bool writePrettyHTMLImpl<osgText::Text>::process(std::basic_ostream<char>& os)
 {
-    osgText::Text * object = static_cast<osgText::Text*>(item<SGIItemOsg>()->object());
-	osgTextAccess * access = static_cast<osgTextAccess *>(object);
+    osgTextAccess * object = static_cast<osgTextAccess *>(getObject<osgText::Text,SGIItemOsg>());
     bool ret = false;
     switch(itemType())
     {
@@ -245,8 +249,9 @@ bool writePrettyHTMLImpl<osgText::Text>::process(std::basic_ostream<char>& os)
 					contextId = ctx->getState()->getContextID();
 			}
 			os << "<tr><td>contextId</td><td>" << contextId << "</td></tr>" << std::endl;
+            os << "<tr><td>modelSpaceHeight</td><td>" << object->modelSpaceHeight(contextId) << "</td></tr>" << std::endl;
 
-			access->writeAutoTransformCache(os, contextId);
+			object->writeAutoTransformCache(os, contextId);
 
             if(_table)
                 os << "</table>" << std::endl;

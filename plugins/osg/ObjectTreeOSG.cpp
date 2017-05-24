@@ -51,6 +51,7 @@
 #include "osg_accessor.h"
 #include "osganimation_accessor.h"
 #include "osgviewer_accessor.h"
+#include "osgtext_accessor.h"
 #include <sys/stat.h>
 
 #ifdef min
@@ -3583,7 +3584,7 @@ bool objectTreeBuildImpl<osgText::Font>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osgText::TextBase>::build(IObjectTreeItem * treeItem)
 {
-    osgText::TextBase * object = getObject<osgText::TextBase,SGIItemOsg>();
+    osgTextBaseAccess * object = static_cast<osgTextBaseAccess *>(getObject<osgText::TextBase, SGIItemOsg>());
     bool ret;
     switch(itemType())
     {
@@ -3597,7 +3598,29 @@ bool objectTreeBuildImpl<osgText::TextBase>::build(IObjectTreeItem * treeItem)
 			SGIHostItemOsg style(object->getStyle());
 			if (style.hasObject())
 				treeItem->addChild("Style", &style);
+
+            const auto & primitives = object->getPrimitives();
+            if (!primitives.empty())
+                treeItem->addChild(helpers::str_plus_count("Primitives", primitives.size()), cloneItem<SGIItemOsg>(SGIItemTypePrimitiveSetList));
+
+            SGIHostItemOsg vbo(object->getVBO());
+            if (vbo.hasObject())
+                treeItem->addChild("VBO", &vbo);
+            SGIHostItemOsg ebo(object->getEBO());
+            if (ebo.hasObject())
+                treeItem->addChild("EBO", &ebo);
 		}
+        break;
+    case SGIItemTypePrimitiveSetList:
+        {
+            for (auto prim : object->getPrimitives())
+            {
+                SGIHostItemOsg item(prim);
+                if (item.hasObject())
+                    treeItem->addChild(std::string(), &item);
+            }
+            ret = true;
+        }
         break;
     default:
         ret = callNextHandler(treeItem);
