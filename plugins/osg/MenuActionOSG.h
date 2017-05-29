@@ -203,6 +203,7 @@ enum MenuAction {
     MenuActionTextBackdropVerticalOffset,
     MenuActionTextBackdropColor,
     MenuActionTextBackdropColorGradientMode,
+    MenuActionTextBaseComputeGlyphRepresentation,
 
     MenuActionAnimationManagerBaseAutomaticLink,
     MenuActionAnimationManagerBaseDirty,

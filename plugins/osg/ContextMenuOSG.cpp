@@ -48,6 +48,7 @@
 #include "MenuActionOSG.h"
 #include "stateset_helpers.h"
 #include "osg_accessor.h"
+#include "osgtext_accessor.h"
 #include "DrawableHelper.h"
 #include "osganimation_accessor.h"
 
@@ -2328,7 +2329,7 @@ bool contextMenuPopulateImpl<osgGA::CameraManipulator>::populate(IContextMenuIte
 
 bool contextMenuPopulateImpl<osgText::TextBase>::populate(IContextMenuItem * menuItem)
 {
-    osgText::TextBase * object = getObject<osgText::TextBase, SGIItemOsg>();
+    osgTextBaseAccess * object = static_cast<osgTextBaseAccess*>(getObject<osgText::TextBase, SGIItemOsg>());
     bool ret = false;
     switch(itemType())
     {
@@ -2342,6 +2343,12 @@ bool contextMenuPopulateImpl<osgText::TextBase>::populate(IContextMenuItem * men
 			SGIHostItemOsg style(object->getStyle());
 			if (style.hasObject())
 				menuItem->addMenu("Style", &style);
+
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+            {
+                menuItem->addSimpleAction(MenuActionTextBaseComputeGlyphRepresentation, "ComputeGlyphRepresentation", _item);
+            }
 
             menuItem->addBoolAction(MenuActionTextBaseAutoRotateToScreen, "Auto rotate to screen", _item, object->getAutoRotateToScreen());
             menuItem->addSimpleAction(MenuActionTextBaseCharacterHeight, helpers::str_plus_info("Character height", object->getCharacterHeight()), _item);

@@ -24,6 +24,10 @@ public:
     const TexCoords & getTexCoords() const { return _texcoords; }
     
     const osg::Vec3 & getScaleFont() const { return _scaleFont; };
+
+    void forceComputeGlyphRepresentation() {
+        computeGlyphRepresentation();
+    }
 };
 
 class osgTextAccess : public osgText::Text

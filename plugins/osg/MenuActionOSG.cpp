@@ -57,6 +57,7 @@
 #include <cassert>
 
 #include "osg_accessor.h"
+#include "osgtext_accessor.h"
 #include "stateset_helpers.h"
 #include "SettingsDialogOSG.h"
 #include "DrawableHelper.h"
@@ -250,6 +251,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropHorizontalOffset)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropVerticalOffset)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropColor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropColorGradientMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseComputeGlyphRepresentation)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerPause)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerDatabaseThreads)
@@ -2684,6 +2686,13 @@ bool actionHandlerImpl<MenuActionTextBaseSetMaximumHeight>::execute()
         );
     if (ret)
         object->setMaximumHeight(number);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBaseComputeGlyphRepresentation>::execute()
+{
+    osgTextBaseAccess * object = static_cast<osgTextBaseAccess*>(getObject<osgText::TextBase, SGIItemOsg>());
+    object->forceComputeGlyphRepresentation();
     return true;
 }
 
