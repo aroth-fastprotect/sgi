@@ -420,6 +420,18 @@ bool writePrettyHTMLImpl<QThread>::process(std::basic_ostream<char>& os)
 #ifdef WITH_QTOPENGL
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QGLFormat::OpenGLContextProfile t)
 {
+    switch (t)
+    {
+        case QGLFormat::NoProfile: os << "NoProfile"; break;
+        case QGLFormat::CoreProfile: os << "CoreProfile"; break;
+        case QGLFormat::CompatibilityProfile: os << "CompatibilityProfile"; break;
+        default: os << (int)t; break;
+    }
+    return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QGLFormat::OpenGLVersionFlag t)
+{
     switch(t)
     {
     case QGLFormat::OpenGL_Version_None: os << "None"; break;
