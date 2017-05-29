@@ -30,6 +30,11 @@ sgi::IHostCallback * sgi_defaultHostCallback()
 	return sgi::SGIPlugins::instance()->defaultHostCallback();
 }
 
+sgi::IHostCallback * sgi_hostCallback()
+{
+    return sgi::SGIPlugins::instance()->hostCallback();
+}
+
 void sgi_setHostCallback(sgi::IHostCallback * callback)
 {
 	sgi::SGIPlugins::instance()->setHostCallback(callback);

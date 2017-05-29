@@ -577,8 +577,14 @@ public:
             }
         }
     }
-    virtual ~DefaultSGIProxy()
+    virtual ~DefaultSGIProxy() override
     {
+        _inspectorHandler = NULL;
+        _parent = NULL;
+        _view = NULL;
+        _options.clear();
+        _viewPtr = NULL;
+        _hostCallback = NULL;
     }
 public:
     SGIItemBase * getView()
@@ -589,6 +595,13 @@ public:
             sgi::generateItem<autoload::Osg>(_viewPtr, &viewHostItem);
         }
         return _viewPtr.get();
+    }
+
+    void release()
+    {
+        HostCallbackImpl* hostCallbackImpl = dynamic_cast<HostCallbackImpl*>(_hostCallback.get());
+        if (hostCallbackImpl)
+            hostCallbackImpl->release();
     }
 
     void shutdown()
@@ -610,8 +623,15 @@ public:
         HostCallbackImpl(DefaultSGIProxy * parent, IHostCallback * callback)
             : HostCallbackBase(callback), _parent(parent) 
 		{
+            // remember the currently installed host callback, so we could restore it later
+            sgi::getHostCallback<autoload::Osg>(_previousInstalled);
+            // ... now install this new host callback
 			sgi::setHostCallback<autoload::Osg>(this);
 		}
+        ~HostCallbackImpl() override
+        {
+            OSG_WARN << "~HostCallbackImpl: " << this << " org:" << _original.get() << std::endl;
+        }
         virtual ReferencedPickerBase * createPicker(PickerType type, float x, float y)
         {
             if(!_parent->_view)
@@ -651,9 +671,24 @@ public:
             _parent->shutdown();
             HostCallbackBase::shutdown();
         }
-
+        void release()
+        {
+            IHostCallbackPtr currentHostCallback;
+            if (sgi::getHostCallback<autoload::Osg>(currentHostCallback))
+            {
+                //OSG_WARN << "~HostCallbackImpl::release: " << this << " current:" << currentHostCallback.get() << std::endl;
+                if (currentHostCallback.get() == this)
+                {
+                    //OSG_WARN << "~HostCallbackImpl::release: " << this << " restore:" << _previousInstalled.get() << std::endl;
+                    // restore the previously used callback
+                    sgi::setHostCallback<autoload::Osg>(_previousInstalled.get());
+                    _previousInstalled = NULL;
+                }
+            }
+        }
     private:
         DefaultSGIProxy * _parent;
+        IHostCallbackPtr _previousInstalled;
     };
 
 private:
@@ -675,7 +710,7 @@ public:
         , _options(filename, options)
         , _installed(false)
     {
-        setDataVariance(DYNAMIC);
+        setDataVariance(osg::Object::STATIC);
         // disable culling initially so this node would not be culled on first render traversal.
         // after the first pass we can re-enable culling for this node.
         setCullingActive(false);
@@ -686,12 +721,24 @@ public:
         , _options(rhs._options)
         , _installed(false)
     {
-        setDataVariance(DYNAMIC);
+        setDataVariance(osg::Object::STATIC);
 		++numInstances;
     }
 	~SGIInstallNode()
 	{
 		--numInstances;
+        if (_installed)
+        {
+            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+            if (_installed)
+            {
+                if (_proxy.valid())
+                {
+                    _proxy->release();
+                    _proxy = NULL;
+                }
+            }
+        }
 		if(numInstances == 0)
 			sgi::shutdown<sgi::autoload::Osg>();
 	}

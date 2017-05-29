@@ -129,6 +129,7 @@ public:
 	}
 	void setHostCallback(IHostCallback * callback)
 	{
+        //OSG_WARN << "SGIPluginsImpl::setHostCallback " << _hostCallback.get() << " new:" << callback << std::endl;
 		if (callback)
 			_hostCallback = callback;
 		else
@@ -422,7 +423,7 @@ public:
 	public:
 		DefaultHostCallback(SGIPluginsImpl * impl)
 			: _impl(impl) {}
-		~DefaultHostCallback()
+		~DefaultHostCallback() override
 		{
             qDebug() << "~DefaultHostCallback()" << this << _impl;
 		}

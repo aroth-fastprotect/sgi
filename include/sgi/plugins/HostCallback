@@ -51,6 +51,7 @@ class HostCallbackBase : public IHostCallback
 public:
 	HostCallbackBase(IHostCallback * original)
 		: _original(original) {}
+    virtual ~HostCallbackBase() {}
 
 	IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) override
 	{
@@ -147,7 +148,7 @@ public:
 			_original->shutdown();
 	}
 
-private:
+protected:
 	IHostCallbackPtr _original;
 };
 
@@ -301,6 +302,20 @@ inline bool setHostCallback(IHostCallback * callback)
 		ret = true;
 	}
 	return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline bool getHostCallback(IHostCallbackPtr & callback)
+{
+    bool ret = false;
+    typedef IHostCallback * (*pfn)();
+    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_hostCallback");
+    if (func)
+    {
+        callback = func();
+        ret = true;
+    }
+    return ret;
 }
 
 } // namespace sgi
