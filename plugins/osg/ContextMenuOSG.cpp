@@ -1283,6 +1283,14 @@ bool contextMenuPopulateImpl<osg::Camera>::populate(IContextMenuItem * menuItem)
             {
                 manipulateMenu->addSimpleAction(MenuActionCameraViewMatrix, "View matrix", _item);
                 manipulateMenu->addSimpleAction(MenuActionCameraProjectionMatrix, "Projection matrix", _item);
+
+                IContextMenuItem * projectionResizePolicyModeMenu = menuItem->addModeMenu(MenuActionCameraProjectionResizePolicy, "Projection resize policy", _item, object->getProjectionResizePolicy());
+                if (projectionResizePolicyModeMenu)
+                {
+                    projectionResizePolicyModeMenu->addModeAction("Fixed", osg::Camera::FIXED);
+                    projectionResizePolicyModeMenu->addModeAction("Horizontal", osg::Camera::HORIZONTAL);
+                    projectionResizePolicyModeMenu->addModeAction("Vertical", osg::Camera::VERTICAL);
+                }
             }
 
             menuItem->addSimpleAction(MenuActionCameraClearColor, "Clear color...", _item);
