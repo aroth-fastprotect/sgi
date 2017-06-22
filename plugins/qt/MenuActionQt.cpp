@@ -297,7 +297,7 @@ bool actionHandlerImpl<MenuActionObjectModifyProperty>::execute()
         {
             uint propertyValueInt = propertyValue.value<uint>();
             bool gotInput = _hostInterface->inputDialogInteger(menuAction()->menu()->parentWidget(),
-                (int&)propertyValueInt, propertyName, "Set property " + propertyName, std::numeric_limits<uint>::min(), std::numeric_limits<uint>::max(), 1, _item);
+                (int&)propertyValueInt, propertyName, "Set property " + propertyName, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), 1, _item);
             if (gotInput)
             {
                 propertyValue = QVariant::fromValue(propertyValueInt);
@@ -309,7 +309,7 @@ bool actionHandlerImpl<MenuActionObjectModifyProperty>::execute()
         {
             qlonglong propertyValueInt = propertyValue.value<qlonglong>();
             bool gotInput = _hostInterface->inputDialogInteger64(menuAction()->menu()->parentWidget(),
-                (int64_t&)propertyValueInt, propertyName, "Set property " + propertyName, std::numeric_limits<qlonglong>::min(), std::numeric_limits<qlonglong>::max(), 1, _item);
+                (int64_t&)propertyValueInt, propertyName, "Set property " + propertyName, std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max(), 1, _item);
             if (gotInput)
             {
                 propertyValue = QVariant::fromValue(propertyValueInt);
@@ -321,7 +321,7 @@ bool actionHandlerImpl<MenuActionObjectModifyProperty>::execute()
         {
             qulonglong propertyValueInt = propertyValue.value<qulonglong>();
             bool gotInput = _hostInterface->inputDialogInteger64(menuAction()->menu()->parentWidget(),
-                (int64_t&)propertyValueInt, propertyName, "Set property " + propertyName, std::numeric_limits<qulonglong>::min(), std::numeric_limits<qulonglong>::max(), 1, _item);
+                (int64_t&)propertyValueInt, propertyName, "Set property " + propertyName, std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max(), 1, _item);
             if (gotInput)
             {
                 propertyValue = QVariant::fromValue(propertyValueInt);
