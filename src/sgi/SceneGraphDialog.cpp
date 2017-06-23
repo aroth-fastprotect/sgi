@@ -12,8 +12,6 @@
 #include <QDesktopWidget>
 #include <QTimer>
 
-#include <QDebug>
-
 #include "sgi/plugins/SGIPluginInterface.h"
 #include "sgi/plugins/SGIProxyItem.h"
 

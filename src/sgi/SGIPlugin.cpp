@@ -10,7 +10,7 @@
 #include <QInputDialog>
 #include <QFileDialog>
 #include <QColorDialog>
-#include <QDebug>
+//#include <QDebug>
 
 #include "QtProxy.h"
 #include "sgi_internal.h"
@@ -145,7 +145,7 @@ public:
             }
         ~HostInterface()
         {
-            qDebug() << "~HostInterface()" << this << _impl;
+//             qDebug() << "~HostInterface()" << this << _impl;
         }
 
         unsigned version()
@@ -425,7 +425,7 @@ public:
 			: _impl(impl) {}
 		~DefaultHostCallback() override
 		{
-            qDebug() << "~DefaultHostCallback()" << this << _impl;
+//             qDebug() << "~DefaultHostCallback()" << this << _impl;
 		}
 
 		IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) override

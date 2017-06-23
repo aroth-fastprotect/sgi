@@ -336,7 +336,7 @@ public:
         : _menu(menu) {}
     ~ContextMenuImpl()
         {
-            qDebug() << "ContextMenuImpl dtor" << _menu;
+            //qDebug() << "ContextMenuImpl dtor" << _menu;
             if(_menu)
             {
                 _menu->_interface = NULL;
@@ -384,7 +384,7 @@ ContextMenu::ContextMenu(SGIItemBase * item, IHostCallback* callback, bool onlyR
 ContextMenu::~ContextMenu()
 {
 	_hostCallback = NULL;
-    qDebug() << "ContextMenu dtor" << _interface;
+    //qDebug() << "ContextMenu dtor" << _interface;
     if(_interface)
     {
         // tell interface that this instance is already gone, so no need to
@@ -444,16 +444,16 @@ void ContextMenu::slotPopulateItemMenu()
 void ContextMenu::slotClearItemMenu()
 {
     QMenu * menu = qobject_cast<QMenu *>(sender());
-    qDebug() << "slotClearItemMenu()" << this << menu;
-    if (menu)
+    if(menu && qobject_cast<ContextMenu*>(menu))
     {
+        //qDebug() << "slotClearItemMenu()" << this << menu;
         QAction * action = menu->menuAction();
         menu->clear();
         action->setData(QVariant());
+        // release all references to the current item
+        _item = NULL;
+        _hostCallback = NULL;
     }
-    // release all references to the current item
-    _item = NULL;
-    _hostCallback = NULL;
 }
 
 void ContextMenu::slotSimpleItemAction()
@@ -529,7 +529,7 @@ public:
         : _menu(menu) {}
     virtual ~ContextMenuQtImpl()
         { 
-			qDebug() << "ContextMenuQtImpl::dtor" << _menu; 
+			//qDebug() << "ContextMenuQtImpl::dtor" << _menu; 
             if (_menu)
             {
                 _menu->_interface = NULL;
@@ -559,7 +559,7 @@ ContextMenuQt::ContextMenuQt(QObject * qobject, IHostCallback * callback, bool o
 
 ContextMenuQt::~ContextMenuQt()
 {
-    qDebug() << "ContextMenuQt dtor" << _interface;
+    //qDebug() << "ContextMenuQt dtor" << _interface;
     // release the real-menu @a ContextMenu object
     _realMenu = NULL;
 	_hostCallback = NULL;
@@ -568,7 +568,7 @@ ContextMenuQt::~ContextMenuQt()
 		// tell interface that this instance is already gone, so no need to
 		// delete again
 		static_cast<ContextMenuQtImpl*>(_interface)->_menu = NULL;
-		qDebug() << "ContextMenuQt dtor delete " << _interface;
+		//qDebug() << "ContextMenuQt dtor delete " << _interface;
 		delete _interface;
 	}
 }
@@ -602,7 +602,7 @@ void ContextMenuQt::setObject(QObject * qobject, IHostCallback * callback)
 
 void ContextMenuQt::popup(QWidget * parent, int x, int y)
 {
-    qDebug() << "ContextMenuQt::popup" << parent << x << y;
+    //qDebug() << "ContextMenuQt::popup" << parent << x << y;
     _realMenu->popup(parent, x, y);
 }
 
