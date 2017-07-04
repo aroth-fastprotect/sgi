@@ -177,16 +177,16 @@ bool writePrettyHTMLImpl<osgText::TextBase>::process(std::basic_ostream<char>& o
             os << "<tr><td>matrix</td><td>" << object->getMatrix() << "</td></tr>" << std::endl;
             os << "<tr><td>primitives</td><td><ul>";
             for (auto prim : object->getPrimitives())
-                os << "<li>" << prim << "</li>";
+                os << "<li>" << prim->getType() << '/' << prim->getMode() << ':' << getObjectNameAndType(prim) << "</li>";
             os << "</ul></td></tr>" << std::endl;
 
             os << "<tr><td>vbo</td><td>" << getObjectNameAndType(object->getVBO()) << "</td></tr>" << std::endl;
             os << "<tr><td>ebo</td><td>" << getObjectNameAndType(object->getEBO()) << "</td></tr>" << std::endl;
 
-            os << "<tr><td>coords</td><td>" << object->getCoords() << "</td></tr>" << std::endl;
-            os << "<tr><td>normals</td><td>" << object->getNormals() << "</td></tr>" << std::endl;
-            os << "<tr><td>colorCoords</td><td>" << object->getColorCoords() << "</td></tr>" << std::endl;
-            os << "<tr><td>texCoords</td><td>" << object->getTexCoords() << "</td></tr>" << std::endl;
+            os << "<tr><td>coords</td><td>" << getObjectNameAndType(object->getCoords()) << "</td></tr>" << std::endl;
+            os << "<tr><td>normals</td><td>" << getObjectNameAndType(object->getNormals()) << "</td></tr>" << std::endl;
+            os << "<tr><td>colorCoords</td><td>" << getObjectNameAndType(object->getColorCoords()) << "</td></tr>" << std::endl;
+            os << "<tr><td>texCoords</td><td>" << getObjectNameAndType(object->getTexCoords()) << "</td></tr>" << std::endl;
             os << "<tr><td>scaleFont</td><td>" << object->getScaleFont() << "</td></tr>" << std::endl;
 
             if(_table)
