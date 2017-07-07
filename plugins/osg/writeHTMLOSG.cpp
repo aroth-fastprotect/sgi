@@ -251,6 +251,27 @@ namespace {
 
 }
 
+
+inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxf & b)
+{
+    return output << std::setprecision(12) << '[' << b._min << ',' << b._max << ']';
+}
+
+inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxd & b)
+{
+    return output << std::setprecision(12) << '[' << b._min << ',' << b._max << ']';
+}
+
+inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSpheref & b)
+{
+    return output << std::setprecision(12) << '[' << b._center << ",r=" << b._radius << ']';
+}
+
+inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSphered & b)
+{
+    return output << std::setprecision(12) << '[' << b._center << ",r=" << b._radius << ']';
+}
+
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::PrimitiveSet::Mode & t);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::PrimitiveSet::Type & t);
 
@@ -295,25 +316,19 @@ bool writePrettyHTMLImpl<osg::Transform>::process(std::basic_ostream<char>& os)
             // add remaining Transform properties
             os << "<tr><td>ref</td><td>" << object->getReferenceFrame() << "</td></tr>" << std::endl;
             os << "<tr><td>localToWorldMatrix</td><td>";
-            if(object)
             {
                 osg::Matrixd m;
                 object->computeLocalToWorldMatrix(m,NULL);
                 writePrettyHTML(os, m, MatrixUsageTypeModelView, object);
             }
-            else
-                os << "(null)" << std::endl;
             os << "</td></tr>" << std::endl;
 
             os << "<tr><td>worldToLocalMatrix</td><td>";
-            if(object)
             {
                 osg::Matrixd m;
                 object->computeWorldToLocalMatrix(m,NULL);
                 writePrettyHTML(os, m, MatrixUsageTypeModelView, object);
             }
-            else
-                os << "(null)" << std::endl;
             os << "</td></tr>" << std::endl;
 
             if(_table)
@@ -1454,9 +1469,7 @@ bool writePrettyHTMLImpl<osg::Drawable>::process(std::basic_ostream<char>& os)
 
             // add remaining drawable properties
             DrawableAccess * access = (DrawableAccess *)object;
-            os << "<tr><td>bounding box</td><td>";
-            writePrettyHTML(os, object->getBound(), object);
-            os << "</td></tr>" << std::endl;
+            os << "<tr><td>bounding box</td><td>" << object->getBound() << "</td></tr>" << std::endl;
 
             os << "<tr><td>supports display list</td><td>" << (object->getSupportsDisplayList()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>use display list</td><td>" << (object->getUseDisplayList()?"true":"false") << "</td></tr>" << std::endl;
@@ -5204,12 +5217,8 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
             os << "<tr><td>numChildrenWithOccluderNodes</td><td>" << object->getNumChildrenWithOccluderNodes() << "</td></tr>" << std::endl;
             os << "<tr><td>numUpdateTraversal</td><td>" << object->getNumChildrenRequiringUpdateTraversal() << "</td></tr>" << std::endl;
             os << "<tr><td>numEventTraversal</td><td>" << object->getNumChildrenRequiringEventTraversal() << "</td></tr>" << std::endl;
-            os << "<tr><td>initialBound</td><td>";
-            osg_helpers::writePrettyHTML(os, object->getInitialBound(), object);
-            os << "</td></tr>" << std::endl;
-            os << "<tr><td>bound</td><td>";
-            osg_helpers::writePrettyHTML(os, access->getBoundNoCompute(), object);
-            os << "</td></tr>" << std::endl;
+            os << "<tr><td>initialBound</td><td>" << object->getInitialBound() << "</td></tr>" << std::endl;
+            os << "<tr><td>bound</td><td>" << access->getBoundNoCompute() << "</td></tr>" << std::endl;
             os << "<tr><td>isBoundingSphereComputed</td><td>" << (access->isBoundingSphereComputed()?"true":"false") << "</td></tr>" << std::endl;
 
             if(_table)
@@ -6237,27 +6246,6 @@ bool writePrettyHTMLImpl<RenderInfoGeometry>::process(std::basic_ostream<char>& 
     const RenderInfoData & data = object->data();
     bool ret = writePrettyHTMLImpl_RenderInfoData(_hostInterface, os, _table, _item, data);
     return ret;
-}
-
-
-inline std::ostream& operator << (std::ostream& output, const osg::BoundingBoxf & b)
-{
-    return output << '[' << b._min << ',' << b._max << ']';
-}
-
-inline std::ostream& operator << (std::ostream& output, const osg::BoundingBoxd & b)
-{
-    return output << '[' << b._min << ',' << b._max << ']';
-}
-
-inline std::ostream& operator << (std::ostream& output, const osg::BoundingSpheref & b)
-{
-    return output << '[' << b._center << ",r=" << b._radius<< ']';
-}
-
-inline std::ostream& operator << (std::ostream& output, const osg::BoundingSphered & b)
-{
-    return output << '[' << b._center << ",r=" << b._radius << ']';
 }
 
 #define writePrettyHTML_ValueObject(__c) \
