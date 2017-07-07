@@ -233,17 +233,6 @@ void SceneGraphDialog::showEvent(QShowEvent * event)
     if(!_comboBoxPath->count())
         updatePathComboBox();
 
-    if(!_itemSelf.valid())
-    {
-        SGIHostItemInternal hostItemSelf(_interface);
-        SGIPlugins::instance()->generateItem(_itemSelf, &hostItemSelf);
-    }
-    if(!_itemToolsMenu.valid())
-    {
-        SGIHostItemInternal hostItemToolsMenu(_toolsMenuInterface);
-        SGIPlugins::instance()->generateItem(_itemToolsMenu, &hostItemToolsMenu);
-        _toolsMenu->setObject(_itemToolsMenu);
-    }
     if(!_rootTreeItem.valid())
         reload();
 }
@@ -385,6 +374,18 @@ void SceneGraphDialog::reload()
 	{
 		setWindowTitle(tr("No Information available"));
 	}
+
+    if (!_itemSelf.valid())
+    {
+        SGIHostItemInternal hostItemSelf(_interface);
+        SGIPlugins::instance()->generateItem(_itemSelf, &hostItemSelf);
+    }
+    if (!_itemToolsMenu.valid())
+    {
+        SGIHostItemInternal hostItemToolsMenu(_toolsMenuInterface);
+        SGIPlugins::instance()->generateItem(_itemToolsMenu, &hostItemToolsMenu);
+        _toolsMenu->setObject(_itemToolsMenu);
+    }
 
     ui->treeWidget->blockSignals(true);
 	ui->treeWidget->clear();
