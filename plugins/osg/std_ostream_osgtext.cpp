@@ -102,5 +102,35 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgText
     }
     return os;
 }
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgText::TextBase::AlignmentType & t)
+{
+    switch (t)
+    {
+    case osgText::TextBase::LEFT_TOP: os << "LEFT_TOP"; break;
+
+    case osgText::TextBase::LEFT_CENTER: os << "LEFT_CENTER"; break;
+    case osgText::TextBase::LEFT_BOTTOM: os << "LEFT_BOTTOM"; break;
+
+    case osgText::TextBase::CENTER_TOP: os << "CENTER_TOP"; break;
+    case osgText::TextBase::CENTER_CENTER: os << "CENTER_CENTER"; break;
+    case osgText::TextBase::CENTER_BOTTOM: os << "CENTER_BOTTOM"; break;
+
+    case osgText::TextBase::RIGHT_TOP: os << "RIGHT_TOP"; break;
+    case osgText::TextBase::RIGHT_CENTER: os << "RIGHT_CENTER"; break;
+    case osgText::TextBase::RIGHT_BOTTOM: os << "RIGHT_BOTTOM"; break;
+
+    case osgText::TextBase::LEFT_BASE_LINE: os << "LEFT_BASE_LINE"; break;
+    case osgText::TextBase::CENTER_BASE_LINE: os << "CENTER_BASE_LINE"; break;
+    case osgText::TextBase::RIGHT_BASE_LINE: os << "RIGHT_BASE_LINE"; break;
+
+    case osgText::TextBase::LEFT_BOTTOM_BASE_LINE: os << "LEFT_BOTTOM_BASE_LINE"; break;
+    case osgText::TextBase::CENTER_BOTTOM_BASE_LINE: os << "CENTER_BOTTOM_BASE_LINE"; break;
+    case osgText::TextBase::RIGHT_BOTTOM_BASE_LINE: os << "RIGHT_BOTTOM_BASE_LINE"; break;
+    default: os << (int)t; break;
+    }
+    return os;
+}
+
 } // namespace std
 

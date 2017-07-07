@@ -125,7 +125,6 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgText
     return os;
 }
 
-
 bool writePrettyHTMLImpl<osgText::TextBase>::process(std::basic_ostream<char>& os)
 {
     osgTextBaseAccess * object = static_cast<osgTextBaseAccess*>(getObject<osgText::TextBase, SGIItemOsg>());
