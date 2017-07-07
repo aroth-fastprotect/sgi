@@ -101,7 +101,6 @@ LIST(APPEND TARGET_H
 	)
 
 SET(TARGET_UI
-	SceneGraphDialog.ui
 	ObjectLoggerDialog.ui
 	QTextDialog.ui
 	DoubleInputDialog.ui

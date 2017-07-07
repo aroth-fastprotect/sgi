@@ -2,7 +2,15 @@
 
 #include "SceneGraphDialog.h"
 #include "SceneGraphDialog.moc"
-#include <ui_SceneGraphDialog.h>
+
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QSplitter>
+#include <QtWidgets/QTextBrowser>
+#include <QtWidgets/QTreeWidget>
+#include <QtWidgets/QVBoxLayout>
 
 #include <iostream>
 #include <QToolBar>
@@ -76,26 +84,208 @@ public:
     SceneGraphDialog * _dialog;
 };
 
+class SceneGraphDialog::Ui_TabPage
+{
+public:
+    QSplitter *splitter;
+    QTreeWidget *treeWidget;
+    QTextBrowser *textEdit;
+
+    SGIItemBasePtr item;
+    SGIItemBasePtrPath itemPath;
+    IObjectTreeItemPtr rootTreeItem;
+    IObjectTreeItemPtr selectedTreeItem;
+
+    Ui_TabPage()
+        : splitter(nullptr)
+        , treeWidget(nullptr)
+        , textEdit(nullptr)
+    {
+    }
+    ~Ui_TabPage()
+    {
+        delete treeWidget;
+        delete textEdit;
+        delete splitter;
+    }
+    void setupUi(SceneGraphDialog *dlg, QWidget * tabPage)
+    {
+        QVBoxLayout * verticalLayout = new QVBoxLayout();
+        verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
+        verticalLayout->setContentsMargins(3, 3, 3, 3);
+
+        splitter = new QSplitter(tabPage);
+        splitter->setObjectName(QStringLiteral("splitter"));
+        splitter->setOrientation(Qt::Horizontal);
+        treeWidget = new QTreeWidget(splitter);
+        QTreeWidgetItem *__qtreewidgetitem = new QTreeWidgetItem();
+        __qtreewidgetitem->setText(0, QStringLiteral("Name"));
+        treeWidget->setHeaderItem(__qtreewidgetitem);
+        treeWidget->setObjectName(QStringLiteral("treeWidget"));
+        treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+        splitter->addWidget(treeWidget);
+        textEdit = new QTextBrowser(splitter);
+        textEdit->setObjectName(QStringLiteral("textEdit"));
+        textEdit->setReadOnly(true);
+        textEdit->setTextInteractionFlags(Qt::LinksAccessibleByMouse | Qt::TextSelectableByMouse);
+        textEdit->setOpenExternalLinks(true);
+        splitter->addWidget(textEdit);
+
+        QObject::connect(treeWidget, &QTreeWidget::itemExpanded, dlg, &SceneGraphDialog::onItemExpanded);
+        QObject::connect(treeWidget, &QTreeWidget::itemCollapsed, dlg, &SceneGraphDialog::onItemCollapsed);
+        QObject::connect(treeWidget, &QTreeWidget::itemActivated, dlg, &SceneGraphDialog::onItemActivated);
+        QObject::connect(treeWidget, &QTreeWidget::customContextMenuRequested, dlg, &SceneGraphDialog::onItemContextMenu);
+        QObject::connect(treeWidget, &QTreeWidget::itemClicked, dlg, &SceneGraphDialog::onItemClicked);
+        QObject::connect(treeWidget, &QTreeWidget::itemSelectionChanged, dlg, &SceneGraphDialog::onItemSelectionChanged);
+
+        verticalLayout->addWidget(splitter);
+        tabPage->setLayout(verticalLayout);
+
+        QMetaObject::connectSlotsByName(dlg);
+    }
+};
+
+class SceneGraphDialog::Ui_SceneGraphDialog
+{
+public:
+    QTabWidget * tabWidget;
+    QVBoxLayout *verticalLayout;
+
+    typedef std::vector<Ui_TabPage*> Ui_TabPageList;
+    Ui_TabPageList tabs;
+
+    QToolBar * toolBar;
+    QComboBox * comboBoxPath;
+    QSpinBox * spinBoxRefreshTime;
+
+    QAction * actionAddTab;
+    QAction * actionCloseTab;
+    QAction * actionReload;
+    QAction * actionReloadSelected;
+    QAction * actionItemPrevious;
+    QAction * actionItemNext;
+
+    void setupUi(SceneGraphDialog *dlg)
+    {
+        if (dlg->objectName().isEmpty())
+            dlg->setObjectName(QStringLiteral("SceneGraphDialog"));
+        dlg->resize(800, 600);
+
+        verticalLayout = new QVBoxLayout(dlg);
+        verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
+        verticalLayout->setContentsMargins(0, 0, 0, 0);
+
+        tabWidget = new QTabWidget(dlg);
+        tabWidget->setObjectName(QStringLiteral("tabWidget"));
+        connect(tabWidget, &QTabWidget::currentChanged, dlg, &SceneGraphDialog::tabChanged);
+
+        toolBar = new QToolBar;
+        verticalLayout->addWidget(toolBar);
+        verticalLayout->addWidget(tabWidget);
+
+        comboBoxPath = new QComboBox(toolBar);
+        connect(comboBoxPath, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), dlg, &SceneGraphDialog::selectItemFromPath);
+
+        actionAddTab = new QAction(tr("Add tab"), dlg);
+        actionAddTab->setToolTip(tr("Add a new tab"));
+        actionAddTab->setIcon(QIcon::fromTheme("tab-new"));
+        connect(actionAddTab, &QAction::triggered, dlg, &SceneGraphDialog::addNewTab);
+
+        actionCloseTab = new QAction(tr("Close tab"), dlg);
+        actionCloseTab->setToolTip(tr("Close current tab"));
+        actionCloseTab->setIcon(QIcon::fromTheme("tab-close"));
+        connect(actionCloseTab, &QAction::triggered, dlg, &SceneGraphDialog::closeTab);
+
+        actionReloadSelected = new QAction(tr("Reload"), dlg);
+        actionReloadSelected->setToolTip(tr("Reload only the selected item and its childs"));
+        actionReloadSelected->setIcon(QIcon::fromTheme("edit-undo"));
+        connect(actionReloadSelected, &QAction::triggered, dlg, &SceneGraphDialog::reloadSelectedItem);
+
+        actionReload = new QAction(tr("Reload All"), dlg);
+        actionReload->setToolTip(tr("Reload all items in the tree and all their children"));
+        actionReload->setIcon(QIcon::fromTheme("system-reboot"));
+        connect(actionReload, &QAction::triggered, dlg, &SceneGraphDialog::reload);
+
+        actionItemPrevious = new QAction(tr("Previous"), dlg);
+        actionItemPrevious->setToolTip(tr("Select the previous item from the combo box"));
+        actionItemPrevious->setIcon(QIcon::fromTheme("arrow-left"));
+        connect(actionItemPrevious, &QAction::triggered, dlg, &SceneGraphDialog::itemPrevious);
+        actionItemNext = new QAction(tr("Next"), dlg);
+        actionItemNext->setToolTip(tr("Select the next item from the combo box"));
+        actionItemNext->setIcon(QIcon::fromTheme("arrow-right"));
+        connect(actionItemNext, &QAction::triggered, dlg, &SceneGraphDialog::itemNext);
+
+        spinBoxRefreshTime = new QSpinBox(toolBar);
+        spinBoxRefreshTime->setToolTip(tr("Automatically reloads the information every X seconds."));
+        spinBoxRefreshTime->setMinimum(0);
+        spinBoxRefreshTime->setMaximum(600);
+        spinBoxRefreshTime->setPrefix("Refresh ");
+        spinBoxRefreshTime->setSuffix("s");
+        connect(spinBoxRefreshTime, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), dlg, &SceneGraphDialog::refreshTimeChanged);
+
+        toolBar->addAction(actionAddTab);
+        toolBar->addAction(actionCloseTab);
+        toolBar->addAction(actionReloadSelected);
+        toolBar->addAction(actionReload);
+        toolBar->addAction(actionItemPrevious);
+        toolBar->addWidget(comboBoxPath);
+        toolBar->addAction(actionItemNext);
+        toolBar->addWidget(spinBoxRefreshTime);
+    }
+
+    Ui_TabPage * addTabPage(SceneGraphDialog * dlg)
+    {
+        QWidget * tabPage = new QWidget(dlg);
+        tabPage->setObjectName(QStringLiteral("tabPage"));
+
+        Ui_TabPage * page = new Ui_TabPage;
+        page->setupUi(dlg, tabPage);
+        tabs.push_back(page);
+
+        tabWidget->addTab(tabPage, tr("New Tab"));
+        tabWidget->setCurrentWidget(tabPage);
+        return page;
+    } // setupUi
+};
+
 SceneGraphDialog::SceneGraphDialog(SGIItemBase * item, IHostCallback * callback, QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
 	, ui(NULL)
     , _interface(new SceneGraphDialogImpl(this))
-    , _item(item)
 	, _hostCallback(new HostCallback(callback, this))
-    , _toolBar(NULL)
-    , _actionReload(NULL)
-    , _actionReloadSelected(NULL)
-    , _actionItemPrevious(NULL)
-    , _actionItemNext(NULL)
     , _contextMenu()
-    , _spinBoxRefreshTime(NULL)
     , _refreshTimer(NULL)
     , _toolsMenu()
     , _toolsMenuInterface(new ToolsMenuImpl(this))
     , _itemToolsMenu()
     , _firstShow(true)
 {
-    init();
+    ui = new Ui_SceneGraphDialog;
+    ui->setupUi(this);
+
+    Qt::WindowFlags flags = this->windowFlags()
+        | Qt::WindowMinimizeButtonHint
+        | Qt::WindowMaximizeButtonHint
+        | Qt::WindowCloseButtonHint;
+    this->setWindowFlags(flags);
+
+    _toolsMenu = new ContextMenu(false, this);
+
+    QToolButton * toolsMenuButton = new QToolButton(this);
+    toolsMenuButton->setMenu(_toolsMenu);
+    toolsMenuButton->setText(tr("Tools"));
+    toolsMenuButton->setIcon(QIcon::fromTheme("tool-measure"));
+    toolsMenuButton->setPopupMode(QToolButton::InstantPopup);
+
+    ui->toolBar->addWidget(toolsMenuButton);
+
+    connect(this, &SceneGraphDialog::triggerOnObjectChanged, this, &SceneGraphDialog::onObjectChanged, Qt::QueuedConnection);
+    connect(this, &SceneGraphDialog::triggerShow, this, &SceneGraphDialog::showBesideParent, Qt::QueuedConnection);
+    connect(this, &SceneGraphDialog::triggerHide, this, &SceneGraphDialog::hide, Qt::QueuedConnection);
+
+    addNewTab();
+
+    uiPage->item = item;
 }
 
 SceneGraphDialog::~SceneGraphDialog()
@@ -121,88 +311,24 @@ SceneGraphDialog::~SceneGraphDialog()
     }
 }
 
-void SceneGraphDialog::init()
-{
-    ui = new Ui_SceneGraphDialog;
-    ui->setupUi( this );
-
-    Qt::WindowFlags flags =this->windowFlags()
-        | Qt::WindowMinimizeButtonHint
-        | Qt::WindowMaximizeButtonHint
-        | Qt::WindowCloseButtonHint;
-    this->setWindowFlags(flags);
-
-    _toolBar = new QToolBar;
-    QVBoxLayout * mainLayout = (QVBoxLayout *)this->layout();
-    mainLayout->insertWidget(0, _toolBar);
-
-    _comboBoxPath = new QComboBox(_toolBar);
-    connect(_comboBoxPath, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this, &SceneGraphDialog::selectItemFromPath);
-
-    _actionReloadSelected = new QAction(tr("Reload"), this);
-    _actionReloadSelected->setToolTip(tr("Reload only the selected item and its childs"));
-	_actionReloadSelected->setIcon(QIcon::fromTheme("edit-undo"));
-    connect(_actionReloadSelected, &QAction::triggered, this, &SceneGraphDialog::reloadSelectedItem);
-
-    _actionReload = new QAction(tr("Reload All"), this);
-    _actionReload->setToolTip(tr("Reload all items in the tree and all their children"));
-	_actionReload->setIcon(QIcon::fromTheme("system-reboot"));
-	connect(_actionReload, &QAction::triggered, this, &SceneGraphDialog::reload);
-
-    _actionItemPrevious = new QAction(tr("Previous"), this);
-    _actionItemPrevious->setToolTip(tr("Select the previous item from the combo box"));
-	_actionItemPrevious->setIcon(QIcon::fromTheme("arrow-left"));
-    connect(_actionItemPrevious, &QAction::triggered, this, &SceneGraphDialog::itemPrevious);
-    _actionItemNext = new QAction(tr("Next"), this);
-    _actionItemNext->setToolTip(tr("Select the next item from the combo box"));
-	_actionItemNext->setIcon(QIcon::fromTheme("arrow-right"));
-	connect(_actionItemNext, &QAction::triggered, this, &SceneGraphDialog::itemNext);
-
-    _spinBoxRefreshTime = new QSpinBox(_toolBar);
-    _spinBoxRefreshTime->setToolTip(tr("Automatically reloads the information every X seconds."));
-    _spinBoxRefreshTime->setMinimum(0);
-    _spinBoxRefreshTime->setMaximum(600);
-    _spinBoxRefreshTime->setPrefix("Refresh ");
-    _spinBoxRefreshTime->setSuffix("s");
-    connect(_spinBoxRefreshTime, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &SceneGraphDialog::refreshTimeChanged);
-
-    _toolBar->addAction(_actionReloadSelected);
-    _toolBar->addAction(_actionReload);
-    _toolBar->addAction(_actionItemPrevious);
-    _toolBar->addWidget(_comboBoxPath);
-    _toolBar->addAction(_actionItemNext);
-    _toolBar->addWidget(_spinBoxRefreshTime);
-
-    _toolsMenu = new ContextMenu(false, this);
-
-    QToolButton * toolsMenuButton = new QToolButton(this);
-    toolsMenuButton->setMenu(_toolsMenu);
-    toolsMenuButton->setText(tr("Tools"));
-	toolsMenuButton->setIcon(QIcon::fromTheme("tool-measure"));
-    toolsMenuButton->setPopupMode(QToolButton::InstantPopup);
-
-    _toolBar->addWidget(toolsMenuButton);
-
-    connect(this, &SceneGraphDialog::triggerOnObjectChanged, this, &SceneGraphDialog::onObjectChanged, Qt::QueuedConnection);
-    connect(this, &SceneGraphDialog::triggerShow, this, &SceneGraphDialog::showBesideParent, Qt::QueuedConnection);
-    connect(this, &SceneGraphDialog::triggerHide, this, &SceneGraphDialog::hide, Qt::QueuedConnection);
-}
-
 void SceneGraphDialog::closeEvent(QCloseEvent * event)
 {
-    ui->treeWidget->clear();
-    ui->textEdit->clear();
-    _comboBoxPath->clear();
+    for (Ui_TabPage * page : ui->tabs)
+    {
+        page->treeWidget->clear();
+        page->textEdit->clear();
+        page->rootTreeItem = NULL;
+        page->selectedTreeItem = NULL;
+    }
+    ui->comboBoxPath->clear();
     _toolsMenu->setObject((SGIItemBase*)NULL);
     _contextMenu = NULL;
-    _rootTreeItem = NULL;
-    _selectedTreeItem = NULL;
     _itemSelf = NULL;
     _itemToolsMenu = NULL;
 
     /*
-    delete _comboBoxPath;
-    _comboBoxPath = NULL;
+    delete ui->comboBoxPath;
+    ui->comboBoxPath = NULL;
     delete ui->treeWidget;
     ui->treeWidget = NULL;
     delete ui->textEdit;
@@ -219,8 +345,8 @@ void SceneGraphDialog::closeEvent(QCloseEvent * event)
     _contextMenu = NULL;
     _toolsMenuInterface = NULL;
     _itemToolsMenu = NULL;
-    _rootTreeItem = NULL;
-    _selectedTreeItem = NULL;
+    uiPage->rootTreeItem = NULL;
+    uiPage->selectedTreeItem = NULL;
     */
 
     QDialog::closeEvent(event);
@@ -230,10 +356,10 @@ void SceneGraphDialog::showEvent(QShowEvent * event)
 {
     QDialog::showEvent(event);
 
-    if(!_comboBoxPath->count())
+    if(!ui->comboBoxPath->count())
         updatePathComboBox();
 
-    if(!_rootTreeItem.valid())
+    if(!uiPage->rootTreeItem.valid())
         reload();
 }
 
@@ -298,76 +424,91 @@ void SceneGraphDialog::setObject(const SGIHostItemBase * hostitem, IHostCallback
 
 void SceneGraphDialog::setObject(SGIItemBase * item, IHostCallback * callback)
 {
-    _item = item;
+    if (uiPage->item.get() == item)
+        return;
+    int existingTabIndex = -1;
+    for (int index = 0; existingTabIndex < 0 && index < (int)ui->tabs.size(); ++index)
+    {
+        Ui_TabPage * page = ui->tabs[index];
+        if (page->item == item)
+            existingTabIndex = index;
+    }
 	if(callback)
 		_hostCallback = callback;
-    emit triggerOnObjectChanged();
+    if (existingTabIndex >= 0)
+        ui->tabWidget->setCurrentIndex(existingTabIndex);
+    else
+    {
+        addNewTab();
+        uiPage->item = item;
+        emit triggerOnObjectChanged();
+    }
 }
 
 void SceneGraphDialog::updatePathComboBox()
 {
-    _comboBoxPath->blockSignals(true);
-    _comboBoxPath->clear();
+    ui->comboBoxPath->blockSignals(true);
+    ui->comboBoxPath->clear();
     // first get the current path
-    if(_item.valid())
-        SGIPlugins::instance()->getObjectPath(_itemPath, _item);
+    if(uiPage->item.valid())
+        SGIPlugins::instance()->getObjectPath(uiPage->itemPath, uiPage->item);
     else
-        _itemPath.clear();
+        uiPage->itemPath.clear();
 
     int currentItemIndex = -1;
 
-    if(_itemPath.empty())
+    if(uiPage->itemPath.empty())
     {
-        if(_item.valid())
+        if(uiPage->item.valid())
         {
             std::string objectName;
-            SGIPlugins::instance()->getObjectName(objectName, _item, true);
-            QtSGIItem data(_item.get());
-            _comboBoxPath->addItem(fromLocal8Bit(objectName), QVariant::fromValue(data));
+            SGIPlugins::instance()->getObjectName(objectName, uiPage->item, true);
+            QtSGIItem data(uiPage->item.get());
+            ui->comboBoxPath->addItem(fromLocal8Bit(objectName), QVariant::fromValue(data));
             currentItemIndex = 0;
         }
     }
     else
     {
-        for(SGIItemBasePtrPath::const_iterator it = _itemPath.begin(); it != _itemPath.end(); it++)
+        for(SGIItemBasePtrPath::const_iterator it = uiPage->itemPath.begin(); it != uiPage->itemPath.end(); it++)
         {
             const SGIItemBasePtr & item = *it;
             std::string objectName;
             SGIPlugins::instance()->getObjectName(objectName, item, true);
 			QtSGIItem data(item.get());
-            _comboBoxPath->addItem(fromLocal8Bit(objectName), QVariant::fromValue(data));
-            if(*item.get() == *_item.get())
-                currentItemIndex = _comboBoxPath->count() - 1;
+            ui->comboBoxPath->addItem(fromLocal8Bit(objectName), QVariant::fromValue(data));
+            if(*item.get() == *uiPage->item.get())
+                currentItemIndex = ui->comboBoxPath->count() - 1;
         }
     }
-    int numItems = _comboBoxPath->count();
-    _comboBoxPath->setEnabled(_itemPath.empty() == false);
+    int numItems = ui->comboBoxPath->count();
+    ui->comboBoxPath->setEnabled(uiPage->itemPath.empty() == false);
     // trigger the drop-down box to adjust to the new content
-    _comboBoxPath->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
-    _comboBoxPath->setSizeAdjustPolicy(QComboBox::AdjustToContents);
-    _comboBoxPath->setCurrentIndex(currentItemIndex);
-    _comboBoxPath->blockSignals(false);
-    _actionItemPrevious->setEnabled(currentItemIndex > 0);
-    _actionItemNext->setEnabled(currentItemIndex + 1 < numItems);
+    ui->comboBoxPath->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
+    ui->comboBoxPath->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+    ui->comboBoxPath->setCurrentIndex(currentItemIndex);
+    ui->comboBoxPath->blockSignals(false);
+    ui->actionItemPrevious->setEnabled(currentItemIndex > 0);
+    ui->actionItemNext->setEnabled(currentItemIndex + 1 < numItems);
 }
 
 void SceneGraphDialog::reload()
 {
     setCursor(Qt::WaitCursor);
 
-    if(!_rootTreeItem.valid())
+    if(!uiPage->rootTreeItem.valid())
     {
-        QTreeWidgetItem * root = ui->treeWidget->invisibleRootItem();
+        QTreeWidgetItem * root = uiPage->treeWidget->invisibleRootItem();
         QtSGIItem nodeDataRoot(SGIItemTypeTreeRoot, NULL, true);
         // set dummy data into the second column (type)
         root->setData(0, Qt::UserRole, QVariant::fromValue(nodeDataRoot));
-        _rootTreeItem = new ObjectTreeItem(root, SGIPlugins::instance()->hostInterface());
+        uiPage->rootTreeItem = new ObjectTreeItem(root, SGIPlugins::instance()->hostInterface());
     }
 
-	if (_item.valid())
+	if (uiPage->item.valid())
 	{
 		std::string displayName;
-		SGIPlugins::instance()->getObjectDisplayName(displayName, _item);
+		SGIPlugins::instance()->getObjectDisplayName(displayName, uiPage->item);
 		setWindowTitle(tr("Information about %1").arg(fromLocal8Bit(displayName)));
 	}
 	else
@@ -387,65 +528,66 @@ void SceneGraphDialog::reload()
         _toolsMenu->setObject(_itemToolsMenu);
     }
 
-    ui->treeWidget->blockSignals(true);
-	ui->treeWidget->clear();
-	QList<int> panes_sizes;
-	int total_width ;
-	QLayout * currentLayout = ui->verticalLayout;
-	total_width = this->width() - ui->verticalLayout->margin();
-	const int tree_width = 3 * total_width / 5;
-	const int textbox_width = 2 * total_width / 5;
-	panes_sizes.append(tree_width);
-	panes_sizes.append(textbox_width);
-	ui->splitter->setSizes(panes_sizes);
+    uiPage->treeWidget->blockSignals(true);
+    uiPage->treeWidget->clear();
+    QList<int> panes_sizes;
+    int total_width;
+    QLayout * currentLayout = ui->verticalLayout;
+    total_width = this->width() - ui->verticalLayout->margin();
+    const int tree_width = 3 * total_width / 5;
+    const int textbox_width = 2 * total_width / 5;
+    panes_sizes.append(tree_width);
+    panes_sizes.append(textbox_width);
+    uiPage->splitter->setSizes(panes_sizes);
 
-	total_width = tree_width - 32;
-	ui->treeWidget->setColumnWidth(0, 3 * total_width / 4);
-	ui->treeWidget->setColumnWidth(1, total_width / 4);
+    total_width = tree_width - 32;
+    uiPage->treeWidget->setColumnWidth(0, 3 * total_width / 4);
+    uiPage->treeWidget->setColumnWidth(1, total_width / 4);
 
     ObjectTreeItem * viewNodeItem = NULL;
 
-    buildRootTree(static_cast<ObjectTreeItem *>(_rootTreeItem.get()));
+    buildRootTree(static_cast<ObjectTreeItem *>(uiPage->rootTreeItem.get()));
 
 	ObjectTreeItem * treeItem = NULL;
-    if(_item.valid())
+    if(uiPage->item.valid())
     {
-        treeItem = static_cast<ObjectTreeItem *>(_rootTreeItem->addChild(std::string(), _item.get()));
+        treeItem = static_cast<ObjectTreeItem *>(uiPage->rootTreeItem->addChild(std::string(), uiPage->item.get()));
     }
 
 	if(treeItem)
 	{
 		treeItem->setSelected(true);
 		onItemActivated(treeItem->treeItem(), 0);
-        _selectedTreeItem = treeItem;
+        uiPage->selectedTreeItem = treeItem;
 	}
     else if(viewNodeItem)
     {
         viewNodeItem->setSelected(true);
         onItemActivated(viewNodeItem->treeItem(), 0);
-        _selectedTreeItem = viewNodeItem;
+        uiPage->selectedTreeItem = viewNodeItem;
     }
     else
-        _selectedTreeItem = _rootTreeItem;
-    ui->treeWidget->blockSignals(false);
+        uiPage->selectedTreeItem = uiPage->rootTreeItem;
+    uiPage->treeWidget->blockSignals(false);
 
-    QTreeWidgetItem * currentItem = ui->treeWidget->currentItem();
-    if(currentItem)
-        ui->treeWidget->expandItem(currentItem);
+    QTreeWidgetItem * currentItem = uiPage->treeWidget->currentItem();
+    if (currentItem)
+        uiPage->treeWidget->expandItem(currentItem);
+
     setCursor(Qt::ArrowCursor);
 }
 
 void SceneGraphDialog::itemNext()
 {
-    if(!_itemPath.empty())
+    if(!uiPage->itemPath.empty())
     {
-        for(SGIItemBasePtrPath::const_iterator it = _itemPath.begin(); it != _itemPath.end(); it++)
+        for(SGIItemBasePtrPath::const_iterator it = uiPage->itemPath.begin(); it != uiPage->itemPath.end(); it++)
         {
-            if(*_item.get() == *(*it))
+            if(*uiPage->item.get() == *(*it))
             {
                 it++;
-                if(it != _itemPath.end())
-                    _item = *it;
+                if(it != uiPage->itemPath.end())
+                    uiPage->item = *it;
                 selectItemInPathBox();
                 reload();
                 break;
@@ -456,16 +598,16 @@ void SceneGraphDialog::itemNext()
 
 void SceneGraphDialog::itemPrevious()
 {
-    if(!_itemPath.empty())
+    if(!uiPage->itemPath.empty())
     {
         SGIItemBasePtr prev;
-        for(SGIItemBasePtrPath::const_iterator it = _itemPath.begin(); it != _itemPath.end(); it++)
+        for(SGIItemBasePtrPath::const_iterator it = uiPage->itemPath.begin(); it != uiPage->itemPath.end(); it++)
         {
-            if(*_item.get() == *(*it))
+            if(*uiPage->item.get() == *(*it))
             {
                 if(prev)
                 {
-                    _item = prev;
+                    uiPage->item = prev;
                     selectItemInPathBox();
                     reload();
                 }
@@ -479,7 +621,7 @@ void SceneGraphDialog::itemPrevious()
 
 void SceneGraphDialog::reloadSelectedItem()
 {
-    QTreeWidgetItem * item = _selectedTreeItem.valid()?((ObjectTreeItem*)_selectedTreeItem.get())->treeItem():NULL;
+    QTreeWidgetItem * item = uiPage->selectedTreeItem.valid()?((ObjectTreeItem*)uiPage->selectedTreeItem.get())->treeItem():NULL;
     if(item)
     {
         QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
@@ -535,16 +677,17 @@ void SceneGraphDialog::onItemActivated(QTreeWidgetItem * item, int column)
 
 void SceneGraphDialog::onItemSelectionChanged()
 {
-    QTreeWidgetItem * item = ui->treeWidget->currentItem();
-    IObjectTreeItemPtr oldItem = _selectedTreeItem;
+    QTreeWidget * treeWidget = qobject_cast<QTreeWidget *>(sender());
+    QTreeWidgetItem * item = treeWidget->currentItem();
+    IObjectTreeItemPtr oldItem = uiPage->selectedTreeItem;
     if (item)
     {
         QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-        _selectedTreeItem = new ObjectTreeItem(item, SGIPlugins::instance()->hostInterface());
+        uiPage->selectedTreeItem = new ObjectTreeItem(item, SGIPlugins::instance()->hostInterface());
     }
     else
-        _selectedTreeItem = NULL;
-    //d->_impl->itemSelected(oldItem.get(), _selectedTreeItem.get());
+        uiPage->selectedTreeItem = NULL;
+    //d->_impl->itemSelected(oldItem.get(), uiPage->selectedTreeItem.get());
 }
 
 bool SceneGraphDialog::buildTree(ObjectTreeItem * treeItem, SGIItemBase * item)
@@ -585,14 +728,15 @@ void SceneGraphDialog::setNodeInfo(const SGIItemBase * item)
     {
         os << "<b>item is <i>NULL</i></b>";
     }
-    ui->textEdit->blockSignals(true);
-    ui->textEdit->setHtml(fromLocal8Bit(os.str()));
-    ui->textEdit->blockSignals(false);
+    uiPage->textEdit->blockSignals(true);
+    uiPage->textEdit->setHtml(fromLocal8Bit(os.str()));
+    uiPage->textEdit->blockSignals(false);
 }
 
 void SceneGraphDialog::onItemContextMenu(QPoint pt)
 {
-	QTreeWidgetItem * item = ui->treeWidget->itemAt (pt);
+    QTreeWidget * treeWidget = qobject_cast<QTreeWidget *>(sender());
+	QTreeWidgetItem * item = treeWidget->itemAt (pt);
 	QtSGIItem itemData;
     if (item)
     {
@@ -620,8 +764,8 @@ void SceneGraphDialog::onItemContextMenu(QPoint pt)
 
         if (contextQMenu)
         {
-            pt.ry() += ui->treeWidget->header()->height();
-            QPoint globalPos = ui->treeWidget->mapToGlobal(pt);
+            pt.ry() += treeWidget->header()->height();
+            QPoint globalPos = treeWidget->mapToGlobal(pt);
             contextQMenu->popup(globalPos);
         }
     }
@@ -645,7 +789,7 @@ bool SceneGraphDialog::newInstance(SGIItemBase * item)
 {
     bool ret;
     // only open a new instance when the object is different
-    if(_item != item && *_item.get() != *item)
+    if(uiPage->item != item && *uiPage->item.get() != *item)
     {
         ISceneGraphDialog * dlg = SGIPlugins::instance()->showSceneGraphDialog(parentWidget(), item, _hostCallback);
         if(dlg)
@@ -691,29 +835,29 @@ bool SceneGraphDialog::showObjectLoggerDialog(const SGIHostItemBase * hostitem)
 void SceneGraphDialog::selectItemInPathBox()
 {
     int selectIndex = -1;
-    _comboBoxPath->blockSignals(true);
-    int numItems = _comboBoxPath->count();
+    ui->comboBoxPath->blockSignals(true);
+    int numItems = ui->comboBoxPath->count();
     for(int i = 0; selectIndex < 0 && i < numItems; i++)
     {
-		QtSGIItem data = _comboBoxPath->itemData(i).value<QtSGIItem>();
-        if(*data.item() == *_item.get())
+		QtSGIItem data = ui->comboBoxPath->itemData(i).value<QtSGIItem>();
+        if(*data.item() == *uiPage->item.get())
         {
             selectIndex = i;
             break;
         }
     }
-    _actionItemPrevious->setEnabled(selectIndex > 0);
-    _actionItemNext->setEnabled(selectIndex + 1 < numItems);
-    _comboBoxPath->setCurrentIndex(selectIndex);
-    _comboBoxPath->blockSignals(false);
+    ui->actionItemPrevious->setEnabled(selectIndex > 0);
+    ui->actionItemNext->setEnabled(selectIndex + 1 < numItems);
+    ui->comboBoxPath->setCurrentIndex(selectIndex);
+    ui->comboBoxPath->blockSignals(false);
 }
 
 void SceneGraphDialog::selectItemFromPath(int index)
 {
-	QtSGIItem data = _comboBoxPath->itemData(index).value<QtSGIItem>();
-	_item = data.item();
-    _actionItemPrevious->setEnabled(index > 0);
-    _actionItemNext->setEnabled(index + 1 < _comboBoxPath->count());
+	QtSGIItem data = ui->comboBoxPath->itemData(index).value<QtSGIItem>();
+	uiPage->item = data.item();
+    ui->actionItemPrevious->setEnabled(index > 0);
+    ui->actionItemNext->setEnabled(index + 1 < ui->comboBoxPath->count());
     reload();
 }
 
@@ -732,7 +876,7 @@ void SceneGraphDialog::refreshTimeChanged ( int n )
 
 void SceneGraphDialog::refreshTimerExpired()
 {
-    QTreeWidgetItem * item = ui->treeWidget->currentItem();
+    QTreeWidgetItem * item = uiPage->treeWidget->currentItem();
     if(item)
     {
         QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
@@ -742,29 +886,50 @@ void SceneGraphDialog::refreshTimerExpired()
 
 IObjectTreeItem * SceneGraphDialog::selectedItem()
 {
-    return _selectedTreeItem.get();
+    return uiPage->selectedTreeItem.get();
 }
 
 IObjectTreeItem * SceneGraphDialog::rootItem()
 {
-    return _rootTreeItem.get();
+    return uiPage->rootTreeItem.get();
 }
 
 SGIItemBase * SceneGraphDialog::item() const
 {
-	return _item.get();
+	return uiPage->item.get();
 }
 
 const SGIItemBasePtrPath & SceneGraphDialog::itemPath() const
 {
-	return _itemPath;
+	return uiPage->itemPath;
 }
 
 void SceneGraphDialog::setInfoText(const std::string & text)
 {
-    ui->textEdit->blockSignals(true);
-    ui->textEdit->setHtml(fromLocal8Bit(text));
-    ui->textEdit->blockSignals(false);
+    uiPage->textEdit->blockSignals(true);
+    uiPage->textEdit->setHtml(fromLocal8Bit(text));
+    uiPage->textEdit->blockSignals(false);
+}
+
+void SceneGraphDialog::tabChanged(int index)
+{
+    uiPage = ui->tabs[index];
+}
+
+void SceneGraphDialog::addNewTab()
+{
+    uiPage = ui->addTabPage(this);
+    ui->actionCloseTab->setEnabled(ui->tabs.size() > 1);
+}
+
+void SceneGraphDialog::closeTab()
+{
+    int index = ui->tabWidget->currentIndex();
+    Ui_TabPage * page = ui->tabs[index];
+    delete page;
+    ui->tabs.erase(ui->tabs.begin() + index);
+    ui->tabWidget->removeTab(index);
+    ui->actionCloseTab->setEnabled(ui->tabs.size() > 1);
 }
 
 } // namespace sgi

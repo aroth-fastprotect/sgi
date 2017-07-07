@@ -4,7 +4,6 @@
 #include <sgi/plugins/SceneGraphDialog>
 
 QT_BEGIN_NAMESPACE
-class Ui_SceneGraphDialog;
 class QTimer;
 class QTreeWidgetItem;
 class QToolBar;
@@ -69,6 +68,10 @@ protected slots:
     void                    reload();
     void                    reloadSelectedItem();
 
+    void                    tabChanged(int index);
+    void                    addNewTab();
+    void                    closeTab();
+
     void                    showBesideParent();
 
 signals:
@@ -80,6 +83,9 @@ protected:
     class HostCallback;
     class SceneGraphDialogImpl;
     class ToolsMenuImpl;
+private:
+    class Ui_SceneGraphDialog;
+    class Ui_TabPage;
 
 protected:
     bool                    buildRootTree(ObjectTreeItem * treeItem);
@@ -102,33 +108,22 @@ protected:
     virtual void            showEvent(QShowEvent * event) override;
 
 private:
-    void                    init();
     void                    updatePathComboBox();
 
 private:
 	Ui_SceneGraphDialog *	ui;
+    Ui_TabPage *            uiPage;
 
 protected:  // for now
 	SGIItemBasePtr                      _itemSelf;
     // use a simple raw-ptr to the interface to avoid a circular ref-ptr
     ISceneGraphDialog *                 _interface;
-    SGIItemBasePtr                      _item;
-    SGIItemBasePtrPath                  _itemPath;
 	IHostCallbackPtr                    _hostCallback;
-    QToolBar *                          _toolBar;
-    QAction *                           _actionReload;
-    QAction *                           _actionReloadSelected;
-    QAction *                           _actionItemPrevious;
-    QAction *                           _actionItemNext;
-    QComboBox *                         _comboBoxPath;
     IContextMenuPtr                     _contextMenu;
-    QSpinBox *                          _spinBoxRefreshTime;
     QTimer *                            _refreshTimer;
     ContextMenu *                       _toolsMenu;
     ISceneGraphDialogToolsMenuPtr       _toolsMenuInterface;
     SGIItemBasePtr                      _itemToolsMenu;
-    IObjectTreeItemPtr                  _rootTreeItem;
-    IObjectTreeItemPtr                  _selectedTreeItem;
     bool                                _firstShow;
 };
 
