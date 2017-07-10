@@ -87,6 +87,7 @@ public:
 class SceneGraphDialog::Ui_TabPage
 {
 public:
+    QWidget *tabPageWidget;
     QSplitter *splitter;
     QTreeWidget *treeWidget;
     QTextBrowser *textEdit;
@@ -97,7 +98,8 @@ public:
     IObjectTreeItemPtr selectedTreeItem;
 
     Ui_TabPage()
-        : splitter(nullptr)
+        : tabPageWidget(nullptr)
+        , splitter(nullptr)
         , treeWidget(nullptr)
         , textEdit(nullptr)
     {
@@ -107,6 +109,7 @@ public:
         delete treeWidget;
         delete textEdit;
         delete splitter;
+        delete tabPageWidget;
     }
     void setupUi(SceneGraphDialog *dlg, QWidget * tabPage)
     {
@@ -140,7 +143,7 @@ public:
 
         verticalLayout->addWidget(splitter);
         tabPage->setLayout(verticalLayout);
-
+        tabPageWidget = tabPage;
         QMetaObject::connectSlotsByName(dlg);
     }
 };
@@ -464,8 +467,11 @@ void SceneGraphDialog::updatePathComboBox()
             std::string objectName;
             SGIPlugins::instance()->getObjectName(objectName, uiPage->item, true);
             QtSGIItem data(uiPage->item.get());
-            ui->comboBoxPath->addItem(fromLocal8Bit(objectName), QVariant::fromValue(data));
+            QString qobjectName = fromLocal8Bit(objectName);
+            ui->comboBoxPath->addItem(qobjectName, QVariant::fromValue(data));
             currentItemIndex = 0;
+            int index = ui->tabWidget->indexOf(uiPage->tabPageWidget);
+            ui->tabWidget->setTabText(index, qobjectName);
         }
     }
     else
@@ -476,9 +482,14 @@ void SceneGraphDialog::updatePathComboBox()
             std::string objectName;
             SGIPlugins::instance()->getObjectName(objectName, item, true);
 			QtSGIItem data(item.get());
-            ui->comboBoxPath->addItem(fromLocal8Bit(objectName), QVariant::fromValue(data));
-            if(*item.get() == *uiPage->item.get())
+            QString qobjectName = fromLocal8Bit(objectName);
+            ui->comboBoxPath->addItem(qobjectName, QVariant::fromValue(data));
+            if (*item.get() == *uiPage->item.get())
+            {
                 currentItemIndex = ui->comboBoxPath->count() - 1;
+                int index = ui->tabWidget->indexOf(uiPage->tabPageWidget);
+                ui->tabWidget->setTabText(index, qobjectName);
+            }
         }
     }
     int numItems = ui->comboBoxPath->count();
