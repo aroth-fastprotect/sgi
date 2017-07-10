@@ -1928,6 +1928,19 @@ bool objectTreeBuildImpl<osg::State>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg gfxcostest(object->getGraphicsCostEstimator());
             if(gfxcostest.hasObject())
                 treeItem->addChild("GraphicsCostEstimator", &gfxcostest);
+
+            SGIHostItemOsg vbo(object->getCurrentVertexBufferObject());
+            if (vbo.hasObject())
+                treeItem->addChild("CurrentVBO", &vbo);
+
+            SGIHostItemOsg ebo(object->getCurrentElementBufferObject());
+            if (ebo.hasObject())
+                treeItem->addChild("CurrentEBO", &ebo);
+
+            SGIHostItemOsg pbo(object->getCurrentPixelBufferObject());
+            if (pbo.hasObject())
+                treeItem->addChild("CurrentPBO", &pbo);
+
         }
         break;
     default:
@@ -3742,7 +3755,7 @@ bool objectTreeBuildImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, 
         {
             for (RenderInfoData::HashedState::const_iterator it = hashedState.begin(); it != hashedState.end(); it++)
             {
-                const unsigned & hash = it->first;
+                const RenderInfoData::HashedStateId & hash = it->first;
                 const RenderInfoData::State & state = it->second;
                 unsigned contextID = (state.state.valid() ? state.state->getContextID() : ~0u);
                 treeItem->addChild(helpers::str_plus_info("State", contextID, hash), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoState, hash));
@@ -3760,6 +3773,10 @@ bool objectTreeBuildImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, 
 
                 SGIHostItemOsg view(state.view);
                 treeItem->addChild("View", &view);
+
+                SGIHostItemOsg userData(state.userData);
+                if(userData.hasObject())
+                    treeItem->addChild("UserData", &userData);
 
                 SGIHostItemOsg capturedStateSet(state.capturedStateSet);
                 treeItem->addChild("CapturedStateSet", &capturedStateSet);
@@ -3779,20 +3796,32 @@ bool objectTreeBuildImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, 
     case SGIItemTypeRenderInfoStateSetStack:
     {
         const RenderInfoData::HashedState & hashedState = data.hashedState();
-        RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
-        if (it != hashedState.end())
+        if (item->number() == ~0u)
         {
-            const RenderInfoData::State & state = it->second;
-            const RenderInfoData::StateSetStack & lastStack = state.stateSetStack;
-            for (RenderInfoData::StateSetStack::const_iterator it = lastStack.begin(); it != lastStack.end(); it++)
+            for (auto it = hashedState.begin(); it != hashedState.end(); ++it)
             {
-                SGIHostItemOsg child(*it);
-                treeItem->addChild(std::string(), &child);
+                const RenderInfoData::HashedStateId & state = it->first;
+                treeItem->addChild(helpers::str_plus_info("State", state), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoStateSetStack, state));
             }
+        }
+        else
+        {
+            RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
+            if (it != hashedState.end())
+            {
+                const RenderInfoData::State & state = it->second;
+                const RenderInfoData::StateSetStack & lastStack = state.stateSetStack;
+                for (RenderInfoData::StateSetStack::const_iterator it = lastStack.begin(); it != lastStack.end(); it++)
+                {
+                    const RenderInfoData::StateSetEntry & entry = *it;
+                    SGIHostItemOsg child(entry.stateSet.get());
+                    treeItem->addChild(std::string(), &child);
+                }
 
-            SGIHostItemOsg combinedStateSet(state.combinedStateSet);
-            treeItem->addChild("CombinedStateSet", &combinedStateSet);
+                SGIHostItemOsg combinedStateSet(state.combinedStateSet);
+                treeItem->addChild("CombinedStateSet", &combinedStateSet);
 
+            }
         }
         ret = true;
     }

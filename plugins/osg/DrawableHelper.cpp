@@ -136,7 +136,18 @@ void RenderInfoData::copyStateSetStack(StateSetStack & dest, const std::vector<c
     for(osg::State::StateSetStack::const_iterator it = src.begin(); it != src.end(); it++, dest_index++)
     {
         const osg::StateSet* src_ss = *it;
-        dest[dest_index] = (osg::StateSet*)src_ss->clone(osg::CopyOp::DEEP_COPY_ALL);
+        StateSetEntry & entry = dest[dest_index];
+        entry.stateSet = (osg::StateSet*)src_ss->clone(osg::CopyOp::DEEP_COPY_ALL);
+        entry.parentalNodePaths.resize(src_ss->getNumParents());
+        for (unsigned i = 0; i < src_ss->getNumParents(); ++i)
+        {
+            const osg::Node * src_parent = src_ss->getParent(i);
+            if (src_parent)
+            {
+                osg::NodePathList plist = src_parent->getParentalNodePaths();
+                entry.parentalNodePaths[i] = plist;
+            }
+        }
     }
 }
 
@@ -238,8 +249,8 @@ void RenderInfoData::captureCurrentState(osg::StateSet * dest, osg::State * src)
 }
 
 namespace {
-    typedef unsigned long long register_t;
-    typedef unsigned long long ptr_int_t;
+    typedef RenderInfoData::HashedStateId register_t;
+    typedef RenderInfoData::HashedStateId ptr_int_t;
 
     inline unsigned register_t_to_unsigned(register_t key)
     {
@@ -286,7 +297,107 @@ namespace {
             return _appliedProgramObjectSet;
         }
 #endif
+        void copyFrom(const osg::State * src);
     };
+
+#define StateAccess_copyFrom(__field) \
+    __field = src->__field
+
+    void StateAccess::copyFrom(const osg::State * src_)
+    {
+        StateAccess * src = (StateAccess*)src_;
+
+        StateAccess_copyFrom(_graphicsContext);
+        StateAccess_copyFrom(_contextID);
+
+        StateAccess_copyFrom(_globalVertexArrayState);
+        StateAccess_copyFrom(_vas);
+
+        StateAccess_copyFrom(_shaderCompositionEnabled);
+        StateAccess_copyFrom(_shaderCompositionDirty);
+        StateAccess_copyFrom(_shaderComposer);
+        StateAccess_copyFrom(_currentShaderCompositionProgram);
+        StateAccess_copyFrom(_currentShaderCompositionUniformList);
+        StateAccess_copyFrom(_frameStamp);
+        StateAccess_copyFrom(_identity);
+        StateAccess_copyFrom(_initialViewMatrix);
+        StateAccess_copyFrom(_projection);
+        StateAccess_copyFrom(_modelView);
+        StateAccess_copyFrom(_modelViewCache);
+        StateAccess_copyFrom(_useModelViewAndProjectionUniforms);
+        StateAccess_copyFrom(_modelViewMatrixUniform);
+        StateAccess_copyFrom(_projectionMatrixUniform);
+        StateAccess_copyFrom(_modelViewProjectionMatrixUniform);
+        StateAccess_copyFrom(_normalMatrixUniform);
+        StateAccess_copyFrom(_initialInverseViewMatrix);
+        StateAccess_copyFrom(_displaySettings);
+        StateAccess_copyFrom(_abortRenderingPtr);
+        StateAccess_copyFrom(_checkGLErrors);
+        StateAccess_copyFrom(_useVertexAttributeAliasing);
+        StateAccess_copyFrom(_vertexAlias);
+        StateAccess_copyFrom(_normalAlias);
+        StateAccess_copyFrom(_colorAlias);
+        StateAccess_copyFrom(_secondaryColorAlias);
+        StateAccess_copyFrom(_fogCoordAlias);
+        StateAccess_copyFrom(_texCoordAliasList);
+        StateAccess_copyFrom(_attributeBindingList);
+
+        //StateAccess_copyFrom(_modeMap);
+        //StateAccess_copyFrom(_attributeMap);
+        //StateAccess_copyFrom(_uniformMap);
+        //StateAccess_copyFrom(_defineMap);
+        //StateAccess_copyFrom(_textureModeMapList);
+        //StateAccess_copyFrom(_textureAttributeMapList);
+        //StateAccess_copyFrom(_lastAppliedProgramObject);
+        //StateAccess_copyFrom(_stateStateStack);
+        StateAccess_copyFrom(_maxTexturePoolSize);
+        StateAccess_copyFrom(_maxBufferObjectPoolSize);
+        StateAccess_copyFrom(_currentActiveTextureUnit);
+        StateAccess_copyFrom(_currentClientActiveTextureUnit);
+        StateAccess_copyFrom(_currentPBO);
+        StateAccess_copyFrom(_currentVAO);
+
+        StateAccess_copyFrom(_isSecondaryColorSupported);
+        StateAccess_copyFrom(_isFogCoordSupported);
+        StateAccess_copyFrom(_isVertexBufferObjectSupported);
+        StateAccess_copyFrom(_isVertexArrayObjectSupported);
+        StateAccess_copyFrom(_forceVertexBufferObject);
+        StateAccess_copyFrom(_forceVertexArrayObject);
+
+        StateAccess_copyFrom(_extensionProcsInitialized);
+        StateAccess_copyFrom(_glMaxTextureCoords);
+        StateAccess_copyFrom(_glMaxTextureUnits);
+        StateAccess_copyFrom(_glClientActiveTexture);
+        StateAccess_copyFrom(_glActiveTexture);
+        StateAccess_copyFrom(_glMultiTexCoord4f);
+        StateAccess_copyFrom(_glVertexAttrib4f);
+        StateAccess_copyFrom(_glVertexAttrib4fv);
+        StateAccess_copyFrom(_glFogCoordPointer);
+        StateAccess_copyFrom(_glSecondaryColorPointer);
+        StateAccess_copyFrom(_glVertexAttribPointer);
+        StateAccess_copyFrom(_glVertexAttribIPointer);
+        StateAccess_copyFrom(_glVertexAttribLPointer);
+        StateAccess_copyFrom(_glEnableVertexAttribArray);
+        StateAccess_copyFrom(_glDisableVertexAttribArray);
+        StateAccess_copyFrom(_glBindBuffer);
+        StateAccess_copyFrom(_glDrawArraysInstanced);
+        StateAccess_copyFrom(_glDrawElementsInstanced);
+        StateAccess_copyFrom(_glExtensions);
+
+        StateAccess_copyFrom(_dynamicObjectCount);
+        StateAccess_copyFrom(_completeDynamicObjectRenderingCallback);
+
+        //StateAccess_copyFrom(_arrayDispatchers);
+
+        StateAccess_copyFrom(_graphicsCostEstimator);
+
+        StateAccess_copyFrom(_startTick);
+        StateAccess_copyFrom(_gpuTick);
+        StateAccess_copyFrom(_gpuTimestamp);
+        StateAccess_copyFrom(_timestampBits);
+
+    }
+
 }
 
 
@@ -301,11 +412,14 @@ void RenderInfoData::copyRenderInfo(osg::RenderInfo& renderInfo)
     //const osg::State::AppliedProgramObjectSet& appliedProgramObjectSet = state->getAppliedProgramObjectSet();
 #endif
 
-    unsigned hashStateSetStack = refPathHash(stateSetStack);
+    HashedStateId hashStateSetStack = refPathHash(stateSetStack);
 
     RenderInfoData::State & currentState = _hashedState[hashStateSetStack];
 
-    currentState.state = state;
+    currentState.stateRef = state;
+    currentState.state = new StateAccess;
+    static_cast<StateAccess*>(currentState.state.get())->copyFrom(state);
+    currentState.userData = renderInfo.getUserData();
     currentState.capturedStateSet = new osg::StateSet;
     RenderInfoData::captureCurrentState(currentState.capturedStateSet.get(), state);
 
@@ -317,9 +431,9 @@ void RenderInfoData::copyRenderInfo(osg::RenderInfo& renderInfo)
     //copyPerContextProgramSet(currentState.appliedProgamSet, appliedProgramObjectSet);
 #endif
     currentState.combinedStateSet = new osg::StateSet;;
-    for (auto it = currentState.stateSetStack.begin(); it != currentState.stateSetStack.end(); ++it)
+    for (auto it = stateSetStack.begin(); it != stateSetStack.end(); ++it)
     {
-        currentState.combinedStateSet->merge(*(it->get()));
+        currentState.combinedStateSet->merge(*(*it));
     }
     currentState.view = renderInfo.getView();
 

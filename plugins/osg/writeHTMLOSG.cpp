@@ -4830,6 +4830,7 @@ bool writePrettyHTMLImpl<osg::State>::process(std::basic_ostream<char>& os)
 
             // add remaining state properties
             os << "<tr><td>contextID</td><td>" <<  object->getContextID() << "</td></tr>" << std::endl;
+            os << "<tr><td>GPU time</td><td>" << object->getGpuTime() << "</td></tr>" << std::endl;
             os << "<tr><td>shaderCompositionEnabled</td><td>" << (object->getShaderCompositionEnabled()?"true":"false") << "</td></tr>" << std::endl;
 
             os << "<tr><td>projectionMatrix</td><td>";
@@ -4844,6 +4845,20 @@ bool writePrettyHTMLImpl<osg::State>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>useModelViewAndProjectionUniforms</td><td>" << (object->getUseModelViewAndProjectionUniforms()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>useVertexAttributeAliasing</td><td>" << (object->getUseVertexAttributeAliasing()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>isVertexBufferObjectSupported</td><td>" << (object->isVertexBufferObjectSupported() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>isVertexArrayObjectSupported</td><td>" << (object->isVertexArrayObjectSupported() ? "true" : "false") << "</td></tr>" << std::endl;
+
+            os << "<tr><td>Current VAO</td><td>" << object->getCurrentVertexArrayObject() << "</td></tr>" << std::endl;
+            os << "<tr><td>active texture unit</td><td>" << object->getActiveTextureUnit() << "</td></tr>" << std::endl;
+            os << "<tr><td>client active texture unit</td><td>" << object->getClientActiveTextureUnit() << "</td></tr>" << std::endl;
+
+            os << "<tr><td>dyn object count</td><td>" << object->getDynamicObjectCount() << "</td></tr>" << std::endl;
+            os << "<tr><td>max texture pool size</td><td>" << object->getMaxTexturePoolSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>max buffer object pool size</td><td>" << object->getMaxBufferObjectPoolSize() << "</td></tr>" << std::endl;
+
+            os << "<tr><td>check GL errors</td><td>" << object->getCheckForGLErrors() << "</td></tr>" << std::endl;
+            
+            
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -5494,9 +5509,14 @@ bool writePrettyHTMLImpl<osg::FrameStamp>::process(std::basic_ostream<char>& os)
             os << "<tr><td>calendar time</td><td>";
             struct tm caltime;
             object->getCalendarTime(caltime);
-            char sz[64];
-            ::strftime (sz,sizeof(sz)/sizeof(sz[0]),"%c",&caltime);
-            os << sz;
+            if (caltime.tm_mday >= 1 && caltime.tm_mday <= 31)
+            {
+                char sz[64];
+                ::strftime(sz, sizeof(sz) / sizeof(sz[0]), "%c", &caltime);
+                os << sz;
+            }
+            else
+                os << "N/A";
             os << "</td></tr>" << std::endl;
 
             if(_table)
@@ -6042,7 +6062,7 @@ bool writePrettyHTMLImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, 
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
             // add referenced properties first
-            ret = hostInterface->writePrettyHTML(os, itemNext);
+            ret = hostInterface->writePrettyHTML(os, itemNext, false);
 
             if(table)
                 os << "</table>" << std::endl;
@@ -6089,6 +6109,7 @@ bool writePrettyHTMLImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, 
                     os << "<tr><td>cameraStack</td><td>" << state.cameraStack.size() << " items</td></tr>" << std::endl;
                     os << "<tr><td>appliedProgamSet</td><td>" << state.appliedProgamSet.size() << " items</td></tr>" << std::endl;
                     os << "<tr><td>view</td><td>" << osg_helpers::getObjectNameAndType(state.view.get(), true) << "</td></tr>" << std::endl;
+                    os << "<tr><td>userData</td><td>" << osg_helpers::getObjectNameAndType(state.userData.get(), true) << "</td></tr>" << std::endl;
                     os << "<tr><td>capturedStateSet</td><td>" << osg_helpers::getObjectNameAndType(state.capturedStateSet.get(), true) << "</td></tr>" << std::endl;
                     os << "<tr><td>combinedStateSet</td><td>" << osg_helpers::getObjectNameAndType(state.combinedStateSet.get(), true) << "</td></tr>" << std::endl;
                     os << "</table>" << std::endl;
@@ -6128,7 +6149,20 @@ bool writePrettyHTMLImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, 
                         os << "<ol>";
                         for (RenderInfoData::StateSetStack::const_iterator it = set.begin(); it != set.end(); it++)
                         {
-                            os << "<li>" << osg_helpers::getObjectNameAndType((*it).get(), true) << "</li>" << std::endl;
+                            const RenderInfoData::StateSetEntry & entry = *it;
+                            os << "<li>" << osg_helpers::getObjectNameAndType(entry.stateSet.get(), true) << "<br/>";
+                            for (const auto & paths : entry.parentalNodePaths)
+                            {
+                                os << "<ul>";
+                                for (const auto & path : paths)
+                                {
+                                    os << "<li>";
+                                    osg_helpers::writePrettyHTML(os, path);
+                                    os << "</li>";
+                                }
+                                os << "</ul>";
+                            }
+                            os << "</li>" << std::endl;
                         }
                         os << "</ol>";
                     }

@@ -68,7 +68,11 @@ public:
 
 public:
     typedef osg::ref_ptr<osg::StateSet> StateSetPtr;
-    typedef std::vector<StateSetPtr> StateSetStack;
+    struct StateSetEntry {
+        StateSetPtr stateSet;
+        std::vector<osg::NodePathList> parentalNodePaths;
+    };
+    typedef std::vector<StateSetEntry> StateSetStack;
 
     typedef osg::ref_ptr<osgUtil::RenderBin> RenderBinPtr;
     typedef std::vector<RenderBinPtr> RenderBinStack;
@@ -101,17 +105,25 @@ public:
     typedef std::map<osg::StateAttribute::TypeMemberPair, AttributeStack> AttributeMap;
 
     struct State {
+        osg::ref_ptr<osg::State> stateRef;
         osg::ref_ptr<osg::State> state;
         StateSetStack stateSetStack;
+        osg::NodePathList stateSetStackPath;
         RenderBinStack renderBinStack;
         CameraStack cameraStack;
         PerContextProgramSet appliedProgamSet;
         osg::ref_ptr<osg::View> view;
         osg::ref_ptr<osg::StateSet> capturedStateSet;
         osg::ref_ptr<osg::StateSet> combinedStateSet;
+        osg::ref_ptr<osg::Referenced> userData;
     };
 
-    typedef std::map<unsigned, State> HashedState;
+#if defined(_M_X64) || defined(_M_AMD64) || defined(__x86_64__) || defined(__amd64__)
+    typedef uint64_t HashedStateId;
+#else
+    typedef uint32_t HashedStateId;
+#endif
+    typedef std::map<HashedStateId, State> HashedState;
     /*
     const StateSetStack & lastStateSetStack() const { return _lastStateSetStack; }
     const RenderBinStack & lastRenderBinStack() const { return _lastRenderBinStack; }
