@@ -152,7 +152,7 @@ public:
 
     QRgb getColor(const float value) const
     {
-        float r, g, b;
+        float r = 0, g = 0, b = 0;
         getColorAtValue(value, r, g, b);
         return qRgba(r * 255.0f, g * 255.0f, b * 255.0f, 255);
     }
