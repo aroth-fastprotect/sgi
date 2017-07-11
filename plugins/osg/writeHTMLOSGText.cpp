@@ -6,6 +6,8 @@
 // osgText headers
 #include <osgText/Font>
 #include <osgText/Text>
+#include <osgText/FadeText>
+#include <osgText/Text3D>
 #include <osg/io_utils>
 
 #include <sgi/helpers/osg>
@@ -18,6 +20,8 @@ namespace osg_plugin {
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgText::Font)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgText::TextBase)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgText::Text)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgText::FadeText)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgText::Text3D)
 
 using namespace sgi::osg_helpers;
 
@@ -251,6 +255,65 @@ bool writePrettyHTMLImpl<osgText::Text>::process(std::basic_ostream<char>& os)
             os << "<tr><td>modelSpaceHeight</td><td>" << object->modelSpaceHeight(contextId) << "</td></tr>" << std::endl;
 
 			object->writeAutoTransformCache(os, contextId);
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgText::FadeText>::process(std::basic_ostream<char>& os)
+{
+    osgText::FadeText * object = getObject<osgText::FadeText,SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add drawable properties first
+            callNextHandler(os);
+
+            os << "<tr><td>fadeSpeed</td><td>" << object->getFadeSpeed() << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgText::Text3D>::process(std::basic_ostream<char>& os)
+{
+    osgText::Text3D * object = getObject<osgText::Text3D,SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add drawable properties first
+            callNextHandler(os);
+
+            os << "<tr><td>characterDepth</td><td>" << object->getCharacterDepth() << "</td></tr>" << std::endl;
+            os << "<tr><td>renderMode</td><td>" << object->getRenderMode() << "</td></tr>" << std::endl;
+            os << "<tr><td>wallStateSet</td><td>" << getObjectNameAndType(object->getWallStateSet()) << "</td></tr>" << std::endl;
+            os << "<tr><td>backStateSet</td><td>" << getObjectNameAndType(object->getBackStateSet()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;

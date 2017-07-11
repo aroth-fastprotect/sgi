@@ -95,6 +95,7 @@
 // osgText headers
 #include <osgText/Font>
 #include <osgText/Text>
+#include <osgText/FadeText>
 #include <osgText/Text3D>
 
 // osgAnimation headers
@@ -487,6 +488,10 @@ SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgText::TextBase)
     osgText::Text, osgText::Text3D
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgText::Text)
+    osgText::FadeText
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgFX::Effect)
