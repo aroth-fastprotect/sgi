@@ -225,20 +225,20 @@ public:
         _Base::release();
     }
 
-    virtual osg::Vec3 getEyePoint() const { return _Base::_original->getEyePoint(); }
-    virtual osg::Vec3 getViewPoint() const { return _Base::_original->getViewPoint(); }
+    osg::Vec3 getEyePoint() const override { return _Base::_original->getEyePoint(); }
+    osg::Vec3 getViewPoint() const override { return _Base::_original->getViewPoint(); }
 
-    virtual float getDistanceToEyePoint(const osg::Vec3& pos, bool withLODScale) const
+    float getDistanceToEyePoint(const osg::Vec3& pos, bool withLODScale) const override
         { return _Base::_original->getDistanceToEyePoint(pos, withLODScale); }
-    virtual float getDistanceFromEyePoint(const osg::Vec3& pos, bool withLODScale) const
+    float getDistanceFromEyePoint(const osg::Vec3& pos, bool withLODScale) const override
         { return _Base::_original->getDistanceFromEyePoint(pos, withLODScale); }
-    virtual float getDistanceToViewPoint(const osg::Vec3& pos, bool withLODScale) const
+    float getDistanceToViewPoint(const osg::Vec3& pos, bool withLODScale) const override
         { return _Base::_original->getDistanceToViewPoint(pos, withLODScale); }
 
-    virtual void popProjectionMatrix() { _Base::_original->popProjectionMatrix(); }
-    virtual bool clampProjectionMatrixImplementation(osg::Matrixf& projection, double& znear, double& zfar) const
+    void popProjectionMatrix() override { _Base::_original->popProjectionMatrix(); }
+    bool clampProjectionMatrixImplementation(osg::Matrixf& projection, double& znear, double& zfar) const override
         { return _Base::_original->clampProjectionMatrixImplementation(projection, znear, zfar); }
-    virtual bool clampProjectionMatrixImplementation(osg::Matrixd& projection, double& znear, double& zfar) const
+    bool clampProjectionMatrixImplementation(osg::Matrixd& projection, double& znear, double& zfar) const override
         { return _Base::_original->clampProjectionMatrixImplementation(projection, znear, zfar); }
 
 protected:
