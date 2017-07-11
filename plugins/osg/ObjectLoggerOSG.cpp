@@ -714,5 +714,232 @@ bool getOrCreateObjectLoggerImpl<osg::Node>::execute(IObjectLoggerPtr & result)
     return result.valid();
 }
 
+
+
+class CullingInfoForCamera::CullCallbackHandler
+{
+public:
+    CullingInfoForCamera * inspector()
+    {
+        return _logger;
+    }
+    void setInspector(CullingInfoForCamera * inspector)
+    {
+        _logger = inspector;
+    }
+    void preApply(osg::NodeVisitor * nv, osg::Node & node);
+    void postApply(osg::NodeVisitor * nv, osg::Node & node);
+
+protected:
+    CullingInfo::NodeCullInfo * getNodeCullInfo(osg::Node & node);
+
+private:
+    CullingInfoForCamera * _logger;
+    osg::NodePathList::const_iterator _currentItem;
+};
+
+class CullingInfoForCamera::CullVisitor : public CullVisitorHook<CullingInfoForCamera::CullCallbackHandler>
+{
+public:
+    typedef CullVisitorHook<CullingInfoForCamera::CullCallbackHandler> _Base;
+    CullVisitor(CullingInfoForCamera * inspector, osg::Camera * camera)
+        : _Base(camera)
+    {
+        _operation.setInspector(inspector);
+    }
+};
+
+CullingInfo::NodeCullInfo * CullingInfoForCamera::CullCallbackHandler::getNodeCullInfo(osg::Node & node)
+{
+    CullingInfo::NodeCullInfo * ret = nullptr;
+    for (CullingInfoPtr & cullinfo : _logger->_activeNodes)
+    {
+        for (const CullingInfo::NodeCullInfoPath & path : cullinfo->pathlist())
+        {
+            const osg::Node * pnode = &node;
+            auto pathit = std::find_if(path.begin(), path.end(), [pnode](const CullingInfo::NodeCullInfo & other) { return other.node == pnode; });
+            if (pathit != path.end())
+                ret = const_cast<CullingInfo::NodeCullInfo *>(&(*pathit));
+        }
+    }
+    return ret;
+}
+
+void CullingInfoForCamera::CullCallbackHandler::preApply(osg::NodeVisitor * nv, osg::Node & node)
+{
+    CullVisitor* cv = dynamic_cast<CullVisitor*>(nv->asCullVisitor());
+    CullingInfo::NodeCullInfo * info = getNodeCullInfo(node);
+    if (info)
+    {
+    }
+}
+
+void CullingInfoForCamera::CullCallbackHandler::postApply(osg::NodeVisitor * nv, osg::Node & node)
+{
+    CullVisitor* cv = dynamic_cast<CullVisitor*>(nv->asCullVisitor());
+    CullingInfo::NodeCullInfo * info = getNodeCullInfo(node);
+    if (info)
+    {
+    }
+}
+
+
+CullingInfoForCamera::CullingInfoForCamera(osg::Camera * camera, SGIPluginHostInterface * hostInterface)
+    : osg::Object(hostInterface)
+{
+    setup(camera);
+}
+
+CullingInfoForCamera::CullingInfoForCamera(const CullingInfoForCamera & rhs, const osg::CopyOp& copyop)
+    : osg::Object(rhs, copyop)
+{
+}
+
+CullingInfoForCamera::~CullingInfoForCamera()
+{
+    setup(NULL);
+}
+
+void CullingInfoForCamera::setup(osg::Camera * camera)
+{
+    if (_activeCamera.valid())
+    {
+        // restore old camera
+        _cullVisitor->release();
+    }
+
+    if (camera)
+    {
+        _cullVisitor = new CullVisitor(this, camera);
+    }
+    else
+    {
+        _cullVisitor = NULL;
+    }
+    _activeCamera = camera;
+}
+
+CullingInfoForCamera * CullingInfoForCamera::getCullingInfoForCamera(osg::Camera * camera)
+{
+    CullingInfoForCamera * ret = NULL;
+    osgViewer::View * view = camera ? dynamic_cast<osgViewer::View*>(camera->getView()) : NULL;
+    osgViewer::ViewerBase * viewer = (view) ? view->getViewerBase() : NULL;
+    if (viewer)
+    {
+        osgUtil::UpdateVisitor * updateVisitorBase = viewer->getUpdateVisitor();
+        CullCallbackHandler * updateVisitor = dynamic_cast<CullCallbackHandler*>(updateVisitorBase);
+        if (updateVisitor)
+            ret = updateVisitor->inspector();
+    }
+    return ret;
+}
+
+CullingInfoForCamera * CullingInfoForCamera::getOrCreateCullingInfoForCamera(osg::Camera * camera, SGIPluginHostInterface * hostInterface)
+{
+    CullingInfoForCamera * ret = NULL;
+    osgViewer::View * view = camera ? dynamic_cast<osgViewer::View*>(camera->getView()) : NULL;
+    osgViewer::ViewerBase * viewer = (view) ? view->getViewerBase() : NULL;
+    if (viewer)
+    {
+        osgUtil::UpdateVisitor * updateVisitorBase = viewer->getUpdateVisitor();
+        CullCallbackHandler * updateVisitor = dynamic_cast<CullCallbackHandler*>(updateVisitorBase);
+        if (updateVisitor)
+            ret = updateVisitor->inspector();
+        else
+            ret = new CullingInfoForCamera(camera, hostInterface);
+    }
+    return ret;
+}
+
+bool CullingInfoForCamera::isNodeActive(osg::Node * node) const
+{
+    bool ret = false;
+    for (CullingInfoPtr ptr : _activeNodes)
+    {
+        if (ptr->node() == node)
+        {
+            ret = true;
+            break;
+        }
+    }
+    return ret;
+}
+
+bool CullingInfoForCamera::enableNode(osg::Node * node, bool enable)
+{
+    bool ret = false;
+    bool found = false;
+
+    for(CullingInfoPtrList::iterator it = _activeNodes.begin(); it != _activeNodes.end(); ++it)
+    {
+        CullingInfoPtr & ptr = *it;
+        if (ptr->node() == node)
+        {
+            if (!enable)
+            {
+                _activeNodes.erase(it);
+                ret = true;
+            }
+            found = true;
+            break;
+        }
+    }
+    if (!found && enable)
+    {
+        _activeNodes.push_back(new CullingInfo(node, _activeCamera));
+        ret = true;
+    }
+    return ret;
+}
+
+CullingInfo::CullingInfo(osg::Node * node, osg::Camera * camera)
+    : osg::Object()
+    , _node(node)
+{
+    osg::NodePathList paths = node->getParentalNodePaths(camera);
+    _pathlist.resize(paths.size());
+    for (unsigned i = 0; i < paths.size(); ++i)
+    {
+        osg::NodePath & path = paths[i];
+        NodeCullInfoPath & outpath = _pathlist[i];
+        for (auto & node : path)
+            outpath.push_back(NodeCullInfo(node));
+    }
+}
+
+CullingInfo::CullingInfo(const CullingInfo & rhs, const osg::CopyOp& copyop)
+    : osg::Object(rhs, copyop)
+    , _node(rhs._node)
+    , _pathlist(rhs._pathlist)
+{
+}
+
+bool CullingInfo::isPresent(osg::Node * node)
+{
+    bool ret = false;
+    osg::Camera * camera = osg_helpers::findCamera(node);
+    if (camera)
+    {
+        CullingInfoForCamera * perCamera = CullingInfoForCamera::getCullingInfoForCamera(camera);
+        if(perCamera)
+            ret = perCamera->isNodeActive(node);
+    }
+    return ret;
+}
+
+bool CullingInfo::enable(osg::Node * node, bool enable, SGIPluginHostInterface * hostInterface)
+{
+    bool ret = false;
+    osg::Camera * camera = osg_helpers::findCamera(node);
+    if (camera)
+    {
+        CullingInfoForCamera * perCamera = CullingInfoForCamera::getOrCreateCullingInfoForCamera(camera, hostInterface);
+        if (perCamera)
+            ret = perCamera->enableNode(node, enable);
+    }
+    return ret;
+}
+
+
 } // namespace osg_plugin
 } // namespace sgi
