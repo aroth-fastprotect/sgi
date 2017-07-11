@@ -259,7 +259,7 @@ IObjectTreeItem * ObjectTreeItem::addChild(const std::string & name, const SGIHo
 }
 IObjectTreeItem * ObjectTreeItem::findChild(const std::string & name)
 {
-    QString qname = fromLocal8Bit(name);
+    QString qname = fromUtf8(name);
     QTreeWidgetItem * retitem = NULL;
     for(int n = _item->childCount() - 1; !retitem && n >= 0; n--)
     {
@@ -326,15 +326,15 @@ IObjectTreeItem * ObjectTreeItem::addChildImpl(const std::string & name, SGIItem
     {
         std::string displayName;
         _hostInterface->getObjectDisplayName(displayName, item);
-        itemText = fromLocal8Bit(displayName);
+        itemText = fromUtf8(displayName);
     }
     else
-        itemText = fromLocal8Bit(name);
+        itemText = fromUtf8(name);
     std::string typeName;
     if(item)
     {
         _hostInterface->getObjectTypename(typeName, item);
-        itemTypeText = fromLocal8Bit(typeName);
+        itemTypeText = fromUtf8(typeName);
     }
 
     newItem->setText(0, itemText);
@@ -409,14 +409,14 @@ void ObjectTreeItem::reload()
 
 void ObjectTreeItem::setName(const std::string & name)
 {
-    _item->setText(0, fromLocal8Bit(name));
+    _item->setText(0, fromUtf8(name));
 }
 
 void ObjectTreeItem::updateName()
 {
     std::string displayName;
     _hostInterface->getObjectDisplayName(displayName, item());
-    _item->setText(0, fromLocal8Bit(displayName));
+    _item->setText(0, fromUtf8(displayName));
 }
 
 } // namespace sgi

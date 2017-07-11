@@ -76,10 +76,10 @@ public:
         {
             std::string displayName;
             SGIPlugins::instance()->getObjectDisplayName(displayName, item);
-            itemText = fromLocal8Bit(displayName);
+            itemText = fromUtf8(displayName);
         }
         else
-            itemText = fromLocal8Bit(name);
+            itemText = fromUtf8(name);
         QtMenuSGIItem itemData(item);
         itemData.setActionId(actionId);
         itemData.setUserData(userData);
@@ -97,10 +97,10 @@ public:
         {
             std::string displayName;
             SGIPlugins::instance()->getObjectDisplayName(displayName, item);
-            itemText = fromLocal8Bit(displayName);
+            itemText = fromUtf8(displayName);
         }
         else
-            itemText = fromLocal8Bit(name);
+            itemText = fromUtf8(name);
         QtMenuSGIItem itemData(item);
         itemData.setActionId(actionId);
         itemData.setUserData(userData);
@@ -116,7 +116,7 @@ public:
 
     bool addModeAction(const std::string & name, int mode, osg::Referenced * userData=NULL)
     {
-        QString itemText = fromLocal8Bit(name);
+        QString itemText = fromUtf8(name);
         QtMenuSGIItem menuItemData = _menu->menuAction()->data().value<QtMenuSGIItem>();
         QtMenuSGIItem itemData(menuItemData);
         int currentMode = menuItemData.mode();
@@ -154,7 +154,7 @@ public:
 
     IContextMenuItem * getOrCreateMenu(const std::string & name, osg::Referenced * userData=NULL)
     {
-        QMenu * menu = getOrCreateNamedMenu(_menu, fromLocal8Bit(name), userData);
+        QMenu * menu = getOrCreateNamedMenu(_menu, fromUtf8(name), userData);
         return addChild(new ContextMenuItem(_contextMenu, menu));
     }
 
@@ -179,10 +179,10 @@ protected:
         {
             std::string displayName;
             SGIPlugins::instance()->getObjectDisplayName(displayName, item);
-            itemText = fromLocal8Bit(displayName);
+            itemText = fromUtf8(displayName);
         }
         else
-            itemText = fromLocal8Bit(name);
+            itemText = fromUtf8(name);
 
         newMenu->setTitle(itemText);
         newMenu->menuAction()->setData(QVariant::fromValue(itemData));
@@ -205,10 +205,10 @@ protected:
         {
             std::string displayName;
             SGIPlugins::instance()->getObjectDisplayName(displayName, item);
-            itemText = fromLocal8Bit(displayName);
+            itemText = fromUtf8(displayName);
         }
         else
-            itemText = fromLocal8Bit(name);
+            itemText = fromUtf8(name);
 
         QActionGroup * actionGroup = new QActionGroup(newMenu);
         actionGroup->setExclusive(true);
@@ -408,7 +408,7 @@ void ContextMenu::populate()
     {
         std::string displayName;
         SGIPlugins::instance()->getObjectDisplayName(displayName, _item.get());
-        setTitle(fromLocal8Bit(displayName));
+        setTitle(fromUtf8(displayName));
 
         QtMenuSGIItem data(_item);
         menuAction()->setData(QVariant::fromValue(data));

@@ -1216,13 +1216,13 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
         QString oldText = copyStringFromStdString(text, encoding);
         bool ok = false;
-        QString newText = QInputDialog::getText(parent, qwindowTitle, fromLocal8Bit(label), QLineEdit::Normal, oldText, &ok);
+        QString newText = QInputDialog::getText(parent, qwindowTitle, fromUtf8(label), QLineEdit::Normal, oldText, &ok);
         if(ok)
         {
             text = copyStringToStdString(newText, encoding);
@@ -1237,17 +1237,17 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
 
         QString qtext = copyStringFromStdString(text, encoding);
         QTextDialog dialog(parent);
         dialog.setWindowTitle(qwindowTitle);
         dialog.setButtons(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
-        dialog.setLabel(fromLocal8Bit(label));
-        dialog.setText(fromLocal8Bit(text));
+        dialog.setLabel(fromUtf8(label));
+        dialog.setText(fromUtf8(text));
         dialog.setReadOnly(false);
         if(dialog.exec() == QDialog::Accepted)
         {
@@ -1263,12 +1263,12 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
         bool ok = false;
-        int newNumber = QInputDialog::getInt(parent, qwindowTitle, fromLocal8Bit(label), number, minNumber, maxNumber, step, &ok);
+        int newNumber = QInputDialog::getInt(parent, qwindowTitle, fromUtf8(label), number, minNumber, maxNumber, step, &ok);
         if(ok)
         {
             number = newNumber;
@@ -1282,12 +1282,12 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
         bool ok = false;
-        int newNumber = QInputDialog::getInt(parent, qwindowTitle, fromLocal8Bit(label), number, minNumber, maxNumber, step, &ok);
+        int newNumber = QInputDialog::getInt(parent, qwindowTitle, fromUtf8(label), number, minNumber, maxNumber, step, &ok);
         if(ok)
         {
             number = newNumber;
@@ -1301,14 +1301,14 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
         bool ok = false;
         DoubleInputDialog dlg(parent);
         dlg.setWindowTitle(qwindowTitle);
-        dlg.setLabel(fromLocal8Bit(label));
+        dlg.setLabel(fromUtf8(label));
         dlg.setRange(minNumber, maxNumber);
         dlg.setDecimals(decimals);
         dlg.setValue(number);
@@ -1326,13 +1326,13 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
         QString oldText = "0x" + QString::number(number, 16);
         bool ok = false;
-        QString newText = QInputDialog::getText(parent, qwindowTitle, fromLocal8Bit(label), QLineEdit::Normal, oldText, &ok);
+        QString newText = QInputDialog::getText(parent, qwindowTitle, fromUtf8(label), QLineEdit::Normal, oldText, &ok);
         if(ok)
         {
             bool isHexNumber = false;
@@ -1361,10 +1361,10 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
         bool ok = false;
         QColor oldColor;
         oldColor.setRgbF(color.r, color.g, color.b, color.a);
@@ -1387,10 +1387,10 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
         QString qfilters;
         if(filters.empty())
         {
@@ -1405,13 +1405,13 @@ public:
             for(std::vector<std::string>::const_iterator it = filters.begin(); it != filters.end(); it++)
             {
                 if(qfilters.isEmpty())
-                    qfilters = fromLocal8Bit(*it);
+                    qfilters = fromUtf8(*it);
                 else
-                    qfilters.append(QString(";;") + fromLocal8Bit(*it));
+                    qfilters.append(QString(";;") + fromUtf8(*it));
             }
         }
         QString * selectedFilter = NULL;
-        QString oldFilename = fromLocal8Bit(filename);
+        QString oldFilename = fromUtf8(filename);
         QString newFilename;
         bool ok = false;
         QFileDialog::Options dialogFlags = QFileDialog::DontResolveSymlinks;
@@ -1431,7 +1431,7 @@ public:
         }
         if(ok)
         {
-            filename = toLocal8Bit(newFilename);
+            filename = toUtf8(newFilename);
         }
         return ok;
 
@@ -1443,10 +1443,10 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
         bool ok = false;
         /*
         QColor oldColor;
@@ -1470,14 +1470,14 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
         bool ok = false;
         QuatInputDialog dlg(parent);
         dlg.setWindowTitle(qwindowTitle);
-        dlg.setLabel(fromLocal8Bit(label));
+        dlg.setLabel(fromUtf8(label));
         //dlg.setDecimals(decimals);
         dlg.setOriginalValue(quat);
         dlg.setValue(quat);
@@ -1495,14 +1495,14 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
         bool ok = false;
         MatrixInputDialog dlg(parent);
         dlg.setWindowTitle(qwindowTitle);
-        dlg.setLabel(fromLocal8Bit(label));
+        dlg.setLabel(fromUtf8(label));
         //dlg.setDecimals(decimals);
         dlg.setOriginalValue(matrix, usage);
         dlg.setValue(matrix, usage);

@@ -439,7 +439,7 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
             {
                 std::string name;
                 _hostInterface->getObjectDisplayName(name, item.get());
-                ui->layer->addItem(tr("Elevation: %1").arg(fromLocal8Bit(name)), QVariant::fromValue(QtSGIItem(item.get())));
+                ui->layer->addItem(tr("Elevation: %1").arg(fromUtf8(name)), QVariant::fromValue(QtSGIItem(item.get())));
             }
         }
         for(auto it = frame.imageLayers().begin(); it != frame.imageLayers().end(); ++it)
@@ -450,7 +450,7 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
             {
                 std::string name;
                 _hostInterface->getObjectDisplayName(name, item.get());
-                ui->layer->addItem(tr("Image: %1").arg(fromLocal8Bit(name)), QVariant::fromValue(QtSGIItem(item.get())));
+                ui->layer->addItem(tr("Image: %1").arg(fromUtf8(name)), QVariant::fromValue(QtSGIItem(item.get())));
             }
         }
     }
@@ -458,7 +458,7 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
     {
         std::string name;
         _hostInterface->getObjectDisplayName(name, _item.get());
-        ui->layer->addItem(fromLocal8Bit(name), QVariant::fromValue(QtSGIItem(_item.get())));
+        ui->layer->addItem(fromUtf8(name), QVariant::fromValue(QtSGIItem(_item.get())));
     }
 
 	osgEarth::MapNode * mapnode = findMapNode(_item.get());
@@ -645,7 +645,7 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
 		else if (!previewText.empty())
 		{
 			ui->previewImage->setPixmap(QPixmap());
-			ui->previewImage->setText(fromLocal8Bit(previewText));
+			ui->previewImage->setText(fromUtf8(previewText));
 		}
         else
         {
@@ -660,7 +660,7 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
         os << "<b>item is <i>NULL</i></b>";
     }
     ui->textEdit->blockSignals(true);
-    ui->textEdit->setHtml(fromLocal8Bit(os.str()));
+    ui->textEdit->setHtml(fromUtf8(os.str()));
     ui->textEdit->blockSignals(false);
 }
 

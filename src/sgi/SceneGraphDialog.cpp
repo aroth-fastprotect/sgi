@@ -467,7 +467,7 @@ void SceneGraphDialog::updatePathComboBox()
             std::string objectName;
             SGIPlugins::instance()->getObjectName(objectName, uiPage->item, true);
             QtSGIItem data(uiPage->item.get());
-            QString qobjectName = fromLocal8Bit(objectName);
+            QString qobjectName = fromUtf8(objectName);
             ui->comboBoxPath->addItem(qobjectName, QVariant::fromValue(data));
             currentItemIndex = 0;
             int index = ui->tabWidget->indexOf(uiPage->tabPageWidget);
@@ -482,7 +482,7 @@ void SceneGraphDialog::updatePathComboBox()
             std::string objectName;
             SGIPlugins::instance()->getObjectName(objectName, item, true);
 			QtSGIItem data(item.get());
-            QString qobjectName = fromLocal8Bit(objectName);
+            QString qobjectName = fromUtf8(objectName);
             ui->comboBoxPath->addItem(qobjectName, QVariant::fromValue(data));
             if (*item.get() == *uiPage->item.get())
             {
@@ -520,7 +520,7 @@ void SceneGraphDialog::reload()
 	{
 		std::string displayName;
 		SGIPlugins::instance()->getObjectDisplayName(displayName, uiPage->item);
-		setWindowTitle(tr("Information about %1").arg(fromLocal8Bit(displayName)));
+		setWindowTitle(tr("Information about %1").arg(fromUtf8(displayName)));
 	}
 	else
 	{
@@ -740,7 +740,7 @@ void SceneGraphDialog::setNodeInfo(const SGIItemBase * item)
         os << "<b>item is <i>NULL</i></b>";
     }
     uiPage->textEdit->blockSignals(true);
-    uiPage->textEdit->setHtml(fromLocal8Bit(os.str()));
+    uiPage->textEdit->setHtml(fromUtf8(os.str()));
     uiPage->textEdit->blockSignals(false);
 }
 
@@ -918,7 +918,7 @@ const SGIItemBasePtrPath & SceneGraphDialog::itemPath() const
 void SceneGraphDialog::setInfoText(const std::string & text)
 {
     uiPage->textEdit->blockSignals(true);
-    uiPage->textEdit->setHtml(fromLocal8Bit(text));
+    uiPage->textEdit->setHtml(fromUtf8(text));
     uiPage->textEdit->blockSignals(false);
 }
 

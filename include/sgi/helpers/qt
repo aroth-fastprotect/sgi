@@ -148,7 +148,9 @@ private:
 };
 
 SGI_EXPORT QString fromLocal8Bit(const std::string & str);
+SGI_EXPORT QString fromUtf8(const std::string & str);
 SGI_EXPORT std::string toLocal8Bit(const QString & str);
+SGI_EXPORT std::string toUtf8(const QString & str);
 SGI_EXPORT std::string getObjectTypename(const QObject * object);
 SGI_EXPORT std::string getObjectName(const QObject * object, bool includeAddr=true);
 SGI_EXPORT std::string getObjectNameAndType(const QObject * object, bool includeAddr=true);

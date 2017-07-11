@@ -97,7 +97,7 @@ namespace {
             if(_currentCaptureHandler)
             {
 #if QT_VERSION >= 0x050000
-                _currentCaptureHandler->_stream << type << ": " << (const char*)msg.toLocal8Bit().constData() << std::endl;
+                _currentCaptureHandler->_stream << type << ": " << (const char*)msg.toUtf8().constData() << std::endl;
 #else
                 _currentCaptureHandler->_stream << type << ": " << msg << std::endl;
 #endif
@@ -331,14 +331,14 @@ bool actionHandlerImpl<MenuActionObjectModifyProperty>::execute()
         break;
     case QVariant::String:
         {
-            std::string propertyValueString = propertyValue.toString().toStdString();
+            std::string propertyValueString = toUtf8(propertyValue.toString());
 
             bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(),
                                                             propertyValueString, propertyName, "Set property " + propertyName,
-                                                            SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+                                                            SGIPluginHostInterface::InputDialogStringEncodingUTF8, _item);
             if(gotInput)
             {
-                propertyValue.setValue(fromLocal8Bit(propertyValueString));
+                propertyValue.setValue(fromUtf8(propertyValueString));
                 object->setProperty(propertyName.c_str(), propertyValue);
             }
         }
@@ -384,10 +384,10 @@ bool actionHandlerImpl<MenuActionObjectModifyProperty>::execute()
 
             bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(),
                                                             propertyValueString, propertyName, "Set property " + propertyName,
-                                                            SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+                                                            SGIPluginHostInterface::InputDialogStringEncodingUTF8, _item);
             if(gotInput)
             {
-                propertyValue.setValue(fromLocal8Bit(propertyValueString));
+                propertyValue.setValue(fromUtf8(propertyValueString));
                 object->setProperty(propertyName.c_str(), propertyValue);
             }
         }

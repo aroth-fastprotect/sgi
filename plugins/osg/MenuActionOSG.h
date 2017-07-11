@@ -190,6 +190,7 @@ enum MenuAction {
     MenuActionTextBaseCharacterHeight,
     MenuActionTextBaseCharacterAspectRatio,
     MenuActionTextBaseCharacterSizeMode,
+    MenuActionTextBaseLayout,
 	MenuActionTextBaseSetFontWidth,
 	MenuActionTextBaseSetFontHeight,
     MenuActionTextBaseModifyText,

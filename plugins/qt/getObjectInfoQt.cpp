@@ -45,7 +45,7 @@ std::string getObjectNameImpl<QObject>::process()
         ret = ss.str();
     }
     else
-        ret = toLocal8Bit(objectName);
+        ret = toUtf8(objectName);
     return ret;
 }
 

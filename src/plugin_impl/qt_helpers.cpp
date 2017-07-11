@@ -41,6 +41,17 @@ std::string toLocal8Bit(const QString & str)
     return std::string(qba.constData(), qba.size());
 }
 
+QString fromUtf8(const std::string & str)
+{
+    return QString::fromUtf8(str.data(), str.size());
+}
+
+std::string toUtf8(const QString & str)
+{
+    QByteArray qba = str.toUtf8();
+    return std::string(qba.constData(), qba.size());
+}
+
 std::string getObjectTypename(const QObject * object)
 {
     const QMetaObject * meta = object?object->metaObject():NULL;
@@ -58,13 +69,13 @@ std::string getObjectName(const QObject * object, bool includeAddr)
         {
             QString name = object->objectName();
             if(!name.isEmpty())
-                buf << ' ' << toLocal8Bit(name);
+                buf << ' ' << toUtf8(name);
         }
         ret = buf.str();
     }
     else
     {
-        ret = object?toLocal8Bit(object->objectName()):std::string("(null)");
+        ret = object? toUtf8(object->objectName()):std::string("(null)");
         if(ret.empty())
         {
             std::stringstream buf;
@@ -164,14 +175,14 @@ namespace std {
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QString& str)
     {
-        return os << str.toLocal8Bit().constData();
+        return os << str.toUtf8().constData();
     }
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QStringRef& str)
     {
         const QString * p = str.string();
         if(p)
-            return os << p->toLocal8Bit().constData();
+            return os << p->toUtf8().constData();
         else
             return os << "(null)";
     }

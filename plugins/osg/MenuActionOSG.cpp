@@ -238,6 +238,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseAutoRotateToScreen)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseCharacterHeight)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseCharacterAspectRatio)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseCharacterSizeMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseLayout)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseSetFontWidth)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseSetFontHeight)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseModifyText)
@@ -2616,6 +2617,13 @@ bool actionHandlerImpl<MenuActionTextBaseCharacterSizeMode>::execute()
 {
     osgText::TextBase * object = getObject<osgText::TextBase,SGIItemOsg>();
     object->setCharacterSizeMode((osgText::TextBase::CharacterSizeMode)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBaseLayout>::execute()
+{
+    osgText::TextBase * object = getObject<osgText::TextBase, SGIItemOsg>();
+    object->setLayout((osgText::TextBase::Layout)menuAction()->mode());
     return true;
 }
 

@@ -2090,7 +2090,7 @@ void ImagePreviewDialog::refreshImpl()
     {
         std::string displayName;
         SGIPlugins::instance()->getObjectDisplayName(displayName, _item);
-        setWindowTitle(tr("Image Viewer - %1").arg(qt_helpers::fromLocal8Bit(displayName)));
+        setWindowTitle(tr("Image Viewer - %1").arg(qt_helpers::fromUtf8(displayName)));
     }
     else
     {
@@ -2171,7 +2171,7 @@ void ImagePreviewDialog::refreshImpl()
     }
     else
         ss << "<b>No image</b>";
-    _priv->ui->labelImage->setText(qt_helpers::fromLocal8Bit(ss.str()));
+    _priv->ui->labelImage->setText(qt_helpers::fromUtf8(ss.str()));
     _priv->ui->mouseinfo->setText(QString());
     _priv->setImageInfo(_workImage);
     _priv->setNodeInfo(_item.get());
@@ -2215,7 +2215,7 @@ void ImagePreviewDialog::setObject(SGIItemBase * item, const sgi::Image * image,
         _workImage = NULL;
     else
         _workImage = new Image(*image);
-    _priv->labelText = qt_helpers::fromLocal8Bit(description);
+    _priv->labelText = qt_helpers::fromUtf8(description);
     if(callback)
         _hostCallback = callback;
     emit triggerOnObjectChanged();
@@ -2233,7 +2233,7 @@ void ImagePreviewDialog::setImage(const sgi::Image * image)
 
 void ImagePreviewDialog::setDescription(const std::string & description)
 {
-    _priv->labelText = qt_helpers::fromLocal8Bit(description);
+    _priv->labelText = qt_helpers::fromUtf8(description);
     emit triggerOnObjectChanged();
 }
 

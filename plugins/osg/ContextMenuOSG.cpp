@@ -2371,6 +2371,13 @@ bool contextMenuPopulateImpl<osgText::TextBase>::populate(IContextMenuItem * men
                 characterSizeMenu->addModeAction("Screen", osgText::TextBase::SCREEN_COORDS);
                 characterSizeMenu->addModeAction("Screen+Max font height", osgText::TextBase::OBJECT_COORDS_WITH_MAXIMUM_SCREEN_SIZE_CAPPED_BY_FONT_HEIGHT);
             }
+            IContextMenuItem * layoutMenu = menuItem->addModeMenu(MenuActionTextBaseLayout, "Layout", _item, object->getLayout());
+            if (layoutMenu)
+            {
+                layoutMenu->addModeAction("Left to right", osgText::TextBase::LEFT_TO_RIGHT);
+                layoutMenu->addModeAction("Right to left", osgText::TextBase::RIGHT_TO_LEFT);
+                layoutMenu->addModeAction("Vertical", osgText::TextBase::VERTICAL);
+            }
             menuItem->addSimpleAction(MenuActionTextBaseSetMaximumWidth, helpers::str_plus_info("Set maximum width", object->getMaximumWidth()), _item);
             menuItem->addSimpleAction(MenuActionTextBaseSetMaximumHeight, helpers::str_plus_info("Set maximum height", object->getMaximumHeight()), _item);
 

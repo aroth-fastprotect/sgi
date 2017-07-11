@@ -186,7 +186,7 @@ void ObjectLoggerDialog::reload()
 	{
 		std::string displayName;
 		SGIPlugins::instance()->getObjectDisplayName(displayName, _item);
-		setWindowTitle(tr("Log of %1").arg(fromLocal8Bit(displayName)));
+		setWindowTitle(tr("Log of %1").arg(fromUtf8(displayName)));
 	}
 	else
 	{
@@ -276,7 +276,7 @@ void ObjectLoggerDialog::reloadLog()
         {
             SGIDataFieldBase * field = fieldInfo.valid()?fieldInfo->getField(column):NULL;
             if(field)
-                headerItems << fromLocal8Bit(field->toString(_hostInterface));
+                headerItems << fromUtf8(field->toString(_hostInterface));
             else
                 headerItems << QString("Field#%1").arg(column);
         }
@@ -297,7 +297,7 @@ void ObjectLoggerDialog::reloadLog()
                 SGIDataFieldBase * field = dataItem->getField(column);
                 QTableWidgetItem * tableItem = new QTableWidgetItem;
                 QtTableSGIItem data(dataItem, column);
-                tableItem->setText(fromLocal8Bit(field->toString(_hostInterface)));
+                tableItem->setText(fromUtf8(field->toString(_hostInterface)));
                 tableItem->setData(Qt::UserRole, QVariant::fromValue(data));
 
                 ui->tableWidget->setItem(row, column, tableItem);
@@ -532,7 +532,7 @@ void ObjectLoggerDialog::setNodeInfo(const SGIItemBase * item)
 		os << "<b>item is <i>NULL</i></b>";
 	}
 	ui->textEdit->blockSignals(true);
-	ui->textEdit->setHtml(fromLocal8Bit(os.str()));
+	ui->textEdit->setHtml(fromUtf8(os.str()));
 	ui->textEdit->blockSignals(false);
 }
 
@@ -556,7 +556,7 @@ void ObjectLoggerDialog::updateLog()
 						SGIDataFieldBase * field = dataItem->getField(column);
 						QTableWidgetItem * tableItem = new QTableWidgetItem;
 						QtTableSGIItem data(dataItem, column);
-						tableItem->setText(fromLocal8Bit(field->toString(_hostInterface)));
+						tableItem->setText(fromUtf8(field->toString(_hostInterface)));
 						tableItem->setData(Qt::UserRole, QVariant::fromValue(data));
 
 						ui->tableWidget->setItem(row, column, tableItem);
