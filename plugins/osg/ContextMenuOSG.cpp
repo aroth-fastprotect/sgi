@@ -51,6 +51,7 @@
 #include "osgtext_accessor.h"
 #include "DrawableHelper.h"
 #include "osganimation_accessor.h"
+#include "ObjectLoggerOSG.h"
 
 namespace sgi {
 
@@ -343,6 +344,7 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
                 object->accept(hddv);
                 if(hddv.result)
                     manipulateMenu->addSimpleAction(MenuActionNodeFixDeprecatedData, "Fix deprecated data", _item);
+                manipulateMenu->addBoolAction(MenuActionNodeInspectCulling, "Inspect culling", _item, CullingInfo::isPresent(object));
 
                 manipulateMenu->addBoolAction(MenuActionNodeToggleCenterMarker, "Show center marker", _item, false);
             }

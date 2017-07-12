@@ -63,6 +63,7 @@
 #include "DrawableHelper.h"
 #include "NodeHelper.h"
 #include "ManipulateObject.h"
+#include "ObjectLoggerOSG.h"
 
 #undef max
 #undef min
@@ -89,6 +90,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeSmoothingVisitor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeToggleCenterMarker)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeRenderInfo)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeFixDeprecatedData)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeInspectCulling)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectLogger)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectLoggerVisible)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectLoggerActive)
@@ -645,6 +647,13 @@ bool actionHandlerImpl<MenuActionNodeFixDeprecatedData>::execute()
     osg::Node * node = getObject<osg::Node, SGIItemOsg>();
     FixDeprecatedDataVisitor fddv;
     node->accept(fddv);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionNodeInspectCulling>::execute()
+{
+    osg::Node * node = getObject<osg::Node, SGIItemOsg>();
+    CullingInfo::enable(node, menuAction()->state(), _hostInterface);
     return true;
 }
 

@@ -52,6 +52,7 @@ enum MenuAction {
     MenuActionNodeToggleCenterMarker,
     MenuActionNodeRenderInfo,
     MenuActionNodeFixDeprecatedData,
+    MenuActionNodeInspectCulling,
     MenuActionObjectLogger,
     MenuActionObjectLoggerVisible,
     MenuActionObjectLoggerActive,

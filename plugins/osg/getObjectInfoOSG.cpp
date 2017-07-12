@@ -17,6 +17,8 @@
 #include <sgi/helpers/rtti>
 #include <sgi/helpers/html>
 
+#include "ObjectLoggerOSG.h"
+
 namespace sgi {
 
 class SGIItemOsg;
@@ -34,11 +36,16 @@ GET_OBJECT_NAME_IMPL_REGISTER(osg::Image)
 GET_OBJECT_NAME_IMPL_REGISTER(osg::GraphicsContext)
 GET_OBJECT_NAME_IMPL_REGISTER(osgDB::Registry)
 GET_OBJECT_NAME_IMPL_REGISTER(osgDB::BaseSerializer)
+
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(CullingNodeInfo)
+
 GET_OBJECT_DISPLAYNAME_IMPL_REGISTER(osg::Referenced)
 GET_OBJECT_DISPLAYNAME_IMPL_REGISTER(osg::Object)
 GET_OBJECT_DISPLAYNAME_IMPL_REGISTER(osg::Operation)
 GET_OBJECT_DISPLAYNAME_IMPL_REGISTER(osgDB::Registry)
 GET_OBJECT_DISPLAYNAME_IMPL_REGISTER(osgDB::BaseSerializer)
+GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(CullingNodeInfo)
+
 GET_OBJECT_TYPE_IMPL_REGISTER(osg::Referenced)
 GET_OBJECT_TYPE_IMPL_REGISTER(osg::Object)
 GET_OBJECT_SUGGESTED_FILENAME_IMPL_REGISTER(osg::Object)
@@ -195,6 +202,15 @@ std::string getObjectNameImpl<osgDB::BaseSerializer>::process()
     return object->getName();
 }
 
+std::string getObjectNameImpl<CullingNodeInfo>::process()
+{
+    CullingNodeInfo* object = static_cast<CullingNodeInfo*>(item<SGIItemOsg>()->object());
+    SGIHostItemOsg node(object->node);
+    std::string ret;
+    _hostInterface->getObjectName(ret, &node);
+    return ret;
+}
+
 //--------------------------------------------------------------------------------
 // getObjectDisplayNameImpl
 //--------------------------------------------------------------------------------
@@ -239,6 +255,14 @@ std::string getObjectDisplayNameImpl<osgDB::BaseSerializer>::process()
     return object->getName();
 }
 
+std::string getObjectDisplayNameImpl<CullingNodeInfo>::process()
+{
+    CullingNodeInfo* object = static_cast<CullingNodeInfo*>(item<SGIItemOsg>()->object());
+    SGIHostItemOsg node(object->node);
+    std::string ret;
+    _hostInterface->getObjectDisplayName(ret, &node);
+    return ret;
+}
 //--------------------------------------------------------------------------------
 // getObjectTypeImpl
 //--------------------------------------------------------------------------------
