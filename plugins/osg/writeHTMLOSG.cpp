@@ -1448,6 +1448,9 @@ namespace {
     class DrawableAccess : public osg::Drawable
     {
     public:
+        const osg::BoundingBox& getBoundingBoxNoCompute() const {
+            return _boundingBox;
+        }
         unsigned int getNumChildrenRequiringUpdateTraversal() const { return _numChildrenRequiringUpdateTraversal; }
         unsigned int getNumChildrenRequiringEventTraversal() const { return _numChildrenRequiringEventTraversal; }
     };
@@ -1469,7 +1472,7 @@ bool writePrettyHTMLImpl<osg::Drawable>::process(std::basic_ostream<char>& os)
 
             // add remaining drawable properties
             DrawableAccess * access = (DrawableAccess *)object;
-            os << "<tr><td>bounding box</td><td>" << object->getBound() << "</td></tr>" << std::endl;
+            os << "<tr><td>bounding box</td><td>" << access->getBoundingBoxNoCompute() << "</td></tr>" << std::endl;
 
             os << "<tr><td>supports display list</td><td>" << (object->getSupportsDisplayList()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>use display list</td><td>" << (object->getUseDisplayList()?"true":"false") << "</td></tr>" << std::endl;
@@ -3589,11 +3592,7 @@ bool writePrettyHTMLImpl<osg::Viewport>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add remaining Viewport properties
-            os << "<tr><td>x</td><td>" << object->x() << "</td></tr>" << std::endl;
-            os << "<tr><td>y</td><td>" << object->y() << "</td></tr>" << std::endl;
-            os << "<tr><td>width</td><td>" << object->width() << "</td></tr>" << std::endl;
-            os << "<tr><td>height</td><td>" << object->height() << "</td></tr>" << std::endl;
-            os << "<tr><td>aspect ratio</td><td>" << object->aspectRatio() << "</td></tr>" << std::endl;
+            osg_helpers::writePrettyHTML(os, object);
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -5032,6 +5031,44 @@ std::string cullingModeToString(osg::CullSettings::CullingMode t)
     return s;
 }
 
+namespace {
+    class CullStackAccess : public osg::CullStack
+    {
+    public:
+        float getFrustumVolumeNoCompute() const {
+            return _frustumVolume;
+        }
+    };
+}
+
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::CullStack * object_)
+{
+    const CullStackAccess* object = static_cast<const CullStackAccess*>(object_);
+    os << "<tr><td>frustumVolume</td><td>" << object->getFrustumVolumeNoCompute() << "</td></tr>" << std::endl;
+    os << "<tr><td>eyeLocal</td><td>" << object->getEyeLocal() << "</td></tr>" << std::endl;
+    os << "<tr><td>viewPointLocal</td><td>" << object->getViewPointLocal() << "</td></tr>" << std::endl;
+    if (!object->getModelViewStack().empty())
+    {
+        os << "<tr><td>upLocal</td><td>" << object->getUpLocal() << "</td></tr>" << std::endl;
+        os << "<tr><td>lookVectorLocal</td><td>" << object->getLookVectorLocal() << "</td></tr>" << std::endl;
+    }
+    os << "<tr><td>eyeLocal</td><td>" << object->getEyeLocal() << "</td></tr>" << std::endl;
+
+    os << "<tr><td>viewport</td><td><table broder=\"1\">";
+    osg_helpers::writePrettyHTML(os, object->getViewport());
+    os << "</table></td></tr>" << std::endl;
+
+    os << "<tr><td>projectionMatrix</td><td>";
+    writePrettyHTML(os, object->getProjectionMatrix(), MatrixUsageTypePerspective);
+    os << "</td></tr>" << std::endl;
+    os << "<tr><td>modelViewMatrix</td><td>";
+    writePrettyHTML(os, object->getModelViewMatrix(), MatrixUsageTypeModelView);
+    os << "</td></tr>" << std::endl;
+    os << "<tr><td>windowMatrix</td><td>";
+    writePrettyHTML(os, object->getWindowMatrix(), MatrixUsageTypeWindow);
+    os << "</td></tr>" << std::endl;
+}
+
 void writePrettyHTML(std::basic_ostream<char>& os, const osg::CullSettings * object)
 {
     os << "<tr><td>inheritanceMaskActionOnAttributeSetting</td><td>" << object->getInheritanceMaskActionOnAttributeSetting() << "</td></tr>" << std::endl;
@@ -5208,6 +5245,7 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
     }
     return ret;
 }
+
 
 bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
 {

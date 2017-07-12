@@ -288,7 +288,8 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osgText::Glyph3D,
     osgText::GlyphGeometry,
     ReferencedSetViewNodeLookAt,
-    sgi::ReferencedPickerBase
+    sgi::ReferencedPickerBase,
+    CullingNodeInfo
 SGI_OBJECT_INFO_END()
 
 #if OSG_MIN_VERSION_REQUIRED(3,5,0)
@@ -312,7 +313,10 @@ SGI_OBJECT_INFO_BEGIN(osg::Object)
     osgGA::EventHandler, osgGA::GUIEventAdapter,
     osgText::Font,
     osgUtil::SceneView, osgUtil::RenderBin,
-    osgTerrain::Locator, osgTerrain::Layer, osgTerrain::TerrainTechnique
+    osgTerrain::Locator, osgTerrain::Layer, osgTerrain::TerrainTechnique,
+    CullingInfo,
+    CullingInfoForCamera,
+    CullingInfoRegistry
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::Callback)
@@ -656,6 +660,12 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeCameaBufferAttachments);
         SGIITEMTYPE_NAME(SGIItemTypeFontTextureList);
         SGIITEMTYPE_NAME(SGIItemTypeStatsFrame);
+        SGIITEMTYPE_NAME(SGIItemTypeCachedObjects);
+        SGIITEMTYPE_NAME(SGIItemTypeTextureObjects);
+        SGIITEMTYPE_NAME(SGIItemTypeTextureSetMap);
+        SGIITEMTYPE_NAME(SGIItemTypeDrawElementsIndicies);
+        SGIITEMTYPE_NAME(SGIItemTypeCullingInfoBefore);
+        SGIITEMTYPE_NAME(SGIItemTypeCullingInfoAfter);
     }
     SGIPlugin_osg_Implementation(const SGIPlugin_osg_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
         : osg_plugin::SGIPluginImpl(rhs, copyop)

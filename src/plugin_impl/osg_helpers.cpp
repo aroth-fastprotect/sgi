@@ -8,6 +8,7 @@
 #include <osg/ObserverNodePath>
 #include <osg/io_utils>
 #include <osg/Shape>
+#include <osg/CullingSet>
 
 #include <QImage>
 #include <QGLWidget>
@@ -248,6 +249,27 @@ std::string clearMaskToString(unsigned clearMask)
     return ret;
 }
 
+std::string cullingMaskToString(unsigned cullingMask)
+{
+    std::string ret;
+    if (cullingMask == 0u)
+        ret = "visible";
+    else
+    {
+        if (cullingMask & osg::CullingSet::VIEW_FRUSTUM_SIDES_CULLING)
+            sgi::helpers::str_append(ret, "frustum");
+        if (cullingMask & osg::CullingSet::NEAR_PLANE_CULLING)
+            sgi::helpers::str_append(ret, "near-plane");
+        if (cullingMask & osg::CullingSet::FAR_PLANE_CULLING)
+            sgi::helpers::str_append(ret, "far-plane");
+        if (cullingMask & osg::CullingSet::SMALL_FEATURE_CULLING)
+            sgi::helpers::str_append(ret, "small-feature");
+        if (cullingMask & osg::CullingSet::SMALL_FEATURE_CULLING)
+            sgi::helpers::str_append(ret, "shadow-occlusion");
+    }
+    return ret;
+}
+
 
 const osg::EllipsoidModel & getDefaultEllipsoid()
 {
@@ -451,6 +473,7 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, Mat
     {
     default:
     case MatrixUsageTypeGeneric:
+    case MatrixUsageTypeWindow:
         os << std::setprecision(12) << "<table border=\'1\' align=\'left\'>" << std::endl;
         os << "<tr><td>" << mat(0,0) << "</td><td>" << mat(0,1) << "</td><td>" << mat(0,2) << "</td><td>" << mat(0,3) << "</td></tr>" << std::endl;
         os << "<tr><td>" << mat(1,0) << "</td><td>" << mat(1,1) << "</td><td>" << mat(1,2) << "</td><td>" << mat(1,3) << "</td></tr>" << std::endl;
@@ -539,6 +562,7 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, Mat
     {
     default:
     case MatrixUsageTypeGeneric:
+    case MatrixUsageTypeWindow:
         os << std::setprecision(12) << "<table border=\'1\' align=\'left\'>" << std::endl;
         os << "<tr><td>" << mat(0,0) << "</td><td>" << mat(0,1) << "</td><td>" << mat(0,2) << "</td><td>" << mat(0,3) << "</td></tr>" << std::endl;
         os << "<tr><td>" << mat(1,0) << "</td><td>" << mat(1,1) << "</td><td>" << mat(1,2) << "</td><td>" << mat(1,3) << "</td></tr>" << std::endl;
@@ -599,6 +623,36 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, Mat
             os << "</ul>";
         }
         break;
+    }
+}
+
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::RefMatrixd * mat, MatrixUsageType type, const osg::Node * refNode)
+{
+    if (!mat)
+        os << "<i>(null)</i>";
+    else
+        writePrettyHTML(os, *mat, type, refNode);
+}
+
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::RefMatrixd * mat, MatrixUsageType type, const osg::Drawable * refDrawable)
+{
+    if (!mat)
+        os << "<i>(null)</i>";
+    else
+        writePrettyHTML(os, *mat, type, refDrawable);
+}
+
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::Viewport* object)
+{
+    if (!object)
+        os << "<i>(null)</i>";
+    else
+    {
+        os << "<tr><td>x</td><td>" << object->x() << "</td></tr>" << std::endl;
+        os << "<tr><td>y</td><td>" << object->y() << "</td></tr>" << std::endl;
+        os << "<tr><td>width</td><td>" << object->width() << "</td></tr>" << std::endl;
+        os << "<tr><td>height</td><td>" << object->height() << "</td></tr>" << std::endl;
+        os << "<tr><td>aspect ratio</td><td>" << object->aspectRatio() << "</td></tr>" << std::endl;
     }
 }
 
@@ -1006,6 +1060,27 @@ unsigned findContextID(const osg::StateAttribute * sa)
     osg::Camera * camera = findCamera(sa);
     return findContextID(camera);
 }
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxf & b)
+{
+    return output << std::setprecision(12) << '[' << b._min << ',' << b._max << ']';
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxd & b)
+{
+    return output << std::setprecision(12) << '[' << b._min << ',' << b._max << ']';
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSpheref & b)
+{
+    return output << std::setprecision(12) << '[' << b._center << ",r=" << b._radius << ']';
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSphered & b)
+{
+    return output << std::setprecision(12) << '[' << b._center << ",r=" << b._radius << ']';
+}
+
 
 } // namespace osg_helpers
 } // namespace sgi

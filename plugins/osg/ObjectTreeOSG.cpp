@@ -48,6 +48,7 @@
 
 #include "osgdb_accessor.h"
 #include "DrawableHelper.h"
+#include "ObjectLoggerOSG.h"
 #include "osg_accessor.h"
 #include "osganimation_accessor.h"
 #include "osgviewer_accessor.h"
@@ -114,6 +115,11 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::DrawElements)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::State)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::ShaderComposer)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::ShaderComponent)
+
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(CullingNodeInfo)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(CullingInfo)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(CullingInfoForCamera)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(CullingInfoRegistry)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::Registry)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::Options)
@@ -2348,7 +2354,7 @@ bool objectTreeBuildImpl<osgGA::GUIEventAdapter>::build(IObjectTreeItem * treeIt
 
 bool objectTreeBuildImpl<osgGA::CameraManipulator>::build(IObjectTreeItem * treeItem)
 {
-    osgGA::CameraManipulator * object = dynamic_cast<osgGA::CameraManipulator*>(item<SGIItemOsg>()->object());
+    osgGA::CameraManipulator * object = getObject<osgGA::CameraManipulator, SGIItemOsg, DynamicCaster>();
     bool ret;
     switch(itemType())
     {
@@ -2374,6 +2380,133 @@ bool objectTreeBuildImpl<osgGA::CameraManipulator>::build(IObjectTreeItem * tree
             SGIHostItemOsg coordinateFrameCallback(object->getCoordinateFrameCallback());
             if(coordinateFrameCallback.hasObject())
                 treeItem->addChild("CoordinateFrameCallback", &coordinateFrameCallback);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<CullingNodeInfo>::build(IObjectTreeItem * treeItem)
+{
+    CullingNodeInfo * object = getObject<CullingNodeInfo, SGIItemOsg>();
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsg node(object->node.get());
+            treeItem->addChild("Node", &node);
+            treeItem->addChild("Before", cloneItem<SGIItemOsg>(SGIItemTypeCullingInfoBefore));
+            treeItem->addChild("After", cloneItem<SGIItemOsg>(SGIItemTypeCullingInfoAfter));
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<CullingInfo>::build(IObjectTreeItem * treeItem)
+{
+    CullingInfo * object = getObject<CullingInfo, SGIItemOsg>();
+    bool ret;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            SGIHostItemOsg item(object->node());
+            treeItem->addChild("Node", &item);
+
+            unsigned pathnum = 0;
+            const CullingInfo::CullingNodeInfoPathList & pathlist = object->pathlist();
+            for (auto node : pathlist)
+            {
+                treeItem->addChild(helpers::str_plus_count("Path", pathnum++), cloneItem<SGIItemOsg>(SGIItemTypeChilds));
+            }
+
+        }
+        break;
+    case SGIItemTypeChilds:
+        {
+            unsigned pathnum = itemNumber();
+            const CullingInfo::CullingNodeInfoPathList & pathlist = object->pathlist();
+            if (pathnum < pathlist.size())
+            {
+                const CullingNodeInfoPath & path = pathlist[pathnum];
+                for (const CullingNodeInfoPtr & cullinfo : path)
+                {
+                    SGIHostItemOsg item(cullinfo.get());
+                    treeItem->addChild(std::string(), &item);
+                }
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<CullingInfoForCamera>::build(IObjectTreeItem * treeItem)
+{
+    CullingInfoForCamera * object = getObject<CullingInfoForCamera, SGIItemOsg>();
+    bool ret;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            SGIHostItemOsg camera(object->camera());
+            treeItem->addChild("Camera", &camera);
+
+            const CullingInfoPtrList & activeNodes = object->activeNodes();
+            for (auto node : activeNodes )
+            {
+                SGIHostItemOsg item(node.get());
+                treeItem->addChild(std::string(), &item);
+            }
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<CullingInfoRegistry>::build(IObjectTreeItem * treeItem)
+{
+    CullingInfoRegistry * object = getObject<CullingInfoRegistry, SGIItemOsg>();
+    bool ret;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            const CullingInfoRegistry::CameraCullingInfoMap & map = object->map();
+            for (auto it = map.begin(); it != map.end(); ++it)
+            {
+                const CullingInfoRegistry::CameraPtr & camera = it->first;
+                const CullingInfoRegistry::CullingInfoForCameraPtr cull_info = it->second;
+                osg::ref_ptr<osg::Camera> camera_ref;
+                if (camera.lock(camera_ref))
+                {
+                    SGIHostItemOsg item(cull_info.get());
+                    treeItem->addChild(std::string(), &item);
+                }
+            }
         }
         break;
     default:
@@ -4086,6 +4219,17 @@ struct DefaultFontSingleton
     }
 };
 
+struct CullingInfoSingleton
+{
+    SGIItemBase * operator()(SGIPluginHostInterface * hostInterface)
+    {
+        SGIItemBasePtr item;
+        SGIHostItemOsg hostItem(CullingInfoRegistry::instance());
+        hostInterface->generateItem(item, &hostItem);
+        return item.release();
+    }
+};
+
 
 class FindTreeItemNodeVisitor : public osg::NodeVisitor
 {
@@ -4133,6 +4277,9 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
 
     SGIHostItemInternal defaultFontHostItem(new SGIProxyItemT<DefaultFontSingleton>(_hostInterface, "osgText::DefaultFont"));
     treeItem->addChild(std::string(), &defaultFontHostItem);
+
+    SGIHostItemInternal cullingInfoItem(new SGIProxyItemT<CullingInfoSingleton>(_hostInterface, "CullingInfo"));
+    treeItem->addChild(std::string(), &cullingInfoItem);
 
     SGIItemOsg * osgitem = dynamic_cast<SGIItemOsg *>(object->item());
     if (osgitem)

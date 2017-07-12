@@ -14,6 +14,7 @@ SET(TARGET_SRC
     writeHTMLOSGTerrain.cpp
     writeHTMLOSGUtil.cpp
     writeHTMLOSGViewer.cpp
+	writeHTMLOSGCullingInfo.cpp
 
     getObjectInfoOSG.cpp
 

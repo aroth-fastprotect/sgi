@@ -26,6 +26,7 @@ namespace osg {
     class ObserverNodePath;
     class Matrixf;
     class Matrixd;
+    class Viewport;
     class Image;
 	class HeightField;
     class Camera;
@@ -137,6 +138,7 @@ inline ::osg::Quat osgQuat(const sgi::Quat & q)
 SGI_EXPORT std::string glValueName(unsigned n);
 SGI_EXPORT std::string glOverrideValueName(unsigned n);
 SGI_EXPORT std::string clearMaskToString(unsigned clearMask);
+SGI_EXPORT std::string cullingMaskToString(unsigned cullingMask);
 
 SGI_EXPORT const osg::EllipsoidModel & getDefaultEllipsoid();
 
@@ -174,10 +176,19 @@ enum MatrixUsageType
     MatrixUsageTypeLookAt,
     MatrixUsageTypeFrustum,
     MatrixUsageTypeOrtho,
+    MatrixUsageTypeWindow,
 };
 
 SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Node * refNode=NULL);
 SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Drawable * refDrawable);
+SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::RefMatrixd * mat, MatrixUsageType type, const osg::Node * refNode = NULL);
+SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::RefMatrixd * mat, MatrixUsageType type, const osg::Drawable * refDrawable);
+SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Viewport * vp);
+
+SGI_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxf & b);
+SGI_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxd & b);
+SGI_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSpheref & b);
+SGI_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSphered & b);
 
 SGI_EXPORT bool osgImageToQImage(const osg::Image * image, QImage * qimage);
 SGI_EXPORT const sgi::Image * convertImage(const osg::Image * image);
