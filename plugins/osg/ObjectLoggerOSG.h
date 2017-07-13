@@ -125,9 +125,6 @@ public:
     CullingInfoForCamera * getOrCreateCullingInfoForCamera(osg::Camera * camera, SGIPluginHostInterface * hostInterface);
 
 protected:
-    typedef osg::observer_ptr<osg::Camera> CameraPtr;
-    typedef osg::ref_ptr<CullingInfoForCamera> CullingInfoForCameraPtr;
-    typedef std::map<CameraPtr, CullingInfoForCameraPtr > CameraCullingInfoMap;
     OpenThreads::Mutex _mutex;
     CameraCullingInfoMap _map;
 };
