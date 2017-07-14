@@ -88,11 +88,33 @@ public:
 #endif // QT_VERSION < 0x050000
 
 namespace {
-    static void ensure_QApplication()
+#ifdef _WIN32
+    static void __stdcall win32_app_timer(HWND, UINT, UINT_PTR, DWORD)
+    {
+        QCoreApplication::instance()->processEvents();
+    }
+#endif
+    static void ensure_QApplication(osg::GraphicsContext * ctx)
     {
         QCoreApplication * app = QApplication::instance();
         if(!app)
         {
+#if defined(_WIN32)
+            if (osgViewer::GraphicsWindowWin32 * gwwin = dynamic_cast<osgViewer::GraphicsWindowWin32*>(ctx))
+            {
+                SetTimer(gwwin->getHWND(), 100232u, 40, win32_app_timer);
+            }
+#elif defined(__APPLE__)
+            else if (osgViewer::GraphicsWindowCarbon * gwcarbon = dynamic_cast<osgViewer::GraphicsWindowCarbon*>(ctx))
+            {
+            }
+#else
+            else if (osgViewer::GraphicsWindowX11 * gwx11 = dynamic_cast<osgViewer::GraphicsWindowX11*>(ctx))
+            {
+                //_parent = QWidget::find(gwx11->getWindow());
+            }
+#endif
+
             int argc = 0;
             char ** argv = NULL;
             new QApplication(argc, argv);
@@ -493,7 +515,7 @@ public:
         osg::GraphicsContext * ctx = camera->getGraphicsContext();
         if(ctx)
         {
-            ensure_QApplication();
+            ensure_QApplication(ctx);
 
             if(options.parentWidget)
                 _parent = options.parentWidget;
