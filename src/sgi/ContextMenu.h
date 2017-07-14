@@ -46,6 +46,13 @@ public:
     void                            setObject(const SGIHostItemBase * item, IHostCallback * callback=NULL);
     IHostCallback *                 getHostCallback();
 
+    bool                            donotClearItem() const {
+        return _donotClearItem;
+    }
+    void                            setDonotClearItem(bool enable) {
+        _donotClearItem = enable;
+    }
+
 signals:
 	void                            triggerPopup(QWidget * parent, int x, int y);
 	void							triggerUpdateMenu();
@@ -80,6 +87,7 @@ protected:
     SGIItemBasePtr       _item;
     IHostCallbackPtr     _hostCallback;
     bool                 _onlyRootItem;
+    bool                 _donotClearItem;
 };
 
 class ContextMenuQt : public QObject

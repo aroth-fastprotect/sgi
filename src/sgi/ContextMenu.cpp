@@ -360,6 +360,7 @@ ContextMenu::ContextMenu(bool onlyRootItem, QWidget * parent)
     , _item()
     , _hostCallback(NULL)
     , _onlyRootItem(onlyRootItem)
+    , _donotClearItem(false)
 {
     Q_VERIFY(connect(this, &QMenu::aboutToShow, this, &ContextMenu::slotPopulateItemMenu));
     Q_VERIFY(connect(this, &ContextMenuBase::hidden, this, &ContextMenu::slotClearItemMenu, Qt::QueuedConnection));
@@ -373,6 +374,7 @@ ContextMenu::ContextMenu(SGIItemBase * item, IHostCallback* callback, bool onlyR
     , _item(item)
     , _hostCallback(callback)
     , _onlyRootItem(onlyRootItem)
+    , _donotClearItem(false)
 {
     populate();
     Q_VERIFY(connect(this, &QMenu::aboutToShow, this, &ContextMenu::slotPopulateItemMenu));
@@ -444,7 +446,7 @@ void ContextMenu::slotPopulateItemMenu()
 void ContextMenu::slotClearItemMenu()
 {
     QMenu * menu = qobject_cast<QMenu *>(sender());
-    if(menu && qobject_cast<ContextMenu*>(menu))
+    if(menu && qobject_cast<ContextMenu*>(menu) && !_donotClearItem)
     {
         //qDebug() << "slotClearItemMenu()" << this << menu;
         QAction * action = menu->menuAction();

@@ -274,6 +274,7 @@ SceneGraphDialog::SceneGraphDialog(SGIItemBase * item, IHostCallback * callback,
     this->setWindowFlags(flags);
 
     _toolsMenu = new ContextMenu(false, this);
+    _toolsMenu->setDonotClearItem(true);
 
     QToolButton * toolsMenuButton = new QToolButton(this);
     toolsMenuButton->setMenu(_toolsMenu);
