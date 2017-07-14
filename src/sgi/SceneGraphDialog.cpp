@@ -18,6 +18,7 @@
 #include <QComboBox>
 #include <QSpinBox>
 #include <QDesktopWidget>
+#include <QScrollBar>
 #include <QTimer>
 
 #include "sgi/plugins/SGIPluginInterface.h"
@@ -736,12 +737,16 @@ void SceneGraphDialog::setNodeInfo(const SGIItemBase * item)
     if(item)
         SGIPlugins::instance()->writePrettyHTML(os, item);
     else
-    {
         os << "<b>item is <i>NULL</i></b>";
-    }
+    QScrollBar * vbar = uiPage->textEdit->verticalScrollBar();
+    int vscrollPos = -1;
+    if (vbar)
+        vscrollPos = vbar->sliderPosition();
     uiPage->textEdit->blockSignals(true);
     uiPage->textEdit->setHtml(fromUtf8(os.str()));
     uiPage->textEdit->blockSignals(false);
+    if (vbar && vscrollPos >= 0)
+        vbar->setSliderPosition(vscrollPos);
 }
 
 void SceneGraphDialog::onItemContextMenu(QPoint pt)
