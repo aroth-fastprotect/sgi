@@ -307,7 +307,7 @@ bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
             if(numParents)
             {
                 treeItem->addChild(helpers::str_plus_count("Parents", numParents), cloneItem<SGIItemOsg>(SGIItemTypeParents));
-                treeItem->addChild(helpers::str_plus_count("ParentNodePaths", numParents), cloneItem<SGIItemOsg>(SGIItemTypeParentalNodePath, ~0u));
+                treeItem->addChild("ParentNodePaths", cloneItem<SGIItemOsg>(SGIItemTypeParentalNodePath, ~0u));
             }
 
             SGIHostItemOsg stateSet(object->getStateSet());
@@ -336,7 +336,7 @@ bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
             if(numPath == ~0u)
             {
                 for(osg::NodePathList::const_iterator itPathList = parentalNodePaths.begin(); itPathList != parentalNodePaths.end(); itPathList++, parentalNodePathNum++)
-                    treeItem->addChild(helpers::str_plus_number("Parent", parentalNodePathNum), cloneItem<SGIItemOsg>(SGIItemTypeParentalNodePath, parentalNodePathNum));
+                    treeItem->addChild(helpers::str_plus_number("Path", parentalNodePathNum), cloneItem<SGIItemOsg>(SGIItemTypeParentalNodePath, parentalNodePathNum));
             }
             else
             {
@@ -519,9 +519,11 @@ bool objectTreeBuildImpl<osg::Drawable>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
+#if OSG_VERSION_LESS_THAN(3,4,0)
             unsigned numParents = object->getNumParents();
             if(numParents)
                 treeItem->addChild(helpers::str_plus_count("Parents", numParents), cloneItem<SGIItemOsg>(SGIItemTypeParents));
+#endif // OSG_VERSION_LESS_THAN(3,4,0)
 
 #if OSG_VERSION_LESS_THAN(3,4,0)
             SGIHostItemOsg stateSet(object->getStateSet());
@@ -541,6 +543,7 @@ bool objectTreeBuildImpl<osg::Drawable>::build(IObjectTreeItem * treeItem)
 
         }
         break;
+#if OSG_VERSION_LESS_THAN(3,4,0)
     case SGIItemTypeParents:
         {
             unsigned numParents = object->getNumParents();
@@ -552,6 +555,7 @@ bool objectTreeBuildImpl<osg::Drawable>::build(IObjectTreeItem * treeItem)
             ret = true;
         }
         break;
+#endif // OSG_VERSION_LESS_THAN(3,4,0)
     case SGIItemTypeCallbacks:
         {
             callNextHandler(treeItem);

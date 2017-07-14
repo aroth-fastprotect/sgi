@@ -2598,11 +2598,11 @@ bool actionHandlerImpl<MenuActionTextBaseCharacterHeight>::execute()
     ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
                                              number,
                                              "Character height:", "Set height for characters",
-                                             0.0, 1000.0, 1,
+                                             0.0, 100000.0, 1,
                                              _item
                                             );
     if(ret)
-        object->setCharacterSize(number);
+        object->setCharacterSize((float)number);
     return true;
 }
 

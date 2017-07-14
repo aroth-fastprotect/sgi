@@ -5348,10 +5348,11 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
             {
                 os << "<table border=\'1\' align=\'left\'>" << std::endl;
                 os << "<tr><td>" << osg_helpers::getObjectNameAndType(object, true) << " <i>" << parentalNodePaths.size() << "</i></td></tr>" << std::endl;
-                for(osg::NodePathList::const_iterator itPathList = parentalNodePaths.begin(); itPathList != parentalNodePaths.end(); itPathList++)
+                unsigned num = 0;
+                for(osg::NodePathList::const_iterator itPathList = parentalNodePaths.begin(); itPathList != parentalNodePaths.end(); ++itPathList, ++num)
                 {
                     const osg::NodePath & nodePath = *itPathList;
-                    os << "<tr><td>" << std::endl;
+                    os << "<tr><td>ParentalNodePath <i>#" << numPath << "</i><br/>" << std::endl;
                     osg_helpers::writePrettyHTML(os, nodePath, true);
                     os << "</td></tr>" << std::endl;
                 }
@@ -5362,11 +5363,11 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
                 const osg::NodePathList parentalNodePaths = object->getParentalNodePaths();
                 if(numPath >= parentalNodePaths.size())
                 {
-                    os << "<p>ParentalNodePath <i>" << numPath << "</i> for <b>" << osg_helpers::getObjectNameAndType(object, true) << "</b> is unavailable.</p>" << std::endl;
+                    os << "<p>ParentalNodePath <i>#" << numPath << "</i> for <b>" << osg_helpers::getObjectNameAndType(object, true) << "</b> is unavailable.</p>" << std::endl;
                 }
                 else
                 {
-                    os << "<p>ParentalNodePath <i>" << numPath << "</i> for <b>" << osg_helpers::getObjectNameAndType(object, true) << "</b></p>" << std::endl;
+                    os << "<p>ParentalNodePath <i>#" << numPath << "</i> for <b>" << osg_helpers::getObjectNameAndType(object, true) << "</b></p>" << std::endl;
                     unsigned parentalNodePathNum = 0;
                     for(osg::NodePathList::const_iterator itPathList = parentalNodePaths.begin(); itPathList != parentalNodePaths.end(); itPathList++, parentalNodePathNum++)
                     {
