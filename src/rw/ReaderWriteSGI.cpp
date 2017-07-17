@@ -93,6 +93,12 @@ namespace {
     {
         QCoreApplication::instance()->processEvents();
     }
+#elif defined(__APPLE__)
+#elif defined(__linux__)
+    static void x11_app_timer()
+    {
+        QCoreApplication::instance()->processEvents();
+    }
 #endif
     static void ensure_QApplication(osg::GraphicsContext * ctx)
     {
@@ -105,12 +111,13 @@ namespace {
                 SetTimer(gwwin->getHWND(), 100232u, 40, win32_app_timer);
             }
 #elif defined(__APPLE__)
-            else if (osgViewer::GraphicsWindowCarbon * gwcarbon = dynamic_cast<osgViewer::GraphicsWindowCarbon*>(ctx))
+            if (osgViewer::GraphicsWindowCarbon * gwcarbon = dynamic_cast<osgViewer::GraphicsWindowCarbon*>(ctx))
             {
             }
-#else
-            else if (osgViewer::GraphicsWindowX11 * gwx11 = dynamic_cast<osgViewer::GraphicsWindowX11*>(ctx))
+#elif defined(__linux__)
+            if (osgViewer::GraphicsWindowX11 * gwx11 = dynamic_cast<osgViewer::GraphicsWindowX11*>(ctx))
             {
+                Window& window = gwx11->getWindow();
                 //_parent = QWidget::find(gwx11->getWindow());
             }
 #endif
