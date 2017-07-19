@@ -31,8 +31,12 @@
 #include <osgViewer/api/win32/GraphicsWindowWin32>
 #elif defined(__APPLE__)
 #include <osgViewer/api/Carbon/GraphicsWindowCarbon>
-#else
+#elif  defined(__linux__)
 #include <osgViewer/api/X11/GraphicsWindowX11>
+#include <signal.h>
+#include <time.h>
+#include <sys/syscall.h>
+#include <unistd.h>
 #endif
 
 #define SGI_NO_HOSTITEM_GENERATOR
@@ -95,35 +99,59 @@ namespace {
     }
 #elif defined(__APPLE__)
 #elif defined(__linux__)
-    static void x11_app_timer()
+    static void x11_app_timer_signal(int sig, siginfo_t*, void*)
     {
+        //std::cout << "x11_app_timer_signal" << std::endl;
         QCoreApplication::instance()->processEvents();
+    }
+    unsigned getCurrentThreadId()
+    {
+        return (unsigned)::syscall(SYS_gettid);
     }
 #endif
     static void ensure_QApplication(osg::GraphicsContext * ctx)
     {
+        const int application_timer_interval_in_ms = 50;
         QCoreApplication * app = QApplication::instance();
         if(!app)
         {
 #if defined(_WIN32)
             if (osgViewer::GraphicsWindowWin32 * gwwin = dynamic_cast<osgViewer::GraphicsWindowWin32*>(ctx))
             {
-                SetTimer(gwwin->getHWND(), 100232u, 40, win32_app_timer);
+                SetTimer(gwwin->getHWND(), 100232u, application_timer_interval_in_ms, win32_app_timer);
             }
 #elif defined(__APPLE__)
             if (osgViewer::GraphicsWindowCarbon * gwcarbon = dynamic_cast<osgViewer::GraphicsWindowCarbon*>(ctx))
             {
             }
 #elif defined(__linux__)
-            if (osgViewer::GraphicsWindowX11 * gwx11 = dynamic_cast<osgViewer::GraphicsWindowX11*>(ctx))
+            int err;
+            struct sigaction sa;
+            sa.sa_flags = SA_SIGINFO;
+            sa.sa_sigaction = x11_app_timer_signal;
+            sigemptyset(&sa.sa_mask);
+            err = sigaction(SIGRTMIN, &sa, NULL);
+
+            struct sigevent sevp;
+            timer_t timerid;
+            memset(&sevp, 0, sizeof(sevp));
+            sevp.sigev_notify=SIGEV_THREAD_ID;
+            sevp.sigev_signo = SIGRTMIN;
+            sevp._sigev_un._tid = getCurrentThreadId();
+            err = ::timer_create(CLOCK_REALTIME, &sevp, &timerid);
+            if(err == 0)
             {
-                Window& window = gwx11->getWindow();
-                //_parent = QWidget::find(gwx11->getWindow());
+                struct itimerspec in, out;
+                in.it_value.tv_sec = 0;
+                in.it_value.tv_nsec = (__syscall_slong_t)application_timer_interval_in_ms * 1000 * 1000; // 40 ms -> us -> ns
+                in.it_interval = in.it_value;
+                //issue the periodic timer request here.
+                err = ::timer_settime(timerid, 0, &in, &out);
             }
 #endif
 
-            int argc = 0;
-            char ** argv = NULL;
+            static int argc = 1;
+            static char * argv[] = { (char*)"/dev/null", NULL };
             new QApplication(argc, argv);
         }
     }
