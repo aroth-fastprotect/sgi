@@ -133,6 +133,11 @@ public:
     {
         SGIITEMTYPE_NAME(SGIItemTypeWidgets);
         SGIITEMTYPE_NAME(SGIItemTypeMethods);
+        SGIITEMTYPE_NAME(SGIItemTypeSurfaceFormat);
+        SGIITEMTYPE_NAME(SGIItemTypeContext);
+        SGIITEMTYPE_NAME(SGIItemTypeContextExtensions);
+        SGIITEMTYPE_NAME(SGIItemTypeSurface);
+        SGIITEMTYPE_NAME(SGIItemTypeProperties);
     }
     SGIPlugin_qt_Implementation(const SGIPlugin_qt_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
         : qt_plugin::SGIPluginImpl(rhs, copyop)

@@ -505,6 +505,29 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QGLCont
 }
 #endif // WITH_QTOPENGL
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurface::SurfaceClass t)
+{
+    switch (t)
+    {
+        case QSurface::Window: os << "Window"; break;
+        case QSurface::Offscreen: os << "Offscreen"; break;
+        default: os << (int)t; break;
+    }
+    return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurface::SurfaceType t)
+{
+    switch (t)
+    {
+        case QSurface::RasterSurface: os << "RasterSurface"; break;
+        case QSurface::OpenGLSurface: os << "OpenGLSurface"; break;
+        case QSurface::RasterGLSurface: os << "RasterGLSurface"; break;
+        default: os << (int)t; break;
+    }
+    return os;
+}
+
 bool writePrettyHTMLImpl<QOpenGLContext>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -556,63 +579,77 @@ bool writePrettyHTMLImpl<QOpenGLContext>::process(std::basic_ostream<char>& os)
             for(QSet<QByteArray>::const_iterator it = extensions.begin(); it != extensions.end(); it++)
             {
                 const QByteArray & extension = *it;
-                if(extension.startsWith("GL_AMD") == 0 || extension.startsWith("GL_ATI") == 0)
+                if(extension.startsWith("GL_AMD") || extension.startsWith("GL_ATI"))
                     amd_ati_extensions.push_back(extension);
-                else if(extension.startsWith("GL_ARB") == 0)
+                else if(extension.startsWith("GL_ARB"))
                     arb_extensions.push_back(extension);
-                else if(extension.startsWith("GL_EXT") == 0)
+                else if(extension.startsWith("GL_EXT"))
                     ext_extensions.push_back(extension);
-                else if(extension.startsWith("GL_INTEL") == 0)
+                else if(extension.startsWith("GL_INTEL"))
                     intel_extensions.push_back(extension);
-                else if(extension.startsWith("GL_NV") == 0)
+                else if(extension.startsWith("GL_NV"))
                     nvidia_extensions.push_back(extension);
-                else if(extension.startsWith("GL_S3") == 0)
+                else if(extension.startsWith("GL_S3"))
                     s3_extensions.push_back(extension);
-                else if(extension.startsWith("GL_SGI") == 0)
+                else if(extension.startsWith("GL_SGI"))
                     sgi_extensions.push_back(extension);
                 else
                     other_extensions.push_back(extension);
             }
-            arb_extensions.sort();
+            arb_extensions.sort(Qt::CaseInsensitive);
             os << "ARB extensions: " << arb_extensions.size() << "<ol>" << std::endl;
             for(QStringList::const_iterator it = arb_extensions.begin(); it != arb_extensions.end(); it++)
                 os << "<li>" << *it << "</li>" << std::endl;
             os << "</ol>" << std::endl;
-            ext_extensions.sort();
+            ext_extensions.sort(Qt::CaseInsensitive);
             os << "EXT extensions: " << ext_extensions.size() << "<ol>" << std::endl;
             for(QStringList::const_iterator it = ext_extensions.begin(); it != ext_extensions.end(); it++)
                 os << "<li>" << *it << "</li>" << std::endl;
             os << "</ol>" << std::endl;
-            amd_ati_extensions.sort();
+            amd_ati_extensions.sort(Qt::CaseInsensitive);
             os << "AMD/ATI extensions: " << amd_ati_extensions.size() << "<ol>" << std::endl;
             for(QStringList::const_iterator it = amd_ati_extensions.begin(); it != amd_ati_extensions.end(); it++)
                 os << "<li>" << *it << "</li>" << std::endl;
             os << "</ol>" << std::endl;
-            nvidia_extensions.sort();
+            nvidia_extensions.sort(Qt::CaseInsensitive);
             os << "NVIDIA extensions: " << nvidia_extensions.size() << "<ol>" << std::endl;
             for(QStringList::const_iterator it = nvidia_extensions.begin(); it != nvidia_extensions.end(); it++)
                 os << "<li>" << *it << "</li>" << std::endl;
             os << "</ol>" << std::endl;
-            intel_extensions.sort();
+            intel_extensions.sort(Qt::CaseInsensitive);
             os << "Intel extensions: " << intel_extensions.size() << "<ol>" << std::endl;
             for(QStringList::const_iterator it = intel_extensions.begin(); it != intel_extensions.end(); it++)
                 os << "<li>" << *it << "</li>" << std::endl;
             os << "</ol>" << std::endl;
-            s3_extensions.sort();
+            s3_extensions.sort(Qt::CaseInsensitive);
             os << "S3 extensions: " << s3_extensions.size() << "<ol>" << std::endl;
             for(QStringList::const_iterator it = s3_extensions.begin(); it != s3_extensions.end(); it++)
                 os << "<li>" << *it << "</li>" << std::endl;
             os << "</ol>" << std::endl;
-            sgi_extensions.sort();
+            sgi_extensions.sort(Qt::CaseInsensitive);
             os << "SGI extensions: " << sgi_extensions.size() << "<ol>" << std::endl;
             for(QStringList::const_iterator it = sgi_extensions.begin(); it != sgi_extensions.end(); it++)
                 os << "<li>" << *it << "</li>" << std::endl;
             os << "</ol>" << std::endl;
-            other_extensions.sort();
+            other_extensions.sort(Qt::CaseInsensitive);
             os << "Other extensions: " << other_extensions.size() << "<ol>" << std::endl;
             for(QStringList::const_iterator it = other_extensions.begin(); it != other_extensions.end(); it++)
                 os << "<li>" << *it << "</li>" << std::endl;
             os << "</ol>" << std::endl;
+        }
+        break;
+    case SGIItemTypeSurface:
+        {
+            QSurface * surface = object->surface();
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            os << "<tr><td>surfaceClass</td><td>" << surface->surfaceClass() << "</td></tr>" << std::endl;
+            os << "<tr><td>format</td><td>" << surface->format() << "</td></tr>" << std::endl;
+            os << "<tr><td>surfaceHandle</td><td>" << (void*)surface->surfaceHandle() << "</td></tr>" << std::endl;
+            os << "<tr><td>surfaceType</td><td>" << surface->surfaceType() << "</td></tr>" << std::endl;
+            os << "<tr><td>supportsOpenGL</td><td>" << (surface->supportsOpenGL() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "</table>" << std::endl;
+            ret = true;
         }
         break;
     default:
@@ -648,6 +685,11 @@ bool writePrettyHTMLImpl<QOpenGLWidget>::process(std::basic_ostream<char>& os)
 
             if(_table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeContext:
+        {
             ret = true;
         }
         break;

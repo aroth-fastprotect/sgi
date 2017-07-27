@@ -10,6 +10,7 @@
 #include <QSurface>
 #include <QDesktopWidget>
 #include <QOpenGLContext>
+#include <QOpenGLWidget>
 #ifdef WITH_QTOPENGL
 #include <QGLWidget>
 #endif // WITH_QTOPENGL
@@ -40,6 +41,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QApplication)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QPaintDevice)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QImage)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLContext)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLWidget)
 #ifdef WITH_QTOPENGL
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QGLWidget)
 #endif // WITH_QTOPENGL
@@ -370,9 +372,20 @@ bool objectTreeBuildImpl<QOpenGLContext>::build(IObjectTreeItem * treeItem)
         if(ret)
         {
             treeItem->addChild("Extensions", cloneItem<SGIItemQt>(SGIItemTypeContextExtensions));
+            treeItem->addChild("Surface", cloneItem<SGIItemQt>(SGIItemTypeSurface));
+            SGIHostItemQt shareContext(object->shareContext());
+            if (shareContext.hasObject())
+                treeItem->addChild("ShareContext", &shareContext);
+
+            SGIHostItemQt shareGroup(object->shareGroup());
+            if (shareGroup.hasObject())
+                treeItem->addChild("ShareGroup", &shareGroup);
         }
         break;
     case SGIItemTypeContextExtensions:
+        ret = true;
+        break;
+    case SGIItemTypeSurface:
         ret = true;
         break;
     default:
@@ -381,6 +394,29 @@ bool objectTreeBuildImpl<QOpenGLContext>::build(IObjectTreeItem * treeItem)
     }
     return ret;
 }
+
+bool objectTreeBuildImpl<QOpenGLWidget>::build(IObjectTreeItem * treeItem)
+{
+    QOpenGLWidget * object = getObject<QOpenGLWidget, SGIItemQt>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemQt context(object->context());
+            if (context.hasObject())
+                treeItem->addChild("Context", &context);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
 
 #ifdef WITH_QTOPENGL
 bool objectTreeBuildImpl<QGLWidget>::build(IObjectTreeItem * treeItem)
