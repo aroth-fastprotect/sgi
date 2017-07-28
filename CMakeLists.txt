@@ -84,6 +84,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 	ELSE()
 		SET(SGI_SWSCALE_LIBRARYNAME "swscale" CACHE STRING "name of the swscale library")
 	ENDIF()
+    OPTION(SGI_USE_GAMMARAY "Use gammary framework" OFF)
 
 	SET(SGI_PLUGIN_IMPL_LIBRARY osgSGI-plugin-impl)
 
@@ -107,6 +108,11 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 
 	# SGI Plugins
 	ADD_SUBDIRECTORY(plugins)
+
+	# Use gammaray framework
+	if(SGI_USE_GAMMARAY)
+        add_subdirectory(gammaray)
+    endif()
 
 	add_subdirectory(applications)
     if(SGI_UNITTESTS)
