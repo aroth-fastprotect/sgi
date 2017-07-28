@@ -3,6 +3,7 @@
 
 #include <QDebug>
 #include <QMimeType>
+#include <log4cplus/hierarchy.h>
 
 using namespace sgi;
 
@@ -58,77 +59,44 @@ int Log4cplusModel::rowCount(const QModelIndex &parent) const
     return QStandardItemModel::rowCount(parent);
 }
 
-QVector<QStandardItem *> Log4cplusModel::itemsForType(const QString &mimeTypeName)
+QVector<QStandardItem *> Log4cplusModel::itemsForLogger(const log4cplus::Logger &logger)
 {
-    if (m_mimeTypeNodes.contains(mimeTypeName))
-        return m_mimeTypeNodes.value(mimeTypeName);
+    auto it = m_loggerItems.find(QString::fromStdString(logger.getName()));
+    if(it != m_loggerItems.end())
+        return it.value();
 
-    makeItemsForType(mimeTypeName);
-    return m_mimeTypeNodes.value(mimeTypeName);
+    makeItemsForLogger(logger);
+    return m_loggerItems.value(QString::fromStdString(logger.getName()));
 }
 
-void Log4cplusModel::makeItemsForType(const QString &mimeTypeName)
+void Log4cplusModel::makeItemsForLogger(const log4cplus::Logger &logger)
 {
-    const QMimeType mt = m_db.mimeTypeForName(mimeTypeName);
+    QString loggerName = QString::fromStdString(logger.getName());
 
-    if (mt.parentMimeTypes().isEmpty()) {
-        const QList<QStandardItem *> row = makeRowForType(mt);
+    if(logger.getParent().getName() == log4cplus::Logger::getRoot().getName())
+    {
+        const QList<QStandardItem *> row = makeRowForLogger(logger);
         appendRow(row);
-        m_mimeTypeNodes[mt.name()].push_back(row.first());
+        m_loggerItems[loggerName].push_back(row.first());
     } else {
-        // parentMimeTypes contains duplicates and aliases
-        const QSet<QString> parentMimeTypeNames = normalizedMimeTypeNames(mt.parentMimeTypes());
-        foreach (const QString &parentTypeName, parentMimeTypeNames) {
-            foreach (QStandardItem *parentItem, itemsForType(parentTypeName)) {
-                const QList<QStandardItem *> row = makeRowForType(mt);
-                parentItem->appendRow(row);
-                m_mimeTypeNodes[mt.name()].push_back(row.first());
-            }
+        foreach (QStandardItem *parentItem, itemsForLogger(logger.getParent()))
+        {
+            const QList<QStandardItem *> row = makeRowForLogger(logger);
+            parentItem->appendRow(row);
+            m_loggerItems[loggerName].push_back(row.first());
         }
     }
 }
 
-QSet< QString > Log4cplusModel::normalizedMimeTypeNames(const QStringList &typeNames) const
-{
-    QSet<QString> res;
-    foreach (const QString &typeName, typeNames) {
-        const QMimeType mt = m_db.mimeTypeForName(typeName);
-        res.insert(mt.name());
-    }
-
-    return res;
-}
-
-QList<QStandardItem *> Log4cplusModel::makeRowForType(const QMimeType &mt)
+QList<QStandardItem *> Log4cplusModel::makeRowForLogger(const log4cplus::Logger &logger)
 {
     QList<QStandardItem *> row;
     auto *item = new QStandardItem;
-    item->setText(mt.name());
+    item->setText(QString::fromStdString(logger.getName()));
     row.push_back(item);
 
     item = new QStandardItem;
-    item->setText(mt.comment());
-    row.push_back(item);
-
-    item = new QStandardItem;
-    item->setText(mt.globPatterns().join(QStringLiteral(", ")));
-    row.push_back(item);
-
-    item = new QStandardItem;
-    item->setText(mt.iconName() + QLatin1String(" / ") + mt.genericIconName());
-    item->setData(mt.iconName(), IconNameRole);
-    item->setData(mt.genericIconName(), GenericIconNameRole);
-    row.push_back(item);
-
-    item = new QStandardItem;
-    QString s = mt.suffixes().join(QStringLiteral(", "));
-    if (!mt.preferredSuffix().isEmpty() && mt.suffixes().size() > 1)
-        s += QLatin1String(" (") + mt.preferredSuffix() + QLatin1Char(')');
-    item->setText(s);
-    row.push_back(item);
-
-    item = new QStandardItem;
-    item->setText(mt.aliases().join(QStringLiteral(", ")));
+    item->setText(QString::number(logger.getLogLevel()));
     row.push_back(item);
 
     return row;
@@ -142,17 +110,17 @@ void Log4cplusModel::fillModel()
 
     blockSignals(true);
     setHorizontalHeaderLabels(QStringList() << tr("Name")
-                                            << tr("Comment")
-                                            << tr("Glob Patterns")
-                                            << tr("Icons")
-                                            << tr("Suffixes")
-                                            << tr("Aliases"));
+                                            << tr("LogLevel")
+                                            );
 
-    foreach (const QMimeType &mt, m_db.allMimeTypes()) {
-        if (!m_mimeTypeNodes.contains(mt.name()))
-            makeItemsForType(mt.name());
+    log4cplus::LoggerList allLoggers = log4cplus::Logger::getCurrentLoggers();
+    for(log4cplus::LoggerList::const_iterator it = allLoggers.begin(); it != allLoggers.end(); it++)
+    {
+        const log4cplus::Logger & child = *it;
+        if(!m_loggerItems.contains(QString::fromStdString(child.getName())))
+            makeItemsForLogger(child);
     }
 
-    m_mimeTypeNodes.clear();
+    m_loggerItems.clear();
     blockSignals(false);
 }

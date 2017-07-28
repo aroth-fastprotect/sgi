@@ -4,6 +4,10 @@
 #include <QMimeDatabase>
 #include <QStandardItemModel>
 
+namespace log4cplus {
+    class Logger;
+}
+
 namespace sgi {
 class Log4cplusModel : public QStandardItemModel
 {
@@ -23,12 +27,11 @@ public:
 
 private:
     void fillModel();
-    QVector<QStandardItem *> itemsForType(const QString &mimeTypeName);
-    void makeItemsForType(const QString &mimeTypeName);
-    static QList<QStandardItem *> makeRowForType(const QMimeType &mt);
-    QSet<QString> normalizedMimeTypeNames(const QStringList &typeNames) const;
+    QVector<QStandardItem *> itemsForLogger(const log4cplus::Logger & logger);
+    void makeItemsForLogger(const log4cplus::Logger & logger);
+    static QList<QStandardItem *> makeRowForLogger(const log4cplus::Logger & logger);
 
-    QHash<QString, QVector<QStandardItem *> > m_mimeTypeNodes;
+    QHash<QString, QVector<QStandardItem *> > m_loggerItems;
     QMimeDatabase m_db;
     bool m_modelFilled;
 };
