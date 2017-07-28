@@ -1,5 +1,3 @@
-find_package(Gammaray)
-
 if(CMAKE_COMPILER_IS_GNUCXX)
     add_compile_options(-Wno-deprecated-declarations)
 endif()

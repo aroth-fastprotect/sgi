@@ -39,6 +39,12 @@ namespace sgi {
     namespace qt_loader {
 
 #ifdef SGI_USE_GAMMARAY
+#if GAMMARAY_USE_FROM_SYSTEM
+        #define GAMMARAY_PROBE_LIBRARY_NAME "gammaray_probe" SGI_LIBRARY_SHARED_MODULE_SUFFIX
+#else
+        #define GAMMARAY_PROBE_LIBRARY_NAME "gammaray_probe" SGI_LIBRARY_POSTFIX SGI_LIBRARY_SHARED_MODULE_SUFFIX
+#endif
+
 namespace gammaray {
     class ProbeABI {
     public:
@@ -88,15 +94,15 @@ namespace gammaray {
             return idParts.join(QStringLiteral("-")).append((isDebugRelevant() && isDebug()) ?
                     QStringLiteral(SGI_LIBRARY_POSTFIX_DEBUG) : QString());
         }
-        static QString probePath(const QString &probeABI, const QString &rootPath)
+        static QString probePath()
         {
-            QString libdir = QLibraryInfo::location(QLibraryInfo::LibrariesPath);
+            QString libdir = QLibraryInfo::location(QLibraryInfo::PrefixPath);
             return libdir + QDir::separator()
                 + QLatin1String(GAMMARAY_PLUGIN_INSTALL_DIR) + QDir::separator()
                 + QLatin1String(GAMMARAY_PLUGIN_VERSION) + QDir::separator()
-                + probeABI;
+                + id() + QDir::separator()
+                + QLatin1String(GAMMARAY_PROBE_LIBRARY_NAME);
         }
-
     };
 } // namespace gammaray
 #endif
@@ -109,7 +115,12 @@ ApplicationEventFilter::ApplicationEventFilter(QCoreApplication * parent)
     , _inspectorContextMenuMouseModifier(Qt::ControlModifier|Qt::ShiftModifier)
 {
     s_instance = this;
+#ifdef SGI_USE_GAMMARAY
+    qDebug() << "ApplicationEventFilter ctor" << this << "gammaray" << gammaray::ProbeABI::probePath();
+#else
     qDebug() << "ApplicationEventFilter ctor" << this;
+#endif
+
     connect(parent, &QCoreApplication::aboutToQuit, this, &ApplicationEventFilter::uninstall);
     parent->installEventFilter(this);
 }

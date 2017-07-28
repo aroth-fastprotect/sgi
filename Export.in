@@ -31,6 +31,7 @@ The sgi library is a NodeKit that allows to inspect and modify a scene graph dur
 #define SGI_SOVERSION_STR    "@SGI_SOVERSION@"
 
 #define SGI_LIBRARY_POSTFIX_DEBUG    "@SGI_LIBRARY_POSTFIX_DEBUG@"
+#define SGI_LIBRARY_SHARED_MODULE_SUFFIX "@SGI_LIBRARY_SHARED_MODULE_SUFFIX@"
 
 #ifdef _DEBUG
 #define SGI_LIBRARY_NAME "@SGI_LIBRARY_NAME_DEBUG@"
