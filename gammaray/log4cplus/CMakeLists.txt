@@ -2,7 +2,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     add_compile_options(-Wno-deprecated-declarations)
 endif()
 
-include_directories(${GAMMARAY_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 # probe plugin
 set(TARGET_SRC
     log4cplus_plugin.cpp

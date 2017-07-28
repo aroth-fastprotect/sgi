@@ -12,11 +12,6 @@
 #include <sgi/AutoLoadQt>
 #include <sgi/helpers/qt_widgetwindow>
 
-#ifdef SGI_USE_GAMMARAY
-#include <QLibraryInfo>
-#include <QDir>
-#endif
-
 #include <QDebug>
 
 #if defined(_DEBUG)
@@ -38,74 +33,6 @@
 namespace sgi {
     namespace qt_loader {
 
-#ifdef SGI_USE_GAMMARAY
-#define GAMMARAY_PROBE_LIBRARY_NAME "gammaray_probe" SGI_LIBRARY_SHARED_MODULE_SUFFIX
-
-namespace gammaray {
-    class ProbeABI {
-    public:
-        static bool isDebugRelevant()
-        {
-        #if defined(Q_OS_MACX)
-            return true;
-        #elif defined(_MSC_VER)
-            return true;
-        #else
-            return false;
-        #endif
-        }
-        static bool isDebug()
-        {
-        #ifdef _DEBUG
-            return true;
-        #else
-            return false;
-        #endif
-        }
-
-        static QString id()
-        {
-            QStringList idParts;
-            idParts.push_back(QStringLiteral("qt%1_%2").arg(QT_VERSION_MAJOR).arg(QT_VERSION_MINOR));
-
-        #ifdef Q_OS_WIN
-            #ifdef _MSC_VER
-                idParts.push_back(QStringLiteral("MSVC"));
-            #endif
-        #endif
-
-        #ifdef _MSC_VER
-            #if defined(_M_AMD64) || defined(_M_X64)
-                idParts.push_back(QStringLiteral("x86_64"));
-            #else
-                idParts.push_back(QStringLiteral("i686"));
-            #endif
-        #else
-            #if defined(__amd64__) || defined(__x86_64__)
-                idParts.push_back(QStringLiteral("x86_64"));
-            #else
-                idParts.push_back(QStringLiteral("x86"));
-            #endif
-        #endif
-            return idParts.join(QStringLiteral("-")).append((isDebugRelevant() && isDebug()) ?
-                    QStringLiteral(SGI_LIBRARY_POSTFIX_DEBUG) : QString());
-        }
-        static QString probePath()
-        {
-#ifdef _WIN32
-            QString prefix = QLibraryInfo::location(QLibraryInfo::BinariesPath);
-#else
-            QString prefix = QLibraryInfo::location(QLibraryInfo::PrefixPath);
-#endif
-            return QDir::toNativeSeparators(prefix + QDir::separator()
-                + QLatin1String(GAMMARAY_PLUGIN_INSTALL_DIR) + QDir::separator()
-                + QLatin1String(GAMMARAY_PLUGIN_VERSION) + QDir::separator()
-                + id() + QDir::separator()
-                + QLatin1String(GAMMARAY_PROBE_LIBRARY_NAME));
-        }
-    };
-} // namespace gammaray
-#endif
 
 ApplicationEventFilter * ApplicationEventFilter::s_instance = NULL;
 
@@ -116,7 +43,7 @@ ApplicationEventFilter::ApplicationEventFilter(QCoreApplication * parent)
 {
     s_instance = this;
 #ifdef SGI_USE_GAMMARAY
-    qDebug() << "ApplicationEventFilter ctor" << this << "gammaray" << gammaray::ProbeABI::probePath();
+    qDebug() << "ApplicationEventFilter ctor" << this << "gammaray";
 #else
     qDebug() << "ApplicationEventFilter ctor" << this;
 #endif
