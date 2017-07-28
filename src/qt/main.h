@@ -26,7 +26,6 @@ protected:
     void uninstall();
 
     bool contextMenu(QWidget * widget, QObject * item, float x, float y);
-    bool loadSGI();
 
 private:
     static ApplicationEventFilter * s_instance;
