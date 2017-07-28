@@ -39,11 +39,7 @@ namespace sgi {
     namespace qt_loader {
 
 #ifdef SGI_USE_GAMMARAY
-#if GAMMARAY_USE_FROM_SYSTEM
-        #define GAMMARAY_PROBE_LIBRARY_NAME "gammaray_probe" SGI_LIBRARY_SHARED_MODULE_SUFFIX
-#else
-        #define GAMMARAY_PROBE_LIBRARY_NAME "gammaray_probe" SGI_LIBRARY_POSTFIX SGI_LIBRARY_SHARED_MODULE_SUFFIX
-#endif
+#define GAMMARAY_PROBE_LIBRARY_NAME "gammaray_probe" SGI_LIBRARY_SHARED_MODULE_SUFFIX
 
 namespace gammaray {
     class ProbeABI {
@@ -82,7 +78,7 @@ namespace gammaray {
             #if defined(_M_AMD64) || defined(_M_X64)
                 idParts.push_back(QStringLiteral("x86_64"));
             #else
-                idParts.push_back(QStringLiteral("x86"));
+                idParts.push_back(QStringLiteral("i686"));
             #endif
         #else
             #if defined(__amd64__) || defined(__x86_64__)
@@ -96,12 +92,16 @@ namespace gammaray {
         }
         static QString probePath()
         {
-            QString libdir = QLibraryInfo::location(QLibraryInfo::PrefixPath);
-            return libdir + QDir::separator()
+#ifdef _WIN32
+            QString prefix = QLibraryInfo::location(QLibraryInfo::BinariesPath);
+#else
+            QString prefix = QLibraryInfo::location(QLibraryInfo::PrefixPath);
+#endif
+            return QDir::toNativeSeparators(prefix + QDir::separator()
                 + QLatin1String(GAMMARAY_PLUGIN_INSTALL_DIR) + QDir::separator()
                 + QLatin1String(GAMMARAY_PLUGIN_VERSION) + QDir::separator()
                 + id() + QDir::separator()
-                + QLatin1String(GAMMARAY_PROBE_LIBRARY_NAME);
+                + QLatin1String(GAMMARAY_PROBE_LIBRARY_NAME));
         }
     };
 } // namespace gammaray

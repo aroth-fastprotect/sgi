@@ -105,7 +105,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 
     if(SGI_USE_GAMMARAY)
         add_definitions(-DSGI_USE_GAMMARAY=1)
-        find_package(Gammaray)
+        find_package(Gammaray REQUIRED)
     endif()
 
 	# SGI Core

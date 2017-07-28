@@ -1,12 +1,6 @@
 if(SGI_USE_GAMMARAY)
-    if(UNIX AND NOT APPLE)
-        set(GAMMARAY_USE_FROM_SYSTEM 1)
-    else()
-        set(GAMMARAY_USE_FROM_SYSTEM 0)
-    endif()
     add_definitions(-DGAMMARAY_PLUGIN_VERSION=\"${GAMMARAY_PLUGIN_VERSION}\"
                     -DGAMMARAY_PLUGIN_INSTALL_DIR=\"${GAMMARAY_PLUGIN_INSTALL_DIR}\"
-                    -DGAMMARAY_USE_FROM_SYSTEM=${GAMMARAY_USE_FROM_SYSTEM}
                     )
 endif()
 
