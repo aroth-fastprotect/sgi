@@ -310,6 +310,14 @@ bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
                 treeItem->addChild("ParentNodePaths", cloneItem<SGIItemOsg>(SGIItemTypeParentalNodePath, ~0u));
             }
 
+            if (object->getEventCallback() ||
+                object->getUpdateCallback() ||
+                object->getCullCallback() ||
+                object->getComputeBoundingSphereCallback() )
+            {
+                treeItem->addChildIfNotExists("Callbacks", cloneItem<SGIItemOsg>(SGIItemTypeCallbacks));
+            }
+
             SGIHostItemOsg stateSet(object->getStateSet());
             if(stateSet.hasObject())
                 treeItem->addChild("StateSet", &stateSet);
@@ -370,9 +378,8 @@ bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
         }
         break;
     case SGIItemTypeCallbacks:
-        ret = callNextHandler(treeItem);
-        if(ret)
         {
+            callNextHandler(treeItem);
             // add osg::Node callbacks now
 #if OSG_VERSION_GREATER_THAN(3,3,1)
             const osg::Callback * cb;
@@ -404,6 +411,7 @@ bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg computeBoundingSphereCallback(object->getComputeBoundingSphereCallback(), object);
             if(computeBoundingSphereCallback.hasObject())
                 treeItem->addChild("ComputeBoundingSphereCallback", &computeBoundingSphereCallback);
+            ret = true;
         }
         break;
     default:
