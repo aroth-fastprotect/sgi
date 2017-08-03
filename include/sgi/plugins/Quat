@@ -1,5 +1,5 @@
 // kate: syntax C++11;
-// SGI - Copyright (C) 2012-2016 FAST Protect, Andreas Roth
+// SGI - Copyright (C) 2012-2017 FAST Protect, Andreas Roth
 
 #pragma once
 #include <sgi/Export>
