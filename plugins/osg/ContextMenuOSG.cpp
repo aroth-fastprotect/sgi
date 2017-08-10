@@ -1588,8 +1588,14 @@ bool contextMenuPopulateImpl<osg::ShapeDrawable>::populate(IContextMenuItem * me
         if(ret)
         {
             IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
-            if(manipulateMenu)
+            if (manipulateMenu)
+            {
                 manipulateMenu->addSimpleAction(MenuActionShapeDrawableColor, "Color...", _item);
+                manipulateMenu->addSimpleAction(MenuActionShapeDrawableBuild, "Build", _item);
+            }
+            SGIHostItemOsg tessellationHints(object->getTessellationHints());
+            if (tessellationHints.hasObject())
+                menuItem->addMenu("TessellationHints", &tessellationHints);
         }
         break;
     default:

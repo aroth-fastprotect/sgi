@@ -123,6 +123,7 @@ enum MenuAction {
 	MenuActionDrawableUseVBO,
     MenuActionDrawableRenderInfoDrawCallback,
 	MenuActionShapeDrawableColor,
+    MenuActionShapeDrawableBuild,
     MenuActionGeometryColor,
     MenuActionGeometryFixDeprecatedData,
     MenuActionImagePreview,

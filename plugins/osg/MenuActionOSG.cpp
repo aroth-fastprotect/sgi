@@ -193,6 +193,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTexEnvFilterLodBias)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableToggleDisabled)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionGeodeAddShapeDrawable)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeDrawableColor)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeDrawableBuild)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableUseDisplayList)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableSupportsDisplayList)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableDirtyDisplayList)
@@ -2168,6 +2169,13 @@ bool actionHandlerImpl<MenuActionShapeDrawableColor>::execute()
         object->setColor(osgColor(color));
         triggerRepaint();
     }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionShapeDrawableBuild>::execute()
+{
+    osg::ShapeDrawable * object = getObject<osg::ShapeDrawable, SGIItemOsg>();
+    object->build();
     return true;
 }
 
