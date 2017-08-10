@@ -52,7 +52,7 @@ public:
 public slots:
     void					itemPrevious();
     void					itemNext();
-    void					onObjectChanged();
+    void					onObjectChanged(SGIItemBase * item);
 
 	void					onItemExpanded(QTreeWidgetItem * item);
 	void					onItemCollapsed(QTreeWidgetItem * item);
@@ -75,7 +75,7 @@ protected slots:
     void                    showBesideParent();
 
 signals:
-    void                    triggerOnObjectChanged();
+    void                    triggerOnObjectChanged(SGIItemBase * item);
     void                    triggerShow();
     void                    triggerHide();
 
@@ -125,6 +125,7 @@ protected:  // for now
     ISceneGraphDialogToolsMenuPtr       _toolsMenuInterface;
     SGIItemBasePtr                      _itemToolsMenu;
     bool                                _firstShow;
+    SGIItemBasePtr                      _itemPending;
 };
 
 } // namespace sgi

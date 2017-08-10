@@ -408,8 +408,26 @@ void SceneGraphDialog::showBesideParent()
     }
 }
 
-void SceneGraphDialog::onObjectChanged()
+void SceneGraphDialog::onObjectChanged(SGIItemBase * item)
 {
+    if (uiPage->item.get() == item)
+        return;
+    int existingTabIndex = -1;
+    for (int index = 0; existingTabIndex < 0 && index < (int)ui->tabs.size(); ++index)
+    {
+        Ui_TabPage * page = ui->tabs[index];
+        if (page->item == item)
+            existingTabIndex = index;
+    }
+    if (existingTabIndex >= 0)
+        ui->tabWidget->setCurrentIndex(existingTabIndex);
+    else
+    {
+        addNewTab();
+        uiPage->item = item;
+    }
+    _itemPending = nullptr;
+
     updatePathComboBox();
     selectItemInPathBox();
     reload();
@@ -429,25 +447,11 @@ void SceneGraphDialog::setObject(const SGIHostItemBase * hostitem, IHostCallback
 
 void SceneGraphDialog::setObject(SGIItemBase * item, IHostCallback * callback)
 {
-    if (uiPage->item.get() == item)
-        return;
-    int existingTabIndex = -1;
-    for (int index = 0; existingTabIndex < 0 && index < (int)ui->tabs.size(); ++index)
-    {
-        Ui_TabPage * page = ui->tabs[index];
-        if (page->item == item)
-            existingTabIndex = index;
-    }
-	if(callback)
-		_hostCallback = callback;
-    if (existingTabIndex >= 0)
-        ui->tabWidget->setCurrentIndex(existingTabIndex);
-    else
-    {
-        addNewTab();
-        uiPage->item = item;
-        emit triggerOnObjectChanged();
-    }
+    if (callback)
+        _hostCallback = callback;
+
+    _itemPending = item;
+    emit triggerOnObjectChanged(item);
 }
 
 void SceneGraphDialog::updatePathComboBox()
