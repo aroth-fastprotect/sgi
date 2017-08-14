@@ -330,6 +330,7 @@ void SceneGraphDialog::closeEvent(QCloseEvent * event)
     _contextMenu = NULL;
     _itemSelf = NULL;
     _itemToolsMenu = NULL;
+    _itemPending = nullptr;
 
     /*
     delete ui->comboBoxPath;
