@@ -27,6 +27,7 @@
 
 #include <osgQt/GraphicsWindowQt>
 
+#if WITH_OSGEARTH
 #include <osgEarth/Notify>
 #include <osgEarth/MapNode>
 #include <osgEarth/MapFrame>
@@ -35,6 +36,7 @@
 
 #include <osgEarthUtil/ExampleResources>
 #include <osgEarthUtil/EarthManipulator>
+#endif // WITH_OSGEARTH
 
 #include <iostream>
 #include <iomanip>

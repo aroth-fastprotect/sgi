@@ -29,6 +29,9 @@
 #include <QPagedPaintDevice>
 #include <QRasterWindow>
 
+#ifdef __APPLE__
+typedef void * GLDEBUGPROC;
+#endif
 #include <QOpenGLWidget>
 #include <QOpenGLWindow>
 #include <QOpenGLPaintDevice>

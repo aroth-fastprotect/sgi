@@ -30,7 +30,10 @@
 #if defined(_WIN32)
 #include <osgViewer/api/win32/GraphicsWindowWin32>
 #elif defined(__APPLE__)
+#if !__LP64__
 #include <osgViewer/api/Carbon/GraphicsWindowCarbon>
+#endif // !__LP64__
+#include <osgViewer/api/Cocoa/GraphicsWindowCocoa>
 #elif  defined(__linux__)
 #include <osgViewer/api/X11/GraphicsWindowX11>
 #include <signal.h>
@@ -121,7 +124,13 @@ namespace {
                 SetTimer(gwwin->getHWND(), 100232u, application_timer_interval_in_ms, win32_app_timer);
             }
 #elif defined(__APPLE__)
+#if !__LP64__
             if (osgViewer::GraphicsWindowCarbon * gwcarbon = dynamic_cast<osgViewer::GraphicsWindowCarbon*>(ctx))
+            {
+            }
+            else
+#endif // !__LP64__
+            if (osgViewer::GraphicsWindowCocoa * gwcocoa = dynamic_cast<osgViewer::GraphicsWindowCocoa*>(ctx))
             {
             }
 #elif defined(__linux__)
@@ -566,7 +575,12 @@ public:
 #endif // QT_VERSION < 0x050000
                 }
 #elif defined(__APPLE__)
-                else if(osgViewer::GraphicsWindowCarbon * gwcarbon = dynamic_cast<osgViewer::GraphicsWindowCarbon*>(ctx))
+#if !__LP64__
+                else if (osgViewer::GraphicsWindowCarbon * gwcarbon = dynamic_cast<osgViewer::GraphicsWindowCarbon*>(ctx))
+                {
+                }
+#endif // !__LP64__
+                else if (osgViewer::GraphicsWindowCocoa * gwcocoa = dynamic_cast<osgViewer::GraphicsWindowCocoa*>(ctx))
                 {
                 }
 #else
