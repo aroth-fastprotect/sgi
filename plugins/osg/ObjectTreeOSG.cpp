@@ -33,6 +33,7 @@
 #include <osgViewer/ViewerEventHandlers>
 
 #include <osgQt/GraphicsWindowQt>
+#include <osgQt/QObjectWrapper>
 
 #include <osgTerrain/Terrain>
 #include <osgTerrain/TerrainTile>
@@ -147,6 +148,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgViewer::HelpHandler)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgViewer::StatsHandler)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::GraphicsWindowQt)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::QObjectWrapper)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgGA::GUIEventHandler)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgGA::GUIEventAdapter)
@@ -2316,6 +2318,28 @@ bool objectTreeBuildImpl<osgQt::GraphicsWindowQt>::build(IObjectTreeItem * treeI
             SGIHostItemQt widget(object->getGLWidget());
             if(widget.hasObject())
                 treeItem->addChild("GL Widget", &widget);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osgQt::QObjectWrapper>::build(IObjectTreeItem * treeItem)
+{
+    osgQt::QObjectWrapper * object = getObject<osgQt::QObjectWrapper, SGIItemOsg>();
+    bool ret;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            SGIHostItemQt qobject(object->getQObject());
+            if(qobject.hasObject())
+                treeItem->addChild(std::string(), &qobject);
         }
         break;
     default:

@@ -86,6 +86,7 @@
 
 // osgQt headers
 #include <osgQt/GraphicsWindowQt>
+#include <osgQt/QObjectWrapper>
 
 // osgTerrain headers
 #include <osgTerrain/Terrain>
@@ -314,6 +315,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Object)
     osgText::Font,
     osgUtil::SceneView, osgUtil::RenderBin,
     osgTerrain::Locator, osgTerrain::Layer, osgTerrain::TerrainTechnique,
+    osgQt::QObjectWrapper,
     CullingInfo,
     CullingInfoForCamera,
     CullingInfoRegistry
