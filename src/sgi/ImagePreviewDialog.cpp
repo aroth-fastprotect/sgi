@@ -1004,6 +1004,8 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
         ImageFormatDisplayText[Image::ImageFormatABGR32] = tr("ABGR 32-bit");
         ImageFormatDisplayText[Image::ImageFormatYUV420] = tr("YUV 4:2:0");
         ImageFormatDisplayText[Image::ImageFormatYUV422] = tr("YUV 4:2:2");
+        ImageFormatDisplayText[Image::ImageFormatYUYV] = tr("YUYV 4:2:2");
+        ImageFormatDisplayText[Image::ImageFormatUYVY] = tr("UYVY 4:2:2");
         ImageFormatDisplayText[Image::ImageFormatYUV444] = tr("YUV 4:4:4");
         ImageFormatDisplayText[Image::ImageFormatGray] = tr("Grayscale");
         ImageFormatDisplayText[Image::ImageFormatRed] = tr("Red");

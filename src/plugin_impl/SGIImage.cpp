@@ -242,7 +242,7 @@ void Image::loadPitchAndPlaneOffsets()
     case ImageFormatYUYV:
     case ImageFormatUYVY:
     {
-        _pitch[0] = _width + (_width / 2);
+        _pitch[0] = _width + _width;
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
         _lines[0] = _height;
         _lines[1] = _lines[2] = _lines[3] = 0;
@@ -359,7 +359,7 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
 
     case ImageFormatYUYV:
     case ImageFormatUYVY:
-        _length = width * height * 2;
+        _length = (width + width) * height;
         break;
     case ImageFormatGray:
     case ImageFormatRed:
@@ -464,12 +464,9 @@ bool Image::reinterpretFormat(ImageFormat targetFormat)
                     ret = (_height % 2) == 0;
                     if(ret)
                     {
-                        unsigned luma_planeHeight = _height / 2;
-                        // split single plane into three separate ones
                         _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
-                        _pitch[0] = _width;
+                        _pitch[0] = _width + _width;
                         _pitch[1] = _pitch[2] = _pitch[3] = 0;
-                        _height = luma_planeHeight;
                     }
                 }
                 break;
