@@ -551,8 +551,14 @@ public:
 
     const PluginInfo * loadInternalPlugin()
     {
-        PluginMap::iterator it = _plugins.find(SGIPlugin_internal::PluginName);
-        if(it == _plugins.end())
+        const PluginInfo * ret = nullptr;
+        {
+            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+            PluginMap::iterator it = _plugins.find(SGIPlugin_internal::PluginName);
+            if (it != _plugins.end())
+                ret = &it->second;
+        }
+        if(!ret)
         {
             PluginInfo info;
             info.pluginName = SGIPlugin_internal::PluginName;
@@ -568,9 +574,17 @@ public:
                 info.guiAdapterInterface = info.pluginInterface->getGUIAdapter();
                 info.convertToImage = info.pluginInterface->getConvertToImage();
             }
-            it = _plugins.insert(PluginMap::value_type(info.pluginName, info)).first;
+            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+            PluginMap::iterator it = _plugins.find(info.pluginName);
+            if (it != _plugins.end())
+                ret = &it->second;
+            else
+            {
+                PluginMap::iterator it = _plugins.insert(PluginMap::value_type(info.pluginName, info)).first;
+                ret = &it->second;
+            }
         }
-        return &it->second;
+        return ret;
     }
 
     /// @brief load the given plugin
@@ -580,21 +594,31 @@ public:
     /// @return pointer to plugin info struct
     const PluginInfo * loadPlugin(const std::string & name, const std::string & filename=std::string())
     {
-        PluginMap::iterator it = _plugins.find(name);
-        if(it == _plugins.end())
+        const PluginInfo * ret = nullptr;
+        {
+            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+            PluginMap::iterator it = _plugins.find(name);
+            if (it != _plugins.end())
+                ret = &it->second;
+        }
+        if(!ret)
         {
             PluginInfo info;
             info.pluginName = name;
 
             if(!_pluginLoadOpts.valid())
             {
-                osg::ref_ptr<osgDB::Options> defaultOpts = osgDB::Registry::instance()->getOptions();
-                if(defaultOpts.valid())
-                    _pluginLoadOpts = static_cast<osgDB::Options*>(osgDB::Registry::instance()->getOptions()->clone(osg::CopyOp::SHALLOW_COPY));
-                else
-                    _pluginLoadOpts = new osgDB::Options();
-                _pluginLoadOpts->setPluginData("hostInterface", &_hostInterface);
-                _pluginLoadOpts->setPluginData("hostInterfaceVersion", &_hostInterfaceVersion);
+                OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+                if (!_pluginLoadOpts.valid())
+                {
+                    osg::ref_ptr<osgDB::Options> defaultOpts = osgDB::Registry::instance()->getOptions();
+                    if (defaultOpts.valid())
+                        _pluginLoadOpts = static_cast<osgDB::Options*>(osgDB::Registry::instance()->getOptions()->clone(osg::CopyOp::SHALLOW_COPY));
+                    else
+                        _pluginLoadOpts = new osgDB::Options();
+                    _pluginLoadOpts->setPluginData("hostInterface", &_hostInterface);
+                    _pluginLoadOpts->setPluginData("hostInterfaceVersion", &_hostInterfaceVersion);
+                }
             }
 
             std::string pluginFilename = createLibraryNameForPlugin(name);
@@ -626,9 +650,17 @@ public:
                     info.convertToImage = info.pluginInterface->getConvertToImage();
                 }
             }
-            it = _plugins.insert(PluginMap::value_type(name, info)).first;
+            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+            PluginMap::iterator it = _plugins.find(info.pluginName);
+            if (it != _plugins.end())
+                ret = &it->second;
+            else
+            {
+                PluginMap::iterator it = _plugins.insert(PluginMap::value_type(info.pluginName, info)).first;
+                ret = &it->second;
+            }
         }
-        return &it->second;
+        return ret;
     }
 
     PluginFileNameList listAllAvailablePlugins(PluginType pluginType=PluginTypeModel)
@@ -686,6 +718,7 @@ public:
 
     bool getPlugins(PluginInfoList & pluginList)
     {
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
         pluginList.clear();
         for(PluginMap::const_iterator it = _plugins.begin(); it != _plugins.end(); it++)
         {
@@ -1691,6 +1724,7 @@ public:
 
     void shutdown()
     {
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
         QtProxy::instance(true);
         for(auto it = _plugins.begin(); it != _plugins.end(); ++it)
         {
@@ -1701,8 +1735,8 @@ public:
 		_plugins.clear();
         _pluginsLoaded = false;
         _namedEnums.clear();
-		if (_hostCallback.valid())
-			_hostCallback->shutdown();
+        if (_hostCallback.valid())
+            _hostCallback->shutdown();
         _hostCallback = NULL;
 		if(_defaultHostCallback.valid())
 			_defaultHostCallback->shutdown();
@@ -1711,6 +1745,7 @@ public:
 
     bool registerNamedEnum(const std::string & enumname, const std::string & description, bool bitmask)
     {
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
         NamedEnumType::const_iterator it = _namedEnums.find(enumname);
         bool ret = (it == _namedEnums.end());
         if(ret)
@@ -1724,6 +1759,7 @@ public:
     }
     bool registerNamedEnumValue(const std::string & enumname, int value, const std::string & valuename)
     {
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
         NamedEnumType::iterator it = _namedEnums.find(enumname);
         bool ret = (it != _namedEnums.end());
         if(ret)
@@ -1738,6 +1774,7 @@ public:
     }
     bool registerNamedEnumValues(const std::string & enumname, const std::map<int, std::string> & values)
     {
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
         NamedEnumType::iterator it = _namedEnums.find(enumname);
         bool ret = (it != _namedEnums.end());
         if(ret)
@@ -1750,6 +1787,7 @@ public:
     }
     bool namedEnumValueToString(const std::string & enumname, std::string & text, int value)
     {
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
         NamedEnumType::iterator it = _namedEnums.find(enumname);
         bool ret = (it != _namedEnums.end());
         if(ret)
@@ -1829,6 +1867,7 @@ public:
 private:
     bool _pluginsLoaded;
     PluginMap   _plugins;
+    OpenThreads::Mutex _mutex;
     osg::ref_ptr<osgDB::Options> _pluginLoadOpts;
     HostInterface _hostInterface;
     unsigned _hostInterfaceVersion;
