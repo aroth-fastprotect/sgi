@@ -582,30 +582,40 @@ IHostCallback * ContextMenuQt::getHostCallback()
 
 QWidget * ContextMenuQt::parentWidget()
 {
-    return _realMenu->parentWidget();
+    if (_realMenu)
+        return _realMenu->parentWidget();
+    else
+        return nullptr;
 }
 
 QMenu * ContextMenuQt::getMenu()
 {
-    return _realMenu->getMenu();
+    if (_realMenu)
+        return _realMenu->getMenu();
+    else
+        return nullptr;
 }
 
 void ContextMenuQt::setObject(QObject * qobject, IHostCallback * callback)
 {
     _hostCallback = callback;
-	if (qobject)
-	{
-		SGIHostItemQt hostItem(qobject);
-		_realMenu->setObject(&hostItem, callback);
-	}
-	else
-		_realMenu->setObject((SGIItemBase*)NULL, callback);
+    if (_realMenu)
+    {
+        if (qobject)
+        {
+            SGIHostItemQt hostItem(qobject);
+            _realMenu->setObject(&hostItem, callback);
+        }
+        else
+            _realMenu->setObject((SGIItemBase*)NULL, callback);
+    }
 }
 
 void ContextMenuQt::popup(QWidget * parent, int x, int y)
 {
     //qDebug() << "ContextMenuQt::popup" << parent << x << y;
-    _realMenu->popup(parent, x, y);
+    if(_realMenu)
+        _realMenu->popup(parent, x, y);
 }
 
 } // namespace sgi
