@@ -134,9 +134,10 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
             if(_table)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
+            os << "<tr><td>this</td><td>" << std::hex << (void*)object << std::dec << "</td></tr>" << std::endl;
             os << "<tr><td>name</td><td>" << object->objectName() << "</td></tr>" << std::endl;
-            const QMetaObject * metaObject = object->metaObject();
             os << "<tr><td>typename</td><td>" << helpers::getRTTITypename_html(object) << "</td></tr>" << std::endl;
+            const QMetaObject * metaObject = object->metaObject();
             os << "<tr><td>className</td><td>" << helpers::html_encode(metaObject?metaObject->className():"(null)") << "</td></tr>" << std::endl;
             // do not show the full meta object here, because we actually also have
             // the values for the properties and the list becomes quite long here.
@@ -366,6 +367,7 @@ bool writePrettyHTMLImpl<QSurface>::process(std::basic_ostream<char>& os)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
             // add QSurface properties
+            os << "<tr><td>this</td><td>" << std::hex << (void*)object << std::dec << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
