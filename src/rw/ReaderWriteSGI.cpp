@@ -705,7 +705,7 @@ public:
         }
         virtual ReferencedPickerBase * createPicker(PickerType type, float x, float y)
         {
-            if(!_parent->_view)
+            if(!_parent.get() || !_parent->_view)
                 return NULL;
 
             ReferencedPickerBase * ret = NULL;
@@ -726,20 +726,27 @@ public:
         }
         virtual SGIItemBase * getView() override
         {
-            return _parent->getView();
+            if (_parent.get())
+                return _parent->getView();
+            else
+                return nullptr;
         }
         virtual void triggerRepaint() override
         {
-			if(_parent->_view)
+			if(_parent.get() && _parent->_view)
 				_parent->_view->requestRedraw();
         }
         virtual QWidget * getFallbackParentWidget() override
         {
-            return _parent->_parent;
+            if (_parent.get())
+                return _parent->_parent;
+            else
+                return nullptr;
         }
         virtual void shutdown() override
         {
-            _parent->shutdown();
+            if(_parent.get())
+                _parent->shutdown();
             HostCallbackBase::shutdown();
         }
         void release()
@@ -758,7 +765,7 @@ public:
             }
         }
     private:
-        DefaultSGIProxy * _parent;
+        osg::observer_ptr<DefaultSGIProxy> _parent;
         IHostCallbackPtr _previousInstalled;
     };
 
