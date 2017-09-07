@@ -328,7 +328,7 @@ osgEarth::GeoPoint geoPointFromString(const QString & str, bool * ok)
 		int firstSpace = str.indexOf(' ');
 		if (firstComma > 0)
 		{
-			if(firstSpace > 0 && firstSpace > firstComma)
+			if(firstSpace > 0 && firstSpace > firstComma + 1)
 				parts = str.split(' ', QString::SkipEmptyParts);
 			else
 				parts = str.split(',', QString::SkipEmptyParts);
