@@ -98,7 +98,7 @@ bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
                 for (int i=methodOffset; i<methodCount; ++i)
                 {
                     QMetaMethod method = metaObject->method(i);
-                    if (method.name() == QString("deleteLater") || method.name().at(0) == QChar('_'))
+                    if (method.name() == QString("deleteLater") || method.name().at(0) == QChar('_') || method.methodType() == QMetaMethod::Signal)
                         continue;
 
                     menuItem->addSimpleAction(MenuActionObjectMethodInvoke, method.methodSignature().toStdString(), _item, new ReferencedDataMetaMethod(method));

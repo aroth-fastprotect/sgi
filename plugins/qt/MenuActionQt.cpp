@@ -10,6 +10,7 @@
 #include <sgi/plugins/SGIImage.h>
 #include <sgi/helpers/qt>
 #include <sgi/helpers/qt_widgets>
+#include <sgi/helpers/string>
 
 #include "SettingsDialogQt.h"
 #include "ContextMenuQt.h"
@@ -17,6 +18,7 @@
 #include <iostream>
 #include <cassert>
 #include <QMetaProperty>
+#include <QUrl>
 
 namespace sgi {
 namespace qt_plugin {
@@ -235,7 +237,143 @@ bool actionHandlerImpl<MenuActionObjectMethodInvoke>::execute()
     QObject* object = getObject<QObject,SGIItemQt>();
     ReferencedDataMetaMethod * userData = static_cast<ReferencedDataMetaMethod *>(menuAction()->userData());
     QMetaMethod & method = userData->data();
-    method.invoke(object);
+    if (method.parameterCount() == 0)
+    {
+        method.invoke(object);
+    }
+    else
+    {
+        QList<QByteArray> parameterNames = method.parameterNames();
+
+        std::string allParameterNames;
+        std::string parameters;
+        for (int i = 0; i < method.parameterCount(); ++i)
+        {
+            if (i > 0)
+            {
+                parameters += ',';
+                allParameterNames += ',';
+            }
+            if (parameterNames[i].isEmpty())
+                parameterNames[i] = QObject::tr("param%1").arg(i).toLatin1();
+            allParameterNames += parameterNames[i].toStdString();
+
+            QMetaType::Type type = (QMetaType::Type)method.parameterType(i);
+            switch (type)
+            {
+                case QMetaType::QString: parameters += "\"\""; break;
+                case QMetaType::Bool: parameters += "false"; break;
+                case QMetaType::Int:
+                case QMetaType::UInt:
+                case QMetaType::Char:
+                case QMetaType::UChar:
+                case QMetaType::Short:
+                case QMetaType::UShort:
+                case QMetaType::Long:
+                case QMetaType::ULong:
+                case QMetaType::LongLong:
+                case QMetaType::ULongLong:
+                    parameters += "0"; 
+                    break;
+                case QMetaType::Float:
+                    parameters += "0.0";
+                    break;
+                case QMetaType::QUrl:
+                    parameters += "url";
+                    break;
+                default: 
+                    parameters += QMetaType::typeName(type);
+                    break;
+            }
+        }
+
+        //helpers::str_plus_info(
+        bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(),
+            parameters, allParameterNames, "Invoke method " + method.name().toStdString(),
+            SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+        if (gotInput)
+        {
+            std::vector<std::string> elems = helpers::split(parameters, ',');
+            if (elems.size() == method.parameterCount())
+            {
+                const char * methodParameterNames[6] = { 0, 0, 0, 0, 0, 0 };
+                QVariant data[6];
+                for (int i = 0; i < method.parameterCount(); ++i)
+                {
+                    QVariant v;
+                    QString curelem = QString::fromStdString(elems[i]);
+                    QMetaType::Type type = (QMetaType::Type)method.parameterType(i);
+                    switch (type)
+                    {
+                        case QMetaType::QString: 
+                            v = QVariant(curelem); 
+                            break;
+                        case QMetaType::Bool:
+                        {
+                            bool ok = false;
+                            int num = curelem.toInt(&ok);
+                            if (ok)
+                                v = QVariant((bool)(num != 0));
+                            else if (curelem.compare("false", Qt::CaseInsensitive) == 0 || curelem.compare("off", Qt::CaseInsensitive) == 0)
+                                v = QVariant(false);
+                            else if (curelem.compare("true", Qt::CaseInsensitive) == 0 || curelem.compare("on", Qt::CaseInsensitive) == 0)
+                                v = QVariant(true);
+                        }
+                        break;
+                        case QMetaType::Int:
+                        case QMetaType::UInt:
+                        case QMetaType::Char:
+                        case QMetaType::UChar:
+                        case QMetaType::Short:
+                        case QMetaType::UShort:
+                        case QMetaType::Long:
+                        case QMetaType::ULong:
+                        case QMetaType::LongLong:
+                        case QMetaType::ULongLong:
+                        {
+                            bool ok = false;
+                            qulonglong num = curelem.toULongLong(&ok);
+                            if (ok)
+                                v = QVariant(num);
+                        }
+                        break;
+                        case QMetaType::Float:
+                        {
+                            bool ok = false;
+                            double num = curelem.toDouble(&ok);
+                            if (ok)
+                                v = QVariant(num);
+                        }
+                        break;
+                        case QMetaType::QUrl:
+                        {
+                            QUrl url = QUrl::fromUserInput(curelem);
+                            if (url.isValid())
+                                v = QVariant(url);
+                        }
+                        break;
+                        default:
+                            break;
+                    }
+                    methodParameterNames[i] = parameterNames[i].constData();
+                    data[i] = v;
+                }
+                QVariant returnValue;
+                returnValue.convert(method.returnType());
+                method.invoke(object,
+                    Qt::AutoConnection, 
+                    QGenericReturnArgument(method.typeName(), returnValue.data()),
+                    QGenericArgument(methodParameterNames[0], data[0].data()),
+                    QGenericArgument(methodParameterNames[1], data[1].data()),
+                    QGenericArgument(methodParameterNames[2], data[2].data()),
+                    QGenericArgument(methodParameterNames[3], data[3].data()),
+                    QGenericArgument(methodParameterNames[4], data[4].data()),
+                    QGenericArgument(methodParameterNames[5], data[5].data())
+                );
+            }
+        }
+
+    }
     return true;
 }
 
