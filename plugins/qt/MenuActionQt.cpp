@@ -276,13 +276,26 @@ bool actionHandlerImpl<MenuActionObjectMethodInvoke>::execute()
                     parameters += "0"; 
                     break;
                 case QMetaType::Float:
+                case QMetaType::Double:
                     parameters += "0.0";
                     break;
                 case QMetaType::QUrl:
                     parameters += "url";
                     break;
                 default: 
-                    parameters += QMetaType::typeName(type);
+                    {
+                        const char * name = QMetaType::typeName(type);
+                        if(name)
+                            parameters += name;
+                        else
+                        {
+                            const QMetaObject * mobj = QMetaType::metaObjectForType(type);
+                            if(mobj)
+                                parameters += mobj->className();
+                            else
+                                parameters += parameterNames[i].toStdString();
+                        }
+                    }
                     break;
             }
         }
@@ -305,10 +318,10 @@ bool actionHandlerImpl<MenuActionObjectMethodInvoke>::execute()
                     QMetaType::Type type = (QMetaType::Type)method.parameterType(i);
                     switch (type)
                     {
-                        case QMetaType::QString: 
-                            v = QVariant(curelem); 
-                            break;
-                        case QMetaType::Bool:
+                    case QMetaType::QString: 
+                        v = QVariant(curelem); 
+                        break;
+                    case QMetaType::Bool:
                         {
                             bool ok = false;
                             int num = curelem.toInt(&ok);
@@ -320,40 +333,47 @@ bool actionHandlerImpl<MenuActionObjectMethodInvoke>::execute()
                                 v = QVariant(true);
                         }
                         break;
-                        case QMetaType::Int:
-                        case QMetaType::UInt:
-                        case QMetaType::Char:
-                        case QMetaType::UChar:
-                        case QMetaType::Short:
-                        case QMetaType::UShort:
-                        case QMetaType::Long:
-                        case QMetaType::ULong:
-                        case QMetaType::LongLong:
-                        case QMetaType::ULongLong:
-                        {
-                            bool ok = false;
-                            qulonglong num = curelem.toULongLong(&ok);
-                            if (ok)
-                                v = QVariant(num);
-                        }
-                        break;
-                        case QMetaType::Float:
-                        {
-                            bool ok = false;
-                            double num = curelem.toDouble(&ok);
-                            if (ok)
-                                v = QVariant(num);
-                        }
-                        break;
-                        case QMetaType::QUrl:
+#define QMT_CHAR(tname) \
+    case QMetaType::tname: { \
+        bool ok = false; \
+        auto num = curelem.at(0); \
+        if (ok) v = QVariant(num); \
+        } break;
+                    QMT_CHAR(Char);
+                    QMT_CHAR(UChar);
+#undef QMT_CHAR
+
+#define QMT_INT(tname, ctype) \
+    case QMetaType::tname: { \
+        bool ok = false; \
+        ctype num = curelem.to##tname(&ok); \
+        if (ok) v = QVariant(num); \
+        } break;
+                    QMT_INT(Int, int);
+                    QMT_INT(UInt, uint);
+                    QMT_INT(Short, short);
+                    QMT_INT(UShort, ushort);
+                    QMT_INT(Long, int);
+                    QMT_INT(ULong, uint);
+                    QMT_INT(LongLong, qlonglong);
+                    QMT_INT(ULongLong, qulonglong);
+                    QMT_INT(Float, float);
+                    QMT_INT(Double, double);
+#undef QMT_INT
+                    case QMetaType::QUrl:
                         {
                             QUrl url = QUrl::fromUserInput(curelem);
                             if (url.isValid())
                                 v = QVariant(url);
                         }
                         break;
-                        default:
-                            break;
+                    default:
+                        {
+                            v = QVariant(curelem);
+                            if (!v.convert(type))
+                                v = QVariant(type, QMetaType::create(type));
+                        }
+                        break;
                     }
                     methodParameterNames[i] = parameterNames[i].constData();
                     data[i] = v;
