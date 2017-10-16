@@ -71,11 +71,15 @@ bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
             {
                 int propertyOffset = metaObject->propertyOffset();
                 int propertyCount = metaObject->propertyCount();
+                std::vector<const char*> properties(propertyCount - propertyOffset);
                 for (int i = propertyOffset; i < propertyCount; ++i)
                 {
                     QMetaProperty metaproperty = metaObject->property(i);
-                    const char *name = metaproperty.name();
-                    const char *typeName = metaproperty.typeName();
+                    properties[i - propertyOffset] = metaproperty.name();
+                }
+                std::sort(properties.begin(), properties.end(), [](char const *lhs, char const *rhs) { return qstricmp(lhs, rhs) < -1; });
+                for(const char * name : properties)
+                {
                     QVariant value = object->property(name);
 
                     std::stringstream ss;
@@ -95,13 +99,18 @@ bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
             {
                 int methodOffset = metaObject->methodOffset();
                 int methodCount = metaObject->methodCount();
-                for (int i=methodOffset; i<methodCount; ++i)
+                std::vector<QMetaMethod> methods(methodCount - methodOffset);
+                for (int i = methodOffset; i<methodCount; ++i)
+                    methods[i - methodOffset] = metaObject->method(i);
+                std::sort(methods.begin(), methods.end(), [](const QMetaMethod & lhs, const QMetaMethod & rhs) { return qstricmp(lhs.name(), rhs.name()) < -1; });
+                for (const QMetaMethod & method : methods)
                 {
-                    QMetaMethod method = metaObject->method(i);
                     if (method.name() == QString("deleteLater") || method.name().at(0) == QChar('_') || method.methodType() == QMetaMethod::Signal)
                         continue;
 
-                    menuItem->addSimpleAction(MenuActionObjectMethodInvoke, method.methodSignature().toStdString(), _item, new ReferencedDataMetaMethod(method));
+                    std::stringstream ss;
+                    ss << metaObject->className() << "::" << method.methodSignature().toStdString();
+                    menuItem->addSimpleAction(MenuActionObjectMethodInvoke, ss.str(), _item, new ReferencedDataMetaMethod(method));
                 }
                 metaObject = metaObject->superClass();
             }

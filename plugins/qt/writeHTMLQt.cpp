@@ -149,9 +149,17 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
             {
                 int propertyOffset = metaObject->propertyOffset();
                 int propertyCount = metaObject->propertyCount();
-                for (int i=propertyOffset; i<propertyCount; ++i)
+                std::vector<const char*> properties(propertyCount - propertyOffset);
+                for (int i = propertyOffset; i < propertyCount; ++i)
                 {
                     QMetaProperty metaproperty = metaObject->property(i);
+                    properties[i - propertyOffset] = metaproperty.name();
+                }
+                std::sort(properties.begin(), properties.end(), [](char const *lhs, char const *rhs) { return qstricmp(lhs, rhs) < -1; });
+                for (const char * name : properties)
+                {
+                    int index = metaObject->indexOfProperty(name);
+                    QMetaProperty metaproperty = metaObject->property(index);
                     const char *name = metaproperty.name();
                     const char *typeName = metaproperty.typeName();
                     QVariant value = object->property(name);

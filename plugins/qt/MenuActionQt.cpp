@@ -534,6 +534,22 @@ bool actionHandlerImpl<MenuActionObjectModifyProperty>::execute()
             }
         }
         break;
+    case QVariant::Url:
+        {
+            QUrl url = propertyValue.toUrl();
+            std::string propertyValueString = toUtf8(url.toString());
+
+            bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(),
+                                                            propertyValueString, propertyName, "Set property " + propertyName,
+                                                            SGIPluginHostInterface::InputDialogStringEncodingUTF8, _item);
+            if(gotInput)
+            {
+                url = QUrl::fromUserInput(fromUtf8(propertyValueString));
+                propertyValue.setValue(url);
+                object->setProperty(propertyName.c_str(), propertyValue);
+            }
+        }
+        break;
     default:
         {
             std::stringstream ss;
