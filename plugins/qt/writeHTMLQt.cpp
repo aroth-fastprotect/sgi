@@ -160,7 +160,6 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
                 {
                     int index = metaObject->indexOfProperty(name);
                     QMetaProperty metaproperty = metaObject->property(index);
-                    const char *name = metaproperty.name();
                     const char *typeName = metaproperty.typeName();
                     QVariant value = object->property(name);
 
