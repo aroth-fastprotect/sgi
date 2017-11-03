@@ -201,8 +201,10 @@ bool writePrettyHTMLImpl<Log4cplusObjectAppender>::process(std::basic_ostream<ch
             // add Log4cplusObjectBase properties first
             callNextHandler(os);
 
+            log4cplus::LogLevelManager& llmgr = log4cplus::getLogLevelManager();
+
             os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
-            os << "<tr><td>threshold</td><td>" << object->getThreshold() << "</td></tr>" << std::endl;
+            os << "<tr><td>threshold</td><td>" << llmgr.toString(object->getThreshold()) << "</td></tr>" << std::endl;
             os << "<tr><td>layout</td><td>" << object->getLayout() << "</td></tr>" << std::endl;
             os << "<tr><td>filter</td><td>" << object->getFilter() << "</td></tr>" << std::endl;
 
