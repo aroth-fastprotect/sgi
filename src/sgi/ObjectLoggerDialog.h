@@ -74,6 +74,8 @@ protected:
     class ObjectLoggerDialogImpl;
 
 protected:
+    virtual void            closeEvent(QCloseEvent * event) override;
+
     bool                    buildTree(ObjectTreeItem * treeItem, SGIItemBase * item);
 
     void                    triggerRepaint();

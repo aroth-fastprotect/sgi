@@ -35,7 +35,11 @@ int main(int argc, char **argv)
     QApplication app (argc, argv);
 
     QString path = QCoreApplication::applicationDirPath();
+#ifdef _DEBUG
     path = QDir::cleanPath(path + "/../pluginsd");
+#else
+    path = QDir::cleanPath(path + "/../plugins");
+#endif
     qDebug() << "addLibraryPath " << path;
     QCoreApplication::addLibraryPath(path);
     QImage load_sgi;
@@ -51,8 +55,10 @@ int main(int argc, char **argv)
     }
 
 
-    MainWindow window(&load_sgi);
-    window.show();
+    MainWindow * window = new MainWindow(&load_sgi);
+    window->show();
 
-    return app.exec();
+    int ret = app.exec();
+    delete window;
+    return ret;
 }

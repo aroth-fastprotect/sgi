@@ -220,11 +220,12 @@ public:
         connect(actionItemNext, &QAction::triggered, dlg, &SceneGraphDialog::itemNext);
 
         spinBoxRefreshTime = new QSpinBox(toolBar);
-        spinBoxRefreshTime->setToolTip(tr("Automatically reloads the information every X seconds."));
+        spinBoxRefreshTime->setToolTip(tr("Automatically reloads the information every X milliseconds."));
         spinBoxRefreshTime->setMinimum(0);
-        spinBoxRefreshTime->setMaximum(600);
+        spinBoxRefreshTime->setMaximum(60000);
+        spinBoxRefreshTime->setSingleStep(100);
         spinBoxRefreshTime->setPrefix("Refresh ");
-        spinBoxRefreshTime->setSuffix("s");
+        spinBoxRefreshTime->setSuffix("ms");
         connect(spinBoxRefreshTime, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), dlg, &SceneGraphDialog::refreshTimeChanged);
 
         toolBar->addAction(actionAddTab);
@@ -318,6 +319,12 @@ SceneGraphDialog::~SceneGraphDialog()
 
 void SceneGraphDialog::closeEvent(QCloseEvent * event)
 {
+    if (_refreshTimer)
+    {
+        delete _refreshTimer;
+        _refreshTimer = nullptr;
+    }
+
     for (Ui_TabPage * page : ui->tabs)
     {
         page->treeWidget->clear();
@@ -890,8 +897,8 @@ void SceneGraphDialog::refreshTimeChanged ( int n )
         _refreshTimer = new QTimer(this);
         connect(_refreshTimer, &QTimer::timeout, this, &SceneGraphDialog::refreshTimerExpired);
     }
-    if(n > 0)
-        _refreshTimer->start(n * 1000);
+    if (n >= 100)
+        _refreshTimer->start(n);
     else
         _refreshTimer->stop();
 }

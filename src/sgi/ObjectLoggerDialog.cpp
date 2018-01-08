@@ -157,10 +157,12 @@ void ObjectLoggerDialog::init()
     connect(_actionReload, &QAction::triggered, this, &ObjectLoggerDialog::reload);
 
     _spinBoxRefreshTime = new QSpinBox(_toolBar);
+    _spinBoxRefreshTime->setToolTip(tr("Automatically reloads the information every X milliseconds."));
     _spinBoxRefreshTime->setMinimum(0);
-    _spinBoxRefreshTime->setMaximum(600);
+    _spinBoxRefreshTime->setMaximum(60000);
+    _spinBoxRefreshTime->setSingleStep(100);
     _spinBoxRefreshTime->setPrefix("Refresh ");
-    _spinBoxRefreshTime->setSuffix("s");
+    _spinBoxRefreshTime->setSuffix("ms");
     connect(_spinBoxRefreshTime, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &ObjectLoggerDialog::refreshTimeChanged);
 
     _toolBar->addAction(_actionReload);
@@ -403,8 +405,8 @@ void ObjectLoggerDialog::refreshTimeChanged ( int n )
         _refreshTimer = new QTimer(this);
         connect(_refreshTimer, &QTimer::timeout, this, &ObjectLoggerDialog::refreshTimerExpired);
     }
-    if(n > 0)
-        _refreshTimer->start(n * 1000);
+    if(n >= 100)
+        _refreshTimer->start(n);
     else
         _refreshTimer->stop();
 }
@@ -572,6 +574,17 @@ void ObjectLoggerDialog::updateLog()
         }
         _queuedOperations->pop();
     }
+}
+
+void ObjectLoggerDialog::closeEvent(QCloseEvent * event)
+{
+    if (_refreshTimer)
+    {
+        delete _refreshTimer;
+        _refreshTimer = nullptr;
+    }
+
+    QDialog::closeEvent(event);
 }
 
 } // namespace sgi
