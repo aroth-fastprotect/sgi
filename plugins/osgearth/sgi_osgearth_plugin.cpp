@@ -64,7 +64,9 @@
 #include <osgEarthDrivers/vpb/VPBOptions>
 #include <osgEarthDrivers/model_simple/SimpleModelOptions>
 #include <osgEarthDrivers/model_feature_geom/FeatureGeomModelOptions>
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
 #include <osgEarthDrivers/model_feature_stencil/FeatureStencilModelOptions>
+#endif
 #include <osgEarthDrivers/feature_ogr/OGRFeatureOptions>
 #include <osgEarthDrivers/gdal/GDALOptions>
 
@@ -270,8 +272,10 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::Features::FeatureSourceOptions)
     osgEarth::Drivers::OGRFeatureOptions
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osgEarth::Features::FeatureModelSourceOptions)
-    osgEarth::Drivers::FeatureGeomModelOptions,
-    osgEarth::Drivers::FeatureStencilModelOptions
+    osgEarth::Drivers::FeatureGeomModelOptions
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
+    , osgEarth::Drivers::FeatureStencilModelOptions
+#endif
 SGI_OBJECT_INFO_END()
 
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)

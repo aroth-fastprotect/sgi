@@ -23,7 +23,9 @@ public:
     const ColorCoords & getColorCoords() const { return _colorCoords; }
     const TexCoords & getTexCoords() const { return _texcoords; }
     
+#if OSG_VERSION_LESS_THAN(3,5,9)
     const osg::Vec3 & getScaleFont() const { return _scaleFont; };
+#endif
 
     void forceComputeGlyphRepresentation() {
         computeGlyphRepresentation();
@@ -45,8 +47,13 @@ public:
 		return (bottomLeft - topLeft).length();
 #else
         const osg::Matrix & m = _matrix;
+#if OSG_VERSION_LESS_THAN(3,5,9)
         osg::Vec3f topLeft = osg::componentMultiply(osg::Vec3f(_textBB.xMin(), _textBB.yMin(), _textBB.zMin()) * m, _scaleFont);
         osg::Vec3f bottomLeft = osg::componentMultiply(osg::Vec3f(_textBB.xMin(), _textBB.yMax(), _textBB.zMin()) * m, _scaleFont);
+#else
+        osg::Vec3f topLeft = osg::Vec3f(_textBB.xMin(), _textBB.yMin(), _textBB.zMin()) * m;
+        osg::Vec3f bottomLeft = osg::Vec3f(_textBB.xMin(), _textBB.yMax(), _textBB.zMin()) * m;
+#endif
         return (bottomLeft - topLeft).length();
 #endif 
 	}

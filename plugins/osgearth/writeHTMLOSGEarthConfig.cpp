@@ -35,7 +35,10 @@
 #include <osgEarthDrivers/vpb/VPBOptions>
 #include <osgEarthDrivers/model_simple/SimpleModelOptions>
 #include <osgEarthDrivers/model_feature_geom/FeatureGeomModelOptions>
+
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
 #include <osgEarthDrivers/model_feature_stencil/FeatureStencilModelOptions>
+#endif
 #include <osgEarthDrivers/feature_ogr/OGRFeatureOptions>
 #include <osgEarthDrivers/gdal/GDALOptions>
 
@@ -87,7 +90,9 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::ArcGISOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::FileSystemCacheOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::SimpleModelOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::FeatureGeomModelOptions)
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::FeatureStencilModelOptions)
+#endif
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::OGRFeatureOptions)
 
 using namespace osg_helpers;
@@ -98,8 +103,10 @@ void writePrettyHTMLImplForDriverOptions(SGIPluginHostInterface * hostInterface,
     const std::string driver = opts.getDriver();
     if(driver == "feature_geom")
         actualOpts = new osgEarth::Drivers::FeatureGeomModelOptions(opts);
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
     else if(driver == "feature_stencil")
         actualOpts = new osgEarth::Drivers::FeatureStencilModelOptions(opts);
+#endif
     else if(driver == "simple")
         actualOpts = new osgEarth::Drivers::SimpleModelOptions(opts);
     else if(driver == "tms")
@@ -1054,6 +1061,7 @@ bool writePrettyHTMLImpl<osgEarth::Drivers::SimpleModelOptions>::process(std::ba
     return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
 bool writePrettyHTMLImpl<osgEarth::Drivers::FeatureStencilModelOptions>::process(std::basic_ostream<char>& os)
 {
     osgEarth::Drivers::FeatureStencilModelOptions * object = getObject<osgEarth::Drivers::FeatureStencilModelOptions,SGIItemEarthConfigOptions>();
@@ -1084,6 +1092,7 @@ bool writePrettyHTMLImpl<osgEarth::Drivers::FeatureStencilModelOptions>::process
     }
     return ret;
 }
+#endif // OSGEARTH_VERSION_LESS_THAN(2,8,0)
 
 bool writePrettyHTMLImpl<osgEarth::Drivers::OGRFeatureOptions>::process(std::basic_ostream<char>& os)
 {

@@ -9,6 +9,7 @@
 #include <osgText/FadeText>
 #include <osgText/Text3D>
 #include <osg/io_utils>
+#include <osg/Version>
 
 #include <sgi/helpers/osg>
 #include "std_ostream_osgtext.h"
@@ -69,15 +70,19 @@ bool writePrettyHTMLImpl<osgText::Font>::process(std::basic_ostream<char>& os)
             // add object properties first
             callNextHandler(os);
 
-			os << "<tr><td>texEnv</td><td>" << getObjectNameAndType(object->getTexEnv()) << "</td></tr>" << std::endl;
+#if OSG_VERSION_LESS_THAN(3,5,9)
+            os << "<tr><td>texEnv</td><td>" << getObjectNameAndType(object->getTexEnv()) << "</td></tr>" << std::endl;
 			os << "<tr><td>stateSet</td><td>" << getObjectNameAndType(object->getStateSet()) << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>filename</td><td>" << object->getFileName() << "</td></tr>" << std::endl;
             os << "<tr><td>textureWidthHint</td><td>" << object->getTextureWidthHint() << "</td></tr>" << std::endl;
             os << "<tr><td>textureHeightHint</td><td>" << object->getTextureHeightHint() << "</td></tr>" << std::endl;
 
             os << "<tr><td>hasVertical</td><td>" << (object->hasVertical()?"true":"false") << "</td></tr>" << std::endl;
+#if OSG_VERSION_LESS_THAN(3,5,9)
             os << "<tr><td>glyphImageMargin</td><td>" << object->getGlyphImageMargin() << "</td></tr>" << std::endl;
             os << "<tr><td>glyphImageMarginRatio</td><td>" << object->getGlyphImageMarginRatio() << "</td></tr>" << std::endl;
+#endif
 
             os << "<tr><td>minFilterHint</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getMinFilterHint()) << "</td></tr>" << std::endl;
             os << "<tr><td>magFilterHint</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getMagFilterHint()) << "</td></tr>" << std::endl;
@@ -190,7 +195,9 @@ bool writePrettyHTMLImpl<osgText::TextBase>::process(std::basic_ostream<char>& o
             os << "<tr><td>normals</td><td>" << getObjectNameAndType(object->getNormals()) << "</td></tr>" << std::endl;
             os << "<tr><td>colorCoords</td><td>" << getObjectNameAndType(object->getColorCoords()) << "</td></tr>" << std::endl;
             os << "<tr><td>texCoords</td><td>" << getObjectNameAndType(object->getTexCoords()) << "</td></tr>" << std::endl;
+#if OSG_VERSION_LESS_THAN(3,5,9)
             os << "<tr><td>scaleFont</td><td>" << object->getScaleFont() << "</td></tr>" << std::endl;
+#endif
 
             if(_table)
                 os << "</table>" << std::endl;

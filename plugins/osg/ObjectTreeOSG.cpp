@@ -3729,6 +3729,7 @@ bool objectTreeBuildImpl<osgText::Font>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
+#if OSG_VERSION_LESS_THAN(3,5,9)
             SGIHostItemOsg stateSet(object->getStateSet());
             if(stateSet.hasObject())
                 treeItem->addChild("StateSet", &stateSet);
@@ -3736,6 +3737,7 @@ bool objectTreeBuildImpl<osgText::Font>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg texEnv(object->getTexEnv());
             if(texEnv.hasObject())
                 treeItem->addChild("TexEnv", &texEnv);
+#endif
 
             SGIHostItemOsg implementation(object->getImplementation());
             if(implementation.hasObject())

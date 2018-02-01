@@ -36,6 +36,8 @@
 #include <osgViewer/api/Cocoa/GraphicsWindowCocoa>
 #elif  defined(__linux__)
 #include <osgViewer/api/X11/GraphicsWindowX11>
+// undefine Status from X11/ICELIB
+#undef Status
 #include <signal.h>
 #include <time.h>
 #include <sys/syscall.h>

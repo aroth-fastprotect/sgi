@@ -3624,9 +3624,11 @@ bool writePrettyHTMLImpl<osg::Program>::process(std::basic_ostream<char>& os)
             os << "<tr><td>numShaders</td><td>" << object->getNumShaders() << "</td></tr>" << std::endl;
             os << "<tr><td>isFixedFunction</td><td>" << (object->isFixedFunction()?"true":"false") << "</td></tr>" << std::endl;
 
+#if OSG_VERSION_LESS_THAN(3,5,9)
             GLint numGroupsX, numGroupsY, numGroupsZ;
             object->getComputeGroups(numGroupsX, numGroupsY, numGroupsZ);
             os << "<tr><td>computeGroups</td><td>x=" << numGroupsX << ", y=" << numGroupsY << ", z=" << numGroupsZ << "</td></tr>" << std::endl;
+#endif
 
             os << "<tr><td>attribBindingList</td><td><ul>";
             const osg::Program::AttribBindingList& attribBindingList = object->getAttribBindingList();
