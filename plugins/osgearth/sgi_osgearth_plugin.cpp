@@ -79,7 +79,11 @@ using namespace sgi::osgearth_plugin;
 
 SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     sgi::ISceneGraphDialog,
-    osg::Object, osgEarth::Map, osgEarth::Registry, osgEarth::Capabilities, osgEarth::CacheBin,
+    osg::Object, 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
+    osgEarth::Map, 
+#endif
+    osgEarth::Registry, osgEarth::Capabilities, osgEarth::CacheBin,
     osgEarth::Layer, osgEarth::SpatialReference, osgEarth::Profile, osgEarth::Terrain,
     osgEarth::TileBlacklist, osgEarth::Util::Controls::ControlEventHandler,
     osgEarth::StateSetCache,
@@ -96,6 +100,9 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::Object)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+    osgEarth::Map, 
+#endif
     osgEarth::Cache, osgEarth::TileSource,
     osgEarth::ModelSource,
     osgEarth::Extension,

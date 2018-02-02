@@ -6,7 +6,9 @@
 
 #define MAPNODE_ACCESS_HACK
 #include "osgearth_accessor.h"
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
 #include <osgEarthQt/TerrainProfileWidget>
+#endif
 
 namespace sgi {
 
@@ -58,12 +60,14 @@ bool MapNodeAccess::isTerrainProfileActive() const
         {
             for (const osg::ref_ptr<osgGA::EventHandler> & handler : view->getEventHandlers())
             {
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
                 const osgEarth::QtGui::TerrainProfileMouseHandler * mousehandler = dynamic_cast<const osgEarth::QtGui::TerrainProfileMouseHandler*>(handler.get());
                 if (mousehandler)
                 {
                     ret = mousehandler->_profileWidget->isVisible();
                     break;
                 }
+#endif
             }
         }
     }
@@ -81,6 +85,7 @@ void MapNodeAccess::toggleTerrainProfile(QWidget * parent)
         {
             for (osg::ref_ptr<osgGA::EventHandler> & handler : view->getEventHandlers())
             {
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
                 osgEarth::QtGui::TerrainProfileMouseHandler * mousehandler = dynamic_cast<osgEarth::QtGui::TerrainProfileMouseHandler*>(handler.get());
                 if (mousehandler)
                 {
@@ -100,13 +105,16 @@ void MapNodeAccess::toggleTerrainProfile(QWidget * parent)
                     active = true;
                     break;
                 }
+#endif
             }
             if (!active)
             {
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
                 osgEarth::QtGui::TerrainProfileWidget * profileWidget = new osgEarth::QtGui::TerrainProfileWidget(camera, this, parent);
                 profileWidget->setActiveView(view);
                 profileWidget->setWindowTitle(QObject::tr("Terrain profile"));
                 profileWidget->show();
+#endif
             }
         }
     }
