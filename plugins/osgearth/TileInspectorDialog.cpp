@@ -389,13 +389,12 @@ namespace {
         if (osgEarth::TerrainLayer * terrainLayer = dynamic_cast<osgEarth::TerrainLayer *>(item->object()))
         {
             const osgEarth::Profile * p = terrainLayer->getProfile();
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             if (p)
                 return terrainLayer->getCacheBin(p);
-            else
-                return NULL;
+#endif
         }
-        else
-            return NULL;
+        return NULL;
     }
 }
 
@@ -431,6 +430,7 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
     if(map)
     {
         osgEarth::MapFrame frame(map);
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
         for(auto it = frame.elevationLayers().begin(); it != frame.elevationLayers().end(); ++it)
         {
             SGIHostItemOsg layer(*it);
@@ -453,6 +453,7 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
                 ui->layer->addItem(tr("Image: %1").arg(fromUtf8(name)), QVariant::fromValue(QtSGIItem(item.get())));
             }
         }
+#endif
     }
     else
     {
@@ -562,11 +563,13 @@ void TileInspectorDialog::layerChanged(int index)
     ui->levelOfDetail->addItem(tr("All"), QVariant(-1));
     for(unsigned lod = 0; lod < 23; lod++)
     {
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
         if(tileSource && tileSource->hasDataAtLOD(lod))
         {
             QString text(tr("LOD%1").arg(lod));
             ui->levelOfDetail->addItem(text, QVariant(lod));
         }
+#endif
     }
 
     refresh();
@@ -583,11 +586,13 @@ void TileInspectorDialog::layerSourceChanged(int index)
     ui->levelOfDetail->addItem(tr("All"), QVariant(-1));
     for (unsigned lod = 0; lod < 23; lod++)
     {
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
         if (tileSource && tileSource->hasDataAtLOD(lod))
         {
             QString text(tr("LOD%1").arg(lod));
             ui->levelOfDetail->addItem(text, QVariant(lod));
         }
+#endif
     }
 
     refresh();
@@ -713,9 +718,14 @@ void TileInspectorDialog::refresh()
     }
     else if (terrainLayer)
     {
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
         const osgEarth::TerrainLayerOptions & options = terrainLayer->getInitialOptions();
         layerConf = options.getConfig();
         driver = options.driver().value().getDriver();
+#else
+        layerConf = terrainLayer->getConfig();
+        driver = layerConf.get("driver");
+#endif
     }
     driver = tileSourceOptions.getDriver();
     if (driver == "tms")

@@ -113,6 +113,7 @@ void MapNodeAccess::toggleTerrainProfile(QWidget * parent)
 
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
 bool MapNodeAccess::getCullDataCameras(osg::NodeList & cameras)
 {
     osgEarth::Threading::ScopedReadLock lock(_cullDataMutex);
@@ -130,6 +131,7 @@ const osgEarth::MapNodeCullData * MapNodeAccess::getCullDataForCamera(osg::Camer
     else
         return NULL;
 }
+#endif
 
 } // namespace osgearth_plugin
 } // namespace sgi

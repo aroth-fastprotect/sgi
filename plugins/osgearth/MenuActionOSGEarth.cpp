@@ -177,6 +177,7 @@ namespace {
 MapDebugImageLayer getDebugImageLayer(const osgEarth::Map* object, osg::ref_ptr<osgEarth::ImageLayer> & imageLayer )
 {
     MapDebugImageLayer ret = MapDebugImageLayerNone;
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::ImageLayerVector imageLayers;
     object->getImageLayers(imageLayers);
     for(osgEarth::ImageLayerVector::iterator it = imageLayers.begin(); ret == MapDebugImageLayerNone && it != imageLayers.end(); it++)
@@ -194,6 +195,8 @@ MapDebugImageLayer getDebugImageLayer(const osgEarth::Map* object, osg::ref_ptr<
             imageLayer = layer;
         }
     }
+#else
+#endif
     return ret;
 }
 
@@ -280,9 +283,11 @@ bool actionHandlerImpl<MenuActionMapDebugImageLayer>::execute()
 bool actionHandlerImpl<MenuActionTerrainLayerCacheUsage>::execute()
 {
     osgEarth::TerrainLayer * object = static_cast<osgEarth::TerrainLayer*>(item<SGIItemOsg>()->object());
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::CachePolicy newCachePolicy = ((TerrainLayerAccessor*)object)->getCachePolicy();
     newCachePolicy.usage() = (osgEarth::CachePolicy::Usage)menuAction()->mode();
     ((TerrainLayerAccessor*)object)->setCachePolicy(newCachePolicy);
+#endif
     return true;
 }
 
@@ -414,11 +419,12 @@ bool actionHandlerImpl<MenuActionMaskLayerSetURL>::execute()
 {
     osgEarth::MaskLayer * object = static_cast<osgEarth::MaskLayer*>(item<SGIItemOsg>()->object());
     std::string url;
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     const osgEarth::MaskSourceOptions & layerOpts = object->getMaskSource()->getOptions();
     osgEarth::Config layerConf = layerOpts.getConfig();
     if(layerConf.hasValue("url"))
         url = layerConf.value("url");
-
+#endif
     bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), url, "URL:", "Set URL", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
     if(gotInput)
     {
@@ -466,11 +472,13 @@ bool actionHandlerImpl<MenuActionModelLayerLighting>::execute()
 bool actionHandlerImpl<MenuActionTileSourceUpdateMetaData>::execute()
 {
     osgEarth::TileSource * object = getObject<osgEarth::TileSource,SGIItemOsg,DynamicCaster>();
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 #ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
     osgEarth::Config config;
     object->readMetaData(config);
     object->writeMetaData(config);
 #endif
+#endif // OSGEARTH_VERSION_LESS_THAN(2,9,0)
     return true;
 }
 
@@ -493,6 +501,7 @@ bool actionHandlerImpl<MenuActionTileBlacklistClear>::execute()
             map = mapnode->getMap();
         Q_ASSERT(map != NULL);
         osgEarth::MapFrame frame(map);
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
         for (osgEarth::ElevationLayer * elevationLayer : frame.elevationLayers())
         {
             tilesource = elevationLayer->getTileSource();
@@ -509,6 +518,8 @@ bool actionHandlerImpl<MenuActionTileBlacklistClear>::execute()
             if (tileblacklist)
                 tileblacklist->clear();
         }
+#else
+#endif
     }
     return true;
 }

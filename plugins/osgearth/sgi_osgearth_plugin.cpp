@@ -23,6 +23,9 @@
 
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
+#include <osgEarth/MaskSource>
+#include <osgEarth/MaskLayer>
+#include <osgEarth/ModelLayer>
 #include <osgEarth/Registry>
 #include <osgEarth/Capabilities>
 #include <osgEarth/OverlayDecorator>
@@ -112,7 +115,13 @@ SGI_OBJECT_INFO_BEGIN(osg::Node)
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osg::Group)
     osg::CoordinateSystemNode,
-    osgEarth::MapNode, osgEarth::TerrainDecorator, osgEarth::Util::SkyNode,
+    osgEarth::MapNode,
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
+    osgEarth::TerrainDecorator,
+#else
+    osgEarth::OverlayDecorator,
+#endif
+    osgEarth::Util::SkyNode,
     osgEarth::Util::Controls::Control, osgEarth::Util::Controls::ControlCanvas,
     osgEarth::Util::Controls::ControlNodeBin,
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
@@ -140,14 +149,6 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::PositionedAnnotationNode)
     osgEarth::Annotation::LocalizedNode,
     osgEarth::Annotation::OrthoNode
 SGI_OBJECT_INFO_END()
-#else // OSGEARTH_VERSION_LESS_THAN(2,9,0)
-SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::GeoPositionNode)
-    osgEarth::Annotation::CircleNode,
-    osgEarth::Annotation::EllipseNode,
-    osgEarth::Annotation::RectangleNode,
-    osgEarth::Annotation::ModelNode
-SGI_OBJECT_INFO_END()
-#endif // OSGEARTH_VERSION_LESS_THAN(2,9,0)
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::OrthoNode)
     osgEarth::Annotation::PlaceNode,
@@ -161,6 +162,19 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::LocalizedNode)
     osgEarth::Annotation::RectangleNode,
     osgEarth::Annotation::ModelNode
 SGI_OBJECT_INFO_END()
+
+#else // OSGEARTH_VERSION_LESS_THAN(2,9,0)
+SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::GeoPositionNode)
+    osgEarth::Annotation::CircleNode,
+    osgEarth::Annotation::EllipseNode,
+    osgEarth::Annotation::RectangleNode,
+    osgEarth::Annotation::LocalGeometryNode,
+    osgEarth::Annotation::ModelNode,
+    osgEarth::Annotation::PlaceNode,
+    osgEarth::Annotation::LabelNode,
+    osgEarth::Annotation::TrackNode
+SGI_OBJECT_INFO_END()
+#endif // OSGEARTH_VERSION_LESS_THAN(2,9,0)
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::Features::FeatureCursor)
     osgEarth::Features::FeatureListCursor, osgEarth::Features::GeometryFeatureCursor
@@ -206,9 +220,11 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::Util::Controls::Frame)
     osgEarth::Util::Controls::RoundedFrame
 SGI_OBJECT_INFO_END()
 
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
 SGI_OBJECT_INFO_BEGIN(osgEarth::TerrainDecorator)
     osgEarth::OverlayDecorator
 SGI_OBJECT_INFO_END()
+#endif
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::Layer)
     osgEarth::TerrainLayer, osgEarth::ModelLayer, osgEarth::MaskLayer
@@ -249,8 +265,10 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::DriverConfigOptions)
     osgEarth::ModelSourceOptions,
     osgEarth::MaskSourceOptions, 
     osgEarth::TerrainOptions,
-    osgEarth::Features::FeatureSourceOptions,
-    osgEarth::Features::ScriptEngineOptions
+    osgEarth::Features::FeatureSourceOptions
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
+    , osgEarth::Features::ScriptEngineOptions
+#endif
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::TileSourceOptions)

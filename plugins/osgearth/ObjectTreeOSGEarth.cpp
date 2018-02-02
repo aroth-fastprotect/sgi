@@ -16,6 +16,7 @@
 #include <osgEarth/Version>
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
+#include <osgEarth/MaskLayer>
 #include <osgEarth/Registry>
 #include <osgEarth/LevelDBFactory>
 
@@ -38,7 +39,6 @@
 #include <osgEarthDrivers/vpb/VPBOptions>
 #include <osgEarthDrivers/model_simple/SimpleModelOptions>
 #include <osgEarthDrivers/model_feature_geom/FeatureGeomModelOptions>
-#include <osgEarthDrivers/model_feature_stencil/FeatureStencilModelOptions>
 #include <osgEarthDrivers/feature_ogr/OGRFeatureOptions>
 
 #include "osgearth_accessor.h"
@@ -110,9 +110,12 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
         if(ret)
         {
             osgEarth::MapCallbackList callbacks;
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 #ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
             object->getMapCallbacks(callbacks);
 #endif
+#endif
+
             if(!callbacks.empty())
                 treeItem->addChildIfNotExists("Callbacks", cloneItem<SGIItemOsg>(SGIItemTypeCallbacks));
 
@@ -132,9 +135,15 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
             if(globalOpts.hasObject())
                 treeItem->addChild("GlobalOptions", &globalOpts);
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             SGIHostItemOsg dbOpts(object->getDBOptions());
             if(dbOpts.hasObject())
                 treeItem->addChild("DBOptions", &dbOpts);
+#else
+            SGIHostItemOsg readOpts(object->getReadOptions());
+            if(readOpts.hasObject())
+                treeItem->addChild("ReadOptions", &readOpts);
+#endif
 
             SGIHostItemOsgEarthConfigOptions initialOptions(object->getInitialMapOptions());
             treeItem->addChild("Initial Options", &initialOptions);
@@ -142,6 +151,7 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsgEarthConfigOptions runtimeOptions(object->getMapOptions());
             treeItem->addChild("Runtime Options", &runtimeOptions);
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             unsigned numImage = object->getNumImageLayers();
             if(numImage)
                 treeItem->addChild(helpers::str_plus_count("Image layers", numImage), cloneItem<SGIItemOsg>(SGIItemTypeImageLayers));
@@ -159,6 +169,8 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
             }
             if(numMask)
                 treeItem->addChild(helpers::str_plus_count("Mask layers", numMask), cloneItem<SGIItemOsg>(SGIItemTypeMaskLayers));
+#else
+#endif
         }
         break;
     case SGIItemTypeCallbacks:
@@ -167,8 +179,10 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
             callNextHandler(treeItem);
 
             osgEarth::MapCallbackList callbacks;
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 #ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
             object->getMapCallbacks(callbacks);
+#endif
 #endif
             for(osgEarth::MapCallbackList::const_iterator it = callbacks.begin(); it != callbacks.end(); it++)
             {
@@ -180,6 +194,7 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
         break;
     case SGIItemTypeElevationLayers:
         {
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             osgEarth::MapFrame mapframe(object, osgEarth::Map::ELEVATION_LAYERS);
             const osgEarth::ElevationLayerVector & elevationLayers = mapframe.elevationLayers();
             for(osgEarth::ElevationLayerVector::const_iterator it = elevationLayers.begin(); it != elevationLayers.end(); it++)
@@ -188,11 +203,13 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
                 SGIHostItemOsg childItem(layer.get(), mapNode);
                 treeItem->addChild(std::string(), &childItem);
             }
+#endif
             ret = true;
         }
         break;
     case SGIItemTypeImageLayers:
         {
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             osgEarth::MapFrame mapframe(object, osgEarth::Map::IMAGE_LAYERS);
             const osgEarth::ImageLayerVector & imageLayers = mapframe.imageLayers();
             for(osgEarth::ImageLayerVector::const_iterator it = imageLayers.begin(); it != imageLayers.end(); it++)
@@ -201,11 +218,13 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
                 SGIHostItemOsg childItem(layer.get(), mapNode);
                 treeItem->addChild(std::string(), &childItem);
             }
+#endif
             ret = true;
         }
         break;
     case SGIItemTypeModelLayers:
         {
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             osgEarth::MapFrame mapframe(object, osgEarth::Map::MODEL_LAYERS);
             const osgEarth::ModelLayerVector & modelLayers = mapframe.modelLayers();
             for(osgEarth::ModelLayerVector::const_iterator it = modelLayers.begin(); it != modelLayers.end(); it++)
@@ -214,11 +233,13 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
                 SGIHostItemOsg childItem(layer.get(), mapNode);
                 treeItem->addChild(std::string(), &childItem);
             }
+#endif
             ret = true;
         }
         break;
     case SGIItemTypeMaskLayers:
         {
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             osgEarth::MapFrame mapframe(object, osgEarth::Map::MASK_LAYERS);
             const osgEarth::MaskLayerVector & maskLayers = mapframe.terrainMaskLayers();
             for(osgEarth::MaskLayerVector::const_iterator it = maskLayers.begin(); it != maskLayers.end(); it++)
@@ -227,6 +248,7 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
                 SGIHostItemOsg childItem(layer.get(), mapNode);
                 treeItem->addChild(std::string(), &childItem);
             }
+#endif
             ret = true;
         }
         break;
@@ -259,6 +281,7 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
 			if(!extensions.empty())
 				treeItem->addChild("Extensions", cloneItem<SGIItemOsg>(SGIItemTypeExtensions));
 
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
             treeItem->addChild("CullData", cloneItem<SGIItemOsg>(SGIItemTypeCullData, ~0u));
 
 			SGIHostItemOsg terrain(access->terrain());
@@ -270,6 +293,11 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
 			SGIHostItemOsg terrainEngineContainer(access->terrainEngineContainer());
 			if (terrainEngineContainer.hasObject())
 				treeItem->addChild("TerrainEngineContainer", &terrainEngineContainer);
+#else
+            SGIHostItemOsg terrainEngine(object->getTerrainEngine());
+            if(terrainEngine.hasObject())
+                treeItem->addChild("TerrainEngine", &terrainEngine);
+#endif
             SGIHostItemOsg modelLayerGroup(object->getModelLayerGroup());
             if(modelLayerGroup.hasObject())
                 treeItem->addChild("ModelLayerGroup", &modelLayerGroup);
@@ -289,6 +317,7 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
             ret = true;
 		}
 		break;
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
     case SGIItemTypeCullData:
         {
             osg::NodeList cameras;
@@ -327,6 +356,7 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
             ret = true;
         }
         break;
+#endif
     default:
         ret = callNextHandler(treeItem);
         break;
@@ -347,9 +377,11 @@ bool objectTreeBuildImpl<osgEarth::Registry>::build(IObjectTreeItem * treeItem)
             if(object->getURIReadCallback() )
                 treeItem->addChildIfNotExists("Callbacks", cloneItem<SGIItemOsg>(SGIItemTypeCallbacks));
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             SGIHostItemOsg cache(object->getCache());
             if(cache.hasObject())
                 treeItem->addChild("Cache", &cache);
+#endif
 
 			treeItem->addChild("Blacklist", cloneItem<SGIItemOsg>(SGIItemTypeBlacklist));
 
@@ -735,7 +767,11 @@ bool objectTreeBuildImpl<osgEarth::Layer>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,8,0)
+            SGIHostItemOsg readOptions(object->getReadOptions());
+            if(readOptions.hasObject())
+                treeItem->addChild("Read options", &readOptions);
+#endif
 
         }
         break;
@@ -770,13 +806,16 @@ bool objectTreeBuildImpl<osgEarth::TerrainLayer>::build(IObjectTreeItem * treeIt
 
 #if OSGEARTH_VERSION_LESS_THAN(2,7,0)
             SGIHostItemOsg tileSource(access->tileSourceNoInit());
-#else
+            if(tileSource.hasObject())
+                treeItem->addChild("Tile source", &tileSource);
+#elif OSGEARTH_VERSION_LESS_THAN(2,8,0)
 			SGIHostItemOsg tileSource((osg::Referenced*)NULL);
 			if (access->tileSourceInitAttempted())
 				tileSource = object->getTileSource();
-#endif
             if(tileSource.hasObject())
                 treeItem->addChild("Tile source", &tileSource);
+#endif
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
             SGIHostItemOsg dbOptions(access->dbOptions());
             if(dbOptions.hasObject())
                 treeItem->addChild("Database options", &dbOptions);
@@ -803,6 +842,7 @@ bool objectTreeBuildImpl<osgEarth::TerrainLayer>::build(IObjectTreeItem * treeIt
 
             SGIHostItemOsgEarthConfigOptions runtimeOptions(object->getTerrainLayerRuntimeOptions());
             treeItem->addChild("Runtime Options", &runtimeOptions);
+#endif
         }
         break;
     default:
@@ -871,12 +911,14 @@ bool objectTreeBuildImpl<osgEarth::ModelLayer>::build(IObjectTreeItem * treeItem
                 treeItem->addChild("Mask source", &maskSource);
 #endif
 
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
             SGIHostItemOsg modelNode(mapNode?mapNode->getModelLayerNode(object):NULL);
             if(modelNode.hasObject())
                 treeItem->addChild("Model node", &modelNode);
 
             SGIHostItemOsgEarthConfigOptions initialOptions(object->getModelLayerOptions());
             treeItem->addChild("Initial Options", &initialOptions);
+#endif
 
             // there are runtime options, but they are not accessible
 #if 0
@@ -902,9 +944,11 @@ bool objectTreeBuildImpl<osgEarth::MaskLayer>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             SGIHostItemOsg maskSource(object->getMaskSource());
             if(maskSource.hasObject())
                 treeItem->addChild("Mask source", &maskSource);
+#endif
 
             // there are initial and runtime options, but they are not accessible
 #if 0
@@ -1118,6 +1162,7 @@ bool objectTreeBuildImpl<osgEarth::ModelSource>::build(IObjectTreeItem * treeIte
             if(!dataExtents.empty())
                 treeItem->addChild(helpers::str_plus_count("Data extents", dataExtents.size()), cloneItem<SGIItemOsg>(SGIItemTypeDataExtents, ~0u));
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             const osgEarth::NodeOperationVector& preMergeOperations = object->preMergeOperations();
             if (!preMergeOperations.empty())
                 treeItem->addChild(helpers::str_plus_count("Pre-Merge operations", preMergeOperations.size()), cloneItem<SGIItemOsg>(SGIItemTypePreMergeOps, ~0u));
@@ -1125,13 +1170,14 @@ bool objectTreeBuildImpl<osgEarth::ModelSource>::build(IObjectTreeItem * treeIte
             const osgEarth::NodeOperationVector& postMergeOperations = object->postMergeOperations();
             if (!postMergeOperations.empty())
                 treeItem->addChild(helpers::str_plus_count("Post-Merge operations", postMergeOperations.size()), cloneItem<SGIItemOsg>(SGIItemTypePostMergeOps, ~0u));
+#endif // OSGEARTH_VERSION_LESS_THAN(2,9,0)
 #endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 
         }
         break;
     case SGIItemTypePreMergeOps:
         {
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0) && OSGEARTH_VERSION_LESS_THAN(2,9,0)
             const osgEarth::NodeOperationVector& preMergeOperations = object->preMergeOperations();
             for (osgEarth::NodeOperationVector::const_iterator it = preMergeOperations.begin(); it != preMergeOperations.end(); it++)
             {
@@ -1145,7 +1191,7 @@ bool objectTreeBuildImpl<osgEarth::ModelSource>::build(IObjectTreeItem * treeIte
         break;
     case SGIItemTypePostMergeOps:
         {
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0) && OSGEARTH_VERSION_LESS_THAN(2,9,0)
             const osgEarth::NodeOperationVector& postMergeOperations = object->postMergeOperations();
             for (osgEarth::NodeOperationVector::const_iterator it = postMergeOperations.begin(); it != postMergeOperations.end(); it++)
             {
@@ -1543,9 +1589,11 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureModelSource>::build(IObjectT
             if(featureNodeFactory.hasObject())
                 treeItem->addChild("FeatureNodeFactory", &featureNodeFactory);
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             SGIHostItemOsg dbOpts(access->getDBOptions());
             if(dbOpts.hasObject())
                 treeItem->addChild("Database Options", &dbOpts);
+#endif
 
             SGIHostItemOsg featureSource(object->getFeatureSource());
             if(featureSource.hasObject())
@@ -1690,9 +1738,11 @@ bool objectTreeBuildImpl<osgEarth::Drivers::FeatureGeomModelOptions>::build(IObj
         ret = callNextHandler(treeItem);
         if(ret)
         {
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             SGIHostItemOsgEarthConfigOptions compilerOptions(object->compilerOptions());
             if(compilerOptions.hasObject())
                 treeItem->addChild("CompilerOptions", &compilerOptions);
+#endif
         }
         break;
     default:
