@@ -13,6 +13,7 @@
 #include <osgEarth/ShaderGenerator>
 #include <osgEarth/Registry>
 #include <osgEarth/ImageUtils>
+#include <osgEarth/MaskLayer>
 #include <osgEarth/TileSource>
 #include <osgEarth/LevelDBFactory>
 
@@ -22,7 +23,9 @@
 #else
 #include <osgEarthUtil/SkyNode>
 #endif
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
 #include <osgEarthQt/TerrainProfileWidget>
+#endif
 
 #include "osgearth_accessor.h"
 #include "SettingsDialogOSGEarth.h"

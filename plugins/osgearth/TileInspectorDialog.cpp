@@ -724,7 +724,7 @@ void TileInspectorDialog::refresh()
         driver = options.driver().value().getDriver();
 #else
         layerConf = terrainLayer->getConfig();
-        driver = layerConf.get("driver");
+        driver = layerConf.value("driver");
 #endif
     }
     driver = tileSourceOptions.getDriver();
@@ -757,8 +757,11 @@ void TileInspectorDialog::refresh()
         if(driver == "tms")
         {
             std::string tms_type;
+            osgEarth::DataExtentList dataExtents;
+
             osgEarth::Drivers::TMSOptions tmsopts(tileSourceOptions);
-            osg::ref_ptr<osgEarth::Util::TMS::TileMap> tilemap = osgEarth::Util::TMS::TileMap::create(tileSource, profile);
+            osg::ref_ptr<osgEarth::Util::TMS::TileMap> tilemap = osgEarth::Util::TMS::TileMap::create(baseurl, profile,
+                dataExtents, tmsopts.format().value(), 256, 256);
 
             os << "Base URL: <a href=\"" << baseurl << "\">"  << baseurl << "</a><br/>";
             os << "TMS type: " << tmsopts.tmsType().value() << "<br/>";
@@ -768,7 +771,7 @@ void TileInspectorDialog::refresh()
             for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
             {
                 const osgEarth::TileKey & tilekey = *it;
-                if(!tileSource->hasData(tilekey))
+                if(0 /*!tileSource->hasData(tilekey)*/ )
                     os << "<li>" << tilekey.str() << ": no data</li>" << std::endl;
                 else
                 {
@@ -803,7 +806,7 @@ void TileInspectorDialog::refresh()
             for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
             {
                 const osgEarth::TileKey & tilekey = *it;
-                if(!tileSource->hasData(tilekey))
+                if(0 /*!tileSource->hasData(tilekey)*/ )
                     os << "<li>" << tilekey.str() << ": no data</li>" << std::endl;
                 else
                 {
@@ -837,7 +840,7 @@ void TileInspectorDialog::refresh()
             for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
             {
                 const osgEarth::TileKey & tilekey = *it;
-                if(!tileSource->hasData(tilekey))
+                if(0 /*!tileSource->hasData(tilekey)*/ )
                     os << "<li>" << tilekey.str() << ": no data</li>" << std::endl;
                 else
                 {
@@ -945,8 +948,8 @@ void TileInspectorDialog::updateMetaData()
     if(tileSource)
     {
         osgEarth::Config config;
-        tileSource->readMetaData(config);
-        tileSource->writeMetaData(config);
+        //tileSource->readMetaData(config);
+        //tileSource->writeMetaData(config);
     }
 #endif
 }
@@ -995,16 +998,19 @@ void TileInspectorDialog::proxySaveScript()
 
             if(options.getDriver() == "tms")
             {
+                osgEarth::DataExtentList dataExtents;
+
                 std::string tms_type;
                 osgEarth::Drivers::TMSOptions tmsopts(options);
-                osg::ref_ptr<osgEarth::Util::TMS::TileMap> tilemap = osgEarth::Util::TMS::TileMap::create(tileSource, profile);
+                osg::ref_ptr<osgEarth::Util::TMS::TileMap> tilemap = osgEarth::Util::TMS::TileMap::create(baseurl, profile,
+                    dataExtents, tmsopts.format().value(), 256, 256);
 
                 invertY = tmsopts.tmsType().value() == "google";
 
                 for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
                 {
                     const osgEarth::TileKey & tilekey = *it;
-                    if(tileSource->hasData(tilekey))
+                    if(1 /*tileSource->hasData(tilekey)*/)
                     {
                         std::string image_url = tilemap->getURL( tilekey, invertY );
                         if(!image_url.empty())
@@ -1021,7 +1027,7 @@ void TileInspectorDialog::proxySaveScript()
                 for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
                 {
                     const osgEarth::TileKey & tilekey = *it;
-                    if(tileSource->hasData(tilekey))
+                    if(1 /*tileSource->hasData(tilekey)*/)
                     {
                         std::string image_url = getVPBTerrainTile(tilekey, vpbopts);
                         if(!image_url.empty())
@@ -1038,7 +1044,7 @@ void TileInspectorDialog::proxySaveScript()
                 for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
                 {
                     const osgEarth::TileKey & tilekey = *it;
-                    if(tileSource->hasData(tilekey))
+                    if(1 /*tileSource->hasData(tilekey)*/)
                     {
                         std::string image_url = getArcGISTerrainTile(tilekey, arcgisopts);
                         if(!image_url.empty())
@@ -1142,7 +1148,7 @@ void TileInspectorDialog::loadData()
                     else if (ext.compare("tif") == 0)
                         isImageTileSource = false;
 
-                    if (!tileSource->hasData(data.tileKey))
+                    if (0 /*!tileSource->hasData(data.tileKey)*/)
                         data.status = TileSourceTileKeyData::StatusNoData;
                     else
                     {
@@ -1177,7 +1183,7 @@ void TileInspectorDialog::loadData()
                 }
                 else if (cacheBin)
                 {
-                    osgEarth::ReadResult res = cacheBin->readObject(data.tileKey.str());
+                    osgEarth::ReadResult res = cacheBin->readObject(data.tileKey.str(), nullptr);
                     if(res.succeeded())
                         data.tileData = res.getObject();
                     data.status = data.tileData.valid() ? TileSourceTileKeyData::StatusLoaded : TileSourceTileKeyData::StatusLoadFailure;
@@ -1358,6 +1364,7 @@ void TileInspectorDialog::loadFromFile()
 
     const osgEarth::Profile * profile = tileSource->getProfile();
 
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
 #ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
     TileBlacklistAccess::TileKeySet tiles;
     static_cast<TileBlacklistAccess*>(blacklist.get())->getTileKeySet(tiles);
@@ -1369,7 +1376,7 @@ void TileInspectorDialog::loadFromFile()
         _treeRoot->addChild(std::string(), &tskey);
     }
 #endif
-
+#endif
 }
 
 namespace {
@@ -1466,10 +1473,10 @@ void TileInspectorDialog::takeFromDataExtentsUnion()
         lod = ui->levelOfDetail->itemData(idx).toInt();
 
     const osgEarth::Profile * profile = tileSource->getProfile();
-    const osgEarth::GeoExtent & ext = tileSource->getDataExtentsUnion();
+    //const osgEarth::GeoExtent & ext = tileSource->getDataExtentsUnion();
 
     TileKeyList tilekeylist;
-    addTilesForGeoExtent(tilekeylist, ext, numNeighbors, lod, profile);
+    addTilesForGeoExtent(tilekeylist, osgEarth::GeoExtent(), numNeighbors, lod, profile);
 
     addTileKeys(tileSource, tilekeylist);
 }

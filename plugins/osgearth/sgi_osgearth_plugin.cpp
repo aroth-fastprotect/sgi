@@ -44,7 +44,6 @@
 
 #include <osgEarthFeatures/FeatureModelSource>
 #include <osgEarthFeatures/FeatureTileSource>
-#include <osgEarthFeatures/GeometryCompiler>
 
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 #include <osgEarthAnnotation/Decoration>
@@ -252,8 +251,10 @@ SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osgEarth::ConfigOptions)
     osgEarth::TerrainLayerOptions, osgEarth::ModelLayerOptions, osgEarth::MapOptions,
     osgEarth::MapNodeOptions, osgEarth::ProfileOptions, osgEarth::DriverConfigOptions,
-    osgEarth::LevelDBOptions,
-    osgEarth::Features::GeometryCompilerOptions
+    osgEarth::LevelDBOptions
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
+    , osgEarth::Features::GeometryCompilerOptions
+#endif
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::TerrainLayerOptions)

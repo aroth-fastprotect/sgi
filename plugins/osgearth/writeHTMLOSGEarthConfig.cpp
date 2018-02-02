@@ -82,7 +82,9 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LevelDBOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSourceOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSourceOptions)
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::GeometryCompilerOptions)
+#endif
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::TMSOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::WMSOptions)
@@ -839,6 +841,7 @@ bool writePrettyHTMLImpl<osgEarth::Features::FeatureModelSourceOptions>::process
     return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 bool writePrettyHTMLImpl<osgEarth::Features::GeometryCompilerOptions>::process(std::basic_ostream<char>& os)
 {
     osgEarth::Features::GeometryCompilerOptions * object = getObject<osgEarth::Features::GeometryCompilerOptions,SGIItemEarthConfigOptions>();
@@ -875,6 +878,7 @@ bool writePrettyHTMLImpl<osgEarth::Features::GeometryCompilerOptions>::process(s
     }
     return ret;
 }
+#endif // OSGEARTH_VERSION_LESS_THAN(2,9,0)
 
 bool writePrettyHTMLImpl<osgEarth::Drivers::TMSOptions>::process(std::basic_ostream<char>& os)
 {

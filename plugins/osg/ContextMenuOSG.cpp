@@ -1560,7 +1560,7 @@ bool contextMenuPopulateImpl<osg::Drawable>::populate(IContextMenuItem * menuIte
 			{
 				manipulateMenu->addBoolAction(MenuActionDrawableUseDisplayList, "Use display list", _item, object->getUseDisplayList());
 				manipulateMenu->addBoolAction(MenuActionDrawableSupportsDisplayList, "Supports display list", _item, object->getSupportsDisplayList());
-				manipulateMenu->addSimpleAction(MenuActionDrawableDirtyDisplayList, "Dirty display list", _item);
+				manipulateMenu->addSimpleAction(MenuActionDrawableDirtyGLObjects, "Dirty display list", _item);
 				manipulateMenu->addBoolAction(MenuActionDrawableUseVBO, "Use VBO", _item, object->getUseVertexBufferObjects());
                 manipulateMenu->addBoolAction(MenuActionDrawableRenderInfoDrawCallback, "Render info draw callback", _item, RenderInfo::hasDrawCallback(object));
 			}

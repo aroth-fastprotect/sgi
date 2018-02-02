@@ -659,7 +659,7 @@ void BoundingBoxGeode::set(const osg::BoundingBox & bbox)
     if(s.valid())
     {
         m_mainBox->setShape(new osg::Box(bbox.center(), s.x(), s.y(), s.z()));
-        m_mainBox->dirtyDisplayList();
+        m_mainBox->dirtyGLObjects();
         m_mainBox->dirtyBound();
 
         float s_max = std::max(s.x(), std::max(s.y(), s.z()));
@@ -667,7 +667,7 @@ void BoundingBoxGeode::set(const osg::BoundingBox & bbox)
         for(unsigned n = 0; n < NUM_CORNERS; n++)
         {
             m_cornerBox[n]->setShape(new osg::Box(bbox.corner(n), s_10.x(), s_10.y(), s_10.z()));
-            m_cornerBox[n]->dirtyDisplayList();
+            m_cornerBox[n]->dirtyGLObjects();
             m_cornerBox[n]->dirtyBound();
 
             m_cornerText[n]->setPosition(bbox.corner(n));
@@ -885,7 +885,7 @@ void PointGeode::applyColorScheme()
 void PointGeode::set(const osg::Vec3d & pt, const osg::Vec3d & size)
 {
     m_drawable->setShape(new osg::Box(pt, size.x(), size.y(), size.z()));
-    m_drawable->dirtyDisplayList();
+    m_drawable->dirtyGLObjects();
     m_drawable->dirtyBound();
 }
 
@@ -922,7 +922,7 @@ void PlaneGeode::set(const osg::Plane & plane)
     q.makeRotate(osg::Vec3d(0,0,1), norm);
     box->setRotation(q);
     m_plane->setShape(box);
-    m_plane->dirtyDisplayList();
+    m_plane->dirtyGLObjects();
     m_plane->dirtyBound();
 }
 

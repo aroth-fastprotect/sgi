@@ -13,11 +13,14 @@
 #endif
 #include <osgEarthUtil/AutoClipPlaneHandler>
 #include <osgEarthUtil/Controls>
+#include <osgEarth/MaskLayer>
 #include <osgEarth/TileSource>
 #include <osgEarth/Registry>
 #include <osgEarth/LevelDBFactory>
 
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
 #include <osgEarthQt/TerrainProfileWidget>
+#endif
 
 //#include <osgEarth/TimeControl>
 #include "SGIItemOsgEarth"
