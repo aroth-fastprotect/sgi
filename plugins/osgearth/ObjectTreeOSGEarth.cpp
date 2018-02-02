@@ -19,6 +19,10 @@
 #include <osgEarth/MaskLayer>
 #include <osgEarth/Registry>
 #include <osgEarth/LevelDBFactory>
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+#include <osgEarth/ShaderFactory>
+#include <osgEarth/ResourceReleaser>
+#endif
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 #include <osgEarthUtil/Sky>
@@ -170,6 +174,9 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
             if(numMask)
                 treeItem->addChild(helpers::str_plus_count("Mask layers", numMask), cloneItem<SGIItemOsg>(SGIItemTypeMaskLayers));
 #else
+            unsigned numLayers = object->getNumLayers();
+            if(numLayers)
+                treeItem->addChild(helpers::str_plus_count("Layers", numLayers), cloneItem<SGIItemOsg>(SGIItemTypeLayers));
 #endif
         }
         break;
@@ -190,6 +197,21 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
                 if(callback.hasObject())
                     treeItem->addChild(std::string(), &callback);
             }
+        }
+        break;
+    case SGIItemTypeLayers:
+        {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            osgEarth::LayerVector layers;
+            osgEarth::Revision rev = object->getLayers(layers);
+            for(osgEarth::LayerVector::const_iterator it = layers.begin(); it != layers.end(); it++)
+            {
+                const osg::ref_ptr<osgEarth::Layer> & layer = *it;
+                SGIHostItemOsg childItem(layer.get(), mapNode);
+                treeItem->addChild(std::string(), &childItem);
+            }
+#endif
+            ret = true;
         }
         break;
     case SGIItemTypeElevationLayers:
@@ -298,12 +320,22 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
             if(terrainEngine.hasObject())
                 treeItem->addChild("TerrainEngine", &terrainEngine);
 #endif
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            SGIHostItemOsg layerNodeGroup(object->getLayerNodeGroup());
+            if(layerNodeGroup.hasObject())
+                treeItem->addChild("LayerNodeGroup", &layerNodeGroup);
+#endif
             SGIHostItemOsg modelLayerGroup(object->getModelLayerGroup());
             if(modelLayerGroup.hasObject())
                 treeItem->addChild("ModelLayerGroup", &modelLayerGroup);
             SGIHostItemOsg overlayDecorator(object->getOverlayDecorator());
             if(overlayDecorator.hasObject())
                 treeItem->addChild("OverlayDecorator", &overlayDecorator);
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            SGIHostItemOsg resourceReleaser(object->getResourceReleaser());
+            if(resourceReleaser.hasObject())
+                treeItem->addChild("ResourceReleaser", &resourceReleaser);
+#endif
         }
         break;
 	case SGIItemTypeExtensions:
@@ -379,43 +411,44 @@ bool objectTreeBuildImpl<osgEarth::Registry>::build(IObjectTreeItem * treeItem)
 
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             SGIHostItemOsg cache(object->getCache());
+#else
+            SGIHostItemOsg cache(object->getDefaultCache());
+#endif
             if(cache.hasObject())
                 treeItem->addChild("Cache", &cache);
-#endif
 
 			treeItem->addChild("Blacklist", cloneItem<SGIItemOsg>(SGIItemTypeBlacklist));
-
-            SGIHostItemOsg globalGeodeticProfile(object->getGlobalGeodeticProfile());
-            if(globalGeodeticProfile.hasObject())
-                treeItem->addChild("Global geodetic profile", &globalGeodeticProfile);
-
-            SGIHostItemOsg globalMercatorProfile(object->getGlobalMercatorProfile());
-            if(globalMercatorProfile.hasObject())
-                treeItem->addChild("Global mercator profile", &globalMercatorProfile);
-
-            SGIHostItemOsg sphericalMercatorProfile(object->getSphericalMercatorProfile());
-            if(sphericalMercatorProfile.hasObject())
-                treeItem->addChild("Spherical mercator profile", &sphericalMercatorProfile);
-
-            SGIHostItemOsg cubeProfile(object->getCubeProfile());
-            if(cubeProfile.hasObject())
-                treeItem->addChild("Cube profile", &cubeProfile);
+            treeItem->addChild("Profiles", cloneItem<SGIItemOsg>(SGIItemTypeProfiles));
 
             SGIHostItemOsg defaultFont(object->getDefaultFont());
             if(defaultFont.hasObject())
                 treeItem->addChild("Default Font", &defaultFont);
 
-//             SGIHostItemOsg shaderFactory(object->getShaderFactory());
-//             if(shaderFactory.hasObject())
-//                 treeItem->addChild("ShaderFactory", &shaderFactory);
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            SGIHostItemOsg shaderFactory(object->getShaderFactory());
+            if(shaderFactory.hasObject())
+                treeItem->addChild("ShaderFactory", &shaderFactory);
+
+            SGIHostItemOsg objectIndex(object->getObjectIndex());
+            if(objectIndex.hasObject())
+                treeItem->addChild("ObjectIndex", &objectIndex);
+#endif
 
             SGIHostItemOsg stateSetCache(object->getStateSetCache());
             if(stateSetCache.hasObject())
                 treeItem->addChild("StateSetCache", &stateSetCache);
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            treeItem->addChild("ProgramSharedRepo", cloneItem<SGIItemOsg>(SGIItemTypeProgramSharedRepo));
+#endif
 
             SGIHostItemOsg taskServiceManager(object->getTaskServiceManager());
             if(taskServiceManager.hasObject())
                 treeItem->addChild("TaskServiceManager", &taskServiceManager);
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            SGIHostItemOsg asyncOperationQueue(object->getAsyncOperationQueue());
+            if(asyncOperationQueue.hasObject())
+                treeItem->addChild("AsyncOperationQueue", &asyncOperationQueue);
+#endif
 
             SGIHostItemOsg defaultOptions(object->getDefaultOptions());
             if(defaultOptions.hasObject())
@@ -442,6 +475,35 @@ bool objectTreeBuildImpl<osgEarth::Registry>::build(IObjectTreeItem * treeItem)
             if(uriReadFileCallback.hasObject())
                 treeItem->addChild("URIReadCallback", &uriReadFileCallback);
 
+            ret = true;
+        }
+        break;
+    case SGIItemTypeProfiles:
+        {
+            SGIHostItemOsg globalGeodeticProfile(object->getGlobalGeodeticProfile());
+            if(globalGeodeticProfile.hasObject())
+                treeItem->addChild("Global geodetic profile", &globalGeodeticProfile);
+
+            SGIHostItemOsg globalMercatorProfile(object->getGlobalMercatorProfile());
+            if(globalMercatorProfile.hasObject())
+                treeItem->addChild("Global mercator profile", &globalMercatorProfile);
+
+            SGIHostItemOsg sphericalMercatorProfile(object->getSphericalMercatorProfile());
+            if(sphericalMercatorProfile.hasObject())
+                treeItem->addChild("Spherical mercator profile", &sphericalMercatorProfile);
+
+            SGIHostItemOsg cubeProfile(object->getCubeProfile());
+            if(cubeProfile.hasObject())
+                treeItem->addChild("Cube profile", &cubeProfile);
+
+            ret = true;
+        }
+        break;
+    case SGIItemTypeProgramSharedRepo:
+        {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            const osgEarth::ProgramSharedRepo * repo = object->getProgramSharedRepo();
+#endif
             ret = true;
         }
         break;

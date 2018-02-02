@@ -21,6 +21,7 @@
 #include "MenuActionOSGEarth.h"
 #include "SettingsDialogOSGEarth.h"
 
+#include <osgEarth/Version>
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
 #include <osgEarth/MaskSource>
@@ -31,8 +32,10 @@
 #include <osgEarth/OverlayDecorator>
 #include <osgEarth/VirtualProgram>
 #include <osgEarth/LevelDBFactory>
-
-#include <osgEarth/Version>
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+#include <osgEarth/ShaderFactory>
+#include <osgEarth/ResourceReleaser>
+#endif
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 #include <osgEarthUtil/Sky>
@@ -82,9 +85,10 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osg::Object, 
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::Map, 
+    osgEarth::Layer,
 #endif
     osgEarth::Registry, osgEarth::Capabilities, osgEarth::CacheBin,
-    osgEarth::Layer, osgEarth::SpatialReference, osgEarth::Profile, osgEarth::Terrain,
+    osgEarth::SpatialReference, osgEarth::Profile, osgEarth::Terrain,
     osgEarth::TileBlacklist, osgEarth::Util::Controls::ControlEventHandler,
     osgEarth::StateSetCache,
     osgEarth::LevelDBDatabase,
@@ -92,6 +96,9 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osgEarth::Features::FeatureCursor, osgEarth::Features::FeatureProfile,
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::Annotation::Decoration,
+#endif
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+    osgEarth::ShaderFactory,
 #endif
     ElevationQueryReferenced,
     TileKeyReferenced,
@@ -102,6 +109,7 @@ SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osg::Object)
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
     osgEarth::Map, 
+    osgEarth::Layer,
 #endif
     osgEarth::Cache, osgEarth::TileSource,
     osgEarth::ModelSource,
@@ -118,7 +126,16 @@ SGI_OBJECT_INFO_BEGIN(osg::StateAttribute)
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osg::Node)
     osg::Group, osgEarth::Util::Controls::ControlNode
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+    , osg::Drawable
+#endif
 SGI_OBJECT_INFO_END()
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+SGI_OBJECT_INFO_BEGIN(osg::Drawable)
+    osgEarth::ResourceReleaser
+SGI_OBJECT_INFO_END()
+#endif
+
 SGI_OBJECT_INFO_BEGIN(osg::Group)
     osg::CoordinateSystemNode,
     osgEarth::MapNode,
@@ -233,8 +250,19 @@ SGI_OBJECT_INFO_END()
 #endif
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::Layer)
-    osgEarth::TerrainLayer, osgEarth::ModelLayer, osgEarth::MaskLayer
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
+    osgEarth::TerrainLayer, osgEarth::ModelLayer,
+#else
+    osgEarth::VisibleLayer,
+#endif
+    osgEarth::MaskLayer
 SGI_OBJECT_INFO_END()
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+SGI_OBJECT_INFO_BEGIN(osgEarth::VisibleLayer)
+    osgEarth::TerrainLayer, osgEarth::ModelLayer
+SGI_OBJECT_INFO_END()
+#endif
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::TerrainLayer)
     osgEarth::ImageLayer, osgEarth::ElevationLayer
@@ -414,6 +442,7 @@ public:
     SGIPlugin_osgearth_Implementation(SGIPluginHostInterface * hostInterface=NULL)
         : osgearth_plugin::SGIPluginImpl(hostInterface)
     {
+        SGIITEMTYPE_NAME(SGIItemTypeLayers);
         SGIITEMTYPE_NAME(SGIItemTypeImageLayers);
         SGIITEMTYPE_NAME(SGIItemTypeElevationLayers);
         SGIITEMTYPE_NAME(SGIItemTypeModelLayers);
@@ -434,6 +463,16 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeTileCacheMap);
         SGIITEMTYPE_NAME(SGIItemTypeShaderComposerShaderMap);
         SGIITEMTYPE_NAME(SGIItemTypeShaderComposerProgramFunctions);
+        SGIITEMTYPE_NAME(SGIItemTypeBlacklist);
+        SGIITEMTYPE_NAME(SGIItemTypeExtensions);
+        SGIITEMTYPE_NAME(SGIItemTypeCullData);
+        SGIITEMTYPE_NAME(SGIItemTypeDatabases);
+        SGIITEMTYPE_NAME(SGIItemTypeChangeset);
+        SGIITEMTYPE_NAME(SGIItemTypeInfo);
+        SGIITEMTYPE_NAME(SGIItemTypePreMergeOps);
+        SGIITEMTYPE_NAME(SGIItemTypePostMergeOps);
+        SGIITEMTYPE_NAME(SGIItemTypeProfiles);
+        SGIITEMTYPE_NAME(SGIItemTypeProgramSharedRepo);
     }
     SGIPlugin_osgearth_Implementation(const SGIPlugin_osgearth_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
         : osgearth_plugin::SGIPluginImpl(rhs, copyop)

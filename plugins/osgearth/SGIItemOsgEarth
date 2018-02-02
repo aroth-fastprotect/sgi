@@ -15,6 +15,7 @@ namespace support {
 enum SGIItemType_osgearth
 {
     SGIItemType_plugin_osgearth = SGIItemTypePluginBaseOsgEarth,
+    SGIItemTypeLayers,
     SGIItemTypeImageLayers,
     SGIItemTypeElevationLayers,
     SGIItemTypeModelLayers,
@@ -44,6 +45,8 @@ enum SGIItemType_osgearth
     SGIItemTypeInfo,
     SGIItemTypePreMergeOps,
     SGIItemTypePostMergeOps,
+    SGIItemTypeProfiles,
+    SGIItemTypeProgramSharedRepo,
 };
 
 class SGIItemEarthConfig : public SGIItemBase

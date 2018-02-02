@@ -149,7 +149,29 @@ bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& 
             // add remaining Registry properties
             os << "<tr><td>overrideCachePolicy</td><td>" << object->overrideCachePolicy() << "</td></tr>" << std::endl;
             os << "<tr><td>defaultCachePolicy</td><td>" << object->defaultCachePolicy() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            os << "<tr><td>defaultCacheDriverName</td><td>" << object->getDefaultCacheDriverName() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>defaultTerrainEngineDriverName</td><td>" << object->getDefaultTerrainEngineDriverName() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            os << "<tr><td>overrideTerrainEngineDriverName</td><td>" << object->overrideTerrainEngineDriverName() << "</td></tr>" << std::endl;
+            os << "<tr><td>unRefImageDataAfterApply</td><td>" << object->unRefImageDataAfterApply() << "</td></tr>" << std::endl;
+            {
+                os << "<tr><td>offLimitsTextureImageUnits</td><td>";
+                const auto & s = object->getOffLimitsTextureImageUnits();
+                if(s.empty())
+                    os << "<i>empty</i>";
+                else
+                {
+                    os << "<ul>";
+                    for(const int & unit : s)
+                        os << "<li>" << unit << "</li>";
+                    os << "</ul>";
+                }
+                os << "</td></tr>" << std::endl;
+            }
+            os << "<tr><td>devicePixelRatio</td><td>" << object->getDevicePixelRatio() << "</td></tr>" << std::endl;
+#endif
 
             os << "<tr><td>HTTP user agent</td><td>" << osgEarth::HTTPClient::getUserAgent() << "</td></tr>" << std::endl;
             os << "<tr><td>HTTP timeout</td><td>" << osgEarth::HTTPClient::getTimeout() << "</td></tr>" << std::endl;
