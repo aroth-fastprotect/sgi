@@ -57,6 +57,7 @@ namespace osgearth_plugin {
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNode)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Map)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Extension)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Registry)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::StateSetCache)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::SkyNode)
@@ -396,9 +397,31 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
     return ret;
 }
 
+bool objectTreeBuildImpl<osgEarth::Extension>::build(IObjectTreeItem * treeItem)
+{
+    osgEarth::Extension * object = getObject<osgEarth::Extension, SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            SGIHostItemOsgEarthConfigOptions configOptions(object->getConfigOptions());
+            treeItem->addChild("Config Options", &configOptions);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+
 bool objectTreeBuildImpl<osgEarth::Registry>::build(IObjectTreeItem * treeItem)
 {
-    osgEarth::Registry * object = static_cast<osgEarth::Registry*>(item<SGIItemOsg>()->object());
+    osgEarth::Registry * object = getObject<osgEarth::Registry, SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {

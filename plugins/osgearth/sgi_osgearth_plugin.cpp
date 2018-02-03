@@ -34,6 +34,7 @@
 #include <osgEarth/LevelDBFactory>
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 #include <osgEarth/ShaderFactory>
+#include <osgEarth/ElevationPool>
 #include <osgEarth/ResourceReleaser>
 #endif
 
@@ -99,6 +100,8 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
 #endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
     osgEarth::ShaderFactory,
+    osgEarth::ElevationPool,
+    osgEarth::ElevationEnvelope,
 #endif
     ElevationQueryReferenced,
     TileKeyReferenced,

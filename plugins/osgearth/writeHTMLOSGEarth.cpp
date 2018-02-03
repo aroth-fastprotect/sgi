@@ -47,6 +47,7 @@
 #include <osgEarthAnnotation/TrackNode>
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 #include <osgEarthAnnotation/GeoPositionNode>
+#include <osgEarth/TimeControl>
 #endif
 
 #include "SGIItemOsgEarth"
@@ -64,6 +65,9 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::StateSetCache)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Cache)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheBin)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Layer)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::VisibleLayer)
+#endif // OSGEARTH_VERSION_LESS_THAN(2,9,0)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TerrainLayer)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ImageLayer)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationLayer)
@@ -71,6 +75,11 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelLayer)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskLayer)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Map)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNode)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Extension)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationPool)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationEnvelope)
+#endif
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Terrain)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TerrainEngineNode)
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
@@ -130,6 +139,24 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Image)
 using namespace osg_helpers;
 
 extern void writePrettyHTMLImplForDriverOptions(SGIPluginHostInterface * hostInterface, std::basic_ostream<char>& os, const osgEarth::DriverConfigOptions & opts);
+
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Status & s)
+{
+    return os << s.toString();
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Layer::RenderType & t)
+{
+    switch(t)
+    {
+    case osgEarth::Layer::RENDERTYPE_NONE: os << "none"; break;
+    case osgEarth::Layer::RENDERTYPE_TILE: os << "tile"; break;
+    case osgEarth::Layer::RENDERTYPE_PATCH: os << "patch"; break;
+    default: os << (int)t; break;
+    }
+    return os;
+}
 
 bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& os)
 {
@@ -608,7 +635,7 @@ bool writePrettyHTMLImpl<osgEarth::Profile>::process(std::basic_ostream<char>& o
 
 bool writePrettyHTMLImpl<osgEarth::Layer>::process(std::basic_ostream<char>& os)
 {
-    osgEarth::Layer * object = static_cast<osgEarth::Layer*>(item<SGIItemOsg>()->object());
+    osgEarth::Layer * object = getObject<osgEarth::Layer,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -622,6 +649,17 @@ bool writePrettyHTMLImpl<osgEarth::Layer>::process(std::basic_ostream<char>& os)
 
             // add terrain layer properties
             os << "<tr><td>uid</td><td>" << object->getUID() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            os << "<tr><td>enabled</td><td>" << (object->getEnabled()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>typeName</td><td>" << object->getTypeName() << "</td></tr>" << std::endl;
+            os << "<tr><td>status</td><td>" << object->getStatus() << "</td></tr>" << std::endl;
+            os << "<tr><td>readOptions</td><td>" << getObjectNameAndType(object->getReadOptions()) << "</td></tr>" << std::endl;
+            os << "<tr><td>sequenceControl</td><td>" << object->getSequenceControl() << "</td></tr>" << std::endl;
+            os << "<tr><td>extent</td><td>" << object->getExtent() << "</td></tr>" << std::endl;
+            os << "<tr><td>cacheId</td><td>" << object->getCacheID() << "</td></tr>" << std::endl;
+            os << "<tr><td>stateSet</td><td>" << getObjectNameAndType(object->getStateSet()) << "</td></tr>" << std::endl;
+            os << "<tr><td>renderType</td><td>" << object->getRenderType() << "</td></tr>" << std::endl;
+#endif
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -634,33 +672,42 @@ bool writePrettyHTMLImpl<osgEarth::Layer>::process(std::basic_ostream<char>& os)
     }
     return ret;
 }
-/*
-void writePrettyHTML(std::basic_ostream<char>& os, const osgEarth::TerrainLayer::CacheBinMetadata & object, bool table)
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+bool writePrettyHTMLImpl<osgEarth::VisibleLayer>::process(std::basic_ostream<char>& os)
 {
-    if(_table)
-        os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+    osgEarth::VisibleLayer * object = getObject<osgEarth::VisibleLayer,SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
-    os << "<tr><td>empty</td><td>" << (object._empty?"true":"false") << "</td></tr>" << std::endl;
-    os << "<tr><td>cacheBinId</td><td>" << object._cacheBinId << "</td></tr>" << std::endl;
-    os << "<tr><td>sourceName</td><td>" << object._sourceName << "</td></tr>" << std::endl;
-    os << "<tr><td>sourceDriver</td><td>" << object._sourceDriver << "</td></tr>" << std::endl;
-    os << "<tr><td>sourceProfile</td><td>";
-    if(object._sourceProfile.isSet())
-        writePrettyHTML(os, object._sourceProfile.value(), true);
-    os << "</td></tr>" << std::endl;
-    os << "<tr><td>cacheProfile</td><td>";
-    if(object._cacheProfile.isSet())
-        writePrettyHTML(os, object._cacheProfile.value(), true);
-    os << "</td></tr>" << std::endl;
+            // add referenced properties first
+            callNextHandler(os);
 
-    if(_table)
-        os << "</table>" << std::endl;
+            os << "<tr><td>visible</td><td>" << (object->getVisible()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>opacity</td><td>" << object->getOpacity() << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
 }
-*/
+#endif // OSGEARTH_VERSION_LESS_THAN(2,9,0)
+
 
 bool writePrettyHTMLImpl<osgEarth::TerrainLayer>::process(std::basic_ostream<char>& os)
 {
-    osgEarth::TerrainLayer * object = static_cast<osgEarth::TerrainLayer*>(item<SGIItemOsg>()->object());
+    osgEarth::TerrainLayer * object = getObject<osgEarth::TerrainLayer,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -677,7 +724,9 @@ bool writePrettyHTMLImpl<osgEarth::TerrainLayer>::process(std::basic_ostream<cha
             const osgEarth::Profile * profile = access->profileNoInit();
             const osgEarth::Profile * targetProfileHint = access->targetProfileHintNoInit();
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>enabled</td><td>" << (object->getEnabled()?"true":"false") << "</td></tr>" << std::endl;
+#endif
 #if OSGEARTH_VERSION_LESS_THAN(2,8,0)
             os << "<tr><td>tileSourceInitAttempted</td><td>" << (access->tileSourceInitAttempted()?"true":"false") << "</td></tr>" << std::endl;
 #endif
@@ -686,7 +735,9 @@ bool writePrettyHTMLImpl<osgEarth::TerrainLayer>::process(std::basic_ostream<cha
 #endif
             os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
             os << "<tr><td>tileSize</td><td>" << access->tileSize() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>visible</td><td>" << (object->getVisible()?"true":"false") << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>profile</td><td>";
             if(profile)
                 os << profile->toString();
@@ -702,6 +753,12 @@ bool writePrettyHTMLImpl<osgEarth::TerrainLayer>::process(std::basic_ostream<cha
             os << "<tr><td>dynamic</td><td>" << (object->isDynamic()?"true":"false") << "</td></tr>" << std::endl;
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>cacheOnly</td><td>" <<  (object->isCacheOnly()?"true":"false") << "</td></tr>" << std::endl;
+#else
+            os << "<tr><td>dataExtents</td><td>" << object->getDataExtents().size() << " entries" << "</td></tr>" << std::endl;
+            os << "<tr><td>dataExtentsUnion</td><td>" << object->getDataExtentsUnion() << "</td></tr>" << std::endl;
+            os << "<tr><td>nodata value</td><td>" << object->getNoDataValue() << "</td></tr>" << std::endl;
+            os << "<tr><td>min valid value</td><td>" << object->getMinValidValue() << "</td></tr>" << std::endl;
+            os << "<tr><td>max valid value</td><td>" << object->getMaxValidValue() << "</td></tr>" << std::endl;
 #endif
 
             if(_table)
@@ -757,6 +814,9 @@ bool writePrettyHTMLImpl<osgEarth::ImageLayer>::process(std::basic_ostream<char>
             os << "<tr><td>isCoverage</td><td>" <<  (object->isCoverage()?"true":"false") << "</td></tr>" << std::endl;
 #endif
             os << "<tr><td>shareImageUnit</td><td>" <<  object->shareImageUnit() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,8,0)
+            os << "<tr><td>shareTexUniformName</td><td>" <<  object->shareTexUniformName() << "</td></tr>" << std::endl;
+#endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             os << "<tr><td>shareTexMatUniformName</td><td>" <<  object->shareTexMatUniformName() << "</td></tr>" << std::endl;
 #endif
@@ -896,7 +956,12 @@ bool writePrettyHTMLImpl<osgEarth::Map>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add remaining map properties
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
+#else
+            os << "<tr><td>map name</td><td>" << object->getMapName() << "</td></tr>" << std::endl;
+#endif
+            os << "<tr><td>UID</td><td>" << object->getUID() << "</td></tr>" << std::endl;
             os << "<tr><td>profile</td><td>";
             if(object->getProfile())
                 os << object->getProfile()->toString();
@@ -910,8 +975,13 @@ bool writePrettyHTMLImpl<osgEarth::Map>::process(std::basic_ostream<char>& os)
                 os << "(null)";
             os << "</td></tr>" << std::endl;
             os << "<tr><td>geocentric</td><td>" << (object->isGeocentric()?"true":"false") << "</td></tr>" << std::endl;
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            os << "<tr><td>SRS</td><td>" << getObjectNameAndType(object->getSRS()) << "</td></tr>" << std::endl;
+            os << "<tr><td>World SRS</td><td>" << getObjectNameAndType(object->getWorldSRS())  << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>cache</td><td>" << getObjectNameAndType(object->getCache(), true) << "</td></tr>" << std::endl;
-            
+
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             osgEarth::MapFrame mapframe(object, osgEarth::Map::ENTIRE_MODEL);
 
@@ -957,11 +1027,42 @@ bool writePrettyHTMLImpl<osgEarth::Map>::process(std::basic_ostream<char>& os)
             }
             os << "<tr><td>database options</td><td>" << getObjectNameAndType(object->getDBOptions()) << "</td></tr>" << std::endl;
 #else
+            {
+                osgEarth::LayerVector layers;
+                osgEarth::Revision rev = object->getLayers(layers);
+                os << "<tr><td>revision</td><td>" << rev << "</td></tr>" << std::endl;
+                os << "<tr><td>layers</td><td><ol>";
+                for(osgEarth::LayerVector::const_iterator it = layers.begin(); it != layers.end(); it++)
+                {
+                    const osgEarth::Layer * layer = *it;
+                    os << "<li>" << layer->getName() << "&lt;&gt;" << getObjectNameAndType(layer) << "</li>" << std::endl;
+                }
+                os << "</ol></td></tr>" << std::endl;
+            }
+
+            os << "<tr><td>global options</td><td>" << getObjectNameAndType(object->getGlobalOptions()) << "</td></tr>" << std::endl;
             os << "<tr><td>read options</td><td>" << getObjectNameAndType(object->getReadOptions()) << "</td></tr>" << std::endl;
+            os << "<tr><td>elevation pool</td><td>" << getObjectNameAndType(object->getElevationPool()) << "</td></tr>" << std::endl;
 #endif
 
             if(_table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeLayers:
+        {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            osgEarth::LayerVector layers;
+            osgEarth::Revision rev = object->getLayers(layers);
+            os << "Revision " << rev << "<br/><ol>";
+            for(osgEarth::LayerVector::const_iterator it = layers.begin(); it != layers.end(); it++)
+            {
+                const osgEarth::Layer * layer = *it;
+                os << "<li>" << layer->getName() << "&lt;&gt;" << getObjectNameAndType(layer) << "</li>" << std::endl;
+            }
+            os << "</ol>";
+#endif
             ret = true;
         }
         break;
@@ -1180,9 +1281,99 @@ bool writePrettyHTMLImpl<osgEarth::MapNode>::process(std::basic_ostream<char>& o
     return ret;
 }
 
+bool writePrettyHTMLImpl<osgEarth::Extension>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Extension * object = getObject<osgEarth::Extension,SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add group properties first
+            callNextHandler(os);
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeConfig:
+        {
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+bool writePrettyHTMLImpl<osgEarth::ElevationPool>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::ElevationPool * object = getObject<osgEarth::ElevationPool,SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>tileSize</td><td>" << object->getTileSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>maxEntries</td><td>" << object->getMaxEntries() << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::ElevationEnvelope>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::ElevationEnvelope * object = getObject<osgEarth::ElevationEnvelope,SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>SRS</td><td>" << getObjectNameAndType(object->getSRS()) << "</td></tr>" << std::endl;
+            os << "<tr><td>LOD</td><td>" << object->getLOD() << "</td></tr>" << std::endl;
+
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+#endif
+
 bool writePrettyHTMLImpl<osgEarth::Terrain>::process(std::basic_ostream<char>& os)
 {
-	osgEarth::Terrain * object = static_cast<osgEarth::Terrain*>(item<SGIItemOsg>()->object());
+	osgEarth::Terrain * object = getObject<osgEarth::Terrain,SGIItemOsg>();
 	bool ret = false;
 	switch (itemType())
 	{
@@ -1213,6 +1404,7 @@ bool writePrettyHTMLImpl<osgEarth::Terrain>::process(std::basic_ostream<char>& o
 	}
 	return ret;
 }
+
 bool writePrettyHTMLImpl<osgEarth::TerrainEngineNode>::process(std::basic_ostream<char>& os)
 {
 	osgEarth::TerrainEngineNode * object = static_cast<osgEarth::TerrainEngineNode*>(item<SGIItemOsg>()->object());
