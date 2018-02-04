@@ -229,7 +229,9 @@ bool writePrettyHTMLImpl<osgText::Text>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>enableDepthWrites</td><td>" << (object->getEnableDepthWrites()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>backdropType</td><td>" << object->getBackdropType() << "</td></tr>" << std::endl;
+#if OSG_VERSION_LESS_THAN(3,5,8)
             os << "<tr><td>backdropImpl</td><td>" << object->getBackdropImplementation() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>backdropHorzOffset</td><td>" << object->getBackdropHorizontalOffset() << "</td></tr>" << std::endl;
             os << "<tr><td>backdropVertOffset</td><td>" << object->getBackdropVerticalOffset() << "</td></tr>" << std::endl;
             os << "<tr><td>backdropColor</td><td>" << vec4fToHtmlColor(object->getBackdropColor()) << "</td></tr>" << std::endl;
