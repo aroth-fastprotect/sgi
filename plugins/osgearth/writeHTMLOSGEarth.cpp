@@ -23,6 +23,20 @@
 #include <osgEarth/ElevationLayer>
 #include <osgEarth/ModelLayer>
 #include <osgEarth/MaskLayer>
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+#include <osgEarth/LandCoverLayer>
+#include <osgEarth/PatchLayer>
+#include <osgEarth/VideoLayer>
+#include <osgEarthUtil/FlatteningLayer>
+#include <osgEarthUtil/FractalElevationLayer>
+#include <osgEarthUtil/GeodeticGraticule>
+#include <osgEarthUtil/GARSGraticule>
+#include <osgEarthUtil/MGRSGraticule>
+#include <osgEarthUtil/UTMGraticule>
+#include <osgEarthUtil/MultiElevationLayer>
+#include <osgEarthUtil/SimpleOceanLayer>
+#endif
+
 #include <osgEarth/ElevationQuery>
 #include <osgEarth/ImageUtils>
 #include <osgEarth/LevelDBFactory>
@@ -73,6 +87,21 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ImageLayer)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationLayer)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelLayer)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskLayer)
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LandCoverLayer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::PatchLayer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::VideoLayer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::FlatteningLayer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::FractalElevationLayer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::GeodeticGraticule)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::GARSGraticule)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::MGRSGraticule)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::UTMGraticule)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::MultiElevationLayer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::SimpleOceanLayer)
+#endif
+
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Map)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Extension)
@@ -911,7 +940,7 @@ bool writePrettyHTMLImpl<osgEarth::ModelLayer>::process(std::basic_ostream<char>
 
 bool writePrettyHTMLImpl<osgEarth::MaskLayer>::process(std::basic_ostream<char>& os)
 {
-    osgEarth::MaskLayer * object = static_cast<osgEarth::MaskLayer*>(item<SGIItemOsg>()->object());
+    osgEarth::MaskLayer * object = getObject<osgEarth::MaskLayer,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -940,6 +969,301 @@ bool writePrettyHTMLImpl<osgEarth::MaskLayer>::process(std::basic_ostream<char>&
     }
     return ret;
 }
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+
+bool writePrettyHTMLImpl<osgEarth::PatchLayer>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::LandCoverLayer * object = getObject<osgEarth::LandCoverLayer, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add terrain layer properties first
+            callNextHandler(os);
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::LandCoverLayer>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::LandCoverLayer * object = getObject<osgEarth::LandCoverLayer, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add terrain layer properties first
+            callNextHandler(os);
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::VideoLayer>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::VideoLayer * object = getObject<osgEarth::VideoLayer, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add terrain layer properties first
+            callNextHandler(os);
+
+            os << "<tr><td>texture</td><td>" << getObjectNameAndType(object->getTexture()) << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Util::FlatteningLayer>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Util::FlatteningLayer * object = getObject<osgEarth::Util::FlatteningLayer, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add terrain layer properties first
+            callNextHandler(os);
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+
+bool writePrettyHTMLImpl<osgEarth::Util::FractalElevationLayer>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Util::FractalElevationLayer * object = getObject<osgEarth::Util::FractalElevationLayer, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add terrain layer properties first
+            callNextHandler(os);
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Util::GeodeticGraticule>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Util::GeodeticGraticule * object = getObject<osgEarth::Util::GeodeticGraticule, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add terrain layer properties first
+            callNextHandler(os);
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Util::GARSGraticule>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Util::GARSGraticule * object = getObject<osgEarth::Util::GARSGraticule, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add terrain layer properties first
+            callNextHandler(os);
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Util::MGRSGraticule>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Util::MGRSGraticule * object = getObject<osgEarth::Util::MGRSGraticule, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add terrain layer properties first
+            callNextHandler(os);
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Util::UTMGraticule>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Util::UTMGraticule * object = getObject<osgEarth::Util::UTMGraticule, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add terrain layer properties first
+            callNextHandler(os);
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Util::MultiElevationLayer>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Util::MultiElevationLayer * object = getObject<osgEarth::Util::MultiElevationLayer, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add terrain layer properties first
+            callNextHandler(os);
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Util::SimpleOceanLayer>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Util::SimpleOceanLayer * object = getObject<osgEarth::Util::SimpleOceanLayer, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add terrain layer properties first
+            callNextHandler(os);
+
+            os << "<tr><td>color</td><td>" << object->getColor() << "</td></tr>" << std::endl;
+            os << "<tr><td>maxAltitude</td><td>" << object->getMaxAltitude() << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+#endif
 
 bool writePrettyHTMLImpl<osgEarth::Map>::process(std::basic_ostream<char>& os)
 {

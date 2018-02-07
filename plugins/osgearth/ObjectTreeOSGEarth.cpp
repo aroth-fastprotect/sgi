@@ -22,6 +22,7 @@
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 #include <osgEarth/ShaderFactory>
 #include <osgEarth/ResourceReleaser>
+#include <osgEarth/VideoLayer>
 #endif
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
@@ -74,6 +75,9 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ImageLayer)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationLayer)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelLayer)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskLayer)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::VideoLayer)
+#endif
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Terrain)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::TerrainEngineNode)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::TileSource)
@@ -1021,7 +1025,7 @@ bool objectTreeBuildImpl<osgEarth::ModelLayer>::build(IObjectTreeItem * treeItem
 
 bool objectTreeBuildImpl<osgEarth::MaskLayer>::build(IObjectTreeItem * treeItem)
 {
-    osgEarth::MaskLayer * object = static_cast<osgEarth::MaskLayer*>(item<SGIItemOsg>()->object());
+    osgEarth::MaskLayer * object = getObject<osgEarth::MaskLayer, SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -1051,6 +1055,30 @@ bool objectTreeBuildImpl<osgEarth::MaskLayer>::build(IObjectTreeItem * treeItem)
     }
     return ret;
 }
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+bool objectTreeBuildImpl<osgEarth::VideoLayer>::build(IObjectTreeItem * treeItem)
+{
+    osgEarth::VideoLayer * object = getObject<osgEarth::VideoLayer, SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            SGIHostItemOsg texture(object->getTexture());
+            if(texture.hasObject())
+                treeItem->addChild("Texture", &texture);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+#endif
 
 bool objectTreeBuildImpl<osgEarth::Terrain>::build(IObjectTreeItem * treeItem)
 {
