@@ -149,5 +149,13 @@ const osgEarth::MapNodeCullData * MapNodeAccess::getCullDataForCamera(osg::Camer
 }
 #endif
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+void LayerAccessor::getLayerCallbacks(LayerCallbackList & callbacks) const
+{
+    callbacks = _callbacks;
+}
+#endif
+
+
 } // namespace osgearth_plugin
 } // namespace sgi

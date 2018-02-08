@@ -664,7 +664,7 @@ bool writePrettyHTMLImpl<osgEarth::Profile>::process(std::basic_ostream<char>& o
 
 bool writePrettyHTMLImpl<osgEarth::Layer>::process(std::basic_ostream<char>& os)
 {
-    osgEarth::Layer * object = getObject<osgEarth::Layer,SGIItemOsg>();
+    LayerAccessor * object = static_cast<LayerAccessor*>(getObject<osgEarth::Layer,SGIItemOsg>());
     bool ret = false;
     switch(itemType())
     {
@@ -689,6 +689,29 @@ bool writePrettyHTMLImpl<osgEarth::Layer>::process(std::basic_ostream<char>& os)
             os << "<tr><td>stateSet</td><td>" << getObjectNameAndType(object->getStateSet()) << "</td></tr>" << std::endl;
             os << "<tr><td>renderType</td><td>" << object->getRenderType() << "</td></tr>" << std::endl;
 #endif
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeCallbacks:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // first add all callbacks from base classes
+            callNextHandler(os);
+
+            os << "<tr><td>layer callbacks</td><td><ul>" << std::endl;
+            LayerAccessor::LayerCallbackList callbacks;
+            object->getLayerCallbacks(callbacks);
+            for (LayerAccessor::LayerCallbackList::const_iterator it = callbacks.begin(); it != callbacks.end(); it++)
+            {
+                const osg::ref_ptr<osgEarth::LayerCallback> & callback = *it;
+                os << "<li>" << getObjectNameAndType(callback.get()) << std::endl;
+            }
+            os << "</ul></td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;

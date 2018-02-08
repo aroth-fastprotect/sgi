@@ -126,6 +126,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Object)
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
     osgEarth::Map, 
     osgEarth::Layer,
+    osgEarth::CacheSettings,
 #endif
     osgEarth::Cache, osgEarth::TileSource,
     osgEarth::ModelSource,

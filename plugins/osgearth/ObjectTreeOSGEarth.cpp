@@ -92,6 +92,9 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::VirtualProgram)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Cache)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheBin)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheSettings)
+#endif
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureProfile)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSource)
@@ -840,7 +843,7 @@ bool objectTreeBuildImpl<osgEarth::Util::Controls::ImageControl>::build(IObjectT
 
 bool objectTreeBuildImpl<osgEarth::Layer>::build(IObjectTreeItem * treeItem)
 {
-    osgEarth::Layer * object = static_cast<osgEarth::Layer*>(item<SGIItemOsg>()->object());
+    LayerAccessor * object = static_cast<LayerAccessor*>(getObject<osgEarth::Layer,SGIItemOsg>());
     bool ret = false;
     switch(itemType())
     {
@@ -853,7 +856,34 @@ bool objectTreeBuildImpl<osgEarth::Layer>::build(IObjectTreeItem * treeItem)
             if(readOptions.hasObject())
                 treeItem->addChild("Read options", &readOptions);
 #endif
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            SGIHostItemOsg cacheSettings(object->getCacheSettings());
+            if (cacheSettings.hasObject())
+                treeItem->addChild("Cache Settings", &cacheSettings);
 
+            LayerAccessor::LayerCallbackList callbacks;
+            object->getLayerCallbacks(callbacks);
+
+            if (!callbacks.empty())
+                treeItem->addChildIfNotExists("Callbacks", cloneItem<SGIItemOsg>(SGIItemTypeCallbacks));
+#endif
+        }
+        break;
+    case SGIItemTypeCallbacks:
+        {
+            // first add all callbacks from base classes
+            callNextHandler(treeItem);
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            LayerAccessor::LayerCallbackList callbacks;
+            object->getLayerCallbacks(callbacks);
+            for(LayerAccessor::LayerCallbackList::const_iterator it = callbacks.begin(); it != callbacks.end(); it++)
+            {
+                SGIHostItemOsg callback(*it);
+                if(callback.hasObject())
+                    treeItem->addChild(std::string(), &callback);
+            }
+#endif
         }
         break;
     default:
@@ -865,7 +895,7 @@ bool objectTreeBuildImpl<osgEarth::Layer>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osgEarth::TerrainLayer>::build(IObjectTreeItem * treeItem)
 {
-    osgEarth::TerrainLayer * object = static_cast<osgEarth::TerrainLayer*>(item<SGIItemOsg>()->object());
+    TerrainLayerAccessor * object = static_cast<TerrainLayerAccessor*>(getObject<osgEarth::TerrainLayer,SGIItemOsg>());
     bool ret = false;
     switch(itemType())
     {
@@ -873,10 +903,8 @@ bool objectTreeBuildImpl<osgEarth::TerrainLayer>::build(IObjectTreeItem * treeIt
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            TerrainLayerAccessor * access = (TerrainLayerAccessor*)object;
-            
-            const osgEarth::Profile * profile = access->profileNoInit();
-            const osgEarth::Profile * targetProfileHint = access->targetProfileHintNoInit();
+            const osgEarth::Profile * profile = object->profileNoInit();
+            const osgEarth::Profile * targetProfileHint = object->targetProfileHintNoInit();
 
             SGIHostItemOsg profileItem(profile);
             if(profile)
@@ -886,18 +914,22 @@ bool objectTreeBuildImpl<osgEarth::TerrainLayer>::build(IObjectTreeItem * treeIt
                 treeItem->addChild("Target profile", &targetProfileItem);
 
 #if OSGEARTH_VERSION_LESS_THAN(2,7,0)
-            SGIHostItemOsg tileSource(access->tileSourceNoInit());
+            SGIHostItemOsg tileSource(object->tileSourceNoInit());
             if(tileSource.hasObject())
                 treeItem->addChild("Tile source", &tileSource);
 #elif OSGEARTH_VERSION_LESS_THAN(2,8,0)
 			SGIHostItemOsg tileSource((osg::Referenced*)NULL);
-			if (access->tileSourceInitAttempted())
+			if (object->tileSourceInitAttempted())
 				tileSource = object->getTileSource();
             if(tileSource.hasObject())
                 treeItem->addChild("Tile source", &tileSource);
+#else
+            SGIHostItemOsg tileSource(object->getTileSource());
+            if (tileSource.hasObject())
+                treeItem->addChild("Tile source", &tileSource);
 #endif
 #if OSGEARTH_VERSION_LESS_THAN(2,8,0)
-            SGIHostItemOsg dbOptions(access->dbOptions());
+            SGIHostItemOsg dbOptions(object->dbOptions());
             if(dbOptions.hasObject())
                 treeItem->addChild("Database options", &dbOptions);
 
@@ -1594,7 +1626,7 @@ bool objectTreeBuildImpl<osgEarth::Cache>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osgEarth::CacheBin>::build(IObjectTreeItem * treeItem)
 {
-    osgEarth::CacheBin * object = static_cast<osgEarth::CacheBin*>(item<SGIItemOsg>()->object());
+    osgEarth::CacheBin * object = getObject<osgEarth::CacheBin,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -1614,6 +1646,38 @@ bool objectTreeBuildImpl<osgEarth::CacheBin>::build(IObjectTreeItem * treeItem)
     }
     return ret;
 }
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+
+bool objectTreeBuildImpl<osgEarth::CacheSettings>::build(IObjectTreeItem * treeItem)
+{
+    osgEarth::CacheSettings * object = getObject<osgEarth::CacheSettings, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsg cache(object->getCache());
+            if (cache.hasObject())
+                treeItem->addChild("Cache", &cache);
+            SGIHostItemOsg bin(object->getCacheBin());
+            if(bin.hasObject())
+                treeItem->addChild("CacheBin", &bin);
+        }
+        break;
+    case SGIItemTypeConfig:
+        ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+#endif
+
 
 bool objectTreeBuildImpl<osgEarth::Features::FeatureProfile>::build(IObjectTreeItem * treeItem)
 {

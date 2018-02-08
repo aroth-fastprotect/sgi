@@ -143,6 +143,16 @@ namespace osgearth_plugin {
             os << "</table>" << std::endl;
         }
     };
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+    class LayerAccessor : public osgEarth::Layer
+    {
+    public:
+        typedef std::vector<osg::ref_ptr<osgEarth::LayerCallback> > LayerCallbackList;
+        void getLayerCallbacks(LayerCallbackList & callbacks) const;
+        osgEarth::CacheSettings * getCacheSettings() const { return _cacheSettings.get(); }
+    };
+#endif
+
     class TerrainLayerAccessor : public osgEarth::TerrainLayer
     {
     public:
