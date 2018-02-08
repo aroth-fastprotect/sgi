@@ -4,6 +4,7 @@
 #define private protected
 #endif
 #include <osgEarth/MapNode>
+#include <osgEarth/Map>
 #ifdef MAPNODE_ACCESS_HACK
 #undef private
 #endif
@@ -50,6 +51,11 @@ namespace osgearth_plugin {
 			_blacklistMutex.readUnlock();
 		}
 	};
+    class MapAccess : public osgEarth::Map
+    {
+    public:
+        void getMapCallbacks(osgEarth::MapCallbackList & mapCallbacks) const;
+    };
 
 	class MapNodeAccess : public osgEarth::MapNode
 	{

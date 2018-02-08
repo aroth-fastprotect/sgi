@@ -1267,7 +1267,7 @@ bool writePrettyHTMLImpl<osgEarth::Util::SimpleOceanLayer>::process(std::basic_o
 
 bool writePrettyHTMLImpl<osgEarth::Map>::process(std::basic_ostream<char>& os)
 {
-    osgEarth::Map * object = static_cast<osgEarth::Map*>(item<SGIItemOsg>()->object());
+    MapAccess * object = static_cast<MapAccess*>(getObject<osgEarth::Map,SGIItemOsg>());
     bool ret = false;
     switch(itemType())
     {
@@ -1464,11 +1464,7 @@ bool writePrettyHTMLImpl<osgEarth::Map>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>map callbacks</td><td><ul>" << std::endl;
             osgEarth::MapCallbackList callbacks;
-#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
-#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
             object->getMapCallbacks(callbacks);
-#endif
-#endif
             for(osgEarth::MapCallbackList::const_iterator it = callbacks.begin(); it != callbacks.end(); it++)
             {
                 const osg::ref_ptr<osgEarth::MapCallback> & callback = *it;

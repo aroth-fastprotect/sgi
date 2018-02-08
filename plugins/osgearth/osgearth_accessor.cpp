@@ -1,11 +1,14 @@
 #include <osgEarth/Version>
 
-#include <osgEarth/Map>
+#ifdef _MSC_VER
+#define _ALLOW_KEYWORD_MACROS
+#endif
+#define MAPNODE_ACCESS_HACK
+#include "osgearth_accessor.h"
+
 #include <osgEarth/MapNodeOptions>
 #include <osgEarth/Extension>
 
-#define MAPNODE_ACCESS_HACK
-#include "osgearth_accessor.h"
 #if OSGEARTH_VERSION_LESS_THAN(2,8,0)
 #include <osgEarthQt/TerrainProfileWidget>
 #endif
@@ -15,6 +18,11 @@ namespace sgi {
 class SGIItemOsg;
 
 namespace osgearth_plugin {
+
+void MapAccess::getMapCallbacks(osgEarth::MapCallbackList & mapCallbacks) const
+{
+    mapCallbacks = _mapCallbacks;
+}
 
 bool MapNodeAccess::hasMapInspector() const
 {

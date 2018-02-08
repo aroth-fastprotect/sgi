@@ -109,7 +109,7 @@ using namespace osg_helpers;
 
 bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
 {
-    osgEarth::Map * object = static_cast<osgEarth::Map*>(item<SGIItemOsg>()->object());
+    MapAccess * object = static_cast<MapAccess*>(getObject<osgEarth::Map,SGIItemOsg>());
     osgEarth::MapNode * mapNode = _item->userData<osgEarth::MapNode>();
     bool ret = false;
     switch(itemType())
@@ -119,11 +119,7 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
         if(ret)
         {
             osgEarth::MapCallbackList callbacks;
-#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
-#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
             object->getMapCallbacks(callbacks);
-#endif
-#endif
 
             if(!callbacks.empty())
                 treeItem->addChildIfNotExists("Callbacks", cloneItem<SGIItemOsg>(SGIItemTypeCallbacks));
@@ -191,11 +187,7 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
             callNextHandler(treeItem);
 
             osgEarth::MapCallbackList callbacks;
-#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
-#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
             object->getMapCallbacks(callbacks);
-#endif
-#endif
             for(osgEarth::MapCallbackList::const_iterator it = callbacks.begin(); it != callbacks.end(); it++)
             {
                 SGIHostItemOsg callback(*it);

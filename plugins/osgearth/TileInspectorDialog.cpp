@@ -18,12 +18,15 @@
 #include <osg/CoordinateSystemNode>
 #include <osgViewer/View>
 
+#include <osgEarth/Version>
 #include <osgEarth/Registry>
 #include <osgEarth/Viewpoint>
 #include <osgEarth/TileKey>
 #include <osgEarth/TerrainLayer>
 #include <osgEarth/MapNode>
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 #include <osgEarth/MapFrame>
+#endif
 
 #include <osgEarthDrivers/vpb/VPBOptions>
 #include <osgEarthDrivers/tms/TMSOptions>
@@ -388,10 +391,14 @@ namespace {
             return NULL;
         if (osgEarth::TerrainLayer * terrainLayer = dynamic_cast<osgEarth::TerrainLayer *>(item->object()))
         {
-            const osgEarth::Profile * p = terrainLayer->getProfile();
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
+            const osgEarth::Profile * p = terrainLayer->getProfile();
             if (p)
                 return terrainLayer->getCacheBin(p);
+#else
+            osgEarth::CacheSettings * cs = terrainLayer->getCacheSettings();
+            if(cs)
+                return cs->getCacheBin();
 #endif
         }
         return NULL;
@@ -429,8 +436,8 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
     osgEarth::Map * map = getMap(_item.get());
     if(map)
     {
-        osgEarth::MapFrame frame(map);
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
+        osgEarth::MapFrame frame(map);
         for(auto it = frame.elevationLayers().begin(); it != frame.elevationLayers().end(); ++it)
         {
             SGIHostItemOsg layer(*it);
@@ -451,6 +458,31 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
                 std::string name;
                 _hostInterface->getObjectDisplayName(name, item.get());
                 ui->layer->addItem(tr("Image: %1").arg(fromUtf8(name)), QVariant::fromValue(QtSGIItem(item.get())));
+            }
+        }
+#else
+        osgEarth::LayerVector layers;
+        map->getLayers(layers);
+        for (auto it = layers.begin(); it != layers.end(); ++it)
+        {
+            osgEarth::Layer * layer = (*it).get();
+            osgEarth::ImageLayer * imageLayer = dynamic_cast<osgEarth::ImageLayer *>(layer);
+            osgEarth::ElevationLayer * elevLayer = dynamic_cast<osgEarth::ElevationLayer *>(layer);
+            if(!imageLayer && !elevLayer)
+                continue;
+
+            SGIHostItemOsg hostitem(layer);
+            SGIItemBasePtr item;
+            if (_hostInterface->generateItem(item, &hostitem))
+            {
+                std::string name;
+                _hostInterface->getObjectDisplayName(name, item.get());
+                QString itemname;
+                if(imageLayer)
+                    itemname = tr("Image: %1").arg(fromUtf8(name));
+                else if(elevLayer)
+                    itemname = tr("Elevation: %1").arg(fromUtf8(name));
+                ui->layer->addItem(itemname, QVariant::fromValue(QtSGIItem(item.get())));
             }
         }
 #endif
