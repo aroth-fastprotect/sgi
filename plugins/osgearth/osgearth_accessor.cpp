@@ -1,4 +1,5 @@
 #include <osgEarth/Version>
+#include <sstream>
 
 #ifdef _MSC_VER
 #define _ALLOW_KEYWORD_MACROS
