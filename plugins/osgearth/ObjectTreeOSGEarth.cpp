@@ -325,9 +325,11 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
             if(layerNodeGroup.hasObject())
                 treeItem->addChild("LayerNodeGroup", &layerNodeGroup);
 #endif
+#if OSGEARTH_VERSION_LESS_THAN(2,10,0)
             SGIHostItemOsg modelLayerGroup(object->getModelLayerGroup());
             if(modelLayerGroup.hasObject())
                 treeItem->addChild("ModelLayerGroup", &modelLayerGroup);
+#endif
             SGIHostItemOsg overlayDecorator(object->getOverlayDecorator());
             if(overlayDecorator.hasObject())
                 treeItem->addChild("OverlayDecorator", &overlayDecorator);

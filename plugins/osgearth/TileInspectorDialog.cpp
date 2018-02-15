@@ -1173,12 +1173,17 @@ void TileInspectorDialog::loadData()
 
                 if (tileSource)
                 {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+                    bool isImageTileSource = true;
+                    isImageTileSource = (tileSource->getPixelsPerTile() >= 64);
+#else
                     std::string ext = tileSource->getExtension();
                     bool isImageTileSource = true;
                     if (ext.compare("osgb") == 0 || ext.compare("ive") == 0)
                         isImageTileSource = (tileSource->getPixelsPerTile() >= 64);
                     else if (ext.compare("tif") == 0)
                         isImageTileSource = false;
+#endif
 
                     if (0 /*!tileSource->hasData(data.tileKey)*/)
                         data.status = TileSourceTileKeyData::StatusNoData;

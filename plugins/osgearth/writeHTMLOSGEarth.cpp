@@ -1528,7 +1528,9 @@ bool writePrettyHTMLImpl<osgEarth::MapNode>::process(std::basic_ostream<char>& o
 			os << "<tr><td>terrain engine</td><td>" << getObjectNameAndType(object->terrainEngineNode(), true) << "</td></tr>" << std::endl;
 			os << "<tr><td>terrain engine container</td><td>" << getObjectNameAndType(object->terrainEngineContainer(), true) << "</td></tr>" << std::endl;
 #endif
+#if OSGEARTH_VERSION_LESS_THAN(2,10,0)
             os << "<tr><td>modelLayerGroup</td><td>" << getObjectNameAndType(object->getModelLayerGroup(), true) << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>overlayDecorator</td><td>" << getObjectNameAndType(const_cast<MapNodeAccess*>(object)->getOverlayDecorator(), true) << "</td></tr>" << std::endl;
 
 			os << "<tr><td>extensions</td><td>";
@@ -1976,8 +1978,9 @@ bool writePrettyHTMLImpl<osgEarth::TileSource>::process(std::basic_ostream<char>
 			os << "<tr><td>min valid value</td><td>" << object->getMinValidValue() << "</td></tr>" << std::endl;
 			os << "<tr><td>max valid value</td><td>" << object->getMaxValidValue() << "</td></tr>" << std::endl;
 #endif
-
+#if OSGEARTH_VERSION_LESS_THAN(2,10,0)
             os << "<tr><td>extension</td><td>" << object->getExtension() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>isDynamic</td><td>" << (object->isDynamic()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>cachePolicyHint</td><td>" << object->getCachePolicyHint(profile) << "</td></tr>" << std::endl;
             os << "<tr><td>dataExtents</td><td>" << object->getDataExtents().size() << " entries" << "</td></tr>" << std::endl;

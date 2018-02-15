@@ -129,12 +129,20 @@ namespace {
             if(_oldImageLayer.valid())
             {
                 osgEarth::Map * map = mapNode->getMap();
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+                map->removeLayer(_oldImageLayer.get());
+#else
                 map->removeImageLayer(_oldImageLayer.get());
+#endif
             }
             if(_newImageLayer.valid())
             {
                 osgEarth::Map * map = mapNode->getMap();
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+                map->addLayer(_newImageLayer.get());
+#else
                 map->addImageLayer(_newImageLayer.get());
+#endif
             }
             // call the old callback
             if(_oldCallback.valid())
@@ -150,12 +158,20 @@ namespace {
             if(_oldImageLayer.valid())
             {
                 osgEarth::Map * map = mapNode->getMap();
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+                map->removeLayer(_oldImageLayer.get());
+#else
                 map->removeImageLayer(_oldImageLayer.get());
+#endif
             }
             if(_newImageLayer.valid())
             {
                 osgEarth::Map * map = mapNode->getMap();
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+                map->addLayer(_newImageLayer.get());
+#else
                 map->addImageLayer(_newImageLayer.get());
+#endif
             }
             // call the old callback
             if(_oldCallback.valid())
@@ -218,7 +234,11 @@ bool setDebugImageLayer(osgEarth::Map * object, MapDebugImageLayer mode)
         switch(mode)
         {
         case MapDebugImageLayerNone:
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            object->removeLayer(layer.get());
+#else
             object->removeImageLayer(layer.get());
+#endif
             break;
         case MapDebugImageLayerNormal:
         case MapDebugImageLayerInverted:
@@ -230,9 +250,15 @@ bool setDebugImageLayer(osgEarth::Map * object, MapDebugImageLayer mode)
                 opts.driver() = tileOpts;
                 osgEarth::ImageLayer * imageLayer = new osgEarth::ImageLayer(opts);
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+                if(layer.valid())
+                    object->removeLayer(layer.get());
+                object->addLayer(imageLayer);
+#else
                 if(layer.valid())
                     object->removeImageLayer(layer.get());
                 object->addImageLayer(imageLayer);
+#endif
             }
             break;
         }
