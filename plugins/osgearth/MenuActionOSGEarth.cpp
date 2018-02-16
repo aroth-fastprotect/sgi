@@ -8,6 +8,10 @@
 #include <sgi/plugins/SettingsDialog>
 #include <sgi/plugins/ImagePreviewDialog>
 
+#include <osg/BlendFunc>
+
+#include <osgViewer/CompositeViewer>
+
 #include <osgEarth/Version>
 #include <osgEarth/MapNode>
 #include <osgEarth/ShaderGenerator>
@@ -101,6 +105,8 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLevelDBDatabaseWrite)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTileKeyAdd)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLODScaleOverrideNodeLODScale)
+
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionRTTPickerView)
 
 using namespace sgi::osg_helpers;
 
@@ -862,6 +868,79 @@ bool actionHandlerImpl<MenuActionLODScaleOverrideNodeLODScale>::execute()
     }
     return true;
 }
+
+namespace {
+
+    // Configures a window that lets you see what the RTT camera sees.
+    void setupRTTView(osgViewer::View* view, osg::Texture* rttTex)
+    {
+        view->setCameraManipulator(0L);
+        view->getCamera()->setName("osgearth_pick RTT view");
+        view->getCamera()->setViewport(0, 0, 256, 256);
+        view->getCamera()->setClearColor(osg::Vec4(1, 1, 1, 1));
+        view->getCamera()->setProjectionMatrixAsOrtho2D(-.5, .5, -.5, .5);
+        view->getCamera()->setViewMatrixAsLookAt(osg::Vec3d(0, -1, 0), osg::Vec3d(0, 0, 0), osg::Vec3d(0, 0, 1));
+        view->getCamera()->setProjectionResizePolicy(osg::Camera::FIXED);
+
+        osg::Vec3Array* v = new osg::Vec3Array(6);
+        (*v)[0].set(-.5, 0, -.5); (*v)[1].set(.5, 0, -.5); (*v)[2].set(.5, 0, .5); (*v)[3].set((*v)[2]); (*v)[4].set(-.5, 0, .5);(*v)[5].set((*v)[0]);
+
+        osg::Vec2Array* t = new osg::Vec2Array(6);
+        (*t)[0].set(0, 0); (*t)[1].set(1, 0); (*t)[2].set(1, 1); (*t)[3].set((*t)[2]); (*t)[4].set(0, 1); (*t)[5].set((*t)[0]);
+
+        osg::Geometry* g = new osg::Geometry();
+        g->setUseVertexBufferObjects(true);
+        g->setUseDisplayList(false);
+        g->setVertexArray(v);
+        g->setTexCoordArray(0, t);
+        g->addPrimitiveSet(new osg::DrawArrays(GL_TRIANGLES, 0, 6));
+
+        osg::Geode* geode = new osg::Geode();
+        geode->addDrawable(g);
+
+        osg::StateSet* stateSet = geode->getOrCreateStateSet();
+        stateSet->setDataVariance(osg::Object::DYNAMIC);
+
+        stateSet->setTextureAttributeAndModes(0, rttTex, 1);
+        rttTex->setUnRefImageDataAfterApply(false);
+        rttTex->setResizeNonPowerOfTwoHint(false);
+
+        stateSet->setMode(GL_LIGHTING, 0);
+        stateSet->setMode(GL_CULL_FACE, 0);
+        stateSet->setAttributeAndModes(new osg::BlendFunc(GL_ONE, GL_ZERO), 1);
+
+        const char* fs =
+            "#version " GLSL_VERSION_STR "\n"
+            "void swap(inout vec4 c) { c.rgba = c==vec4(0)? vec4(1) : vec4(vec3((c.r+c.g+c.b+c.a)/4.0),1); }\n";
+        osgEarth::Registry::shaderGenerator().run(geode);
+        osgEarth::VirtualProgram::getOrCreate(geode->getOrCreateStateSet())->setFunction("swap", fs, osgEarth::ShaderComp::LOCATION_FRAGMENT_COLORING);
+
+        view->setSceneData(geode);
+    }
+
+}
+
+bool actionHandlerImpl<MenuActionRTTPickerView>::execute()
+{
+    osgEarth::Util::RTTPicker * object = getObject<osgEarth::Util::RTTPicker, SGIItemOsg, DynamicCaster>();
+    osgViewer::View * mainview = userData<osgViewer::View>();
+    if(!mainview)
+        return false;
+
+    osgViewer::CompositeViewer * viewer = dynamic_cast<osgViewer::CompositeViewer *>(mainview->getViewerBase());
+    if(!viewer)
+        return false;
+
+    osgViewer::View * view = new osgViewer::View();
+    view->getCamera()->setGraphicsContext(mainview->getCamera()->getGraphicsContext());
+    view->getCamera()->setSmallFeatureCullingPixelSize(-1.0f);
+    viewer->addView(view);
+    setupRTTView(view, object->getOrCreateTexture(mainview));
+    view->getCamera()->setNodeMask(~0u);
+
+    return true;
+}
+
 
 } // namespace osgearth_plugin
 } // namespace sgi

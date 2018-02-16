@@ -31,6 +31,7 @@
 #include <osgEarthUtil/SkyNode>
 #endif
 #include <osgEarthUtil/Controls>
+#include <osgEarthUtil/RTTPicker>
 #include <osgEarth/Capabilities>
 #include <osgEarth/TaskService>
 #include <osgEarth/StateSetCache>
@@ -95,6 +96,10 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheBin)
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheSettings)
 #endif
+
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Picker)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::RTTPicker)
+
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureProfile)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSource)
@@ -1679,6 +1684,87 @@ bool objectTreeBuildImpl<osgEarth::CacheSettings>::build(IObjectTreeItem * treeI
     return ret;
 }
 #endif
+
+bool objectTreeBuildImpl<osgEarth::Picker>::build(IObjectTreeItem * treeItem)
+{
+    osgEarth::Picker * object = getObject<osgEarth::Picker, SGIItemOsg, DynamicCaster>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osgEarth::Util::RTTPicker>::build(IObjectTreeItem * treeItem)
+{
+    RTTPickerAccess * object = static_cast<RTTPickerAccess*>(getObject<osgEarth::Util::RTTPicker, SGIItemOsg, DynamicCaster>());
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsg group(object->getGroup());
+            if (group.hasObject())
+                treeItem->addChild("Group", &group);
+            SGIHostItemOsg defaultCallback(object->getDefaultCallback());
+            if (defaultCallback.hasObject())
+                treeItem->addChild("DefaultCallback", &defaultCallback);
+
+            RTTPickerAccess::PickContexts contexts;
+            object->getPickContexts(contexts);
+            unsigned i = 0;
+            for(const auto & context : contexts)
+            {
+                treeItem->addChild(helpers::str_plus_number("Picker", i), cloneItem<SGIItemOsg>(SGIItemTypePickerContext, i));
+                ++i;
+            }
+        }
+        break;
+    case SGIItemTypePickerContext:
+        {
+            RTTPickerAccess::PickContexts contexts;
+            object->getPickContexts(contexts);
+            unsigned i = 0;
+            for (const auto & context : contexts)
+            {
+                if(i == itemNumber())
+                {
+                    SGIHostItemOsg view(context._view.get());
+                    if (view.hasObject())
+                        treeItem->addChild("View", &view);
+                    SGIHostItemOsg camera(context._pickCamera.get());
+                    if (camera.hasObject())
+                        treeItem->addChild("Camera", &camera);
+                    SGIHostItemOsg image(context._image.get());
+                    if (image.hasObject())
+                        treeItem->addChild("Image", &image);
+                    SGIHostItemOsg tex(context._tex.get());
+                    if (tex.hasObject())
+                        treeItem->addChild("Tex", &tex);
+                    break;
+                }
+                ++i;
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
 
 
 bool objectTreeBuildImpl<osgEarth::Features::FeatureProfile>::build(IObjectTreeItem * treeItem)

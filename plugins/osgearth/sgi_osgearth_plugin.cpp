@@ -58,6 +58,7 @@
 #endif
 #include <osgEarthUtil/AutoClipPlaneHandler>
 #include <osgEarthUtil/Controls>
+#include <osgEarthUtil/RTTPicker>
 
 #include <osgEarthFeatures/FeatureModelSource>
 #include <osgEarthFeatures/FeatureTileSource>
@@ -123,6 +124,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::Object)
+    osg::Callback,
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
     osgEarth::Map, 
     osgEarth::Layer,
@@ -132,7 +134,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Object)
     osgEarth::ModelSource,
     osgEarth::Extension,
     osgEarth::Features::FeatureSource,
-    osg::Node, osg::NodeCallback, osg::StateAttribute, osg::BufferData
+    osg::Node, osg::StateAttribute, osg::BufferData
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgDB::ReaderWriter)
@@ -173,6 +175,27 @@ SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::CoordinateSystemNode)
     osgEarth::TerrainEngineNode
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osg::Callback)
+    osg::NodeCallback
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osg::NodeCallback)
+    osgGA::EventHandler,
+    osgEarth::Util::AutoClipPlaneCullCallback
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgGA::EventHandler)
+    osgGA::GUIEventHandler
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgGA::GUIEventHandler)
+    osgEarth::Picker
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::Picker)
+    osgEarth::Util::RTTPicker
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::AnnotationNode)
@@ -230,10 +253,6 @@ SGI_OBJECT_INFO_BEGIN(osg::Transform)
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osg::Camera)
     osgEarth::Util::Controls::ControlCanvas
-SGI_OBJECT_INFO_END()
-
-SGI_OBJECT_INFO_BEGIN(osg::NodeCallback)
-    osgEarth::Util::AutoClipPlaneCullCallback
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::Util::Controls::Control)
@@ -379,7 +398,10 @@ namespace osgearth_plugin {
 GENERATE_IMPL_TEMPLATE()
 GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
 GENERATE_IMPL_NO_ACCEPT(osg::Object)
+GENERATE_IMPL_NO_ACCEPT(osg::Callback)
 GENERATE_IMPL_NO_ACCEPT(osg::NodeCallback)
+GENERATE_IMPL_NO_ACCEPT(osgGA::EventHandler)
+GENERATE_IMPL_NO_ACCEPT(osgGA::GUIEventHandler)
 //GENERATE_IMPL_NO_ACCEPT(osg::Node)
 GENERATE_IMPL_NO_ACCEPT(osg::StateAttribute)
 GENERATE_IMPL_NO_ACCEPT(osg::Group)
@@ -505,6 +527,7 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypePostMergeOps);
         SGIITEMTYPE_NAME(SGIItemTypeProfiles);
         SGIITEMTYPE_NAME(SGIItemTypeProgramSharedRepo);
+        SGIITEMTYPE_NAME(SGIItemTypePickerContext);
     }
     SGIPlugin_osgearth_Implementation(const SGIPlugin_osgearth_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
         : osgearth_plugin::SGIPluginImpl(rhs, copyop)

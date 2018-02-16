@@ -158,5 +158,10 @@ void LayerAccessor::getLayerCallbacks(LayerCallbackList & callbacks) const
 #endif
 
 
+void RTTPickerAccess::getPickContexts(PickContexts & contexts) const
+{
+    contexts = _pickContexts;
+}
+
 } // namespace osgearth_plugin
 } // namespace sgi

@@ -12,6 +12,7 @@
 #include <osgEarthUtil/Controls>
 #include <osgEarthUtil/EarthManipulator>
 #include <osgEarthUtil/AutoClipPlaneHandler>
+#include <osgEarthUtil/RTTPicker>
 #include <osgEarth/TerrainEngineNode>
 #include <osgEarth/Registry>
 #include <osgEarth/VirtualProgram>
@@ -351,6 +352,19 @@ namespace osgearth_plugin {
 #if OSGEARTH_VERSION_LESS_THAN(2,8,0)
         const osgDB::Options * getDBOptions() { return _dbOptions.get(); }
 #endif
+    };
+
+    class RTTPickerAccess : public osgEarth::Util::RTTPicker 
+    {
+    public:
+        int                    getRttSize() const { return _rttSize; }
+
+        Callback *              getDefaultCallback() const { return _defaultCallback.get(); }
+
+        typedef std::list<PickContext> PickContexts;
+        void getPickContexts( PickContexts & contexts) const;
+
+        osg::Group *            getGroup() const { return _group.get(); }
     };
 
 } // namespace osgearth_plugin

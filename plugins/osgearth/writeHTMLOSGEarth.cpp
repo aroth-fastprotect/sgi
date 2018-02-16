@@ -43,6 +43,7 @@
 #include <osgEarth/TraversalData>
 
 #include <osgEarthUtil/LatLongFormatter>
+#include <osgEarthUtil/RTTPicker>
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 #include <osgEarthUtil/Sky>
@@ -143,6 +144,8 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::ImageContr
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::SkyNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::AutoClipPlaneCullCallback)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Picker)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::RTTPicker)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureProfile)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSource)
@@ -3166,6 +3169,109 @@ bool writePrettyHTMLImpl<osgEarth::Util::AutoClipPlaneCullCallback>::process(std
             ret = true;
         }
         break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Picker>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Picker * object = getObject<osgEarth::Picker, SGIItemOsg, DynamicCaster>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add group properties first
+            callNextHandler(os);
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Util::RTTPicker>::process(std::basic_ostream<char>& os)
+{
+    RTTPickerAccess * object = static_cast<RTTPickerAccess*>(getObject<osgEarth::Util::RTTPicker, SGIItemOsg, DynamicCaster>());
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add group properties first
+            callNextHandler(os);
+
+            os << "<tr><td>cullMask</td><td>" << object->getCullMask() << "</td></tr>" << std::endl;
+            os << "<tr><td>buffer</td><td>" << object->getBuffer() << "</td></tr>" << std::endl;
+            os << "<tr><td>defaultCallback</td><td>" << getObjectNameAndType(object->getDefaultCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>group</td><td>" << getObjectNameAndType(object->getGroup()) << "</td></tr>" << std::endl;
+            os << "<tr><td>pick contexts</td><td>";
+
+            RTTPickerAccess::PickContexts contexts;
+            object->getPickContexts(contexts);
+            if(contexts.empty())
+                os << "<i>empty</i>";
+            else
+            {
+                os << "<ul>";
+                for(const auto & context : contexts)
+                {
+                    os << "<li><table border=\'1\' align=\'left\'>";
+                    os << "<tr><td>view</td><td>" << getObjectNameAndType(context._view.get()) << "</td></tr>" << std::endl;
+                    os << "<tr><td>camera</td><td>" << getObjectNameAndType(context._pickCamera.get()) << "</td></tr>" << std::endl;
+                    os << "<tr><td>image</td><td>" << getObjectNameAndType(context._image.get()) << "</td></tr>" << std::endl;
+                    os << "<tr><td>tex</td><td>" << getObjectNameAndType(context._tex.get()) << "</td></tr>" << std::endl;
+                    os << "<tr><td>numPicks</td><td>" << context._numPicks << "</td></tr>" << std::endl;
+                    os << "</table></li>";
+                }
+                os << "</ul>";
+            }
+
+            os << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypePickerContext:
+    {
+        RTTPickerAccess::PickContexts contexts;
+        object->getPickContexts(contexts);
+        unsigned i = 0;
+        for (const auto & context : contexts)
+        {
+            if (i == itemNumber())
+            {
+                os << "<table border=\'1\' align=\'left\'>";
+                os << "<tr><td>view</td><td>" << getObjectNameAndType(context._view.get()) << "</td></tr>" << std::endl;
+                os << "<tr><td>camera</td><td>" << getObjectNameAndType(context._pickCamera.get()) << "</td></tr>" << std::endl;
+                os << "<tr><td>image</td><td>" << getObjectNameAndType(context._image.get()) << "</td></tr>" << std::endl;
+                os << "<tr><td>tex</td><td>" << getObjectNameAndType(context._tex.get()) << "</td></tr>" << std::endl;
+                os << "<tr><td>numPicks</td><td>" << context._numPicks << "</td></tr>" << std::endl;
+                os << "</table>";
+                break;
+            }
+            ++i;
+        }
+        ret = true;
+    }
+    break;
     default:
         ret = callNextHandler(os);
         break;

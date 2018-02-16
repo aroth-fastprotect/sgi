@@ -13,6 +13,7 @@
 #endif
 #include <osgEarthUtil/AutoClipPlaneHandler>
 #include <osgEarthUtil/Controls>
+#include <osgEarthUtil/RTTPicker>
 #include <osgEarth/MaskLayer>
 #include <osgEarth/TileSource>
 #include <osgEarth/Registry>
@@ -59,6 +60,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LODScaleOverrideNode)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(ElevationQueryReferenced)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(TileKeyReferenced)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::RTTPicker)
 
 bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
 {
@@ -833,5 +835,68 @@ bool contextMenuPopulateImpl<TileSourceTileKey>::populate(IContextMenuItem * men
     return ret;
 }
 
+bool contextMenuPopulateImpl<osgEarth::Util::RTTPicker>::populate(IContextMenuItem * menuItem)
+{
+    RTTPickerAccess * object = static_cast<RTTPickerAccess*>(getObject<osgEarth::Util::RTTPicker, SGIItemOsg, DynamicCaster>());
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            SGIHostItemOsg group(object->getGroup());
+            if (group.hasObject())
+                menuItem->addMenu("Group", &group);
+            SGIHostItemOsg defaultCallback(object->getDefaultCallback());
+            if (defaultCallback.hasObject())
+                menuItem->addMenu("DefaultCallback", &defaultCallback);
+
+            RTTPickerAccess::PickContexts contexts;
+            object->getPickContexts(contexts);
+            unsigned i = 0;
+            for(const auto & context : contexts)
+            {
+                menuItem->addMenu(helpers::str_plus_number("Picker", i), cloneItem<SGIItemOsg>(SGIItemTypePickerContext, i));
+                ++i;
+            }
+        }
+        break;
+    case SGIItemTypePickerContext:
+        {
+            RTTPickerAccess::PickContexts contexts;
+            object->getPickContexts(contexts);
+            unsigned i = 0;
+            for (const auto & context : contexts)
+            {
+                if(i == itemNumber())
+                {
+                    menuItem->addSimpleAction(MenuActionRTTPickerView, "Preview", _item, context._view.get());
+
+                    SGIHostItemOsg view(context._view.get());
+                    if (view.hasObject())
+                        menuItem->addMenu("View", &view);
+                    SGIHostItemOsg camera(context._pickCamera.get());
+                    if (camera.hasObject())
+                        menuItem->addMenu("Camera", &camera);
+                    SGIHostItemOsg image(context._image.get());
+                    if (image.hasObject())
+                        menuItem->addMenu("Image", &image);
+                    SGIHostItemOsg tex(context._tex.get());
+                    if (tex.hasObject())
+                        menuItem->addMenu("Tex", &tex);
+                    break;
+                }
+                ++i;
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
 } // namespace osgearth_plugin
 } // namespace sgi

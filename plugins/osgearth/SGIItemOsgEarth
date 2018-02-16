@@ -47,6 +47,7 @@ enum SGIItemType_osgearth
     SGIItemTypePostMergeOps,
     SGIItemTypeProfiles,
     SGIItemTypeProgramSharedRepo,
+    SGIItemTypePickerContext
 };
 
 class SGIItemEarthConfig : public SGIItemBase
