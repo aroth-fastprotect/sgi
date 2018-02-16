@@ -3929,7 +3929,7 @@ bool objectTreeBuildImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, 
                 const RenderInfoData::HashedStateId & hash = it->first;
                 const RenderInfoData::State & state = it->second;
                 unsigned contextID = (state.state.valid() ? state.state->getContextID() : ~0u);
-                treeItem->addChild(helpers::str_plus_info("State", contextID, hash), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoState, hash));
+                treeItem->addChild(helpers::str_plus_hex("State", contextID, hash), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoState, hash));
             }
         }
         else
@@ -3972,7 +3972,7 @@ bool objectTreeBuildImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, 
             for (auto it = hashedState.begin(); it != hashedState.end(); ++it)
             {
                 const RenderInfoData::HashedStateId & state = it->first;
-                treeItem->addChild(helpers::str_plus_info("State", state), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoStateSetStack, state));
+                treeItem->addChild(helpers::str_plus_hex("State", state), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoStateSetStack, state));
             }
         }
         else

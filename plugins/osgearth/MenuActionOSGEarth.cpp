@@ -934,9 +934,9 @@ bool actionHandlerImpl<MenuActionRTTPickerView>::execute()
     osgViewer::View * view = new osgViewer::View();
     view->getCamera()->setGraphicsContext(mainview->getCamera()->getGraphicsContext());
     view->getCamera()->setSmallFeatureCullingPixelSize(-1.0f);
-    viewer->addView(view);
     setupRTTView(view, object->getOrCreateTexture(mainview));
     view->getCamera()->setNodeMask(~0u);
+    viewer->addView(view);
 
     return true;
 }
