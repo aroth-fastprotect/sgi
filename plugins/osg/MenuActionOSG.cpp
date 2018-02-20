@@ -196,7 +196,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeDrawableColor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeDrawableBuild)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableUseDisplayList)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableSupportsDisplayList)
-ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableDirtyDisplayList)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableDirtyGLObjects)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableUseVBO)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableRenderInfoDrawCallback)
 
@@ -2009,7 +2009,7 @@ bool actionHandlerImpl<MenuActionDrawableUseDisplayList>::execute()
 {
 	osg::Drawable * object = getObject<osg::Drawable, SGIItemOsg>();
 	object->setUseDisplayList(menuAction()->state());
-	object->dirtyDisplayList();
+	object->dirtyGLObjects();
 	triggerRepaint();
 	return true;
 }
@@ -2018,15 +2018,15 @@ bool actionHandlerImpl<MenuActionDrawableSupportsDisplayList>::execute()
 {
 	osg::Drawable * object = getObject<osg::Drawable, SGIItemOsg>();
 	object->setSupportsDisplayList(menuAction()->state());
-	object->dirtyDisplayList();
+	object->dirtyGLObjects();
 	triggerRepaint();
 	return true;
 }
 
-bool actionHandlerImpl<MenuActionDrawableDirtyDisplayList>::execute()
+bool actionHandlerImpl<MenuActionDrawableDirtyGLObjects>::execute()
 {
 	osg::Drawable * object = getObject<osg::Drawable, SGIItemOsg>();
-	object->dirtyDisplayList();
+	object->dirtyGLObjects();
 	triggerRepaint();
 	return true;
 }
@@ -2058,7 +2058,7 @@ bool actionHandlerImpl<MenuActionGeometryColor>::execute()
         {
             for(unsigned i = 0; i < colorArray->size(); i++)
                 (*colorArray)[i] = osgColor(color);
-            object->dirtyDisplayList();
+            object->dirtyGLObjects();
             triggerRepaint();
         }
     }

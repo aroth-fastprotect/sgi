@@ -156,10 +156,15 @@ void RetrieveElevationDialog::query()
         
         qint64 start = QDateTime::currentMSecsSinceEpoch();
 
-        double elev = 0;
         double desired_resolution = 0;
         double resolution = 0;
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
+        double elev = 0;
         query->getElevation(point, elev, desired_resolution, &resolution);
+#else
+        query->getElevation(point, desired_resolution, &resolution);
+        double elev = point.alt();
+#endif
         qint64 end = QDateTime::currentMSecsSinceEpoch();
         qint64 diff = end - start;
 

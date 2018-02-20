@@ -71,6 +71,8 @@ enum MenuAction {
     MenuActionTileKeyAdd,
 
     MenuActionLODScaleOverrideNodeLODScale,
+
+    MenuActionRTTPickerView,
 };
 
 enum MapDebugImageLayer {

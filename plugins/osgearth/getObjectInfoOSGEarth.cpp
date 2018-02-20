@@ -7,9 +7,12 @@
 #include "SGIItemOsgEarth"
 
 #include <osgEarth/Registry>
+#include <osgEarth/Version>
 #include <osgEarth/Map>
 #include <osgEarth/MapFrame>
 #include <osgEarth/MapNode>
+#include <osgEarth/ModelLayer>
+#include <osgEarth/MaskLayer>
 #include <osgEarth/XmlUtils>
 #include <osgEarth/LevelDBFactory>
 #include "ElevationQueryReferenced"
@@ -207,6 +210,9 @@ osgEarth::Config serializeMapNode( const osgEarth::MapNode* input, const osgEart
     if ( !input || !input->getMap() )
         return mapConf;
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+    mapConf = input->getConfig();
+#else
     const osgEarth::Map* map = input->getMap();
     osgEarth::MapFrame mapf( map, osgEarth::Map::ENTIRE_MODEL );
 
@@ -216,6 +222,7 @@ osgEarth::Config serializeMapNode( const osgEarth::MapNode* input, const osgEart
     mapConf.add( "options", optionsConf );
 
     // the layers
+
     for( osgEarth::ImageLayerVector::const_iterator i = mapf.imageLayers().begin(); i != mapf.imageLayers().end(); ++i )
     {
         osgEarth::ImageLayer* layer = i->get();
@@ -246,6 +253,7 @@ osgEarth::Config serializeMapNode( const osgEarth::MapNode* input, const osgEart
         layerConf.set("driver", layer->getModelLayerOptions().driver()->getDriver());
         mapConf.add( "model", layerConf );
     }
+#endif
 
     osgEarth::Config ext = input->externalConfig();
     if ( !ext.empty() || !mergeExternal.empty())

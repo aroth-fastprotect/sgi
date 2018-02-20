@@ -1,18 +1,29 @@
 #include <osgEarth/Version>
+#include <sstream>
 
-#include <osgEarth/Map>
+#ifdef _MSC_VER
+#define _ALLOW_KEYWORD_MACROS
+#endif
+#define MAPNODE_ACCESS_HACK
+#include "osgearth_accessor.h"
+
 #include <osgEarth/MapNodeOptions>
 #include <osgEarth/Extension>
 
-#define MAPNODE_ACCESS_HACK
-#include "osgearth_accessor.h"
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
 #include <osgEarthQt/TerrainProfileWidget>
+#endif
 
 namespace sgi {
 
 class SGIItemOsg;
 
 namespace osgearth_plugin {
+
+void MapAccess::getMapCallbacks(osgEarth::MapCallbackList & mapCallbacks) const
+{
+    mapCallbacks = _mapCallbacks;
+}
 
 bool MapNodeAccess::hasMapInspector() const
 {
@@ -58,12 +69,14 @@ bool MapNodeAccess::isTerrainProfileActive() const
         {
             for (const osg::ref_ptr<osgGA::EventHandler> & handler : view->getEventHandlers())
             {
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
                 const osgEarth::QtGui::TerrainProfileMouseHandler * mousehandler = dynamic_cast<const osgEarth::QtGui::TerrainProfileMouseHandler*>(handler.get());
                 if (mousehandler)
                 {
                     ret = mousehandler->_profileWidget->isVisible();
                     break;
                 }
+#endif
             }
         }
     }
@@ -81,6 +94,7 @@ void MapNodeAccess::toggleTerrainProfile(QWidget * parent)
         {
             for (osg::ref_ptr<osgGA::EventHandler> & handler : view->getEventHandlers())
             {
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
                 osgEarth::QtGui::TerrainProfileMouseHandler * mousehandler = dynamic_cast<osgEarth::QtGui::TerrainProfileMouseHandler*>(handler.get());
                 if (mousehandler)
                 {
@@ -100,19 +114,23 @@ void MapNodeAccess::toggleTerrainProfile(QWidget * parent)
                     active = true;
                     break;
                 }
+#endif
             }
             if (!active)
             {
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
                 osgEarth::QtGui::TerrainProfileWidget * profileWidget = new osgEarth::QtGui::TerrainProfileWidget(camera, this, parent);
                 profileWidget->setActiveView(view);
                 profileWidget->setWindowTitle(QObject::tr("Terrain profile"));
                 profileWidget->show();
+#endif
             }
         }
     }
 
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
 bool MapNodeAccess::getCullDataCameras(osg::NodeList & cameras)
 {
     osgEarth::Threading::ScopedReadLock lock(_cullDataMutex);
@@ -129,6 +147,20 @@ const osgEarth::MapNodeCullData * MapNodeAccess::getCullDataForCamera(osg::Camer
         return i->second.get();
     else
         return NULL;
+}
+#endif
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+void LayerAccessor::getLayerCallbacks(LayerCallbackList & callbacks) const
+{
+    callbacks = _callbacks;
+}
+#endif
+
+
+void RTTPickerAccess::getPickContexts(PickContexts & contexts) const
+{
+    contexts = _pickContexts;
 }
 
 } // namespace osgearth_plugin

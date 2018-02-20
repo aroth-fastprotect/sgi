@@ -1560,7 +1560,7 @@ bool contextMenuPopulateImpl<osg::Drawable>::populate(IContextMenuItem * menuIte
 			{
 				manipulateMenu->addBoolAction(MenuActionDrawableUseDisplayList, "Use display list", _item, object->getUseDisplayList());
 				manipulateMenu->addBoolAction(MenuActionDrawableSupportsDisplayList, "Supports display list", _item, object->getSupportsDisplayList());
-				manipulateMenu->addSimpleAction(MenuActionDrawableDirtyDisplayList, "Dirty display list", _item);
+				manipulateMenu->addSimpleAction(MenuActionDrawableDirtyGLObjects, "Dirty display list", _item);
 				manipulateMenu->addBoolAction(MenuActionDrawableUseVBO, "Use VBO", _item, object->getUseVertexBufferObjects());
                 manipulateMenu->addBoolAction(MenuActionDrawableRenderInfoDrawCallback, "Render info draw callback", _item, RenderInfo::hasDrawCallback(object));
 			}
@@ -2449,6 +2449,7 @@ bool contextMenuPopulateImpl<osgText::Text>::populate(IContextMenuItem * menuIte
                 backdropTypeMenu->addModeAction("Outline", osgText::Text::OUTLINE);
                 backdropTypeMenu->addModeAction("None", osgText::Text::NONE);
             }
+#if OSG_VERSION_LESS_THAN(3,5,8)
 			IContextMenuItem * backdropImplMenu = menuItem->addModeMenu(MenuActionTextBackdropImplementation, "Backdrop Implementation", _item, object->getBackdropImplementation());
 			if (backdropImplMenu)
 			{
@@ -2458,6 +2459,7 @@ bool contextMenuPopulateImpl<osgText::Text>::populate(IContextMenuItem * menuIte
 				backdropImplMenu->addModeAction("STENCIL_BUFFER", osgText::Text::STENCIL_BUFFER);
 				backdropImplMenu->addModeAction("DELAYED_DEPTH_WRITES", osgText::Text::DELAYED_DEPTH_WRITES);
 			}
+#endif
             menuItem->addSimpleAction(MenuActionTextBackdropHorizontalOffset, helpers::str_plus_info("Backdrop Horz. Offset", object->getBackdropHorizontalOffset()), _item);
             menuItem->addSimpleAction(MenuActionTextBackdropVerticalOffset, helpers::str_plus_info("Backdrop Vert. Offset", object->getBackdropVerticalOffset()), _item);
             menuItem->addSimpleAction(MenuActionTextBackdropColor, "Backdrop color...", _item);

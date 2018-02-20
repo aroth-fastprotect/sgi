@@ -119,7 +119,7 @@ enum MenuAction {
     MenuActionPagedLODFrameNumberOfLastTraversal,
 	MenuActionDrawableUseDisplayList,
 	MenuActionDrawableSupportsDisplayList,
-	MenuActionDrawableDirtyDisplayList,
+	MenuActionDrawableDirtyGLObjects,
 	MenuActionDrawableUseVBO,
     MenuActionDrawableRenderInfoDrawCallback,
 	MenuActionShapeDrawableColor,

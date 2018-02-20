@@ -4,6 +4,7 @@
 #define private protected
 #endif
 #include <osgEarth/MapNode>
+#include <osgEarth/Map>
 #ifdef MAPNODE_ACCESS_HACK
 #undef private
 #endif
@@ -11,6 +12,7 @@
 #include <osgEarthUtil/Controls>
 #include <osgEarthUtil/EarthManipulator>
 #include <osgEarthUtil/AutoClipPlaneHandler>
+#include <osgEarthUtil/RTTPicker>
 #include <osgEarth/TerrainEngineNode>
 #include <osgEarth/Registry>
 #include <osgEarth/VirtualProgram>
@@ -50,23 +52,31 @@ namespace osgearth_plugin {
 			_blacklistMutex.readUnlock();
 		}
 	};
+    class MapAccess : public osgEarth::Map
+    {
+    public:
+        void getMapCallbacks(osgEarth::MapCallbackList & mapCallbacks) const;
+    };
 
 	class MapNodeAccess : public osgEarth::MapNode
 	{
 	public:
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
 		const osgEarth::Terrain* terrain() const { return _terrainEngine.valid() ? _terrainEngine->getTerrain() : NULL; }
 		osgEarth::TerrainEngineNode * terrainEngineNode() const { return _terrainEngine.get(); }
 		bool terrainEngineInitialized() const { return _terrainEngineInitialized; }
 		osg::Group* terrainEngineContainer() const { return _terrainEngineContainer; }
-
+#endif
 		bool hasMapInspector() const;
 		void toggleMapInspector();
 		
 		bool isTerrainProfileActive() const;
 		void toggleTerrainProfile(QWidget * parent);
 
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
         bool getCullDataCameras(osg::NodeList & cameras);
         const osgEarth::MapNodeCullData * getCullDataForCamera(osg::Camera* camera);
+#endif
 	};
 
     class ControlCanvasAccess : public osgEarth::Util::Controls::ControlCanvas
@@ -122,7 +132,11 @@ namespace osgearth_plugin {
             os << "<tr><td>screenPos</td><td>" << viewdata._screenPos << "</td></tr>" << std::endl;
             os << "<tr><td>visibleTime</td><td>" << viewdata._visibleTime << "</td></tr>" << std::endl;
             os << "<tr><td>visitFrame</td><td>" << viewdata._visitFrame << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
             os << "<tr><td>_uniform</td><td>" << viewdata._uniform << "</td></tr>" << std::endl;
+#else
+            os << "<tr><td>_uniform</td><td>" << viewdata._uniform.get() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>_canvas</td><td>";
             if(viewdata._canvas.valid())
                 os << viewdata._canvas.get();
@@ -130,16 +144,32 @@ namespace osgearth_plugin {
             os << "</table>" << std::endl;
         }
     };
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+    class LayerAccessor : public osgEarth::Layer
+    {
+    public:
+        typedef std::vector<osg::ref_ptr<osgEarth::LayerCallback> > LayerCallbackList;
+        void getLayerCallbacks(LayerCallbackList & callbacks) const;
+        osgEarth::CacheSettings * getCacheSettings() const { return _cacheSettings.get(); }
+    };
+#endif
+
     class TerrainLayerAccessor : public osgEarth::TerrainLayer
     {
     public:
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
         inline void setCachePolicy( const osgEarth::CachePolicy& cp ) { osgEarth::TerrainLayer::setCachePolicy(cp); }
         inline const osgEarth::CachePolicy& getCachePolicy() const { return osgEarth::TerrainLayer::getCachePolicy(); }
+#endif
         inline std::string getURL() const
         {
             std::string url;
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
             const osgEarth::TerrainLayerOptions & layerOpts = getTerrainLayerRuntimeOptions();
             osgEarth::Config layerConf = layerOpts.getConfig();
+#else
+            osgEarth::Config layerConf = getConfig();
+#endif
             if(layerConf.hasValue("url"))
                 url = layerConf.value("url");
             return url;
@@ -156,9 +186,11 @@ namespace osgearth_plugin {
 		inline const osgEarth::Profile * profileNoInit() { return _profile.get(); }
         inline const osgEarth::Profile * targetProfileHintNoInit() { return _targetProfileHint.get(); }
         
-        inline bool tileSourceInitAttempted() const { return _tileSourceInitAttempted; }
         inline unsigned tileSize() const { return _tileSize; }
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
+        inline bool tileSourceInitAttempted() const { return _tileSourceInitAttempted; }
         inline osgDB::Options * dbOptions() { return _dbOptions.get(); }
+#endif
     };
     class ElevationLayerAccessor : public osgEarth::ElevationLayer
     {
@@ -280,7 +312,7 @@ namespace osgearth_plugin {
     public:
         typedef std::set<osgEarth::TileKey> TileKeySet;
 
-#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0) && defined(OSGEARTH_WITH_FAST_MODIFICATIONS)
         void getTileKeySet(TileKeySet & ts)
         {
             osgEarth::Threading::ScopedReadLock lock(_mutex);
@@ -317,7 +349,22 @@ namespace osgearth_plugin {
     public:
         bool getMap(osg::ref_ptr<const osgEarth::Map> & map) const { return _map.lock(map); }
         osgEarth::Features::FeatureNodeFactory * getFeatureNodeFactory() { return _factory.get(); }
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
         const osgDB::Options * getDBOptions() { return _dbOptions.get(); }
+#endif
+    };
+
+    class RTTPickerAccess : public osgEarth::Util::RTTPicker 
+    {
+    public:
+        int                    getRttSize() const { return _rttSize; }
+
+        Callback *              getDefaultCallback() const { return _defaultCallback.get(); }
+
+        typedef std::list<PickContext> PickContexts;
+        void getPickContexts( PickContexts & contexts) const;
+
+        osg::Group *            getGroup() const { return _group.get(); }
     };
 
 } // namespace osgearth_plugin

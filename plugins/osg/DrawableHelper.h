@@ -39,7 +39,7 @@ public:
             disabledCallback->remove(drawable);
     }
 
-    virtual void drawImplementation(osg::RenderInfo& /*renderInfo*/,const osg::Drawable* /*drawable*/) const
+    void drawImplementation(osg::RenderInfo& /*renderInfo*/,const osg::Drawable* /*drawable*/) const override
     {
         // do nothing to hide/disable the drawable
     }
@@ -160,7 +160,7 @@ public:
 
     META_Object(sgi-osg, RenderInfoDrawable);
 
-    virtual void drawImplementation(osg::RenderInfo& renderInfo) const;
+    void drawImplementation(osg::RenderInfo& renderInfo) const override;
 
     const RenderInfoData & data() const;
 
@@ -176,7 +176,7 @@ public:
 
     META_Object(sgi-osg, RenderInfoGeometry);
 
-    virtual void drawImplementation(osg::RenderInfo& renderInfo) const;
+    void drawImplementation(osg::RenderInfo& renderInfo) const override;
 
     const RenderInfoData & data() const;
 
