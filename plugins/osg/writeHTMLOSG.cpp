@@ -1708,6 +1708,26 @@ bool writePrettyHTMLImpl<osg::Geometry>::process(std::basic_ostream<char>& os)
             ret = true;
         }
         break;
+    case SGIItemTypeDrawableVertexAttribArrays:
+        {
+            os << "<ol>";
+            unsigned numVertexAttribArrays = object->getNumVertexAttribArrays();
+            for (unsigned i = 0; i < numVertexAttribArrays; ++i)
+            {
+                osg::Array * attr = object->getVertexAttribArray(i);
+                os << "<li>" << helpers::str_plus_number("VertexAttribArray", i) << ':';
+                if (attr)
+                {
+                    os << " size=" << attr->getNumElements();
+                    os << " type=" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(attr->getDataType());
+                }
+                os << ' ' << osg_helpers::getObjectNameAndType(attr, true);
+                os << "</li>";
+            }
+            os << "</ol>";
+            ret = true;
+    }
+        break;
     case SGIItemTypeDrawableTexCoordsList:
         {
             os << "<ol>";
@@ -1719,7 +1739,7 @@ bool writePrettyHTMLImpl<osg::Geometry>::process(std::basic_ostream<char>& os)
                 if (texcoords)
                 {
                     os << " size=" << texcoords->getNumElements();
-                    os << " type=" << texcoords->getDataType();
+                    os << " type=" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(texcoords->getDataType());
                 }
                 os << ' ' << osg_helpers::getObjectNameAndType(texcoords, true);
                 os << "</li>";
@@ -2037,6 +2057,19 @@ bool writePrettyHTMLImpl<osg::PrimitiveSet>::process(std::basic_ostream<char>& o
 
             if(_table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeDrawElementsIndicies:
+        {
+            os << "<ol start=\"0\">";
+            unsigned numIndices = object->getNumIndices();
+            for(unsigned i = 0; i < numIndices; ++i)
+            {
+                unsigned idx = object->index(i);
+                os << "<li>" << idx << "</li>";
+            }
+            os << "</ol>";
             ret = true;
         }
         break;

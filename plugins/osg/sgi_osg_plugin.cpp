@@ -369,14 +369,17 @@ SGI_OBJECT_INFO_BEGIN(osg::NodeVisitor::DatabaseRequestHandler)
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::PrimitiveSet)
-    osg::DrawElements
+    osg::DrawElements,
+#ifdef OSG_HAS_MULTIDRAWARRAYS
+    osg::MultiDrawArrays,
+#endif
+    osg::DrawArrays,
+    osg::DrawArrayLengths
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osg::DrawElements)
     osg::DrawElementsUByte,
     osg::DrawElementsUShort,
-    osg::DrawElementsUInt,
-    osg::DrawArrays,
-    osg::DrawArrayLengths
+    osg::DrawElementsUInt
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::Array)
@@ -613,6 +616,7 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeStateSetUniformList);
         SGIITEMTYPE_NAME(SGIItemTypeParentalNodePath);
         SGIITEMTYPE_NAME(SGIItemTypeDrawableTexCoordsList);
+        SGIITEMTYPE_NAME(SGIItemTypeDrawableVertexAttribArrays);
         SGIITEMTYPE_NAME(SGIItemTypePrimitiveSetList);
 
         SGIITEMTYPE_NAME(SGIItemTypeGraphicsContextCameras);
@@ -691,6 +695,8 @@ public:
         REGISTER_GLENUM(GL_3_BYTES);
         REGISTER_GLENUM(GL_4_BYTES);
         REGISTER_GLENUM(GL_DOUBLE);
+        REGISTER_GLENUM(GL_INT64_ARB);
+        REGISTER_GLENUM(GL_UNSIGNED_INT64_ARB);
 
         REGISTER_GLENUM(GL_ALPHA_TEST);
         REGISTER_GLENUM(GL_AUTO_NORMAL);

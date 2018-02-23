@@ -111,6 +111,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::HeightField)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::BufferData)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Array)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::BufferObject)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::PrimitiveSet)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::DrawElements)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::State)
@@ -670,13 +671,31 @@ bool objectTreeBuildImpl<osg::Geometry>::build(IObjectTreeItem * treeItem)
             if(secondaryColorArray.hasObject())
                 treeItem->addChild(helpers::str_plus_count("Secondary colors", ((const osg::Array * )secondaryColorArray.object())->getNumElements()), &secondaryColorArray);
 
+            unsigned numVertexAttribArrays = object->getNumVertexAttribArrays();
+            if (numVertexAttribArrays)
+                treeItem->addChild(helpers::str_plus_count("VertexAttribArrays", numVertexAttribArrays), cloneItem<SGIItemOsg>(SGIItemTypeDrawableVertexAttribArrays));
+
             unsigned numTexCoordArrays = object->getNumTexCoordArrays();
             if(numTexCoordArrays)
                 treeItem->addChild(helpers::str_plus_count("Texture Coordinates", numTexCoordArrays), cloneItem<SGIItemOsg>(SGIItemTypeDrawableTexCoordsList));
 
+            
+
             unsigned numPrimitiveSets = object->getNumPrimitiveSets();
             if(numPrimitiveSets)
                 treeItem->addChild(helpers::str_plus_count("PrimitiveSets", numPrimitiveSets), cloneItem<SGIItemOsg>(SGIItemTypePrimitiveSetList));
+        }
+        break;
+    case SGIItemTypeDrawableVertexAttribArrays:
+        {
+            unsigned numVertexAttribArrays = object->getNumVertexAttribArrays();
+            for(unsigned i = 0; i < numVertexAttribArrays; ++i)
+            {
+                SGIHostItemOsg vertexAttribArray(object->getVertexAttribArray(i));
+                if(vertexAttribArray.hasObject())
+                    treeItem->addChild(helpers::str_plus_count(helpers::str_plus_number("VertexAttribArray", i).c_str(), ((const osg::Array * )vertexAttribArray.object())->getNumElements()), &vertexAttribArray);
+            }
+            ret = true;
         }
         break;
     case SGIItemTypeDrawableTexCoordsList:
@@ -1784,7 +1803,8 @@ bool objectTreeBuildImpl<osg::BufferData>::build(IObjectTreeItem * treeItem)
             if(object->getModifiedCallback())
                 treeItem->addChildIfNotExists("Callbacks", cloneItem<SGIItemOsg>(SGIItemTypeCallbacks));
 
-            treeItem->addChild("Data", cloneItem<SGIItemOsg>(SGIItemTypeArrayData));
+            if(object->getDataPointer())
+                treeItem->addChild("Data", cloneItem<SGIItemOsg>(SGIItemTypeArrayData));
 
             SGIHostItemOsg bufObj(object->getBufferObject());
             if(bufObj.hasObject())
@@ -1889,6 +1909,31 @@ bool objectTreeBuildImpl<osg::BufferObject>::build(IObjectTreeItem * treeItem)
             }
             ret = true;
         }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osg::PrimitiveSet>::build(IObjectTreeItem * treeItem)
+{
+    bool ret;
+    osg::PrimitiveSet * object = getObject<osg::PrimitiveSet, SGIItemOsg>();
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            unsigned numIndices = object->getNumIndices();
+            if (numIndices)
+                treeItem->addChild(helpers::str_plus_count("Indices", numIndices), cloneItem<SGIItemOsg>(SGIItemTypeDrawElementsIndicies));
+        }
+        break;
+    case SGIItemTypeDrawElementsIndicies:
+        ret = true;
         break;
     default:
         ret = callNextHandler(treeItem);

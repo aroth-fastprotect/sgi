@@ -21,6 +21,7 @@ enum SGIItemType_osg
     SGIItemTypeStateSetDefineList,
     SGIItemTypeParentalNodePath,
     SGIItemTypeDrawableTexCoordsList,
+    SGIItemTypeDrawableVertexAttribArrays,
     SGIItemTypePrimitiveSetList,
 	SGIItemTypeGraphicsContexts,
     SGIItemTypeGraphicsContextCameras,
