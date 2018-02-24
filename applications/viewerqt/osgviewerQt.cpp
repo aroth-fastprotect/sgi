@@ -1,5 +1,4 @@
 #include "osgviewerQt.h"
-#include "osgviewerQt.moc"
 #include <QTimer>
 #include <QFileInfo>
 #include <QApplication>
@@ -25,9 +24,11 @@
 #include <osgDB/FileNameUtils>
 #include <osgUtil/Optimizer>
 
+#ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
+#endif
 
-#if WITH_OSGEARTH
+#ifdef SGI_USE_OSGEARTH
 #include <osgEarth/Notify>
 #include <osgEarth/MapNode>
 #include <osgEarth/MapFrame>
@@ -36,7 +37,7 @@
 
 #include <osgEarthUtil/ExampleResources>
 #include <osgEarthUtil/EarthManipulator>
-#endif // WITH_OSGEARTH
+#endif // SGI_USE_OSGEARTH
 
 #include <iostream>
 #include <iomanip>
@@ -396,14 +397,18 @@ bool iequals(const std::string& a, const std::string& b)
 osgViewerQtMapNodeHelper::osgViewerQtMapNodeHelper()
     : m_errorMessages()
     , m_files()
+#ifdef SGI_USE_OSGEARTH
     , _mapNodeHelper(new osgEarth::Util::MapNodeHelper)
+#endif
     , _onlyImages(false)
 {
 }
 
 osgViewerQtMapNodeHelper::~osgViewerQtMapNodeHelper()
 {
+#ifdef SGI_USE_OSGEARTH
     delete _mapNodeHelper;
+#endif
 }
 
 
@@ -411,9 +416,12 @@ void osgViewerQtMapNodeHelper::setupInitialPosition( osgViewer::View* view, int 
 {
     osgGA::CameraManipulator * manip = view->getCameraManipulator();
 
+#ifdef SGI_USE_OSGEARTH
     osgEarth::Util::EarthManipulator* earth_manip = dynamic_cast<osgEarth::Util::EarthManipulator*>(manip);
+#endif
     osgGA::TrackballManipulator* trackball_manip = dynamic_cast<osgGA::TrackballManipulator*>(manip);
 
+#ifdef SGI_USE_OSGEARTH
     if(earth_manip)
     {
         osgEarth::Viewpoint selectedViewpoint;
@@ -449,7 +457,9 @@ void osgViewerQtMapNodeHelper::setupInitialPosition( osgViewer::View* view, int 
         }
         earth_manip->setViewpoint(selectedViewpoint);
     }
-    else if(trackball_manip)
+    else
+#endif // SGI_USE_OSGEARTH
+    if(trackball_manip)
     {
         // set clear color to OSG default (violett-blue)
         view->getCamera()->setClearColor(osg::Vec4f(0.2f, 0.2f, 0.4f, 1.0f));
@@ -477,6 +487,7 @@ void osgViewerQtMapNodeHelper::setupInitialPosition( osgViewer::View* view, int 
 std::string
 osgViewerQtMapNodeHelper::usage() const
 {
+#ifdef SGI_USE_OSGEARTH
     std::string msg = osgEarth::Stringify()
         << "    --nosgi              : do not add SceneGraphInspector\n"
         << "    --hidesgi            : do not show SceneGraphInspector\n"
@@ -489,6 +500,9 @@ osgViewerQtMapNodeHelper::usage() const
         << "    --viewpoint <name|num>  : jump to the given viewpoint\n"
         ;
     return _mapNodeHelper->usage() + msg;
+#else
+    return std::string();
+#endif
 }
 
 std::string osgViewerQtMapNodeHelper::errorMessages() const
@@ -498,8 +512,11 @@ std::string osgViewerQtMapNodeHelper::errorMessages() const
 
 osg::Group*
 osgViewerQtMapNodeHelper::load(osg::ArgumentParser& args,
-                    osgViewer::View* view,
-                    osgEarth::Util::Controls::Container* userContainer)
+                    osgViewer::View* view
+#ifdef SGI_USE_OSGEARTH
+                    , osgEarth::Util::Controls::Container* userContainer
+#endif
+                              )
 {
     osgDB::Registry * registry = osgDB::Registry::instance();
     bool hasAtLeastOneNode = false;
@@ -622,6 +639,7 @@ osgViewerQtMapNodeHelper::load(osg::ArgumentParser& args,
     // check if we only got one image and nothing else
     _onlyImages = ( !hasAtLeastOneNode && !hasAtLeastOneObject && hasAtLeastOneImage);
 
+#ifdef SGI_USE_OSGEARTH
     osg::ref_ptr<osgEarth::MapNode> mapNode = osgEarth::MapNode::findMapNode(root);
     if(mapNode.valid())
     {
@@ -635,6 +653,7 @@ osgViewerQtMapNodeHelper::load(osg::ArgumentParser& args,
         }
     }
     else
+#endif // SGI_USE_OSGEARTH
     {
         m_errorMessages << "Loaded scene graph does not contain a MapNode" << std::endl;
         // warn about not having an earth manip
@@ -649,11 +668,13 @@ osgViewerQtMapNodeHelper::load(osg::ArgumentParser& args,
 
     root = setupRootGroup(root);
 
+#ifdef SGI_USE_OSGEARTH
     if(mapNode.valid())
         _mapNodeHelper->parse( mapNode.get(), args, view, root, userContainer);
 
     // configures the viewer with some stock goodies
     _mapNodeHelper->configureView( view );
+#endif // SGI_USE_OSGEARTH
 
     return root;
 }
@@ -706,7 +727,7 @@ public:
 
     virtual void run()
     {
-        OpenThreads::Thread::setCurrentThreadName("CompVwr");
+        //OpenThreads::Thread::setCurrentThreadName("CompVwr");
         m_viewer->setDone(false);
         //osgQt::setViewer(m_viewer);
         QTimer * timer = new QTimer;
@@ -736,7 +757,12 @@ ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared)
     , _timer(nullptr)
 {
     _mainGW = createGraphicsWindow(0,0,QMainWindow::width(),QMainWindow::height(), (shared)?parent->_mainGW.get():nullptr);
-    setCentralWidget(_mainGW->getGLWidget());
+
+#ifdef SGI_USE_OSGQT
+    osgQt::GraphicsWindowQt* gwq = dynamic_cast<osgQt::GraphicsWindowQt*>(_mainGW.get());
+    if(gwq)
+        setCentralWidget(gwq->getGLWidget());
+#endif
 
     _view = new osgViewer::View;
 
@@ -774,7 +800,11 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     _viewer->setKeyEventSetsDone(0);
 
     _mainGW = createGraphicsWindow(0, 0, QMainWindow::width(), QMainWindow::height(), nullptr);
-    setCentralWidget(_mainGW->getGLWidget());
+#ifdef SGI_USE_OSGQT
+    osgQt::GraphicsWindowQt* gwq = dynamic_cast<osgQt::GraphicsWindowQt*>(_mainGW.get());
+    if(gwq)
+        setCentralWidget(gwq->getGLWidget());
+#endif
 
     _view = new osgViewer::View;
 
@@ -845,7 +875,7 @@ void ViewerWidget::setData(osg::Node * node)
     _view->setSceneData(node);
 }
 
-osgQt::GraphicsWindowQt* ViewerWidget::createGraphicsWindow( int x, int y, int w, int h, osg::GraphicsContext * sharedContext, const std::string& name, bool windowDecoration)
+osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int w, int h, osg::GraphicsContext * sharedContext, const std::string& name, bool windowDecoration)
 {
     osg::DisplaySettings* ds = osg::DisplaySettings::instance().get();
     osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
@@ -861,8 +891,11 @@ osgQt::GraphicsWindowQt* ViewerWidget::createGraphicsWindow( int x, int y, int w
     traits->sampleBuffers = ds->getMultiSamples();
     traits->samples = ds->getNumMultiSamples();
     traits->sharedContext = sharedContext;
-
+#ifdef SGI_USE_OSGQT
     return new osgQt::GraphicsWindowQt(traits.get());
+#else
+    return nullptr;
+#endif
 }
 
 void ViewerWidget::paintEvent( QPaintEvent* event )
@@ -905,6 +938,7 @@ public:
         ViewerWidget * sourceWidget = nullptr;
 
 
+#ifdef SGI_USE_OSGQT
         osgQt::GraphicsWindowQt* ctx = dynamic_cast<osgQt::GraphicsWindowQt*>(sourceCamera->getGraphicsContext());
         if (ctx)
         {
@@ -912,6 +946,7 @@ public:
             if (w)
                 sourceWidget = dynamic_cast<ViewerWidget*>(w->parentWidget());
         }
+#endif
 
         ViewerWidget * nextwidget = new ViewerWidget(sourceWidget, shared);
         nextwidget->createCamera();
@@ -994,8 +1029,10 @@ main(int argc, char** argv)
     if ( !osgearthnotifylevel.empty() )
     {
         osg::NotifySeverity level = severityFromString(osgearthnotifylevel);
+#ifdef SGI_USE_OSGEARTH
         if(level >= 0)
             osgEarth::setNotifyLevel(level);
+#endif
     }
 
     ViewerWidget * myMainWindow = new ViewerWidget(arguments);

@@ -14,27 +14,39 @@ SET(TARGET_LIBRARIES_VARS
     OSGDB_LIBRARY
     OSGUTIL_LIBRARY
     OSGGA_LIBRARY
-    OSGQT_LIBRARY
     OSGVIEWER_LIBRARY
 )
+if(OSGQT_FOUND)
+    include_directories(${OSGQT_INCLUDE_DIR})
+    LIST(APPEND TARGET_LIBRARIES_VARS
+        OSGQT_LIBRARY
+    )
+endif()
+
 LIST(APPEND TARGET_LIBRARIES_VARS
     QT_QTCORE_LIBRARY
     QT_QTGUI_LIBRARY
     )
 IF ( Qt5Widgets_FOUND )
+    # Add the include directories for the Qt 5 Widgets module to
+    # the compile lines.
+    include_directories(${Qt5Widgets_INCLUDE_DIRS})
 	LIST(APPEND TARGET_LIBRARIES_VARS QT_QTWIDGETS_LIBRARY )
+ENDIF()
+IF ( Qt5OpenGL_FOUND )
+    # Add the include directories for the Qt 5 OpenGL module to
+    # the compile lines.
+    include_directories(${Qt5OpenGL_INCLUDE_DIRS})
+	LIST(APPEND TARGET_LIBRARIES_VARS QT_QTOPENGL_LIBRARY )
 ENDIF()
 
 IF(OSGEARTH_FOUND)
     include_directories(${OSGEARTH_INCLUDE_DIR})
-    LIST(APPEND TARGET_DEFINITIONS WITH_OSGEARTH=1 )
     LIST(APPEND TARGET_LIBRARIES_VARS
         OSGEARTH_LIBRARY
         OSGEARTHUTIL_LIBRARY
         OSGEARTHSYMBOLOGY_LIBRARY
     )
-else()
-    LIST(APPEND TARGET_DEFINITIONS WITH_OSGEARTH=0 )
 ENDIF()
 
 

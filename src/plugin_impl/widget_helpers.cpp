@@ -1,5 +1,4 @@
 #include <sgi/helpers/qt_widgets>
-#include <__/__/include/sgi/helpers/qt_widgets.moc>
 #include <QTimer>
 #include <QPen>
 #include <QPainter>

@@ -65,7 +65,7 @@ SET(TARGET_H
     ManipulateObject.h
 
     )
-fast_configure_file(SGIItemOsg ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsg COPY_ONLY)
+fast_configure_file(SGIItemOsg ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsg COPYONLY)
 
 SET(TARGET_MOC_H
     CameraSettings.h
@@ -88,8 +88,13 @@ SET(TARGET_LIBRARIES_VARS
     OSGTERRAIN_LIBRARY
     OSGVIEWER_LIBRARY
     OSGUTIL_LIBRARY
-    OSGQT_LIBRARY
 )
+if(OSGQT_FOUND)
+    include_directories(${OSGQT_INCLUDE_DIR})
+    LIST(APPEND TARGET_LIBRARIES_VARS
+        OSGQT_LIBRARY
+    )
+endif()
 LIST(APPEND TARGET_LIBRARIES_VARS
     QT_QTCORE_LIBRARY
 	QT_QTOPENGL_LIBRARY

@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include <sgi/plugins/Matrix>
 #include "MatrixInputDialog.h"
-#include "MatrixInputDialog.moc"
 
 #include <unordered_map>
 #include <QPushButton>

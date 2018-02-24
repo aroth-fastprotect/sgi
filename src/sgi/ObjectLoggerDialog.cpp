@@ -1,8 +1,7 @@
 #include "stdafx.h"
 #include "ObjectLoggerDialog.h"
-#include "ObjectLoggerDialog.moc"
 
-#include "ui_ObjectLoggerDialog.h"
+#include <ui_ObjectLoggerDialog.h>
 
 #include <QToolBar>
 #include <QComboBox>

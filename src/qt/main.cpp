@@ -2,7 +2,6 @@
 // SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
 
 #include "main.h"
-#include "main.moc"
 #include <QApplication>
 #include <QMouseEvent>
 #include <QWidget>
@@ -12,7 +11,7 @@
 #include <sgi/AutoLoadQt>
 #include <sgi/helpers/qt_widgetwindow>
 
-#include <QDebug>
+#include <QtCore/QDebug>
 
 #if defined(_DEBUG)
 #if defined(_MSC_VER)

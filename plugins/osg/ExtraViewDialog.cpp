@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include <osg/Camera>
 #include "ExtraViewDialog.h"
-#include "ExtraViewDialog.moc"
 
 #include <QPushButton>
 #include <QTimer>
@@ -13,7 +12,10 @@
 #include <sgi/helpers/osg>
 #include <osgViewer/View>
 #include <osgViewer/CompositeViewer>
+
+#ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
+#endif // SGI_USE_OSGQT
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -36,7 +38,12 @@ void ViewOSG::setCamera(osgViewer::CompositeViewer * viewer, osg::Camera * camer
     _viewer = viewer;
     osg::GraphicsContext * existingContext = camera->getGraphicsContext();
     _gfx = createGraphicsWindow(0, 0, QWidget::width(), QWidget::height(), existingContext);
-    _widget = _gfx->getGLWidget();
+
+#ifdef SGI_USE_OSGQT
+    osgQt::GraphicsWindowQt* gwq = dynamic_cast<osgQt::GraphicsWindowQt*>(_gfx.get());
+    if(gwq)
+        _widget = gwq->getGLWidget();
+#endif
 
     QHBoxLayout * l = new QHBoxLayout;
     l->addWidget(_widget);
@@ -86,7 +93,7 @@ void ViewOSG::updateCamera()
     }
 }
 
-osgQt::GraphicsWindowQt* ViewOSG::createGraphicsWindow(int x, int y, int w, int h, osg::GraphicsContext * sharedContext, const std::string& name, bool windowDecoration)
+osgViewer::GraphicsWindow* ViewOSG::createGraphicsWindow(int x, int y, int w, int h, osg::GraphicsContext * sharedContext, const std::string& name, bool windowDecoration)
 {
     osg::DisplaySettings* ds = osg::DisplaySettings::instance().get();
     osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
@@ -103,7 +110,11 @@ osgQt::GraphicsWindowQt* ViewOSG::createGraphicsWindow(int x, int y, int w, int 
     traits->sampleBuffers = ds->getMultiSamples();
     traits->samples = ds->getNumMultiSamples();
 
+#ifdef SGI_USE_OSGQT
     return new osgQt::GraphicsWindowQt(traits.get());
+#else
+    return nullptr;
+#endif
 }
 
 void ViewOSG::paintEvent(QPaintEvent* event)

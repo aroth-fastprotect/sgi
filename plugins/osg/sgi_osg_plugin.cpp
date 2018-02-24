@@ -84,9 +84,11 @@
 #include <osgViewer/Renderer>
 #include <osgViewer/ViewerEventHandlers>
 
+#if SGI_USE_OSGQT
 // osgQt headers
 #include <osgQt/GraphicsWindowQt>
 #include <osgQt/QObjectWrapper>
+#endif
 
 // osgTerrain headers
 #include <osgTerrain/Terrain>
@@ -315,7 +317,9 @@ SGI_OBJECT_INFO_BEGIN(osg::Object)
     osgText::Font,
     osgUtil::SceneView, osgUtil::RenderBin,
     osgTerrain::Locator, osgTerrain::Layer, osgTerrain::TerrainTechnique,
+#ifdef SGI_USE_OSGQT
     osgQt::QObjectWrapper,
+#endif
     CullingInfo,
     CullingInfoForCamera,
     CullingInfoRegistry
@@ -530,9 +534,11 @@ SGI_OBJECT_INFO_BEGIN(osgViewer::ViewerBase)
     osgViewer::CompositeViewer
 SGI_OBJECT_INFO_END()
 
+#ifdef SGI_USE_OSGQT
 SGI_OBJECT_INFO_BEGIN(osgViewer::GraphicsWindow)
     osgQt::GraphicsWindowQt
 SGI_OBJECT_INFO_END()
+#endif
 
 SGI_OBJECT_INFO_BEGIN(sgi::ReferencedPickerBase)
     sgi::ReferencedPicker, sgi::ReferencedLinePicker

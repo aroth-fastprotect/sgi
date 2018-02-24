@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include <sgi/plugins/Quat>
 #include "QuatInputDialog.h"
-#include "QuatInputDialog.moc"
 
 #include <QPushButton>
 

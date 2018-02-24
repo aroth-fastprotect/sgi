@@ -22,7 +22,10 @@ LIST(APPEND TARGET_LIBRARIES_VARS
     QT_QTGUI_LIBRARY
     )
 IF ( Qt5Widgets_FOUND )
-    LIST(APPEND TARGET_LIBRARIES_VARS QT_QTWIDGETS_LIBRARY )
+    # Add the include directories for the Qt 5 Widgets module to
+    # the compile lines.
+    include_directories(${Qt5Widgets_INCLUDE_DIRS} ${Qt5Widgets_PRIVATE_INCLUDE_DIRS})
+    LIST(APPEND TARGET_LIBRARIES_VARS Qt5::Widgets )
 ENDIF()
 
 SET(TARGET_VERSION ${SGI_VERSION})

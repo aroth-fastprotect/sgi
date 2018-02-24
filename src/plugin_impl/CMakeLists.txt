@@ -6,6 +6,7 @@ SET(TARGET_SRC
     SGIItemBase.cpp
 	SGIImage.cpp
     ObjectTreeImpl.cpp
+    ObjectTreeImplProxy.cpp
     functionImplBase.cpp
     osg_helpers.cpp
 	osg_statistics.cpp
@@ -42,9 +43,29 @@ LIST(APPEND TARGET_LIBRARIES_VARS
     QT_QTCORE_LIBRARY
     QT_QTGUI_LIBRARY
     )
+if(OSGQT_FOUND)
+    LIST(APPEND TARGET_DEFINITIONS WITH_OSGQT=1 )
+    include_directories(${OSGQT_INCLUDE_DIR})
+    LIST(APPEND TARGET_LIBRARIES_VARS
+        OSGQT_LIBRARY
+    )
+else()
+    LIST(APPEND TARGET_DEFINITIONS WITH_OSGQT=0 )
+endif()
+
 IF ( Qt5Widgets_FOUND )
+    # Add the include directories for the Qt 5 Widgets module to
+    # the compile lines.
+    include_directories(${Qt5Widgets_INCLUDE_DIRS} ${Qt5Widgets_PRIVATE_INCLUDE_DIRS})
     LIST(APPEND TARGET_LIBRARIES_VARS QT_QTWIDGETS_LIBRARY )
 ENDIF()
+IF ( Qt5OpenGL_FOUND )
+    # Add the include directories for the Qt 5 OpenGL module to
+    # the compile lines.
+    include_directories(${Qt5OpenGL_INCLUDE_DIRS})
+    LIST(APPEND TARGET_LIBRARIES_VARS QT_QTOPENGL_LIBRARY )
+ENDIF()
+
 LIST(APPEND TARGET_DEFINITIONS SGI_LIBRARY)
 
 FAST_SHARED_LIBRARY(osgSGI-plugin-impl)

@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "QtProxy.h"
-#include "QtProxy.moc"
 
 #include <QThread>
 #include <QApplication>
