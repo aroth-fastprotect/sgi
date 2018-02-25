@@ -16,7 +16,7 @@ if(COMMAND cmake_policy)
 
     # Works around warnings about escaped quotes in ADD_DEFINITIONS
     # statements.
-    cmake_policy(SET CMP0005 OLD)
+    cmake_policy(SET CMP0005 NEW)
 
     # Qt5 qt5_use_modules usage was causing "Policy CMP0043 is not set: Ignore COMPILE_DEFINITIONS_<Config> properties." warnings
     cmake_policy(SET CMP0043 NEW)
@@ -40,6 +40,7 @@ PROJECT(SGI)
 	SET(SGI_PATCH_VERSION 0)
 	SET(SGI_BUILD_VERSION 0)
 	SET(SGI_SOVERSION     0)
+	SET(SGI_COPYRIGHT_TEXT "Copyright (C) 2012-2018")
 
 	SET(SGI_PLUGIN_PREFIX "")
 
@@ -127,22 +128,40 @@ PROJECT(SGI)
 
     TO_LIST_NEWLINES(SGI_PLUGIN_HOST_SUPPORT_INCLUDES SGI_PLUGIN_HOST_SUPPORT_INCLUDES)
     TO_LIST_COMMA(SGI_PLUGIN_HOST_SUPPORT_ITEM_CLASSES SGI_PLUGIN_HOST_SUPPORT_ITEM_CLASSES)
-    fast_configure_file(${CMAKE_CURRENT_SOURCE_DIR}/SGIHostSupport.in ${SGI_INCLUDE_DIR}/sgi/plugins/SGIHostSupport)
 
     #FAST_INSTALL_EXTRA_HEADER_FILES(DIRECTORY ${SGI_INCLUDE_DIR}/sgi DESTINATION include/sgi)
 
+    if(Log4cplus_FOUND)
+        set(SGI_HAS_LOG4CPLUS_SUPPORT 1)
+    endif()
+
     if(SGI_USE_GAMMARAY)
-        add_definitions(-DSGI_USE_GAMMARAY=1)
-        find_package(Gammaray REQUIRED)
+        find_package(Gammaray)
+        if(Gammaray_FOUND)
+            add_definitions(-DSGI_USE_GAMMARAY=1)
+            set(SGI_HAS_GAMMARAY_SUPPORT 1)
+        endif()
+    endif()
+
+    if(SGI_USE_FFMPEG)
+        find_package(FFmpeg)
+        if(FFmpeg_FOUND)
+            add_definitions(-DSGI_USE_FFMPEG=1)
+            set(SGI_HAS_FFMPEG_SUPPORT 1)
+        endif()
     endif()
 
     if(OSGEARTH_FOUND)
+        set(SGI_HAS_OSGEARTH_SUPPORT 1)
         add_definitions(-DSGI_USE_OSGEARTH=1)
     endif()
 
     if(OSGQT_FOUND)
+        set(SGI_HAS_OSGQT_SUPPORT 1)
         add_definitions(-DSGI_USE_OSGQT=1)
     endif()
+
+    fast_configure_file(${CMAKE_CURRENT_SOURCE_DIR}/SGIHostSupport.in ${SGI_INCLUDE_DIR}/sgi/plugins/SGIHostSupport)
 
 	# SGI Core
 	ADD_SUBDIRECTORY(src)
