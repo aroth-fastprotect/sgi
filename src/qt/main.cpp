@@ -81,7 +81,7 @@ bool ApplicationEventFilter::contextMenu(QWidget * widget, QObject * obj, float 
         _contextMenu = sgi::createContextMenuQt(widget, obj, NULL);
     else
         _contextMenu->setObject(obj);
-    if(widget)
+    if(widget && !_contextMenu.isNull())
     {
         _contextMenu->popup(widget, x, y);
         ret = true;
