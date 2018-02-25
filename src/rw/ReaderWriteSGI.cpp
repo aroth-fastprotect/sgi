@@ -26,7 +26,9 @@
 
 #include <QApplication>
 
+#ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
+#endif
 #if defined(_WIN32)
 #include <osgViewer/api/win32/GraphicsWindowWin32>
 #elif defined(__APPLE__)
@@ -567,8 +569,15 @@ public:
                 _parent = options.parentWidget;
             else
             {
+#ifdef SGI_USE_OSGQT
                 if(osgQt::GraphicsWindowQt * gwqt = dynamic_cast<osgQt::GraphicsWindowQt*>(ctx))
                     _parent = gwqt->getGLWidget();
+#else
+                if(0)
+                {
+                    void(0);
+                }
+#endif
 #if defined(_WIN32)
                 else if(osgViewer::GraphicsWindowWin32 * gwwin = dynamic_cast<osgViewer::GraphicsWindowWin32*>(ctx))
                 {
@@ -717,12 +726,17 @@ public:
 
             switch(type)
             {
+#ifndef SGI_USE_OSGEARTH
+            case PickerTypeDefault:
+#endif
             case PickerTypeLine:
                 ret = new ReferencedLinePicker(osg::Vec2f(x,y), _parent->_view, root, traversalMask);
                 break;
+#ifdef SGI_USE_OSGEARTH
             case PickerTypeDefault:
                 ret = new ReferencedPicker(osg::Vec2f(x,y), _parent->_view, root, traversalMask, buffer);
                 break;
+#endif
             }
             return ret;
         }

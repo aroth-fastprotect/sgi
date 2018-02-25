@@ -541,7 +541,10 @@ SGI_OBJECT_INFO_END()
 #endif
 
 SGI_OBJECT_INFO_BEGIN(sgi::ReferencedPickerBase)
-    sgi::ReferencedPicker, sgi::ReferencedLinePicker
+#ifdef SGI_USE_OSGEARTH
+    sgi::ReferencedPicker,
+#endif
+    sgi::ReferencedLinePicker
 SGI_OBJECT_INFO_END()
 
 namespace sgi {

@@ -3,16 +3,21 @@
 
 #pragma once
 
+#ifdef SGI_USE_OSGEARTH
 #include <osgEarth/Version>
 #if OSGEARTH_VERSION_LESS_THAN(2,7,0)
 #include <osgEarth/Pickers>
 #else
 #include <osgEarth/IntersectionPicker>
 #endif
+#else
+#include <osgGA/GUIEventAdapter>
+#endif // SGI_USE_OSGEARTH
 #include <osgUtil/LineSegmentIntersector>
 
-namespace osgGA {
-    class GUIEventAdapter;
+namespace osgViewer {
+    class View;
+    class GraphicsWindow;
 }
 
 namespace sgi {
@@ -20,53 +25,11 @@ namespace sgi {
 class ReferencedPickerBase : public osg::Referenced
 {
 public:
-    ReferencedPickerBase(const osg::Vec2f & pos, osgViewer::View * view, osg::Node * root, unsigned traversalMask=~0u)
-        : osg::Referenced()
-        , m_pos(pos)
-        , m_result(false)
-        , m_root(root)
-        , m_view(view)
-        , m_traversalMask(traversalMask)
-    {
-    }
-
-    ReferencedPickerBase(osgViewer::GraphicsWindow * gw, osg::Node * root=NULL, unsigned traversalMask=~0u)
-        : osg::Referenced()
-        , m_pos()
-        , m_result(false)
-        , m_root(root)
-        , m_view()
-        , m_traversalMask(traversalMask)
-    {
-        osgGA::EventQueue * queue = gw->getEventQueue();
-        osgGA::GUIEventAdapter* eventState = queue->getCurrentEventState();
-        m_pos = osg::Vec2f(eventState->getX(), eventState->getY());
-
-        osgViewer::GraphicsWindow::Views views;
-        gw->getViews(views);
-        osgViewer::View * viewptr = views.front();
-        m_view = viewptr;
-
-        if(!m_root.valid())
-        {
-            m_root = viewptr->getCamera();
-            m_traversalMask = viewptr->getCamera()->getCullMask();
-        }
-    }
-
-    ReferencedPickerBase(const osgGA::GUIEventAdapter & ea, osg::Node * root=NULL, unsigned traversalMask=~0u)
-        : osg::Referenced()
-        , m_pos(osg::Vec2f(ea.getX(), ea.getY()))
-        , m_result(false)
-        , m_root(root)
-        , m_view()
-        , m_traversalMask(traversalMask)
-    {
-    }
+    ReferencedPickerBase(const osg::Vec2f & pos, osgViewer::View * view, osg::Node * root, unsigned traversalMask=~0u);
+    ReferencedPickerBase(osgViewer::GraphicsWindow * gw, osg::Node * root=NULL, unsigned traversalMask=~0u);
+    ReferencedPickerBase(const osgGA::GUIEventAdapter & ea, osg::Node * root=NULL, unsigned traversalMask=~0u);
     /** dtor */
-    virtual ~ReferencedPickerBase()
-    {
-    }
+    virtual ~ReferencedPickerBase();
 
     bool                        result() const { return m_result; }
     const osg::Vec2f &          position() const { return m_pos; }
@@ -86,6 +49,7 @@ protected:
 
 typedef osg::ref_ptr<ReferencedPickerBase> ReferencedPickerBasePtr;
 
+#ifdef SGI_USE_OSGEARTH
 class ReferencedPicker : public ReferencedPickerBase
 {
 public:
@@ -94,126 +58,47 @@ public:
 #else
 	typedef osgEarth::IntersectionPicker PickerType;
 #endif
-
-#include <osgEarth/IntersectionPicker>
-    ReferencedPicker(const osg::Vec2f & pos, osgViewer::View * view, osg::Node * root=NULL, unsigned traversalMask=~0u, float hitBufferSize=1.0f, PickerType::Limit limit=PickerType::NO_LIMIT)
-        : ReferencedPickerBase(pos, view, root, traversalMask)
-        , m_picker(NULL)
-        , m_thickness(hitBufferSize)
-        , m_hits()
-        , m_limit(limit)
-    {
-        recalc();
-    }
-
-    ReferencedPicker(osgViewer::GraphicsWindow * gw, osg::Node * root=NULL, unsigned traversalMask=~0u, float hitBufferSize=1.0f, PickerType::Limit limit= PickerType::NO_LIMIT)
-        : ReferencedPickerBase(gw, root, traversalMask)
-        , m_picker(NULL)
-        , m_thickness(hitBufferSize)
-        , m_hits()
-        , m_limit(limit)
-    {
-        recalc();
-    }
-
-    ReferencedPicker(const osgGA::GUIEventAdapter & ea, osg::Node * root=NULL, unsigned traversalMask=~0u, float hitBufferSize=1.0f, PickerType::Limit limit= PickerType::NO_LIMIT)
-        : ReferencedPickerBase(ea, root, traversalMask)
-        , m_picker(NULL)
-        , m_thickness(hitBufferSize)
-        , m_hits()
-        , m_limit(limit)
-    {
-        recalc();
-    }
+    ReferencedPicker(const osg::Vec2f & pos, osgViewer::View * view, osg::Node * root=NULL, unsigned traversalMask=~0u, float hitBufferSize=1.0f, PickerType::Limit limit=PickerType::NO_LIMIT);
+    ReferencedPicker(osgViewer::GraphicsWindow * gw, osg::Node * root=NULL, unsigned traversalMask=~0u, float hitBufferSize=1.0f, PickerType::Limit limit= PickerType::NO_LIMIT);
+    ReferencedPicker(const osgGA::GUIEventAdapter & ea, osg::Node * root=NULL, unsigned traversalMask=~0u, float hitBufferSize=1.0f, PickerType::Limit limit= PickerType::NO_LIMIT);
 
     /** dtor */
-    virtual ~ReferencedPicker()
-    {
-        if(m_picker)
-            delete m_picker;
-    }
+    virtual ~ReferencedPicker();
 
-    typedef osgEarth::PrimitiveIntersector::Intersection  Hit;
-    typedef osgEarth::PrimitiveIntersector::Intersections Hits;
+    typedef PickerType::Intersection  Hit;
+    typedef PickerType::Intersections Hits;
 
     const Hits & hits() const { return m_hits; }
     float                       thickness() const { return m_thickness; }
     void                        setThickness(float value) { m_thickness = value; }
-   PickerType::Limit     limit() const { return m_limit; }
+    PickerType::Limit           limit() const { return m_limit; }
 
-    virtual void                recalc()
-    {
-        if(m_picker)
-        {
-            delete m_picker;
-            m_picker = NULL;
-        }
-
-        m_picker = new PickerType(dynamic_cast<osgViewer::View*>(m_view.get()), m_root, m_traversalMask, m_thickness, m_limit);
-        m_result = m_picker->pick(m_pos.x(), m_pos.y(), m_hits);
-    }
+    void                recalc() override;
 
 private:
-   PickerType *          m_picker;
+    PickerType *          m_picker;
     float                       m_thickness;
     Hits                        m_hits;
-   PickerType::Limit     m_limit;
+    PickerType::Limit     m_limit;
 };
+#endif // SGI_USE_OSGEARTH
 
 class ReferencedLinePicker : public ReferencedPickerBase
 {
 public:
-    ReferencedLinePicker(const osg::Vec2f & pos, osgViewer::View * view, osg::Node * root=NULL, unsigned traversalMask=~0u)
-        : ReferencedPickerBase(pos, view, root, traversalMask)
-        , m_picker(NULL)
-    {
-        recalc();
-    }
-
-    ReferencedLinePicker(osgViewer::GraphicsWindow * gw, osg::Node * root=NULL, unsigned traversalMask=~0u)
-        : ReferencedPickerBase(gw, root, traversalMask)
-        , m_picker(NULL)
-    {
-        recalc();
-    }
-
-    ReferencedLinePicker(const osgGA::GUIEventAdapter & ea, osg::Node * root=NULL, unsigned traversalMask=~0u)
-        : ReferencedPickerBase(ea, root, traversalMask)
-        , m_picker(NULL)
-    {
-        recalc();
-    }
+    ReferencedLinePicker(const osg::Vec2f & pos, osgViewer::View * view, osg::Node * root=NULL, unsigned traversalMask=~0u);
+    ReferencedLinePicker(osgViewer::GraphicsWindow * gw, osg::Node * root=NULL, unsigned traversalMask=~0u);
+    ReferencedLinePicker(const osgGA::GUIEventAdapter & ea, osg::Node * root=NULL, unsigned traversalMask=~0u);
 
     /** dtor */
-    virtual ~ReferencedLinePicker()
-    {
-        m_picker = NULL;
-    }
+    virtual ~ReferencedLinePicker();
 
     typedef osgUtil::LineSegmentIntersector::Intersection  Hit;
     typedef osgUtil::LineSegmentIntersector::Intersections Hits;
 
-    virtual void recalc()
-    {
-        m_picker = new osgUtil::LineSegmentIntersector(osgUtil::Intersector::WINDOW, m_pos.x(),m_pos.y());
-        osgUtil::IntersectionVisitor iv(m_picker.get());
+    void recalc() override;
 
-        iv.setTraversalMask(m_traversalMask);
-
-        float local_x, local_y = 0.0;
-        const osg::Camera* camera = m_view->getCameraContainingPosition(m_pos.x(), m_pos.y(), local_x, local_y);
-        if ( !camera )
-            camera = m_view->getCamera();
-
-        const_cast<osg::Camera*>(camera)->accept(iv);
-
-        m_result = m_picker->containsIntersections();
-    }
-
-    const Hits & hits() const
-    {
-        return m_picker->getIntersections();
-    }
+    const Hits & hits() const;
 
 private:
     osg::ref_ptr<osgUtil::LineSegmentIntersector> m_picker;

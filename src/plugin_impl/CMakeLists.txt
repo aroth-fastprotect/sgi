@@ -14,6 +14,7 @@ SET(TARGET_SRC
     widget_helpers.cpp
     string_helpers.cpp
 	qt_dds_reader.cpp
+	ReferencePicker.cpp
     )
 
 SET(TARGET_MOC_H

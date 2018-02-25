@@ -7,8 +7,10 @@
 #include <osgViewer/Renderer>
 #include <osgViewer/ViewerEventHandlers>
 
+#ifdef SGI_USE_OSGQT
 // osgQt headers
 #include <osgQt/GraphicsWindowQt>
+#endif
 
 #include "SGIItemOsg"
 #include <sgi/helpers/osg>
@@ -33,7 +35,9 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::ToggleSyncToVBlankHandler
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::ScreenCaptureHandler)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::InteractiveImageHandler)
 
+#ifdef SGI_USE_OSGQT
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgQt::GraphicsWindowQt)
+#endif
 
 using namespace sgi::osg_helpers;
 
@@ -612,6 +616,7 @@ bool writePrettyHTMLImpl<osgViewer::InteractiveImageHandler>::process(std::basic
     return ret;
 }
 
+#ifdef SGI_USE_OSGQT
 bool writePrettyHTMLImpl<osgQt::GraphicsWindowQt>::process(std::basic_ostream<char>& os)
 {
     osgQt::GraphicsWindowQt * object = static_cast<osgQt::GraphicsWindowQt*>(item<SGIItemOsg>()->object());
@@ -640,6 +645,7 @@ bool writePrettyHTMLImpl<osgQt::GraphicsWindowQt>::process(std::basic_ostream<ch
     }
     return ret;
 }
+#endif
 
 } // namespace osg_plugin
 } // namespace sgi

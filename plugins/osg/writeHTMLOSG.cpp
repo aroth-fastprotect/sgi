@@ -35,6 +35,7 @@
 #include <osg/OperationThread>
 #include <osg/CameraView>
 #include <osg/NodeVisitor>
+#include <osg/CullStack>
 
 #include <osg/MatrixTransform>
 #include <osg/PositionAttitudeTransform>
@@ -65,6 +66,8 @@
 #include <osgAnimation/Bone>
 
 #include <osgText/Text>
+
+#include <osgUtil/RenderBin>
 
 #include <sgi/helpers/osg>
 #include <sgi/helpers/osg_statistics>
@@ -227,7 +230,9 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawCallback)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(OpenThreads::Thread)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedPickerBase)
+#ifdef SGI_USE_OSGEARTH
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedPicker)
+#endif
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedLinePicker)
 
 using namespace sgi::osg_helpers;
@@ -6495,12 +6500,13 @@ namespace {
     }
 }
 
-#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
-typedef osgEarth::Picker PickerType;
-#else
-typedef osgEarth::IntersectionPicker PickerType;
-#endif
+#ifdef SGI_USE_OSGEARTH
 
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
+	typedef osgEarth::Picker PickerType;
+#else
+	typedef osgEarth::IntersectionPicker PickerType;
+#endif
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const PickerType::Limit & t)
 {
@@ -6576,6 +6582,7 @@ bool writePrettyHTMLImpl<sgi::ReferencedPicker>::process(std::basic_ostream<char
     }
     return ret;
 }
+#endif // SGI_USE_OSGEARTH
 
 bool writePrettyHTMLImpl<sgi::ReferencedLinePicker>::process(std::basic_ostream<char>& os)
 {

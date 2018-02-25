@@ -186,7 +186,9 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(RenderInfoGeometry)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawCallback)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedPickerBase)
+#ifdef SGI_USE_OSGEARTH
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedPicker)
+#endif
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedLinePicker)
 
 using namespace sgi::osg_helpers;
@@ -4156,6 +4158,7 @@ bool objectTreeBuildImpl<ReferencedPickerBase>::build(IObjectTreeItem * treeItem
     return ret;
 }
 
+#ifdef SGI_USE_OSGEARTH
 bool objectTreeBuildImpl<ReferencedPicker>::build(IObjectTreeItem * treeItem)
 {
     ReferencedPicker * object = dynamic_cast<ReferencedPicker*>(item<SGIItemOsg>()->object());
@@ -4219,6 +4222,7 @@ bool objectTreeBuildImpl<ReferencedPicker>::build(IObjectTreeItem * treeItem)
     }
     return ret;
 }
+#endif
 
 bool objectTreeBuildImpl<ReferencedLinePicker>::build(IObjectTreeItem * treeItem)
 {
