@@ -14,6 +14,7 @@
 #include <osgGA/GUIEventAdapter>
 #endif // SGI_USE_OSGEARTH
 #include <osgUtil/LineSegmentIntersector>
+#include "Export"
 
 namespace osgViewer {
     class View;
@@ -22,7 +23,7 @@ namespace osgViewer {
 
 namespace sgi {
 
-class ReferencedPickerBase : public osg::Referenced
+class SGI_EXPORT ReferencedPickerBase : public osg::Referenced
 {
 public:
     ReferencedPickerBase(const osg::Vec2f & pos, osgViewer::View * view, osg::Node * root, unsigned traversalMask=~0u);
@@ -50,7 +51,7 @@ protected:
 typedef osg::ref_ptr<ReferencedPickerBase> ReferencedPickerBasePtr;
 
 #ifdef SGI_USE_OSGEARTH
-class ReferencedPicker : public ReferencedPickerBase
+class SGI_EXPORT ReferencedPicker : public ReferencedPickerBase
 {
 public:
 #if OSGEARTH_VERSION_LESS_THAN(2,7,0)
@@ -83,7 +84,7 @@ private:
 };
 #endif // SGI_USE_OSGEARTH
 
-class ReferencedLinePicker : public ReferencedPickerBase
+class SGI_EXPORT ReferencedLinePicker : public ReferencedPickerBase
 {
 public:
     ReferencedLinePicker(const osg::Vec2f & pos, osgViewer::View * view, osg::Node * root=NULL, unsigned traversalMask=~0u);
