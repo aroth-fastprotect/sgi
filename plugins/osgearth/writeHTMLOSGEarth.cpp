@@ -39,7 +39,9 @@
 
 #include <osgEarth/ElevationQuery>
 #include <osgEarth/ImageUtils>
+#ifdef SGI_USE_OSGEARTH_FAST
 #include <osgEarth/LevelDBFactory>
+#endif
 #include <osgEarth/TraversalData>
 
 #include <osgEarthUtil/LatLongFormatter>
@@ -93,7 +95,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskLayer)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LandCoverLayer)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::PatchLayer)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::VideoLayer)
-WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::FlatteningLayer)
+//WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::FlatteningLayer)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::FractalElevationLayer)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::GeodeticGraticule)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::GARSGraticule)
@@ -125,10 +127,13 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(TileSourceInfo)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::VirtualProgram)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TileBlacklist)
+#ifdef SGI_USE_OSGEARTH_FAST
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LevelDBDatabase)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LODScaleOverrideNode)
+#endif
+
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ElevationQueryReferenced)
 
-WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LODScaleOverrideNode)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(TileKeyReferenced)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
@@ -183,8 +188,8 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     switch(t)
     {
     case osgEarth::Layer::RENDERTYPE_NONE: os << "none"; break;
-    case osgEarth::Layer::RENDERTYPE_TILE: os << "tile"; break;
-    case osgEarth::Layer::RENDERTYPE_PATCH: os << "patch"; break;
+    case osgEarth::Layer::RENDERTYPE_TERRAIN_SURFACE: os << "surface"; break;
+    case osgEarth::Layer::RENDERTYPE_TERRAIN_PATCH: os << "patch"; break;
     default: os << (int)t; break;
     }
     return os;
@@ -235,7 +240,7 @@ bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& 
             os << "<tr><td>HTTP user agent</td><td>" << osgEarth::HTTPClient::getUserAgent() << "</td></tr>" << std::endl;
             os << "<tr><td>HTTP timeout</td><td>" << osgEarth::HTTPClient::getTimeout() << "</td></tr>" << std::endl;
             os << "<tr><td>HTTP connect timeout</td><td>" << osgEarth::HTTPClient::getConnectTimeout() << "</td></tr>" << std::endl;
-#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
+#ifdef SGI_USE_OSGEARTH_FAST
             os << "<tr><td>HTTP proxy</td><td>" << osgEarth::HTTPClient::getProxySettings() << "</td></tr>" << std::endl;
 #endif
             os << "<tr><td>HTTP URL rewriter</td><td>" << osgEarth::HTTPClient::getURLRewriter() << "</td></tr>" << std::endl;
@@ -244,11 +249,13 @@ bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& 
 			os << "<tr><td>blacklist filenames</td><td>" << access->numBlacklistFilenames() << " entries</td></tr>" << std::endl;
 			os << "<tr><td>activities</td><td>";
 
+#ifdef SGI_USE_OSGEARTH_FAST
 			{
 				std::vector<osgEarth::LevelDBDatabasePtr> databases;
 				osgEarth::LevelDBFactory::getActiveDatabases(databases);
 				os << "<tr><td>LevelDB databases</td><td>" << databases.size() << " entries</td></tr>" << std::endl;
 			}
+#endif
 			
 			std::set<std::string> activities;
 			object->getActivities(activities);
@@ -286,7 +293,8 @@ bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& 
 			ret = true;
 		}
 		break;
-	case SGIItemTypeDatabases:
+#ifdef SGI_USE_OSGEARTH_FAST
+    case SGIItemTypeDatabases:
 		{
             osgEarth::LevelDBDatabasePairList databases;
 			osgEarth::LevelDBFactory::getDatabases(databases, false);
@@ -308,8 +316,9 @@ bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& 
 			os << "</ul>" << std::endl;
 
 			ret = true;
-	}
+        }
 		break;
+#endif
     default:
         ret = callNextHandler(os);
         break;
@@ -1078,6 +1087,7 @@ bool writePrettyHTMLImpl<osgEarth::VideoLayer>::process(std::basic_ostream<char>
     return ret;
 }
 
+#if 0
 bool writePrettyHTMLImpl<osgEarth::Util::FlatteningLayer>::process(std::basic_ostream<char>& os)
 {
     osgEarth::Util::FlatteningLayer * object = getObject<osgEarth::Util::FlatteningLayer, SGIItemOsg>();
@@ -1103,7 +1113,7 @@ bool writePrettyHTMLImpl<osgEarth::Util::FlatteningLayer>::process(std::basic_os
     }
     return ret;
 }
-
+#endif
 
 bool writePrettyHTMLImpl<osgEarth::Util::FractalElevationLayer>::process(std::basic_ostream<char>& os)
 {
@@ -2143,7 +2153,7 @@ bool writePrettyHTMLImpl<osgEarth::ModelSource>::process(std::basic_ostream<char
     return ret;
 }
 
-
+#ifdef SGI_USE_OSGEARTH_FAST
 bool writePrettyHTMLImpl<osgEarth::LevelDBDatabase>::process(std::basic_ostream<char>& os)
 {
 	osgEarth::LevelDBDatabase * object = getObject<osgEarth::LevelDBDatabase, SGIItemOsg>();
@@ -2173,6 +2183,7 @@ bool writePrettyHTMLImpl<osgEarth::LevelDBDatabase>::process(std::basic_ostream<
 	}
 	return ret;
 }
+#endif // SGI_USE_OSGEARTH_FAST
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::FunctionLocation & t)
 {
@@ -2706,6 +2717,7 @@ bool writePrettyHTMLImpl<TileSourceTileKey>::process(std::basic_ostream<char>& o
     return ret;
 }
 
+#ifdef SGI_USE_OSGEARTH_FAST
 bool writePrettyHTMLImpl<osgEarth::LODScaleOverrideNode>::process(std::basic_ostream<char>& os)
 {
     osgEarth::LODScaleOverrideNode * object = static_cast<osgEarth::LODScaleOverrideNode*>(item<SGIItemOsg>()->object());
@@ -2733,6 +2745,7 @@ bool writePrettyHTMLImpl<osgEarth::LODScaleOverrideNode>::process(std::basic_ost
     }
     return ret;
 }
+#endif // SGI_USE_OSGEARTH_FAST
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Util::Controls::ControlContext & object)
 {

@@ -101,7 +101,6 @@ namespace osgearth_plugin {
         void appendAllViews(std::basic_ostream<char>& os) const
         {
             os << "<ul></li>" << std::endl;
-#ifdef OSGEARTH_CONTROLS_V2_5
             for(TravSpecificDataMap::const_iterator it = _travDataMap.begin(); it != _travDataMap.end(); it++)
             {
                 const osg::Camera* camera = it->first;
@@ -109,23 +108,10 @@ namespace osgearth_plugin {
                 appendCamera(os, it->first, it->second);
                 os << "</li>" << std::endl;
             }
-#else // OSGEARTH_CONTROLS_V2_5
-            for(PerViewDataMap::const_iterator it = _perViewData.begin(); it != _perViewData.end(); it++)
-            {
-                const osg::View * view = it->first;
-                os << "<li>0x" << std::hex << (void*)view << "<br/>" << std::dec;
-                appendView(os, it->first, it->second);
-                os << "</li>" << std::endl;
-            }
-#endif // OSGEARTH_CONTROLS_V2_5
             os << "</ul>" << std::endl;
         }
     protected:
-#ifdef OSGEARTH_CONTROLS_V2_5
         void appendCamera(std::basic_ostream<char>& os, const osg::Camera * camera, const TravSpecificData & viewdata) const
-#else // OSGEARTH_CONTROLS_V2_5
-        void appendView(std::basic_ostream<char>& os, const osg::View * view, const PerViewData & viewdata) const
-#endif // OSGEARTH_CONTROLS_V2_5
         {
             os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
             os << "<tr><td>obscured</td><td>" << (viewdata._obscured?"true":"false") << "</td></tr>" << std::endl;

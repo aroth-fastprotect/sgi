@@ -18,7 +18,9 @@
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
 #include <osgEarth/OverlayDecorator>
+#ifdef SGI_USE_OSGEARTH_FAST
 #include <osgEarth/LevelDBFactory>
+#endif
 
 #include <osgEarth/ImageLayer>
 #include <osgEarth/ElevationLayer>
@@ -79,7 +81,9 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskLayerOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TileSourceOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelSourceOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheOptions)
+#ifdef SGI_USE_OSGEARTH_FAST
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LevelDBOptions)
+#endif
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSourceOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSourceOptions)
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
@@ -708,6 +712,7 @@ bool writePrettyHTMLImpl<osgEarth::CacheOptions>::process(std::basic_ostream<cha
     return ret;
 }
 
+#ifdef SGI_USE_OSGEARTH_FAST
 bool writePrettyHTMLImpl<osgEarth::LevelDBOptions>::process(std::basic_ostream<char>& os)
 {
 	osgEarth::LevelDBOptions * object = getObject<osgEarth::LevelDBOptions, SGIItemEarthConfigOptions>();
@@ -737,6 +742,7 @@ bool writePrettyHTMLImpl<osgEarth::LevelDBOptions>::process(std::basic_ostream<c
 	}
 	return ret;
 }
+#endif
 
 bool writePrettyHTMLImpl<osgEarth::Features::FeatureSourceOptions>::process(std::basic_ostream<char>& os)
 {
@@ -965,7 +971,7 @@ bool writePrettyHTMLImpl<osgEarth::Drivers::VPBOptions>::process(std::basic_ostr
             os << "<tr><td>url</td><td>" << object->url() << "</td></tr>" << std::endl;
             os << "<tr><td>primarySplitLevel</td><td>" << object->primarySplitLevel() << "</td></tr>" << std::endl;
             os << "<tr><td>secondarySplitLevel</td><td>" << object->secondarySplitLevel() << "</td></tr>" << std::endl;
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0) && defined(SGI_USE_OSGEARTH_FAST)
             os << "<tr><td>maxDataLevelOverride</td><td>" << object->maxDataLevelOverride() << "</td></tr>" << std::endl;
 #endif
             os << "<tr><td>directoryStructure</td><td>" << object->directoryStructure() << "</td></tr>" << std::endl;

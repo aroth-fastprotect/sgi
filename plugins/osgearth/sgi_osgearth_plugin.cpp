@@ -31,7 +31,7 @@
 #include <osgEarth/LandCoverLayer>
 #include <osgEarth/PatchLayer>
 #include <osgEarth/VideoLayer>
-#include <osgEarthUtil/FlatteningLayer>
+//#include <osgEarthUtil/FlatteningLayer>
 #include <osgEarthUtil/FractalElevationLayer>
 #include <osgEarthUtil/GeodeticGraticule>
 #include <osgEarthUtil/GARSGraticule>
@@ -44,7 +44,9 @@
 #include <osgEarth/Capabilities>
 #include <osgEarth/OverlayDecorator>
 #include <osgEarth/VirtualProgram>
+#ifdef SGI_USE_OSGEARTH_FAST
 #include <osgEarth/LevelDBFactory>
+#endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 #include <osgEarth/ShaderFactory>
 #include <osgEarth/ElevationPool>
@@ -106,7 +108,9 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osgEarth::SpatialReference, osgEarth::Profile, osgEarth::Terrain,
     osgEarth::TileBlacklist, osgEarth::Util::Controls::ControlEventHandler,
     osgEarth::StateSetCache,
+#ifdef SGI_USE_OSGEARTH_FAST
     osgEarth::LevelDBDatabase,
+#endif
     osgEarth::NodeOperation,
     osgEarth::Features::FeatureCursor, osgEarth::Features::FeatureProfile,
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
@@ -169,7 +173,9 @@ SGI_OBJECT_INFO_BEGIN(osg::Group)
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::Annotation::AnnotationNode,
 #endif
+#ifdef SGI_USE_OSGEARTH_FAST
 	osgEarth::LODScaleOverrideNode,
+#endif
     osg::Transform
 SGI_OBJECT_INFO_END()
 
@@ -314,7 +320,8 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::ImageLayer)
     osgEarth::LandCoverLayer, osgEarth::VideoLayer
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osgEarth::ElevationLayer)
-    osgEarth::Util::FlatteningLayer, osgEarth::Util::FractalElevationLayer,
+    //osgEarth::Util::FlatteningLayer,
+    osgEarth::Util::FractalElevationLayer,
     osgEarth::Util::MultiElevationLayer
 SGI_OBJECT_INFO_END()
 #endif
@@ -336,8 +343,10 @@ SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::ConfigOptions)
     osgEarth::TerrainLayerOptions, osgEarth::ModelLayerOptions, osgEarth::MapOptions,
-    osgEarth::MapNodeOptions, osgEarth::ProfileOptions, osgEarth::DriverConfigOptions,
-    osgEarth::LevelDBOptions
+    osgEarth::MapNodeOptions, osgEarth::ProfileOptions, osgEarth::DriverConfigOptions
+#ifdef SGI_USE_OSGEARTH_FAST
+    , osgEarth::LevelDBOptions
+#endif
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     , osgEarth::Features::GeometryCompilerOptions
 #endif
