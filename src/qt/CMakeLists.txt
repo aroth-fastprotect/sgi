@@ -39,3 +39,5 @@ SET(TARGET_PRODUCT_COPYRIGHT "Copyright (C) 2012-2017")
 SET(TARGET_NO_TRANSLATION 1)
 
 FAST_PLUGIN(qsgi_loader PLUGINTYPE imageformats )
+
+fast_configure_file(qt.conf.in ${CMAKE_BINARY_DIR}/qt.conf @ONLY)
