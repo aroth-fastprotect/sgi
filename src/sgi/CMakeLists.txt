@@ -46,7 +46,6 @@ SET(TARGET_H
 	stdafx.h
 	SGIPlugin.h
 	entrypoint.h
-	ReferencedPicker.h
 	sgi_internal.h
 	dxt.h
 )

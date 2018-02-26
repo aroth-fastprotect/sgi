@@ -1,6 +1,3 @@
-IF(OSGEARTH_FOUND)
-	include_directories(${OSGEARTH_INCLUDE_DIR})
-ENDIF()
 include_directories(.)
 SET(TARGET_SRC
     stdafx.cpp
@@ -95,6 +92,13 @@ if(OSGQT_FOUND)
         OSGQT_LIBRARY
     )
 endif()
+IF(OSGEARTH_FOUND)
+	include_directories(${OSGEARTH_INCLUDE_DIR})
+    LIST(APPEND TARGET_LIBRARIES_VARS
+        OSGEARTH_LIBRARY
+    )
+ENDIF()
+
 LIST(APPEND TARGET_LIBRARIES_VARS
     QT_QTCORE_LIBRARY
 	QT_QTOPENGL_LIBRARY
