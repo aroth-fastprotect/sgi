@@ -46,6 +46,11 @@
 #include <sgi/helpers/osg_helper_nodes>
 #include <sgi/plugins/SGIItemBase.h>
 
+#ifdef _WIN32
+extern "C" long __stdcall AllocConsole();
+extern "C" long __stdcall FreeConsole();
+#endif
+
 namespace std {
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::NotifySeverity & t)

@@ -56,8 +56,12 @@ class SGI_EXPORT ReferencedPicker : public ReferencedPickerBase
 public:
 #if OSGEARTH_VERSION_LESS_THAN(2,7,0)
 	typedef osgEarth::Picker PickerType;
+    typedef PickerType::Intersection  Hit;
+    typedef PickerType::Intersections Hits;
 #else
 	typedef osgEarth::IntersectionPicker PickerType;
+    typedef PickerType::Hit Hit;
+    typedef PickerType::Hits Hits;
 #endif
     ReferencedPicker(const osg::Vec2f & pos, osgViewer::View * view, osg::Node * root=NULL, unsigned traversalMask=~0u, float hitBufferSize=1.0f, PickerType::Limit limit=PickerType::NO_LIMIT);
     ReferencedPicker(osgViewer::GraphicsWindow * gw, osg::Node * root=NULL, unsigned traversalMask=~0u, float hitBufferSize=1.0f, PickerType::Limit limit= PickerType::NO_LIMIT);
@@ -66,8 +70,6 @@ public:
     /** dtor */
     virtual ~ReferencedPicker();
 
-    typedef PickerType::Intersection  Hit;
-    typedef PickerType::Intersections Hits;
 
     const Hits & hits() const { return m_hits; }
     float                       thickness() const { return m_thickness; }
