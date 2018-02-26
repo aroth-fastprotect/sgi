@@ -924,6 +924,33 @@ namespace {
 
 }
 
+namespace {
+    class AddViewCallback : public osgGA::EventHandler
+    {
+        osg::Camera * _camera;
+        osg::ref_ptr<osgViewer::CompositeViewer> _viewer;
+        osg::ref_ptr<osgViewer::View> _view;
+    public:
+        AddViewCallback(osg::Camera * camera, osgViewer::CompositeViewer * viewer, osgViewer::View * view)
+            : _camera(camera), _viewer(viewer), _view(view)
+        {
+
+        }
+        
+        void operator()(osg::Node* node, osg::NodeVisitor* nv) override
+        {
+            if (node == _camera)
+            {
+                _viewer->addView(_view);
+                _view = nullptr;
+                _viewer = nullptr;
+                _camera->removeEventCallback(this);
+            }
+        }
+
+    };
+}
+
 bool actionHandlerImpl<MenuActionRTTPickerView>::execute()
 {
     osgEarth::Util::RTTPicker * object = getObject<osgEarth::Util::RTTPicker, SGIItemOsg, DynamicCaster>();
@@ -940,11 +967,12 @@ bool actionHandlerImpl<MenuActionRTTPickerView>::execute()
     view->getCamera()->setSmallFeatureCullingPixelSize(-1.0f);
     setupRTTView(view, object->getOrCreateTexture(mainview));
     view->getCamera()->setNodeMask(~0u);
-    viewer->addView(view);
+
+    osg::Camera * maincam = mainview->getCamera();
+    maincam->addEventCallback(new AddViewCallback(maincam, viewer, view));
 
     return true;
 }
-
 
 } // namespace osgearth_plugin
 } // namespace sgi
