@@ -1,16 +1,18 @@
 #include <sgi/helpers/qt_widgets>
-#include <__/__/include/sgi/helpers/qt_widgets.moc>
 #include <QTimer>
 #include <QPen>
 #include <QPainter>
+#include "widget_helpers.h"
 
 namespace sgi {
     namespace qt_helpers {
+        namespace details {
 
 HighlightWidget::HighlightWidget(QWidget *parent)
     : QWidget(parent)
     , _timer(new QTimer(this))
-	, _counter(0)
+    , _counter(0)
+    , _maxCounter(0)
 {
     init(DEFAULT_INTERVAL, DEFAULT_AUTOCLOSE_TIME);
 }
@@ -18,10 +20,12 @@ HighlightWidget::HighlightWidget(QWidget *parent)
 HighlightWidget::HighlightWidget(unsigned interval, unsigned autoCloseTime, QWidget *parent)
     : QWidget(parent)
     , _timer(new QTimer(this))
-	, _counter(0)
+    , _counter(0)
+    , _maxCounter(0)
 {
     init(interval, autoCloseTime);
 }
+
 HighlightWidget::~HighlightWidget()
 {
 }
@@ -93,6 +97,13 @@ void HighlightWidget::paintEvent(QPaintEvent* ev)
     painter.setPen(pen);
     painter.drawPolyline(points, 5);
     painter.end();
+}
+
+        } // namespace details
+
+QWidget * createHighlightWidget(QWidget * w)
+{
+    return new details::HighlightWidget(w);
 }
 
     } // namespace qt_helpers

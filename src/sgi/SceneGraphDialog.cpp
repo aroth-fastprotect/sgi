@@ -1,7 +1,6 @@
 #include "stdafx.h"
 
 #include "SceneGraphDialog.h"
-#include "SceneGraphDialog.moc"
 
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>

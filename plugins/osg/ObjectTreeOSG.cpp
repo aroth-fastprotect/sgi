@@ -32,8 +32,10 @@
 #include <osgViewer/Renderer>
 #include <osgViewer/ViewerEventHandlers>
 
+#ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
 #include <osgQt/QObjectWrapper>
+#endif
 
 #include <osgTerrain/Terrain>
 #include <osgTerrain/TerrainTile>
@@ -148,8 +150,10 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgViewer::Renderer)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgViewer::HelpHandler)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgViewer::StatsHandler)
 
+#ifdef SGI_USE_OSGQT
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::GraphicsWindowQt)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::QObjectWrapper)
+#endif
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgGA::GUIEventHandler)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgGA::GUIEventAdapter)
@@ -182,7 +186,9 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(RenderInfoGeometry)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawCallback)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedPickerBase)
+#ifdef SGI_USE_OSGEARTH
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedPicker)
+#endif
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedLinePicker)
 
 using namespace sgi::osg_helpers;
@@ -2350,6 +2356,7 @@ bool objectTreeBuildImpl<osgViewer::GraphicsWindow>::build(IObjectTreeItem * tre
     return ret;
 }
 
+#ifdef SGI_USE_OSGQT
 bool objectTreeBuildImpl<osgQt::GraphicsWindowQt>::build(IObjectTreeItem * treeItem)
 {
     osgQt::GraphicsWindowQt * object = static_cast<osgQt::GraphicsWindowQt*>(item<SGIItemOsg>()->object());
@@ -2393,6 +2400,7 @@ bool objectTreeBuildImpl<osgQt::QObjectWrapper>::build(IObjectTreeItem * treeIte
     }
     return ret;
 }
+#endif // SGI_USE_OSGQT
 
 bool objectTreeBuildImpl<osgGA::GUIEventHandler>::build(IObjectTreeItem * treeItem)
 {
@@ -4150,6 +4158,7 @@ bool objectTreeBuildImpl<ReferencedPickerBase>::build(IObjectTreeItem * treeItem
     return ret;
 }
 
+#ifdef SGI_USE_OSGEARTH
 bool objectTreeBuildImpl<ReferencedPicker>::build(IObjectTreeItem * treeItem)
 {
     ReferencedPicker * object = dynamic_cast<ReferencedPicker*>(item<SGIItemOsg>()->object());
@@ -4213,6 +4222,7 @@ bool objectTreeBuildImpl<ReferencedPicker>::build(IObjectTreeItem * treeItem)
     }
     return ret;
 }
+#endif
 
 bool objectTreeBuildImpl<ReferencedLinePicker>::build(IObjectTreeItem * treeItem)
 {

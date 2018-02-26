@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "LODScaleOverrideDialog.h"
-#include "LODScaleOverrideDialog.moc"
 
 #include <sgi/plugins/SGISettingsDialogImpl>
 #include <sgi/plugins/SGIItemOsg>
@@ -37,8 +36,12 @@ LODScaleOverrideDialog::LODScaleOverrideDialog(QWidget * parent, SGIItemBase * i
     setDecimals(2);
     setRange(0.01, 10.0);
 
+#ifdef SGI_USE_OSGEARTH_FAST
     osgEarth::LODScaleOverrideNode* object = static_cast<osgEarth::LODScaleOverrideNode*>(static_cast<SGIItemOsg*>(_item.get())->object());
     float value = object->getLODScale();
+#else
+    float value = 1.0f;
+#endif
     setOriginalValue(value);
     setValue(value);
 
@@ -73,8 +76,10 @@ void LODScaleOverrideDialog::apply()
         return;
 
     double value = ui->doubleSpinBox->value();
+#ifdef SGI_USE_OSGEARTH_FAST
     osgEarth::LODScaleOverrideNode* object = static_cast<osgEarth::LODScaleOverrideNode*>(static_cast<SGIItemOsg*>(_item.get())->object());
     object->setLODScale((float)value);
+#endif
 }
 
 void LODScaleOverrideDialog::reset()

@@ -40,7 +40,9 @@
 
 #include <osgViewer/View>
 #include <osgViewer/ViewerBase>
+#ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
+#endif
 #include <osgText/Text>
 #include <osgAnimation/AnimationManagerBase>
 #include <osgUtil/IncrementalCompileOperation>
@@ -127,7 +129,9 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgViewer::Scene)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgViewer::ViewerBase)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgViewer::GraphicsWindow)
 
+#ifdef SGI_USE_OSGQT
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgQt::GraphicsWindowQt)
+#endif
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgText::TextBase)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgText::Text)
@@ -2162,6 +2166,7 @@ bool contextMenuPopulateImpl<osgViewer::GraphicsWindow>::populate(IContextMenuIt
     return ret;
 }
 
+#ifdef SGI_USE_OSGQT
 bool contextMenuPopulateImpl<osgQt::GraphicsWindowQt>::populate(IContextMenuItem * menuItem)
 {
     osgQt::GraphicsWindowQt * object = static_cast<osgQt::GraphicsWindowQt*>(item<SGIItemOsg>()->object());
@@ -2183,6 +2188,7 @@ bool contextMenuPopulateImpl<osgQt::GraphicsWindowQt>::populate(IContextMenuItem
     }
     return ret;
 }
+#endif // SGI_USE_OSGQT
 
 bool contextMenuPopulateImpl<osgDB::Registry>::populate(IContextMenuItem * menuItem)
 {

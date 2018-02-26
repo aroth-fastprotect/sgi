@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "DoubleInputDialog.h"
-#include "DoubleInputDialog.moc"
 
 #include <QPushButton>
 

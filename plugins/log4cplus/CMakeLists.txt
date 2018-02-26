@@ -23,7 +23,7 @@ SET(TARGET_H
     ContextMenuLog4cplus.h
     MenuActionLog4cplus.h
     )
-fast_configure_file(SGIItemLog4cplus ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemLog4cplus COPY_ONLY)
+fast_configure_file(SGIItemLog4cplus ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemLog4cplus COPYONLY)
 
 SET(TARGET_LIBRARIES_VARS
     OSG_LIBRARY

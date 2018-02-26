@@ -93,6 +93,9 @@ bool writePrettyHTMLImpl<osg::Referenced>::process(std::basic_ostream<char>& os)
     return ret;
 }
 
+#define HAS_SUPPORT(__pp_name) \
+    os << "<tr><td>" << #__pp_name << "</td><td>" << ((SGI_HAS_ ## __pp_name ## _SUPPORT) ?"true":"false") << "</td></tr>" << std::endl
+
 bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
 {
     SGIPlugins * object = getObject<SGIPlugins,SGIItemInternal>();
@@ -106,6 +109,11 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
             os << "<tr><td>libraryName</td><td>" << sgiGetLibraryName() << "</td></tr>" << std::endl;
             os << "<tr><td>version</td><td>" << sgiGetVersion() << "</td></tr>" << std::endl;
             os << "<tr><td>.so version</td><td>" << sgiGetSOVersion() << "</td></tr>" << std::endl;
+            HAS_SUPPORT(LOG4CPLUS);
+            HAS_SUPPORT(OSGQT);
+            HAS_SUPPORT(OSGEARTH);
+            HAS_SUPPORT(FFMPEG);
+            HAS_SUPPORT(GAMMARAY);
 
             os << "<tr><td>plugins</td><td>";
             SGIPlugins::PluginInfoList plugins;

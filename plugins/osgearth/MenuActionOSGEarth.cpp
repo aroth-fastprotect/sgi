@@ -19,7 +19,9 @@
 #include <osgEarth/ImageUtils>
 #include <osgEarth/MaskLayer>
 #include <osgEarth/TileSource>
+#ifdef SGI_USE_OSGEARTH_FAST
 #include <osgEarth/LevelDBFactory>
+#endif
 
 #include <osgEarthDrivers/debug/DebugOptions>
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
@@ -764,6 +766,7 @@ bool actionHandlerImpl<MenuActionControlCanvasDirty>::execute()
     return true;
 }
 
+#ifdef SGI_USE_OSGEARTH_FAST
 bool actionHandlerImpl<MenuActionLevelDBDatabaseRead>::execute()
 {
 	osgEarth::LevelDBDatabase * object = getObject<osgEarth::LevelDBDatabase, SGIItemOsg>();
@@ -801,6 +804,7 @@ bool actionHandlerImpl<MenuActionLevelDBDatabaseWrite>::execute()
 	}
 	return true;
 }
+#endif // SGI_USE_OSGEARTH_FAST
 
 bool actionHandlerImpl<MenuActionTileKeyAdd>::execute()
 {

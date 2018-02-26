@@ -21,11 +21,11 @@ namespace sgi {
         Qt()
         {
 #ifdef _WIN32
-            // on Win32 the terra3d-sgi.dll is in the same directory as the application
+            // on Win32 the SGI_LIBRARY_NAME is in the same directory as the application
             // and no further path tricks are required.
             _library = new QLibrary(SGI_LIBRARY_NAME);
 #else
-            // on linux the terra3d-sgi.so is in the lib directory, but the application
+            // on linux the SGI_LIBRARY_NAME is in the lib directory, but the application
             // is started from the bin directory. So a little trick is required to find
             // the library.
             QString libfile = QCoreApplication::applicationDirPath() + QString::fromLatin1("/../lib/" SGI_LIBRARY_NAME);

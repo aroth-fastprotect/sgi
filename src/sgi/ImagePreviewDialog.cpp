@@ -11,7 +11,6 @@
 #include <QLibrary>
 #include <QMouseEvent>
 
-#include "ImagePreviewDialog.moc"
 #include "ImagePreviewDialog.h"
 #include "ui_ImagePreviewDialog.h"
 #include "SGIPlugin.h"
@@ -454,6 +453,7 @@ public:
 
 std::map<Image::ImageFormat, QString> ImagePreviewDialog::ImagePreviewDialogImpl::ImageFormatDisplayText;
 
+#if defined(SGI_USE_FFMPEG)
 class SWScale
 {
 private:
@@ -971,6 +971,8 @@ SWScale::pfn_sws_scale SWScale::sws_scale = NULL;
 SWScale::pfn_sws_freeContext SWScale::sws_freeContext = NULL;
 ColorGradient sgi::SWScale::s_defaultColorGradient(ColorGradient::MonochromeInverse);
 
+#endif // defined(SGI_USE_FFMPEG)
+
 ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewDialog * dialog_)
     : _dialog(dialog_)
     , ui(NULL)
@@ -1401,7 +1403,11 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::saveImageAs()
         bool result = true;
         if(targetFormat != Image::ImageFormatAutomatic)
         {
+#if defined(SGI_USE_FFMPEG)
             result = SWScale::convert(*_dialog->_image.get(), targetFormat, tempImage);
+#else
+            result = false;
+#endif
         }
         lastDir = fileName;
         switch(targetFormat)
@@ -2118,7 +2124,7 @@ void ImagePreviewDialog::refreshImpl()
     if(_workImage.valid())
         SWScale::convertToQImage( *_workImage.get(), format, qimg);
 #else
-    QImage qimg = convertImageToQImage(useReinterpretedImage ? &_priv->reinterpretedImage : _image.get(), format);
+    QImage qimg = convertImageToQImage(_workImage.get(), format);
 #endif
 
 	refreshStatistics(qimg);

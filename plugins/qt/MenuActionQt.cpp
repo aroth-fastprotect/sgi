@@ -228,7 +228,7 @@ bool actionHandlerImpl<MenuActionWidgetSetAutoFillBackground>::execute()
 bool actionHandlerImpl<MenuActionWidgetHighlight>::execute()
 {
     QWidget * object = getObject<QWidget,SGIItemQt>();
-    new qt_helpers::HighlightWidget(object);
+    qt_helpers::createHighlightWidget(object);
     return true;
 }
 

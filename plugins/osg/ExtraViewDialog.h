@@ -9,13 +9,12 @@ QT_END_NAMESPACE
 
 namespace osg {
     class Camera;
-}
-namespace osgQt {
-    class GraphicsWindowQt;
+    class GraphicsContext;
 }
 namespace osgViewer {
     class View;
     class CompositeViewer;
+    class GraphicsWindow;
 }
 
 namespace sgi {
@@ -27,12 +26,12 @@ class ViewOSG : public QWidget
 
 public:
     ViewOSG(QWidget * parent=0);
-    virtual	~ViewOSG();
+    virtual ~ViewOSG();
 
     void setCamera(osgViewer::CompositeViewer * viewer, osg::Camera * camera);
 
 protected:
-    osgQt::GraphicsWindowQt* createGraphicsWindow(int x, int y, int w, int h, osg::GraphicsContext * sharedContext, const std::string& name=std::string(), bool windowDecoration=false);
+    osgViewer::GraphicsWindow* createGraphicsWindow(int x, int y, int w, int h, osg::GraphicsContext * sharedContext, const std::string& name=std::string(), bool windowDecoration=false);
 
     void paintEvent(QPaintEvent* event) override;
     void resizeEvent(QResizeEvent *event) override;
@@ -40,7 +39,7 @@ protected:
     void updateCamera();
 
 protected:
-    osg::ref_ptr<osgQt::GraphicsWindowQt> _gfx;
+    osg::ref_ptr<osgViewer::GraphicsWindow> _gfx;
     osg::ref_ptr<osgViewer::View> _view;
     osg::ref_ptr<osgViewer::CompositeViewer> _viewer;
     osg::ref_ptr<osg::Camera> _viewCamera;

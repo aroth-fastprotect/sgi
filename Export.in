@@ -51,6 +51,12 @@ The sgi library is a NodeKit that allows to inspect and modify a scene graph dur
 #  endif // _MINSIZEREL
 #endif // _DEBUG
 
+#cmakedefine01 SGI_HAS_GAMMARAY_SUPPORT
+#cmakedefine01 SGI_HAS_FFMPEG_SUPPORT
+#cmakedefine01 SGI_HAS_OSGQT_SUPPORT
+#cmakedefine01 SGI_HAS_OSGEARTH_SUPPORT
+#cmakedefine01 SGI_HAS_LOG4CPLUS_SUPPORT
+
 extern "C" {
 /**
   * sgiGetVersion() returns the library version number.

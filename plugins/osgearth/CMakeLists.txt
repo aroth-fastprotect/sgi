@@ -36,8 +36,12 @@ SET(TARGET_H
 	osgearth_accessor.h
     )
 
-fast_configure_file(SGIItemOsgEarth ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsgEarth COPY_ONLY)
-fast_configure_file(ElevationQueryReferenced ${SGI_INCLUDE_DIR}/sgi/plugins/ElevationQueryReferenced COPY_ONLY)
+if(EXISTS ${OSGEARTH_INCLUDE_DIR}/osgEarth/LevelDBFactory)
+    add_definitions(-DSGI_USE_OSGEARTH_FAST=1)
+endif()
+
+fast_configure_file(SGIItemOsgEarth ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsgEarth COPYONLY)
+fast_configure_file(ElevationQueryReferenced ${SGI_INCLUDE_DIR}/sgi/plugins/ElevationQueryReferenced COPYONLY)
 
 SET(TARGET_MOC_H
     AutoClipPlaneCullCallbackDialog.h

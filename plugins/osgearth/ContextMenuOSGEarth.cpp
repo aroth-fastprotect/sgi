@@ -17,7 +17,9 @@
 #include <osgEarth/MaskLayer>
 #include <osgEarth/TileSource>
 #include <osgEarth/Registry>
+#ifdef SGI_USE_OSGEARTH_FAST
 #include <osgEarth/LevelDBFactory>
+#endif
 
 #if OSGEARTH_VERSION_LESS_THAN(2,8,0)
 #include <osgEarthQt/TerrainProfileWidget>
@@ -55,8 +57,10 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::Contro
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TileSource)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TileBlacklist)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::VirtualProgram)
+#ifdef SGI_USE_OSGEARTH_FAST
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LevelDBDatabase)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LODScaleOverrideNode)
+#endif
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(ElevationQueryReferenced)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(TileKeyReferenced)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
@@ -477,6 +481,7 @@ bool contextMenuPopulateImpl<osgEarth::MaskLayer>::populate(IContextMenuItem * m
 	return ret;
 }
 
+#ifdef SGI_USE_OSGEARTH_FAST
 bool contextMenuPopulateImpl<osgEarth::LevelDBDatabase>::populate(IContextMenuItem * menuItem)
 {
 	osgEarth::LevelDBDatabase * object = static_cast<osgEarth::LevelDBDatabase*>(item<SGIItemOsg>()->object());
@@ -517,6 +522,7 @@ bool contextMenuPopulateImpl<osgEarth::LODScaleOverrideNode>::populate(IContextM
     }
     return ret;
 }
+#endif
 
 bool contextMenuPopulateImpl<osgEarth::Util::SkyNode>::populate(IContextMenuItem * menuItem)
 {

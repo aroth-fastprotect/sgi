@@ -4,8 +4,7 @@ IF(OSGEARTH_FOUND)
 	include_directories(${OSGEARTH_INCLUDE_DIR})
 ENDIF()
 
-if(SGI_USE_FFMPEG)
-    FAST_PACKAGE_FFMPEG()
+if(SGI_USE_FFMPEG AND FFMPEG_FOUND)
     include_directories(${FFMPEG_INCLUDE_DIR})
     LIST(APPEND TARGET_DEFINITIONS SGI_USE_FFMPEG)
 endif()
@@ -162,7 +161,10 @@ LIST(APPEND TARGET_LIBRARIES_VARS
     QT_QTGUI_LIBRARY
     )
 IF ( Qt5Widgets_FOUND )
-	LIST(APPEND TARGET_LIBRARIES_VARS QT_QTWIDGETS_LIBRARY )
+    # Add the include directories for the Qt 5 Widgets module to
+    # the compile lines.
+    include_directories(${Qt5Widgets_INCLUDE_DIRS})
+    LIST(APPEND TARGET_LIBRARIES_VARS Qt5::Widgets )
 ENDIF()
 
 FAST_SHARED_LIBRARY(${LIB_NAME})

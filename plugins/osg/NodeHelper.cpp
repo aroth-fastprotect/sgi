@@ -1320,6 +1320,10 @@ struct ToggleCenterMarkerPseudoLoader : public osgDB::ReaderWriter
 } // namespace osg_plugin
 } // namespace sgi
 
+#ifndef OSGDB_PLUGIN_EXPORT
+#define OSGDB_PLUGIN_EXPORT OSGDB_EXPORT
+#endif
+
 #define REGISTER_OSGPLUGIN_EX(ext, classname, proxyname) \
     extern "C" OSGDB_PLUGIN_EXPORT void osgdb_##ext(void) {} \
     static osgDB::RegisterReaderWriterProxy<classname> g_proxy_##proxyname;

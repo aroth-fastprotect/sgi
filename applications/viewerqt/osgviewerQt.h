@@ -4,10 +4,13 @@
 #include <osgViewer/CompositeViewer>
 #include <sstream>
 
+#ifdef SGI_USE_OSGQT
 namespace osgQt {
     class GraphicsWindowQt;
 }
+#endif // WITH_OSGQT
 
+#ifdef SGI_USE_OSGEARTH
 namespace osgEarth {
     class MapNode;
     namespace Util {
@@ -19,6 +22,7 @@ namespace osgEarth {
         }
     }
 }
+#endif // WITH_OSGEARTH
 
 class QTimer;
 class QPaintEvent;
@@ -39,26 +43,37 @@ public:
         */
     osg::Group* load(
         osg::ArgumentParser& args,
-        osgViewer::View*     view,
-        osgEarth::Util::Controls::Container* userContainer = 0L);
+        osgViewer::View*     view
+#ifdef SGI_USE_OSGEARTH
+        , osgEarth::Util::Controls::Container* userContainer = 0L
+#endif
+    );
 
     void parse(
-        osgEarth::MapNode*             mapNode,
+#ifdef SGI_USE_OSGEARTH
+        osgEarth::MapNode*   mapNode,
+#endif // WITH_OSGEARTH
         osg::ArgumentParser& args,
         osgViewer::View*     view,
-        osg::Group*          parentGroup,
-        osgEarth::Util::Controls::LabelControl* userLabel);
+        osg::Group*          parentGroup
+#ifdef SGI_USE_OSGEARTH
+        , osgEarth::Util::Controls::LabelControl* userLabel
+#endif
+    );
 
+#ifdef SGI_USE_OSGEARTH
     /**
         * Takes an existing map node and processes all the built-in example command
         * line arguments and mapNode externals.
         */
     void parse(
-        osgEarth::MapNode*             mapNode,
+        osgEarth::MapNode*   mapNode,
         osg::ArgumentParser& args,
         osgViewer::View*     view,
         osg::Group*          parentGroup =0L,
-        osgEarth::Util::Controls::Container* userContainer=0L);
+        osgEarth::Util::Controls::Container* userContainer=0L
+    );
+#endif // WITH_OSGEARTH
 
     /**
         * Configures a view with a stock set of event handlers that are useful
@@ -85,7 +100,9 @@ public:
 private:
     std::stringstream m_errorMessages;
     std::vector<std::string> m_files;
+#ifdef SGI_USE_OSGEARTH
     osgEarth::Util::MapNodeHelper * _mapNodeHelper;
+#endif
     bool _onlyImages;
 };
 
@@ -106,7 +123,7 @@ public:
 protected:
     virtual void paintEvent( QPaintEvent* event );
 
-    osgQt::GraphicsWindowQt* createGraphicsWindow( int x, int y, int w, int h, osg::GraphicsContext * sharedContext, const std::string& name=std::string(), bool windowDecoration=false );
+    osgViewer::GraphicsWindow* createGraphicsWindow( int x, int y, int w, int h, osg::GraphicsContext * sharedContext, const std::string& name=std::string(), bool windowDecoration=false );
 
 private:
     void init();
@@ -115,7 +132,7 @@ private:
 protected:
     CompositeViewerThread * _thread;
     QTimer * _timer;
-    osg::ref_ptr<osgQt::GraphicsWindowQt> _mainGW;
+    osg::ref_ptr<osgViewer::GraphicsWindow> _mainGW;
     osg::ref_ptr<osgViewer::View> _view;
     osg::ref_ptr<osgViewer::CompositeViewer> _viewer;
 };

@@ -2,7 +2,6 @@
 // SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
 
 #include "main.h"
-#include "main.moc"
 #include <QApplication>
 #include <QMouseEvent>
 #include <QWidget>
@@ -12,7 +11,7 @@
 #include <sgi/AutoLoadQt>
 #include <sgi/helpers/qt_widgetwindow>
 
-#include <QDebug>
+#include <QtCore/QDebug>
 
 #if defined(_DEBUG)
 #if defined(_MSC_VER)
@@ -82,7 +81,7 @@ bool ApplicationEventFilter::contextMenu(QWidget * widget, QObject * obj, float 
         _contextMenu = sgi::createContextMenuQt(widget, obj, NULL);
     else
         _contextMenu->setObject(obj);
-    if(widget)
+    if(widget && !_contextMenu.isNull())
     {
         _contextMenu->popup(widget, x, y);
         ret = true;
