@@ -99,6 +99,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Cache)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheBin)
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheSettings)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::PolyShader)
 #endif
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Picker)
@@ -1691,6 +1692,39 @@ bool objectTreeBuildImpl<osgEarth::CacheSettings>::build(IObjectTreeItem * treeI
     }
     return ret;
 }
+
+bool objectTreeBuildImpl<osgEarth::PolyShader>::build(IObjectTreeItem * treeItem)
+{
+    osgEarth::PolyShader * object = getObject<osgEarth::PolyShader, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsg nominalShader(object->getNominalShader());
+            if (nominalShader.hasObject())
+                treeItem->addChild("NominalShader", &nominalShader);
+
+            for (unsigned i = 0; i < 5; ++i)
+            {
+                SGIHostItemOsg shader(object->getShader(1 << i));
+                if (shader.hasObject())
+                    treeItem->addChild(helpers::str_plus_info("Shader", i), &shader);
+            }
+        }
+        break;
+    case SGIItemTypeConfig:
+        ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
 #endif
 
 bool objectTreeBuildImpl<osgEarth::Picker>::build(IObjectTreeItem * treeItem)

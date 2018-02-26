@@ -120,6 +120,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osgEarth::ShaderFactory,
     osgEarth::ElevationPool,
     osgEarth::ElevationEnvelope,
+    osgEarth::PolyShader,
 #endif
     ElevationQueryReferenced,
     TileKeyReferenced,

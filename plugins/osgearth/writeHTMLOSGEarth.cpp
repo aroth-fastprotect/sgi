@@ -111,6 +111,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Extension)
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationPool)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationEnvelope)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::PolyShader)
 #endif
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Terrain)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TerrainEngineNode)
@@ -1732,6 +1733,36 @@ bool writePrettyHTMLImpl<osgEarth::ElevationEnvelope>::process(std::basic_ostrea
     }
     return ret;
 }
+
+bool writePrettyHTMLImpl<osgEarth::PolyShader>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::PolyShader * object = getObject<osgEarth::PolyShader,SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
+            os << "<tr><td>location</td><td>" << object->getLocation() << "</td></tr>" << std::endl;
+            os << "<tr><td>source</td><td>" << object->getShaderSource() << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
 #endif
 
 bool writePrettyHTMLImpl<osgEarth::Terrain>::process(std::basic_ostream<char>& os)

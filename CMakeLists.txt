@@ -73,7 +73,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
     INCLUDE(SGIFunctions)
 	fast_configure_file(CMakeModules/SGIMacros.cmake.in ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/SGIMacros.cmake @ONLY)
 	INCLUDE(SGIMacros)
-	install(FILES CMakeModules/SGIMacros.cmake DESTINATION share/cmake/modules COMPONENT "Developer files")
+    FAST_INSTALL_DATA_FILE(CMakeModules/SGIMacros.cmake DESTINATION share/cmake/modules COMPONENT "Developer files")
 
 	OPTION(SGI_PLUGIN_OSG "Enable OSG plugin" ON)
 	OPTION(SGI_PLUGIN_OSGEARTH "Enable osgEarth plugin" ${OSGEARTH_FOUND})
