@@ -1,23 +1,10 @@
 SET(TARGET_SRC
     SGIItemBase.cpp
 	SGIImage.cpp
-    ObjectTreeImpl.cpp
-    ObjectTreeImplProxy.cpp
     functionImplBase.cpp
-    osg_helpers.cpp
-	osg_statistics.cpp
-    qt_helpers.cpp
-    widget_helpers.cpp
     string_helpers.cpp
-	qt_dds_reader.cpp
-	ReferencePicker.cpp
     )
 
-SET(TARGET_MOC_H
-	ObjectTreeImplProxy.h
-	widget_helpers.h
-	../../include/sgi/helpers/qt_widgets
-	)
 SET(TARGET_H
 	qt_dds_reader.h
 	)
@@ -71,4 +58,97 @@ ENDIF()
 
 LIST(APPEND TARGET_DEFINITIONS SGI_LIBRARY)
 
-FAST_SHARED_LIBRARY(osgSGI-plugin-impl NO_MOC_INCLUDE)
+FAST_SHARED_LIBRARY(sgi-plugin-impl NO_MOC_INCLUDE)
+
+SET(TARGET_SRC
+    osg_helpers.cpp
+	osg_statistics.cpp
+	ReferencePicker.cpp
+    )
+
+SET(TARGET_H
+	)
+
+SET(TARGET_VERSION ${SGI_VERSION})
+SET(TARGET_SOVERSION ${SGI_SOVERSION})
+SET(TARGET_MAJOR_VERSION ${SGI_MAJOR_VERSION})
+SET(TARGET_MINOR_VERSION ${SGI_MINOR_VERSION})
+SET(TARGET_PATCH_VERSION ${SGI_PATCH_VERSION})
+SET(TARGET_BUILD_VERSION ${SGI_SOVERSION})
+SET(TARGET_NO_TRANSLATION 1)
+SET(TARGET_NO_AUTO_VERSION_RESOURCE 1)
+SET(TARGET_NO_AUTO_VERSION_HEADER 1)
+
+LIST(APPEND TARGET_LIBRARIES_VARS
+    QT_QTCORE_LIBRARY
+    QT_QTGUI_LIBRARY
+
+    SGI_PLUGIN_IMPL_LIBRARY
+    OPENTHREADS_LIBRARY
+    OSG_LIBRARY
+	OSGUTIL_LIBRARY
+	OSGTEXT_LIBRARY
+	OSGANIMATION_LIBRARY
+    OSGGA_LIBRARY
+	OSGVIEWER_LIBRARY
+    )
+if(OSGQT_FOUND)
+    include_directories(${OSGQT_INCLUDE_DIR})
+    LIST(APPEND TARGET_LIBRARIES_VARS
+        OSGQT_LIBRARY
+    )
+endif()
+if(OSGEARTH_FOUND)
+	include_directories(${OSGEARTH_INCLUDE_DIR})
+    LIST(APPEND TARGET_LIBRARIES_VARS
+        OSGEARTH_LIBRARY
+    )
+endif()
+
+LIST(APPEND TARGET_DEFINITIONS SGI_LIBRARY)
+
+FAST_SHARED_LIBRARY(sgi-osg-helper NO_MOC_INCLUDE)
+
+SET(TARGET_SRC
+    ObjectTreeImpl.cpp
+    ObjectTreeImplProxy.cpp
+    qt_helpers.cpp
+    widget_helpers.cpp
+	qt_dds_reader.cpp
+    qimage_osg.cpp
+    )
+SET(TARGET_MOC_H
+	ObjectTreeImplProxy.h
+	widget_helpers.h
+	../../include/sgi/helpers/qt_widgets
+	)
+
+SET(TARGET_H
+	)
+
+SET(TARGET_VERSION ${SGI_VERSION})
+SET(TARGET_SOVERSION ${SGI_SOVERSION})
+SET(TARGET_MAJOR_VERSION ${SGI_MAJOR_VERSION})
+SET(TARGET_MINOR_VERSION ${SGI_MINOR_VERSION})
+SET(TARGET_PATCH_VERSION ${SGI_PATCH_VERSION})
+SET(TARGET_BUILD_VERSION ${SGI_SOVERSION})
+SET(TARGET_NO_TRANSLATION 1)
+SET(TARGET_NO_AUTO_VERSION_RESOURCE 1)
+SET(TARGET_NO_AUTO_VERSION_HEADER 1)
+
+LIST(APPEND TARGET_LIBRARIES_VARS
+    SGI_PLUGIN_IMPL_LIBRARY
+	OSG_LIBRARY
+    QT_QTCORE_LIBRARY
+    QT_QTGUI_LIBRARY
+    )
+IF ( Qt5Widgets_FOUND )
+    # Add the include directories for the Qt 5 Widgets module to
+    # the compile lines.
+    include_directories(${Qt5Widgets_INCLUDE_DIRS})
+    LIST(APPEND TARGET_LIBRARIES_VARS QT_QTWIDGETS_LIBRARY )
+ENDIF()
+
+LIST(APPEND TARGET_DEFINITIONS SGI_LIBRARY)
+
+FAST_SHARED_LIBRARY(sgi-qt-helper NO_MOC_INCLUDE)
