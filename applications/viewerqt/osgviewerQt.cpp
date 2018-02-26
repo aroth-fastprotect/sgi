@@ -46,7 +46,7 @@
 #include <sgi/helpers/osg_helper_nodes>
 #include <sgi/plugins/SGIItemBase.h>
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(SGI_USE_OSGQT)
 extern "C" long __stdcall AllocConsole();
 extern "C" long __stdcall FreeConsole();
 #endif
