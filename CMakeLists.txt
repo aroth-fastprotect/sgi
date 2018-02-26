@@ -7,59 +7,19 @@
 #
 # History: 
 # 2015-02-16  ARO  initial release
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.11 FATAL_ERROR)
 
-if(COMMAND cmake_policy)
-    # Works around warnings libraries linked against that don't
-    # have absolute paths (e.g. -lpthreads)
-    cmake_policy(SET CMP0003 NEW)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.8.0 FATAL_ERROR)
 
-    # Works around warnings about escaped quotes in ADD_DEFINITIONS
-    # statements.
-    cmake_policy(SET CMP0005 NEW)
+# Include custom CMake modules or macros. Don't touch it.
+SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../buildtools/CMakeModules;${CMAKE_MODULE_PATH}")
+INCLUDE(FastProtectMacros)
 
-    # Qt5 qt5_use_modules usage was causing "Policy CMP0043 is not set: Ignore COMPILE_DEFINITIONS_<Config> properties." warnings
-    cmake_policy(SET CMP0043 NEW)
+FAST_PROJECT(SGI)
 
-endif(COMMAND cmake_policy)
+FAST_IS_SYSTEM_LIBRARY(sgi SGI_IS_SYSTEM_LIB)
+IF(NOT SGI_IS_SYSTEM_LIB)
 
-if(UNIX)
-    # use, i.e. don't skip the full RPATH for the build tree
-    SET(CMAKE_SKIP_BUILD_RPATH FALSE)
-
-    # already use RPATH on building (not just when installed)
-    SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-
-    #SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-    SET(CMAKE_INSTALL_RPATH "$ORIGIN")
-
-    # add the automatically determined parts of the RPATH
-    # which point to directories outside the build tree to the install RPATH
-    SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-    SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
-    SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
-
-endif()
-
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-#
-# Set up CMake to use Solution Folders in VS.
-#
-SET_PROPERTY( GLOBAL PROPERTY USE_FOLDERS               ON )
-SET_PROPERTY( GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake Targets" )
-
-# Common to all platforms:
-SET(CMAKE_DEBUG_POSTFIX  "d" CACHE STRING "add a postfix, usually d on windows")
-SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
-SET(CMAKE_RELWITHDEBINFO_POSTFIX "rd" CACHE STRING "add a postfix, usually empty on windows")
-SET(CMAKE_MINSIZEREL_POSTFIX "s" CACHE STRING "add a postfix, usually empty on windows")
-
-PROJECT(SGI)
+    set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 	SET(SGI_MAJOR_VERSION 0)
 	SET(SGI_MINOR_VERSION 3)
@@ -87,22 +47,9 @@ PROJECT(SGI)
 
 	FIND_PACKAGE(OpenGL)
 
-    # Find the QtWidgets library
-    find_package(Qt5Widgets)
-    find_package(Qt5OpenGL)
-
-    set(QT_QTCORE_LIBRARY Qt5::Core )
-    set(QT_QTGUI_LIBRARY Qt5::Gui)
-    set(QT_QTWIDGETS_LIBRARY Qt5::Widgets )
-    set(QT_QTOPENGL_LIBRARY Qt5::OpenGL )
-
-
-    find_package(Log4cplus)
-
-	find_package(OpenSceneGraph 3.2.0 REQUIRED osgDB osgGA osgUtil osgText osgFX osgManipulator osgViewer osgWidget osgTerrain osgAnimation)
-
-	find_package(OsgEarth)
-	find_package(OsgQt)
+	fast_package_qt5()
+	fast_package_osg()
+    fast_package_log4cplus()
 
 	IF(WIN32)
         # More MSVC specific compilation flags
@@ -204,3 +151,7 @@ PROJECT(SGI)
     if(SGI_UNITTESTS)
         add_subdirectory(tests)
     endif()
+
+	FAST_PROJECT_PACKAGE()
+
+ENDIF(NOT SGI_IS_SYSTEM_LIB)

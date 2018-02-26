@@ -164,10 +164,10 @@ IF ( Qt5Widgets_FOUND )
     # Add the include directories for the Qt 5 Widgets module to
     # the compile lines.
     include_directories(${Qt5Widgets_INCLUDE_DIRS})
-    LIST(APPEND TARGET_LIBRARIES_VARS Qt5::Widgets )
+    LIST(APPEND TARGET_LIBRARIES_VARS QT_QTWIDGETS_LIBRARY )
 ENDIF()
 
-FAST_SHARED_LIBRARY(${LIB_NAME})
+FAST_SHARED_LIBRARY(${LIB_NAME} NO_MOC_INCLUDE)
 
 target_compile_definitions(${TARGET_DEFAULT_PREFIX}${LIB_NAME} PRIVATE
     SGI_LIBRARY
