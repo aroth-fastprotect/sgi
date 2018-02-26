@@ -2074,7 +2074,7 @@ bool actionHandlerImpl<MenuActionGeometryFixDeprecatedData>::execute()
 
 bool actionHandlerImpl<MenuActionImagePreview>::execute()
 {
-    bool ret;
+    bool ret = false;
     osg::Texture * texture = getObject<osg::Texture, SGIItemOsg, DynamicCaster>();
     if (texture)
     {
