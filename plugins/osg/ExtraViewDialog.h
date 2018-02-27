@@ -18,6 +18,8 @@ namespace osgViewer {
 }
 
 namespace sgi {
+    class SGIPluginHostInterface;
+
 namespace osg_plugin {
 
 class ViewOSG : public QWidget
@@ -53,7 +55,7 @@ class ExtraViewDialog : public QDialog
 	Q_OBJECT
 
 public:
-                        ExtraViewDialog(QWidget * parent, SGIItemBase * item);
+                        ExtraViewDialog(QWidget * parent, SGIItemBase * item, SGIPluginHostInterface * hostInterface);
 	virtual				~ExtraViewDialog();
 
 public:
@@ -74,6 +76,7 @@ protected:
 
 private:
     Ui_ExtraViewDialog *	        ui;
+    SGIPluginHostInterface *        _hostInterface;
     osg::ref_ptr<osg::Camera>   _camera;
     ISettingsDialogPtr _interface;
     SGIItemBasePtr _item;

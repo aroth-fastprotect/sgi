@@ -133,7 +133,7 @@ void ViewOSG::setRTTCamera(osgViewer::CompositeViewer * viewer, osg::Texture * t
 
     _viewCamera = new osg::Camera;
     _viewCamera->setGraphicsContext(_gfx.get());
-    _camera = camera;
+    _camera = _viewCamera;
 
     _view = new osgViewer::View;
     _view->setCamera(_viewCamera.get());
@@ -215,8 +215,9 @@ void ViewOSG::resizeEvent(QResizeEvent *event)
 
 
 
-ExtraViewDialog::ExtraViewDialog(QWidget * parent, SGIItemBase * item)
+ExtraViewDialog::ExtraViewDialog(QWidget * parent, SGIItemBase * item, SGIPluginHostInterface * hostInterface)
 	: QDialog(parent)
+    , _hostInterface(hostInterface)
     , _item(item)
 	, _camera(nullptr)
     , _interface(new SettingsDialogImpl(this))
@@ -287,11 +288,14 @@ ExtraViewDialog::ExtraViewDialog(QWidget * parent, SGIItemBase * item)
                     break;
             }
 
-            if(viewer)
+            if (viewer)
                 ui->widget->setRTTCamera(viewer, txt);
         }
-
     }
+
+    std::string name;
+    _hostInterface->getObjectDisplayName(name, _item.get());
+    setWindowTitle(QString::fromStdString(name));
 
 	load();
 }
