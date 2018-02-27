@@ -109,6 +109,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTileKeyAdd)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLODScaleOverrideNodeLODScale)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionRTTPickerView)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionRTTPickerTexture)
 
 using namespace sgi::osg_helpers;
 
@@ -951,6 +952,17 @@ namespace {
     };
 }
 
+bool actionHandlerImpl<MenuActionRTTPickerTexture>::execute()
+{
+    osgEarth::Util::RTTPicker * object = getObject<osgEarth::Util::RTTPicker, SGIItemOsg, DynamicCaster>();
+    osgViewer::View * mainview = userData<osgViewer::View>();
+    if (!mainview)
+        return false;
+
+    object->getOrCreateTexture(mainview);
+    return true;
+}
+
 bool actionHandlerImpl<MenuActionRTTPickerView>::execute()
 {
     osgEarth::Util::RTTPicker * object = getObject<osgEarth::Util::RTTPicker, SGIItemOsg, DynamicCaster>();
@@ -962,15 +974,16 @@ bool actionHandlerImpl<MenuActionRTTPickerView>::execute()
     if(!viewer)
         return false;
 
-    osgViewer::View * view = new osgViewer::View();
-    view->getCamera()->setGraphicsContext(mainview->getCamera()->getGraphicsContext());
-    view->getCamera()->setSmallFeatureCullingPixelSize(-1.0f);
-    setupRTTView(view, object->getOrCreateTexture(mainview));
-    view->getCamera()->setNodeMask(~0u);
-
-    osg::Camera * maincam = mainview->getCamera();
-    maincam->addEventCallback(new AddViewCallback(maincam, viewer, view));
-
+    SGIHostItemOsg txt(object->getOrCreateTexture(mainview));
+    if (txt.hasObject())
+    {
+        IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), &txt);
+        if (dialog.valid())
+        {
+            //dialog->setObject(&txt, nullptr, std::string(), hostCallback());
+            dialog->show();
+        }
+    }
     return true;
 }
 

@@ -878,6 +878,10 @@ bool contextMenuPopulateImpl<osgEarth::Util::RTTPicker>::populate(IContextMenuIt
                 if(i == itemNumber())
                 {
                     menuItem->addSimpleAction(MenuActionRTTPickerView, "Preview", _item, context._view.get());
+                    if (!context._tex.valid())
+                    {
+                        menuItem->addSimpleAction(MenuActionRTTPickerTexture, "Create texture", _item, context._view.get());
+                    }
 
                     SGIHostItemOsg view(context._view.get());
                     if (view.hasObject())
