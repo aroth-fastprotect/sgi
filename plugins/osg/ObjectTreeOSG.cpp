@@ -35,6 +35,7 @@
 #ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
 #include <osgQt/QObjectWrapper>
+#include <sgi/plugins/SGIItemQt>
 #endif
 
 #include <osgTerrain/Terrain>
@@ -153,6 +154,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgViewer::StatsHandler)
 #ifdef SGI_USE_OSGQT
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::GraphicsWindowQt)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::QObjectWrapper)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::GLWidget)
 #endif
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgGA::GUIEventHandler)
@@ -2392,6 +2394,28 @@ bool objectTreeBuildImpl<osgQt::QObjectWrapper>::build(IObjectTreeItem * treeIte
             SGIHostItemQt qobject(object->getQObject());
             if(qobject.hasObject())
                 treeItem->addChild(std::string(), &qobject);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osgQt::GLWidget>::build(IObjectTreeItem * treeItem)
+{
+    osgQt::GLWidget * object = getObject<osgQt::GLWidget, SGIItemQt>();
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsg gw(object->getGraphicsWindow());
+            if (gw.hasObject())
+                treeItem->addChild(std::string(), &gw);
         }
         break;
     default:

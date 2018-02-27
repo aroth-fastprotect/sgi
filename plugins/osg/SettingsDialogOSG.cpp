@@ -42,7 +42,7 @@ bool settingsDialogCreateImpl<SettingsDialogObjectLogger>::execute(ISettingsDial
 
 bool settingsDialogCreateImpl<SettingsDialogExtraView>::execute(ISettingsDialogPtr & dialog)
 {
-    ExtraViewDialog * qtdialog = new ExtraViewDialog(parent(), _item.get());
+    ExtraViewDialog * qtdialog = new ExtraViewDialog(parent(), _item.get(), _hostInterface);
     dialog = qtdialog->dialogInterface();
     return true;
 }
