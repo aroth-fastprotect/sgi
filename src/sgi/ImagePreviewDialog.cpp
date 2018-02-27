@@ -472,6 +472,7 @@ private:
     static pfn_sws_scale sws_scale;
     static pfn_sws_freeContext sws_freeContext;
 
+public:
     static bool load()
     {
         if(!loadAttempted)
@@ -494,7 +495,7 @@ private:
         return ready;
     }
 
-
+private:
     static Image::ImageFormat ImageFormatFromAVCodec(ffmpeg::AVPixelFormat pix_fmt)
     {
         Image::ImageFormat ret = Image::ImageFormatInvalid;
@@ -1644,7 +1645,6 @@ ImagePreviewDialog::DisplayChannel ImagePreviewDialog::ImagePreviewDialogImpl::c
     return ret;
 }
 
-#if !defined(SGI_USE_FFMPEG)
 bool convertImageToQImage_RGB24(const sgi::Image * image, QImage & qimage)
 {
     bool ret = false;
@@ -2041,7 +2041,6 @@ QImage convertImageToQImage(const sgi::Image * image, Image::ImageFormat destFor
     }
     return ret;
 }
-#endif // !defined(SGI_USE_FFMPEG)
 
 namespace {
 	QTreeWidgetItem * addStatisticsValueImpl(QTreeWidgetItem * root, const QString & name, const QString & value)
@@ -2116,13 +2115,18 @@ void ImagePreviewDialog::refreshImpl()
     }
 
     Image::ImageFormat format = _priv->currentImageFormat();
-    if(_workImage.valid())
+    if (_workImage.valid())
         _workImage->reinterpretFormat(format);
 
 #if defined(SGI_USE_FFMPEG)
     QImage qimg;
-    if(_workImage.valid())
-        SWScale::convertToQImage( *_workImage.get(), format, qimg);
+    if (_workImage.valid())
+    {
+        if(SWScale::load())
+            SWScale::convertToQImage(*_workImage.get(), format, qimg);
+        else
+            qimg = convertImageToQImage(_workImage.get(), format);
+    }
 #else
     QImage qimg = convertImageToQImage(_workImage.get(), format);
 #endif
