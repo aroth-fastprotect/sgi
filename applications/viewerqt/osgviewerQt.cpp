@@ -2,6 +2,8 @@
 #include <QTimer>
 #include <QFileInfo>
 #include <QApplication>
+#include <QBuffer>
+#include <QDir>
 #include <QMessageBox>
 #include <QHBoxLayout>
 #include <QThread>
@@ -991,6 +993,15 @@ main(int argc, char** argv)
 
     QApplication app( argc, argv );
     QObject::connect(&app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()));
+
+    {
+        QString path = QCoreApplication::applicationDirPath();
+        path = QDir::cleanPath(path + SGI_QT_PLUGIN_DIR);
+        QCoreApplication::addLibraryPath(path);
+        QImage load_sgi;
+        QBuffer dummyMem;
+        load_sgi.load(&dummyMem, "sgi_loader");
+    }
 
     bool allocConsole = false;
 
