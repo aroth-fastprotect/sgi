@@ -453,6 +453,431 @@ public:
 
 std::map<Image::ImageFormat, QString> ImagePreviewDialog::ImagePreviewDialogImpl::ImageFormatDisplayText;
 
+bool convertImageToQImage_RGB24(const sgi::Image * image, QImage & qimage)
+{
+    bool ret = false;
+    qimage = QImage(image->width(), image->height(), QImage::Format_RGB888);
+    uchar * dest = qimage.bits();
+    uchar * src = (uchar *)const_cast<void*>(image->data());
+    unsigned pixels = image->width() * image->height();
+    switch (image->format())
+    {
+    case Image::ImageFormatRGB24:
+        memcpy(dest, src, image->width() * image->height() * 3);
+        ret = true;
+        break;
+    case Image::ImageFormatARGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[2];
+            dest[1] = src[1];
+            dest[2] = src[0];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 3;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatLuminance:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[0];
+            dest[2] = src[0];
+            src++;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    }
+    return ret;
+}
+
+bool convertImageToQImage_BGR24(const sgi::Image * image, QImage & qimage)
+{
+    bool ret = false;
+    qimage = QImage(image->width(), image->height(), QImage::Format_RGB888);
+    uchar * dest = qimage.bits();
+    uchar * src = (uchar *)const_cast<void*>(image->data());
+    unsigned pixels = image->width() * image->height();
+    switch (image->format())
+    {
+    case Image::ImageFormatBGR24:
+        memcpy(dest, src, image->width() * image->height() * 3);
+        ret = true;
+        break;
+    case Image::ImageFormatARGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 3;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatLuminance:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[0];
+            dest[2] = src[0];
+            src++;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    }
+    return ret;
+}
+
+bool convertImageToQImage_RGB32(const sgi::Image * image, QImage & qimage)
+{
+    bool ret = false;
+    qimage = QImage(image->width(), image->height(), QImage::Format_RGB32);
+    uchar * dest = qimage.bits();
+    uchar * src = (uchar *)const_cast<void*>(image->data());
+    unsigned pixels = image->width() * image->height();
+    switch (image->format())
+    {
+    case Image::ImageFormatRGB32:
+        memcpy(dest, src, image->width() * image->height() * 4);
+        ret = true;
+        break;
+    case Image::ImageFormatARGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 4;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 3;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[2];
+            dest[1] = src[1];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src += 4;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[2];
+            dest[1] = src[1];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src += 3;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatLuminance:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[0];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src++;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    }
+    return ret;
+}
+
+bool convertImageToQImage_BGR32(const sgi::Image * image, QImage & qimage)
+{
+    bool ret = false;
+    qimage = QImage(image->width(), image->height(), QImage::Format_RGB32);
+    uchar * dest = qimage.bits();
+    uchar * src = (uchar *)const_cast<void*>(image->data());
+    unsigned pixels = image->width() * image->height();
+    switch (image->format())
+    {
+    case Image::ImageFormatBGR32:
+        memcpy(dest, src, image->width() * image->height() * 4);
+        ret = true;
+        break;
+    case Image::ImageFormatARGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 4;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 3;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[2];
+            dest[1] = src[1];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src += 4;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 3;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatLuminance:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[0];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src++;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    }
+    return ret;
+}
+
+bool convertImageToQImage_RGBA32(const sgi::Image * image, QImage & qimage)
+{
+    bool ret = false;
+    qimage = QImage(image->width(), image->height(), QImage::Format_ARGB32);
+    uchar * dest = qimage.bits();
+    uchar * src = (uchar *)const_cast<void*>(image->data());
+    unsigned pixels = image->width() * image->height();
+    switch (image->format())
+    {
+    case Image::ImageFormatARGB32:
+        memcpy(dest, src, image->width() * image->height() * 4);
+        ret = true;
+        break;
+    case Image::ImageFormatRGBA32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[2];
+            dest[1] = src[1];
+            dest[2] = src[0];
+            dest[3] = src[3];
+            src += 4;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 3;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[2];
+            dest[1] = src[1];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src += 4;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 3;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatLuminance:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[0];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src++;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    }
+    return ret;
+}
+
 #if defined(SGI_USE_FFMPEG)
 class SWScale
 {
@@ -629,9 +1054,9 @@ private:
             dest = QImage(src.width(), src.height(), QImage::Format_ARGB32);
 
             uint8_t* dstdata = reinterpret_cast<uint8_t*>(dest.bits());
-            int dstPitch[1] = { (int)dest.bytesPerLine() };
-            const unsigned dstPlaneOffset[1] = { 0  };
-            uint8_t * dstPlanes[1] = { dstdata + dstPlaneOffset[0] };
+            int dstPitch[4] = { (int)dest.bytesPerLine(), 0, 0, 0 };
+            const unsigned dstPlaneOffset[4] = { 0, 0, 0, 0 };
+            uint8_t * dstPlanes[4] = { dstdata + dstPlaneOffset[0], NULL, NULL, NULL };
 
             Q_ASSERT(sws_getContext != NULL);
             ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
@@ -653,9 +1078,9 @@ private:
             dest = QImage(src.width(), src.height(), QImage::Format_ARGB32);
 
             uint8_t* dstdata = reinterpret_cast<uint8_t*>(dest.bits());
-            int dstPitch[1] = { (int)dest.bytesPerLine() };
-            const unsigned dstPlaneOffset[1] = { 0  };
-            uint8_t * dstPlanes[1] = { dstdata + dstPlaneOffset[0] };
+            int dstPitch[4] = { (int)dest.bytesPerLine(), 0, 0, 0 };
+            const unsigned dstPlaneOffset[4] = { 0, 0, 0, 0 };
+            uint8_t * dstPlanes[4] = { dstdata + dstPlaneOffset[0], NULL, NULL, NULL };
 
             Q_ASSERT(sws_getContext != NULL);
             ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
@@ -885,6 +1310,31 @@ private:
         case Image::ImageFormatLuminance:
         case Image::ImageFormatLuminanceAlpha:
             ret = to_qimage_argb32_single_channel(src, dest, s_defaultColorGradient, horizontalFlip);
+            break;
+        case Image::ImageFormatRGB24:
+            ret = convertImageToQImage_RGB24(&src, dest);
+            if (horizontalFlip)
+                dest = dest.mirrored(false, true);
+            break;
+        case Image::ImageFormatBGR24:
+            ret = convertImageToQImage_BGR24(&src, dest);
+            if (horizontalFlip)
+                dest = dest.mirrored(false, true);
+            break;
+        case Image::ImageFormatRGB32:
+            ret = convertImageToQImage_RGB32(&src, dest);
+            if (horizontalFlip)
+                dest = dest.mirrored(false, true);
+            break;
+        case Image::ImageFormatBGR32:
+            ret = convertImageToQImage_BGR32(&src, dest);
+            if (horizontalFlip)
+                dest = dest.mirrored(false, true);
+            break;
+        case Image::ImageFormatRGBA32:
+            ret = convertImageToQImage_RGBA32(&src, dest);
+            if (horizontalFlip)
+                dest = dest.mirrored(false, true);
             break;
         default:
             ret = to_qimage_argb32_with_avcodec(src, dest, horizontalFlip);
@@ -1642,344 +2092,6 @@ ImagePreviewDialog::DisplayChannel ImagePreviewDialog::ImagePreviewDialogImpl::c
 {
     int index = displayChannel->currentIndex();
     DisplayChannel ret = (DisplayChannel)displayChannel->itemData(index, Qt::UserRole).toInt();
-    return ret;
-}
-
-bool convertImageToQImage_RGB24(const sgi::Image * image, QImage & qimage)
-{
-    bool ret = false;
-    qimage = QImage(image->width(), image->height(), QImage::Format_RGB888);
-    uchar * dest = qimage.bits();
-    uchar * src = (uchar *)const_cast<void*>(image->data());
-    unsigned pixels = image->width() * image->height();
-    switch (image->format())
-    {
-    case Image::ImageFormatRGB24:
-        memcpy(dest, src, image->width() * image->height() * 3);
-        ret = true;
-        break;
-    case Image::ImageFormatARGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[2];
-            dest[1] = src[1];
-            dest[2] = src[0];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 3;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatLuminance:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[0];
-            dest[2] = src[0];
-            src++;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    }
-    return ret;
-}
-
-bool convertImageToQImage_BGR24(const sgi::Image * image, QImage & qimage)
-{
-    bool ret = false;
-    qimage = QImage(image->width(), image->height(), QImage::Format_RGB888);
-    uchar * dest = qimage.bits();
-    uchar * src = (uchar *)const_cast<void*>(image->data());
-    unsigned pixels = image->width() * image->height();
-    switch (image->format())
-    {
-    case Image::ImageFormatBGR24:
-        memcpy(dest, src, image->width() * image->height() * 3);
-        ret = true;
-        break;
-    case Image::ImageFormatARGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 3;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatLuminance:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[0];
-            dest[2] = src[0];
-            src++;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    }
-    return ret;
-}
-
-bool convertImageToQImage_RGB32(const sgi::Image * image, QImage & qimage)
-{
-    bool ret = false;
-    qimage = QImage(image->width(), image->height(), QImage::Format_RGB32);
-    uchar * dest = qimage.bits();
-    uchar * src = (uchar *)const_cast<void*>(image->data());
-    unsigned pixels = image->width() * image->height();
-    switch (image->format())
-    {
-    case Image::ImageFormatRGB32:
-        memcpy(dest, src, image->width() * image->height() * 4);
-        ret = true;
-        break;
-    case Image::ImageFormatARGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = 0xFF;
-            src += 4;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = 0xFF;
-            src += 3;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[2];
-            dest[1] = src[1];
-            dest[2] = src[0];
-            dest[3] = 0xFF;
-            src += 4;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[2];
-            dest[1] = src[1];
-            dest[2] = src[0];
-            dest[3] = 0xFF;
-            src += 3;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatLuminance:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[0];
-            dest[2] = src[0];
-            dest[3] = 0xFF;
-            src++;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    }
-    return ret;
-}
-
-bool convertImageToQImage_BGR32(const sgi::Image * image, QImage & qimage)
-{
-    bool ret = false;
-    qimage = QImage(image->width(), image->height(), QImage::Format_RGB32);
-    uchar * dest = qimage.bits();
-    uchar * src = (uchar *)const_cast<void*>(image->data());
-    unsigned pixels = image->width() * image->height();
-    switch (image->format())
-    {
-    case Image::ImageFormatBGR32:
-        memcpy(dest, src, image->width() * image->height() * 4);
-        ret = true;
-        break;
-    case Image::ImageFormatARGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = 0xFF;
-            src += 4;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = 0xFF;
-            src += 3;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[2];
-            dest[1] = src[1];
-            dest[2] = src[0];
-            dest[3] = 0xFF;
-            src += 4;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = 0xFF;
-            src += 3;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatLuminance:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[0];
-            dest[2] = src[0];
-            dest[3] = 0xFF;
-            src++;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    }
     return ret;
 }
 
