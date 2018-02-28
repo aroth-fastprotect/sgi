@@ -3214,7 +3214,7 @@ bool actionHandlerImpl<MenuActionToolFindAllStateSets>::execute()
         else
         {
             selectedItem->expand();
-            IObjectTreeItem * stateSetsItem = selectedItem->addChild("StatSets", (SGIItemBase*)NULL);
+            IObjectTreeItem * stateSetsItem = selectedItem->addChild("Found StateSets", (SGIItemBase*)NULL);
 
             unsigned num = 0;
             for (auto it = results.begin(); it != results.end(); num++, it++)

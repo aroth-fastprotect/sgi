@@ -178,6 +178,7 @@ using namespace osg_helpers;
 
 extern void writePrettyHTMLImplForDriverOptions(SGIPluginHostInterface * hostInterface, std::basic_ostream<char>& os, const osgEarth::DriverConfigOptions & opts);
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::FunctionLocation & t);
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Status & s)
 {
@@ -1749,7 +1750,7 @@ bool writePrettyHTMLImpl<osgEarth::PolyShader>::process(std::basic_ostream<char>
 
             os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
             os << "<tr><td>location</td><td>" << object->getLocation() << "</td></tr>" << std::endl;
-            os << "<tr><td>source</td><td>" << object->getShaderSource() << "</td></tr>" << std::endl;
+            os << "<tr><td>source</td><td><pre>" << object->getShaderSource() << "</pre></td></tr>" << std::endl;
 
             if (_table)
                 os << "</table>" << std::endl;
@@ -1819,12 +1820,17 @@ bool writePrettyHTMLImpl<osgEarth::TerrainEngineNode>::process(std::basic_ostrea
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 		os << "<tr><td>terrain stateset</td><td>" << getObjectNameAndType(object->getTerrainStateSet()) << "</td></tr>" << std::endl;
 		os << "<tr><td>payload stateset</td><td>" << getObjectNameAndType(object->getPayloadStateSet()) << "</td></tr>" << std::endl;
+#else
+        os << "<tr><td>surface stateset</td><td>" << getObjectNameAndType(object->getSurfaceStateSet()) << "</td></tr>" << std::endl;
 #endif
 		os << "<tr><td>normalTexturesRequired</td><td>" << (object->normalTexturesRequired() ? "true" : "false") << "</td></tr>" << std::endl;
 		os << "<tr><td>elevationTexturesRequired</td><td>" << (object->elevationTexturesRequired() ? "true" : "false") << "</td></tr>" << std::endl;
 		os << "<tr><td>parentTexturesRequired</td><td>" << (object->parentTexturesRequired() ? "true" : "false") << "</td></tr>" << std::endl;
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 		os << "<tr><td>verticalScale</td><td>" << object->getVerticalScale() << "</td></tr>" << std::endl;
+#else
+        os << "<tr><td>elevationBorderRequired</td><td>" << (object->elevationBorderRequired() ? "true" : "false") << "</td></tr>" << std::endl;
+        os << "<tr><td>fullDataAtFirstLodRequired</td><td>" << (object->fullDataAtFirstLodRequired() ? "true" : "false") << "</td></tr>" << std::endl;
 #endif
 
 		if (_table)

@@ -1122,7 +1122,7 @@ bool objectTreeBuildImpl<osgEarth::VideoLayer>::build(IObjectTreeItem * treeItem
 
 bool objectTreeBuildImpl<osgEarth::Terrain>::build(IObjectTreeItem * treeItem)
 {
-    osgEarth::Terrain * object = static_cast<osgEarth::Terrain*>(item<SGIItemOsg>()->object());
+    osgEarth::Terrain * object = getObject<osgEarth::Terrain,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -1130,8 +1130,12 @@ bool objectTreeBuildImpl<osgEarth::Terrain>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-
-
+            SGIHostItemOsg profile(object->getProfile());
+            if (profile.hasObject())
+                treeItem->addChild("Profile", &profile);
+            SGIHostItemOsg srs(object->getSRS());
+            if (srs.hasObject())
+                treeItem->addChild("SRS", &srs);
             SGIHostItemOsg graph(object->getGraph());
             if(graph.hasObject())
                 treeItem->addChild("Graph", &graph);
@@ -1154,6 +1158,9 @@ bool objectTreeBuildImpl<osgEarth::TerrainEngineNode>::build(IObjectTreeItem * t
 		ret = callNextHandler(treeItem);
 		if (ret)
 		{
+            if (object->getComputeRangeCallback())
+                treeItem->addChildIfNotExists("Callbacks", cloneItem<SGIItemOsg>(SGIItemTypeCallbacks));
+
 			SGIHostItemOsg map(object->getMap());
 			if (map.hasObject())
 				treeItem->addChild("Map", &map);
@@ -1174,9 +1181,22 @@ bool objectTreeBuildImpl<osgEarth::TerrainEngineNode>::build(IObjectTreeItem * t
 			SGIHostItemOsg payloadstateset(object->getPayloadStateSet());
 			if (payloadstateset.hasObject())
 				treeItem->addChild("PayloadStateSet", &payloadstateset);
+#else
+            SGIHostItemOsg surfacestateset(object->getSurfaceStateSet());
+            if (surfacestateset.hasObject())
+                treeItem->addChild("SurfaceStateSet", &surfacestateset);
 #endif
 		}
 		break;
+    case SGIItemTypeCallbacks:
+        callNextHandler(treeItem);
+        {
+            SGIHostItemOsg computeRangeCallback(object->getComputeRangeCallback());
+            if (computeRangeCallback.hasObject())
+                treeItem->addChild("ComputeRangeCallback", &computeRangeCallback);
+            ret = true;
+        }
+        break;
 	default:
 		ret = callNextHandler(treeItem);
 		break;

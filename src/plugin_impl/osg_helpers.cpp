@@ -173,7 +173,7 @@ std::string glOverrideValueName(unsigned n)
     else
     {
         if(n & osg::StateAttribute::ON)
-            ret = "Override disabled";
+            ret = "ON";
         else
         {
             if(n & osg::StateAttribute::OVERRIDE)
