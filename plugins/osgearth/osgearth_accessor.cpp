@@ -163,5 +163,19 @@ void RTTPickerAccess::getPickContexts(PickContexts & contexts) const
     contexts = _pickContexts;
 }
 
+void VirtualProgramAccessor::getProgramCache(ProgramMap & programCache)
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_programCacheMutex);
+    programCache = _programCache;
+}
+
+void VirtualProgramAccessor::getGLSLExtensions(ExtensionsSet & extensions)
+{
+    _dataModelMutex.lock();
+    extensions = _globalExtensions;
+    _dataModelMutex.unlock();
+}
+
+
 } // namespace osgearth_plugin
 } // namespace sgi

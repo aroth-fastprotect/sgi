@@ -1496,8 +1496,7 @@ bool objectTreeBuildImpl<TileSourceTileKey>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * treeItem)
 {
-    osgEarth::VirtualProgram * object = static_cast<osgEarth::VirtualProgram*>(item<SGIItemOsg>()->object());
-    const VirtualProgramAccessor * access = (const VirtualProgramAccessor*)object;
+    VirtualProgramAccessor * object = static_cast<VirtualProgramAccessor*>(getObject<osgEarth::VirtualProgram, SGIItemOsg>());
     bool ret = false;
     switch(itemType())
     {
@@ -1512,12 +1511,12 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
             treeItem->addChild("Effective Program", cloneItem<SGIItemOsg>(SGIItemTypeVirtualProgramEffectiveProgram, ~0u));
 
             osgEarth::VirtualProgram::ShaderMap shadermap;
-            access->getShaderMap(shadermap);
+            object->getShaderMap(shadermap);
             if(!shadermap.empty())
                 treeItem->addChild(helpers::str_plus_count("Shader map", shadermap.size()), cloneItem<SGIItemOsg>(SGIItemTypeVirtualProgramShaderMap));
 
             osgEarth::ShaderComp::FunctionLocationMap functions;
-            access->getFunctions(functions);
+            object->getFunctions(functions);
             if(!functions.empty())
                 treeItem->addChild(helpers::str_plus_count("Functions", functions.size()), cloneItem<SGIItemOsg>(SGIItemTypeVirtualProgramFunctions, ~0u));
         }
@@ -1525,7 +1524,7 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
     case SGIItemTypeVirtualProgramShaderMap:
         {
             osgEarth::VirtualProgram::ShaderMap shadermap;
-            access->getShaderMap(shadermap);
+            object->getShaderMap(shadermap);
             unsigned shaderNum = 0;
             for(osgEarth::VirtualProgram::ShaderMap::const_iterator it = shadermap.begin(); it != shadermap.end(); it++, shaderNum++)
             {
@@ -1560,7 +1559,7 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
     case SGIItemTypeVirtualProgramFunctions:
         {
             osgEarth::ShaderComp::FunctionLocationMap functions;
-            access->getFunctions(functions);
+            object->getFunctions(functions);
             if (itemNumber() == ~0u)
             {
                 for (osgEarth::ShaderComp::FunctionLocationMap::const_iterator it = functions.begin(); it != functions.end(); it++)
@@ -1578,7 +1577,16 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
                 osgEarth::ShaderComp::FunctionLocationMap::const_iterator it = functions.find(location);
                 if (it != functions.end())
                 {
-
+                    const osgEarth::ShaderComp::OrderedFunctionMap & orderedFunctions = it->second;
+                    for (osgEarth::ShaderComp::OrderedFunctionMap::const_iterator it = orderedFunctions.begin(); it != orderedFunctions.end(); it++)
+                    {
+                        const osgEarth::ShaderComp::Function & function = it->second;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+                        SGIHostItemOsg accept(function._accept.get());
+                        if(accept.hasObject())
+                            treeItem->addChild(helpers::str_plus_info(function._name, "accept"), &accept);
+#endif
+                    }
                 }
             }
             ret = true;
