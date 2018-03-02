@@ -457,10 +457,47 @@ bool writePrettyHTMLImpl<QCoreApplication>::process(std::basic_ostream<char>& os
                 os << "<i>empty</i>";
             else
             {
+                const QStringList path_env_vars = QStringList() 
+                    << "PATH" 
+#ifdef _WIN32
+                    << "PATHEXT"
+#else
+                    << "LD_LIBRARY_PATH" 
+#endif
+                    << "PYTHONPATH" << "INCLUDE" << "LIB";
                 os << "<ul>";
-                for(const auto & key : env.keys())
+                QStringList keys = env.keys();
+                keys.sort();
+                for(const auto & key : keys)
                 {
-                    os << "<li>" << key << "=" << env.value(key) << "</li>";
+                    if (key.isEmpty())
+                        continue;
+                    QString value = env.value(key);
+#ifdef _WIN32
+                    Qt::CaseSensitivity cs = Qt::CaseInsensitive;
+#else
+                    Qt::CaseSensitivity cs = Qt::CaseSensitive;
+#endif
+                    if (path_env_vars.contains(key, cs))
+                    {
+                        os << "<li>" << key << "<ol>";
+#ifdef _WIN32
+                        const QChar path_split_char = ';';
+#else
+                        const QChar path_split_char = ':';
+#endif
+                        for (const QString & dir : value.split(path_split_char))
+                        {
+                            if (dir.isEmpty())
+                                continue;
+                            os << "<li>" << dir << "</li>";
+                        }
+                        os << "</ol></li>";
+                    }
+                    else
+                    {
+                        os << "<li>" << key << "=" << value << "</li>";
+                    }
                 }
                 os << "</ul>";
             }
