@@ -1578,14 +1578,14 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 	fitToWindowAction->setShortcut(tr("Ctrl+F"));
 	connect(fitToWindowAction, &QAction::triggered, this, &ImagePreviewDialogImpl::fitToWindow);
 
-	flipHorizontalAction = new QAction(tr("Flip &horizontal"), _dialog);
+	flipHorizontalAction = new QAction(tr("&Mirror"), _dialog);
 	flipHorizontalAction->setIcon(QIcon::fromTheme("object-flip-horizontal"));
 	flipHorizontalAction->setEnabled(_dialog->_item.valid());
 	flipHorizontalAction->setChecked(false);
 	flipHorizontalAction->setCheckable(true);
 	connect(flipHorizontalAction, &QAction::triggered, this, &ImagePreviewDialogImpl::flipHorizontal);
 
-	flipVerticalAction = new QAction(tr("Flip &vertical"), _dialog);
+	flipVerticalAction = new QAction(tr("&Flip"), _dialog);
 	flipVerticalAction->setIcon(QIcon::fromTheme("object-flip-vertical"));
 	flipVerticalAction->setEnabled(_dialog->_item.valid());
 	flipVerticalAction->setChecked(false);
@@ -2326,7 +2326,7 @@ void ImagePreviewDialog::refreshImpl()
         ss << "<b>No image</b>";
     _priv->ui->labelImage->setText(qt_helpers::fromUtf8(ss.str()));
     _priv->ui->mouseinfo->setText(QString());
-    _priv->setImageInfo(_workImage);
+    _priv->setImageInfo(_workImage.get());
     _priv->setNodeInfo(_item.get());
     _priv->updateToolbar();
 }
@@ -2400,8 +2400,14 @@ void ImagePreviewDialog::onMouseMoved(float x, float y)
     QString str;
     if (_workImage.valid())
     {
-        int px_x = qRound(x * _workImage->width());
-        int px_y = qRound(y * _workImage->height());
+        int px_x = std::max(0, qRound(x * _workImage->width()));
+        int px_y = std::max(0, qRound(y * _workImage->height()));
+
+        if(_priv->flipHorizontalAction->isChecked())
+            px_x = _workImage->width() - px_x;
+        if(_priv->flipVerticalAction->isChecked())
+            px_y = _workImage->height() - px_y;
+
         QString px_value;
         QString px_value_second;
 
