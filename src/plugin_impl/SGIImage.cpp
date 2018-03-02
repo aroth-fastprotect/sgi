@@ -199,6 +199,15 @@ void Image::loadPitchAndPlaneOffsets()
         _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
     }
     break;
+    case ImageFormatFloat64:
+    {
+        _pitch[0] = _width * 8;
+        _pitch[1] = _pitch[2] = _pitch[3] = 0;
+        _lines[0] = _height;
+        _lines[1] = _lines[2] = _lines[3] = 0;
+        _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
+    }
+    break;
     case ImageFormatYUV444:
     {
         _pitch[0] = _pitch[1] = _pitch[2] = _width * 3;
@@ -346,6 +355,9 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
     case ImageFormatABGR32:
     case ImageFormatFloat:
         _length = width * height * 4;
+        break;
+    case ImageFormatFloat64:
+        _length = width * height * 8;
         break;
     case ImageFormatYUV444:
         _length = width * height * 3;
@@ -549,6 +561,11 @@ bool Image::guessImageSizes(ImageSizeList & possibleSizes) const
         if(ret)
             totalNumberOfPixels = _length / 4;
         break;
+    case Image::ImageFormatFloat64:
+        ret = (_length % 8 == 0);
+        if(ret)
+            totalNumberOfPixels = _length / 8;
+        break;
     case Image::ImageFormatRGB24:
     case Image::ImageFormatBGR24:
     case Image::ImageFormatYUV444:
@@ -679,6 +696,9 @@ unsigned Image::bitsPerPixel() const
         // 4x4 pixels go into 16 bytes
         ret = 8;
         break;
+    case ImageFormatFloat64:
+        ret = 64;
+        break;
     }
     return ret;
 }
@@ -719,6 +739,7 @@ std::string Image::imageFormatToString(ImageFormat format)
     case ImageFormatRaw: ret = "raw"; break;
     case ImageFormatRGBA32: ret = "RGBA32"; break;
     case ImageFormatBGRA32: ret = "BGRA32"; break;
+    case ImageFormatFloat64: ret = "Float64"; break;
     default:
         {
             std::stringstream ss;
@@ -828,14 +849,25 @@ unsigned Image::planeEndOffset(unsigned index) const
     return ret;
 }
 
-const void * Image::pixelPtr(unsigned x, int unsigned y, unsigned z, unsigned plane) const
+const void * Image::pixelPtr(unsigned x, unsigned y, unsigned z, unsigned plane) const
 {
     const void * ret = nullptr;
+    Q_UNUSED(z);
     if (_data)
     {
         const uint8_t * src_data = reinterpret_cast<const uint8_t *>(_data);
         unsigned src_bits = bitsForDataElement(_dataType);
-        size_t src_offset = _planeOffset[plane] + ((y * _pitch[plane]) + (x * src_bits / 8));
+        size_t src_offset = 0;
+        switch(_origin)
+        {
+        case OriginBottomLeft:
+            src_offset = _planeOffset[plane] + ((y * _pitch[plane]) + (x * src_bits / 8));
+            break;
+        case OriginTopLeft:
+        default:
+            src_offset = _planeOffset[plane] + (((_lines[plane] - y) * _pitch[plane]) + (x * src_bits / 8));
+            break;
+        }
         ret = src_data + src_offset;
     }
     return ret;
