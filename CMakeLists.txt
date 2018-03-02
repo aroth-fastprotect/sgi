@@ -112,7 +112,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 
     FAST_INSTALL_EXTRA_HEADER_FILES(DIRECTORY ${SGI_INCLUDE_DIR}/sgi DESTINATION include/sgi)
 
-    if(Log4cplus_FOUND)
+    if(LOG4CPLUS_FOUND)
         set(SGI_HAS_LOG4CPLUS_SUPPORT 1)
     endif()
 
@@ -126,7 +126,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 
     if(SGI_USE_FFMPEG)
         find_package(FFmpeg)
-        if(FFmpeg_FOUND)
+        if(FFMPEG_FOUND)
             add_definitions(-DSGI_USE_FFMPEG=1)
             set(SGI_HAS_FFMPEG_SUPPORT 1)
         endif()

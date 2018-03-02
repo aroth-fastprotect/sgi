@@ -559,14 +559,26 @@ public:
             _inspectorHandler = new sgi::SceneGraphInspectorHandler(_hostCallback, _options);
             _view->addEventHandler(_inspectorHandler.get());
         }
-
+    }
+    virtual ~DefaultSGIProxy() override
+    {
+        _inspectorHandler = NULL;
+        _parent = NULL;
+        _view = NULL;
+        _options.clear();
+        _viewPtr = NULL;
+        _hostCallback = NULL;
+    }
+    void runOperations()
+    {
+        osg::Camera * camera = _view->getCamera();
         osg::GraphicsContext * ctx = camera->getGraphicsContext();
         if(ctx)
         {
             ensure_QApplication(ctx);
 
-            if(options.parentWidget)
-                _parent = options.parentWidget;
+            if(_options.parentWidget)
+                _parent = _options.parentWidget;
             else
             {
 #ifdef SGI_USE_OSGQT
@@ -602,71 +614,61 @@ public:
 #endif
             }
             OSG_NOTICE << LC << "DefaultSGIProxy parent " << _parent << std::endl;
-
-            if(_parent)
+        }
+        if(_parent)
+        {
+            bool gotImage = false;
+            if(_options.showImagePreviewDialog)
             {
-                bool gotImage = false;
-                if(_options.showImagePreviewDialog)
+                IImagePreviewDialogPtr dialog;
+                FindTreeItemNodeVisitor ftinv;
+                camera->accept(ftinv);
+                for(FindTreeItemNodeVisitor::NodeList::const_iterator it = ftinv.results().begin(); !gotImage && it != ftinv.results().end(); ++it)
                 {
-                    IImagePreviewDialogPtr dialog;
-                    FindTreeItemNodeVisitor ftinv;
-                    camera->accept(ftinv);
-                    for(FindTreeItemNodeVisitor::NodeList::const_iterator it = ftinv.results().begin(); !gotImage && it != ftinv.results().end(); ++it)
+                    const FindTreeItemNodeVisitor::NodeItem & item = *it;
+                    if(item.imageGeode)
                     {
-                        const FindTreeItemNodeVisitor::NodeItem & item = *it;
-                        if(item.imageGeode)
+                        // ... and if it is a image geode try to add the image to the tree as well
+                        osg::StateSet* stateSet = item.node->getStateSet();
+                        if(stateSet)
                         {
-                            // ... and if it is a image geode try to add the image to the tree as well
-                            osg::StateSet* stateSet = item.node->getStateSet();
-                            if(stateSet)
+                            osg::StateAttribute * sa = stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
+                            osg::Texture * texture = sa ? sa->asTexture() : NULL;
+                            if(texture)
                             {
-                                osg::StateAttribute * sa = stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
-                                osg::Texture * texture = sa ? sa->asTexture() : NULL;
-                                if(texture)
+                                SGIHostItemOsg image(texture->getImage(0));
+                                if(image.hasObject())
                                 {
-                                    SGIHostItemOsg image(texture->getImage(0));
-                                    if(image.hasObject())
-                                    {
-                                        dialog = _hostCallback->showImagePreviewDialog(_parent, &image);
-                                        gotImage = true;
-                                    }
+                                    dialog = _hostCallback->showImagePreviewDialog(_parent, &image);
+                                    gotImage = true;
                                 }
                             }
                         }
                     }
-                    if(dialog.valid())
-                        dialog->show();
                 }
-                if(_options.showSceneGraphDialog && !gotImage)
+                if(dialog.valid())
+                    dialog->show();
+            }
+            if(_options.showSceneGraphDialog && !gotImage)
+            {
+                ISceneGraphDialogPtr dialog;
+                SGIItemBase * existingViewItem = getView();
+                if (existingViewItem)
+                    dialog = _hostCallback->showSceneGraphDialog(_parent, existingViewItem);
+                else if(_view)
                 {
-                    ISceneGraphDialogPtr dialog;
-                    SGIItemBase * existingViewItem = getView();
-                    if (existingViewItem)
-                        dialog = _hostCallback->showSceneGraphDialog(_parent, existingViewItem);
-                    else if(_view)
-                    {
-                        SGIHostItemOsg viewItem(_view);
-                        dialog = _hostCallback->showSceneGraphDialog(_parent, &viewItem);
-                    }
-                    else
-                    {
-                        SGIHostItemOsg cameraItem(camera);
-                        dialog = _hostCallback->showSceneGraphDialog(_parent, &cameraItem);
-                    }
-                    if(dialog.valid())
-                        dialog->show();
+                    SGIHostItemOsg viewItem(_view);
+                    dialog = _hostCallback->showSceneGraphDialog(_parent, &viewItem);
                 }
+                else
+                {
+                    SGIHostItemOsg cameraItem(camera);
+                    dialog = _hostCallback->showSceneGraphDialog(_parent, &cameraItem);
+                }
+                if(dialog.valid())
+                    dialog->show();
             }
         }
-    }
-    virtual ~DefaultSGIProxy() override
-    {
-        _inspectorHandler = NULL;
-        _parent = NULL;
-        _view = NULL;
-        _options.clear();
-        _viewPtr = NULL;
-        _hostCallback = NULL;
     }
 public:
     SGIItemBase * getView()
@@ -852,19 +854,25 @@ public:
             {
                 if(!_installed)
                 {
-                    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
-                    if(!_installed)
+                    bool justInstalled = false;
                     {
-                        setCullingActive(true);
-                        OSG_NOTICE << LC << "install." << std::endl;
-
-                        osgUtil::CullVisitor * cv = dynamic_cast<osgUtil::CullVisitor *>(&nv);
-                        if(cv)
+                        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+                        if(!_installed)
                         {
-                            _proxy = new sgi::DefaultSGIProxy(cv->getCurrentCamera(), _options);
-                            _installed = true;
+                            setCullingActive(true);
+                            OSG_NOTICE << LC << "install." << std::endl;
+
+                            osgUtil::CullVisitor * cv = dynamic_cast<osgUtil::CullVisitor *>(&nv);
+                            if(cv)
+                            {
+                                _proxy = new sgi::DefaultSGIProxy(cv->getCurrentCamera(), _options);
+                                _installed = true;
+                                justInstalled = true;
+                            }
                         }
                     }
+                    if(justInstalled)
+                        _proxy->runOperations();
                 }
             }
             nv.popFromNodePath();
