@@ -2,6 +2,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QFileDialog>
+#include <QColorDialog>
 #include <QToolBar>
 #include <QScrollBar>
 #include <QComboBox>
@@ -406,6 +407,7 @@ public:
     void refresh();
     void flipHorizontal();
     void flipVertical();
+    void selectBackgroundColor();
     void imageWidthChanged(int index);
     void imageHeightChanged(int index);
     void imageFormatChanged(int index);
@@ -440,6 +442,7 @@ public:
     QAction *                       fitToWindowAction;
     QAction *                       flipHorizontalAction;
     QAction *                       flipVerticalAction;
+    QAction *                       selectBackgroundColorAction;
     QComboBox *                     imageWidth;
     QComboBox *                     imageHeight;
     QComboBox *                     imageFormat;
@@ -1311,6 +1314,7 @@ private:
         case Image::ImageFormatLuminanceAlpha:
             ret = to_qimage_argb32_single_channel(src, dest, s_defaultColorGradient, horizontalFlip);
             break;
+#ifdef _WIN32
         case Image::ImageFormatRGB24:
             ret = convertImageToQImage_RGB24(&src, dest);
             if (horizontalFlip)
@@ -1336,6 +1340,7 @@ private:
             if (horizontalFlip)
                 dest = dest.mirrored(false, true);
             break;
+#endif
         default:
             ret = to_qimage_argb32_with_avcodec(src, dest, horizontalFlip);
             break;
@@ -1435,6 +1440,7 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
     , fitToWindowAction(NULL)
     , flipHorizontalAction(NULL)
     , flipVerticalAction(NULL)
+    , selectBackgroundColorAction(NULL)
     , imageWidth(NULL)
     , imageHeight(NULL)
     , imageFormat(NULL)
@@ -1473,8 +1479,13 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
 	connect(ui->buttonBox->button(QDialogButtonBox::Close), &QPushButton::clicked, _dialog, &ImagePreviewDialog::reject);
     connect(ui->imageLabel, &ImagePreviewLabel::mouseMoved, _dialog, &ImagePreviewDialog::onMouseMoved);
 
-	ui->imageLabel->setBackgroundRole(QPalette::Base);
-	ui->scrollArea->setBackgroundRole(QPalette::Dark);
+    QPalette pal = ui->imageLabel->palette();
+    const QColor default_osg_view_clear_color = QColor::fromRgbF(0.2f, 0.2f, 0.4f, 1.0f);
+    pal.setColor(QPalette::Base, default_osg_view_clear_color);
+    ui->imageLabel->setPalette(pal);
+    ui->scrollArea->setPalette(pal);
+    ui->imageLabel->setBackgroundRole(QPalette::Base);
+    ui->scrollArea->setBackgroundRole(QPalette::Base);
 
 	createToolbar();
 
@@ -1581,6 +1592,10 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 	flipVerticalAction->setCheckable(true);
 	connect(flipVerticalAction, &QAction::triggered, this, &ImagePreviewDialogImpl::flipVertical);
 
+	selectBackgroundColorAction = new QAction(tr("Select &background color"), _dialog);
+	selectBackgroundColorAction->setIcon(QIcon::fromTheme("color-fill"));
+	connect(selectBackgroundColorAction, &QAction::triggered, this, &ImagePreviewDialogImpl::selectBackgroundColor);
+
     QMenu * saveMenu = new QMenu(_dialog);
     for(const auto & it : ImageFormatDisplayText)
     {
@@ -1662,6 +1677,8 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
     toolBar->addSeparator();
 	toolBar->addAction(flipHorizontalAction);
 	toolBar->addAction(flipVerticalAction);
+    toolBar->addSeparator();
+    toolBar->addAction(selectBackgroundColorAction);
 
     // do the connects at the end to avoid trouble when new items are added and signals fired
     connect(imageWidth, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ImagePreviewDialogImpl::imageWidthChanged);
@@ -1722,6 +1739,18 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::flipVertical()
 {
     // just refresh the actual change is done in refreshImpl
     refresh();
+}
+
+void ImagePreviewDialog::ImagePreviewDialogImpl::selectBackgroundColor()
+{
+    QPalette pal = ui->imageLabel->palette();
+    QColor color = QColorDialog::getColor(pal.color(QPalette::Base), _dialog, tr("Select background color"));
+    if(color.isValid())
+    {
+        pal.setColor(QPalette::Base, color);
+        ui->imageLabel->setPalette(pal);
+        ui->scrollArea->setPalette(pal);
+    }
 }
 
 void ImagePreviewDialog::ImagePreviewDialogImpl::imageWidthChanged(int index)
@@ -2374,6 +2403,7 @@ void ImagePreviewDialog::onMouseMoved(float x, float y)
         int px_x = qRound(x * _workImage->width());
         int px_y = qRound(y * _workImage->height());
         QString px_value;
+        QString px_value_second;
 
         switch (_workImage->format())
         {
@@ -2400,6 +2430,38 @@ void ImagePreviewDialog::onMouseMoved(float x, float y)
                     default: Q_ASSERT(false); break;
                     }
                     px_value = QColor(color).name();
+
+                    switch (_workImage->dataType())
+                    {
+                    case Image::DataTypeUnsignedByte:
+                    case Image::DataTypeSignedByte:
+                        for(unsigned i = 0; i < 4; ++i)
+                        {
+                            if(i>0)
+                                px_value_second += QChar(',');
+                            px_value_second += QString::number(pxe[i]);
+                        }
+                        break;
+                    case Image::DataTypeUnsignedShort:
+                    case Image::DataTypeSignedShort:
+                        for(unsigned i = 0; i < 2; ++i)
+                        {
+                            if(i>0)
+                                px_value_second += QChar(',');
+                            px_value_second += QString::number(((const quint16 *)px)[i]);
+                        }
+                        break;
+                    case Image::DataTypeUnsignedInt:
+                    case Image::DataTypeSignedInt:
+                        px_value_second += QString::number(*px);
+                        break;
+                    case Image::DataTypeFloat32:
+                        px_value_second += QString::number(*(const float*)px);
+                        break;
+                    case Image::DataTypeFloat64:
+                        px_value_second += QString::number(*(const double*)px);
+                        break;
+                    }
                 }
                 else
                     px_value = tr("N/A");
@@ -2480,6 +2542,8 @@ void ImagePreviewDialog::onMouseMoved(float x, float y)
         }
 
         str = tr("X=%1, Y=%2, value=%3").arg(px_x).arg(px_y).arg(px_value);
+        if(!px_value_second.isEmpty())
+            str += QChar(',') + px_value_second;
     }
     else
         str = tr("X=%1, Y=%2").arg(x).arg(y);
