@@ -27,6 +27,7 @@ enum SGIItemType_qt
     SGIItemTypeContextExtensions,
     SGIItemTypeSurface,
     SGIItemTypeProperties,
+    SGIItemTypeSystemEnvironment,
 };
 
 class SGIItemQt : public SGIItemBase

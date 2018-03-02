@@ -14,6 +14,7 @@
 
 #include <QtCore/QThread>
 #include <QCoreApplication>
+#include <QGuiApplication>
 #include <QApplication>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -65,6 +66,9 @@ SGI_OBJECT_INFO_BEGIN(QSurface)
     QWindow, QOffscreenSurface
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(QCoreApplication)
+    QGuiApplication
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(QGuiApplication)
     QApplication
 SGI_OBJECT_INFO_END()
 

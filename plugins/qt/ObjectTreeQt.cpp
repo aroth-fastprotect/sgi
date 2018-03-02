@@ -4,6 +4,7 @@
 #include <QMetaProperty>
 #include <QCoreApplication>
 #include <QApplication>
+#include <QAbstractEventDispatcher>
 #include <QClipboard>
 #include <QWidget>
 #include <QWindow>
@@ -271,7 +272,15 @@ bool objectTreeBuildImpl<QCoreApplication>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
+            treeItem->addChild("Environment", cloneItem<SGIItemQt>(SGIItemTypeSystemEnvironment));
+
+            SGIHostItemQt eventDispatcher(object->eventDispatcher());
+            if(eventDispatcher.hasObject())
+                treeItem->addChild("EventDispatcher", &eventDispatcher);
         }
+        break;
+    case SGIItemTypeSystemEnvironment:
+        ret = true;
         break;
     default:
         ret = callNextHandler(treeItem);

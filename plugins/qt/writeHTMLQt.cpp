@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include <ostream>
 #include <QThread>
+#include <QCoreApplication>
+#include <QProcessEnvironment>
 #include <QDialog>
 #ifdef WITH_QTOPENGL
 #include <QGLWidget>
@@ -34,6 +36,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QWidgetWindow)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QSurface)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QDialog)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QThread)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QCoreApplication)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLContext)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLWidget)
 #ifdef WITH_QTOPENGL
@@ -416,6 +419,51 @@ bool writePrettyHTMLImpl<QThread>::process(std::basic_ostream<char>& os)
 
             if(_table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+
+bool writePrettyHTMLImpl<QCoreApplication>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    QCoreApplication * object = getObject<QCoreApplication, SGIItemQt>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add QObject properties first
+            callNextHandler(os);
+
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeSystemEnvironment:
+        {
+            QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+            if(env.isEmpty())
+                os << "<i>empty</i>";
+            else
+            {
+                os << "<ul>";
+                for(const auto & key : env.keys())
+                {
+                    os << "<li>" << key << "=" << env.value(key) << "</li>";
+                }
+                os << "</ul>";
+            }
             ret = true;
         }
         break;
