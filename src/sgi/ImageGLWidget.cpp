@@ -150,6 +150,8 @@ bool ImageGLWidget::reloadShaders()
         // Create Shader (Do not release until VAO is created)
         _program = new QOpenGLShaderProgram();
     }
+    else
+        _program->removeAllShaders();
 
     bool shaderOk = true;
     details::Shaders pkg;
