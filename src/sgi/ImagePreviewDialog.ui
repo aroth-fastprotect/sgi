@@ -40,8 +40,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>52</width>
-         <height>365</height>
+         <width>50</width>
+         <height>371</height>
         </rect>
        </property>
        <property name="sizePolicy">
@@ -84,6 +84,9 @@
            <bool>true</bool>
           </property>
          </widget>
+        </item>
+        <item>
+         <widget class="sgi::ImageGLWidget" name="imageGL"/>
         </item>
        </layout>
       </widget>
@@ -247,6 +250,11 @@
    <class>sgi::ImagePreviewLabel</class>
    <extends>QLabel</extends>
    <header location="global">ImagePreviewDialog.h</header>
+  </customwidget>
+  <customwidget>
+   <class>sgi::ImageGLWidget</class>
+   <extends>QOpenGLWidget</extends>
+   <header location="global">ImageGLWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

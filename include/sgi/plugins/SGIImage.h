@@ -106,6 +106,7 @@ public:
     Image & operator=(const Image & rhs);
     virtual ~Image();
 
+    bool empty() const;
     ImageFormat format() const { return _format; }
     DataType dataType() const { return _dataType; }
     const void * data() const { return _data; }

@@ -2,6 +2,7 @@ SET(TARGET_SRC
     SGIItemBase.cpp
 	SGIImage.cpp
     functionImplBase.cpp
+    SGIShaderLoader.cpp
     string_helpers.cpp
     )
 
@@ -116,6 +117,7 @@ SET(TARGET_SRC
     widget_helpers.cpp
 	qt_dds_reader.cpp
     qimage_osg.cpp
+    SGIShaderLoaderQt.cpp
     )
 SET(TARGET_MOC_H
 	ObjectTreeImplProxy.h

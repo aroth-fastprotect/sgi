@@ -125,6 +125,7 @@ SET(TARGET_MOC_H
 	QuatInputDialog.h
 	MatrixInputDialog.h
 	ImagePreviewDialog.h
+	ImageGLWidget.h
 )
 
 # CHECK-IT:
@@ -143,7 +144,25 @@ SET(TARGET_SRC
 	QuatInputDialog.cpp
 	MatrixInputDialog.cpp
 	ImagePreviewDialog.cpp
+	ImageGLWidget.cpp
 	dxt.cpp
+)
+set(_imagewidget_dir .)
+set(TARGET_GLSL
+    ImageGLWidget.vert.glsl
+    ImageGLWidget.frag.glsl
+    )
+
+set(SHADERS_CPP "${CMAKE_CURRENT_BINARY_DIR}/AutoGenShaders.cpp")
+
+SGI_CONFIGURE_SHADERS(
+    ${_imagewidget_dir}/Shaders.cpp.in
+    ${SHADERS_CPP}
+    ${TARGET_GLSL} )
+
+list(APPEND TARGET_SRC
+    ${_imagewidget_dir}/ImageGLWidget.cpp
+    ${SHADERS_CPP}
 )
 
 SET(TARGET_LIBRARIES_VARS
@@ -152,7 +171,7 @@ SET(TARGET_LIBRARIES_VARS
 	OPENTHREADS_LIBRARY
 	OSG_LIBRARY
 	OSGDB_LIBRARY
-	OSGUTIL_LIBRARY
+    OSGUTIL_LIBRARY
 	OSGGA_LIBRARY
 	OSGVIEWER_LIBRARY
 )

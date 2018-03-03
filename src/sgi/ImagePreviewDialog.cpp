@@ -2272,6 +2272,8 @@ void ImagePreviewDialog::refreshImpl()
     QImage qimg = convertImageToQImage(_workImage.get(), format);
 #endif
 
+    _priv->ui->imageGL->setImage(_workImage.get());
+
 	refreshStatistics(qimg);
 
     _priv->ui->imageLabel->setText(QString());

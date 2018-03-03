@@ -3,3 +3,4 @@
 /*.kdev4
 /configure-*.bat
 /build-*
+/CMakeLists.txt.user

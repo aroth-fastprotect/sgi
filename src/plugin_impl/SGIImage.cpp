@@ -130,6 +130,11 @@ Image::~Image()
     free();
 }
 
+bool Image::empty() const
+{
+    return _format == ImageFormatInvalid || (_originalImageQt == nullptr && _data == nullptr);
+}
+
 Image & Image::operator=(const Image & rhs)
 {
     free();
