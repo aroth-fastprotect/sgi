@@ -26,6 +26,8 @@ MainWindow::MainWindow(QImage * image, QWidget * parent)
     sgi::ImagePtr sgiimage = new sgi::Image(image);
 
     ui->image->setImage(sgiimage.get());
+    //ui->image->setColorFilter("float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114)); color = vec4(vec3(gray), color.a);");
+
 }
 
 MainWindow::~MainWindow()

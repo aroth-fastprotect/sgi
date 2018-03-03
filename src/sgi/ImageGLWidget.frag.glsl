@@ -172,6 +172,12 @@ vec4 argb32()
     return texture(oe_sg_sampler0, real_tx );
 }
 
+vec4 applyColorFilter(vec4 color)
+{
+    $GLSL_COLOR_FILTER_FRAGMENT
+    return color;
+}
+
 void main()
 {
     if(oe_sg_texcoord0.s < 0.0)
@@ -218,6 +224,7 @@ void main()
                 color = uyvy();
                 break;
         }
+        color = applyColorFilter(color);
     }
 }
 

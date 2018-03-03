@@ -38,6 +38,9 @@ public:
     bool hasError() const {
         return !_errorMessage.isEmpty();
     }
+    bool setColorFilter(const QString & fragment, const QString & vertex=QString());
+    const QString & colorFilterFragment() const;
+    const QString & colorFilterVertex() const;
 
 protected:
     void teardownGL();
@@ -45,6 +48,7 @@ protected:
 
 protected:
     void setImageImpl(const sgi::Image * image);
+    bool reloadShaders();
 
 private:
     // OpenGL State Information
@@ -58,6 +62,8 @@ private:
     bool _useOpenGl3;
     bool _useOpenGles;
     QString _errorMessage;
+    QString _colorFilterVertex;
+    QString _colorFilterFragment;
 };
 
 

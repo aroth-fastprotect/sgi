@@ -96,48 +96,8 @@ void ImageGLWidget::initializeGL()
 
     _errorMessage.clear();
 
-    // Create Shader (Do not release until VAO is created)
-    _program = new QOpenGLShaderProgram();
-
-    bool shaderOk = true;
-    details::Shaders pkg;
-    if(!pkg.load( _program, ShaderPackage::ShaderTypeVertex, pkg.ImageGLWidgetVertex ))
-        shaderOk = false;
-    if(!pkg.load( _program, ShaderPackage::ShaderTypeFragment, pkg.ImageGLWidgetFragment ))
-        shaderOk = false;
-
-    if (shaderOk)
+    if(!reloadShaders())
     {
-        if (!_program->link())
-        {
-            shaderOk = false;
-            qCritical() << "failed to link program";
-        }
-        else
-        {
-            _locationIdPosition = _program->attributeLocation("position");
-            _locationIdTexCoord = _program->attributeLocation("texCoord");
-        }
-    }
-    if (shaderOk)
-    {
-        if (!_program->bind())
-        {
-            shaderOk = false;
-            qCritical() << "failed to bind program";
-        }
-    }
-
-    if (!shaderOk)
-    {
-        delete _program;
-        _program = NULL;
-
-        // shaders are bad and we cannot get them to work, so we only have the
-        // background color to inform the user about the error.
-        glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
-
-        qCritical() << "shader not ok";
         return;
     }
 
@@ -181,6 +141,59 @@ void ImageGLWidget::initializeGL()
     _texture->release();
 
     setImageImpl(_image.get());
+}
+
+bool ImageGLWidget::reloadShaders()
+{
+    if(!_program)
+    {
+        // Create Shader (Do not release until VAO is created)
+        _program = new QOpenGLShaderProgram();
+    }
+
+    bool shaderOk = true;
+    details::Shaders pkg;
+    pkg.replace("$GLSL_COLOR_FILTER_FRAGMENT", _colorFilterFragment.toStdString());
+    pkg.replace("$GLSL_COLOR_FILTER_VERTEX", _colorFilterVertex.toStdString());
+    if(!pkg.load( _program, ShaderPackage::ShaderTypeVertex, pkg.ImageGLWidgetVertex ))
+        shaderOk = false;
+    if(!pkg.load( _program, ShaderPackage::ShaderTypeFragment, pkg.ImageGLWidgetFragment ))
+        shaderOk = false;
+
+    if (shaderOk)
+    {
+        if (!_program->link())
+        {
+            shaderOk = false;
+            qCritical() << "failed to link program";
+        }
+        else
+        {
+            _locationIdPosition = _program->attributeLocation("position");
+            _locationIdTexCoord = _program->attributeLocation("texCoord");
+        }
+    }
+    if (shaderOk)
+    {
+        if (!_program->bind())
+        {
+            shaderOk = false;
+            qCritical() << "failed to bind program";
+        }
+    }
+
+    if (!shaderOk)
+    {
+        delete _program;
+        _program = NULL;
+
+        // shaders are bad and we cannot get them to work, so we only have the
+        // background color to inform the user about the error.
+        glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
+
+        qCritical() << "shader not ok";
+    }
+    return shaderOk;
 }
 
 void ImageGLWidget::resizeGL(int width, int height)
@@ -418,6 +431,34 @@ void ImageGLWidget::setImageImpl(const sgi::Image * image)
         _texture->setData(0, pixelFormat, QOpenGLTexture::UInt8, image->data(), &uploadOptions);
         _texture->release();
     }
+}
+
+bool ImageGLWidget::setColorFilter(const QString & fragment, const QString & vertex)
+{
+    _colorFilterFragment = fragment;
+    _colorFilterVertex = vertex;
+
+    if (!_texture || !_errorMessage.isEmpty())
+        return true;
+
+    makeCurrent();
+    bool ret = reloadShaders();
+
+    doneCurrent();
+    // trigger a repaint because we changed the widgets content outside repaintGL
+    update();
+
+    return ret;
+}
+
+const QString & ImageGLWidget::colorFilterFragment() const
+{
+    return _colorFilterFragment;
+}
+
+const QString & ImageGLWidget::colorFilterVertex() const
+{
+    return _colorFilterVertex;
 }
 
 } // namespace sgi
