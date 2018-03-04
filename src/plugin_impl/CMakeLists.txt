@@ -114,6 +114,7 @@ FAST_SHARED_LIBRARY(sgi-osg-helper NO_MOC_INCLUDE)
 SET(TARGET_SRC
     ObjectTreeImpl.cpp
     ObjectTreeImplProxy.cpp
+    SGIImageQt.cpp
     qt_helpers.cpp
     widget_helpers.cpp
 	qt_dds_reader.cpp

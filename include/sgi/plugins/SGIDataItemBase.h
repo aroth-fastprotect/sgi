@@ -6,10 +6,6 @@
 #include "SGIPluginInterface.h"
 #include <list>
 
-#ifdef max
-#undef max
-#endif
-
 namespace sgi {
 
 class SGIPluginHostInterface;
@@ -114,10 +110,10 @@ public:
         return dynamic_cast<const DATAITEMTYPE*>(this);
     }
 
-    size_t numFields() const { return _fields.size(); }
-    SGIDataFieldBase * getField(unsigned n) const { return  (n < _fields.size()) ? (_fields[n]) : NULL; }
-    void setField(unsigned n, SGIDataFieldBase * field) { _fields.resize(std::max(n, (unsigned)_fields.size())); _fields[n] = field; }
-    void addField(SGIDataFieldBase * field) { unsigned idx = (unsigned)_fields.size(); _fields.resize(idx+1); _fields[idx] = field; }
+    size_t numFields() const;
+    SGIDataFieldBase * getField(unsigned n) const;
+    void setField(unsigned n, SGIDataFieldBase * field);
+    void addField(SGIDataFieldBase * field);
 
 protected:
     SGIItemBasePtr          _item;

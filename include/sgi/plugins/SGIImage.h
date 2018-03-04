@@ -147,6 +147,8 @@ public:
 
 protected:
     void loadPitchAndPlaneOffsets();
+    void freeQt();
+    typedef void (Image::* pfnFreeQt)();
 
 protected:
     ImageFormat _format;
@@ -164,6 +166,7 @@ protected:
     unsigned _planeOffset[4];
     osg::ref_ptr<const osg::Referenced> _originalImage;
     QImage * _originalImageQt;
+    pfnFreeQt _freeQt;
     bool _allocated;
 };
 

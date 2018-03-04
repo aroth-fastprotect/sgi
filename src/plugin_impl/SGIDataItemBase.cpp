@@ -2,6 +2,11 @@
 // SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
 
 #include <sgi/plugins/SGIDataItemBase.h>
+#include <algorithm>
+
+#ifdef max
+#undef max
+#endif
 
 namespace sgi {
 // some method implementations from SGIItemBase which are only
@@ -21,6 +26,27 @@ SGIDataItemBase::SGIDataItemBase(const SGIDataItemBase & rhs)
 SGIDataItemBase::~SGIDataItemBase()
 {
 
+}
+
+size_t SGIDataItemBase::numFields() const
+{
+    return _fields.size();
+}
+
+SGIDataFieldBase * SGIDataItemBase::getField(unsigned n) const
+{
+    return  (n < _fields.size()) ? (_fields[n]) : NULL;
+}
+void SGIDataItemBase::setField(unsigned n, SGIDataFieldBase * field)
+{
+    _fields.resize(std::max(n, (unsigned)_fields.size()));
+    _fields[n] = field;
+}
+void SGIDataItemBase::addField(SGIDataFieldBase * field)
+{
+    unsigned idx = (unsigned)_fields.size();
+    _fields.resize(idx+1);
+    _fields[idx] = field;
 }
 
 } // namespace sgi

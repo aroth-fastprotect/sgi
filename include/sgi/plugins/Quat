@@ -6,7 +6,7 @@
 
 namespace sgi {
 
-class SGI_EXPORT Quat {
+class SGI_IMPL_EXPORT Quat {
 public:
     typedef double value_type;
 
