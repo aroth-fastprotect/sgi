@@ -186,7 +186,7 @@ private:
     InterfaceWrapper _iface;
 };
 
-class SGI_EXPORT functionImplBase
+class SGI_IMPL_EXPORT functionImplBase
 {
 public:
     functionImplBase(SGIPluginHostInterface * hostInterface, SGIItemBase * item=NULL);

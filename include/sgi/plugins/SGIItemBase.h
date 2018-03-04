@@ -62,7 +62,7 @@ public:
     virtual unsigned pluginScore() const = 0;
 };
 
-class SGI_EXPORT SGIItemBase : public osg::Object
+class SGI_IMPL_EXPORT SGIItemBase : public osg::Object
 {
 public:
     static unsigned getTotalItemCount();

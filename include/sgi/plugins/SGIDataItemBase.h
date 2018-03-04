@@ -4,6 +4,7 @@
 #pragma once
 #include "SGIItemBase.h"
 #include "SGIPluginInterface.h"
+#include <list>
 
 #ifdef max
 #undef max
@@ -95,15 +96,12 @@ inline std::string SGIDataFieldT<SGIItemBasePtr>::toString(SGIPluginHostInterfac
     return ret;
 }
 
-class SGIDataItemBase : public osg::Referenced
+class SGI_IMPL_EXPORT SGIDataItemBase : public osg::Referenced
 {
 public:
-    SGIDataItemBase(SGIItemBase * item=NULL, size_t numFields=0) : _item(item), _fields(numFields) {}
-    SGIDataItemBase(const SGIDataItemBase & rhs)
-        : osg::Referenced(rhs), _item(rhs._item), _fields(rhs._fields)
-    {
-    }
-    virtual ~SGIDataItemBase() {}
+    SGIDataItemBase(SGIItemBase * item=NULL, size_t numFields=0);
+    SGIDataItemBase(const SGIDataItemBase & rhs);
+    virtual ~SGIDataItemBase();
 
     template<typename DATAITEMTYPE>
     DATAITEMTYPE * as()

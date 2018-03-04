@@ -94,16 +94,16 @@ enum GLEnum { };
 enum GLModeValue { };
 enum GLModeOverrideValue { };
 
-SGI_EXPORT std::string getObjectTypename(const osg::Referenced * object);
-SGI_EXPORT std::string getObjectTypename(const osg::Observer * object);
-SGI_EXPORT std::string getObjectTypename(const osg::Object * object);
-SGI_EXPORT std::string getObjectName(const osg::Referenced * object, bool includeAddr=true);
-SGI_EXPORT std::string getObjectName(const osg::Observer * object, bool includeAddr=true);
-SGI_EXPORT std::string getObjectName(const osg::Object * object, bool includeAddr=true);
+SGI_OSG_HELPER_EXPORT std::string getObjectTypename(const osg::Referenced * object);
+SGI_OSG_HELPER_EXPORT std::string getObjectTypename(const osg::Observer * object);
+SGI_OSG_HELPER_EXPORT std::string getObjectTypename(const osg::Object * object);
+SGI_OSG_HELPER_EXPORT std::string getObjectName(const osg::Referenced * object, bool includeAddr=true);
+SGI_OSG_HELPER_EXPORT std::string getObjectName(const osg::Observer * object, bool includeAddr=true);
+SGI_OSG_HELPER_EXPORT std::string getObjectName(const osg::Object * object, bool includeAddr=true);
 
-SGI_EXPORT std::string getObjectNameAndType(const osg::Referenced * object, bool includeAddr=true);
-SGI_EXPORT std::string getObjectNameAndType(const osg::Observer * object, bool includeAddr=true);
-SGI_EXPORT std::string getObjectNameAndType(const osg::Object * object, bool includeAddr=true);
+SGI_OSG_HELPER_EXPORT std::string getObjectNameAndType(const osg::Referenced * object, bool includeAddr=true);
+SGI_OSG_HELPER_EXPORT std::string getObjectNameAndType(const osg::Observer * object, bool includeAddr=true);
+SGI_OSG_HELPER_EXPORT std::string getObjectNameAndType(const osg::Object * object, bool includeAddr=true);
 
 inline sgi::Color osgColor(const osg::Vec4f & c)
 {
@@ -135,38 +135,38 @@ inline ::osg::Quat osgQuat(const sgi::Quat & q)
     return ::osg::Quat(q.x(), q.y(), q.z(), q.w());
 }
 
-SGI_EXPORT std::string glValueName(unsigned n);
-SGI_EXPORT std::string glOverrideValueName(unsigned n);
-SGI_EXPORT std::string clearMaskToString(unsigned clearMask);
-SGI_EXPORT std::string cullingMaskToString(unsigned cullingMask);
+SGI_OSG_HELPER_EXPORT std::string glValueName(unsigned n);
+SGI_OSG_HELPER_EXPORT std::string glOverrideValueName(unsigned n);
+SGI_OSG_HELPER_EXPORT std::string clearMaskToString(unsigned clearMask);
+SGI_OSG_HELPER_EXPORT std::string cullingMaskToString(unsigned cullingMask);
 
-SGI_EXPORT const osg::EllipsoidModel & getDefaultEllipsoid();
+SGI_OSG_HELPER_EXPORT const osg::EllipsoidModel & getDefaultEllipsoid();
 
-SGI_EXPORT osg::Vec3d fromECEFToXYZ(const osg::EllipsoidModel & ellipsoid, const osg::Vec3d & coord);
-SGI_EXPORT osg::Vec3d fromXYZToECEF(const osg::EllipsoidModel & ellipsoid, const osg::Vec3d & v);
-SGI_EXPORT osg::Vec3d fromECEFToXYZ(const osg::Vec3d & coord);
-SGI_EXPORT osg::Vec3d fromXYZToECEF(const osg::Vec3d & v);
+SGI_OSG_HELPER_EXPORT osg::Vec3d fromECEFToXYZ(const osg::EllipsoidModel & ellipsoid, const osg::Vec3d & coord);
+SGI_OSG_HELPER_EXPORT osg::Vec3d fromXYZToECEF(const osg::EllipsoidModel & ellipsoid, const osg::Vec3d & v);
+SGI_OSG_HELPER_EXPORT osg::Vec3d fromECEFToXYZ(const osg::Vec3d & coord);
+SGI_OSG_HELPER_EXPORT osg::Vec3d fromXYZToECEF(const osg::Vec3d & v);
 
-SGI_EXPORT void getHPRFromQuat(const osg::Quat& q, double &h, double &p, double &r);
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec2f & v);
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec3f & v);
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec4f & v);
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec2d & v);
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec3d & v);
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec4d & v);
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Quat & q);
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::NodePath & path, bool includeNodeMask = false);
+SGI_OSG_HELPER_EXPORT void getHPRFromQuat(const osg::Quat& q, double &h, double &p, double &r);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec2f & v);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec3f & v);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec4f & v);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec2d & v);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec3d & v);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec4d & v);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Quat & q);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::NodePath & path, bool includeNodeMask = false);
 
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::ObserverNodePath & path, bool includeNodeMask = false);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::ObserverNodePath & path, bool includeNodeMask = false);
 
-SGI_EXPORT void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Node * refNode=NULL);
-SGI_EXPORT void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Drawable * refDrawable=NULL);
-SGI_EXPORT void writePrettyRotationHTML(std::basic_ostream<char>& os, const osg::Quat & q);
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSphere & bs, const osg::Node * refNode=NULL);
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSphere * bs, const osg::Node * refNode=NULL);
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox & bb, const osg::Node * refNode);
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox & bb, const osg::Drawable * refDrawable);
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox * bb, const osg::Drawable * refDrawable);
+SGI_OSG_HELPER_EXPORT void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Node * refNode=NULL);
+SGI_OSG_HELPER_EXPORT void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Drawable * refDrawable=NULL);
+SGI_OSG_HELPER_EXPORT void writePrettyRotationHTML(std::basic_ostream<char>& os, const osg::Quat & q);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSphere & bs, const osg::Node * refNode=NULL);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSphere * bs, const osg::Node * refNode=NULL);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox & bb, const osg::Node * refNode);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox & bb, const osg::Drawable * refDrawable);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox * bb, const osg::Drawable * refDrawable);
 
 enum MatrixUsageType
 {
@@ -179,22 +179,22 @@ enum MatrixUsageType
     MatrixUsageTypeWindow,
 };
 
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Node * refNode=NULL);
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Drawable * refDrawable);
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::RefMatrixd * mat, MatrixUsageType type, const osg::Node * refNode = NULL);
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::RefMatrixd * mat, MatrixUsageType type, const osg::Drawable * refDrawable);
-SGI_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Viewport * vp);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Node * refNode=NULL);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Drawable * refDrawable);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::RefMatrixd * mat, MatrixUsageType type, const osg::Node * refNode = NULL);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::RefMatrixd * mat, MatrixUsageType type, const osg::Drawable * refDrawable);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Viewport * vp);
 
-SGI_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxf & b);
-SGI_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxd & b);
-SGI_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSpheref & b);
-SGI_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSphered & b);
+SGI_OSG_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxf & b);
+SGI_OSG_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxd & b);
+SGI_OSG_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSpheref & b);
+SGI_OSG_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSphered & b);
 
-SGI_EXPORT bool osgImageToQImage(const osg::Image * image, QImage * qimage);
-SGI_EXPORT const sgi::Image * convertImage(const osg::Image * image);
+SGI_OSG_HELPER_EXPORT bool osgImageToQImage(const osg::Image * image, QImage * qimage);
+SGI_OSG_HELPER_EXPORT const sgi::Image * convertImage(const osg::Image * image);
 
-SGI_EXPORT void heightFieldDumpHTML(std::basic_ostream<char>& os, const osg::HeightField * hf);
-SGI_EXPORT void heightFieldDumpPlainText(std::basic_ostream<char>& os, const osg::HeightField * hf);
+SGI_OSG_HELPER_EXPORT void heightFieldDumpHTML(std::basic_ostream<char>& os, const osg::HeightField * hf);
+SGI_OSG_HELPER_EXPORT void heightFieldDumpPlainText(std::basic_ostream<char>& os, const osg::HeightField * hf);
 
     /**
      * Visitor that locates a node by its type
@@ -393,14 +393,14 @@ SGI_EXPORT void heightFieldDumpPlainText(std::basic_ostream<char>& os, const osg
         return result;
     }
 
-    SGI_EXPORT osg::Camera * findCamera(const osg::Node * node);
-    SGI_EXPORT osg::Camera * findCamera(const osg::StateSet * stateset);
-    SGI_EXPORT osg::Camera * findCamera(const osg::StateAttribute * sa);
+    SGI_OSG_HELPER_EXPORT osg::Camera * findCamera(const osg::Node * node);
+    SGI_OSG_HELPER_EXPORT osg::Camera * findCamera(const osg::StateSet * stateset);
+    SGI_OSG_HELPER_EXPORT osg::Camera * findCamera(const osg::StateAttribute * sa);
 
-    SGI_EXPORT unsigned findContextID(const osg::Camera * camera);
-    SGI_EXPORT unsigned findContextID(const osg::Node * node);
-    SGI_EXPORT unsigned findContextID(const osg::StateSet * stateset);
-    SGI_EXPORT unsigned findContextID(const osg::StateAttribute * sa);
+    SGI_OSG_HELPER_EXPORT unsigned findContextID(const osg::Camera * camera);
+    SGI_OSG_HELPER_EXPORT unsigned findContextID(const osg::Node * node);
+    SGI_OSG_HELPER_EXPORT unsigned findContextID(const osg::StateSet * stateset);
+    SGI_OSG_HELPER_EXPORT unsigned findContextID(const osg::StateAttribute * sa);
 
     } // namespace osg_helpers
 } // namespace sgi

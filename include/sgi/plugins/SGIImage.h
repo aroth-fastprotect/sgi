@@ -11,7 +11,7 @@ class QImage;
 
 namespace sgi {
 
-class SGI_EXPORT Image : public osg::Referenced
+class SGI_IMPL_EXPORT Image : public osg::Referenced
 {
 public:
     enum ImageFormat {

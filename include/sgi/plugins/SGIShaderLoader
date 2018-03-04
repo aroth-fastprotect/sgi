@@ -32,7 +32,7 @@ namespace sgi {
     /**
      * Functions to help load shader code.
      */
-    class SGI_EXPORT ShaderPackage
+    class SGI_IMPL_EXPORT ShaderPackage
     {
     public:
         /**
@@ -88,7 +88,7 @@ namespace sgi {
     /**
      * Base class for local shader file/source pairs.
      */
-    class SGI_EXPORT ShaderLoader
+    class SGI_IMPL_EXPORT ShaderLoader
     {
     public:
         /**

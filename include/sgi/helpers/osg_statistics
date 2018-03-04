@@ -14,13 +14,13 @@ namespace sgi {
 
 namespace osg_helpers {
 
-class SGI_EXPORT MemoryStatisticsVisitor : public osg::NodeVisitor
+class SGI_OSG_HELPER_EXPORT MemoryStatisticsVisitor : public osg::NodeVisitor
 {
 public:
     MemoryStatisticsVisitor(unsigned int contextID=~0u, TraversalMode tm=TRAVERSE_NONE);
     ~MemoryStatisticsVisitor();
 
-    struct SGI_EXPORT Numbers {
+    struct SGI_OSG_HELPER_EXPORT Numbers {
         Numbers();
         void clear();
         unsigned totalSize;
@@ -46,7 +46,7 @@ protected:
     Numbers _numbers;
 };
 
-class SGI_EXPORT StatisticsVisitor : public osgUtil::StatsVisitor
+class SGI_OSG_HELPER_EXPORT StatisticsVisitor : public osgUtil::StatsVisitor
 {
 public:
     typedef std::set<osg::StateAttribute*> StateAttributeSet;

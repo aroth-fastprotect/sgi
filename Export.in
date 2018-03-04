@@ -9,10 +9,31 @@
     #  else
     #    define SGI_EXPORT   __declspec(dllimport)
     #  endif
+    #  if defined( SGI_IMPL_LIBRARY )
+    #    define SGI_IMPL_EXPORT   __declspec(dllexport)
+    #  else
+    #    define SGI_IMPL_EXPORT   __declspec(dllimport)
+    #  endif
+    #  if defined( SGI_OSG_HELPER_LIBRARY )
+    #    define SGI_OSG_HELPER_EXPORT   __declspec(dllexport)
+    #  else
+    #    define SGI_OSG_HELPER_EXPORT   __declspec(dllimport)
+    #  endif
+    #  if defined( SGI_QT_HELPER_LIBRARY )
+    #    define SGI_QT_HELPER_EXPORT    __declspec(dllexport)
+    #  else
+    #    define SGI_QT_HELPER_EXPORT    __declspec(dllimport)
+    #  endif
 #elif defined(__GNUC__)
     #  define SGI_EXPORT __attribute__ ((visibility ("default")))
+    #  define SGI_IMPL_EXPORT __attribute__ ((visibility ("default")))
+    #  define SGI_OSG_HELPER_EXPORT __attribute__ ((visibility ("default")))
+    #  define SGI_QT_HELPER_EXPORT __attribute__ ((visibility ("default")))
 #else
     #  define SGI_EXPORT
+    #  define SGI_IMPL_EXPORT
+    #  define SGI_OSG_HELPER_EXPORT
+    #  define SGI_QT_HELPER_EXPORT
 #endif
 /**
 
