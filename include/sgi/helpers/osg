@@ -190,7 +190,7 @@ SGI_OSG_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<ch
 SGI_OSG_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSpheref & b);
 SGI_OSG_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSphered & b);
 
-SGI_OSG_HELPER_EXPORT bool osgImageToQImage(const osg::Image * image, QImage * qimage);
+SGI_QT_HELPER_EXPORT bool osgImageToQImage(const osg::Image * image, QImage * qimage);
 SGI_OSG_HELPER_EXPORT const sgi::Image * convertImage(const osg::Image * image);
 
 SGI_OSG_HELPER_EXPORT void heightFieldDumpHTML(std::basic_ostream<char>& os, const osg::HeightField * hf);
