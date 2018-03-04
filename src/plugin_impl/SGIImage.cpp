@@ -1,16 +1,23 @@
 // kate: syntax C++11;
-// SGI - Copyright (C) 2012-2017 FAST Protect, Andreas Roth
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #include <sgi/plugins/SGIImage.h>
 #include <sstream>
 #include <cmath>
 #include <QImage>
 
+#define ALIGN_SIZE(x,n)       ((size_t)((~(n-1))&((x)+(n-1))))
+#define ALIGN_BY_16(x) ALIGN_SIZE(x, 16)
+#define ALIGN_BY_8(x) ALIGN_SIZE(x, 8)
+#define ALIGN_BY_4(x) ALIGN_SIZE(x, 4)
+
 namespace sgi {
 
 Image::Image(ImageFormat format, DataType type)
     : _format(format), _dataType(type), _origin(OriginDefault), _data(NULL), _length(0)
-    , _width(0), _height(0), _depth(0), _pitch { 0, 0, 0, 0 }, _lines{ 0, 0, 0, 0 }, _planeOffset{0, 0, 0, 0}
+    , _width(0), _height(0), _depth(0)
+    , _allocatedWidth(0), _allocatedHeight(0)
+    , _pitch { 0, 0, 0, 0 }, _lines{ 0, 0, 0, 0 }, _planeOffset{0, 0, 0, 0}
     , _originalImage(NULL), _originalImageQt(NULL)
     , _allocated(false)
 {
@@ -20,7 +27,9 @@ Image::Image(ImageFormat format, DataType type, Origin origin, void * data, size
         unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
         const osg::Referenced * originalImage, bool copyData)
     : _format(format), _dataType(type), _origin(origin), _data(copyData ? malloc(length) : data), _length(length)
-    , _width(width), _height(height), _depth(depth), _pitch { bytesPerLine, 0, 0, 0 }, _lines{ height, 0, 0, 0 }
+    , _width(width), _height(height), _depth(depth)
+    , _allocatedWidth(width), _allocatedHeight(height)
+    , _pitch { bytesPerLine, 0, 0, 0 }, _lines{ height, 0, 0, 0 }
     , _planeOffset{0, 0, 0, 0}
     , _originalImage(originalImage), _originalImageQt(NULL)
     , _allocated(copyData)
@@ -34,7 +43,9 @@ Image::Image(ImageFormat format, DataType type, Origin origin, void * data, size
     unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
     QImage * originalImage, bool copyData)
     : _format(format), _dataType(type), _origin(origin), _data(copyData ? malloc(length) : data), _length(length)
-    , _width(width), _height(height), _depth(depth), _pitch{ bytesPerLine, 0, 0, 0 }, _lines{ height, 0, 0, 0 }
+    , _width(width), _height(height), _depth(depth)
+    , _allocatedWidth(width), _allocatedHeight(height)
+    , _pitch{ bytesPerLine, 0, 0, 0 }, _lines{ height, 0, 0, 0 }
     , _planeOffset { 0, 0, 0, 0 }
     , _originalImage(NULL), _originalImageQt((originalImage)?new QImage(*originalImage):NULL)
     , _allocated(copyData)
@@ -86,6 +97,7 @@ Image::Image(QImage * originalImage, bool copyData)
     , _dataType(DataTypeUnsignedByte)
     , _origin(OriginTopLeft), _data(NULL), _length(0)
     , _width(originalImage->width()), _height(originalImage->height()), _depth(1)
+    , _allocatedWidth(originalImage->width()), _allocatedHeight(originalImage->height())
     , _pitch { (unsigned)originalImage->bytesPerLine(), 0, 0, 0 }
     , _lines{ (unsigned)originalImage->height(), 0, 0, 0 }
     , _planeOffset{0, 0, 0, 0}
@@ -104,7 +116,9 @@ Image::Image(QImage * originalImage, bool copyData)
 
 Image::Image(ImageFormat format, DataType type, void * data, size_t length, bool copyData)
     : _format(format), _dataType(type), _origin(OriginDefault), _data(copyData ? malloc(length) : data), _length(length)
-    , _width(0), _height(0), _depth(0), _pitch{ 0, 0, 0, 0 }, _lines{ 0, 0, 0, 0 }, _planeOffset{ 0, 0, 0, 0 }
+    , _width(0), _height(0), _depth(0)
+    , _allocatedWidth(0), _allocatedHeight(0)
+    , _pitch{ 0, 0, 0, 0 }, _lines{ 0, 0, 0, 0 }, _planeOffset{ 0, 0, 0, 0 }
     , _originalImage(NULL), _originalImageQt(NULL)
     , _allocated(copyData)
 {
@@ -116,6 +130,7 @@ Image::Image(ImageFormat format, DataType type, void * data, size_t length, bool
 Image::Image(const Image & rhs)
     : _format(rhs._format), _dataType(rhs._dataType), _origin(rhs._origin), _data(rhs._data), _length(rhs._length)
     , _width(rhs._width), _height(rhs._height), _depth(rhs._depth)
+    , _allocatedWidth(rhs._allocatedWidth), _allocatedHeight(rhs._allocatedHeight)
     , _pitch { rhs._pitch[0], rhs._pitch[1], rhs._pitch[2], rhs._pitch[3] }
     , _lines{ rhs._lines[0], rhs._lines[1], rhs._lines[2], rhs._lines[3] }
     , _planeOffset { rhs._planeOffset[0], rhs._planeOffset[1], rhs._planeOffset[2], rhs._planeOffset[3] }
@@ -147,6 +162,8 @@ Image & Image::operator=(const Image & rhs)
     _width = rhs._width;
     _height = rhs._height;
     _depth = rhs._depth;
+    _allocatedWidth = rhs._allocatedWidth;
+    _allocatedHeight = rhs._allocatedHeight;
     _pitch[0] = rhs._pitch[0];
     _pitch[1] = rhs._pitch[1];
     _pitch[2] = rhs._pitch[2];
@@ -334,6 +351,8 @@ void Image::free()
 bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin origin)
 {
     bool ret = false;
+    unsigned allocated_width = ALIGN_BY_16(width);
+    unsigned allocated_height = ALIGN_BY_16(height);
     free();
     _length = 0;
     switch (format)
@@ -350,7 +369,7 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
         break;
     case ImageFormatRGB24:
     case ImageFormatBGR24:
-        _length = width * height * 3;
+        _length = allocated_width * allocated_height * 3;
         break;
     case ImageFormatRGB32:
     case ImageFormatRGBA32:
@@ -359,24 +378,24 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
     case ImageFormatBGRA32:
     case ImageFormatABGR32:
     case ImageFormatFloat:
-        _length = width * height * 4;
+        _length = allocated_width * allocated_height * 4;
         break;
     case ImageFormatFloat64:
-        _length = width * height * 8;
+        _length = allocated_width * allocated_height * 8;
         break;
     case ImageFormatYUV444:
-        _length = width * height * 3;
+        _length = allocated_width * allocated_height * 3;
         break;
     case ImageFormatYUV422:
-        _length = width * height * 2;
+        _length = allocated_width * allocated_height * 2;
         break;
     case ImageFormatYUV420:
-        _length = width * height + (width / 2 * height/2);
+        _length = allocated_width * allocated_height + (allocated_width / 2 * allocated_height/2);
         break;
 
     case ImageFormatYUYV:
     case ImageFormatUYVY:
-        _length = (width + width) * height;
+        _length = (allocated_width + allocated_width) * allocated_height;
         break;
     case ImageFormatGray:
     case ImageFormatRed:
@@ -384,7 +403,7 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
     case ImageFormatBlue:
     case ImageFormatAlpha:
         // only one channel with 8-bit color data
-        _length = width * height;
+        _length = allocated_width * allocated_height;
         break;
     }
     if(_length)
@@ -392,6 +411,9 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
         _data = malloc(_length);
         _width = width;
         _height = height;
+        _depth = 1;
+        _allocatedWidth = allocated_width;
+        _allocatedHeight = allocated_height;
         _format = format;
         _dataType = DataTypeUnsignedByte;
         _origin = origin;
@@ -542,6 +564,8 @@ bool Image::reinterpret(ImageFormat format, unsigned width, unsigned height, uns
 {
     _width = width;
     _height = height;
+    _allocatedWidth = width;
+    _allocatedHeight = height;
     _depth = depth;
     _format = format;
     loadPitchAndPlaneOffsets();
@@ -876,6 +900,26 @@ const void * Image::pixelPtr(unsigned x, unsigned y, unsigned z, unsigned plane)
         ret = src_data + src_offset;
     }
     return ret;
+}
+
+float Image::hscale() const
+{
+    return (_allocatedWidth > 0) ? ((float)_width / (float)_allocatedWidth) : 1.0f;
+}
+
+float Image::vscale() const
+{
+    return (_allocatedHeight > 0) ? ((float)_height / (float)_allocatedHeight) : 1.0f;
+}
+
+float Image::horizontalPixelSize() const
+{
+    return (_allocatedWidth > 0) ? (1.0f / (float)_allocatedWidth) : 0.0f;
+}
+
+float Image::verticalPixelSize() const
+{
+    return (_allocatedHeight > 0) ? (1.0f / (float)_allocatedHeight) : 0.0f;
 }
 
 } // namespace sgi

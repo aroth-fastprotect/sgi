@@ -115,6 +115,8 @@ public:
     unsigned width() const { return _width; }
     unsigned height() const { return _height; }
     unsigned depth() const { return _depth; }
+    unsigned allocatedWidth() const { return _allocatedWidth; }
+    unsigned allocatedHeight() const { return _allocatedHeight; }
     unsigned pitch(unsigned index=0) const { return _pitch[index]; }
     unsigned lines(unsigned index=0) const { return _lines[index]; }
     unsigned planeOffset(unsigned index=0) const { return _planeOffset[index]; }
@@ -137,6 +139,12 @@ public:
         return reinterpret_cast<const PXTYPE*>(pixelPtr(x, y, z, plane));
     }
 
+    float hscale() const;
+    float vscale() const;
+
+    float horizontalPixelSize() const;
+    float verticalPixelSize() const;
+
 protected:
     void loadPitchAndPlaneOffsets();
 
@@ -149,6 +157,8 @@ protected:
     unsigned _width;
     unsigned _height;
     unsigned _depth;
+    unsigned _allocatedWidth;
+    unsigned _allocatedHeight;
     unsigned _pitch[4];
     unsigned _lines[4];
     unsigned _planeOffset[4];
