@@ -12,6 +12,7 @@
 #include <QDesktopWidget>
 #include <QOpenGLContext>
 #include <QOpenGLWidget>
+#include <QOpenGLShaderProgram>
 #ifdef WITH_QTOPENGL
 #include <QGLWidget>
 #endif // WITH_QTOPENGL
@@ -43,6 +44,9 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QPaintDevice)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QImage)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLContext)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLWidget)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLShaderProgram)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLShader)
+
 #ifdef WITH_QTOPENGL
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QGLWidget)
 #endif // WITH_QTOPENGL
@@ -426,6 +430,65 @@ bool objectTreeBuildImpl<QOpenGLWidget>::build(IObjectTreeItem * treeItem)
     return ret;
 }
 
+bool objectTreeBuildImpl<QOpenGLShaderProgram>::build(IObjectTreeItem * treeItem)
+{
+    QOpenGLShaderProgram * object = getObject<QOpenGLShaderProgram, SGIItemQt>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            QList<QOpenGLShader *> shaders = object->shaders();
+            treeItem->addChild(helpers::str_plus_count("Shaders", shaders.size()), cloneItem<SGIItemQt>(SGIItemTypeShaderProgramShaders));
+        }
+        break;
+    case SGIItemTypeShaderProgramShaders:
+        {
+            QList<QOpenGLShader *> shaders = object->shaders();
+            for(auto shader : shaders)
+            {
+                SGIHostItemQt item(shader);
+                if (item.hasObject())
+                    treeItem->addChild(std::string(), &item);
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<QOpenGLShader>::build(IObjectTreeItem * treeItem)
+{
+    QOpenGLShader * object = getObject<QOpenGLShader, SGIItemQt>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            treeItem->addChild("Source", cloneItem<SGIItemQt>(SGIItemTypeShaderSourceCode));
+            treeItem->addChild("Log", cloneItem<SGIItemQt>(SGIItemTypeShaderLog));
+        }
+        break;
+    case SGIItemTypeShaderSourceCode:
+        ret = true;
+        break;
+    case SGIItemTypeShaderLog:
+        ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
 
 #ifdef WITH_QTOPENGL
 bool objectTreeBuildImpl<QGLWidget>::build(IObjectTreeItem * treeItem)

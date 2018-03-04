@@ -9,6 +9,7 @@
 #endif
 #include <QOpenGLWindow>
 #include <QOpenGLWidget>
+#include <QOpenGLShaderProgram>
 #include <QSurfaceFormat>
 #include <QWindow>
 #include <QSurface>
@@ -39,6 +40,8 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QThread)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QCoreApplication)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLContext)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLWidget)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLShaderProgram)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLShader)
 #ifdef WITH_QTOPENGL
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QGLWidget)
 #endif
@@ -784,6 +787,93 @@ bool writePrettyHTMLImpl<QOpenGLWidget>::process(std::basic_ostream<char>& os)
         break;
     case SGIItemTypeContext:
         {
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<QOpenGLShaderProgram>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    QOpenGLShaderProgram * object = getObject<QOpenGLShaderProgram, SGIItemQt>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add QObject properties first
+            callNextHandler(os);
+
+            os << "<tr><td>isLinked</td><td>" << (object->isLinked()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>programId</td><td>" << object->programId() << "</td></tr>" << std::endl;
+            os << "<tr><td>maxGeometryOutputVertices</td><td>" << object->maxGeometryOutputVertices() << "</td></tr>" << std::endl;
+            os << "<tr><td>patchVertexCount</td><td>" << object->patchVertexCount() << "</td></tr>" << std::endl;
+            QList<QOpenGLShader *> shaders = object->shaders();
+            os << "<tr><td>shaders</td><td>" << shaders.size() << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeShaderProgramShaders:
+        {
+            QList<QOpenGLShader *> shaders = object->shaders();
+            os << "<ol>";
+            for(auto shader : shaders)
+            {
+                os << "<li>" << qt_helpers::getObjectNameAndType(shader, true) << "</li>";
+            }
+            os << "</ol>";
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<QOpenGLShader>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    QOpenGLShader * object = getObject<QOpenGLShader, SGIItemQt>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add QObject properties first
+            callNextHandler(os);
+
+            os << "<tr><td>isCompiled</td><td>" << (object->isCompiled()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>id</td><td>" << object->shaderId() << "</td></tr>" << std::endl;
+            os << "<tr><td>type</td><td>" << object->shaderType() << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeShaderLog:
+        {
+            os << "<pre>" << object->log() << "</pre>";
+            ret = true;
+        }
+        break;
+    case SGIItemTypeShaderSourceCode:
+        {
+            os << "<pre>" << object->sourceCode() << "</pre>";
             ret = true;
         }
         break;
