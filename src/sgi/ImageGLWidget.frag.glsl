@@ -28,8 +28,8 @@ const int ImageFormatLuminanceAlpha = 22;
 const int ImageFormatDXT1 = 23;
 const int ImageFormatDXT1Alpha = 24;
 const int ImageFormatDXT3 = 25;
-const int ImageFormatRGBA32 = 26;
-const int ImageFormatDXT5 = 27;
+const int ImageFormatDXT5 = 26;
+const int ImageFormatRGBA32 = 27;
 const int ImageFormatBGRA32 = 28;
 const int ImageFormatFloat64 = 29;
 const int ImageFormatRaw = 1000;
@@ -200,6 +200,8 @@ void main()
                 break;
             case ImageFormatABGR32:
             case ImageFormatARGB32:
+            case ImageFormatRGBA32:
+            case ImageFormatBGRA32:
                 // handle bgr and rgb identical because color order is already fixed by OpenGL
                 color = argb32();
                 break;

@@ -42,12 +42,19 @@ public:
     const QString & colorFilterFragment() const;
     const QString & colorFilterVertex() const;
 
+    QOpenGLBuffer * vertexBuffer() const { return _vertex; }
+    QOpenGLVertexArrayObject * vao() const { return _object; }
+    QOpenGLShaderProgram * program() const { return _program; }
+    QOpenGLTexture * texture() const { return _texture; }
+
+    void setMirrored(bool horizontal, bool vertical);
+
 protected:
     void teardownGL();
     void paintEvent(QPaintEvent *e) override;
 
 protected:
-    void setImageImpl(const sgi::Image * image);
+    void setImageImpl(const sgi::Image * image, bool reset=false);
     bool reloadShaders();
 
 private:

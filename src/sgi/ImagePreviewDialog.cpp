@@ -386,6 +386,9 @@ bool applyColorFilterQImage(QImage & src, QImage & dest, ImagePreviewDialog::Col
     return true;
 }
 
+/// @note a lot of GLSL shader code for color filters can be found at
+/// @see https://github.com/AnalyticalGraphicsInc/cesium/blob/master/Source/Shaders/Builtin/Functions/
+/// e.g. RGBToHSL.glsl
 bool getColorFilterShaderCode(ImagePreviewDialog::ColorFilter filter, QString & fragment, QString & vertex)
 {
     /// @see http://cs.uns.edu.ar/cg/clasespdf/GraphicShaders.pdf, Chapter 11, page 241ff
@@ -2355,6 +2358,8 @@ void ImagePreviewDialog::refreshImpl()
         }
         else
             actualDisplayedPixmap = QPixmap::fromImage(qimgDisplay);
+        _priv->ui->imageGL->setMirrored(_priv->flipHorizontalAction->isChecked(), _priv->flipVerticalAction->isChecked());
+
         _priv->imageWidth->setCurrentText(QString::number(_image->width()));
         _priv->imageHeight->setCurrentText(QString::number(_image->height()));
         _priv->ui->imageLabel->setPixmap(actualDisplayedPixmap);

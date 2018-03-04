@@ -114,7 +114,7 @@ void ImageGLWidget::initializeGL()
     // Create Buffer (Do not release until VAO is created)
     _vertex = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
     _vertex->create();
-    _vertex->setUsagePattern(QOpenGLBuffer::StaticDraw);
+    _vertex->setUsagePattern(QOpenGLBuffer::DynamicDraw);
     _vertex->bind();
     _vertex->allocate(window_rect_vertexes, sizeof(window_rect_vertexes));
 
@@ -132,6 +132,7 @@ void ImageGLWidget::initializeGL()
     _program->setUniformValue("frame", 0);
     _program->setUniformValue("format", _image.valid() ? (int)_image->format() : -1);
     _program->setUniformValue("texture_scale", 1.0f, 1.0f);
+    _program->setUniformValue("pixel_size", 1.0f, 1.0f);
 
     // Release (unbind) all
     _program->release();
@@ -345,10 +346,13 @@ void ImageGLWidget::setImage(const sgi::Image * image)
     update();
 }
 
-void ImageGLWidget::setImageImpl(const sgi::Image * image)
+void ImageGLWidget::setImageImpl(const sgi::Image * image, bool reset)
 {
     Q_ASSERT(_texture != NULL);
-    //     qDebug() << "ImageGLWidget::setFrame" << image->hasRawData() << (image->hasRawData() ? image->rawData() : image->imageData());
+    if(image)
+        qWarning() << "setImageImpl" << image->format() << image->dataType() << image->width() << image->height() << image->data() << image->length();
+    else
+        qWarning() << "setImageImpl" << 0;
 
     QOpenGLTexture::TextureFormat textureFormat = QOpenGLTexture::NoFormat;
     QOpenGLTexture::PixelFormat pixelFormat = QOpenGLTexture::NoSourceFormat;
@@ -373,26 +377,51 @@ void ImageGLWidget::setImageImpl(const sgi::Image * image)
         case Image::ImageFormatBGRA32:
             textureWidth = image->width();
             textureHeight = image->height();
-            textureFormat = QOpenGLTexture::RGB8_UNorm;
+            textureFormat = QOpenGLTexture::RGBA8_UNorm;
             pixelFormat = QOpenGLTexture::BGRA;
             break;
         case Image::ImageFormatRGBA32:
             textureWidth = image->width();
             textureHeight = image->height();
-            textureFormat = QOpenGLTexture::RGB8_UNorm;
+            textureFormat = QOpenGLTexture::RGBA8_UNorm;
             pixelFormat = QOpenGLTexture::RGBA;
             break;
         case Image::ImageFormatABGR32:
             textureWidth = image->width();
             textureHeight = image->height();
-            textureFormat = QOpenGLTexture::RGB8_UNorm;
+            textureFormat = QOpenGLTexture::RGBA8_UNorm;
             pixelFormat = QOpenGLTexture::BGRA;
             break;
         case Image::ImageFormatARGB32:
             textureWidth = image->width();
             textureHeight = image->height();
-            textureFormat = QOpenGLTexture::RGB8_UNorm;
+            textureFormat = QOpenGLTexture::RGBA8_UNorm;
             pixelFormat = QOpenGLTexture::BGRA;
+            break;
+        case Image::ImageFormatYUV444:
+            textureWidth = image->width();
+            textureHeight = image->height();
+            textureFormat = QOpenGLTexture::R8_UNorm;
+            pixelFormat = QOpenGLTexture::Red;
+            break;
+        case Image::ImageFormatYUV420:
+            textureWidth = image->width();
+            textureHeight = image->height() + (image->height() / 2);
+            textureFormat = QOpenGLTexture::R8_UNorm;
+            pixelFormat = QOpenGLTexture::Red;
+            break;
+        case Image::ImageFormatYUV422:
+            textureWidth = image->width();
+            textureHeight = image->height() + image->height();
+            textureFormat = QOpenGLTexture::R8_UNorm;
+            pixelFormat = QOpenGLTexture::Red;
+            break;
+        case Image::ImageFormatYUYV:
+        case Image::ImageFormatUYVY:
+            textureWidth = image->width() / 2;
+            textureHeight = image->height();
+            textureFormat = QOpenGLTexture::RGBA8_UNorm;
+            pixelFormat = QOpenGLTexture::RGBA;
             break;
         default:
             textureWidth = image->width();
@@ -401,21 +430,31 @@ void ImageGLWidget::setImageImpl(const sgi::Image * image)
             pixelFormat = QOpenGLTexture::Red;
             break;
         }
-
-        if (!_image.valid() || image->format() != _image->format())
+        if (!_image.valid() || reset || image->format() != _image->format() || image->hscale() != _image->hscale() || image->vscale() != _image->vscale())
         {
             Q_ASSERT(_program != NULL);
             _program->bind();
+            float vscale = image->vscale();
+            float hscale = image->hscale();
+            float vpixel_size = image->verticalPixelSize();
+            float hpixel_size = image->horizontalPixelSize();
+            qWarning() << "frame format changed" << (_image.valid()?_image->format():-1) << image->format();
+            qWarning() << "frame hscale changed" << (_image.valid()?_image->hscale():0.0f) << hscale;
+            qWarning() << "frame vscale changed" << (_image.valid()?_image->vscale():0.0f) << vscale;
+
             _program->setUniformValue("format", (int)image->format());
+            _program->setUniformValue("texture_scale", hscale, vscale);
+            _program->setUniformValue("pixel_size", hpixel_size, vpixel_size);
             _program->release();
         }
+
     }
 
     if (textureFormat != 0)
     {
         if (_texture->width() != textureWidth || _texture->height() != textureHeight || _texture->format() != textureFormat)
         {
-            //qWarning() << "texture size/format changed" << textureWidth << textureHeight << textureFormat;
+            qWarning() << "texture size/format changed" << textureWidth << textureHeight << textureFormat;
             //        _texture->setData(0, pixelFormat, QOpenGLTexture::UInt8, (const void*)NULL, &uploadOptions);
             _texture->destroy();
             _texture->create();
@@ -445,6 +484,7 @@ bool ImageGLWidget::setColorFilter(const QString & fragment, const QString & ver
 
     makeCurrent();
     bool ret = reloadShaders();
+    setImageImpl(_image.get(), true);
 
     doneCurrent();
     // trigger a repaint because we changed the widgets content outside repaintGL
@@ -461,6 +501,30 @@ const QString & ImageGLWidget::colorFilterFragment() const
 const QString & ImageGLWidget::colorFilterVertex() const
 {
     return _colorFilterVertex;
+}
+
+void ImageGLWidget::setMirrored(bool horizontal, bool vertical)
+{
+    _object->bind();
+    _vertex->bind();
+    GLfloat v[30];
+    memcpy(v, window_rect_vertexes, sizeof(v));
+    for(int i = 0; i < 6; ++i)
+    {
+        int j = i * 5;
+        GLfloat & t_x = v[j + 3];
+        GLfloat & t_y = v[j + 4];
+        //t_x = window_rect_vertexes[j + 3];
+        //t_y = window_rect_vertexes[j + 4];
+        if(horizontal)
+            t_x = 1.0f - t_x;
+        if(vertical)
+            t_y = 1.0f - t_y;
+    }
+    _vertex->write(0, v, sizeof(v));
+
+    _vertex->release();
+    _object->release();
 }
 
 } // namespace sgi

@@ -85,5 +85,6 @@ macro(SGI_CONFIGURE_SHADERS templateFile autoGenCppFile)
             ${GLSL_FILES}
             "${TEMPLATE_FILE}"
             "${SGI_CMAKEMODULES_DIR}/SGIConfigureShaders.cmake.in" )
+    set_property(SOURCE "${autoGenCppFile}" PROPERTY GENERATED ON)
 
 endmacro(SGI_CONFIGURE_SHADERS)
