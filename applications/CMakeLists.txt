@@ -2,4 +2,6 @@
 add_subdirectory(viewerqt)
 add_subdirectory(osgviewer)
 add_subdirectory(helloWorldQt)
-add_subdirectory(glimageview)
+if(SGI_BUILD_GLIMAGEVIEW)
+    add_subdirectory(glimageview)
+endif()
