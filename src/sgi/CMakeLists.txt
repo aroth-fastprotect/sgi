@@ -162,6 +162,8 @@ SGI_CONFIGURE_SHADERS(
 
 list(APPEND TARGET_SRC
     ${_imagewidget_dir}/ImageGLWidget.cpp
+    )
+list(APPEND TARGET_SRC_NO_PCH
     ${SHADERS_CPP}
 )
 
