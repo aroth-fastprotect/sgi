@@ -6,6 +6,7 @@
 
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SGIHostItemQt.h>
+#include <sgi/plugins/SGIItemQt>
 #include <sgi/plugins/SGIProxyItem.h>
 #include <sgi/plugins/SGIImage.h>
 #include <sgi/plugins/SGIHostItemInternal.h>
@@ -16,6 +17,10 @@
 #include <sgi/plugins/SettingsDialog>
 
 #include "sgi/helpers/rtti"
+
+#include "ImageGLWidget.h"
+#include <QOpenGLShaderProgram>
+#include <QOpenGLVertexArrayObject>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -51,13 +56,28 @@ SGI_OBJECT_INFO_BEGIN(sgi::SGIItemBase)
     sgi::SGIProxyItemBase
 SGI_OBJECT_INFO_END()
 
+SGI_OBJECT_INFO_BEGIN(QObject)
+    QWidget
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(QWidget)
+    QOpenGLWidget
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(QOpenGLWidget)
+    sgi::ImageGLWidget
+SGI_OBJECT_INFO_END()
+
+
 namespace sgi {
 namespace internal_plugin {
 
 GENERATE_IMPL_TEMPLATE()
 GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
 GENERATE_IMPL_NO_ACCEPT(osg::Object)
-
+GENERATE_IMPL_NO_ACCEPT(QObject)
+GENERATE_IMPL_NO_ACCEPT(QWidget)
+GENERATE_IMPL_NO_ACCEPT(QOpenGLWidget)
 
 WRITE_PRETTY_HTML_IMPL_TEMPLATE()
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
@@ -67,6 +87,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(Image)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(sgi::ImageGLWidget)
 
 bool writePrettyHTMLImpl<osg::Referenced>::process(std::basic_ostream<char>& os)
 {
@@ -361,6 +382,31 @@ bool writePrettyHTMLImpl<ISceneGraphDialog>::process(std::basic_ostream<char>& o
     return true;
 }
 
+bool writePrettyHTMLImpl<sgi::ImageGLWidget>::process(std::basic_ostream<char>& os)
+{
+    sgi::ImageGLWidget * object = getObject<sgi::ImageGLWidget,SGIItemQt>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>image</td><td>" << helpers::getRTTIObjectNameAndType_html(object->image()) << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+        }
+        break;
+    default:
+        callNextHandler(os);
+        break;
+    }
+    return true;
+}
+
 GET_OBJECT_NAME_IMPL_TEMPLATE()
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
@@ -524,6 +570,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ImageGLWidget)
 
 bool objectTreeBuildImpl<ReferencedInternalItemData>::build(IObjectTreeItem * treeItem)
 {
@@ -646,6 +693,38 @@ bool objectTreeBuildImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeItem)
     return ret;
 }
 
+bool objectTreeBuildImpl<sgi::ImageGLWidget>::build(IObjectTreeItem * treeItem)
+{
+    sgi::ImageGLWidget * object = getObject<sgi::ImageGLWidget,SGIItemQt>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            SGIHostItemInternal image(object->image());
+            if(image.hasObject())
+                treeItem->addChild("Image", &image);
+
+            SGIHostItemQt vao(object->vao());
+            if(vao.hasObject())
+                treeItem->addChild("VAO", &vao);
+
+            SGIHostItemQt program(object->program());
+            if(program.hasObject())
+                treeItem->addChild("Program", &program);
+
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
 CONTEXT_MENU_POPULATE_IMPL_TEMPLATE()
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 
@@ -697,7 +776,7 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
     return true;
 }
 
-typedef generateItemImplT<generateItemAcceptImpl, SGIItemInternal> generateItemImpl;
+typedef generateItemImplT<generateItemAcceptImpl, SGIItemInternal, SGIItemQt> generateItemImpl;
 
 typedef SGIPluginImplementationT<       generateItemImpl,
                                         writePrettyHTMLImpl,
