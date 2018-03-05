@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "getObjectInfoOSG.h"
 #include <sgi/helpers/osg>
+#include <sgi/helpers/string>
 #include <sgi/plugins/SGIImage.h>
 
 #include "SGIItemOsg"

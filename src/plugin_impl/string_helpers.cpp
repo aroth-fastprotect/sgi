@@ -1,4 +1,5 @@
 #include <sgi/helpers/string>
+#include <sgi/helpers/html>
 #include <iomanip>
 #include <cctype>
 #include <algorithm>
@@ -135,6 +136,33 @@ std::string trim( const std::string& in )
     std::string str = in;
     trim2( str );
     return str;
+}
+
+
+std::string html_encode(const std::string & str)
+{
+    std::string ret = str;
+    replaceIn(ret, "<", "&lt;");
+    replaceIn(ret, ">", "&gt;");
+    replaceIn(ret, "\"", "&quot;");
+    return ret;
+}
+
+a_href::a_href(const std::string & url)
+    : _url(url)
+{
+}
+void a_href::write(std::basic_ostream<char>& os) const
+{
+    if (!_url.empty())
+        os << "<a href=\"" << _url << "\">" << _url << "</a>";
+}
+
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const a_href & link)
+{
+    link.write(os);
+    return os;
 }
 
 

@@ -1,40 +1,22 @@
 // kate: syntax C++11;
 #pragma once
 
-#include <sgi/helpers/string>
+#include <sgi/Export>
 
 namespace sgi {
 namespace helpers {
 
-inline static const std::string html_encode(const std::string & str)
-{
-    std::string ret = str;
-    replaceIn(ret, "<", "&lt;");
-    replaceIn(ret, ">", "&gt;");
-    replaceIn(ret, "\"", "&quot;");
-    return ret;
-}
+SGI_IMPL_EXPORT std::string html_encode(const std::string & str);
 
-class a_href
+class SGI_IMPL_EXPORT a_href
 {
     const std::string & _url;
 public:
-    inline a_href(const std::string & url)
-        : _url(url)
-    {
-    }
-    inline void write(std::basic_ostream<char>& os) const
-    {
-        if (!_url.empty())
-            os << "<a href=\"" << _url << "\">" << _url << "</a>";
-    }
+    a_href(const std::string & url);
+    void write(std::basic_ostream<char>& os) const;
 };
 
-inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const a_href & link)
-{
-    link.write(os);
-    return os;
-}
+SGI_IMPL_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const a_href & link);
 
 } // namespace helpers
 } // namespace sgi
