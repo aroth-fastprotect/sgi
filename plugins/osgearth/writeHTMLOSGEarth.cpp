@@ -190,7 +190,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     switch(t)
     {
     case osgEarth::Layer::RENDERTYPE_NONE: os << "none"; break;
-#if 0
+#if OSGEARTH_VERSION_GREATER_THAN(2,9,0)
     case osgEarth::Layer::RENDERTYPE_TERRAIN_SURFACE: os << "surface"; break;
     case osgEarth::Layer::RENDERTYPE_TERRAIN_PATCH: os << "patch"; break;
 #else
