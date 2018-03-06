@@ -17,10 +17,13 @@
 #include <sgi/plugins/SettingsDialog>
 
 #include "sgi/helpers/rtti"
+#include "sgi/helpers/qt"
 
 #include "ImageGLWidget.h"
 #include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
+#include <QOpenGLBuffer>
+#include <QOpenGLTexture>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -328,9 +331,13 @@ bool writePrettyHTMLImpl<Image>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>width</td><td>" << object->width() << "</td></tr>" << std::endl;
             os << "<tr><td>height</td><td>" << object->height() << "</td></tr>" << std::endl;
+            os << "<tr><td>allocatedWidth</td><td>" << object->allocatedWidth() << "</td></tr>" << std::endl;
+            os << "<tr><td>allocatedHeight</td><td>" << object->allocatedHeight() << "</td></tr>" << std::endl;
             os << "<tr><td>depth</td><td>" << object->depth() << "</td></tr>" << std::endl;
             os << "<tr><td>pitch</td><td>" << object->pitch(0) << "," << object->pitch(1) << "," << object->pitch(2) << "," << object->pitch(3) << "</td></tr>" << std::endl;
             os << "<tr><td>planeOffset</td><td>" << object->planeOffset(0) << "," << object->planeOffset(1) << "," << object->planeOffset(2) << "," << object->planeOffset(3) << "</td></tr>" << std::endl;
+            os << "<tr><td>scale</td><td>" << object->hscale() << '/' << object->vscale() << "</td></tr>" << std::endl;
+            os << "<tr><td>pixelSize</td><td>" << object->horizontalPixelSize() << '/' << object->verticalPixelSize() << "</td></tr>" << std::endl;
             os << "<tr><td>origin</td><td>" << Image::originToString(object->origin()) << "</td></tr>" << std::endl;
             os << "<tr><td>format</td><td>" << Image::imageFormatToString(object->format()) << "</td></tr>" << std::endl;
             os << "<tr><td>dataType</td><td>" << Image::dataTypeToString(object->dataType()) << "</td></tr>" << std::endl;
@@ -394,7 +401,16 @@ bool writePrettyHTMLImpl<sgi::ImageGLWidget>::process(std::basic_ostream<char>& 
 
             callNextHandler(os);
 
+            os << "<tr><td>hasError</td><td>" << (object->hasError() ? "true" : "false") << "</td></tr>" << std::endl;
             os << "<tr><td>image</td><td>" << helpers::getRTTIObjectNameAndType_html(object->image()) << "</td></tr>" << std::endl;
+            os << "<tr><td>backgroundColor</td><td>" << object->backgroundColor() << "</td></tr>" << std::endl;
+            os << "<tr><td>colorFilterFragment</td><td><pre>" << object->colorFilterFragment() << "</pre></td></tr>" << std::endl;
+            os << "<tr><td>colorFilterVertex</td><td><pre>" << object->colorFilterVertex() << "</pre></td></tr>" << std::endl;
+
+            os << "<tr><td>vertexBuffer</td><td>" << helpers::getRTTIObjectNameAndType_html(object->vertexBuffer()) << "</td></tr>" << std::endl;
+            os << "<tr><td>vao</td><td>" << helpers::getRTTIObjectNameAndType_html(object->vao()) << "</td></tr>" << std::endl;
+            os << "<tr><td>program</td><td>" << helpers::getRTTIObjectNameAndType_html(object->program()) << "</td></tr>" << std::endl;
+            os << "<tr><td>texture</td><td>" << helpers::getRTTIObjectNameAndType_html(object->texture()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
