@@ -519,6 +519,7 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeMapNode);
         SGIITEMTYPE_NAME(SGIItemTypeVirtualProgramShaderMap);
         SGIITEMTYPE_NAME(SGIItemTypeVirtualProgramFunctions);
+        SGIITEMTYPE_NAME(SGIItemTypeVirtualProgramEffectiveProgram);
         SGIITEMTYPE_NAME(SGIItemTypeOptions);
         SGIITEMTYPE_NAME(SGIItemTypeConfig);
         SGIITEMTYPE_NAME(SGIItemTypeDataExtents);

@@ -2518,6 +2518,12 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
             ret = true;
         }
         break;
+    case SGIItemTypeVirtualProgramEffectiveProgram:
+        {
+            os << "<i>Not yet implemented</i>";
+            ret = true;
+        }
+        break;
     default:
         ret = callNextHandler(os);
         break;

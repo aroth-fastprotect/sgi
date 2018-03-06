@@ -1613,10 +1613,7 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
         }
         break;
     case SGIItemTypeVirtualProgramEffectiveProgram:
-        {
-
-            ret = true;
-        }
+        ret = true;
         break;
     default:
         ret = callNextHandler(treeItem);
