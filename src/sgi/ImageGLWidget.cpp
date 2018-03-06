@@ -50,6 +50,7 @@ ImageGLWidget::ImageGLWidget(QWidget * parent)
     , _locationIdTexCoord(-1)
     , _useOpenGl3(true)
     , _useOpenGles(false)
+    , _backgroundColor(Qt::black)
 {
     // Set OpenGL Version information
     // Note: This format must be set before show() is called.
@@ -92,7 +93,7 @@ void ImageGLWidget::initializeGL()
     _useOpenGles = (ctx->isOpenGLES() && ctx->format().majorVersion() < 3);
 
     // Set global information
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(_backgroundColor.redF(), _backgroundColor.greenF(), _backgroundColor.blueF(), _backgroundColor.alphaF());
 
     _errorMessage.clear();
 
@@ -501,6 +502,26 @@ const QString & ImageGLWidget::colorFilterFragment() const
 const QString & ImageGLWidget::colorFilterVertex() const
 {
     return _colorFilterVertex;
+}
+
+void ImageGLWidget::setBackgroundColor(const QColor & color)
+{
+    _backgroundColor = color;
+
+    if (!_texture || !_errorMessage.isEmpty())
+        return;
+
+    makeCurrent();
+    glClearColor(_backgroundColor.redF(), _backgroundColor.greenF(), _backgroundColor.blueF(), _backgroundColor.alphaF());
+
+    doneCurrent();
+    // trigger a repaint because we changed the widgets content outside repaintGL
+    update();
+}
+
+const QColor & ImageGLWidget::backgroundColor() const
+{
+    return _backgroundColor;
 }
 
 void ImageGLWidget::setMirrored(bool horizontal, bool vertical)

@@ -42,6 +42,9 @@ public:
     const QString & colorFilterFragment() const;
     const QString & colorFilterVertex() const;
 
+    void setBackgroundColor(const QColor & color);
+    const QColor & backgroundColor() const;
+
     QOpenGLBuffer * vertexBuffer() const { return _vertex; }
     QOpenGLVertexArrayObject * vao() const { return _object; }
     QOpenGLShaderProgram * program() const { return _program; }
@@ -71,6 +74,7 @@ private:
     QString _errorMessage;
     QString _colorFilterVertex;
     QString _colorFilterFragment;
+    QColor _backgroundColor;
 };
 
 

@@ -1540,6 +1540,7 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
     ui->scrollArea->setPalette(pal);
     ui->imageLabel->setBackgroundRole(QPalette::Base);
     ui->scrollArea->setBackgroundRole(QPalette::Base);
+    ui->imageGL->setBackgroundColor(default_osg_view_clear_color);
 
 	createToolbar();
 
