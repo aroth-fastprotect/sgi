@@ -11,8 +11,13 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.8.0 FATAL_ERROR)
 
 # Include custom CMake modules or macros. Don't touch it.
-SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../buildtools/CMakeModules;${CMAKE_MODULE_PATH}")
-INCLUDE(FastProtectMacros)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../buildtools/CMakeModules")
+    set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../buildtools/CMakeModules;${CMAKE_MODULE_PATH}")
+    include(FastProtectMacros)
+else()
+    set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
+    include(SGIFastMacros)
+endif()
 
 FAST_PROJECT(SGI)
 
@@ -40,7 +45,6 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 
 	set(SGI_CMAKEMODULES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 	SET(CMAKE_MODULE_PATH "${SGI_CMAKEMODULES_DIR};${CMAKE_MODULE_PATH}")
-	include(SGIFastMacros)
 
 	SET(SGI_VERSION ${SGI_MAJOR_VERSION}.${SGI_MINOR_VERSION}.${SGI_PATCH_VERSION})
 

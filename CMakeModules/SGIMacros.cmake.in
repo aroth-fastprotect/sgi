@@ -86,5 +86,6 @@ macro(SGI_CONFIGURE_SHADERS templateFile autoGenCppFile)
             "${TEMPLATE_FILE}"
             "${SGI_CMAKEMODULES_DIR}/SGIConfigureShaders.cmake.in" )
     set_property(SOURCE "${autoGenCppFile}" PROPERTY GENERATED ON)
+    set_property(SOURCE "${autoGenCppFile}" PROPERTY SKIP_AUTOGEN ON)
 
 endmacro(SGI_CONFIGURE_SHADERS)

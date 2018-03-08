@@ -1,6 +1,8 @@
 // kate: syntax C++11;
 // SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
+// tricking the SGI_IMPL_EXPORT defined to switch to export
+#define SGI_IMPL_LIBRARY
 #include <sgi/plugins/SGIShaderLoader>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLShader>

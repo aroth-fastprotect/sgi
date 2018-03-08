@@ -1321,7 +1321,14 @@ struct ToggleCenterMarkerPseudoLoader : public osgDB::ReaderWriter
 } // namespace sgi
 
 #ifndef OSGDB_PLUGIN_EXPORT
-#define OSGDB_PLUGIN_EXPORT OSGDB_EXPORT
+#ifdef _MSC_VER
+#define OSGDB_PLUGIN_EXPORT __declspec(dllexport)
+#elif defined(__GNUC__)
+#define OSGDB_PLUGIN_EXPORT __attribute__ ((visibility ("default")))
+#else
+#define OSGDB_PLUGIN_EXPORT
+#endif
+
 #endif
 
 #define REGISTER_OSGPLUGIN_EX(ext, classname, proxyname) \
