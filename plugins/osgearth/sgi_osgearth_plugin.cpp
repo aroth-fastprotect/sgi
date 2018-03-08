@@ -120,6 +120,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osgEarth::ShaderFactory,
     osgEarth::ElevationPool,
     osgEarth::ElevationEnvelope,
+    osgEarth::PolyShader,
 #endif
     ElevationQueryReferenced,
     TileKeyReferenced,
@@ -518,6 +519,7 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeMapNode);
         SGIITEMTYPE_NAME(SGIItemTypeVirtualProgramShaderMap);
         SGIITEMTYPE_NAME(SGIItemTypeVirtualProgramFunctions);
+        SGIITEMTYPE_NAME(SGIItemTypeVirtualProgramEffectiveProgram);
         SGIITEMTYPE_NAME(SGIItemTypeOptions);
         SGIITEMTYPE_NAME(SGIItemTypeConfig);
         SGIITEMTYPE_NAME(SGIItemTypeDataExtents);

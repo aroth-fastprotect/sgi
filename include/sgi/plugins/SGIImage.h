@@ -11,7 +11,7 @@ class QImage;
 
 namespace sgi {
 
-class SGI_EXPORT Image : public osg::Referenced
+class SGI_IMPL_EXPORT Image : public osg::Referenced
 {
 public:
     enum ImageFormat {
@@ -46,6 +46,7 @@ public:
         ImageFormatDXT5,
         ImageFormatRGBA32,
         ImageFormatBGRA32,
+        ImageFormatFloat64,
         ImageFormatRaw = 1000,
     };
     static std::string imageFormatToString(ImageFormat format);
@@ -105,6 +106,7 @@ public:
     Image & operator=(const Image & rhs);
     virtual ~Image();
 
+    bool empty() const;
     ImageFormat format() const { return _format; }
     DataType dataType() const { return _dataType; }
     const void * data() const { return _data; }
@@ -113,6 +115,8 @@ public:
     unsigned width() const { return _width; }
     unsigned height() const { return _height; }
     unsigned depth() const { return _depth; }
+    unsigned allocatedWidth() const { return _allocatedWidth; }
+    unsigned allocatedHeight() const { return _allocatedHeight; }
     unsigned pitch(unsigned index=0) const { return _pitch[index]; }
     unsigned lines(unsigned index=0) const { return _lines[index]; }
     unsigned planeOffset(unsigned index=0) const { return _planeOffset[index]; }
@@ -128,15 +132,23 @@ public:
     bool reinterpret(ImageFormat format, unsigned width, unsigned height, unsigned depth = 1);
     unsigned bitsPerPixel() const;
 
-    const void * pixelPtr(unsigned x, int unsigned y, unsigned z = 0, unsigned plane=0) const;
+    const void * pixelPtr(unsigned x, unsigned y, unsigned z = 0, unsigned plane=0) const;
     template<typename PXTYPE>
-    const PXTYPE * pixel(unsigned x, int unsigned y, unsigned z = 0, unsigned plane = 0) const
+    const PXTYPE * pixel(unsigned x, unsigned y, unsigned z = 0, unsigned plane = 0) const
     {
         return reinterpret_cast<const PXTYPE*>(pixelPtr(x, y, z, plane));
     }
 
+    float hscale() const;
+    float vscale() const;
+
+    float horizontalPixelSize() const;
+    float verticalPixelSize() const;
+
 protected:
     void loadPitchAndPlaneOffsets();
+    void freeQt();
+    typedef void (Image::* pfnFreeQt)();
 
 protected:
     ImageFormat _format;
@@ -147,11 +159,14 @@ protected:
     unsigned _width;
     unsigned _height;
     unsigned _depth;
+    unsigned _allocatedWidth;
+    unsigned _allocatedHeight;
     unsigned _pitch[4];
     unsigned _lines[4];
     unsigned _planeOffset[4];
     osg::ref_ptr<const osg::Referenced> _originalImage;
     QImage * _originalImageQt;
+    pfnFreeQt _freeQt;
     bool _allocated;
 };
 

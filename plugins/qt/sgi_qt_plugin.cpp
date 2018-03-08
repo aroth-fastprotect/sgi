@@ -14,6 +14,7 @@
 
 #include <QtCore/QThread>
 #include <QCoreApplication>
+#include <QGuiApplication>
 #include <QApplication>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -35,6 +36,8 @@ typedef void * GLDEBUGPROC;
 #include <QOpenGLWidget>
 #include <QOpenGLWindow>
 #include <QOpenGLPaintDevice>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLVertexArrayObject>
 
 #ifdef WITH_QTOPENGL
 #include <QGLWidget>
@@ -52,7 +55,10 @@ typedef void * GLDEBUGPROC;
 SGI_OBJECT_INFO_BEGIN(QObject)
     QWindow, QWidget, QThread,
     QCoreApplication,
-    QOpenGLContext
+    QOpenGLContext,
+    QOpenGLShaderProgram,
+    QOpenGLShader,
+    QOpenGLVertexArrayObject
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(QWindow)
     QPaintDeviceWindow, QWidgetWindow
@@ -65,6 +71,9 @@ SGI_OBJECT_INFO_BEGIN(QSurface)
     QWindow, QOffscreenSurface
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(QCoreApplication)
+    QGuiApplication
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(QGuiApplication)
     QApplication
 SGI_OBJECT_INFO_END()
 
@@ -141,6 +150,10 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeContextExtensions);
         SGIITEMTYPE_NAME(SGIItemTypeSurface);
         SGIITEMTYPE_NAME(SGIItemTypeProperties);
+        SGIITEMTYPE_NAME(SGIItemTypeSystemEnvironment);
+        SGIITEMTYPE_NAME(SGIItemTypeShaderProgramShaders);
+        SGIITEMTYPE_NAME(SGIItemTypeShaderSourceCode);
+        SGIITEMTYPE_NAME(SGIItemTypeShaderLog);
     }
     SGIPlugin_qt_Implementation(const SGIPlugin_qt_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
         : qt_plugin::SGIPluginImpl(rhs, copyop)

@@ -1,12 +1,15 @@
 #include "stdafx.h"
 #include <ostream>
 #include <QThread>
+#include <QCoreApplication>
+#include <QProcessEnvironment>
 #include <QDialog>
 #ifdef WITH_QTOPENGL
 #include <QGLWidget>
 #endif
 #include <QOpenGLWindow>
 #include <QOpenGLWidget>
+#include <QOpenGLShaderProgram>
 #include <QSurfaceFormat>
 #include <QWindow>
 #include <QSurface>
@@ -34,8 +37,11 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QWidgetWindow)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QSurface)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QDialog)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QThread)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QCoreApplication)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLContext)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLWidget)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLShaderProgram)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLShader)
 #ifdef WITH_QTOPENGL
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QGLWidget)
 #endif
@@ -426,6 +432,88 @@ bool writePrettyHTMLImpl<QThread>::process(std::basic_ostream<char>& os)
     return ret;
 }
 
+
+bool writePrettyHTMLImpl<QCoreApplication>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    QCoreApplication * object = getObject<QCoreApplication, SGIItemQt>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add QObject properties first
+            callNextHandler(os);
+
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeSystemEnvironment:
+        {
+            QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+            if(env.isEmpty())
+                os << "<i>empty</i>";
+            else
+            {
+                const QStringList path_env_vars = QStringList() 
+                    << "PATH" 
+#ifdef _WIN32
+                    << "PATHEXT"
+#else
+                    << "LD_LIBRARY_PATH" 
+#endif
+                    << "PYTHONPATH" << "INCLUDE" << "LIB";
+                os << "<ul>";
+                QStringList keys = env.keys();
+                keys.sort();
+                for(const auto & key : keys)
+                {
+                    if (key.isEmpty())
+                        continue;
+                    QString value = env.value(key);
+#ifdef _WIN32
+                    Qt::CaseSensitivity cs = Qt::CaseInsensitive;
+#else
+                    Qt::CaseSensitivity cs = Qt::CaseSensitive;
+#endif
+                    if (path_env_vars.contains(key, cs))
+                    {
+                        os << "<li>" << key << "<ol>";
+#ifdef _WIN32
+                        const QChar path_split_char = ';';
+#else
+                        const QChar path_split_char = ':';
+#endif
+                        for (const QString & dir : value.split(path_split_char))
+                        {
+                            if (dir.isEmpty())
+                                continue;
+                            os << "<li>" << dir << "</li>";
+                        }
+                        os << "</ol></li>";
+                    }
+                    else
+                    {
+                        os << "<li>" << key << "=" << value << "</li>";
+                    }
+                }
+                os << "</ul>";
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
 #ifdef WITH_QTOPENGL
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QGLFormat::OpenGLContextProfile t)
 {
@@ -699,6 +787,93 @@ bool writePrettyHTMLImpl<QOpenGLWidget>::process(std::basic_ostream<char>& os)
         break;
     case SGIItemTypeContext:
         {
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<QOpenGLShaderProgram>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    QOpenGLShaderProgram * object = getObject<QOpenGLShaderProgram, SGIItemQt>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add QObject properties first
+            callNextHandler(os);
+
+            os << "<tr><td>isLinked</td><td>" << (object->isLinked()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>programId</td><td>" << object->programId() << "</td></tr>" << std::endl;
+            os << "<tr><td>maxGeometryOutputVertices</td><td>" << object->maxGeometryOutputVertices() << "</td></tr>" << std::endl;
+            os << "<tr><td>patchVertexCount</td><td>" << object->patchVertexCount() << "</td></tr>" << std::endl;
+            QList<QOpenGLShader *> shaders = object->shaders();
+            os << "<tr><td>shaders</td><td>" << shaders.size() << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeShaderProgramShaders:
+        {
+            QList<QOpenGLShader *> shaders = object->shaders();
+            os << "<ol>";
+            for(auto shader : shaders)
+            {
+                os << "<li>" << qt_helpers::getObjectNameAndType(shader, true) << "</li>";
+            }
+            os << "</ol>";
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<QOpenGLShader>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    QOpenGLShader * object = getObject<QOpenGLShader, SGIItemQt>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add QObject properties first
+            callNextHandler(os);
+
+            os << "<tr><td>isCompiled</td><td>" << (object->isCompiled()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>id</td><td>" << object->shaderId() << "</td></tr>" << std::endl;
+            os << "<tr><td>type</td><td>" << object->shaderType() << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeShaderLog:
+        {
+            os << "<pre>" << object->log() << "</pre>";
+            ret = true;
+        }
+        break;
+    case SGIItemTypeShaderSourceCode:
+        {
+            os << "<pre>" << object->sourceCode() << "</pre>";
             ret = true;
         }
         break;

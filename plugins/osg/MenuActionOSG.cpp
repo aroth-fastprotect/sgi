@@ -2074,48 +2074,64 @@ bool actionHandlerImpl<MenuActionGeometryFixDeprecatedData>::execute()
 
 bool actionHandlerImpl<MenuActionImagePreview>::execute()
 {
-    osg::Image * image = getObject<osg::Image,SGIItemOsg, DynamicCaster>();
+    bool ret = false;
     osg::Texture * texture = getObject<osg::Texture, SGIItemOsg, DynamicCaster>();
-    IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), _item.get());
-
-    if(dialog.valid())
+    if (texture)
     {
-        if(image)
-            dialog->setObject(_item.get(), osg_helpers::convertImage(image), std::string(), hostCallback());
-        else if (texture)
+        ISettingsDialogPtr dialog;
+        ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogExtraView, menu()->parentWidget(), hostCallback());
+        ret = _hostInterface->openSettingsDialog(dialog, _item, info);
+        if (ret)
         {
-            bool imageOk = false;
-            osg::ref_ptr<const sgi::Image> textureImage;
-            /*
-            for (unsigned n = 0; n < texture->getNumImages() && !textureImage.valid(); ++n)
-            {
-                osg::Image * txtimg = texture->getImage(n);
-                if(txtimg)
-                {
-                    textureImage = osg_helpers::convertImage(txtimg);
-                    if(textureImage.valid())
-                        imageOk = true;
-                }
-            }
-            */
-            if(!imageOk)
-            {
-                osg::Camera * camera = findCamera(texture);
-                if(camera)
-                {
-                    osg::ref_ptr<osg::Image> image;
-                    if(convertTextureToImage(camera, texture, image))
-                        textureImage = osg_helpers::convertImage(image);
-                }
-            }
-            dialog->setObject(_item.get(), textureImage, std::string(), hostCallback());
+            if (dialog.valid())
+                dialog->show();
         }
-        else
-            dialog->setObject(_item.get(), nullptr, std::string(), hostCallback());
-        dialog->show();
     }
+    else
+    {
+        osg::Image * image = getObject<osg::Image, SGIItemOsg, DynamicCaster>();
+        IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), _item.get());
 
-    return true;
+        if (dialog.valid())
+        {
+            if (image)
+                dialog->setObject(_item.get(), osg_helpers::convertImage(image), std::string(), hostCallback());
+            else if (texture)
+            {
+
+                bool imageOk = false;
+                osg::ref_ptr<const sgi::Image> textureImage;
+                /*
+                for (unsigned n = 0; n < texture->getNumImages() && !textureImage.valid(); ++n)
+                {
+                    osg::Image * txtimg = texture->getImage(n);
+                    if(txtimg)
+                    {
+                        textureImage = osg_helpers::convertImage(txtimg);
+                        if(textureImage.valid())
+                            imageOk = true;
+                    }
+                }
+                */
+                if (!imageOk)
+                {
+                    osg::Camera * camera = findCamera(texture);
+                    if (camera)
+                    {
+                        osg::ref_ptr<osg::Image> image;
+                        if (convertTextureToImage(camera, texture, image))
+                            textureImage = osg_helpers::convertImage(image);
+                    }
+                }
+                dialog->setObject(_item.get(), textureImage, std::string(), hostCallback());
+            }
+            else
+                dialog->setObject(_item.get(), nullptr, std::string(), hostCallback());
+            dialog->show();
+            ret = true;
+        }
+    }
+    return ret;
 }
 
 bool actionHandlerImpl<MenuActionDrawableToggleDisabled>::execute()
@@ -3198,7 +3214,7 @@ bool actionHandlerImpl<MenuActionToolFindAllStateSets>::execute()
         else
         {
             selectedItem->expand();
-            IObjectTreeItem * stateSetsItem = selectedItem->addChild("StatSets", (SGIItemBase*)NULL);
+            IObjectTreeItem * stateSetsItem = selectedItem->addChild("Found StateSets", (SGIItemBase*)NULL);
 
             unsigned num = 0;
             for (auto it = results.begin(); it != results.end(); num++, it++)

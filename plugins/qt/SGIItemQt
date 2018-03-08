@@ -27,6 +27,10 @@ enum SGIItemType_qt
     SGIItemTypeContextExtensions,
     SGIItemTypeSurface,
     SGIItemTypeProperties,
+    SGIItemTypeSystemEnvironment,
+    SGIItemTypeShaderProgramShaders,
+    SGIItemTypeShaderSourceCode,
+    SGIItemTypeShaderLog,
 };
 
 class SGIItemQt : public SGIItemBase

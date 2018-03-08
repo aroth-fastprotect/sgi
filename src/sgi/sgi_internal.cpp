@@ -6,6 +6,7 @@
 
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SGIHostItemQt.h>
+#include <sgi/plugins/SGIItemQt>
 #include <sgi/plugins/SGIProxyItem.h>
 #include <sgi/plugins/SGIImage.h>
 #include <sgi/plugins/SGIHostItemInternal.h>
@@ -16,6 +17,13 @@
 #include <sgi/plugins/SettingsDialog>
 
 #include "sgi/helpers/rtti"
+#include "sgi/helpers/qt"
+
+#include "ImageGLWidget.h"
+#include <QOpenGLShaderProgram>
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLBuffer>
+#include <QOpenGLTexture>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -51,13 +59,28 @@ SGI_OBJECT_INFO_BEGIN(sgi::SGIItemBase)
     sgi::SGIProxyItemBase
 SGI_OBJECT_INFO_END()
 
+SGI_OBJECT_INFO_BEGIN(QObject)
+    QWidget
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(QWidget)
+    QOpenGLWidget
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(QOpenGLWidget)
+    sgi::ImageGLWidget
+SGI_OBJECT_INFO_END()
+
+
 namespace sgi {
 namespace internal_plugin {
 
 GENERATE_IMPL_TEMPLATE()
 GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
 GENERATE_IMPL_NO_ACCEPT(osg::Object)
-
+GENERATE_IMPL_NO_ACCEPT(QObject)
+GENERATE_IMPL_NO_ACCEPT(QWidget)
+GENERATE_IMPL_NO_ACCEPT(QOpenGLWidget)
 
 WRITE_PRETTY_HTML_IMPL_TEMPLATE()
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
@@ -67,6 +90,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(Image)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(sgi::ImageGLWidget)
 
 bool writePrettyHTMLImpl<osg::Referenced>::process(std::basic_ostream<char>& os)
 {
@@ -307,9 +331,13 @@ bool writePrettyHTMLImpl<Image>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>width</td><td>" << object->width() << "</td></tr>" << std::endl;
             os << "<tr><td>height</td><td>" << object->height() << "</td></tr>" << std::endl;
+            os << "<tr><td>allocatedWidth</td><td>" << object->allocatedWidth() << "</td></tr>" << std::endl;
+            os << "<tr><td>allocatedHeight</td><td>" << object->allocatedHeight() << "</td></tr>" << std::endl;
             os << "<tr><td>depth</td><td>" << object->depth() << "</td></tr>" << std::endl;
             os << "<tr><td>pitch</td><td>" << object->pitch(0) << "," << object->pitch(1) << "," << object->pitch(2) << "," << object->pitch(3) << "</td></tr>" << std::endl;
             os << "<tr><td>planeOffset</td><td>" << object->planeOffset(0) << "," << object->planeOffset(1) << "," << object->planeOffset(2) << "," << object->planeOffset(3) << "</td></tr>" << std::endl;
+            os << "<tr><td>scale</td><td>" << object->hscale() << '/' << object->vscale() << "</td></tr>" << std::endl;
+            os << "<tr><td>pixelSize</td><td>" << object->horizontalPixelSize() << '/' << object->verticalPixelSize() << "</td></tr>" << std::endl;
             os << "<tr><td>origin</td><td>" << Image::originToString(object->origin()) << "</td></tr>" << std::endl;
             os << "<tr><td>format</td><td>" << Image::imageFormatToString(object->format()) << "</td></tr>" << std::endl;
             os << "<tr><td>dataType</td><td>" << Image::dataTypeToString(object->dataType()) << "</td></tr>" << std::endl;
@@ -349,6 +377,40 @@ bool writePrettyHTMLImpl<ISceneGraphDialog>::process(std::basic_ostream<char>& o
             os << "<tr><td>selectedItem</td><td>" << helpers::getRTTIObjectNameAndType_html(object->selectedItem()) << "</td></tr>" << std::endl;
             os << "<tr><td>rootItem</td><td>" << helpers::getRTTIObjectNameAndType_html(object->rootItem()) << "</td></tr>" << std::endl;
             os << "<tr><td>item</td><td>" << helpers::getRTTIObjectNameAndType_html(object->item()) << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+        }
+        break;
+    default:
+        callNextHandler(os);
+        break;
+    }
+    return true;
+}
+
+bool writePrettyHTMLImpl<sgi::ImageGLWidget>::process(std::basic_ostream<char>& os)
+{
+    sgi::ImageGLWidget * object = getObject<sgi::ImageGLWidget,SGIItemQt>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>hasError</td><td>" << (object->hasError() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>image</td><td>" << helpers::getRTTIObjectNameAndType_html(object->image()) << "</td></tr>" << std::endl;
+            os << "<tr><td>backgroundColor</td><td>" << object->backgroundColor() << "</td></tr>" << std::endl;
+            os << "<tr><td>colorFilterFragment</td><td><pre>" << object->colorFilterFragment() << "</pre></td></tr>" << std::endl;
+            os << "<tr><td>colorFilterVertex</td><td><pre>" << object->colorFilterVertex() << "</pre></td></tr>" << std::endl;
+
+            os << "<tr><td>vertexBuffer</td><td>" << helpers::getRTTIObjectNameAndType_html(object->vertexBuffer()) << "</td></tr>" << std::endl;
+            os << "<tr><td>vao</td><td>" << helpers::getRTTIObjectNameAndType_html(object->vao()) << "</td></tr>" << std::endl;
+            os << "<tr><td>program</td><td>" << helpers::getRTTIObjectNameAndType_html(object->program()) << "</td></tr>" << std::endl;
+            os << "<tr><td>texture</td><td>" << helpers::getRTTIObjectNameAndType_html(object->texture()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -524,6 +586,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ImageGLWidget)
 
 bool objectTreeBuildImpl<ReferencedInternalItemData>::build(IObjectTreeItem * treeItem)
 {
@@ -646,6 +709,38 @@ bool objectTreeBuildImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeItem)
     return ret;
 }
 
+bool objectTreeBuildImpl<sgi::ImageGLWidget>::build(IObjectTreeItem * treeItem)
+{
+    sgi::ImageGLWidget * object = getObject<sgi::ImageGLWidget,SGIItemQt>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            SGIHostItemInternal image(object->image());
+            if(image.hasObject())
+                treeItem->addChild("Image", &image);
+
+            SGIHostItemQt vao(object->vao());
+            if(vao.hasObject())
+                treeItem->addChild("VAO", &vao);
+
+            SGIHostItemQt program(object->program());
+            if(program.hasObject())
+                treeItem->addChild("Program", &program);
+
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
 CONTEXT_MENU_POPULATE_IMPL_TEMPLATE()
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 
@@ -697,7 +792,7 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
     return true;
 }
 
-typedef generateItemImplT<generateItemAcceptImpl, SGIItemInternal> generateItemImpl;
+typedef generateItemImplT<generateItemAcceptImpl, SGIItemInternal, SGIItemQt> generateItemImpl;
 
 typedef SGIPluginImplementationT<       generateItemImpl,
                                         writePrettyHTMLImpl,

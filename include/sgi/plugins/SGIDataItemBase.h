@@ -4,10 +4,7 @@
 #pragma once
 #include "SGIItemBase.h"
 #include "SGIPluginInterface.h"
-
-#ifdef max
-#undef max
-#endif
+#include <list>
 
 namespace sgi {
 
@@ -95,15 +92,12 @@ inline std::string SGIDataFieldT<SGIItemBasePtr>::toString(SGIPluginHostInterfac
     return ret;
 }
 
-class SGIDataItemBase : public osg::Referenced
+class SGI_IMPL_EXPORT SGIDataItemBase : public osg::Referenced
 {
 public:
-    SGIDataItemBase(SGIItemBase * item=NULL, size_t numFields=0) : _item(item), _fields(numFields) {}
-    SGIDataItemBase(const SGIDataItemBase & rhs)
-        : osg::Referenced(rhs), _item(rhs._item), _fields(rhs._fields)
-    {
-    }
-    virtual ~SGIDataItemBase() {}
+    SGIDataItemBase(SGIItemBase * item=NULL, size_t numFields=0);
+    SGIDataItemBase(const SGIDataItemBase & rhs);
+    virtual ~SGIDataItemBase();
 
     template<typename DATAITEMTYPE>
     DATAITEMTYPE * as()
@@ -116,10 +110,10 @@ public:
         return dynamic_cast<const DATAITEMTYPE*>(this);
     }
 
-    size_t numFields() const { return _fields.size(); }
-    SGIDataFieldBase * getField(unsigned n) const { return  (n < _fields.size()) ? (_fields[n]) : NULL; }
-    void setField(unsigned n, SGIDataFieldBase * field) { _fields.resize(std::max(n, (unsigned)_fields.size())); _fields[n] = field; }
-    void addField(SGIDataFieldBase * field) { unsigned idx = (unsigned)_fields.size(); _fields.resize(idx+1); _fields[idx] = field; }
+    size_t numFields() const;
+    SGIDataFieldBase * getField(unsigned n) const;
+    void setField(unsigned n, SGIDataFieldBase * field);
+    void addField(SGIDataFieldBase * field);
 
 protected:
     SGIItemBasePtr          _item;

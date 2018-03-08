@@ -8,7 +8,7 @@ namespace sgi {
 
 class Quat;
 
-class SGI_EXPORT Matrix {
+class SGI_IMPL_EXPORT Matrix {
 
 public:
     typedef double value_type;

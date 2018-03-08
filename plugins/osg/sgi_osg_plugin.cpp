@@ -9,6 +9,10 @@
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SettingsDialog>
 #include "SGIItemOsg"
+#ifdef SGI_USE_OSGQT
+#include <sgi/plugins/SGIHostItemQt.h>
+#include <sgi/plugins/SGIItemQt>
+#endif
 #include <sgi/SGIItemInternal>
 
 #include "writeHTMLOSG.h"
@@ -538,6 +542,17 @@ SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osgViewer::GraphicsWindow)
     osgQt::GraphicsWindowQt
 SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(QObject)
+    QWidget
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(QWidget)
+    QGLWidget
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(QGLWidget)
+    osgQt::GLWidget
+SGI_OBJECT_INFO_END()
 #endif
 
 SGI_OBJECT_INFO_BEGIN(sgi::ReferencedPickerBase)
@@ -564,7 +579,15 @@ bool objectInfo_hasCallback(SGIPluginHostInterface * hostInterface, bool & resul
     return ret;
 }
 
+#ifdef SGI_USE_OSGQT
+GENERATE_IMPL_NO_ACCEPT(QObject);
+GENERATE_IMPL_NO_ACCEPT(QWidget);
+GENERATE_IMPL_NO_ACCEPT(QGLWidget);
+
+typedef generateItemImplT<generateItemAcceptImpl, SGIItemOsg, SGIItemQt, SGIItemInternal> generateItemImpl;
+#else
 typedef generateItemImplT<generateItemAcceptImpl, SGIItemOsg, SGIItemInternal> generateItemImpl;
+#endif
 
 typedef SGIPluginImplementationT<       generateItemImpl,
                                         writePrettyHTMLImpl,

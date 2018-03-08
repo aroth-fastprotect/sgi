@@ -25,7 +25,7 @@ IF ( Qt5Widgets_FOUND )
     # Add the include directories for the Qt 5 Widgets module to
     # the compile lines.
     include_directories(${Qt5Widgets_INCLUDE_DIRS} ${Qt5Widgets_PRIVATE_INCLUDE_DIRS})
-    LIST(APPEND TARGET_LIBRARIES_VARS Qt5::Widgets )
+    LIST(APPEND TARGET_LIBRARIES_VARS QT_QTWIDGETS_LIBRARY )
 ENDIF()
 
 SET(TARGET_VERSION ${SGI_VERSION})
@@ -38,6 +38,6 @@ SET(TARGET_PRODUCT_NAME "SGI")
 SET(TARGET_PRODUCT_COPYRIGHT "Copyright (C) 2012-2017")
 SET(TARGET_NO_TRANSLATION 1)
 
-FAST_PLUGIN(qsgi_loader PLUGINTYPE imageformats )
+FAST_PLUGIN(qsgi_loader PLUGINTYPE imageformats NO_MOC_INCLUDE)
 
 fast_configure_file(qt.conf.in ${CMAKE_BINARY_DIR}/qt.conf @ONLY)

@@ -725,7 +725,7 @@ bool contextMenuPopulateImpl<osgEarth::TileBlacklist>::populate(IContextMenuItem
 
 bool contextMenuPopulateImpl<osgEarth::VirtualProgram>::populate(IContextMenuItem * menuItem)
 {
-    osgEarth::VirtualProgram * object = getObject<osgEarth::VirtualProgram, SGIItemOsg>();
+    VirtualProgramAccessor * object = static_cast<VirtualProgramAccessor*>(getObject<osgEarth::VirtualProgram, SGIItemOsg>());
     bool ret = false;
     switch(itemType())
     {
@@ -733,16 +733,14 @@ bool contextMenuPopulateImpl<osgEarth::VirtualProgram>::populate(IContextMenuIte
         ret = callNextHandler(menuItem);
         if(ret)
         {
-            VirtualProgramAccessor * access = (VirtualProgramAccessor*)object;
-
-            menuItem->addSimpleAction(MenuActionVirtualProgramMask, helpers::str_plus_hex("Mask", access->mask()), _item);
-            menuItem->addBoolAction(MenuActionVirtualProgramLogging, "Logging", _item, access->getShaderLogging());
-            menuItem->addSimpleAction(MenuActionVirtualProgramLoggingFile, helpers::str_plus_info("Logfile", access->getShaderLogFile()), _item);
+            menuItem->addSimpleAction(MenuActionVirtualProgramMask, helpers::str_plus_hex("Mask", object->mask()), _item);
+            menuItem->addBoolAction(MenuActionVirtualProgramLogging, "Logging", _item, object->getShaderLogging());
+            menuItem->addSimpleAction(MenuActionVirtualProgramLoggingFile, helpers::str_plus_info("Logfile", object->getShaderLogFile()), _item);
 
             VirtualProgramInheritMode mode;
-            if(!access->inheritSet())
+            if(!object->inheritSet())
                 mode = VirtualProgramInheritModeUnspecified;
-            else if(access->inherit())
+            else if(object->inherit())
                 mode = VirtualProgramInheritModeEnabled;
             else
                 mode = VirtualProgramInheritModeDisabled;
@@ -878,6 +876,10 @@ bool contextMenuPopulateImpl<osgEarth::Util::RTTPicker>::populate(IContextMenuIt
                 if(i == itemNumber())
                 {
                     menuItem->addSimpleAction(MenuActionRTTPickerView, "Preview", _item, context._view.get());
+                    if (!context._tex.valid())
+                    {
+                        menuItem->addSimpleAction(MenuActionRTTPickerTexture, "Create texture", _item, context._view.get());
+                    }
 
                     SGIHostItemOsg view(context._view.get());
                     if (view.hasObject())

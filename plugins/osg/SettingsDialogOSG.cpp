@@ -42,8 +42,7 @@ bool settingsDialogCreateImpl<SettingsDialogObjectLogger>::execute(ISettingsDial
 
 bool settingsDialogCreateImpl<SettingsDialogExtraView>::execute(ISettingsDialogPtr & dialog)
 {
-    osg::Camera * object = getObject<osg::Camera, SGIItemOsg>();
-    ExtraViewDialog * qtdialog = new ExtraViewDialog(parent(), object);
+    ExtraViewDialog * qtdialog = new ExtraViewDialog(parent(), _item.get(), _hostInterface);
     dialog = qtdialog->dialogInterface();
     return true;
 }

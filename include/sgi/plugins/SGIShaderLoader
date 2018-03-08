@@ -1,0 +1,126 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
+
+#pragma once
+#include <sgi/Export>
+#include <string>
+#include <map>
+#include <set>
+#include <vector>
+
+class QOpenGLShaderProgram;
+
+#if defined(OSG_GLES2_AVAILABLE)
+#    define GLSL_VERSION                 100
+#    define GLSL_VERSION_STR             "100"
+#    define GLSL_DEFAULT_PRECISION_FLOAT "precision highp float;"
+#elif defined(OSG_GLES3_AVAILABLE)
+#    define GLSL_VERSION                 300
+#    define GLSL_VERSION_STR             "300 es"
+#    define GLSL_DEFAULT_PRECISION_FLOAT "precision highp float;"
+#elif defined(OSG_GL3_AVAILABLE)
+#    define GLSL_VERSION                 330
+#    define GLSL_VERSION_STR             "330"
+#    define GLSL_DEFAULT_PRECISION_FLOAT ""
+#else
+#    define GLSL_VERSION                 330
+#    define GLSL_VERSION_STR             "330 compatibility"
+#    define GLSL_DEFAULT_PRECISION_FLOAT ""
+#endif
+
+namespace sgi {
+    /**
+     * Functions to help load shader code.
+     */
+    class SGI_IMPL_EXPORT ShaderPackage
+    {
+    public:
+        /**
+         * Defs or undefs a GLSL #define proprocessor macro.
+         * Don't include the "#" in the defineName.
+         */
+        void define(
+            const std::string& defineName,
+            bool               defOrUndef);
+
+        /**
+         * Replaces the specified string with another string in the loaded
+         * shader source. Nested replacements are not supported.
+         */
+        void replace(
+            const std::string& pattern,
+            const std::string& value);
+
+        /**
+         * Add a file/source to the package. If you only have inline source, just
+         * set the filename to a unique description string.
+         */
+        void add(const std::string& filename, const std::string& inlineSource)
+        {
+            _sources[filename] = inlineSource;
+        }
+
+        enum ShaderType {
+            ShaderTypeVertex = 0,
+            ShaderTypeFragment,
+            ShaderTypeGeometry
+        };
+
+        bool load(
+            QOpenGLShaderProgram * program,
+            ShaderType type,
+            const std::string&    filename);
+
+    public:
+        typedef std::map<std::string, std::string> SourceMap;
+        typedef std::map<std::string, std::string> ReplaceMap;
+        typedef std::map<std::string, bool>        DefineMap;
+
+        const SourceMap& context() const { return _sources; }
+
+
+    protected:
+        SourceMap _sources;
+        DefineMap _defines;
+        ReplaceMap _replaces;
+        friend class ShaderLoader;
+    };
+    /**
+     * Base class for local shader file/source pairs.
+     */
+    class SGI_IMPL_EXPORT ShaderLoader
+    {
+    public:
+        /**
+         * Loads shader source from the specified filename. If the
+         * file can't be found in the OSG file path, use the source
+         * provided in backupSource.
+         */
+        static std::string load(
+            const std::string&    filename,
+            const std::string&    backupSource );
+
+        static std::string load(
+            const std::string&    filename,
+            const ShaderPackage&  package );
+
+        /**
+         * Utility function that returns the value of #pragma; e.g.,
+         * #pragma vp_something You are here
+         * returns "You are here" (without the quotes).
+         */
+        static std::string getPragmaValue(
+            const std::string& source,
+            const std::string& key);
+
+        static void getAllPragmaValues(
+            const std::string&     source,
+            const std::string&     key,
+            std::set<std::string>& output);
+
+        static void split(
+            const std::string& multisource,
+            std::vector<std::string>& out_sources);
+    };
+
+} // namespace sgi

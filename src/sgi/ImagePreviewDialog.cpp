@@ -2,6 +2,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QFileDialog>
+#include <QColorDialog>
 #include <QToolBar>
 #include <QScrollBar>
 #include <QComboBox>
@@ -303,12 +304,12 @@ void ImagePreviewDialog::Histogram::calculate(const QImage & image)
 	}
 };
 
-bool selectDisplayChannel(QImage & src, QImage & dest, ImagePreviewDialog::DisplayChannel channel)
+bool applyColorFilterQImage(QImage & src, QImage & dest, ImagePreviewDialog::ColorFilter filter)
 {
     if(src.isNull())
         return false;
 
-    if(channel == ImagePreviewDialog::DisplayChannelAll)
+    if(filter == ImagePreviewDialog::ColorFilterAll)
         dest = src;
     else
     {
@@ -317,62 +318,65 @@ bool selectDisplayChannel(QImage & src, QImage & dest, ImagePreviewDialog::Displ
             for (int x = 0; x < src.width(); x++) {
                 QRgb src_pixel = src.pixel(x, y);
                 QRgb dest_pixel = 0;
-                switch(channel)
+                switch(filter)
                 {
-                case ImagePreviewDialog::DisplayChannelAll:
+                case ImagePreviewDialog::ColorFilterAll:
                     dest_pixel = src_pixel;
                     break;
-                case ImagePreviewDialog::DisplayChannelGrayscale:
+                case ImagePreviewDialog::ColorFilterGrayscale:
                     {
                         int v = qGray(src_pixel) & 0xff;
                         dest_pixel = qRgb(v, v, v);
                     }
                     break;
-                case ImagePreviewDialog::DisplayChannelRed:
+                case ImagePreviewDialog::ColorFilterRed:
                     {
                         int v = qRed(src_pixel) & 0xff;
                         dest_pixel = qRgb(v, 0, 0);
                     }
                     break;
-                case ImagePreviewDialog::DisplayChannelGreen:
+                case ImagePreviewDialog::ColorFilterGreen:
                     {
                         int v = qGreen(src_pixel) & 0xff;
                         dest_pixel = qRgb(0, v, 0);
                     }
                     break;
-                case ImagePreviewDialog::DisplayChannelBlue:
+                case ImagePreviewDialog::ColorFilterBlue:
                     {
                         int v = qBlue(src_pixel) & 0xff;
                         dest_pixel = qRgb(0, 0, v);
                     }
                     break;
-                case ImagePreviewDialog::DisplayChannelAlpha:
+                case ImagePreviewDialog::ColorFilterAlpha:
                     {
                         int v = qAlpha(src_pixel) & 0xff;
                         // display the alpha channel as grayscale image
                         dest_pixel = qRgb(v, v, v);
                     }
                     break;
-                case ImagePreviewDialog::DisplayChannelLuminance:
+                case ImagePreviewDialog::ColorFilterLuminance:
                     {
                         int v = QColor(src_pixel).lightness();
                         // display the luminance channel as grayscale image
                         dest_pixel = qRgb(v, v, v);
                     }
                     break;
-                case ImagePreviewDialog::DisplayChannelHue:
+                case ImagePreviewDialog::ColorFilterHue:
                     {
                         int v = QColor(src_pixel).hslHue();
                         // display the hue channel as grayscale image
                         dest_pixel = qRgb(v, v, v);
                     }
                     break;
-                case ImagePreviewDialog::DisplayChannelSaturation:
+                case ImagePreviewDialog::ColorFilterSaturation:
                     {
                         int v = QColor(src_pixel).hslSaturation();
                         // display the saturation channel as grayscale image
                         dest_pixel = qRgb(v, v, v);
                     }
+                    break;
+                default:
+                    dest_pixel = src_pixel;
                     break;
                 }
                 dest.setPixel(x, y, dest_pixel);
@@ -381,6 +385,57 @@ bool selectDisplayChannel(QImage & src, QImage & dest, ImagePreviewDialog::Displ
     }
     return true;
 }
+
+/// @note a lot of GLSL shader code for color filters can be found at
+/// @see https://github.com/AnalyticalGraphicsInc/cesium/blob/master/Source/Shaders/Builtin/Functions/
+/// e.g. RGBToHSL.glsl
+bool getColorFilterShaderCode(ImagePreviewDialog::ColorFilter filter, QString & fragment, QString & vertex)
+{
+    /// @see http://cs.uns.edu.ar/cg/clasespdf/GraphicShaders.pdf, Chapter 11, page 241ff
+    ///
+    bool ret = true;
+    switch(filter)
+    {
+    case ImagePreviewDialog::ColorFilterAll:
+        fragment.clear();
+        vertex.clear();
+        break;
+    case ImagePreviewDialog::ColorFilterGrayscale:
+        fragment = "float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));\r\ncolor = vec4(vec3(gray), color.a);";
+        vertex.clear();
+        break;
+    case ImagePreviewDialog::ColorFilterRed:
+        fragment = "color = vec4(color.r, 0.0, 0.0, color.a);";
+        vertex.clear();
+        break;
+    case ImagePreviewDialog::ColorFilterGreen:
+        fragment = "color = vec4(0.0, color.g, 0.0, color.a);";
+        vertex.clear();
+        break;
+    case ImagePreviewDialog::ColorFilterBlue:
+        fragment = "color = vec4(0.0, 0.0, color.b, color.a);";
+        vertex.clear();
+        break;
+    case ImagePreviewDialog::ColorFilterAlpha:
+        fragment = "color = vec4(color.a, color.a, color.a, 1.0);";
+        vertex.clear();
+        break;
+    case ImagePreviewDialog::ColorFilterLuminance:
+        fragment = "float lum = dot(color.rgb, vec3(0.2125, 0.7154, 0.0721));\r\ncolor = vec4(vec3(lum), 1.0);";
+        vertex.clear();
+        break;
+    case ImagePreviewDialog::ColorFilterHue:
+        // http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl
+        break;
+    case ImagePreviewDialog::ColorFilterSaturation:
+        // http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl
+        break;
+    default:
+        break;
+    }
+    return ret;
+}
+
 
 class ImagePreviewDialog::ImagePreviewDialogImpl : public QObject, public IImagePreviewDialog
 {
@@ -394,7 +449,7 @@ public:
     static void adjustScrollBar(QScrollBar *scrollBar, double factor);
 
     Image::ImageFormat currentImageFormat() const;
-    DisplayChannel currentDisplayChannel() const;
+    ColorFilter currentColorFilter() const;
 
     // Actions
     void zoomIn();
@@ -406,10 +461,11 @@ public:
     void refresh();
     void flipHorizontal();
     void flipVertical();
+    void selectBackgroundColor();
     void imageWidthChanged(int index);
     void imageHeightChanged(int index);
     void imageFormatChanged(int index);
-    void displayChannelChanged(int index);
+    void selectedColorFilterChanged(int index);
 
 	void setNodeInfo(const SGIItemBase * item);
     void setImageInfo(const Image * image);
@@ -440,10 +496,11 @@ public:
     QAction *                       fitToWindowAction;
     QAction *                       flipHorizontalAction;
     QAction *                       flipVerticalAction;
+    QAction *                       selectBackgroundColorAction;
     QComboBox *                     imageWidth;
     QComboBox *                     imageHeight;
     QComboBox *                     imageFormat;
-    QComboBox *                     displayChannel;
+    QComboBox *                     colorFilterComboBox;
     QString                         labelText;
     double                          scaleFactor;
     bool                            initialRefresh;
@@ -452,6 +509,431 @@ public:
 };
 
 std::map<Image::ImageFormat, QString> ImagePreviewDialog::ImagePreviewDialogImpl::ImageFormatDisplayText;
+
+bool convertImageToQImage_RGB24(const sgi::Image * image, QImage & qimage)
+{
+    bool ret = false;
+    qimage = QImage(image->width(), image->height(), QImage::Format_RGB888);
+    uchar * dest = qimage.bits();
+    uchar * src = (uchar *)const_cast<void*>(image->data());
+    unsigned pixels = image->width() * image->height();
+    switch (image->format())
+    {
+    case Image::ImageFormatRGB24:
+        memcpy(dest, src, image->width() * image->height() * 3);
+        ret = true;
+        break;
+    case Image::ImageFormatARGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[2];
+            dest[1] = src[1];
+            dest[2] = src[0];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 3;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatLuminance:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[0];
+            dest[2] = src[0];
+            src++;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    }
+    return ret;
+}
+
+bool convertImageToQImage_BGR24(const sgi::Image * image, QImage & qimage)
+{
+    bool ret = false;
+    qimage = QImage(image->width(), image->height(), QImage::Format_RGB888);
+    uchar * dest = qimage.bits();
+    uchar * src = (uchar *)const_cast<void*>(image->data());
+    unsigned pixels = image->width() * image->height();
+    switch (image->format())
+    {
+    case Image::ImageFormatBGR24:
+        memcpy(dest, src, image->width() * image->height() * 3);
+        ret = true;
+        break;
+    case Image::ImageFormatARGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 4;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            src += 3;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatLuminance:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[0];
+            dest[2] = src[0];
+            src++;
+            dest += 3;
+        }
+        ret = true;
+    }
+    break;
+    }
+    return ret;
+}
+
+bool convertImageToQImage_RGB32(const sgi::Image * image, QImage & qimage)
+{
+    bool ret = false;
+    qimage = QImage(image->width(), image->height(), QImage::Format_RGB32);
+    uchar * dest = qimage.bits();
+    uchar * src = (uchar *)const_cast<void*>(image->data());
+    unsigned pixels = image->width() * image->height();
+    switch (image->format())
+    {
+    case Image::ImageFormatRGB32:
+        memcpy(dest, src, image->width() * image->height() * 4);
+        ret = true;
+        break;
+    case Image::ImageFormatARGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 4;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 3;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[2];
+            dest[1] = src[1];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src += 4;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[2];
+            dest[1] = src[1];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src += 3;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatLuminance:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[0];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src++;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    }
+    return ret;
+}
+
+bool convertImageToQImage_BGR32(const sgi::Image * image, QImage & qimage)
+{
+    bool ret = false;
+    qimage = QImage(image->width(), image->height(), QImage::Format_RGB32);
+    uchar * dest = qimage.bits();
+    uchar * src = (uchar *)const_cast<void*>(image->data());
+    unsigned pixels = image->width() * image->height();
+    switch (image->format())
+    {
+    case Image::ImageFormatBGR32:
+        memcpy(dest, src, image->width() * image->height() * 4);
+        ret = true;
+        break;
+    case Image::ImageFormatARGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 4;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 3;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[2];
+            dest[1] = src[1];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src += 4;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 3;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatLuminance:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[0];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src++;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    }
+    return ret;
+}
+
+bool convertImageToQImage_RGBA32(const sgi::Image * image, QImage & qimage)
+{
+    bool ret = false;
+    qimage = QImage(image->width(), image->height(), QImage::Format_ARGB32);
+    uchar * dest = qimage.bits();
+    uchar * src = (uchar *)const_cast<void*>(image->data());
+    unsigned pixels = image->width() * image->height();
+    switch (image->format())
+    {
+    case Image::ImageFormatARGB32:
+        memcpy(dest, src, image->width() * image->height() * 4);
+        ret = true;
+        break;
+    case Image::ImageFormatRGBA32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[2];
+            dest[1] = src[1];
+            dest[2] = src[0];
+            dest[3] = src[3];
+            src += 4;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 3;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatRGB32:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[2];
+            dest[1] = src[1];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src += 4;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatBGR24:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+            dest[3] = 0xFF;
+            src += 3;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    case Image::ImageFormatLuminance:
+    {
+        for (unsigned n = 0; n < pixels; ++n)
+        {
+            dest[0] = src[0];
+            dest[1] = src[0];
+            dest[2] = src[0];
+            dest[3] = 0xFF;
+            src++;
+            dest += 4;
+        }
+        ret = true;
+    }
+    break;
+    }
+    return ret;
+}
 
 #if defined(SGI_USE_FFMPEG)
 class SWScale
@@ -472,6 +954,7 @@ private:
     static pfn_sws_scale sws_scale;
     static pfn_sws_freeContext sws_freeContext;
 
+public:
     static bool load()
     {
         if(!loadAttempted)
@@ -494,7 +977,7 @@ private:
         return ready;
     }
 
-
+private:
     static Image::ImageFormat ImageFormatFromAVCodec(ffmpeg::AVPixelFormat pix_fmt)
     {
         Image::ImageFormat ret = Image::ImageFormatInvalid;
@@ -628,9 +1111,9 @@ private:
             dest = QImage(src.width(), src.height(), QImage::Format_ARGB32);
 
             uint8_t* dstdata = reinterpret_cast<uint8_t*>(dest.bits());
-            int dstPitch[1] = { (int)dest.bytesPerLine() };
-            const unsigned dstPlaneOffset[1] = { 0  };
-            uint8_t * dstPlanes[1] = { dstdata + dstPlaneOffset[0] };
+            int dstPitch[4] = { (int)dest.bytesPerLine(), 0, 0, 0 };
+            const unsigned dstPlaneOffset[4] = { 0, 0, 0, 0 };
+            uint8_t * dstPlanes[4] = { dstdata + dstPlaneOffset[0], NULL, NULL, NULL };
 
             Q_ASSERT(sws_getContext != NULL);
             ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
@@ -652,9 +1135,9 @@ private:
             dest = QImage(src.width(), src.height(), QImage::Format_ARGB32);
 
             uint8_t* dstdata = reinterpret_cast<uint8_t*>(dest.bits());
-            int dstPitch[1] = { (int)dest.bytesPerLine() };
-            const unsigned dstPlaneOffset[1] = { 0  };
-            uint8_t * dstPlanes[1] = { dstdata + dstPlaneOffset[0] };
+            int dstPitch[4] = { (int)dest.bytesPerLine(), 0, 0, 0 };
+            const unsigned dstPlaneOffset[4] = { 0, 0, 0, 0 };
+            uint8_t * dstPlanes[4] = { dstdata + dstPlaneOffset[0], NULL, NULL, NULL };
 
             Q_ASSERT(sws_getContext != NULL);
             ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
@@ -885,6 +1368,33 @@ private:
         case Image::ImageFormatLuminanceAlpha:
             ret = to_qimage_argb32_single_channel(src, dest, s_defaultColorGradient, horizontalFlip);
             break;
+#ifdef _WIN32
+        case Image::ImageFormatRGB24:
+            ret = convertImageToQImage_RGB24(&src, dest);
+            if (horizontalFlip)
+                dest = dest.mirrored(false, true);
+            break;
+        case Image::ImageFormatBGR24:
+            ret = convertImageToQImage_BGR24(&src, dest);
+            if (horizontalFlip)
+                dest = dest.mirrored(false, true);
+            break;
+        case Image::ImageFormatRGB32:
+            ret = convertImageToQImage_RGB32(&src, dest);
+            if (horizontalFlip)
+                dest = dest.mirrored(false, true);
+            break;
+        case Image::ImageFormatBGR32:
+            ret = convertImageToQImage_BGR32(&src, dest);
+            if (horizontalFlip)
+                dest = dest.mirrored(false, true);
+            break;
+        case Image::ImageFormatRGBA32:
+            ret = convertImageToQImage_RGBA32(&src, dest);
+            if (horizontalFlip)
+                dest = dest.mirrored(false, true);
+            break;
+#endif
         default:
             ret = to_qimage_argb32_with_avcodec(src, dest, horizontalFlip);
             break;
@@ -984,6 +1494,7 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
     , fitToWindowAction(NULL)
     , flipHorizontalAction(NULL)
     , flipVerticalAction(NULL)
+    , selectBackgroundColorAction(NULL)
     , imageWidth(NULL)
     , imageHeight(NULL)
     , imageFormat(NULL)
@@ -1022,8 +1533,14 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
 	connect(ui->buttonBox->button(QDialogButtonBox::Close), &QPushButton::clicked, _dialog, &ImagePreviewDialog::reject);
     connect(ui->imageLabel, &ImagePreviewLabel::mouseMoved, _dialog, &ImagePreviewDialog::onMouseMoved);
 
-	ui->imageLabel->setBackgroundRole(QPalette::Base);
-	ui->scrollArea->setBackgroundRole(QPalette::Dark);
+    QPalette pal = ui->imageLabel->palette();
+    const QColor default_osg_view_clear_color = QColor::fromRgbF(0.2f, 0.2f, 0.4f, 1.0f);
+    pal.setColor(QPalette::Base, default_osg_view_clear_color);
+    ui->imageLabel->setPalette(pal);
+    ui->scrollArea->setPalette(pal);
+    ui->imageLabel->setBackgroundRole(QPalette::Base);
+    ui->scrollArea->setBackgroundRole(QPalette::Base);
+    ui->imageGL->setBackgroundColor(default_osg_view_clear_color);
 
 	createToolbar();
 
@@ -1116,19 +1633,23 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 	fitToWindowAction->setShortcut(tr("Ctrl+F"));
 	connect(fitToWindowAction, &QAction::triggered, this, &ImagePreviewDialogImpl::fitToWindow);
 
-	flipHorizontalAction = new QAction(tr("Flip &horizontal"), _dialog);
+	flipHorizontalAction = new QAction(tr("&Mirror"), _dialog);
 	flipHorizontalAction->setIcon(QIcon::fromTheme("object-flip-horizontal"));
 	flipHorizontalAction->setEnabled(_dialog->_item.valid());
 	flipHorizontalAction->setChecked(false);
 	flipHorizontalAction->setCheckable(true);
 	connect(flipHorizontalAction, &QAction::triggered, this, &ImagePreviewDialogImpl::flipHorizontal);
 
-	flipVerticalAction = new QAction(tr("Flip &vertical"), _dialog);
+	flipVerticalAction = new QAction(tr("&Flip"), _dialog);
 	flipVerticalAction->setIcon(QIcon::fromTheme("object-flip-vertical"));
 	flipVerticalAction->setEnabled(_dialog->_item.valid());
 	flipVerticalAction->setChecked(false);
 	flipVerticalAction->setCheckable(true);
 	connect(flipVerticalAction, &QAction::triggered, this, &ImagePreviewDialogImpl::flipVertical);
+
+	selectBackgroundColorAction = new QAction(tr("Select &background color"), _dialog);
+	selectBackgroundColorAction->setIcon(QIcon::fromTheme("color-fill"));
+	connect(selectBackgroundColorAction, &QAction::triggered, this, &ImagePreviewDialogImpl::selectBackgroundColor);
 
     QMenu * saveMenu = new QMenu(_dialog);
     for(const auto & it : ImageFormatDisplayText)
@@ -1186,22 +1707,23 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
     for(const auto & it : ImageFormatDisplayText)
         imageFormat->addItem(it.second, QVariant::fromValue((int)it.first));
 
-    displayChannel = new QComboBox(toolBar);
-    displayChannel->addItem(tr("All"), QVariant::fromValue((int)DisplayChannelAll));
-    displayChannel->addItem(tr("Grayscale"), QVariant::fromValue((int)DisplayChannelGrayscale));
-    displayChannel->addItem(tr("Red"), QVariant::fromValue((int)DisplayChannelRed));
-    displayChannel->addItem(tr("Green"), QVariant::fromValue((int)DisplayChannelGreen));
-    displayChannel->addItem(tr("Blue"), QVariant::fromValue((int)DisplayChannelBlue));
-    displayChannel->addItem(tr("Alpha"), QVariant::fromValue((int)DisplayChannelAlpha));
-    displayChannel->addItem(tr("Luminance"), QVariant::fromValue((int)DisplayChannelLuminance));
-    displayChannel->addItem(tr("Hue"), QVariant::fromValue((int)DisplayChannelHue));
-    displayChannel->addItem(tr("Saturation"), QVariant::fromValue((int)DisplayChannelSaturation));
+    colorFilterComboBox = new QComboBox(toolBar);
+    colorFilterComboBox->setToolTip(tr("Select color filter"));
+    colorFilterComboBox->addItem(tr("All"), QVariant::fromValue((int)ColorFilterAll));
+    colorFilterComboBox->addItem(tr("Grayscale"), QVariant::fromValue((int)ColorFilterGrayscale));
+    colorFilterComboBox->addItem(tr("Red"), QVariant::fromValue((int)ColorFilterRed));
+    colorFilterComboBox->addItem(tr("Green"), QVariant::fromValue((int)ColorFilterGreen));
+    colorFilterComboBox->addItem(tr("Blue"), QVariant::fromValue((int)ColorFilterBlue));
+    colorFilterComboBox->addItem(tr("Alpha"), QVariant::fromValue((int)ColorFilterAlpha));
+    colorFilterComboBox->addItem(tr("Luminance"), QVariant::fromValue((int)ColorFilterLuminance));
+    colorFilterComboBox->addItem(tr("Hue"), QVariant::fromValue((int)ColorFilterHue));
+    colorFilterComboBox->addItem(tr("Saturation"), QVariant::fromValue((int)ColorFilterSaturation));
 
     toolBar->addWidget(imageWidth);
     toolBar->addWidget(imageHeight);
     toolBar->addSeparator();
     toolBar->addWidget(imageFormat);
-    toolBar->addWidget(displayChannel);
+    toolBar->addWidget(colorFilterComboBox);
     toolBar->addAction(refreshAction);
     toolBar->addSeparator();
 	toolBar->addAction(zoomInAction);
@@ -1211,12 +1733,14 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
     toolBar->addSeparator();
 	toolBar->addAction(flipHorizontalAction);
 	toolBar->addAction(flipVerticalAction);
+    toolBar->addSeparator();
+    toolBar->addAction(selectBackgroundColorAction);
 
     // do the connects at the end to avoid trouble when new items are added and signals fired
     connect(imageWidth, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ImagePreviewDialogImpl::imageWidthChanged);
     connect(imageHeight, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ImagePreviewDialogImpl::imageHeightChanged);
     connect(imageFormat, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ImagePreviewDialogImpl::imageFormatChanged);
-    connect(displayChannel, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ImagePreviewDialogImpl::displayChannelChanged);
+    connect(colorFilterComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ImagePreviewDialogImpl::selectedColorFilterChanged);
 
     updateToolbar();
 }
@@ -1273,6 +1797,18 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::flipVertical()
     refresh();
 }
 
+void ImagePreviewDialog::ImagePreviewDialogImpl::selectBackgroundColor()
+{
+    QPalette pal = ui->imageLabel->palette();
+    QColor color = QColorDialog::getColor(pal.color(QPalette::Base), _dialog, tr("Select background color"));
+    if(color.isValid())
+    {
+        pal.setColor(QPalette::Base, color);
+        ui->imageLabel->setPalette(pal);
+        ui->scrollArea->setPalette(pal);
+    }
+}
+
 void ImagePreviewDialog::ImagePreviewDialogImpl::imageWidthChanged(int index)
 {
     // just refresh the actual change is done in refreshImpl
@@ -1291,7 +1827,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::imageFormatChanged(int index)
     refresh();
 }
 
-void ImagePreviewDialog::ImagePreviewDialogImpl::displayChannelChanged(int index)
+void ImagePreviewDialog::ImagePreviewDialogImpl::selectedColorFilterChanged(int index)
 {
     // just refresh the actual change is done in refreshImpl
     refresh();
@@ -1637,349 +2173,10 @@ Image::ImageFormat ImagePreviewDialog::ImagePreviewDialogImpl::currentImageForma
     return ret;
 }
 
-ImagePreviewDialog::DisplayChannel ImagePreviewDialog::ImagePreviewDialogImpl::currentDisplayChannel() const
+ImagePreviewDialog::ColorFilter ImagePreviewDialog::ImagePreviewDialogImpl::currentColorFilter() const
 {
-    int index = displayChannel->currentIndex();
-    DisplayChannel ret = (DisplayChannel)displayChannel->itemData(index, Qt::UserRole).toInt();
-    return ret;
-}
-
-#if !defined(SGI_USE_FFMPEG)
-bool convertImageToQImage_RGB24(const sgi::Image * image, QImage & qimage)
-{
-    bool ret = false;
-    qimage = QImage(image->width(), image->height(), QImage::Format_RGB888);
-    uchar * dest = qimage.bits();
-    uchar * src = (uchar *)const_cast<void*>(image->data());
-    unsigned pixels = image->width() * image->height();
-    switch (image->format())
-    {
-    case Image::ImageFormatRGB24:
-        memcpy(dest, src, image->width() * image->height() * 3);
-        ret = true;
-        break;
-    case Image::ImageFormatARGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[2];
-            dest[1] = src[1];
-            dest[2] = src[0];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 3;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatLuminance:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[0];
-            dest[2] = src[0];
-            src++;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    }
-    return ret;
-}
-
-bool convertImageToQImage_BGR24(const sgi::Image * image, QImage & qimage)
-{
-    bool ret = false;
-    qimage = QImage(image->width(), image->height(), QImage::Format_RGB888);
-    uchar * dest = qimage.bits();
-    uchar * src = (uchar *)const_cast<void*>(image->data());
-    unsigned pixels = image->width() * image->height();
-    switch (image->format())
-    {
-    case Image::ImageFormatBGR24:
-        memcpy(dest, src, image->width() * image->height() * 3);
-        ret = true;
-        break;
-    case Image::ImageFormatARGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 3;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatLuminance:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[0];
-            dest[2] = src[0];
-            src++;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    }
-    return ret;
-}
-
-bool convertImageToQImage_RGB32(const sgi::Image * image, QImage & qimage)
-{
-    bool ret = false;
-    qimage = QImage(image->width(), image->height(), QImage::Format_RGB32);
-    uchar * dest = qimage.bits();
-    uchar * src = (uchar *)const_cast<void*>(image->data());
-    unsigned pixels = image->width() * image->height();
-    switch (image->format())
-    {
-    case Image::ImageFormatRGB32:
-        memcpy(dest, src, image->width() * image->height() * 4);
-        ret = true;
-        break;
-    case Image::ImageFormatARGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = 0xFF;
-            src += 4;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = 0xFF;
-            src += 3;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[2];
-            dest[1] = src[1];
-            dest[2] = src[0];
-            dest[3] = 0xFF;
-            src += 4;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[2];
-            dest[1] = src[1];
-            dest[2] = src[0];
-            dest[3] = 0xFF;
-            src += 3;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatLuminance:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[0];
-            dest[2] = src[0];
-            dest[3] = 0xFF;
-            src++;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    }
-    return ret;
-}
-
-bool convertImageToQImage_BGR32(const sgi::Image * image, QImage & qimage)
-{
-    bool ret = false;
-    qimage = QImage(image->width(), image->height(), QImage::Format_RGB32);
-    uchar * dest = qimage.bits();
-    uchar * src = (uchar *)const_cast<void*>(image->data());
-    unsigned pixels = image->width() * image->height();
-    switch (image->format())
-    {
-    case Image::ImageFormatBGR32:
-        memcpy(dest, src, image->width() * image->height() * 4);
-        ret = true;
-        break;
-    case Image::ImageFormatARGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = 0xFF;
-            src += 4;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = 0xFF;
-            src += 3;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[2];
-            dest[1] = src[1];
-            dest[2] = src[0];
-            dest[3] = 0xFF;
-            src += 4;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = 0xFF;
-            src += 3;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatLuminance:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[0];
-            dest[2] = src[0];
-            dest[3] = 0xFF;
-            src++;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    }
+    int index = colorFilterComboBox->currentIndex();
+    ColorFilter ret = (ColorFilter)colorFilterComboBox->itemData(index, Qt::UserRole).toInt();
     return ret;
 }
 
@@ -2041,7 +2238,6 @@ QImage convertImageToQImage(const sgi::Image * image, Image::ImageFormat destFor
     }
     return ret;
 }
-#endif // !defined(SGI_USE_FFMPEG)
 
 namespace {
 	QTreeWidgetItem * addStatisticsValueImpl(QTreeWidgetItem * root, const QString & name, const QString & value)
@@ -2116,16 +2312,23 @@ void ImagePreviewDialog::refreshImpl()
     }
 
     Image::ImageFormat format = _priv->currentImageFormat();
-    if(_workImage.valid())
+    if (_workImage.valid())
         _workImage->reinterpretFormat(format);
 
 #if defined(SGI_USE_FFMPEG)
     QImage qimg;
-    if(_workImage.valid())
-        SWScale::convertToQImage( *_workImage.get(), format, qimg);
+    if (_workImage.valid())
+    {
+        if(SWScale::load())
+            SWScale::convertToQImage(*_workImage.get(), format, qimg);
+        else
+            qimg = convertImageToQImage(_workImage.get(), format);
+    }
 #else
     QImage qimg = convertImageToQImage(_workImage.get(), format);
 #endif
+
+    _priv->ui->imageGL->setImage(_workImage.get());
 
 	refreshStatistics(qimg);
 
@@ -2134,8 +2337,19 @@ void ImagePreviewDialog::refreshImpl()
     if(!qimg.isNull())
     {
         QImage qimgDisplay;
-        DisplayChannel channel = _priv->currentDisplayChannel();
-        selectDisplayChannel(qimg, qimgDisplay, channel);
+        ColorFilter filter = _priv->currentColorFilter();
+        applyColorFilterQImage(qimg, qimgDisplay, filter);
+        QString fragment, vertex;
+        if(getColorFilterShaderCode(filter, fragment, vertex))
+        {
+            _priv->ui->colorFilterFragment->blockSignals(true);
+            _priv->ui->colorFilterVertex->blockSignals(true);
+            _priv->ui->colorFilterFragment->setPlainText(fragment);
+            _priv->ui->colorFilterVertex->setPlainText(vertex);
+            _priv->ui->colorFilterFragment->blockSignals(false);
+            _priv->ui->colorFilterVertex->blockSignals(false);
+            _priv->ui->imageGL->setColorFilter(fragment, vertex);
+        }
 
         QPixmap actualDisplayedPixmap;
         if(_priv->flipHorizontalAction->isChecked() || _priv->flipVerticalAction->isChecked())
@@ -2145,6 +2359,8 @@ void ImagePreviewDialog::refreshImpl()
         }
         else
             actualDisplayedPixmap = QPixmap::fromImage(qimgDisplay);
+        _priv->ui->imageGL->setMirrored(_priv->flipHorizontalAction->isChecked(), _priv->flipVerticalAction->isChecked());
+
         _priv->imageWidth->setCurrentText(QString::number(_image->width()));
         _priv->imageHeight->setCurrentText(QString::number(_image->height()));
         _priv->ui->imageLabel->setPixmap(actualDisplayedPixmap);
@@ -2181,7 +2397,7 @@ void ImagePreviewDialog::refreshImpl()
         ss << "<b>No image</b>";
     _priv->ui->labelImage->setText(qt_helpers::fromUtf8(ss.str()));
     _priv->ui->mouseinfo->setText(QString());
-    _priv->setImageInfo(_workImage);
+    _priv->setImageInfo(_workImage.get());
     _priv->setNodeInfo(_item.get());
     _priv->updateToolbar();
 }
@@ -2255,9 +2471,16 @@ void ImagePreviewDialog::onMouseMoved(float x, float y)
     QString str;
     if (_workImage.valid())
     {
-        int px_x = qRound(x * _workImage->width());
-        int px_y = qRound(y * _workImage->height());
+        int px_x = std::max(0, qRound(x * _workImage->width()));
+        int px_y = std::max(0, qRound(y * _workImage->height()));
+
+        if(_priv->flipHorizontalAction->isChecked())
+            px_x = _workImage->width() - px_x;
+        if(_priv->flipVerticalAction->isChecked())
+            px_y = _workImage->height() - px_y;
+
         QString px_value;
+        QString px_value_second;
 
         switch (_workImage->format())
         {
@@ -2284,6 +2507,38 @@ void ImagePreviewDialog::onMouseMoved(float x, float y)
                     default: Q_ASSERT(false); break;
                     }
                     px_value = QColor(color).name();
+
+                    switch (_workImage->dataType())
+                    {
+                    case Image::DataTypeUnsignedByte:
+                    case Image::DataTypeSignedByte:
+                        for(unsigned i = 0; i < 4; ++i)
+                        {
+                            if(i>0)
+                                px_value_second += QChar(',');
+                            px_value_second += QString::number(pxe[i]);
+                        }
+                        break;
+                    case Image::DataTypeUnsignedShort:
+                    case Image::DataTypeSignedShort:
+                        for(unsigned i = 0; i < 2; ++i)
+                        {
+                            if(i>0)
+                                px_value_second += QChar(',');
+                            px_value_second += QString::number(((const quint16 *)px)[i]);
+                        }
+                        break;
+                    case Image::DataTypeUnsignedInt:
+                    case Image::DataTypeSignedInt:
+                        px_value_second += QString::number(*px);
+                        break;
+                    case Image::DataTypeFloat32:
+                        px_value_second += QString::number(*(const float*)px);
+                        break;
+                    case Image::DataTypeFloat64:
+                        px_value_second += QString::number(*(const double*)px);
+                        break;
+                    }
                 }
                 else
                     px_value = tr("N/A");
@@ -2364,10 +2619,19 @@ void ImagePreviewDialog::onMouseMoved(float x, float y)
         }
 
         str = tr("X=%1, Y=%2, value=%3").arg(px_x).arg(px_y).arg(px_value);
+        if(!px_value_second.isEmpty())
+            str += QChar(',') + px_value_second;
     }
     else
         str = tr("X=%1, Y=%2").arg(x).arg(y);
     _priv->ui->mouseinfo->setText(str);
+}
+
+void ImagePreviewDialog::colorFilterChanged()
+{
+    QString fragment = _priv->ui->colorFilterFragment->toPlainText();
+    QString vertex = _priv->ui->colorFilterVertex->toPlainText();
+    _priv->ui->imageGL->setColorFilter(fragment, vertex);
 }
 
 ImagePreviewLabel::ImagePreviewLabel(QWidget *parent, Qt::WindowFlags f)

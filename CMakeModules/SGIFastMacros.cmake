@@ -1,16 +1,145 @@
+macro(FAST_PROJECT prjname)
+    if(COMMAND cmake_policy)
+        # Works around warnings libraries linked against that don't
+        # have absolute paths (e.g. -lpthreads)
+        cmake_policy(SET CMP0003 NEW)
 
-set(FAST_WORK_BIN_DIR ${CMAKE_BINARY_DIR}/bin)
-set(FAST_WORK_LIB_DIR ${CMAKE_BINARY_DIR}/lib)
-set(FAST_WORK_PLUGINS_DIR ${FAST_WORK_LIB_DIR}/plugins)
+        # Works around warnings about escaped quotes in ADD_DEFINITIONS
+        # statements.
+        cmake_policy(SET CMP0005 NEW)
+
+        # Qt5 qt5_use_modules usage was causing "Policy CMP0043 is not set: Ignore COMPILE_DEFINITIONS_<Config> properties." warnings
+        cmake_policy(SET CMP0043 NEW)
+
+    endif(COMMAND cmake_policy)
+
+    if(UNIX)
+        # use, i.e. don't skip the full RPATH for the build tree
+        SET(CMAKE_SKIP_BUILD_RPATH FALSE)
+
+        # already use RPATH on building (not just when installed)
+        SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+
+        #SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+        SET(CMAKE_INSTALL_RPATH "$ORIGIN")
+
+        # add the automatically determined parts of the RPATH
+        # which point to directories outside the build tree to the install RPATH
+        SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+        SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
+        SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
+        SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
+
+    endif()
+
+    set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTOUIC ON)
+    set(CMAKE_AUTORCC ON)
+    set(CMAKE_INCLUDE_CURRENT_DIR ON)
+    #
+    # Set up CMake to use Solution Folders in VS.
+    #
+    SET_PROPERTY( GLOBAL PROPERTY USE_FOLDERS               ON )
+    SET_PROPERTY( GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake Targets" )
+
+    # Common to all platforms:
+    SET(CMAKE_DEBUG_POSTFIX  "d" CACHE STRING "add a postfix, usually d on windows")
+    SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
+    SET(CMAKE_RELWITHDEBINFO_POSTFIX "rd" CACHE STRING "add a postfix, usually empty on windows")
+    SET(CMAKE_MINSIZEREL_POSTFIX "s" CACHE STRING "add a postfix, usually empty on windows")
+
+    project(${prjname} ${ARGN})
+
+    set(FAST_WORK_BIN_DIR ${CMAKE_BINARY_DIR}/bin)
+    set(FAST_WORK_LIB_DIR ${CMAKE_BINARY_DIR}/lib)
+    set(FAST_WORK_PLUGINS_DIR ${FAST_WORK_LIB_DIR}/plugins)
+
+endmacro(FAST_PROJECT)
+
+macro(FAST_IS_SYSTEM_LIBRARY prjname var)
+    set(${var} 0)
+endmacro(FAST_IS_SYSTEM_LIBRARY)
+
+
+macro(fast_package_qt5)
+    # Find the QtWidgets library
+    find_package(Qt5Widgets)
+    find_package(Qt5OpenGL)
+
+    set(QT_QTCORE_LIBRARY Qt5::Core )
+    set(QT_QTGUI_LIBRARY Qt5::Gui)
+    set(QT_QTWIDGETS_LIBRARY Qt5::Widgets )
+    set(QT_QTOPENGL_LIBRARY Qt5::OpenGL )
+endmacro(fast_package_qt5)
+
+macro(fast_package_osg)
+
+	find_package(OpenSceneGraph 3.2.0 REQUIRED osgDB osgGA osgUtil osgText osgFX osgManipulator osgViewer osgWidget osgTerrain osgAnimation)
+
+	find_package(OsgEarth)
+	find_package(OsgQt)
+
+endmacro(fast_package_osg)
+
+macro(fast_package_log4cplus)
+    find_package(Log4cplus)
+endmacro(fast_package_log4cplus)
 
 macro(fast_configure_file)
     configure_file(${ARGN})
 endmacro()
 
+macro(FAST_INSTALL_EXTRA_HEADER_FILES)
+	cmake_parse_arguments(_tmp
+		"VERBOSE;INTERFACE;PRIVATE;PUBLIC"
+		"DESTINATION;COMPONENT"
+		"DIRECTORY"
+		${ARGN})
+    if(NOT _tmp_COMPONENT)
+        set(_tmp_COMPONENT "Developer files")
+    endif()
+    if(_tmp_DIRECTORY)
+        install(DIRECTORY ${_tmp_DIRECTORY} DESTINATION ${_tmp_DESTINATION} COMPONENT ${_tmp_COMPONENT})
+    endif()
+endmacro(FAST_INSTALL_EXTRA_HEADER_FILES)
+
+macro(FAST_INSTALL_DATA_FILE)
+	cmake_parse_arguments(_tmp
+		"VERBOSE;INTERFACE;PRIVATE;PUBLIC"
+		"DESTINATION;COMPONENT"
+		"DIRECTORY;FILES"
+		${ARGN})
+    if(_tmp_DIRECTORY)
+        install(DIRECTORY ${_tmp_DIRECTORY} DESTINATION ${_tmp_DESTINATION} COMPONENT ${_tmp_COMPONENT})
+    endif()
+    if(_tmp_FILES)
+        install(FILES ${_tmp_FILES} DESTINATION ${_tmp_DESTINATION} COMPONENT ${_tmp_COMPONENT})
+    endif()
+endmacro(FAST_INSTALL_DATA_FILE)
+
+macro(FAST_PROJECT_PACKAGE)
+endmacro(FAST_PROJECT_PACKAGE)
+
+macro(FAST_RESET_TARGET_PRIV)
+    set(TARGET_TARGETNAME)
+    set(TARGET_LABEL)
+    set(TARGET_SRC)
+    set(TARGET_QRC)
+    set(TARGET_H)
+    set(TARGET_MOC_H)
+    set(TARGET_GLSL)
+    set(TARGET_IN)
+endmacro(FAST_RESET_TARGET_PRIV)
+
 FUNCTION(SET_IF_UNSET VAR DEFAULT_VALUE)
 	if(NOT ${VAR})
 		set(${VAR} ${DEFAULT_VALUE} PARENT_SCOPE)
 	endif()
+ENDFUNCTION()
+
+FUNCTION(VAR_CONFIG RETVAL VAR)
+	set(${RETVAL} "$<$<CONFIG:Debug>:${${VAR}_DEBUG}>$<$<CONFIG:Release>:${${VAR}_RELEASE}>$<$<CONFIG:RelWithDebInfo>:${${VAR}_RELWITHDEBINFO}>$<$<CONFIG:MinSizeRel>:${${VAR}_MINSIZEREL}>" PARENT_SCOPE)
 ENDFUNCTION()
 
 
@@ -173,6 +302,8 @@ MACRO(FAST_MODULE_LIBRARY PLUGIN_NAME)
 #finally, set up the solution folder -gw
     SET_PROPERTY(TARGET ${TARGET_TARGETNAME} PROPERTY FOLDER "Plugins")
 
+    FAST_RESET_TARGET_PRIV()
+
 ENDMACRO(FAST_MODULE_LIBRARY)
 
 macro(FAST_SHARED_LIBRARY PLUGIN_NAME)
@@ -195,7 +326,6 @@ macro(FAST_SHARED_LIBRARY PLUGIN_NAME)
     ENDIF(NOT TARGET_LABEL)
 
 # here we use the command to generate the library
-
     ADD_LIBRARY(${TARGET_TARGETNAME} SHARED ${TARGET_SRC} ${TARGET_QRC} ${TARGET_H} ${TARGET_MOC_H} ${TARGET_GLSL} ${TARGET_IN})
 
     SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PROJECT_LABEL "${TARGET_LABEL}")
@@ -214,6 +344,8 @@ macro(FAST_SHARED_LIBRARY PLUGIN_NAME)
 
 #finally, set up the solution folder -gw
     SET_PROPERTY(TARGET ${TARGET_TARGETNAME} PROPERTY FOLDER "Plugins")
+
+    FAST_RESET_TARGET_PRIV()
 
 endmacro(FAST_SHARED_LIBRARY)
 
@@ -333,6 +465,8 @@ MACRO(SETUP_APPLICATION APPLICATION_NAME)
 	ENDIF(NOT APPLICATION_FOLDER)
 
 	SET_PROPERTY(TARGET ${TARGET_TARGETNAME} PROPERTY FOLDER ${APPLICATION_FOLDER})
+
+    FAST_RESET_TARGET_PRIV()
 
 ENDMACRO(SETUP_APPLICATION)
 

@@ -1,6 +1,6 @@
 include_directories(${LOG4CPLUS_INCLUDE_DIR})
 
-if(CMAKE_COMPILER_IS_GNUCXX)
+if(CMAKE_COMPILER_IS_GNUCXX OR CLANG)
     add_compile_options(-Wno-deprecated-declarations)
 endif()
 

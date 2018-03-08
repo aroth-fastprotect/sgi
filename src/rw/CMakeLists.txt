@@ -47,6 +47,7 @@ SET(TARGET_LIBRARIES_VARS
     OSGGA_LIBRARY
     OSGVIEWER_LIBRARY
     SGI_PLUGIN_IMPL_LIBRARY
+    SGI_OSG_HELPER_LIBRARY
 )
 if(OSGEARTH_FOUND)
     LIST(APPEND TARGET_LIBRARIES_VARS
@@ -70,13 +71,13 @@ IF ( Qt5Widgets_FOUND )
     # Add the include directories for the Qt 5 Widgets module to
     # the compile lines.
     include_directories(${Qt5Widgets_INCLUDE_DIRS})
-    LIST(APPEND TARGET_LIBRARIES_VARS Qt5::Widgets )
+    LIST(APPEND TARGET_LIBRARIES_VARS QT_QTWIDGETS_LIBRARY )
 ENDIF()
 IF ( Qt5OpenGL_FOUND )
     # Add the include directories for the Qt 5 OpenGL module to
     # the compile lines.
     include_directories(${Qt5OpenGL_INCLUDE_DIRS})
-    LIST(APPEND TARGET_LIBRARIES_VARS Qt5::OpenGL )
+    LIST(APPEND TARGET_LIBRARIES_VARS QT_QTOPENGL_LIBRARY )
 ENDIF()
 
 # CHECK-IT:

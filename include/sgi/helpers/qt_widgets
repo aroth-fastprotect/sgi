@@ -10,7 +10,7 @@ class QTimer;
 namespace sgi {
 namespace qt_helpers {
 
-QWidget * createHighlightWidget(QWidget * w);
+SGI_QT_HELPER_EXPORT QWidget * createHighlightWidget(QWidget * w);
 
     } // namespace qt_helpers
 } // namespace sgi

@@ -7,59 +7,24 @@
 #
 # History: 
 # 2015-02-16  ARO  initial release
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.11 FATAL_ERROR)
 
-if(COMMAND cmake_policy)
-    # Works around warnings libraries linked against that don't
-    # have absolute paths (e.g. -lpthreads)
-    cmake_policy(SET CMP0003 NEW)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.8.0 FATAL_ERROR)
 
-    # Works around warnings about escaped quotes in ADD_DEFINITIONS
-    # statements.
-    cmake_policy(SET CMP0005 NEW)
-
-    # Qt5 qt5_use_modules usage was causing "Policy CMP0043 is not set: Ignore COMPILE_DEFINITIONS_<Config> properties." warnings
-    cmake_policy(SET CMP0043 NEW)
-
-endif(COMMAND cmake_policy)
-
-if(UNIX)
-    # use, i.e. don't skip the full RPATH for the build tree
-    SET(CMAKE_SKIP_BUILD_RPATH FALSE)
-
-    # already use RPATH on building (not just when installed)
-    SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-
-    #SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-    SET(CMAKE_INSTALL_RPATH "$ORIGIN")
-
-    # add the automatically determined parts of the RPATH
-    # which point to directories outside the build tree to the install RPATH
-    SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-    SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
-    SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
-
+# Include custom CMake modules or macros. Don't touch it.
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../buildtools/CMakeModules")
+    set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../buildtools/CMakeModules;${CMAKE_MODULE_PATH}")
+    include(FastProtectMacros)
+else()
+    set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
+    include(SGIFastMacros)
 endif()
 
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-#
-# Set up CMake to use Solution Folders in VS.
-#
-SET_PROPERTY( GLOBAL PROPERTY USE_FOLDERS               ON )
-SET_PROPERTY( GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake Targets" )
+FAST_PROJECT(SGI)
 
-# Common to all platforms:
-SET(CMAKE_DEBUG_POSTFIX  "d" CACHE STRING "add a postfix, usually d on windows")
-SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
-SET(CMAKE_RELWITHDEBINFO_POSTFIX "rd" CACHE STRING "add a postfix, usually empty on windows")
-SET(CMAKE_MINSIZEREL_POSTFIX "s" CACHE STRING "add a postfix, usually empty on windows")
+FAST_IS_SYSTEM_LIBRARY(sgi SGI_IS_SYSTEM_LIB)
+IF(NOT SGI_IS_SYSTEM_LIB)
 
-PROJECT(SGI)
+    set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 	SET(SGI_MAJOR_VERSION 0)
 	SET(SGI_MINOR_VERSION 3)
@@ -78,8 +43,8 @@ PROJECT(SGI)
 		SET(SGI_PLUGIN_PREFIX "mingw_")
 	ENDIF()
 
-	SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
-	include(SGIFastMacros)
+	set(SGI_CMAKEMODULES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
+	SET(CMAKE_MODULE_PATH "${SGI_CMAKEMODULES_DIR};${CMAKE_MODULE_PATH}")
 
 	SET(SGI_VERSION ${SGI_MAJOR_VERSION}.${SGI_MINOR_VERSION}.${SGI_PATCH_VERSION})
 
@@ -87,26 +52,13 @@ PROJECT(SGI)
 
 	FIND_PACKAGE(OpenGL)
 
-    # Find the QtWidgets library
-    find_package(Qt5Widgets)
-    find_package(Qt5OpenGL)
-
-    set(QT_QTCORE_LIBRARY Qt5::Core )
-    set(QT_QTGUI_LIBRARY Qt5::Gui)
-    set(QT_QTWIDGETS_LIBRARY Qt5::Widgets )
-    set(QT_QTOPENGL_LIBRARY Qt5::OpenGL )
-
-
-    find_package(Log4cplus)
-
-	find_package(OpenSceneGraph 3.2.0 REQUIRED osgDB osgGA osgUtil osgText osgFX osgManipulator osgViewer osgWidget osgTerrain osgAnimation)
-
-	find_package(OsgEarth)
-	find_package(OsgQt)
+	fast_package_qt5()
+	fast_package_osg()
+    fast_package_log4cplus()
 
 	IF(WIN32)
         # More MSVC specific compilation flags
-        ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS)
+        ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -DNOMINMAX)
 	ENDIF(WIN32)
 
 	IF(CMAKE_COMPILER_IS_GNUCXX)
@@ -126,14 +78,21 @@ PROJECT(SGI)
     INCLUDE(SGIFunctions)
 	fast_configure_file(CMakeModules/SGIMacros.cmake.in ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/SGIMacros.cmake @ONLY)
 	INCLUDE(SGIMacros)
-	install(FILES CMakeModules/SGIMacros.cmake DESTINATION share/cmake/modules COMPONENT "Developer files")
+    FAST_INSTALL_DATA_FILE(CMakeModules/SGIMacros.cmake DESTINATION share/cmake/modules COMPONENT "Developer files")
 
 	OPTION(SGI_PLUGIN_OSG "Enable OSG plugin" ON)
 	OPTION(SGI_PLUGIN_OSGEARTH "Enable osgEarth plugin" ${OSGEARTH_FOUND})
 	OPTION(SGI_PLUGIN_QT "Enable Qt plugin" ON)
 	OPTION(SGI_PLUGIN_LOG4CPLUS "Enable log4cplus plugin" ${LOG4CPLUS_FOUND})
     OPTION(SGI_UNITTESTS "Enable SGI unitests" ON)
+    OPTION(SGI_BUILD_GLIMAGEVIEW "Build the GLImageView application" OFF)
     OPTION(SGI_USE_FFMPEG "Use ffmpeg/swscale for image operations" ON)
+    if(WIN32)
+        set(_sgi_swscale_use_library_postfix_default ON)
+    else()
+        set(_sgi_swscale_use_library_postfix_default OFF)
+    endif()
+    OPTION(SGI_SWSCALE_USE_LIBRARY_POSTFIX "Use cmake library postfix for swscale" ${_sgi_swscale_use_library_postfix_default})
 	IF(WIN32)
 		SET(SGI_SWSCALE_LIBRARYNAME "swscale-4" CACHE STRING "name of the swscale library")
 	ELSE()
@@ -141,7 +100,9 @@ PROJECT(SGI)
 	ENDIF()
     OPTION(SGI_USE_GAMMARAY "Use gammary framework" OFF)
 
-	SET(SGI_PLUGIN_IMPL_LIBRARY osgSGI-plugin-impl)
+	SET(SGI_PLUGIN_IMPL_LIBRARY sgi-plugin-impl)
+    set(SGI_OSG_HELPER_LIBRARY sgi-osg-helper)
+    set(SGI_QT_HELPER_LIBRARY sgi-qt-helper)
 
     set(SGI_PLUGIN_HOST_SUPPORT_INCLUDES)
     set(SGI_PLUGIN_HOST_SUPPORT_ITEM_CLASSES)
@@ -155,9 +116,9 @@ PROJECT(SGI)
     TO_LIST_NEWLINES(SGI_PLUGIN_HOST_SUPPORT_INCLUDES SGI_PLUGIN_HOST_SUPPORT_INCLUDES)
     TO_LIST_COMMA(SGI_PLUGIN_HOST_SUPPORT_ITEM_CLASSES SGI_PLUGIN_HOST_SUPPORT_ITEM_CLASSES)
 
-    #FAST_INSTALL_EXTRA_HEADER_FILES(DIRECTORY ${SGI_INCLUDE_DIR}/sgi DESTINATION include/sgi)
+    FAST_INSTALL_EXTRA_HEADER_FILES(DIRECTORY ${SGI_INCLUDE_DIR}/sgi DESTINATION include/sgi)
 
-    if(Log4cplus_FOUND)
+    if(LOG4CPLUS_FOUND)
         set(SGI_HAS_LOG4CPLUS_SUPPORT 1)
     endif()
 
@@ -171,7 +132,7 @@ PROJECT(SGI)
 
     if(SGI_USE_FFMPEG)
         find_package(FFmpeg)
-        if(FFmpeg_FOUND)
+        if(FFMPEG_FOUND)
             add_definitions(-DSGI_USE_FFMPEG=1)
             set(SGI_HAS_FFMPEG_SUPPORT 1)
         endif()
@@ -204,3 +165,7 @@ PROJECT(SGI)
     if(SGI_UNITTESTS)
         add_subdirectory(tests)
     endif()
+
+	FAST_PROJECT_PACKAGE()
+
+ENDIF(NOT SGI_IS_SYSTEM_LIB)

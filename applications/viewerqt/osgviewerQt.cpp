@@ -2,6 +2,8 @@
 #include <QTimer>
 #include <QFileInfo>
 #include <QApplication>
+#include <QBuffer>
+#include <QDir>
 #include <QMessageBox>
 #include <QHBoxLayout>
 #include <QThread>
@@ -45,6 +47,11 @@
 
 #include <sgi/helpers/osg_helper_nodes>
 #include <sgi/plugins/SGIItemBase.h>
+
+#if defined(_WIN32) && !defined(SGI_USE_OSGQT)
+extern "C" long __stdcall AllocConsole();
+extern "C" long __stdcall FreeConsole();
+#endif
 
 namespace std {
 
@@ -986,6 +993,15 @@ main(int argc, char** argv)
 
     QApplication app( argc, argv );
     QObject::connect(&app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()));
+
+    {
+        QString path = QCoreApplication::applicationDirPath();
+        path = QDir::cleanPath(path + SGI_QT_PLUGIN_DIR);
+        QCoreApplication::addLibraryPath(path);
+        QImage load_sgi;
+        QBuffer dummyMem;
+        load_sgi.load(&dummyMem, "sgi_loader");
+    }
 
     bool allocConsole = false;
 

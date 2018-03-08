@@ -211,9 +211,11 @@ namespace osgearth_plugin {
         typedef osgEarth::VirtualProgram::ShaderEntry ShaderEntry;
         typedef osgEarth::VirtualProgram::ProgramMap ProgramMap;
 
-        const ProgramMap & programCache() const { return _programCache; }
+        void getProgramCache(ProgramMap & programCache);
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
         void getShaderMap( ShaderMap& out ) const { osgEarth::VirtualProgram::getShaderMap(out); }
         void getFunctions( osgEarth::ShaderComp::FunctionLocationMap& out ) const { osgEarth::VirtualProgram::getFunctions(out); }
+#endif
 
         unsigned int                 mask() const { return _mask; }
         void                         setMask(unsigned int mask) { _mask = mask; }
@@ -224,6 +226,9 @@ namespace osgearth_plugin {
 
         bool                         getShaderLogging() const { return _logShaders; }
         const std::string &          getShaderLogFile() const { return _logPath; }
+
+        void                         getGLSLExtensions(ExtensionsSet & extensions);
+        
         
         void                         setInheritShadersToUnspecified()
         {

@@ -9,7 +9,7 @@ namespace sgi {
 
 class SGIPluginHostInterface;
 
-class SGI_EXPORT SGIProxyItemBase : public SGIItemBase
+class SGI_IMPL_EXPORT SGIProxyItemBase : public SGIItemBase
 {
 public:
     SGIProxyItemBase(SGIPluginHostInterface * hostInterface = NULL, SGIItemBase * realItem = NULL);

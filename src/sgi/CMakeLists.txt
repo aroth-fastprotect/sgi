@@ -46,7 +46,6 @@ SET(TARGET_H
 	stdafx.h
 	SGIPlugin.h
 	entrypoint.h
-	ReferencedPicker.h
 	sgi_internal.h
 	dxt.h
 )
@@ -126,6 +125,7 @@ SET(TARGET_MOC_H
 	QuatInputDialog.h
 	MatrixInputDialog.h
 	ImagePreviewDialog.h
+	ImageGLWidget.h
 )
 
 # CHECK-IT:
@@ -144,15 +144,36 @@ SET(TARGET_SRC
 	QuatInputDialog.cpp
 	MatrixInputDialog.cpp
 	ImagePreviewDialog.cpp
+	ImageGLWidget.cpp
 	dxt.cpp
+)
+set(_imagewidget_dir .)
+set(TARGET_GLSL
+    ImageGLWidget.vert.glsl
+    ImageGLWidget.frag.glsl
+    )
+
+set(SHADERS_CPP "${CMAKE_CURRENT_BINARY_DIR}/AutoGenShaders.cpp")
+
+SGI_CONFIGURE_SHADERS(
+    ${_imagewidget_dir}/Shaders.cpp.in
+    ${SHADERS_CPP}
+    ${TARGET_GLSL} )
+
+list(APPEND TARGET_SRC
+    ${_imagewidget_dir}/ImageGLWidget.cpp
+    )
+list(APPEND TARGET_SRC_NO_PCH
+    ${SHADERS_CPP}
 )
 
 SET(TARGET_LIBRARIES_VARS
     SGI_PLUGIN_IMPL_LIBRARY
+    SGI_QT_HELPER_LIBRARY
 	OPENTHREADS_LIBRARY
 	OSG_LIBRARY
 	OSGDB_LIBRARY
-	OSGUTIL_LIBRARY
+    OSGUTIL_LIBRARY
 	OSGGA_LIBRARY
 	OSGVIEWER_LIBRARY
 )
@@ -164,14 +185,20 @@ IF ( Qt5Widgets_FOUND )
     # Add the include directories for the Qt 5 Widgets module to
     # the compile lines.
     include_directories(${Qt5Widgets_INCLUDE_DIRS})
-    LIST(APPEND TARGET_LIBRARIES_VARS Qt5::Widgets )
+    LIST(APPEND TARGET_LIBRARIES_VARS QT_QTWIDGETS_LIBRARY )
 ENDIF()
 
-FAST_SHARED_LIBRARY(${LIB_NAME})
+FAST_SHARED_LIBRARY(${LIB_NAME} NO_MOC_INCLUDE)
+
+if(SGI_SWSCALE_USE_LIBRARY_POSTFIX)
+    set(_swscale "${SGI_SWSCALE_LIBRARYNAME}$<$<CONFIG:Debug>:${CMAKE_DEBUG_POSTFIX}>$<$<CONFIG:Release>:${CMAKE_RELEASE_POSTFIX}>$<$<CONFIG:RelWithDebInfo>:${CMAKE_RELWITHDEBINFO_POSTFIX}>$<$<CONFIG:MinSizeRel>:${CMAKE_MINSIZEREL_POSTFIX}>")
+else()
+    set(_swscale "${SGI_SWSCALE_LIBRARYNAME}")
+endif()
 
 target_compile_definitions(${TARGET_DEFAULT_PREFIX}${LIB_NAME} PRIVATE
     SGI_LIBRARY
-	SGI_SWSCALE_LIBRARYNAME="${SGI_SWSCALE_LIBRARYNAME}"
+	SGI_SWSCALE_LIBRARYNAME="${_swscale}"
     SGI_PLUGIN_EXTENSION=${CMAKE_SHARED_MODULE_SUFFIX}
     OSG_LIBRARY_POSTFIX="$<$<CONFIG:Debug>:${CMAKE_DEBUG_POSTFIX}>$<$<CONFIG:Release>:${CMAKE_RELEASE_POSTFIX}>$<$<CONFIG:RelWithDebInfo>:${CMAKE_RELWITHDEBINFO_POSTFIX}>$<$<CONFIG:MinSizeRel>:${CMAKE_MINSIZEREL_POSTFIX}>"
     )

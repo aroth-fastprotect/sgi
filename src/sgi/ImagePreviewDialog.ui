@@ -40,8 +40,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>52</width>
-         <height>365</height>
+         <width>50</width>
+         <height>371</height>
         </rect>
        </property>
        <property name="sizePolicy">
@@ -85,12 +85,15 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="sgi::ImageGLWidget" name="imageGL"/>
+        </item>
        </layout>
       </widget>
      </widget>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tabImage">
        <attribute name="title">
@@ -169,6 +172,44 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tabColorFilter">
+       <attribute name="title">
+        <string>Color filter</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_6">
+        <item>
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Color filter shader code (GLSL):</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QFormLayout" name="formLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Fragment</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QPlainTextEdit" name="colorFilterFragment"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Vertex</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QPlainTextEdit" name="colorFilterVertex"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
       <widget class="QWidget" name="tabStatistics">
        <attribute name="title">
         <string>Statistics</string>
@@ -244,6 +285,11 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>sgi::ImageGLWidget</class>
+   <extends>QOpenGLWidget</extends>
+   <header location="global">ImageGLWidget.h</header>
+  </customwidget>
+  <customwidget>
    <class>sgi::ImagePreviewLabel</class>
    <extends>QLabel</extends>
    <header location="global">ImagePreviewDialog.h</header>
@@ -283,5 +329,40 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>colorFilterFragment</sender>
+   <signal>textChanged()</signal>
+   <receiver>ImagePreviewDialog</receiver>
+   <slot>colorFilterChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>431</x>
+     <y>145</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>367</x>
+     <y>216</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>colorFilterVertex</sender>
+   <signal>textChanged()</signal>
+   <receiver>ImagePreviewDialog</receiver>
+   <slot>colorFilterChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>431</x>
+     <y>305</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>367</x>
+     <y>216</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>colorFilterChanged()</slot>
+ </slots>
 </ui>
