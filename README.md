@@ -1,21 +1,26 @@
 # SGI - a scene graph inspector
-Copyright 2012-2015 FAST Protect GmbH, Andreas Roth
+Copyright 2012-2018 FAST Protect GmbH, Andreas Roth
 
 SGI is primarily designed as tool to investigate and manipulate an OSG scene graph. It can be used to investigate other 
 object hierarchies as well. 
 
 ## Design
-- core part is located in libSGI which includes
+- core part is located in osgSGI which includes
   - plugin management
   - implementation of SceneGraphDialog
+  - implementation of ImagePreviewDialog
   - implementation of ContextMenu
   - implementation of ObjectLoggerDialog
 - SGI reader/writer; loads the SGI using a filename (.sgi_loader)
 - plugins; it ships with the following plugins
   - OSG
   - OsgEarth
-  - qt (should work with Qt4 and Qt5)
+  - Qt5
   - log4cplus
+- applications;
+  - helloWorldQt: sample application to use SGI in a Qt5 application
+  - sgi_osgviewer: adapted version of osgviewer to use SGI
+  - sgi_osgviewerQt: adapted version of osgviewer using Qt5 and loading SGI
 
 ## License
 SGI is free software; you can redistribute it and/or modify
