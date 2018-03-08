@@ -2,6 +2,8 @@
 #include <sgi/plugins/SGIItemBase.h>
 #include "geo_helpers.h"
 #include "string_helpers.h"
+#include <osgEarth/TileSource>
+#include <osgEarth/URI>
 
 namespace sgi {
 namespace osgearth_plugin {
@@ -153,6 +155,47 @@ void MapDownload::addCoordinates(const GeoPointList & points, EntityType type)
     d->coordinateSets.push_back(s);
 }
 
+void MapDownload::addCoordinates(const TileKeyList & points)
+{
+    for(const osgEarth::TileKey & tk : points)
+    {
+        MapDownload::MapDownloadPrivate::CoordinateSet s;
+        const osgEarth::GeoExtent & ge = tk.getExtent();
+
+        NamedGeoPoint nw(tk.str(), osgEarth::GeoPoint(ge.getSRS(), ge.north(), ge.west()));
+        NamedGeoPoint ne(tk.str(), osgEarth::GeoPoint(ge.getSRS(), ge.north(), ge.east()));
+        NamedGeoPoint sw(tk.str(), osgEarth::GeoPoint(ge.getSRS(), ge.south(), ge.west()));
+        NamedGeoPoint se(tk.str(), osgEarth::GeoPoint(ge.getSRS(), ge.south(), ge.east()));
+        s.coordinates.push_back(nw);
+        s.coordinates.push_back(ne);
+        s.coordinates.push_back(se);
+        s.coordinates.push_back(sw);
+        s.coordinates.push_back(nw);
+        s.type = Polygon;
+        d->coordinateSets.push_back(s);
+    }
+}
+
+void MapDownload::addCoordinates(const DataExtentList & points)
+{
+    for(const osgEarth::DataExtent & de : points)
+    {
+        MapDownload::MapDownloadPrivate::CoordinateSet s;
+
+        NamedGeoPoint nw("NW", osgEarth::GeoPoint(de.getSRS(), de.north(), de.west()));
+        NamedGeoPoint ne("NE", osgEarth::GeoPoint(de.getSRS(), de.north(), de.east()));
+        NamedGeoPoint sw("SW", osgEarth::GeoPoint(de.getSRS(), de.south(), de.west()));
+        NamedGeoPoint se("SE", osgEarth::GeoPoint(de.getSRS(), de.south(), de.east()));
+        s.coordinates.push_back(nw);
+        s.coordinates.push_back(ne);
+        s.coordinates.push_back(se);
+        s.coordinates.push_back(sw);
+        s.coordinates.push_back(nw);
+        s.type = Polygon;
+        d->coordinateSets.push_back(s);
+    }
+}
+
 std::string MapDownload::getUrl() const
 {
     std::string ret;
@@ -201,6 +244,7 @@ std::string MapDownload::getUrl() const
             }
             break;
         case Line:
+        case Polygon:
             csetStr += "&path=color:0x0000ff|weight:5";
             for(MapDownload::NamedGeoPointList::const_iterator it = set.coordinates.begin(); it != set.coordinates.end(); it++)
             {
@@ -248,6 +292,163 @@ std::string MapDownload::getUrl(const NamedGeoPointList & points, bool satelite,
     MapDownload dl(satelite?GoogleSatelite:GoogleRoadmap, width, height);
     dl.addCoordinates(points, (markers)?Point:Line);
     return dl.getUrl();
+}
+
+std::string MapDownload::getUrl(const TileKeyList & points, bool satelite, int width, int height)
+{
+    MapDownload dl(satelite?GoogleSatelite:GoogleRoadmap, width, height);
+    dl.addCoordinates(points);
+    return dl.getUrl();
+}
+
+std::string MapDownload::getUrl(const osgEarth::TileKey & tk, bool satelite, int width, int height)
+{
+    MapDownload dl(satelite?GoogleSatelite:GoogleRoadmap, width, height);
+    TileKeyList points(1);
+    points[0] = tk;
+    dl.addCoordinates(points);
+    return dl.getUrl();
+}
+
+std::string MapDownload::getUrl(const DataExtentList & points, bool satelite, int width, int height)
+{
+    MapDownload dl(satelite?GoogleSatelite:GoogleRoadmap, width, height);
+    dl.addCoordinates(points);
+    return dl.getUrl();
+}
+
+std::string MapDownload::getUrl(const osgEarth::DataExtent & de, bool satelite, int width, int height)
+{
+    MapDownload dl(satelite?GoogleSatelite:GoogleRoadmap, width, height);
+    DataExtentList points;
+    points.push_back(de);
+    dl.addCoordinates(points);
+    return dl.getUrl();
+}
+
+std::string MapDownload::getUrl(const osgEarth::DataExtent & de, const TileKeyList & points, bool satelite, int width, int height)
+{
+    MapDownload dl(satelite?GoogleSatelite:GoogleRoadmap, width, height);
+    DataExtentList delist;
+    delist.push_back(de);
+    dl.addCoordinates(delist);
+    dl.addCoordinates(points);
+    return dl.getUrl();
+}
+
+std::string MapDownload::getUrl(const osgEarth::DataExtent & de, const osgEarth::TileKey & tk, bool satelite, int width, int height)
+{
+    MapDownload dl(satelite?GoogleSatelite:GoogleRoadmap, width, height);
+    DataExtentList delist;
+    delist.push_back(de);
+    dl.addCoordinates(delist);
+    TileKeyList points;
+    points.push_back(tk);
+    dl.addCoordinates(points);
+    return dl.getUrl();
+}
+
+
+class TileSourceInfo::TileSourceInfoPrivate
+{
+public:
+    TileSourceInfoPrivate(const osgEarth::TileSource * ts)
+        : tileSource(ts)
+        , creationTime(static_cast<osgEarth::TimeStamp>(0))
+        , modificationTime(static_cast<osgEarth::TimeStamp>(0))
+        {
+            const osgEarth::TileSourceOptions & opts = ts->getOptions();
+            driver = opts.getDriver();
+            osgEarth::Config optsCfg = opts.getConfig();
+            if(optsCfg.hasValue("url"))
+                url = osgEarth::URI(optsCfg.value("url"), osgEarth::URIContext(optsCfg.referrer()));
+            if(optsCfg.hasValue("path"))
+                path = osgEarth::URI(optsCfg.value("path"), osgEarth::URIContext(optsCfg.referrer()));
+
+            if(driver == "tms")
+            {
+                osgEarth::URIContext context(url.full());
+                infoURI = osgEarth::URI("info", context);
+            }
+        }
+
+    const osgEarth::TileSource * tileSource;
+    std::string driver;
+    osgEarth::URI url;
+    osgEarth::URI path;
+    osgEarth::Config rawData;
+    osgEarth::URI infoURI;
+    osgEarth::ConfigSet changesets;
+    osgEarth::DateTime creationTime;
+    osgEarth::DateTime modificationTime;
+};
+
+TileSourceInfo::TileSourceInfo(const osgEarth::TileSource * ts)
+    : d(new TileSourceInfoPrivate(ts))
+{
+    refresh();
+}
+
+TileSourceInfo::~TileSourceInfo()
+{
+    delete d;
+}
+
+const std::string & TileSourceInfo::driver() const
+{
+    return d->driver;
+}
+
+const osgEarth::Config & TileSourceInfo::rawData() const
+{
+    return d->rawData;
+}
+
+const osgEarth::URI & TileSourceInfo::url() const
+{
+    return d->url;
+}
+
+const osgEarth::URI & TileSourceInfo::path() const
+{
+    return d->path;
+}
+
+const osgEarth::URI & TileSourceInfo::infoURI() const
+{
+    return d->infoURI;
+}
+
+const osgEarth::ConfigSet & TileSourceInfo::changesets() const
+{
+    return d->changesets;
+}
+
+const osgEarth::DateTime & TileSourceInfo::creationTime() const
+{
+    return d->creationTime;
+}
+
+const osgEarth::DateTime & TileSourceInfo::modificationTime() const
+{
+    return d->modificationTime;
+}
+
+void TileSourceInfo::refresh()
+{
+    std::string info = d->infoURI.getString();
+    if(!info.empty())
+        d->rawData.fromJSON(info);
+    d->changesets = d->rawData.child("changesets").children();
+
+    if(d->rawData.hasValue("creation_time"))
+        d->creationTime = osgEarth::DateTime(d->rawData.value("creation_time"));
+
+    if(d->rawData.hasValue("modification_time"))
+        d->modificationTime = osgEarth::DateTime(d->rawData.value("modification_time"));
+    else if(d->rawData.hasValue("last_update_time"))
+        d->modificationTime = osgEarth::DateTime(d->rawData.value("last_update_time"));
+
 }
 
 } // namespace osgearth_plugin

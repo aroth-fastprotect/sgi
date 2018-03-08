@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ObjectLoggerDialog.h"
 
-#include "ui_ObjectLoggerDialog.h"
+#include <ui_ObjectLoggerDialog.h>
 
 #include <QToolBar>
 #include <QComboBox>
@@ -9,6 +9,7 @@
 #include <QTimer>
 
 #include "SGIPlugin.h"
+#include <sgi/plugins/HostCallback>
 #include <sgi/plugins/ContextMenu>
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SGIPluginInterface.h>
@@ -27,52 +28,13 @@ namespace sgi {
 
 using namespace qt_helpers;
 
-class ObjectLoggerDialog::ContextMenuCallback : public IContextMenuInfo
-{
-public:
-    ContextMenuCallback(ObjectLoggerDialog * dialog)
-        : _dialog(dialog) {}
-public:
-    virtual SGIItemBase * getView()
-    {
-        return _dialog->getView();
-    }
-    virtual void            triggerRepaint()
-    {
-        _dialog->triggerRepaint();
-    }
-    virtual bool            showSceneGraphDialog(SGIItemBase * item)
-    {
-        return _dialog->showSceneGraphDialog(item);
-    }
-    virtual bool            showObjectLoggerDialog(SGIItemBase * item)
-    {
-        return _dialog->newInstance(item);
-    }
-private:
-    ObjectLoggerDialog * _dialog;
-};
 
-class ObjectLoggerDialog::SceneGraphDialogInfo : public ISceneGraphDialogInfo
+
+class ObjectLoggerDialog::HostCallback : public HostCallbackFilterT<IObjectLoggerDialog>
 {
 public:
-    SceneGraphDialogInfo(ObjectLoggerDialog * dialog)
-        : _dialog(dialog) {}
-public:
-    virtual IContextMenu *  contextMenu(QWidget * parent, const SGIItemBase * item, IContextMenuInfo * info)
-    {
-        return NULL;
-    }
-    virtual SGIItemBase * getView()
-    {
-        return _dialog->getView();
-    }
-    virtual void            triggerRepaint()
-    {
-        _dialog->triggerRepaint();
-    }
-private:
-    ObjectLoggerDialog * _dialog;
+   HostCallback(IHostCallback * original, ObjectLoggerDialog * dialog)
+        : HostCallbackFilterT<IObjectLoggerDialog>(original, dialog->_interface) {}
 };
 
 class ObjectLoggerDialog::ObjectLoggerDialogImpl : public IObjectLoggerDialog
@@ -80,20 +42,20 @@ class ObjectLoggerDialog::ObjectLoggerDialogImpl : public IObjectLoggerDialog
 public:
     ObjectLoggerDialogImpl(ObjectLoggerDialog * dialog)
         : _dialog(dialog) {}
+    virtual                 ~ObjectLoggerDialogImpl() { delete _dialog; }
+    virtual QDialog *       getDialog() override { return _dialog; }
+    virtual IHostCallback * getHostCallback() override { return _dialog->getHostCallback(); }
+    virtual bool            addItem(SGIItemBase * item, bool alsoChilds=true) override { return _dialog->addItem(item, alsoChilds); }
+    virtual bool            addItems(const SGIItemBasePtrPath & path) override { return _dialog->addItems(path); }
+    virtual bool            removeItem(SGIItemBase * item) override { return _dialog->removeItem(item); }
+    virtual bool            removeItems(const SGIItemBasePtrPath & path) override { return _dialog->removeItems(path); }
 
-    virtual QDialog *       getDialog() { return _dialog; }
-    virtual bool            addItem(SGIItemBase * item, bool alsoChilds=true) { return _dialog->addItem(item, alsoChilds); }
-    virtual bool            addItems(const SGIItemBasePtrPath & path) { return _dialog->addItems(path); }
-    virtual bool            removeItem(SGIItemBase * item) { return _dialog->removeItem(item); }
-    virtual bool            removeItems(const SGIItemBasePtrPath & path) { return _dialog->removeItems(path); }
+    virtual bool            addLogItem(SGIDataItemBase * item) override { return _dialog->addLogItem(item); }
+    virtual bool            removeLogItem(SGIDataItemBase * item, bool first) override { return _dialog->removeLogItem(item, first); }
 
-    virtual bool            addLogItem(SGIDataItemBase * item) { return _dialog->addLogItem(item); }
-    virtual bool            removeLogItem(SGIDataItemBase * item, bool first) { return _dialog->removeLogItem(item, first); }
-
-    virtual void            show() { emit _dialog->triggerShow(); }
-    virtual void            hide() { emit _dialog->triggerHide(); }
-    virtual bool            isVisible() { return _dialog->isVisible(); }
-    virtual int             showModal() { return _dialog->exec(); }
+    virtual void            show() override { emit _dialog->triggerShow(); }
+    virtual void            hide() override { emit _dialog->triggerHide(); }
+    virtual bool            isVisible() override { return _dialog->isVisible(); }
 
 private:
     ObjectLoggerDialog * _dialog;
@@ -127,18 +89,17 @@ public:
 
 };
 
-ObjectLoggerDialog::ObjectLoggerDialog(SGIItemBase * item, IObjectLoggerDialogInfo * info, QWidget *parent, Qt::WindowFlags f)
+ObjectLoggerDialog::ObjectLoggerDialog(SGIItemBase * item, IHostCallback * callback, QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
     , ui(NULL)
     , _hostInterface(SGIPlugins::instance()->hostInterface())
     , _interface(new ObjectLoggerDialogImpl(this))
     , _logger(NULL)
     , _item(item)
-    , _info(info)
+    , _hostCallback(callback)
     , _toolBar(NULL)
     , _actionReload(NULL)
     , _contextMenu(NULL)
-    , _contextMenuCallback(NULL)
     , _spinBoxRefreshTime(NULL)
     , _refreshTimer(NULL)
     , _queuedOperations(new OperationQueue)
@@ -146,18 +107,17 @@ ObjectLoggerDialog::ObjectLoggerDialog(SGIItemBase * item, IObjectLoggerDialogIn
     init();
 }
 
-ObjectLoggerDialog::ObjectLoggerDialog(IObjectLogger * logger, IObjectLoggerDialogInfo * info, QWidget *parent, Qt::WindowFlags f)
+ObjectLoggerDialog::ObjectLoggerDialog(IObjectLogger * logger, IHostCallback * callback, QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
     , ui(NULL)
     , _hostInterface(SGIPlugins::instance()->hostInterface())
     , _interface(new ObjectLoggerDialogImpl(this))
     , _logger(logger)
     , _item(NULL)
-    , _info(info)
+    , _hostCallback(callback)
     , _toolBar(NULL)
     , _actionReload(NULL)
     , _contextMenu(NULL)
-    , _contextMenuCallback(NULL)
     , _spinBoxRefreshTime(NULL)
     , _refreshTimer(NULL)
     , _queuedOperations(new OperationQueue)
@@ -167,10 +127,6 @@ ObjectLoggerDialog::ObjectLoggerDialog(IObjectLogger * logger, IObjectLoggerDial
 
 ObjectLoggerDialog::~ObjectLoggerDialog()
 {
-    if(_contextMenuCallback)
-        delete _contextMenuCallback;
-    if(_sceneGraphDialogInfo)
-        delete _sceneGraphDialogInfo;
     if (ui)
     {
         delete ui;
@@ -190,31 +146,32 @@ void ObjectLoggerDialog::init()
         | Qt::WindowMaximizeButtonHint
         | Qt::WindowCloseButtonHint;
     this->setWindowFlags(flags);
-    
-    ObjectTreeItem::s_hostInterface = SGIPlugins::instance()->hostInterface();
 
     _toolBar = new QToolBar;
     QVBoxLayout * mainLayout = (QVBoxLayout *)this->layout();
     mainLayout->insertWidget(0, _toolBar);
 
     _actionReload = new QAction(tr("Reload"), this);
-    connect(_actionReload, SIGNAL(triggered()), this, SLOT(reload()));
+	_actionReload->setIcon(QIcon::fromTheme("view-refresh"));
+    connect(_actionReload, &QAction::triggered, this, &ObjectLoggerDialog::reload);
 
     _spinBoxRefreshTime = new QSpinBox(_toolBar);
+    _spinBoxRefreshTime->setToolTip(tr("Automatically reloads the information every X milliseconds."));
     _spinBoxRefreshTime->setMinimum(0);
-    _spinBoxRefreshTime->setMaximum(600);
+    _spinBoxRefreshTime->setMaximum(60000);
+    _spinBoxRefreshTime->setSingleStep(100);
     _spinBoxRefreshTime->setPrefix("Refresh ");
-    _spinBoxRefreshTime->setSuffix("s");
-    connect(_spinBoxRefreshTime, SIGNAL(valueChanged(int)), this, SLOT(refreshTimeChanged(int)));
+    _spinBoxRefreshTime->setSuffix("ms");
+    connect(_spinBoxRefreshTime, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &ObjectLoggerDialog::refreshTimeChanged);
 
     _toolBar->addAction(_actionReload);
     _toolBar->addWidget(_spinBoxRefreshTime);
 
-    QObject::connect(this, SIGNAL(triggerOnObjectChanged()), this, SLOT(onObjectChanged()), Qt::QueuedConnection);
-    QObject::connect(this, SIGNAL(triggerShow()), this, SLOT(show()), Qt::QueuedConnection);
-    QObject::connect(this, SIGNAL(triggerHide()), this, SLOT(hide()), Qt::QueuedConnection);
+    connect(this, &ObjectLoggerDialog::triggerOnObjectChanged, this, &ObjectLoggerDialog::onObjectChanged, Qt::QueuedConnection);
+    connect(this, &ObjectLoggerDialog::triggerShow, this, &ObjectLoggerDialog::show, Qt::QueuedConnection);
+    connect(this, &ObjectLoggerDialog::triggerHide, this, &ObjectLoggerDialog::hide, Qt::QueuedConnection);
 
-    QObject::connect(this, SIGNAL(triggerUpdateLog()), this, SLOT(updateLog()), Qt::QueuedConnection);
+    connect(this, &ObjectLoggerDialog::triggerUpdateLog, this, &ObjectLoggerDialog::updateLog, Qt::QueuedConnection);
 
     reload();
 }
@@ -226,6 +183,17 @@ void ObjectLoggerDialog::onObjectChanged()
 
 void ObjectLoggerDialog::reload()
 {
+	if (_item.valid())
+	{
+		std::string displayName;
+		SGIPlugins::instance()->getObjectDisplayName(displayName, _item);
+		setWindowTitle(tr("Log of %1").arg(fromUtf8(displayName)));
+	}
+	else
+	{
+		setWindowTitle(tr("No Log available"));
+	}
+
     reloadTree();
     reloadLog();
 }
@@ -250,7 +218,7 @@ void ObjectLoggerDialog::reloadTree()
     ui->treeWidget->setColumnWidth(0, 3 * total_width / 4);
     ui->treeWidget->setColumnWidth(1, total_width / 4);
 
-    ObjectTreeItem objectTreeRootItem(ui->treeWidget->invisibleRootItem());
+    ObjectTreeItem objectTreeRootItem(ui->treeWidget->invisibleRootItem(), SGIPlugins::instance()->hostInterface());
 
     ObjectTreeItem * firstTreeItem = NULL;
 
@@ -309,12 +277,12 @@ void ObjectLoggerDialog::reloadLog()
         {
             SGIDataFieldBase * field = fieldInfo.valid()?fieldInfo->getField(column):NULL;
             if(field)
-                headerItems << fromLocal8Bit(field->toString(_hostInterface));
+                headerItems << fromUtf8(field->toString(_hostInterface));
             else
                 headerItems << QString("Field#%1").arg(column);
         }
         ui->tableWidget->setColumnCount(headerItems.size());
-        ui->tableWidget->setVerticalHeaderLabels(headerItems);
+        ui->tableWidget->setHorizontalHeaderLabels(headerItems);
         ui->tableWidget->resizeColumnToContents(numFields);
 
         // adjust the number of row to include all log entries
@@ -330,7 +298,7 @@ void ObjectLoggerDialog::reloadLog()
                 SGIDataFieldBase * field = dataItem->getField(column);
                 QTableWidgetItem * tableItem = new QTableWidgetItem;
                 QtTableSGIItem data(dataItem, column);
-                tableItem->setText(fromLocal8Bit(field->toString(_hostInterface)));
+                tableItem->setText(fromUtf8(field->toString(_hostInterface)));
                 tableItem->setData(Qt::UserRole, QVariant::fromValue(data));
 
                 ui->tableWidget->setItem(row, column, tableItem);
@@ -350,11 +318,11 @@ void ObjectLoggerDialog::onItemExpanded(QTreeWidgetItem * item)
         // we are going to re-populate the item with new data,
         // so first remove the old dummy child item.
         QList<QTreeWidgetItem *> children = item->takeChildren();
-        Q_FOREACH(QTreeWidgetItem * child, children)
+        for(QTreeWidgetItem * child : children)
         {
             delete child;
         }
-        ObjectTreeItem treeItem(item);
+        ObjectTreeItem treeItem(item, SGIPlugins::instance()->hostInterface());
         buildTree(&treeItem, itemData.item());
     }
 }
@@ -362,19 +330,19 @@ void ObjectLoggerDialog::onItemExpanded(QTreeWidgetItem * item)
 void ObjectLoggerDialog::onItemCollapsed(QTreeWidgetItem * item)
 {
     QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-    //setNodeInfo(itemData.item());
+    setNodeInfo(itemData.item());
 }
 
 void ObjectLoggerDialog::onItemClicked(QTreeWidgetItem * item, int column)
 {
     QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-    //setNodeInfo(itemData.item());
+    setNodeInfo(itemData.item());
 }
 
 void ObjectLoggerDialog::onItemActivated(QTreeWidgetItem * item, int column)
 {
     QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-    //setNodeInfo(itemData.item());
+    setNodeInfo(itemData.item());
 }
 
 bool ObjectLoggerDialog::buildTree(ObjectTreeItem * treeItem, SGIItemBase * item)
@@ -401,36 +369,31 @@ void ObjectLoggerDialog::onItemContextMenu(QPoint pt)
     if(item)
         itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
 
-    QMenu * contextMenu = NULL;
-    if(!_contextMenuCallback)
-        _contextMenuCallback = new ContextMenuCallback(this);
-
-    IContextMenu * objectMenu = NULL;
-    if(_info)
-        objectMenu = _info->contextMenu(this, itemData.item(), _contextMenuCallback);
+    QMenu * contextQMenu = NULL;
+    IContextMenuPtr objectMenu = _hostCallback->contextMenu(this, itemData.item());
     if(!objectMenu)
     {
         if(_contextMenu)
         {
-            _contextMenu->setObject(itemData.item(), _contextMenuCallback);
+            _contextMenu->setObject(itemData.item());
             objectMenu = _contextMenu;
         }
         else
         {
-            objectMenu = SGIPlugins::instance()->createContextMenu(this, itemData.item(), _contextMenuCallback);
+            objectMenu = SGIPlugins::instance()->createContextMenu(this, itemData.item(), _hostCallback);
         }
     }
 
     if(objectMenu)
-        contextMenu = objectMenu->getMenu();
+        contextQMenu = objectMenu->getMenu();
 
     _contextMenu = objectMenu;
 
-    if(contextMenu)
+    if(contextQMenu)
     {
         pt.ry() += ui->treeWidget->header()->height();
         QPoint globalPos = ui->treeWidget->mapToGlobal(pt);
-        contextMenu->popup(globalPos);
+        contextQMenu->popup(globalPos);
     }
 }
 
@@ -439,10 +402,10 @@ void ObjectLoggerDialog::refreshTimeChanged ( int n )
     if(!_refreshTimer)
     {
         _refreshTimer = new QTimer(this);
-        connect(_refreshTimer, SIGNAL(timeout()), this, SLOT(refreshTimerExpired()));
+        connect(_refreshTimer, &QTimer::timeout, this, &ObjectLoggerDialog::refreshTimerExpired);
     }
-    if(n > 0)
-        _refreshTimer->start(n * 1000);
+    if(n >= 100)
+        _refreshTimer->start(n);
     else
         _refreshTimer->stop();
 }
@@ -453,27 +416,27 @@ void ObjectLoggerDialog::refreshTimerExpired()
     if(item)
     {
         QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
-        //setNodeInfo(itemData.item());
+        setNodeInfo(itemData.item());
     }
 }
 
 SGIItemBase * ObjectLoggerDialog::getView()
 {
-    if(_info)
-        return _info->getView();
+    if(_hostCallback)
+        return _hostCallback->getView();
     else
         return NULL;
 }
 
 void ObjectLoggerDialog::triggerRepaint()
 {
-    if(_info)
-        _info->triggerRepaint();
+    if(_hostCallback)
+        _hostCallback->triggerRepaint();
 }
 
 bool ObjectLoggerDialog::showSceneGraphDialog(SGIItemBase * item)
 {
-    return _info->showSceneGraphDialog(item);
+    return _hostCallback->showSceneGraphDialog(this, item);
 }
 
 bool ObjectLoggerDialog::showSceneGraphDialog(const SGIHostItemBase * hostitem)
@@ -560,6 +523,20 @@ bool ObjectLoggerDialog::removeLogItem(SGIDataItemBase * item, bool first)
     return true;
 }
 
+void ObjectLoggerDialog::setNodeInfo(const SGIItemBase * item)
+{
+	std::ostringstream os;
+	if (item)
+		SGIPlugins::instance()->writePrettyHTML(os, item);
+	else
+	{
+		os << "<b>item is <i>NULL</i></b>";
+	}
+	ui->textEdit->blockSignals(true);
+	ui->textEdit->setHtml(fromUtf8(os.str()));
+	ui->textEdit->blockSignals(false);
+}
+
 void ObjectLoggerDialog::updateLog()
 {
     while(!_queuedOperations->empty())
@@ -570,19 +547,22 @@ void ObjectLoggerDialog::updateLog()
         case QueuedOperation::TypeAddLogItem:
             {
                 SGIDataItemBase * dataItem = op.dataItem();
-                unsigned row = ui->tableWidget->rowCount();
-                ui->tableWidget->setRowCount(row + 1);
-                size_t numFields = dataItem->numFields();
-                for(unsigned column = 0; column < numFields; column++)
-                {
-                    SGIDataFieldBase * field = dataItem->getField(column);
-                    QTableWidgetItem * tableItem = new QTableWidgetItem;
-                    QtTableSGIItem data(dataItem, column);
-                    tableItem->setText(fromLocal8Bit(field->toString(_hostInterface)));
-                    tableItem->setData(Qt::UserRole, QVariant::fromValue(data));
+				if (dataItem)
+				{
+					unsigned row = ui->tableWidget->rowCount();
+					ui->tableWidget->setRowCount(row + 1);
+					size_t numFields = dataItem->numFields();
+					for (unsigned column = 0; column < numFields; column++)
+					{
+						SGIDataFieldBase * field = dataItem->getField(column);
+						QTableWidgetItem * tableItem = new QTableWidgetItem;
+						QtTableSGIItem data(dataItem, column);
+						tableItem->setText(fromUtf8(field->toString(_hostInterface)));
+						tableItem->setData(Qt::UserRole, QVariant::fromValue(data));
 
-                    ui->tableWidget->setItem(row, column, tableItem);
-                }
+						ui->tableWidget->setItem(row, column, tableItem);
+					}
+				}
             }
             break;
         case QueuedOperation::TypeRemoveFirstLogItem:
@@ -593,6 +573,17 @@ void ObjectLoggerDialog::updateLog()
         }
         _queuedOperations->pop();
     }
+}
+
+void ObjectLoggerDialog::closeEvent(QCloseEvent * event)
+{
+    if (_refreshTimer)
+    {
+        delete _refreshTimer;
+        _refreshTimer = nullptr;
+    }
+
+    QDialog::closeEvent(event);
 }
 
 } // namespace sgi

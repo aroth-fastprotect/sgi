@@ -5,17 +5,16 @@
 #include <sgi/plugins/SettingsDialog>
 
 #include <osg/Camera>
-#include <osg/Shape>
 
 #include "CameraSettings.h"
-#include "ImagePreviewDialog.h"
+#include "ExtraViewDialog.h"
 
 namespace sgi {
 namespace osg_plugin {
 
-SETTINGS_DIALOG_CREATE_IMPL_REGISTER(SettingsDialogCamera)
-SETTINGS_DIALOG_CREATE_IMPL_REGISTER(SettingsDialogObjectLogger)
-SETTINGS_DIALOG_CREATE_IMPL_REGISTER(SettingsDialogImagePreview)
+SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogCamera)
+SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogObjectLogger)
+SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogExtraView)
 
 bool settingsDialogCreateImpl<SettingsDialogCamera>::execute(ISettingsDialogPtr & dialog)
 {
@@ -41,18 +40,10 @@ bool settingsDialogCreateImpl<SettingsDialogObjectLogger>::execute(ISettingsDial
     return true;
 }
 
-bool settingsDialogCreateImpl<SettingsDialogImagePreview>::execute(ISettingsDialogPtr & dialog)
+bool settingsDialogCreateImpl<SettingsDialogExtraView>::execute(ISettingsDialogPtr & dialog)
 {
-    osg::Object * object = getObject<osg::Object,SGIItemOsg>();
-    ImagePreviewDialog * qtdialog = NULL;
-    if(osg::Image* image = dynamic_cast<osg::Image*>(object))
-        qtdialog = new ImagePreviewDialog(parent(), image);
-    else if(osg::Texture* texture = dynamic_cast<osg::Texture*>(object))
-        qtdialog = new ImagePreviewDialog(parent(), texture);
-    else if(osg::HeightField* hf = dynamic_cast<osg::HeightField*>(object))
-        qtdialog = NULL;
-    if(qtdialog)
-        dialog = qtdialog->dialogInterface();
+    ExtraViewDialog * qtdialog = new ExtraViewDialog(parent(), _item.get(), _hostInterface);
+    dialog = qtdialog->dialogInterface();
     return true;
 }
 

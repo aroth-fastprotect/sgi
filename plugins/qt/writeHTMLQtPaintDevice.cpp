@@ -6,6 +6,7 @@
 #include "SGIItemQt"
 
 #include <sgi/helpers/rtti>
+#include <sgi/helpers/qt>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -14,8 +15,9 @@
 namespace sgi {
 namespace qt_plugin {
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(QPaintDevice)
-WRITE_PRETTY_HTML_IMPL_REGISTER(QImage)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QPaintDevice)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QImage)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QIcon)
 
 bool writePrettyHTMLImpl<QPaintDevice>::process(std::basic_ostream<char>& os)
 {
@@ -91,6 +93,48 @@ bool writePrettyHTMLImpl<QImage>::process(std::basic_ostream<char>& os)
         break;
     }
     return ret;
+}
+
+bool writePrettyHTMLImpl<QIcon>::process(std::basic_ostream<char>& os)
+{
+    QIcon * object = getObject<QIcon, SGIItemQtIcon>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            os << "<tr><td>this</td><td>" << std::hex << (void*)object << std::dec << "</td></tr>" << std::endl;
+            os << "<tr><td>typename</td><td>" << helpers::getRTTITypename_html(object) << "</td></tr>" << std::endl;
+            os << "<tr><td>name</td><td>" << object->name() << "</td></tr>" << std::endl;
+            os << "<tr><td>isNull</td><td>" << (object->isNull()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>isDetached</td><td>" << (object->isDetached()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>cacheKey</td><td>" << object->cacheKey() << "</td></tr>" << std::endl;
+
+            os << "<tr><td>availableSizes</td><td><ul>";
+            for(const QSize & s : object->availableSizes())
+            {
+                os << "<li>" << s << "</li>";
+            }
+            os << "</ul></td></tr>" << std::endl;
+
+            os << "<tr><td>themeSearchPaths</td><td><ul>";
+            for(const QString & s : object->themeSearchPaths())
+            {
+                os << "<li>" << s << "</li>";
+            }
+            os << "</ul></td></tr>" << std::endl;
+            os << "<tr><td>themeName</td><td>" << object->themeName() << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+        }
+        break;
+    default:
+        break;
+    }
+    return true;
 }
 
 } // namespace qt_plugin

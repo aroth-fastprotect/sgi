@@ -7,8 +7,7 @@
 
 namespace sgi {
 namespace support {
-    class SGIHostItemOsg;
-    typedef SGIHostItemOsg SGIHostItemInternal;
+    class SGIHostItemInternal;
 }
 
 class SGIItemInternal : public SGIItemBase

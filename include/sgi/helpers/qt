@@ -7,6 +7,18 @@
 #include <QMetaType>
 #include <sgi/plugins/SGIDataItemBase.h>
 
+#if !defined(Q_VERIFY)
+# if !defined(QT_NO_DEBUG)
+#  define Q_VERIFY Q_ASSERT
+# else
+#  define Q_VERIFY(expr)  \
+    do                    \
+    {                     \
+        (void) (expr);    \
+    } while (0)
+# endif
+#endif
+
 class QVariant;
 class QVariant;
 class QString;
@@ -27,6 +39,7 @@ class QPoint;
 class QPointF;
 class QChar;
 class QUrl;
+class QPaintDevice;
 
 namespace sgi {
 
@@ -38,7 +51,7 @@ typedef osg::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
 
 namespace qt_helpers {
 
-class QtSGIItem
+class SGI_QT_HELPER_EXPORT QtSGIItem
 {
 public:
     QtSGIItem(SGIItemType type=SGIItemTypeInvalid, SGIItemBase * item=NULL, bool populated=false, osg::Referenced * userData=NULL)
@@ -78,7 +91,7 @@ private:
     osg::ref_ptr<osg::Referenced>   _userData;
 };
 
-class QtMenuSGIItem : public QtSGIItem
+class SGI_QT_HELPER_EXPORT QtMenuSGIItem : public QtSGIItem
 {
 public:
     QtMenuSGIItem(SGIItemType type=SGIItemTypeInvalid, SGIItemBase * item=NULL, bool populated=false, osg::Referenced * userData=NULL)
@@ -109,7 +122,7 @@ private:
     unsigned                _mode;
 };
 
-class QtTableSGIItem
+class SGI_QT_HELPER_EXPORT QtTableSGIItem
 {
 public:
     QtTableSGIItem(SGIDataItemBase * item=NULL, unsigned field=0)
@@ -134,11 +147,16 @@ private:
     unsigned            _field;
 };
 
-QString fromLocal8Bit(const std::string & str);
-std::string toLocal8Bit(const QString & str);
-std::string getObjectTypename(const QObject * object);
-std::string getObjectName(const QObject * object);
-std::string getObjectNameAndType(const QObject * object);
+SGI_QT_HELPER_EXPORT QString fromLocal8Bit(const std::string & str);
+SGI_QT_HELPER_EXPORT QString fromUtf8(const std::string & str);
+SGI_QT_HELPER_EXPORT std::string toLocal8Bit(const QString & str);
+SGI_QT_HELPER_EXPORT std::string toUtf8(const QString & str);
+SGI_QT_HELPER_EXPORT std::string getObjectTypename(const QObject * object);
+SGI_QT_HELPER_EXPORT std::string getObjectName(const QObject * object, bool includeAddr=true);
+SGI_QT_HELPER_EXPORT std::string getObjectNameAndType(const QObject * object, bool includeAddr=true);
+SGI_QT_HELPER_EXPORT std::string getObjectTypename(const QPaintDevice * object);
+SGI_QT_HELPER_EXPORT std::string getObjectName(const QPaintDevice * object, bool includeAddr=true);
+SGI_QT_HELPER_EXPORT std::string getObjectNameAndType(const QPaintDevice * object, bool includeAddr=true);
 
 inline sgi::Color qtColor(const QColor & c)
 {
@@ -154,25 +172,26 @@ inline QColor qtColor(const sgi::Color & c)
 } // namespace sgi
 
 namespace std {
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVariant & v);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QString& str);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QStringRef& str);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QBitArray& v);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QByteArray& v);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QByteRef& str);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QDate & date);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QTime& t);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QDateTime& date);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QLocale& l);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QColor& color);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSize & size);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSizeF & size);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QRect & r);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QRectF & r);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPoint & p);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPointF & p);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QChar & c);
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QUrl & url);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVariant & v);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QString& str);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QStringRef& str);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QBitArray& v);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QByteArray& v);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QByteRef& str);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QDate & date);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QTime& t);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QDateTime& date);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QLocale& l);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QColor& color);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSize & size);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSizeF & size);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QRect & r);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QRectF & r);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPoint & p);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPointF & p);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QChar & c);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QUrl & url);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSizePolicy & sp);
 
     template<typename T>
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QList<T> & list)

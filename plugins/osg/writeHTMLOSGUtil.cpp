@@ -3,10 +3,10 @@
 #include <sstream>
 #include <iomanip>
 #include "writeHTMLOSG.h"
-#include "writeHTMLOSGUtil.h"
 
 #include <osgUtil/RenderStage>
 #include <osgUtil/RenderLeaf>
+#include <osgUtil/IncrementalCompileOperation>
 
 #include "SGIItemOsg"
 #include <sgi/helpers/osg>
@@ -14,9 +14,10 @@
 namespace sgi {
 namespace osg_plugin {
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgUtil::RenderBin)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgUtil::RenderStage)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgUtil::RenderLeaf)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgUtil::RenderBin)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgUtil::RenderStage)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgUtil::RenderLeaf)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgUtil::IncrementalCompileOperation)
 
 using namespace sgi::osg_helpers;
 
@@ -77,9 +78,9 @@ bool writePrettyHTMLImpl<osgUtil::RenderStage>::process(std::basic_ostream<char>
             callNextHandler(os);
 
             // add remaining osgUtil::RenderStage properties
-            os << "<tr><td>drawBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDrawBuffer()) << "</td></tr>" << std::endl;
+            os << "<tr><td>drawBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getDrawBuffer()) << "</td></tr>" << std::endl;
             os << "<tr><td>drawBufferApplyMask</td><td>" << (object->getDrawBufferApplyMask()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>readBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getReadBuffer()) << "</td></tr>" << std::endl;
+            os << "<tr><td>readBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getReadBuffer()) << "</td></tr>" << std::endl;
             os << "<tr><td>readBufferApplyMask</td><td>" << (object->getReadBufferApplyMask()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>clearMask</td><td>0x" << std::hex << object->getClearMask() << std::dec << "</td></tr>" << std::endl;
             os << "<tr><td>clearColor</td><td>" << vec4fToHtmlColor(object->getClearColor()) << "</td></tr>" << std::endl;
@@ -87,8 +88,8 @@ bool writePrettyHTMLImpl<osgUtil::RenderStage>::process(std::basic_ostream<char>
             os << "<tr><td>clearDepth</td><td>" << object->getClearDepth() << "</td></tr>" << std::endl;
             os << "<tr><td>clearStencil</td><td>" << object->getClearStencil() << "</td></tr>" << std::endl;
             os << "<tr><td>cameraRequiresSetUp</td><td>" << (object->getCameraRequiresSetUp()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>imageReadPixelFormat</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getImageReadPixelFormat()) << "</td></tr>" << std::endl;
-            os << "<tr><td>imageReadPixelDataType</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getImageReadPixelDataType()) << "</td></tr>" << std::endl;
+            os << "<tr><td>imageReadPixelFormat</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getImageReadPixelFormat()) << "</td></tr>" << std::endl;
+            os << "<tr><td>imageReadPixelDataType</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getImageReadPixelDataType()) << "</td></tr>" << std::endl;
             os << "<tr><td>disableFboAfterRender</td><td>" << (object->getDisableFboAfterRender()?"true":"false") << "</td></tr>" << std::endl;
 
             if(_table)
@@ -102,6 +103,7 @@ bool writePrettyHTMLImpl<osgUtil::RenderStage>::process(std::basic_ostream<char>
     }
     return ret;
 }
+
 bool writePrettyHTMLImpl<osgUtil::RenderLeaf>::process(std::basic_ostream<char>& os)
 {
     osgUtil::RenderLeaf * object = getObject<osgUtil::RenderLeaf,SGIItemOsg>();
@@ -125,14 +127,14 @@ bool writePrettyHTMLImpl<osgUtil::RenderLeaf>::process(std::basic_ostream<char>&
             if(object->_projection.valid())
                 writePrettyHTML(os, *object->_projection.get(), MatrixUsageTypePerspective, (osg::Node*)NULL);
             else
-                os << "&lt;null&gt;";
+                os << "(null)";
             os << "</td></tr>" << std::endl;
 
             os << "<tr><td>modelview</td><td>";
             if(object->_modelview.valid())
                 writePrettyHTML(os, *object->_modelview.get(), MatrixUsageTypeModelView, (osg::Node*)NULL);
             else
-                os << "&lt;null&gt;";
+                os << "(null)";
             os << "</td></tr>" << std::endl;
 
 
@@ -148,6 +150,41 @@ bool writePrettyHTMLImpl<osgUtil::RenderLeaf>::process(std::basic_ostream<char>&
     return ret;
 }
 
+bool writePrettyHTMLImpl<osgUtil::IncrementalCompileOperation>::process(std::basic_ostream<char>& os)
+{
+	osgUtil::IncrementalCompileOperation * object = getObject<osgUtil::IncrementalCompileOperation, SGIItemOsg, DynamicCaster>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+	{
+		if (_table)
+			os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+		// add referenced properties first
+		callNextHandler(os);
+
+		// add remaining osgUtil::IncrementalCompileOperation properties
+		os << "<tr><td>target frame rate</td><td>" << object->getTargetFrameRate() << "</td></tr>" << std::endl;
+		os << "<tr><td>current frame no</td><td>" << object->getCurrentFrameNumber() << "</td></tr>" << std::endl;
+		os << "<tr><td>compile all til frame no</td><td>" << object->getCompileAllTillFrameNumber() << "</td></tr>" << std::endl;
+		os << "<tr><td>marker object</td><td>" << getObjectNameAndType(object->getMarkerObject()) << "</td></tr>" << std::endl;
+		os << "<tr><td>min time avail</td><td>" << object->getMinimumTimeAvailableForGLCompileAndDeletePerFrame() << "</td></tr>" << std::endl;
+		os << "<tr><td>max num objects</td><td>" << object->getMaximumNumOfObjectsToCompilePerFrame() << "</td></tr>" << std::endl;
+		os << "<tr><td>flush time ratio</td><td>" << object->getFlushTimeRatio() << "</td></tr>" << std::endl;
+		os << "<tr><td>conservative time ratio</td><td>" << object->getConservativeTimeRatio() << "</td></tr>" << std::endl;
+
+		if (_table)
+			os << "</table>" << std::endl;
+		ret = true;
+	}
+	break;
+	default:
+		ret = callNextHandler(os);
+		break;
+	}
+	return ret;
+}
 
 } // namespace osg_plugin
 } // namespace sgi

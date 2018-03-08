@@ -66,6 +66,20 @@ void CameraSettings::load()
     double fovy, aspectRatio, zNear, zFar;
     _camera->getProjectionMatrixAsPerspective(fovy, aspectRatio, zNear, zFar);
 
+	int cullingMode = _camera->getCullingMode();
+	
+	ui->nearClippingCheckBox->blockSignals(true);
+	ui->nearClippingCheckBox->setChecked(cullingMode & osg::Camera::NEAR_PLANE_CULLING);
+	ui->nearClippingCheckBox->blockSignals(false);
+
+	ui->farClippingCheckBox->blockSignals(true);
+	ui->farClippingCheckBox->setChecked(cullingMode & osg::Camera::FAR_PLANE_CULLING);
+	ui->farClippingCheckBox->blockSignals(false);
+
+	ui->smallFeatureCheckBox->blockSignals(true);
+	ui->smallFeatureCheckBox->setChecked(cullingMode & osg::Camera::SMALL_FEATURE_CULLING);
+	ui->smallFeatureCheckBox->blockSignals(false);
+
     ui->lodScaleSpin->blockSignals(true);
     ui->lodScale->blockSignals(true);
 	ui->lodScaleSpin->setValue(scale);
@@ -101,6 +115,13 @@ void CameraSettings::load()
     ui->nearFarRatioSpin->blockSignals(false);
     ui->nearFarRatio->blockSignals(false);
 
+	ui->fovySpin->blockSignals(true);
+	ui->fovy->blockSignals(true);
+	ui->fovySpin->setValue(fovy);
+	ui->fovy->setValue(fovy * 10);
+	ui->fovySpin->blockSignals(false);
+	ui->fovy->blockSignals(false);
+
     ui->computeNearFarMode->blockSignals(true);
     ui->computeNearFarMode->setCurrentIndex((int)_camera->getComputeNearFarMode());
     ui->computeNearFarMode->blockSignals(false);
@@ -115,6 +136,13 @@ void CameraSettings::restoreDefaults()
     double fovy, aspectRatio, zNear, zFar;
     _camera->getProjectionMatrixAsPerspective(fovy, aspectRatio, zNear, zFar);
 
+	osg::ref_ptr<osg::Viewport> vp = _camera->getViewport();
+	if (vp)
+		aspectRatio = vp->width() / vp->height();
+	else
+		aspectRatio = 1.0;
+
+	fovy = 30.0;
     zNear = 0.001;
     zFar = 10000.0;
 
@@ -208,6 +236,39 @@ void CameraSettings::changeComputeNearFarMode(int value)
     apply();
 }
 
+
+void CameraSettings::farClippingEnable(bool enable)
+{
+	apply();
+}
+
+void CameraSettings::nearClippingEnable(bool enable)
+{
+	apply();
+}
+
+void CameraSettings::smallFeatureEnable(bool enable)
+{
+	apply();
+}
+
+
+void CameraSettings::changeFovy(int value)
+{
+	ui->fovySpin->blockSignals(true);
+	ui->fovySpin->setValue((double)value / 10.0);
+	ui->fovySpin->blockSignals(false);
+	apply();
+}
+
+void CameraSettings::changeFovy(double value)
+{
+	ui->fovy->blockSignals(true);
+	ui->fovy->setValue(value * 10);
+	ui->fovy->blockSignals(false);
+	apply();
+}
+
 void CameraSettings::save()
 {
 	apply(true);
@@ -232,12 +293,31 @@ void CameraSettings::apply(bool save)
 
     zNear = ui->nearClippingSpin->value();
     zFar = ui->farClippingSpin->value();
+	fovy = ui->fovySpin->value();
 
     _camera->setProjectionMatrixAsPerspective(fovy, aspectRatio, zNear, zFar);
 
     _camera->setComputeNearFarMode((osg::Camera::ComputeNearFarMode)ui->computeNearFarMode->currentIndex());
 
     _camera->setNearFarRatio(ui->nearFarRatioSpin->value());
+
+	int cullingMode = _camera->getCullingMode();
+	if (ui->nearClippingCheckBox->isChecked())
+		cullingMode |= osg::Camera::NEAR_PLANE_CULLING;
+	else
+		cullingMode &= ~osg::Camera::NEAR_PLANE_CULLING;
+
+	if (ui->farClippingCheckBox->isChecked())
+		cullingMode |= osg::Camera::FAR_PLANE_CULLING;
+	else
+		cullingMode &= ~osg::Camera::FAR_PLANE_CULLING;
+
+	if (ui->smallFeatureCheckBox->isChecked())
+		cullingMode |= osg::Camera::SMALL_FEATURE_CULLING;
+	else
+		cullingMode &= ~osg::Camera::SMALL_FEATURE_CULLING;
+
+	_camera->setCullingMode(cullingMode);
 
     osgViewer::View* view = dynamic_cast<osgViewer::View*>(_camera->getView());
     if(view)

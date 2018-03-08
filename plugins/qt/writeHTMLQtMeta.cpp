@@ -14,7 +14,7 @@
 
 namespace sgi {
 namespace qt_plugin {
-WRITE_PRETTY_HTML_IMPL_REGISTER(QMetaObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QMetaObject)
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaMethod::Access & access)
 {
@@ -45,13 +45,18 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaMe
 {
     const char *tag = method.tag();
     const char *typeName = method.typeName();
-#if QT_VERSION < 0x050000
-    const char *signature = method.signature();
-#else
-    const char *signature = method.methodSignature();
-#endif
+    QByteArray signature = method.methodSignature();
 
-    os << method.access() << ":" << typeName << " " << signature;
+    os << method.access();
+    switch (method.methodType())
+    {
+    case QMetaMethod::Constructor:
+    case QMetaMethod::Method: 
+        break;
+    case QMetaMethod::Signal: os << " signal"; break;
+    case QMetaMethod::Slot: os << " slot"; break;
+    }
+    os << ":" << typeName << " " << signature.toStdString();
     if(strlen(tag))
         os << " (" << tag << ")";
     return os;
@@ -91,6 +96,34 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaCl
     return os;
 }
 
+
+void writePrettyHTMLImpl_QMetaMethod(std::basic_ostream<char>& os, const QMetaMethod & method)
+{
+    os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+    os << "<tr><td>name</td><td>" << method.name().toStdString() << "</td></tr>" << std::endl;
+    os << "<tr><td>tag</td><td>" << method.tag() << "</td></tr>" << std::endl;
+    os << "<tr><td>access</td><td>" << method.access() << "</td></tr>" << std::endl;
+    os << "<tr><td>methodType</td><td>" << method.methodType() << "</td></tr>" << std::endl;
+    os << "<tr><td>attributes</td><td>" << method.attributes() << "</td></tr>" << std::endl;
+    os << "<tr><td>methodIndex</td><td>" << method.methodIndex() << "</td></tr>" << std::endl;
+    os << "<tr><td>revision</td><td>" << method.revision() << "</td></tr>" << std::endl;
+    os << "<tr><td>typeName</td><td>" << method.typeName() << "</td></tr>" << std::endl;
+    os << "<tr><td>methodSignature</td><td>" << method.methodSignature().toStdString() << "</td></tr>" << std::endl;
+    os << "<tr><td>parameterTypes</td><td><ol>";
+    for (const QByteArray & pt : method.parameterTypes())
+    {
+        os << "<li>" << pt.toStdString() << "</li>";
+    }
+    os << "</td></tr>" << std::endl;
+    os << "<tr><td>parameterNames</td><td><ol>";
+    for (const QByteArray & pt : method.parameterNames())
+    {
+        os << "<li>" << pt.toStdString() << "</li>";
+    }
+    os << "</td></tr>" << std::endl;
+    os << "</table>" << std::endl;
+}
+
 bool writePrettyHTMLImpl<QMetaObject>::process(std::basic_ostream<char>& os)
 {
     QMetaObject * object = getObject<QMetaObject, SGIItemQtMeta>();
@@ -103,11 +136,11 @@ bool writePrettyHTMLImpl<QMetaObject>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>this</td><td>" << std::hex << (void*)object << std::dec << "</td></tr>" << std::endl;
             os << "<tr><td>typename</td><td>" << helpers::getRTTITypename_html(object) << "</td></tr>" << std::endl;
-            os << "<tr><td>classname</td><td>" << (object?object->className():"&lt;null&gt;") << "</td></tr>" << std::endl;
+            os << "<tr><td>classname</td><td>" << object->className() << "</td></tr>" << std::endl;
 
             os << "<tr><td>class info</td><td><ol>";
-            int classInfoOffset = object?object->classInfoOffset():0;
-            int classInfoCount = object?object->classInfoCount():0;
+            int classInfoOffset = object->classInfoOffset();
+            int classInfoCount = object->classInfoCount();
             for (int i=classInfoOffset; i<classInfoCount; ++i)
             {
                 QMetaClassInfo metaclassInfo = object->classInfo(i);
@@ -116,8 +149,8 @@ bool writePrettyHTMLImpl<QMetaObject>::process(std::basic_ostream<char>& os)
             os << "</ol></td></tr>" << std::endl;
 
             os << "<tr><td>properties</td><td><ol>";
-            int propertyOffset = object?object->propertyOffset():0;
-            int propertyCount = object?object->propertyCount():0;
+            int propertyOffset = object->propertyOffset();
+            int propertyCount = object->propertyCount();
             for (int i=propertyOffset; i<propertyCount; ++i)
             {
                 QMetaProperty property = object->property(i);
@@ -126,8 +159,8 @@ bool writePrettyHTMLImpl<QMetaObject>::process(std::basic_ostream<char>& os)
             os << "</ol></td></tr>" << std::endl;
 
             os << "<tr><td>enumerator</td><td><ol>";
-            int enumeratorOffset = object?object->enumeratorOffset():0;
-            int enumeratorCount = object?object->enumeratorCount():0;
+            int enumeratorOffset = object->enumeratorOffset();
+            int enumeratorCount = object->enumeratorCount();
             for (int i=enumeratorOffset; i<enumeratorCount; ++i)
             {
                 QMetaEnum metaenum = object->enumerator(i);
@@ -137,7 +170,7 @@ bool writePrettyHTMLImpl<QMetaObject>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>constructors</td><td><ol>";
             int constructorOffset = 0;
-            int constructorCount = object?object->constructorCount():0;
+            int constructorCount = object->constructorCount();
             for (int i=constructorOffset; i<constructorCount; ++i)
             {
                 QMetaMethod method = object->constructor(i);
@@ -146,8 +179,8 @@ bool writePrettyHTMLImpl<QMetaObject>::process(std::basic_ostream<char>& os)
             os << "</ol></td></tr>" << std::endl;
 
             os << "<tr><td>methods</td><td><ol>";
-            int methodOffset = object?object->methodOffset():0;
-            int methodCount = object?object->methodCount():0;
+            int methodOffset = object->methodOffset();
+            int methodCount = object->methodCount();
             for (int i=methodOffset; i<methodCount; ++i)
             {
                 QMetaMethod method = object->method(i);

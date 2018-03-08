@@ -9,6 +9,7 @@
 
 #include <osg/ObserverNodePath>
 #include <osg/UserDataContainer>
+#include <osg/ValueObject>
 #include <osg/PolygonMode>
 #include <osg/PolygonOffset>
 #include <osg/Material>
@@ -34,6 +35,7 @@
 #include <osg/OperationThread>
 #include <osg/CameraView>
 #include <osg/NodeVisitor>
+#include <osg/CullStack>
 
 #include <osg/MatrixTransform>
 #include <osg/PositionAttitudeTransform>
@@ -63,9 +65,12 @@
 #include <osgAnimation/Skeleton>
 #include <osgAnimation/Bone>
 
-#include <osgUtil/Statistics>
+#include <osgText/Text>
+
+#include <osgUtil/RenderBin>
 
 #include <sgi/helpers/osg>
+#include <sgi/helpers/osg_statistics>
 #include <sgi/helpers/string>
 #include <sgi/helpers/rtti>
 #include <sgi/ReferencedPicker>
@@ -77,119 +82,158 @@
 namespace sgi {
 namespace osg_plugin {
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Referenced)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::ObserverSet)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Object)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::UserDataContainer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ObserverSet)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Object)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::UserDataContainer)
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Node)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Group)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Camera)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::FrameStamp)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::RefMatrixd)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::RefMatrixf)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Geode)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::LOD)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::PagedLOD)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::ProxyNode)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::CoordinateSystemNode)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Transform)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::MatrixTransform)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::PositionAttitudeTransform)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::AutoTransform)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::DisplaySettings)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::NodeVisitor)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Node)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Group)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Camera)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::FrameStamp)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::RefMatrixd)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::RefMatrixf)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Geode)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::LOD)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::PagedLOD)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ProxyNode)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::CoordinateSystemNode)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Transform)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::MatrixTransform)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::PositionAttitudeTransform)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::AutoTransform)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::DisplaySettings)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::NodeVisitor)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Stats)
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Uniform)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::BufferData)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Array)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::IndexArray)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::BufferObject)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::VertexBufferObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Uniform)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BufferData)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Array)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::IndexArray)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BufferObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::VertexBufferObject)
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Shader)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::ClipNode)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Shader)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ClipNode)
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Geometry)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Drawable)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::ShapeDrawable)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Geometry)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Drawable)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ShapeDrawable)
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Shape)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Sphere)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Box)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Cylinder)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Cone)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Capsule)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::InfinitePlane)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::TriangleMesh)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::HeightField)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::CompositeShape)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::ConvexHull)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Shape)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Sphere)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Box)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Cylinder)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Cone)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Capsule)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::InfinitePlane)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::TriangleMesh)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::HeightField)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::CompositeShape)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ConvexHull)
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::PrimitiveSet)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::DrawElements)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::DrawElementsUByte)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::DrawElementsUShort)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::DrawElementsUInt)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::DrawArrays)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::DrawArrayLengths)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::PrimitiveSet)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::DrawElements)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::DrawElementsUByte)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::DrawElementsUShort)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::DrawElementsUInt)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::DrawArrays)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::DrawArrayLengths)
 
 //void writePrettyStateAttributeHTML(std::basic_ostream<char>& os, const osg::StateAttribute * object, bool table, bool brief=true);
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::View)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::NodeCallback)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::EllipsoidModel)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::View)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::NodeCallback)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::EllipsoidModel)
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::StateSet)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::State)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::StateSet)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::State)
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::StateAttribute)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Image)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Texture)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Texture1D)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Texture2D)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Texture3D)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::StateAttribute)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Image)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObject)
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::TextureObjectSet)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::TextureObjectManager)
+#else
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObjectSet)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObjectManager)
+#endif
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture1D)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture2D)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture3D)
 
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::PolygonMode)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::PolygonOffset)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Material)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::TexEnv)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Light)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::LightModel)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Stencil)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Viewport)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Program)
-WRITE_PRETTY_HTML_IMPL_DECLARE(osg::Program::PerContextProgram)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Program::PerContextProgram)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::TexGen)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::ClipPlane)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::BlendFunc)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::BlendColor)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::BlendEquation)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::LineWidth)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::LineStipple)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Point)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::PolygonStipple)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Depth)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::PolygonMode)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::PolygonOffset)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Material)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::TexEnv)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Light)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::LightModel)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Stencil)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Viewport)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Program)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Program::PerContextProgram)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::TexGen)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ClipPlane)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BlendFunc)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BlendColor)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BlendEquation)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::LineWidth)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::LineStipple)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Point)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::PolygonStipple)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Depth)
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::Operation)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::GraphicsOperation)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::BarrierOperation)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::OperationQueue)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::OperationThread)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::GraphicsThread)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::GraphicsContext)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::ShaderComposer)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::ShaderComponent)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Operation)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::GraphicsOperation)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BarrierOperation)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::OperationQueue)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::OperationThread)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::GraphicsThread)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::GraphicsContext)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::GraphicsContext::Traits)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ShaderComposer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ShaderComponent)
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(RenderInfoDrawable)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::StringValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BoolValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::CharValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::UCharValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ShortValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::UShortValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::IntValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::UIntValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::FloatValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::DoubleValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Vec2fValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Vec3fValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Vec4fValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Vec2dValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Vec3dValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Vec4dValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::QuatValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::PlaneValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::MatrixfValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::MatrixdValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BoundingBoxfValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BoundingBoxdValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BoundingSpherefValueObject)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BoundingSpheredValueObject)
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(OpenThreads::Thread)
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(sgi::ReferencedPickerBase)
-WRITE_PRETTY_HTML_IMPL_REGISTER(sgi::ReferencedPicker)
-WRITE_PRETTY_HTML_IMPL_REGISTER(sgi::ReferencedLinePicker)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawable)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(RenderInfoGeometry)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawCallback)
+
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(OpenThreads::Thread)
+
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedPickerBase)
+#ifdef SGI_USE_OSGEARTH
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedPicker)
+#endif
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedLinePicker)
 
 using namespace sgi::osg_helpers;
 
@@ -213,6 +257,29 @@ namespace {
 }
 
 
+inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxf & b)
+{
+    return output << std::setprecision(12) << '[' << b._min << ',' << b._max << ']';
+}
+
+inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxd & b)
+{
+    return output << std::setprecision(12) << '[' << b._min << ',' << b._max << ']';
+}
+
+inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSpheref & b)
+{
+    return output << std::setprecision(12) << '[' << b._center << ",r=" << b._radius << ']';
+}
+
+inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSphered & b)
+{
+    return output << std::setprecision(12) << '[' << b._center << ",r=" << b._radius << ']';
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::PrimitiveSet::Mode & t);
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::PrimitiveSet::Type & t);
+
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Transform::ReferenceFrame & t)
 {
     switch(t)
@@ -223,6 +290,18 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Tr
     default: os << (int)t; break;
     }
     return os;
+}
+
+bool writePrettyHTMLImpl_OpenThreads_Thread(std::basic_ostream<char>& os, OpenThreads::Thread * object)
+{
+    os << "<tr><td>running</td><td>" << (object->isRunning() ? "true" : "false") << "</td></tr>" << std::endl;
+    os << "<tr><td>pid</td><td>" << object->getProcessId() << "</td></tr>" << std::endl;
+    os << "<tr><td>tid</td><td>" << object->getThreadId() << "</td></tr>" << std::endl;
+    os << "<tr><td>testCancel</td><td>" << object->testCancel() << "</td></tr>" << std::endl;
+    os << "<tr><td>schedulePriority</td><td>" << object->getSchedulePriority() << "</td></tr>" << std::endl;
+    os << "<tr><td>schedulePolicy</td><td>" << object->getSchedulePolicy() << "</td></tr>" << std::endl;
+    os << "<tr><td>stackSize</td><td>" << object->getStackSize() << "</td></tr>" << std::endl;
+    return true;
 }
 
 bool writePrettyHTMLImpl<osg::Transform>::process(std::basic_ostream<char>& os)
@@ -240,27 +319,21 @@ bool writePrettyHTMLImpl<osg::Transform>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add remaining Transform properties
-            os << "<tr><td>ref</td><td>" << (object?object->getReferenceFrame():osg::Transform::RELATIVE_RF) << "</td></tr>" << std::endl;
+            os << "<tr><td>ref</td><td>" << object->getReferenceFrame() << "</td></tr>" << std::endl;
             os << "<tr><td>localToWorldMatrix</td><td>";
-            if(object)
             {
                 osg::Matrixd m;
                 object->computeLocalToWorldMatrix(m,NULL);
                 writePrettyHTML(os, m, MatrixUsageTypeModelView, object);
             }
-            else
-                os << "&lt;null&gt;" << std::endl;
             os << "</td></tr>" << std::endl;
 
             os << "<tr><td>worldToLocalMatrix</td><td>";
-            if(object)
             {
                 osg::Matrixd m;
                 object->computeWorldToLocalMatrix(m,NULL);
                 writePrettyHTML(os, m, MatrixUsageTypeModelView, object);
             }
-            else
-                os << "&lt;null&gt;" << std::endl;
             os << "</td></tr>" << std::endl;
 
             if(_table)
@@ -321,23 +394,17 @@ bool writePrettyHTMLImpl<osg::PositionAttitudeTransform>::process(std::basic_ost
 
             // add remaining properties
             os << "<tr><td>translate</td><td>";
-            if(object)
-                writePrettyPositionHTML(os, object->getPosition(), object);
-            else
-                os << "&lt;null&gt;" << std::endl;
+            writePrettyPositionHTML(os, object->getPosition(), object);
             os << "</td></tr>" << std::endl;
 
             os << "<tr><td>attitude</td><td>";
-            writePrettyHTML(os, object?object->getAttitude():osg::Quat());
+            writePrettyHTML(os, object->getAttitude());
             os << "</td></tr>" << std::endl;
 
-            os << "<tr><td>scale</td><td>" << (object?object->getScale():osg::Vec3d()) << "</td></tr>" << std::endl;
+            os << "<tr><td>scale</td><td>" << object->getScale() << "</td></tr>" << std::endl;
 
             os << "<tr><td>pivot</td><td>";
-            if(object)
-                writePrettyPositionHTML(os, object->getPivotPoint(), object);
-            else
-                os << "&lt;null&gt;" << std::endl;
+            writePrettyPositionHTML(os, object->getPivotPoint(), object);
             os << "</td></tr>" << std::endl;
             if(_table)
                 os << "</table>" << std::endl;
@@ -380,29 +447,23 @@ bool writePrettyHTMLImpl<osg::AutoTransform>::process(std::basic_ostream<char>& 
 
             // add remaining properties
             os << "<tr><td>position</td><td>";
-            if(object)
-                writePrettyPositionHTML(os, object->getPosition(), object);
-            else
-                os << "&lt;null&gt;" << std::endl;
+            writePrettyPositionHTML(os, object->getPosition(), object);
             os << "</td></tr>" << std::endl;
             os << "<tr><td>rotation</td><td>";
-            writePrettyHTML(os, object?object->getRotation():osg::Quat());
+            writePrettyHTML(os, object->getRotation());
             os << "</td></tr>" << std::endl;
-            os << "<tr><td>scale</td><td>" << (object?object->getScale():osg::Vec3d()) << "</td></tr>" << std::endl;
-            os << "<tr><td>min scale</td><td>" << (object?object->getMinimumScale():0.0) << "</td></tr>" << std::endl;
-            os << "<tr><td>max scale</td><td>" << (object?object->getMaximumScale():0.0) << "</td></tr>" << std::endl;
+            os << "<tr><td>scale</td><td>" << object->getScale() << "</td></tr>" << std::endl;
+            os << "<tr><td>min scale</td><td>" << object->getMinimumScale() << "</td></tr>" << std::endl;
+            os << "<tr><td>max scale</td><td>" << object->getMaximumScale() << "</td></tr>" << std::endl;
             os << "<tr><td>pivot point</td><td>";
-            if(object)
-                writePrettyPositionHTML(os, object->getPivotPoint(), object);
-            else
-                os << "&lt;null&gt;" << std::endl;
+            writePrettyPositionHTML(os, object->getPivotPoint(), object);
             os << "</td></tr>" << std::endl;
-            os << "<tr><td>auto update eye movement tolerance</td><td>" << (object?object->getAutoUpdateEyeMovementTolerance():0.0f) << "</td></tr>" << std::endl;
-            os << "<tr><td>auto rotate mode</td><td>" << (object?object->getAutoRotateMode():osg::AutoTransform::NO_ROTATION) << "</td></tr>" << std::endl;
-            os << "<tr><td>axis</td><td>" << (object?object->getAxis():osg::Vec3()) << "</td></tr>" << std::endl;
-            os << "<tr><td>normal</td><td>" << (object?object->getNormal():osg::Vec3()) << "</td></tr>" << std::endl;
-            os << "<tr><td>auto scale to screen</td><td>" << ((object?object->getAutoScaleToScreen():false)?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>auto scale transition width ratio</td><td>" << (object?object->getAutoScaleTransitionWidthRatio():0.0f) << "</td></tr>" << std::endl;
+            os << "<tr><td>auto update eye movement tolerance</td><td>" << object->getAutoUpdateEyeMovementTolerance() << "</td></tr>" << std::endl;
+            os << "<tr><td>auto rotate mode</td><td>" << object->getAutoRotateMode() << "</td></tr>" << std::endl;
+            os << "<tr><td>axis</td><td>" << object->getAxis() << "</td></tr>" << std::endl;
+            os << "<tr><td>normal</td><td>" << object->getNormal() << "</td></tr>" << std::endl;
+            os << "<tr><td>auto scale to screen</td><td>" << (object->getAutoScaleToScreen()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>auto scale transition width ratio</td><td>" << object->getAutoScaleTransitionWidthRatio() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -555,6 +616,65 @@ bool writePrettyHTMLImpl<osg::NodeVisitor>::process(std::basic_ostream<char>& os
     return ret;
 }
 
+bool writePrettyHTMLImpl<osg::Stats>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    osg::Stats * object = getObject<osg::Stats, SGIItemOsg>();
+    StatsAccess * access = static_cast<StatsAccess*>(object);
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add node properties first
+            callNextHandler(os);
+
+            os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
+            os << "<tr><td>earliest frame</td><td>" << object->getEarliestFrameNumber() << "</td></tr>" << std::endl;
+            os << "<tr><td>latest frame</td><td>" << object->getLatestFrameNumber() << "</td></tr>" << std::endl;
+
+            osg::Stats::CollectMap stats;
+            access->getCollectStats(stats);
+            os << "<tr><td>collect stats</td><td><ul>";
+            for (auto it = stats.begin(); it != stats.end(); ++it)
+            {
+                os << "<li>" << it->first << "=" << (it->second ? "true" : "false") << "</li>";
+            }
+            os << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeStatsFrame:
+        {
+            unsigned frame = itemNumber();
+            osg::Stats::AttributeMap attributes = object->getAttributeMap(frame);
+            if (attributes.empty())
+                os << "<i>N/A</i>";
+            else
+            {
+                os << "<table border=\'1\' align=\'left\'><tr><th>Attribute</th><th>Value</th></tr>" << std::endl;
+                for (auto it = attributes.begin(); it != attributes.end(); ++it)
+                {
+                    os << "<tr><td>" << it->first << "</td><td>" << it->second << "</td></tr>" << std::endl;
+                }
+                os << "</table>" << std::endl;
+            }
+            ret = true;
+        }
+        break;
+
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::LOD::RangeMode & t)
 {
     switch(t)
@@ -593,6 +713,7 @@ bool writePrettyHTMLImpl<osg::LOD>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             os << "<tr><td>rangeMode</td><td>" << object->getRangeMode() << "</td></tr>" << std::endl;
+            os << "<tr><td>radius</td><td>" << object->getRadius() << "</td></tr>" << std::endl;
             os << "<tr><td>centerMode</td><td>" << object->getCenterMode() << "</td></tr>" << std::endl;
             os << "<tr><td>center</td><td>";
             writePrettyPositionHTML(os, object->getCenter(), object);
@@ -750,7 +871,7 @@ bool writePrettyHTMLImpl<osg::CoordinateSystemNode>::process(std::basic_ostream<
 
             // add remaining properties
             os << "<tr><td>cs</td><td>" << object->getCoordinateSystem() << "</td></tr>" << std::endl;
-            os << "<tr><td>ellipsoid</td><td>" << osg_helpers::getObjectNameAndType(object->getEllipsoidModel()) << "</td></tr>" << std::endl;
+            os << "<tr><td>ellipsoid</td><td>" << osg_helpers::getObjectNameAndType(object->getEllipsoidModel(), true) << "</td></tr>" << std::endl;
             os << "<tr><td>format</td><td>" << object->getFormat() << "</td></tr>" << std::endl;
 
             if(_table)
@@ -795,7 +916,7 @@ void writePrettyHTMLImplGroupChilds(osg::Group * object, std::basic_ostream<char
             if(!onlyOneItem)
                 os << "<li>";
             os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
-            os << "<tr><td>child</td><td>" << osg_helpers::getObjectNameAndType(child) << "</td></tr>" << std::endl;
+            os << "<tr><td>child</td><td>" << osg_helpers::getObjectNameAndType(child, true) << "</td></tr>" << std::endl;
             os << "<tr><td>range</td><td>" << minRange << "/" << maxRange << "</td></tr>" << std::endl;
             os << "<tr><td>filename</td><td>" << filename << "</td></tr>" << std::endl;
             os << "<tr><td>priorityOffset</td><td>" << priorityOffset << "</td></tr>" << std::endl;
@@ -824,7 +945,7 @@ void writePrettyHTMLImplGroupChilds(osg::Group * object, std::basic_ostream<char
             if(!onlyOneItem)
                 os << "<li>";
             os << "<li><table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
-            os << "<tr><td>child</td><td>" << osg_helpers::getObjectNameAndType(child) << "</td></tr>" << std::endl;
+            os << "<tr><td>child</td><td>" << osg_helpers::getObjectNameAndType(child, true) << "</td></tr>" << std::endl;
             os << "<tr><td>range</td><td>" << minRange << "/" << maxRange << "</td></tr>" << std::endl;
             os << "</table>";
             if(!onlyOneItem)
@@ -846,7 +967,7 @@ void writePrettyHTMLImplGroupChilds(osg::Group * object, std::basic_ostream<char
             if(!onlyOneItem)
                 os << "<li>";
             os << "<li><table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
-            os << "<tr><td>child</td><td>" << osg_helpers::getObjectNameAndType(child) << "</td></tr>" << std::endl;
+            os << "<tr><td>child</td><td>" << osg_helpers::getObjectNameAndType(child, true) << "</td></tr>" << std::endl;
             os << "<tr><td>filename</td><td>" << filename << "</td></tr>" << std::endl;
             os << "<tr><td>dbRequest</td><td>" << osg_helpers::getObjectNameAndType(req.get()) << "</td></tr>" << std::endl;
             os << "</table>";
@@ -863,7 +984,7 @@ void writePrettyHTMLImplGroupChilds(osg::Group * object, std::basic_ostream<char
             const osg::Node * child = object->getChild(n);
             if(!onlyOneItem)
                 os << "<li>";
-            os << osg_helpers::getObjectNameAndType(child);
+            os << osg_helpers::getObjectNameAndType(child, true);
             if(!onlyOneItem)
                 os << "</li>";
         }
@@ -1034,10 +1155,10 @@ bool writePrettyHTMLImpl<osg::Cylinder>::process(std::basic_ostream<char>& os)
             os << "<tr><td>center</td><td>";
             writePrettyPositionHTML(os, object->getCenter(), refDrawable);
             os << "</td></tr>" << std::endl;
-            os << "<tr><td>radius</td><td>" << (object?object->getRadius():0.0f) << "</td></tr>" << std::endl;
-            os << "<tr><td>height</td><td>" << (object?object->getHeight():0.0f) << "</td></tr>" << std::endl;
+            os << "<tr><td>radius</td><td>" << object->getRadius() << "</td></tr>" << std::endl;
+            os << "<tr><td>height</td><td>" << object->getHeight() << "</td></tr>" << std::endl;
             os << "<tr><td>rotation</td><td>";
-            writePrettyHTML(os, object?object->getRotation():osg::Quat());
+            writePrettyHTML(os, object->getRotation());
             os << "</td></tr>" << std::endl;
 
             if(_table)
@@ -1047,7 +1168,7 @@ bool writePrettyHTMLImpl<osg::Cylinder>::process(std::basic_ostream<char>& os)
         break;
     default:
         // add Shape properties first
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
@@ -1072,13 +1193,13 @@ bool writePrettyHTMLImpl<osg::Cone>::process(std::basic_ostream<char>& os)
             os << "<tr><td>center</td><td>";
             writePrettyPositionHTML(os, object->getCenter(), refDrawable);
             os << "</td></tr>" << std::endl;
-            os << "<tr><td>radius</td><td>" << (object?object->getRadius():0.0f) << "</td></tr>" << std::endl;
-            os << "<tr><td>height</td><td>" << (object?object->getHeight():0.0f) << "</td></tr>" << std::endl;
+            os << "<tr><td>radius</td><td>" << object->getRadius() << "</td></tr>" << std::endl;
+            os << "<tr><td>height</td><td>" << object->getHeight() << "</td></tr>" << std::endl;
             os << "<tr><td>rotation</td><td>";
             writePrettyHTML(os, object->getRotation());
             os << "</td></tr>" << std::endl;
-            os << "<tr><td>base offset factor</td><td>" << (object?object->getBaseOffsetFactor():0.0f) << "</td></tr>" << std::endl;
-            os << "<tr><td>base offset</td><td>" << (object?object->getBaseOffset():0.0f) << "</td></tr>" << std::endl;
+            os << "<tr><td>base offset factor</td><td>" << object->getBaseOffsetFactor() << "</td></tr>" << std::endl;
+            os << "<tr><td>base offset</td><td>" << object->getBaseOffset() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -1087,7 +1208,7 @@ bool writePrettyHTMLImpl<osg::Cone>::process(std::basic_ostream<char>& os)
         break;
     default:
         // add Shape properties first
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
@@ -1125,7 +1246,7 @@ bool writePrettyHTMLImpl<osg::Capsule>::process(std::basic_ostream<char>& os)
         break;
     default:
         // add Shape properties first
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
@@ -1156,7 +1277,7 @@ bool writePrettyHTMLImpl<osg::InfinitePlane>::process(std::basic_ostream<char>& 
         break;
     default:
         // add Shape properties first
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
@@ -1182,14 +1303,14 @@ bool writePrettyHTMLImpl<osg::TriangleMesh>::process(std::basic_ostream<char>& o
             if(vertices)
                 os << vertices->getNumElements() << " elements";
             else
-                os << "&lt;null&gt;";
+                os << "(null)";
             os << "</td></tr>" << std::endl;
             os << "<tr><td>vertices</td><td>";
             osg::IndexArray * indices = object->getIndices();
             if(indices)
                 os << indices->getNumElements() << " elements";
             else
-                os << "&lt;null&gt;";
+                os << "(null)";
             os << "</td></tr>" << std::endl;
 
             if(_table)
@@ -1199,7 +1320,7 @@ bool writePrettyHTMLImpl<osg::TriangleMesh>::process(std::basic_ostream<char>& o
         break;
     default:
         // add Shape properties first
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
@@ -1239,9 +1360,15 @@ bool writePrettyHTMLImpl<osg::HeightField>::process(std::basic_ostream<char>& os
             ret = true;
         }
         break;
+	case SGIItemTypeArrayData:
+		{
+			osg_helpers::heightFieldDumpHTML(os, object);
+			ret = true;
+		}
+		break;
     default:
         // add Shape properties first
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
@@ -1266,7 +1393,7 @@ bool writePrettyHTMLImpl<osg::CompositeShape>::process(std::basic_ostream<char>&
             for(unsigned n = 0; n < object->getNumChildren(); n++)
             {
                 osg::Shape * child = object->getChild(n);
-                os << "<li>" << osg_helpers::getObjectNameAndType(child) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(child, true) << "</li>" << std::endl;
             }
             os << "</ol></td></tr>" << std::endl;
 
@@ -1281,7 +1408,7 @@ bool writePrettyHTMLImpl<osg::CompositeShape>::process(std::basic_ostream<char>&
             for(unsigned n = 0; n < object->getNumChildren(); n++)
             {
                 osg::Shape * child = object->getChild(n);
-                os << "<li>" << osg_helpers::getObjectNameAndType(child) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(child, true) << "</li>" << std::endl;
             }
             os << "</ol>" << std::endl;
             ret = true;
@@ -1289,7 +1416,7 @@ bool writePrettyHTMLImpl<osg::CompositeShape>::process(std::basic_ostream<char>&
         break;
     default:
         // add Shape properties first
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
@@ -1316,7 +1443,7 @@ bool writePrettyHTMLImpl<osg::ConvexHull>::process(std::basic_ostream<char>& os)
         break;
     default:
         // add Shape properties first
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
@@ -1326,6 +1453,9 @@ namespace {
     class DrawableAccess : public osg::Drawable
     {
     public:
+        const osg::BoundingBox& getBoundingBoxNoCompute() const {
+            return _boundingBox;
+        }
         unsigned int getNumChildrenRequiringUpdateTraversal() const { return _numChildrenRequiringUpdateTraversal; }
         unsigned int getNumChildrenRequiringEventTraversal() const { return _numChildrenRequiringEventTraversal; }
     };
@@ -1347,14 +1477,13 @@ bool writePrettyHTMLImpl<osg::Drawable>::process(std::basic_ostream<char>& os)
 
             // add remaining drawable properties
             DrawableAccess * access = (DrawableAccess *)object;
-            os << "<tr><td>bounding box</td><td>";
-            writePrettyHTML(os, object->getBound(), object);
-            os << "</td></tr>" << std::endl;
+            os << "<tr><td>bounding box</td><td>" << access->getBoundingBoxNoCompute() << "</td></tr>" << std::endl;
 
             os << "<tr><td>supports display list</td><td>" << (object->getSupportsDisplayList()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>use display list</td><td>" << (object->getUseDisplayList()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>use VBO</td><td>" << (object->getUseVertexBufferObjects()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>shape</td><td>" << osg_helpers::getObjectNameAndType(object->getShape()) << "</td></tr>" << std::endl;
+            os << "<tr><td>use VAO</td><td>" << (object->getUseVertexArrayObject() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>shape</td><td>" << osg_helpers::getObjectNameAndType(object->getShape(), true) << "</td></tr>" << std::endl;
             os << "<tr><td>numChildrenRequiringUpdateTraversal</td><td>" << access->getNumChildrenRequiringUpdateTraversal() << "</td></tr>" << std::endl;
             os << "<tr><td>numChildrenRequiringEventTraversal</td><td>" << access->getNumChildrenRequiringEventTraversal() << "</td></tr>" << std::endl;
 
@@ -1369,15 +1498,14 @@ bool writePrettyHTMLImpl<osg::Drawable>::process(std::basic_ostream<char>& os)
             for(unsigned n = 0; n < object->getNumParents(); n++)
             {
                 const osg::Node * parent = object->getParent(n);
-                os << "<li>" << osg_helpers::getObjectNameAndType(parent) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(parent, true) << "</li>" << std::endl;
             }
             os << "</ol>" << std::endl;
             ret = true;
         }
         break;
     default:
-        // add Shape properties first
-        callNextHandler(os);
+        ret = callNextHandler(os);
         break;
     }
     return ret;
@@ -1399,7 +1527,7 @@ bool writePrettyHTMLImpl<osg::ShapeDrawable>::process(std::basic_ostream<char>& 
 
             // add remaining ShapeDrawable properties
             os << "<tr><td>color</td><td>"
-                << vec4fToHtmlColor(object?object->getColor():osg::Vec4())
+                << vec4fToHtmlColor(object->getColor())
                 << "</td></tr>" << std::endl;
 
             if(_table)
@@ -1499,13 +1627,13 @@ void writePrettyHTMLGeometryVertexIndicies(std::basic_ostream<char>& os, const o
 
 void writePrettyHTMLGeometryTexCoords(std::basic_ostream<char>& os, const osg::Geometry * object, int number, bool brief)
 {
-    for(unsigned texcoordNo = 0; texcoordNo < object->getNumTexCoordArrays(); texcoordNo++)
+    for(unsigned textureUnit = 0; textureUnit < object->getNumTexCoordArrays(); textureUnit++)
     {
-        if(texcoordNo == number || number < 0)
+        if(textureUnit == number || number < 0)
         {
-            const osg::Vec2Array * texcoords = (const osg::Vec2Array *)object->getTexCoordArray(texcoordNo);
+            const osg::Vec2Array * texcoords = (const osg::Vec2Array *)object->getTexCoordArray(textureUnit);
             size_t numcoords = (texcoords?texcoords->size():0);
-            os << numcoords << " in texcoords[" << texcoordNo << "]<br/>" << std::endl;
+            os << helpers::str_plus_number("Texture", textureUnit) << " " << numcoords << " elements<br/>" << std::endl;
             if(!brief)
             {
                 os << "<ol>";
@@ -1550,16 +1678,18 @@ bool writePrettyHTMLImpl<osg::Geometry>::process(std::basic_ostream<char>& os)
             // add drawable properties first
             callNextHandler(os);
 
+			os << "<tr><td>contains deprecated data</td><td>" << (object->containsDeprecatedData() ? "true" : "false") << "</td></tr>" << std::endl;
+
             os << "<tr><td>vertices</td><td>";
             writePrettyHTMLGeometryVertices(os, object, true);
             os << "</td></tr>" << std::endl;
 
-            os << "<tr><td>normal binding</td><td>" << (object?object->getNormalBinding():osg::Geometry::BIND_OFF) << "</td></tr>" << std::endl;
+            os << "<tr><td>normal binding</td><td>" << object->getNormalBinding() << "</td></tr>" << std::endl;
             os << "<tr><td>normals</td><td>";
             writePrettyHTMLGeometryNormals(os, object, true);
             os << "</td></tr>" << std::endl;
 
-            unsigned numTexCoordArrays = (object?object->getNumTexCoordArrays():0);
+            unsigned numTexCoordArrays = object->getNumTexCoordArrays();
             os << "<tr><td>num tex coord arrays</td><td>" << numTexCoordArrays << "</td></tr>" << std::endl;
             if(numTexCoordArrays != 0)
             {
@@ -1568,14 +1698,14 @@ bool writePrettyHTMLImpl<osg::Geometry>::process(std::basic_ostream<char>& os)
                 os << "</td></tr>" << std::endl;
             }
 
-            os << "<tr><td>color binding</td><td>" << (object?object->getColorBinding():osg::Geometry::BIND_OFF) << "</td></tr>" << std::endl;
+            os << "<tr><td>color binding</td><td>" << object->getColorBinding() << "</td></tr>" << std::endl;
             os << "<tr><td>colors</td><td>";
-            writePrettyHTMLColorArray(os, (object?object->getColorArray():NULL), true);
+            writePrettyHTMLColorArray(os, object->getColorArray(), true);
             os << "</td></tr>" << std::endl;
 
-            os << "<tr><td>2nd color binding</td><td>" << (object?object->getSecondaryColorBinding():osg::Geometry::BIND_OFF) << "</td></tr>" << std::endl;
+            os << "<tr><td>2nd color binding</td><td>" << object->getSecondaryColorBinding() << "</td></tr>" << std::endl;
             os << "<tr><td>2nd colors</td><td>";
-            writePrettyHTMLColorArray(os, (object?object->getSecondaryColorArray():NULL), true);
+            writePrettyHTMLColorArray(os, object->getSecondaryColorArray(), true);
             os << "</td></tr>" << std::endl;
 
             if(_table)
@@ -1583,27 +1713,62 @@ bool writePrettyHTMLImpl<osg::Geometry>::process(std::basic_ostream<char>& os)
             ret = true;
         }
         break;
+    case SGIItemTypeDrawableVertexAttribArrays:
+        {
+            os << "<ol>";
+            unsigned numVertexAttribArrays = object->getNumVertexAttribArrays();
+            for (unsigned i = 0; i < numVertexAttribArrays; ++i)
+            {
+                osg::Array * attr = object->getVertexAttribArray(i);
+                os << "<li>" << helpers::str_plus_number("VertexAttribArray", i) << ':';
+                if (attr)
+                {
+                    os << " size=" << attr->getNumElements();
+                    os << " type=" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(attr->getDataType());
+                }
+                os << ' ' << osg_helpers::getObjectNameAndType(attr, true);
+                os << "</li>";
+            }
+            os << "</ol>";
+            ret = true;
+    }
+        break;
     case SGIItemTypeDrawableTexCoordsList:
         {
             os << "<ol>";
             unsigned numTexCoordArrays = object->getNumTexCoordArrays();
-            for(unsigned i = 0; i < numTexCoordArrays; i++)
+            for(unsigned textureUnit = 0; textureUnit < numTexCoordArrays; textureUnit++)
             {
-                osg::Array * texcoords = object->getTexCoordArray(i);
-                os << "<li>" << osg_helpers::getObjectName(texcoords) << " (" << osg_helpers::getObjectTypename(texcoords) << ")</li>";
+                osg::Array * texcoords = object->getTexCoordArray(textureUnit);
+                os << "<li>" << helpers::str_plus_number("Texture", textureUnit) << ':';
+                if (texcoords)
+                {
+                    os << " size=" << texcoords->getNumElements();
+                    os << " type=" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(texcoords->getDataType());
+                }
+                os << ' ' << osg_helpers::getObjectNameAndType(texcoords, true);
+                os << "</li>";
             }
             os << "</ol>";
             ret = true;
         }
         break;
-    case SGIItemTypeDrawablePrimitiveSetList:
+    case SGIItemTypePrimitiveSetList:
         {
             os << "<ol>";
             unsigned numPrimitiveSets = object->getNumPrimitiveSets();
             for(unsigned i = 0; i < numPrimitiveSets; i++)
             {
+                os << "<li>";
                 osg::PrimitiveSet * primset = object->getPrimitiveSet(i);
-                os << "<li>" << osg_helpers::getObjectName(primset) << " (" << osg_helpers::getObjectTypename(primset) << ")</li>";
+                if (primset)
+                {
+                    os << " mode=" << (osg::PrimitiveSet::Mode)primset->getMode();
+                    os << " type=" << primset->getType();
+                    os << " num=" << primset->getNumIndices();
+                    os << " ";
+                }
+                os << osg_helpers::getObjectNameAndType(primset, true) << "</li>";
             }
             os << "</ol>";
             ret = true;
@@ -1646,6 +1811,30 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Un
         } \
         break
 
+#define writePrettyHTMLImpl_Uniform_Sampler(__gl_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                os << "<i>empty</i>"; \
+            else if( object->getNumElements() == 1) \
+            { \
+                int val; \
+                object->getElement(0, val); \
+                os << "<li>Id=" << val << "</li>" << std::endl; \
+            } \
+            else { \
+                os << "<ol>"; \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    int val; \
+                    object->getElement(n, val); \
+                    os << "<li>Id=" << val << "</li>" << std::endl; \
+                } \
+                os << "</ol>"; \
+            } \
+        } \
+        break
 
 bool writePrettyHTMLImpl<osg::Uniform>::process(std::basic_ostream<char>& os)
 {
@@ -1691,6 +1880,25 @@ bool writePrettyHTMLImpl<osg::Uniform>::process(std::basic_ostream<char>& os)
             //writePrettyHTMLImpl_Uniform_Data(UNSIGNED_INT_VEC2, osg::Vec2ui);
             //writePrettyHTMLImpl_Uniform_Data(UNSIGNED_INT_VEC3, osg::Vec3ui);
             //writePrettyHTMLImpl_Uniform_Data(UNSIGNED_INT_VEC4, osg::Vec4ui);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_1D);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_3D);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_CUBE);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_1D_SHADOW);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_SHADOW);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_1D_ARRAY);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_ARRAY);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_CUBE_MAP_ARRAY);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_1D_ARRAY_SHADOW);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_ARRAY_SHADOW);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_MULTISAMPLE);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_MULTISAMPLE_ARRAY);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_CUBE_SHADOW);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_CUBE_MAP_ARRAY_SHADOW);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_BUFFER);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_RECT);
+            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_RECT_SHADOW);
+
             default:
                 os << "<i>Type " << object->getType() << " not implemented.</i>";
                 break;
@@ -1707,7 +1915,7 @@ bool writePrettyHTMLImpl<osg::Uniform>::process(std::basic_ostream<char>& os)
             for(unsigned n = 0; n < object->getNumParents(); n++)
             {
                 const osg::Object * parent = object->getParent(n);
-                os << "<li>" << osg_helpers::getObjectName(parent) << " (" << osg_helpers::getObjectTypename(parent) << ")</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(parent, true) << "</li>" << std::endl;
             }
             os << "</ol>" << std::endl;
             ret = true;
@@ -1721,8 +1929,8 @@ bool writePrettyHTMLImpl<osg::Uniform>::process(std::basic_ostream<char>& os)
             // first add all callbacks from base classes
             callNextHandler(os);
 
-            os << "<tr><td>update callback</td><td>" << osg_helpers::getObjectNameAndType(object->getUpdateCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>event callback</td><td>" << osg_helpers::getObjectNameAndType(object->getEventCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>update callback</td><td>" << osg_helpers::getObjectNameAndType(object->getUpdateCallback(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>event callback</td><td>" << osg_helpers::getObjectNameAndType(object->getEventCallback(), true) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -1767,7 +1975,7 @@ bool writePrettyHTMLImpl<osg::BufferData>::process(std::basic_ostream<char>& os)
             // first add all callbacks from base classes
             callNextHandler(os);
 
-            os << "<tr><td>modified callback</td><td>" << osg_helpers::getObjectNameAndType(object->getModifiedCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>modified callback</td><td>" << osg_helpers::getObjectNameAndType(object->getModifiedCallback(), true) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -1804,6 +2012,29 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Pr
     return os;
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::PrimitiveSet::Mode & t)
+{
+    switch (t)
+    {
+    case osg::PrimitiveSet::POINTS: os << "GL_POINTS"; break;
+    case osg::PrimitiveSet::LINES: os << "GL_LINES"; break;
+    case osg::PrimitiveSet::LINE_STRIP: os << "GL_LINE_STRIP"; break;
+    case osg::PrimitiveSet::LINE_LOOP: os << "GL_LINE_LOOP"; break;
+    case osg::PrimitiveSet::TRIANGLES: os << "GL_TRIANGLES"; break;
+    case osg::PrimitiveSet::TRIANGLE_STRIP: os << "GL_TRIANGLE_STRIP"; break;
+    case osg::PrimitiveSet::TRIANGLE_FAN: os << "GL_TRIANGLE_FAN"; break;
+    case osg::PrimitiveSet::QUADS: os << "GL_QUADS"; break;
+    case osg::PrimitiveSet::QUAD_STRIP: os << "GL_QUAD_STRIP"; break;
+    case osg::PrimitiveSet::POLYGON: os << "GL_POLYGON"; break;
+    case osg::PrimitiveSet::LINES_ADJACENCY: os << "GL_LINES_ADJACENCY"; break;
+    case osg::PrimitiveSet::TRIANGLES_ADJACENCY: os << "GL_TRIANGLES_ADJACENCY"; break;
+    case osg::PrimitiveSet::TRIANGLE_STRIP_ADJACENCY: os << "GL_TRIANGLE_STRIP_ADJACENCY"; break;
+    case osg::PrimitiveSet::PATCHES: os << "GL_PATCHES"; break;
+    default: os << "unknown" << (int)t; break;
+    }
+    return os;
+}
+
 bool writePrettyHTMLImpl<osg::PrimitiveSet>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -1819,9 +2050,9 @@ bool writePrettyHTMLImpl<osg::PrimitiveSet>::process(std::basic_ostream<char>& o
             callNextHandler(os);
 
             // add remaining PrimitiveSet properties
-            os << "<tr><td>type</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getMode()) << "</td></tr>" << std::endl;
+            os << "<tr><td>type</td><td>" << object->getType() << "</td></tr>" << std::endl;
             os << "<tr><td>numInstances</td><td>" << object->getNumInstances() << "</td></tr>" << std::endl;
-            os << "<tr><td>mode</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getMode()) << "</td></tr>" << std::endl;
+            os << "<tr><td>mode</td><td>" << (osg::PrimitiveSet::Mode)object->getMode() << "</td></tr>" << std::endl;
             os << "<tr><td>data ptr</td><td>" << (void*)object->getDataPointer() << "</td></tr>" << std::endl;
             os << "<tr><td>total data size</td><td>" << object->getTotalDataSize() << "</td></tr>" << std::endl;
             os << "<tr><td>supportsBufferObject</td><td>" << (object->supportsBufferObject()?"true":"false") << "</td></tr>" << std::endl;
@@ -1831,6 +2062,19 @@ bool writePrettyHTMLImpl<osg::PrimitiveSet>::process(std::basic_ostream<char>& o
 
             if(_table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeDrawElementsIndicies:
+        {
+            os << "<ol start=\"0\">";
+            unsigned numIndices = object->getNumIndices();
+            for(unsigned i = 0; i < numIndices; ++i)
+            {
+                unsigned idx = object->index(i);
+                os << "<li>" << idx << "</li>";
+            }
+            os << "</ol>";
             ret = true;
         }
         break;
@@ -1861,6 +2105,19 @@ bool writePrettyHTMLImpl<osg::DrawElements>::process(std::basic_ostream<char>& o
             ret = true;
         }
         break;
+    case SGIItemTypeDrawElementsIndicies:
+        {
+            os << "<ol start=\"0\">";
+            unsigned numIndices = object->getNumIndices();
+            for(unsigned i = 0; i < numIndices; ++i)
+            {
+                unsigned idx = object->index(i);
+                os << "<li>" << idx << "</li>";
+            }
+            os << "</ol>";
+            ret = true;
+        }
+        break;
     default:
         ret = callNextHandler(os);
         break;
@@ -1883,7 +2140,7 @@ bool writePrettyHTMLImpl<osg::DrawElementsUByte>::process(std::basic_ostream<cha
             callNextHandler(os);
 
             // add remaining DrawElementsUByte properties
-            os << "<tr><td>getNumIndices</td><td>" << (object?object->getNumIndices():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>getNumIndices</td><td>" << object->getNumIndices() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -1912,7 +2169,7 @@ bool writePrettyHTMLImpl<osg::DrawElementsUShort>::process(std::basic_ostream<ch
             callNextHandler(os);
 
             // add remaining DrawElementsUShort properties
-            os << "<tr><td>getNumIndices</td><td>" << (object?object->getNumIndices():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>getNumIndices</td><td>" << object->getNumIndices() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -1941,7 +2198,7 @@ bool writePrettyHTMLImpl<osg::DrawElementsUInt>::process(std::basic_ostream<char
             callNextHandler(os);
 
             // add remaining DrawElementsUInt properties
-            os << "<tr><td>getNumIndices</td><td>" << (object?object->getNumIndices():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>getNumIndices</td><td>" << object->getNumIndices() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -1970,8 +2227,8 @@ bool writePrettyHTMLImpl<osg::DrawArrays>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add remaining DrawArrays properties
-            os << "<tr><td>first</td><td>" << (object?object->getFirst():0) << "</td></tr>" << std::endl;
-            os << "<tr><td>count</td><td>" << (object?object->getCount():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>first</td><td>" << object->getFirst() << "</td></tr>" << std::endl;
+            os << "<tr><td>count</td><td>" << object->getCount() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -2000,8 +2257,8 @@ bool writePrettyHTMLImpl<osg::DrawArrayLengths>::process(std::basic_ostream<char
             callNextHandler(os);
 
             // add remaining DrawArrayLengths properties
-            os << "<tr><td>first</td><td>" << (object?object->getFirst():0) << "</td></tr>" << std::endl;
-            os << "<tr><td>numPrimitives</td><td>" << (object?object->getNumPrimitives():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>first</td><td>" << object->getFirst() << "</td></tr>" << std::endl;
+            os << "<tr><td>numPrimitives</td><td>" << object->getNumPrimitives() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -2064,7 +2321,7 @@ bool writePrettyHTMLImpl<osg::Shader>::process(std::basic_ostream<char>& os)
         {
             os << "<b>" << object->getTypename() << ":</b><br/>";
             os << "<pre>" << std::endl;
-            os << object->getShaderSource();
+            os << helpers::html_encode(object->getShaderSource());
             os << "</pre>" << std::endl;
             ret = true;
         }
@@ -2112,7 +2369,7 @@ bool writePrettyHTMLImpl<osg::ClipNode>::process(std::basic_ostream<char>& os)
             for(osg::ClipNode::ClipPlaneList::const_iterator it = list.begin(); it != list.end(); it++)
             {
                 const osg::ref_ptr<osg::ClipPlane> clipplane = *it;
-                os << "<li>" << osg_helpers::getObjectNameAndType(clipplane.get()) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(clipplane.get(), true) << "</li>" << std::endl;
             }
             os << "</ol></td></tr>" << std::endl;
 
@@ -2140,12 +2397,12 @@ bool writePrettyHTMLImpl<OpenThreads::Thread>::process(std::basic_ostream<char>&
             if(_table)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
-            os << "<tr><td>running</td><td>" << (object?(const_cast<OpenThreads::Thread *>(object)->isRunning()?"true":"false"):"&lt;null&gt;") << "</td></tr>" << std::endl;
-            os << "<tr><td>pid</td><td>" << (object?const_cast<OpenThreads::Thread *>(object)->getProcessId():0) << "</td></tr>" << std::endl;
-            os << "<tr><td>tid</td><td>" << (object?const_cast<OpenThreads::Thread *>(object)->getThreadId():0) << "</td></tr>" << std::endl;
-            os << "<tr><td>schedulePriority</td><td>" << (object?const_cast<OpenThreads::Thread *>(object)->getSchedulePriority():0) << "</td></tr>" << std::endl;
-            os << "<tr><td>schedulePolicy</td><td>" << (object?const_cast<OpenThreads::Thread *>(object)->getSchedulePolicy():0) << "</td></tr>" << std::endl;
-            os << "<tr><td>stackSize</td><td>" << (object?const_cast<OpenThreads::Thread *>(object)->getStackSize():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>running</td><td>" << (const_cast<OpenThreads::Thread *>(object)->isRunning()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>pid</td><td>" << const_cast<OpenThreads::Thread *>(object)->getProcessId() << "</td></tr>" << std::endl;
+            os << "<tr><td>tid</td><td>" << const_cast<OpenThreads::Thread *>(object)->getThreadId() << "</td></tr>" << std::endl;
+            os << "<tr><td>schedulePriority</td><td>" << const_cast<OpenThreads::Thread *>(object)->getSchedulePriority() << "</td></tr>" << std::endl;
+            os << "<tr><td>schedulePolicy</td><td>" << const_cast<OpenThreads::Thread *>(object)->getSchedulePolicy() << "</td></tr>" << std::endl;
+            os << "<tr><td>stackSize</td><td>" << const_cast<OpenThreads::Thread *>(object)->getStackSize() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -2218,11 +2475,11 @@ bool writePrettyHTMLImpl<osg::Image>::process(std::basic_ostream<char>& os)
             os << "<tr><td>origin</td><td>" << object->getOrigin() << "</td></tr>" << std::endl;
 
             os << "<tr><td>rowLength</td><td>" << object->getRowLength() << "</td></tr>" << std::endl;
-            os << "<tr><td>internalTextureFormat</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getInternalTextureFormat()) << "</td></tr>" << std::endl;
+            os << "<tr><td>internalTextureFormat</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getInternalTextureFormat()) << "</td></tr>" << std::endl;
             os << "<tr><td>isCompressedInternalFormat</td><td>" << (osg::Texture::isCompressedInternalFormat(object->getInternalTextureFormat())?"true":"false") << "</td></tr>" << std::endl;
 
-            os << "<tr><td>pixelFormat</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getPixelFormat()) << "</td></tr>" << std::endl;
-            os << "<tr><td>dataType</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDataType()) << "</td></tr>" << std::endl;
+            os << "<tr><td>pixelFormat</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getPixelFormat()) << "</td></tr>" << std::endl;
+            os << "<tr><td>dataType</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getDataType()) << "</td></tr>" << std::endl;
             os << "<tr><td>packing</td><td>" << object->getPacking() << "</td></tr>" << std::endl;
             os << "<tr><td>compressed</td><td>" << (object->isCompressed()?"true":"false") << "</td></tr>" << std::endl;
 
@@ -2240,13 +2497,48 @@ bool writePrettyHTMLImpl<osg::Image>::process(std::basic_ostream<char>& os)
             os << "<tr><td>supportsTextureSubloading</td><td>" << (object->supportsTextureSubloading()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>isImageTranslucent</td><td>" << (object->isImageTranslucent()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>requiresUpdateCall</td><td>" << (object->requiresUpdateCall()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>pixelBufferObject</td><td>" << osg_helpers::getObjectNameAndType(object->getPixelBufferObject()) << "</td></tr>" << std::endl;
+            os << "<tr><td>pixelBufferObject</td><td>" << osg_helpers::getObjectNameAndType(object->getPixelBufferObject(), true) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
         }
         break;
+    case SGIItemTypeImageMipMap:
+        {
+            if (itemNumber() == ~0u)
+            {
+                os << "<ol>";
+                for (unsigned i = 0; i < object->getNumMipmapLevels(); ++i)
+                {
+                    unsigned offset = object->getMipmapOffset(i);
+                    unsigned next_offset = (i + 1 < object->getNumMipmapLevels()) ? object->getMipmapOffset(i + 1) : object->getTotalSizeInBytesIncludingMipmaps();
+                    unsigned size = next_offset - offset;
+                    os << "<li>" << helpers::str_plus_number("Level", i) << " offset=" << offset << " size=" << size << "</li>" << std::endl;
+                }
+                os << "</ol>";
+            }
+            else
+            {
+                unsigned i = itemNumber();
+                if (_table)
+                    os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+                unsigned offset = object->getMipmapOffset(i);
+                unsigned next_offset = (i + 1 < object->getNumMipmapLevels()) ? object->getMipmapOffset(i + 1) : object->getTotalSizeInBytesIncludingMipmaps();
+                unsigned size = next_offset - offset;
+                
+                os << "<tr><td>Level</td><td>" << i << "</td></tr>" << std::endl;
+                os << "<tr><td>offset</td><td>" << offset << "</td></tr>" << std::endl;
+                os << "<tr><td>size</td><td>" << size << "</td></tr>" << std::endl;
+
+                if (_table)
+                    os << "</table>" << std::endl;
+            }
+            ret = true;
+        }
+        break;
+
     default:
         ret = callNextHandler(os);
         break;
@@ -2388,6 +2680,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::St
     case osg::StateAttribute::HINT: os << "HINT"; break;
     case osg::StateAttribute::SAMPLEMASKI: os << "SAMPLEMASKI"; break;
     case osg::StateAttribute::PRIMITIVERESTARTINDEX: os << "PRIMITIVERESTARTINDEX"; break;
+    case osg::StateAttribute::CLIPCONTROL: os << "CLIPCONTROL"; break;
 
         /// osgFX namespace
     case osg::StateAttribute::VALIDATOR: os << "VALIDATOR"; break;
@@ -2430,7 +2723,9 @@ bool writePrettyHTMLImpl<osg::StateAttribute>::process(std::basic_ostream<char>&
             callNextHandler(os);
 
             os << "<tr><td>type</td><td>" << object->getType() << "</td></tr>" << std::endl;
-            os << "<tr><td>shader component</td><td>" << osg_helpers::getObjectNameAndType(object->getShaderComponent()) << "</td></tr>" << std::endl;
+            os << "<tr><td>member</td><td>" << object->getMember() << "</td></tr>" << std::endl;
+            os << "<tr><td>isTextureAttribute</td><td>" << (object->isTextureAttribute()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>shader component</td><td>" << osg_helpers::getObjectNameAndType(object->getShaderComponent(), true) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -2443,7 +2738,7 @@ bool writePrettyHTMLImpl<osg::StateAttribute>::process(std::basic_ostream<char>&
             for(unsigned n = 0; n < object->getNumParents(); n++)
             {
                 const osg::Object * parent = object->getParent(n);
-                os << "<li>" << osg_helpers::getObjectNameAndType(parent) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(parent, true) << "</li>" << std::endl;
             }
             os << "</ol>" << std::endl;
             ret = true;
@@ -2457,8 +2752,8 @@ bool writePrettyHTMLImpl<osg::StateAttribute>::process(std::basic_ostream<char>&
             // first add all callbacks from base classes
             callNextHandler(os);
 
-            os << "<tr><td>update callback</td><td>" << (void*)object->getUpdateCallback() << "</td></tr>" << std::endl;
-            os << "<tr><td>event callback</td><td>" << (void*)object->getEventCallback() << "</td></tr>" << std::endl;
+            os << "<tr><td>update callback</td><td>" << osg_helpers::getObjectNameAndType(object->getUpdateCallback(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>event callback</td><td>" << osg_helpers::getObjectNameAndType(object->getEventCallback(), true) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -2563,7 +2858,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Te
 bool writePrettyHTMLImpl<osg::Texture>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Texture * object = static_cast<osg::Texture*>(item<SGIItemOsg>()->object());
+    TextureAccess * object = static_cast<TextureAccess*>(getObject<osg::Texture, SGIItemOsg, DynamicCaster>());
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -2576,47 +2871,270 @@ bool writePrettyHTMLImpl<osg::Texture>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add remaining texture properties
-            os << "<tr><td>images</td><td>" << (object?object->getNumImages():0) << "</td></tr>" << std::endl;
-            os << "<tr><td>width</td><td>" << (object?object->getTextureWidth():0) << "</td></tr>" << std::endl;
-            os << "<tr><td>height</td><td>" << (object?object->getTextureHeight():0) << "</td></tr>" << std::endl;
-            os << "<tr><td>depth</td><td>" << (object?object->getTextureDepth():0) << "</td></tr>" << std::endl;
-            os << "<tr><td>wrap mode s</td><td>" << (object?object->getWrap(osg::Texture::WRAP_S):osg::Texture::CLAMP) << "</td></tr>" << std::endl;
-            os << "<tr><td>wrap mode t</td><td>" << (object?object->getWrap(osg::Texture::WRAP_T):osg::Texture::CLAMP) << "</td></tr>" << std::endl;
-            os << "<tr><td>wrap mode r</td><td>" << (object?object->getWrap(osg::Texture::WRAP_R):osg::Texture::CLAMP) << "</td></tr>" << std::endl;
+            os << "<tr><td>texture target</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getTextureTarget()) << "</td></tr>" << std::endl;
+            os << "<tr><td>images</td><td>" << object->getNumImages() << "</td></tr>" << std::endl;
+            os << "<tr><td>width</td><td>" << object->getTextureWidth() << "</td></tr>" << std::endl;
+            os << "<tr><td>height</td><td>" << object->getTextureHeight() << "</td></tr>" << std::endl;
+            os << "<tr><td>depth</td><td>" << object->getTextureDepth() << "</td></tr>" << std::endl;
+            os << "<tr><td>wrap mode s</td><td>" << object->getWrap(osg::Texture::WRAP_S) << "</td></tr>" << std::endl;
+            os << "<tr><td>wrap mode t</td><td>" << object->getWrap(osg::Texture::WRAP_T) << "</td></tr>" << std::endl;
+            os << "<tr><td>wrap mode r</td><td>" << object->getWrap(osg::Texture::WRAP_R) << "</td></tr>" << std::endl;
 
-            os << "<tr><td>internal format mode</td><td>" << (object?object->getInternalFormatMode():osg::Texture::USE_IMAGE_DATA_FORMAT) << "</td></tr>" << std::endl;
-            os << "<tr><td>internal format type</td><td>" << (object?object->getInternalFormatType():osg::Texture::NORMALIZED) << "</td></tr>" << std::endl;
-            os << "<tr><td>internal format</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object?object->getInternalFormat():0) << "</td></tr>" << std::endl;
-            os << "<tr><td>source format</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object?object->getSourceFormat():0) << "</td></tr>" << std::endl;
-            os << "<tr><td>source type</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object?object->getSourceType():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>internal format mode</td><td>" << object->getInternalFormatMode() << "</td></tr>" << std::endl;
+            os << "<tr><td>internal format type</td><td>" << object->getInternalFormatType() << "</td></tr>" << std::endl;
+            os << "<tr><td>internal format</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getInternalFormat()) << "</td></tr>" << std::endl;
+            os << "<tr><td>source format</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSourceFormat()) << "</td></tr>" << std::endl;
+            os << "<tr><td>source type</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSourceType()) << "</td></tr>" << std::endl;
 
-            os << "<tr><td>shadowComparison</td><td>" << (object?(object->getShadowComparison()?"true":"false"):std::string("&lt;null&gt;")) << "</td></tr>" << std::endl;
-            os << "<tr><td>shadow texture mode</td><td>" << (object?object->getShadowTextureMode():osg::Texture::LUMINANCE) << "</td></tr>" << std::endl;
-            os << "<tr><td>shadow compare function</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object?object->getShadowCompareFunc():osg::Texture::NEVER) << "</td></tr>" << std::endl;
-            os << "<tr><td>shadow ambient</td><td>" << (object?object->getShadowAmbient():0.0f) << "</td></tr>" << std::endl;
+            os << "<tr><td>shadowComparison</td><td>" << (object->getShadowComparison()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>shadow texture mode</td><td>" << object->getShadowTextureMode() << "</td></tr>" << std::endl;
+            os << "<tr><td>shadow compare function</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getShadowCompareFunc()) << "</td></tr>" << std::endl;
+            os << "<tr><td>shadow ambient</td><td>" << object->getShadowAmbient() << "</td></tr>" << std::endl;
 
-            os << "<tr><td>areAllTextureObjectsLoaded</td><td>" << (object?(object->areAllTextureObjectsLoaded()?"true":"false"):std::string("&lt;null&gt;")) << "</td></tr>" << std::endl;
-            os << "<tr><td>resizeNonPowerOfTwoHint</td><td>" << (object?(object->getResizeNonPowerOfTwoHint()?"true":"false"):std::string("&lt;null&gt;")) << "</td></tr>" << std::endl;
-            os << "<tr><td>clientStorageHint</td><td>" << (object?(object->getClientStorageHint()?"true":"false"):std::string("&lt;null&gt;")) << "</td></tr>" << std::endl;
-            os << "<tr><td>unRefImageDataAfterApply</td><td>" << (object?(object->getUnRefImageDataAfterApply()?"true":"false"):std::string("&lt;null&gt;")) << "</td></tr>" << std::endl;
-            os << "<tr><td>useHardwareMipMapGeneration</td><td>" << (object?(object->getUseHardwareMipMapGeneration()?"true":"false"):std::string("&lt;null&gt;")) << "</td></tr>" << std::endl;
-            os << "<tr><td>maxAnisotropy</td><td>" << (object?object->getMaxAnisotropy():0.0f) << "</td></tr>" << std::endl;
-            os << "<tr><td>min filter</td><td>" << (object?object->getFilter(osg::Texture::MIN_FILTER):osg::Texture::LINEAR) << "</td></tr>" << std::endl;
-            os << "<tr><td>mag filter</td><td>" << (object?object->getFilter(osg::Texture::MAG_FILTER):osg::Texture::LINEAR) << "</td></tr>" << std::endl;
+            os << "<tr><td>areAllTextureObjectsLoaded</td><td>" << (object->areAllTextureObjectsLoaded()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>resizeNonPowerOfTwoHint</td><td>" << (object->getResizeNonPowerOfTwoHint()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>clientStorageHint</td><td>" << (object->getClientStorageHint()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>unRefImageDataAfterApply</td><td>" << (object->getUnRefImageDataAfterApply()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>swizzle</td><td>" 
+                << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSwizzle().x()) << ","
+                << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSwizzle().y()) << ","
+                << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSwizzle().z()) << ","
+                << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSwizzle().w()) << ","
+                << "</td></tr>" << std::endl;
+            os << "<tr><td>useHardwareMipMapGeneration</td><td>" << (object->getUseHardwareMipMapGeneration()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>maxAnisotropy</td><td>" << object->getMaxAnisotropy() << "</td></tr>" << std::endl;
+            os << "<tr><td>min filter</td><td>" << object->getFilter(osg::Texture::MIN_FILTER) << "</td></tr>" << std::endl;
+            os << "<tr><td>mag filter</td><td>" << object->getFilter(osg::Texture::MAG_FILTER) << "</td></tr>" << std::endl;
 
-            os << "<tr><td>border width</td><td>" << (object?object->getBorderWidth():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>border width</td><td>" << object->getBorderWidth() << "</td></tr>" << std::endl;
             os << "<tr><td>border color</td><td>"
-                << vec4fToHtmlColor(object?osg::Vec4f(object->getBorderColor()):osg::Vec4f()) << "</td></tr>" << std::endl;
+                << vec4fToHtmlColor(osg::Vec4f(object->getBorderColor())) << "</td></tr>" << std::endl;
 
-            os << "<tr><td>numImages</td><td>" << (object?object->getNumImages():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>numImages</td><td>" << object->getNumImages() << "</td></tr>" << std::endl;
             for(unsigned n = 0; n < object->getNumImages(); n++)
             {
                 const osg::Image * image = object->getImage(n);
-                os << "<tr><td>image " << n << "</td><td>" << osg_helpers::getObjectNameAndType(image) << "</td></tr>" << std::endl;
+                os << "<tr><td>image " << n << "</td><td>" << osg_helpers::getObjectNameAndType(image, true) << "</td></tr>" << std::endl;
             }
 
             if(_table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeTextureObjects:
+        {
+            TextureAccess::TextureObjectList list = object->getTextureObjectList();
+            if (itemNumber() == ~0u)
+            {
+                os << "<ol>";
+                for (unsigned n = 0; n < list.size(); ++n)
+                {
+                    os << "<li>" << helpers::str_plus_number("Context", n) << "&nbsp;" << osg_helpers::getObjectNameAndType(list[n], true) << "</li>" << std::endl;
+                }
+                os << "</ol>";
+            }
+            else
+            {
+            }
+            ret = true;
+        }
+        break;
+
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+
+void writePrettyHTMLTextureProfile(std::basic_ostream<char>& os, const osg::Texture::TextureProfile & profile)
+{
+    os << "<ul>";
+    os << "<li>numMipmapLevels=" << profile._numMipmapLevels << "</li>";
+    os << "<li>internalFormat=" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(profile._internalFormat) << "</li>";
+    os << "<li>width=" << profile._width << "</li>";
+    os << "<li>height=" << profile._height << "</li>";
+    os << "<li>depth=" << profile._depth << "</li>";
+    os << "<li>border=" << profile._border << "</li>";
+    os << "</ul>" << std::endl;
+}
+
+bool writePrettyHTMLImpl<osg::Texture::TextureObject>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    osg::Texture::TextureObject * object = getObject<osg::Texture::TextureObject, SGIItemOsg>();
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add Texture properties first
+            callNextHandler(os);
+
+            os << "<tr><td>id</td><td>" << object->id() << "</td></tr>" << std::endl;
+            os << "<tr><td>target</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->target()) << "</td></tr>" << std::endl;
+            os << "<tr><td>size</td><td>" << object->size() << "</td></tr>" << std::endl;
+            os << "<tr><td>timestamp</td><td>" << object->getTimeStamp() << "</td></tr>" << std::endl;
+            os << "<tr><td>allocated</td><td>" << (object->isAllocated() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>reusable</td><td>" << (object->isReusable() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>texture</td><td>" << osg_helpers::getObjectNameAndType(object->getTexture(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>profile</td><td>";
+            writePrettyHTMLTextureProfile(os, object->_profile);
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>next</td><td>" << osg_helpers::getObjectNameAndType(object->_next) << "</td></tr>" << std::endl;
+            os << "<tr><td>previous</td><td>" << osg_helpers::getObjectNameAndType(object->_previous) << "</td></tr>" << std::endl;
+            os << "<tr><td>set</td><td>" << osg_helpers::getObjectNameAndType(object->_set) << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+bool writePrettyHTMLImpl<osg::TextureObjectSet>::process(std::basic_ostream<char>& os)
+#else
+bool writePrettyHTMLImpl<osg::Texture::TextureObjectSet>::process(std::basic_ostream<char>& os)
+#endif
+{
+    bool ret = false;
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+    TextureObjectSetAccess * object = static_cast<TextureObjectSetAccess*>(getObject<osg::TextureObjectSet, SGIItemOsg>());
+#else
+    TextureObjectSetAccess * object = static_cast<TextureObjectSetAccess*>(getObject<osg::Texture::TextureObjectSet, SGIItemOsg>());
+#endif
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add Texture properties first
+            callNextHandler(os);
+
+            os << "<tr><td>size</td><td>" << object->size() << "</td></tr>" << std::endl;
+            os << "<tr><td>total objects</td><td>" << object->computeNumTextureObjectsInList() << "</td></tr>" << std::endl;
+            os << "<tr><td>num texture objects</td><td>" << object->getNumOfTextureObjects() << "</td></tr>" << std::endl;
+            os << "<tr><td>num orphans</td><td>" << object->getNumOrphans() << "</td></tr>" << std::endl;
+            os << "<tr><td>num pending orphans</td><td>" << object->getNumPendingOrphans() << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeTextureObjects:
+        {
+            os << "<ul>";
+            TextureObjectSetAccess::TextureObjectList list = object->getTextureObjects();
+            for (auto to : list)
+            {
+                os << "<li>" << osg_helpers::getObjectNameAndType(to.get()) << "</li>" << std::endl;
+            }
+            os << "</ul>";
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+bool writePrettyHTMLImpl<osg::TextureObjectManager>::process(std::basic_ostream<char>& os)
+#else
+bool writePrettyHTMLImpl<osg::Texture::TextureObjectManager>::process(std::basic_ostream<char>& os)
+#endif
+{
+    bool ret = false;
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+    TextureObjectManagerAccess * object = static_cast<TextureObjectManagerAccess *>(getObject<osg::TextureObjectManager, SGIItemOsg>());
+#else
+    TextureObjectManagerAccess * object = static_cast<TextureObjectManagerAccess *>(getObject<osg::Texture::TextureObjectManager, SGIItemOsg>());
+#endif
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add Texture properties first
+            callNextHandler(os);
+
+            os << "<tr><td>contextID</td><td>" << object->getContextID() << "</td></tr>" << std::endl;
+            os << "<tr><td>num active texture objects</td><td>" << object->getNumberActiveTextureObjects() << "</td></tr>" << std::endl;
+            os << "<tr><td>num orphaned texture objects</td><td>" << object->getNumberOrphanedTextureObjects() << "</td></tr>" << std::endl;
+            os << "<tr><td>current pool size</td><td>" << object->getCurrTexturePoolSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>max pool size</td><td>" << object->getMaxTexturePoolSize() << "</td></tr>" << std::endl;
+
+            os << "<tr><td>frame number</td><td>" << object->getFrameNumber() << "</td></tr>" << std::endl;
+            os << "<tr><td>number of frames</td><td>" << object->getNumberFrames() << "</td></tr>" << std::endl;
+            os << "<tr><td>number deleted</td><td>" << object->getNumberDeleted() << "</td></tr>" << std::endl;
+            os << "<tr><td>delete time</td><td>" << object->getDeleteTime() << "</td></tr>" << std::endl;
+            os << "<tr><td>number generated</td><td>" << object->getNumberGenerated() << "</td></tr>" << std::endl;
+            os << "<tr><td>generate time</td><td>" << object->getGenerateTime() << "</td></tr>" << std::endl;
+
+#if OSG_VERSION_LESS_OR_EQUAL(3,4,0)
+            os << "<tr><td>number applied</td><td>" << object->getNumberApplied() << "</td></tr>" << std::endl;
+            os << "<tr><td>apply time</td><td>" << object->getApplyTime() << "</td></tr>" << std::endl;
+#endif
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeStatistics:
+        {
+            object->reportStats(os);
+            ret = true;
+        }
+        break;
+    case SGIItemTypeTextureSetMap:
+        {
+            const TextureObjectManagerAccess::TextureSetMap & textureSetMap = object->getTextureSetMap();
+            if (itemNumber() == ~0u)
+            {
+                os << "<table border=\'1\' align=\'left\'><tr>";
+                os << "<th>target</th>";
+                os << "<th>MipMap</th>";
+                os << "<th>internalFormat</th>";
+                os << "<th>width</th>";
+                os << "<th>height</th>";
+                os << "<th>depth</th>";
+                os << "<th>border</th>";
+                os << "<th>size</th>";
+                os << "</tr>" << std::endl;
+                for (auto it = textureSetMap.begin(); it != textureSetMap.end(); ++it)
+                {
+                    const osg::Texture::TextureProfile & p = it->first;
+                    os << "<tr>";
+                    os << "<td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(p._target) << "</td>";
+                    os << "<td>" << p._numMipmapLevels << "</td>";
+                    os << "<td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(p._internalFormat) << "</td>";
+                    os << "<td>" << p._width << "</td>";
+                    os << "<td>" << p._height << "</td>";
+                    os << "<td>" << p._depth << "</td>";
+                    os << "<td>" << p._border << "</td>";
+                    os << "<td>" << p._size << "</td>";
+                    os << "</tr>";
+                }
+                os << "</table>";
+            }
             ret = true;
         }
         break;
@@ -2641,7 +3159,7 @@ bool writePrettyHTMLImpl<osg::Texture1D>::process(std::basic_ostream<char>& os)
             // add Texture properties first
             callNextHandler(os);
 
-            os << "<tr><td>numMipmapLevels</td><td>" << (object?object->getNumMipmapLevels():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>numMipmapLevels</td><td>" << object->getNumMipmapLevels() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -2669,7 +3187,7 @@ bool writePrettyHTMLImpl<osg::Texture2D>::process(std::basic_ostream<char>& os)
             // add Texture properties first
             callNextHandler(os);
 
-            os << "<tr><td>numMipmapLevels</td><td>" << (object?object->getNumMipmapLevels():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>numMipmapLevels</td><td>" << object->getNumMipmapLevels() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -2697,7 +3215,7 @@ bool writePrettyHTMLImpl<osg::Texture3D>::process(std::basic_ostream<char>& os)
             // add Texture properties first
             callNextHandler(os);
 
-            os << "<tr><td>numMipmapLevels</td><td>" << (object?object->getNumMipmapLevels():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>numMipmapLevels</td><td>" << object->getNumMipmapLevels() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -2738,8 +3256,8 @@ bool writePrettyHTMLImpl<osg::PolygonMode>::process(std::basic_ostream<char>& os
             callNextHandler(os);
 
             // add remaining PolygonMode properties
-            os << "<tr><td>mode front</td><td>" << (object?object->getMode(osg::PolygonMode::FRONT):osg::PolygonMode::FILL) << "</td></tr>" << std::endl;
-            os << "<tr><td>mode back</td><td>" << (object?object->getMode(osg::PolygonMode::BACK):osg::PolygonMode::FILL) << "</td></tr>" << std::endl;
+            os << "<tr><td>mode front</td><td>" << object->getMode(osg::PolygonMode::FRONT) << "</td></tr>" << std::endl;
+            os << "<tr><td>mode back</td><td>" << object->getMode(osg::PolygonMode::BACK) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -2785,6 +3303,21 @@ bool writePrettyHTMLImpl<osg::PolygonOffset>::process(std::basic_ostream<char>& 
     return ret;
 }
 
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Material::ColorMode & t)
+{
+    switch (t)
+    {
+    case osg::Material::AMBIENT: os << "AMBIENT"; break;
+    case osg::Material::DIFFUSE: os << "DIFFUSE"; break;
+    case osg::Material::SPECULAR: os << "SPECULAR"; break;
+    case osg::Material::EMISSION: os << "EMISSION"; break;
+    case osg::Material::AMBIENT_AND_DIFFUSE: os << "AMBIENT_AND_DIFFUSE"; break;
+    case osg::Material::OFF: os << "OFF"; break;
+    default: os << (int)t; break;
+    }
+    return os;
+}
 bool writePrettyHTMLImpl<osg::Material>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -2800,22 +3333,22 @@ bool writePrettyHTMLImpl<osg::Material>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add remaining Material properties
-            os << "<tr><td>color mode</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object?object->getColorMode():osg::Material::OFF) << "</td></tr>" << std::endl;
+            os << "<tr><td>color mode</td><td>" << object->getColorMode() << "</td></tr>" << std::endl;
 
             osg::Material::Face faces[3] = { osg::Material::FRONT, osg::Material::BACK, osg::Material::FRONT_AND_BACK };
             const char * faceNames[3] = { "front", "back", "front+back" };
             for(int i = 0; i < sizeof(faces)/sizeof(faces[0]); i++)
             {
                 os << "<tr><td>" << faceNames[i] << " ambient</td><td>"
-                    << vec4fToHtmlColor(object?object->getAmbient(faces[i]):osg::Vec4f()) << "</td></tr>" << std::endl;
+                    << vec4fToHtmlColor(object->getAmbient(faces[i])) << "</td></tr>" << std::endl;
                 os << "<tr><td>" << faceNames[i] << " diffuse</td><td>"
-                    << vec4fToHtmlColor(object?object->getDiffuse(faces[i]):osg::Vec4f()) << "</td></tr>" << std::endl;
+                    << vec4fToHtmlColor(object->getDiffuse(faces[i])) << "</td></tr>" << std::endl;
                 os << "<tr><td>" << faceNames[i] << " specular</td><td>"
-                    << vec4fToHtmlColor(object?object->getSpecular(faces[i]):osg::Vec4f()) << "</td></tr>" << std::endl;
+                    << vec4fToHtmlColor(object->getSpecular(faces[i])) << "</td></tr>" << std::endl;
                 os << "<tr><td>" << faceNames[i] << " emission</td><td>"
-                    << vec4fToHtmlColor(object?object->getEmission(faces[i]):osg::Vec4f()) << "</td></tr>" << std::endl;
+                    << vec4fToHtmlColor(object->getEmission(faces[i])) << "</td></tr>" << std::endl;
                 os << "<tr><td>" << faceNames[i] << " shininess</td><td>"
-                    << (object?object->getShininess(faces[i]):0.0f) << "</td></tr>" << std::endl;
+                    << object->getShininess(faces[i]) << "</td></tr>" << std::endl;
             }
 
             if(_table)
@@ -3097,11 +3630,7 @@ bool writePrettyHTMLImpl<osg::Viewport>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add remaining Viewport properties
-            os << "<tr><td>x</td><td>" << object->x() << "</td></tr>" << std::endl;
-            os << "<tr><td>y</td><td>" << object->y() << "</td></tr>" << std::endl;
-            os << "<tr><td>width</td><td>" << object->width() << "</td></tr>" << std::endl;
-            os << "<tr><td>height</td><td>" << object->height() << "</td></tr>" << std::endl;
-            os << "<tr><td>aspect ratio</td><td>" << object->aspectRatio() << "</td></tr>" << std::endl;
+            osg_helpers::writePrettyHTML(os, object);
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -3133,9 +3662,11 @@ bool writePrettyHTMLImpl<osg::Program>::process(std::basic_ostream<char>& os)
             os << "<tr><td>numShaders</td><td>" << object->getNumShaders() << "</td></tr>" << std::endl;
             os << "<tr><td>isFixedFunction</td><td>" << (object->isFixedFunction()?"true":"false") << "</td></tr>" << std::endl;
 
+#if OSG_VERSION_LESS_THAN(3,5,9)
             GLint numGroupsX, numGroupsY, numGroupsZ;
             object->getComputeGroups(numGroupsX, numGroupsY, numGroupsZ);
             os << "<tr><td>computeGroups</td><td>x=" << numGroupsX << ", y=" << numGroupsY << ", z=" << numGroupsZ << "</td></tr>" << std::endl;
+#endif
 
             os << "<tr><td>attribBindingList</td><td><ul>";
             const osg::Program::AttribBindingList& attribBindingList = object->getAttribBindingList();
@@ -3274,12 +3805,12 @@ bool writePrettyHTMLImpl<osg::BlendFunc>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add remaining BlendFunc properties
-            os << "<tr><td>source</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getSource()) << "</td></tr>" << std::endl;
-            os << "<tr><td>source rgb</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getSourceRGB()) << "</td></tr>" << std::endl;
-            os << "<tr><td>source alpha</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getSourceAlpha()) << "</td></tr>" << std::endl;
-            os << "<tr><td>destination</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDestination()) << "</td></tr>" << std::endl;
-            os << "<tr><td>destination rgb</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDestinationRGB()) << "</td></tr>" << std::endl;
-            os << "<tr><td>destination alpha</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDestinationAlpha()) << "</td></tr>" << std::endl;
+            os << "<tr><td>source</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSource()) << "</td></tr>" << std::endl;
+            os << "<tr><td>source rgb</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSourceRGB()) << "</td></tr>" << std::endl;
+            os << "<tr><td>source alpha</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getSourceAlpha()) << "</td></tr>" << std::endl;
+            os << "<tr><td>destination</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getDestination()) << "</td></tr>" << std::endl;
+            os << "<tr><td>destination rgb</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getDestinationRGB()) << "</td></tr>" << std::endl;
+            os << "<tr><td>destination alpha</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getDestinationAlpha()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -3386,7 +3917,7 @@ bool writePrettyHTMLImpl<osg::LineWidth>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add remaining LineWidth properties
-            os << "<tr><td>width</td><td>" << (object?object->getWidth():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>width</td><td>" << object->getWidth() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -3557,9 +4088,6 @@ bool writePrettyHTMLImpl<osg::Depth>::process(std::basic_ostream<char>& os)
     }
     return ret;
 }
-
-WRITE_PRETTY_HTML_IMPL_DECLARE(osg::GraphicsContext::Traits)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osg::GraphicsContext::Traits)
 
 bool writePrettyHTMLImpl<osg::GraphicsContext::Traits>::process(std::basic_ostream<char>& os)
 {
@@ -3735,7 +4263,7 @@ bool writePrettyHTMLImpl<osg::BarrierOperation>::process(std::basic_ostream<char
 bool writePrettyHTMLImpl<osg::OperationQueue>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::OperationQueue * object = static_cast<osg::OperationQueue*>(item<SGIItemOsg>()->object());
+    OperationQueueAccess * object = static_cast<OperationQueueAccess*>(static_cast<osg::OperationQueue*>(item<SGIItemOsg>()->object()));
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3746,7 +4274,16 @@ bool writePrettyHTMLImpl<osg::OperationQueue>::process(std::basic_ostream<char>&
             // add object properties first
             callNextHandler(os);
 
-            os << "<tr><td>numOperationsInQueue</td><td>0x" << (object?const_cast<osg::OperationQueue *>(object)->getNumOperationsInQueue():0) << "</td></tr>" << std::endl;
+            OperationQueueAccess::Operations operations;
+            object->getOperations(operations);
+
+            os << "<tr><td>numOperationsInQueue</td><td>" << operations.size()  << "</td></tr>" << std::endl;
+            os << "<tr><td>operations</td><td><ol>";
+            for (const auto & op : operations)
+            {
+                os << "<li>" << osg_helpers::getObjectNameAndType(op.get()) << "</li>";
+            }
+            os << "</ol></td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -3775,6 +4312,8 @@ bool writePrettyHTMLImpl<osg::OperationThread>::process(std::basic_ostream<char>
             callNextHandler(os);
 
             os << "<tr><td>done</td><td>" << (object->getDone()?"true":"false") << "</td></tr>" << std::endl;
+            writePrettyHTMLImpl_OpenThreads_Thread(os, object);
+
             os << "<tr><td>queue</td><td>";
             const osg::OperationQueue * queue = object->getOperationQueue();
             os << (queue?const_cast<osg::OperationQueue *>(queue)->getNumOperationsInQueue():0) << " operations";
@@ -3806,6 +4345,8 @@ bool writePrettyHTMLImpl<osg::GraphicsThread>::process(std::basic_ostream<char>&
             // add object properties first
             callNextHandler(os);
 
+            writePrettyHTMLImpl_OpenThreads_Thread(os, object);
+
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
@@ -3821,7 +4362,7 @@ bool writePrettyHTMLImpl<osg::GraphicsThread>::process(std::basic_ostream<char>&
 bool writePrettyHTMLImpl<osg::GraphicsContext>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::GraphicsContext * object = static_cast<osg::GraphicsContext*>(item<SGIItemOsg>()->object());
+    GraphicsContextAccess * object = static_cast<GraphicsContextAccess*>(getObject<osg::GraphicsContext, SGIItemOsg>());
     if(_table)
         os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
@@ -3836,12 +4377,12 @@ bool writePrettyHTMLImpl<osg::GraphicsContext>::process(std::basic_ostream<char>
             os << "<tr><td>valid</td><td>" << (object->valid()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>isRealized</td><td>" << (object->isRealized()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>isCurrent</td><td>" << (object->isCurrent()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>contextId</td><td>" << object->getState()->getContextID() << "</td></tr>" << std::endl;
+            os << "<tr><td>contextId</td><td>" << object->getContextID() << "</td></tr>" << std::endl;
 
             os << "<tr><td>clear color</td><td>"
-                << vec4fToHtmlColor(object?object->getClearColor():osg::Vec4())
+                << vec4fToHtmlColor(object->getClearColor())
                 << "</td></tr>" << std::endl;
-            os << "<tr><td>clear mask</td><td>" << clearMaskToString(object?object->getClearMask():0) << "</td></tr>" << std::endl;
+            os << "<tr><td>clear mask</td><td>" << clearMaskToString(object->getClearMask()) << "</td></tr>" << std::endl;
             os << "<tr><td>timeSinceLastClear</td><td>" << object->getTimeSinceLastClear() << "</td></tr>" << std::endl;
 
             os << "<tr><td>cameras</td><td><ul>";
@@ -3849,7 +4390,7 @@ bool writePrettyHTMLImpl<osg::GraphicsContext>::process(std::basic_ostream<char>
             for(osg::GraphicsContext::Cameras::const_iterator it = cameras.begin(); it != cameras.end(); it++)
             {
                 osg::Camera * camera = *it;
-                os << "<li>" << osg_helpers::getObjectNameAndType(camera) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(camera, true) << "</li>" << std::endl;
             }
             os << "<ul></td></tr>" << std::endl;
             os << "<tr><td>traits</td><td>" << osg_helpers::getObjectNameAndType(object->getTraits()) << "</td></tr>" << std::endl;
@@ -4030,7 +4571,7 @@ void writePrettyHTMLStateSetModeList(std::basic_ostream<char>& os, const SGIItem
         {
             const osg::StateAttribute::GLMode & mode = it->first;
             const osg::StateAttribute::GLModeValue & value = it->second;
-            os << "<li>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(mode) << "=" << glValueName(value) << "</li>";
+            os << "<li>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(mode) << "=" << glValueName(value) << "</li>";
         }
         os << "</ol>" << std::endl;
     }
@@ -4062,7 +4603,7 @@ void writePrettyHTMLStateSetTextureModeList(std::basic_ostream<char>& os, const 
                         const osg::StateAttribute::GLMode & mode = it2->first;
                         const osg::StateAttribute::GLModeValue & value = it2->second;
                         os << "<li>Unit #" << count << ":&nbsp;";
-                        os << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(mode) << "=" << glValueName(value);
+                        os << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(mode) << "=" << glValueName(value);
                         os << "</li>";
                     }
                 }
@@ -4104,7 +4645,7 @@ void writePrettyHTMLStateSetTextureAttributeList(std::basic_ostream<char>& os, c
 
                         os << "<li>Unit #" << count << ":&nbsp;" << std::endl;
                         os << type << " member=" << member << " value=" << glOverrideValueName(value) << "<br/>";
-                        os << osg_helpers::getObjectNameAndType(attr.get());
+                        os << osg_helpers::getObjectNameAndType(attr.get(), true);
                         os << "</li>";
                     }
                 }
@@ -4138,7 +4679,7 @@ void writePrettyHTMLStateSetAttributeList(std::basic_ostream<char>& os, const SG
                 const osg::StateAttribute::OverrideValue & value = attrpair.second;
 
                 os << "<li>" << type << " member=" << member << " value=" << glOverrideValueName(value) << " (0x" << std::hex << value << std::dec << ")<br/>";
-                os << osg_helpers::getObjectNameAndType(attr.get());
+                os << osg_helpers::getObjectNameAndType(attr.get(), true);
                 os << "</li>";
             }
         }
@@ -4166,8 +4707,34 @@ void writePrettyHTMLStateSetUniformList(std::basic_ostream<char>& os, const SGII
                 const osg::StateAttribute::OverrideValue & overridevalue = it->second.second;
                 const osg::ref_ptr<osg::Uniform> & uniform = it->second.first;
                 os << "<li>" << name << " override=" << glOverrideValueName(overridevalue) << "<br/>";
-                os << osg_helpers::getObjectNameAndType(uniform.get());
+                os << osg_helpers::getObjectNameAndType(uniform.get(), true);
                 os << "</li>";
+            }
+        }
+        os << "</ol>";
+    }
+    else
+    {
+        os << "&lt;empty&gt;" << std::endl;
+    }
+}
+
+void writePrettyHTMLStateSetDefineList(std::basic_ostream<char>& os, const SGIItemOsg * item, unsigned index)
+{
+    osg::StateSet * object = static_cast<osg::StateSet*>(item->object());
+    const osg::StateSet::DefineList & defines = object->getDefineList();
+    if(!defines.empty())
+    {
+        os << "<ol>";
+        unsigned count = 0;
+        for(osg::StateSet::DefineList::const_iterator it = defines.begin(); it != defines.end(); it++, count++)
+        {
+            if(index == ~0u || index == count)
+            {
+                const std::string & name = it->first;
+                const std::string & value = it->second.first;
+                const osg::StateAttribute::OverrideValue & overridevalue = it->second.second;
+                os << "<li>" << name << '=' << value << " override=" << glOverrideValueName(overridevalue) << "</li>";
             }
         }
         os << "</ol>";
@@ -4218,6 +4785,10 @@ bool writePrettyHTMLImpl<osg::StateSet>::process(std::basic_ostream<char>& os)
             writePrettyHTMLStateSetUniformList(os, item<SGIItemOsg>(), ~0u);
             os << "</td></tr>" << std::endl;
 
+            os << "<tr><td>defines</td><td>" << std::endl;
+            writePrettyHTMLStateSetDefineList(os, item<SGIItemOsg>(), ~0u);
+            os << "</td></tr>" << std::endl;
+
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
@@ -4243,6 +4814,10 @@ bool writePrettyHTMLImpl<osg::StateSet>::process(std::basic_ostream<char>& os)
         writePrettyHTMLStateSetUniformList(os, item<SGIItemOsg>(), _item->number());
         ret = true;
         break;
+    case SGIItemTypeStateSetDefineList:
+        writePrettyHTMLStateSetDefineList(os, item<SGIItemOsg>(), _item->number());
+        ret = true;
+        break;
     case SGIItemTypeCallbacks:
         {
             if(_table)
@@ -4251,8 +4826,8 @@ bool writePrettyHTMLImpl<osg::StateSet>::process(std::basic_ostream<char>& os)
             // first add all callbacks from base classes
             callNextHandler(os);
 
-            os << "<tr><td>update callback</td><td>" << osg_helpers::getObjectNameAndType(object->getUpdateCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>event callback</td><td>" << osg_helpers::getObjectNameAndType(object->getEventCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>update callback</td><td>" << osg_helpers::getObjectNameAndType(object->getUpdateCallback(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>event callback</td><td>" << osg_helpers::getObjectNameAndType(object->getEventCallback(), true) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -4265,7 +4840,7 @@ bool writePrettyHTMLImpl<osg::StateSet>::process(std::basic_ostream<char>& os)
             for(unsigned n = 0; n < object->getNumParents(); n++)
             {
                 const osg::Object * parent = object->getParent(n);
-                os << "<li>" << osg_helpers::getObjectNameAndType(parent) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(parent, true) << "</li>" << std::endl;
             }
             os << "</ol>" << std::endl;
             ret = true;
@@ -4294,6 +4869,7 @@ bool writePrettyHTMLImpl<osg::State>::process(std::basic_ostream<char>& os)
 
             // add remaining state properties
             os << "<tr><td>contextID</td><td>" <<  object->getContextID() << "</td></tr>" << std::endl;
+            os << "<tr><td>GPU time</td><td>" << object->getGpuTime() << "</td></tr>" << std::endl;
             os << "<tr><td>shaderCompositionEnabled</td><td>" << (object->getShaderCompositionEnabled()?"true":"false") << "</td></tr>" << std::endl;
 
             os << "<tr><td>projectionMatrix</td><td>";
@@ -4308,6 +4884,20 @@ bool writePrettyHTMLImpl<osg::State>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>useModelViewAndProjectionUniforms</td><td>" << (object->getUseModelViewAndProjectionUniforms()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>useVertexAttributeAliasing</td><td>" << (object->getUseVertexAttributeAliasing()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>isVertexBufferObjectSupported</td><td>" << (object->isVertexBufferObjectSupported() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>isVertexArrayObjectSupported</td><td>" << (object->isVertexArrayObjectSupported() ? "true" : "false") << "</td></tr>" << std::endl;
+
+            os << "<tr><td>Current VAO</td><td>" << object->getCurrentVertexArrayObject() << "</td></tr>" << std::endl;
+            os << "<tr><td>active texture unit</td><td>" << object->getActiveTextureUnit() << "</td></tr>" << std::endl;
+            os << "<tr><td>client active texture unit</td><td>" << object->getClientActiveTextureUnit() << "</td></tr>" << std::endl;
+
+            os << "<tr><td>dyn object count</td><td>" << object->getDynamicObjectCount() << "</td></tr>" << std::endl;
+            os << "<tr><td>max texture pool size</td><td>" << object->getMaxTexturePoolSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>max buffer object pool size</td><td>" << object->getMaxBufferObjectPoolSize() << "</td></tr>" << std::endl;
+
+            os << "<tr><td>check GL errors</td><td>" << object->getCheckForGLErrors() << "</td></tr>" << std::endl;
+            
+            
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -4335,7 +4925,8 @@ bool writePrettyHTMLImpl<osg::Geode>::process(std::basic_ostream<char>& os)
             // add node properties first
             callNextHandler(os);
 
-            // add remaining geode properties
+#if OSG_VERSION_LESS_THAN(3,4,0)
+			// add remaining geode properties
             os << "<tr><td>drawables</td><td>";
             os << "<ol>" << std::endl;
             unsigned numDrawables = object->getNumDrawables();
@@ -4345,12 +4936,15 @@ bool writePrettyHTMLImpl<osg::Geode>::process(std::basic_ostream<char>& os)
                 os << "<li>" << osg_helpers::getObjectName(drawable) << " (" << osg_helpers::getObjectTypename(drawable) << ")</li>" << std::endl;
             }
             os << "</ol></td></tr>" << std::endl;
+#endif // OSG_VERSION_LESS_THAN(3,4,0)
+
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
         }
         break;
-    case SGIItemTypeChilds:
+#if OSG_VERSION_LESS_THAN(3,4,0)
+	case SGIItemTypeChilds:
         {
             os << "<ol>";
 
@@ -4364,7 +4958,8 @@ bool writePrettyHTMLImpl<osg::Geode>::process(std::basic_ostream<char>& os)
             ret = true;
         }
         break;
-    default:
+#endif // OSG_VERSION_LESS_THAN(3,4,0)
+	default:
         ret = callNextHandler(os);
         break;
     }
@@ -4414,8 +5009,27 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg::Camera::
     case osg::Camera::PIXEL_BUFFER_RTT: os << "PIXEL_BUFFER_RTT"; break;
     case osg::Camera::PIXEL_BUFFER: os << "PIXEL_BUFFER"; break;
     case osg::Camera::FRAME_BUFFER: os << "FRAME_BUFFER"; break;
+#if OSG_MIN_VERSION_REQUIRED(3,3,3)
+    case osg::Camera::SEPARATE_WINDOW: os << "SEPARATE_WINDOW"; break;
+#else
     case osg::Camera::SEPERATE_WINDOW: os << "SEPERATE_WINDOW"; break;
+#endif
     default: os << (int)t; break;
+    }
+    return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg::Camera::BufferComponent t)
+{
+    switch(t)
+    {
+    case osg::Camera::DEPTH_BUFFER: os << "DEPTH_BUFFER"; break;
+    case osg::Camera::STENCIL_BUFFER: os << "STENCIL_BUFFER"; break;
+    case osg::Camera::PACKED_DEPTH_STENCIL_BUFFER: os << "PACKED_DEPTH_STENCIL_BUFFER"; break;
+    case osg::Camera::COLOR_BUFFER: os << "COLOR_BUFFER"; break;
+    default:
+        os << "COLOR_BUFFER" << (t-osg::Camera::COLOR_BUFFER0);
+        break;
     }
     return os;
 }
@@ -4457,6 +5071,44 @@ std::string cullingModeToString(osg::CullSettings::CullingMode t)
     return s;
 }
 
+namespace {
+    class CullStackAccess : public osg::CullStack
+    {
+    public:
+        float getFrustumVolumeNoCompute() const {
+            return _frustumVolume;
+        }
+    };
+}
+
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::CullStack * object_)
+{
+    const CullStackAccess* object = static_cast<const CullStackAccess*>(object_);
+    os << "<tr><td>frustumVolume</td><td>" << object->getFrustumVolumeNoCompute() << "</td></tr>" << std::endl;
+    os << "<tr><td>eyeLocal</td><td>" << object->getEyeLocal() << "</td></tr>" << std::endl;
+    os << "<tr><td>viewPointLocal</td><td>" << object->getViewPointLocal() << "</td></tr>" << std::endl;
+    if (!object->getModelViewStack().empty())
+    {
+        os << "<tr><td>upLocal</td><td>" << object->getUpLocal() << "</td></tr>" << std::endl;
+        os << "<tr><td>lookVectorLocal</td><td>" << object->getLookVectorLocal() << "</td></tr>" << std::endl;
+    }
+    os << "<tr><td>eyeLocal</td><td>" << object->getEyeLocal() << "</td></tr>" << std::endl;
+
+    os << "<tr><td>viewport</td><td><table broder=\"1\">";
+    osg_helpers::writePrettyHTML(os, object->getViewport());
+    os << "</table></td></tr>" << std::endl;
+
+    os << "<tr><td>projectionMatrix</td><td>";
+    writePrettyHTML(os, object->getProjectionMatrix(), MatrixUsageTypePerspective);
+    os << "</td></tr>" << std::endl;
+    os << "<tr><td>modelViewMatrix</td><td>";
+    writePrettyHTML(os, object->getModelViewMatrix(), MatrixUsageTypeModelView);
+    os << "</td></tr>" << std::endl;
+    os << "<tr><td>windowMatrix</td><td>";
+    writePrettyHTML(os, object->getWindowMatrix(), MatrixUsageTypeWindow);
+    os << "</td></tr>" << std::endl;
+}
+
 void writePrettyHTML(std::basic_ostream<char>& os, const osg::CullSettings * object)
 {
     os << "<tr><td>inheritanceMaskActionOnAttributeSetting</td><td>" << object->getInheritanceMaskActionOnAttributeSetting() << "</td></tr>" << std::endl;
@@ -4478,6 +5130,22 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::CullSettings * obj
 }
 
 
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::Camera::Attachment & attachment)
+{
+    os << "<tr><td>internalFormat</td><td>" << attachment._internalFormat << "</td></tr>" << std::endl;
+    os << "<tr><td>image</td><td>" << osg_helpers::getObjectNameAndType(attachment._image.get(), true) << "</td></tr>" << std::endl;
+    os << "<tr><td>texture</td><td>" << osg_helpers::getObjectNameAndType(attachment._texture.get(), true) << "</td></tr>" << std::endl;
+    os << "<tr><td>width</td><td>" << attachment.width() << "</td></tr>" << std::endl;
+    os << "<tr><td>height</td><td>" << attachment.height() << "</td></tr>" << std::endl;
+    os << "<tr><td>depth</td><td>" << attachment.depth() << "</td></tr>" << std::endl;
+    os << "<tr><td>level</td><td>" << attachment._level << "</td></tr>" << std::endl;
+    os << "<tr><td>face</td><td>" << attachment._face << "</td></tr>" << std::endl;
+    os << "<tr><td>mipMapGeneration</td><td>" << attachment._mipMapGeneration << "</td></tr>" << std::endl;
+    os << "<tr><td>multisampleSamples</td><td>" << attachment._multisampleSamples << "</td></tr>" << std::endl;
+    os << "<tr><td>multisampleColorSamples</td><td>" << attachment._multisampleColorSamples << "</td></tr>" << std::endl;
+}
+
+
 bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -4496,6 +5164,9 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
             writePrettyHTML(os, static_cast<osg::CullSettings*>(object));
 
             // add remaining camera properties
+            os << "<tr><td>view</td><td>" << osg_helpers::getObjectNameAndType(object->getView(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>graphicsContext</td><td>" << osg_helpers::getObjectNameAndType(object->getGraphicsContext(), true) << "</td></tr>" << std::endl;
+
             os << "<tr><td>clear color</td><td>"
                 << vec4fToHtmlColor(object->getClearColor())
                 << "</td></tr>" << std::endl;
@@ -4506,8 +5177,8 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
             os << "<tr><td>clearDepth</td><td>" << object->getClearDepth() << "</td></tr>" << std::endl;
             os << "<tr><td>clearStencil</td><td>" << object->getClearStencil()<< "</td></tr>" << std::endl;
 
-            os << "<tr><td>colorMask</td><td>" << osg_helpers::getObjectNameAndType(object->getColorMask()) << "</td></tr>" << std::endl;
-            os << "<tr><td>viewport</td><td>" << osg_helpers::getObjectNameAndType(object->getViewport()) << "</td></tr>" << std::endl;
+            os << "<tr><td>colorMask</td><td>" << osg_helpers::getObjectNameAndType(object->getColorMask(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>viewport</td><td>" << osg_helpers::getObjectNameAndType(object->getViewport(), true) << "</td></tr>" << std::endl;
             os << "<tr><td>transformOrder</td><td>" << object->getTransformOrder() << "</td></tr>" << std::endl;
 
             os << "<tr><td>projectionMatrix</td><td>";
@@ -4523,9 +5194,28 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
             os << "<tr><td>renderOrderNum</td><td>" << object->getRenderOrderNum() << "</td></tr>" << std::endl;
             os << "<tr><td>renderTargetImpl</td><td>" << object->getRenderTargetImplementation() << "</td></tr>" << std::endl;
             os << "<tr><td>renderTargetFallback</td><td>" << object->getRenderTargetFallback() << "</td></tr>" << std::endl;
-            os << "<tr><td>drawBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDrawBuffer()) << "</td></tr>" << std::endl;
-            os << "<tr><td>readBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getReadBuffer()) << "</td></tr>" << std::endl;
+            os << "<tr><td>drawBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getDrawBuffer()) << "</td></tr>" << std::endl;
+            os << "<tr><td>readBuffer</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getReadBuffer()) << "</td></tr>" << std::endl;
             os << "<tr><td>projResizePolicy</td><td>" << object->getProjectionResizePolicy() << "</td></tr>" << std::endl;
+
+            os << "<tr><td>bufferAttachmentMap</td><td>";
+            const osg::Camera::BufferAttachmentMap & bufferAttachmentMap = object->getBufferAttachmentMap();
+            if (bufferAttachmentMap.empty())
+            {
+                os << "<i>empty</i>";
+            }
+            else
+            {
+                os << "<ul>";
+                for (auto it = bufferAttachmentMap.begin(); it != bufferAttachmentMap.end(); ++it)
+                {
+                    const osg::Camera::BufferComponent & buffercomponent = it->first;
+                    os << "<li>" << buffercomponent << "</li>";
+                }
+                os << "</ul>";
+            }
+            os << "</td></tr>" << std::endl;
+
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
@@ -4540,14 +5230,53 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add osg::Camera callbacks now
-            os << "<tr><td>initial draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getInitialDrawCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>pre-draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getPreDrawCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>post-draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getPostDrawCallback()) << "</td></tr>" << std::endl;
-            os << "<tr><td>final draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getFinalDrawCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>initial draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getInitialDrawCallback(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>pre-draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getPreDrawCallback(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>post-draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getPostDrawCallback(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>final draw callback</td><td>" << osg_helpers::getObjectNameAndType(object->getFinalDrawCallback(), true) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
+        }
+        break;
+    case SGIItemTypeCameaBufferAttachments:
+        {
+
+            const osg::Camera::BufferAttachmentMap & bufferAttachmentMap = object->getBufferAttachmentMap();
+            if(_item->number() == ~0u)
+            {
+                if(_table)
+                    os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+                for(auto it = bufferAttachmentMap.begin(); it != bufferAttachmentMap.end(); ++it)
+                {
+                    const osg::Camera::BufferComponent & buffercomponent = it->first;
+
+                    os << "<tr><td>" << buffercomponent << "</td><td>";
+                    os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+                    const osg::Camera::Attachment & attachment = it->second;
+                    writePrettyHTML(os, attachment);
+
+                    os << "</table>" << std::endl;
+                    os << "</td></tr>" << std::endl;
+                }
+            }
+            else
+            {
+                const osg::Camera::BufferComponent buffercomponent = (osg::Camera::BufferComponent)_item->number();
+                os << buffercomponent << "<br/>";
+                if(_table)
+                    os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+                auto it = bufferAttachmentMap.find(buffercomponent);
+                if(it != bufferAttachmentMap.end())
+                {
+                    const osg::Camera::Attachment & attachment = it->second;
+                    writePrettyHTML(os, attachment);
+                }
+            }
+
+            if(_table)
+                os << "</table>" << std::endl;
         }
         break;
     default:
@@ -4557,529 +5286,6 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
     return ret;
 }
 
-namespace {
-    class StatisticsVisitor : public osgUtil::StatsVisitor
-    {
-    public:
-        typedef std::set<osg::StateAttribute*> StateAttributeSet;
-        typedef std::set<osg::Uniform*> UniformSet;
-
-    public:
-        StatisticsVisitor();
-        virtual ~StatisticsVisitor();
-
-        virtual void reset();
-        virtual void apply(osg::Node& node);
-        virtual void apply(osg::Group& node);
-        virtual void apply(osg::Transform& node);
-        virtual void apply(osg::LOD& node);
-        virtual void apply(osg::Switch& node);
-        virtual void apply(osg::Geode& node);
-        virtual void apply(osg::Drawable& drawable);
-
-        virtual void apply(osg::PagedLOD& node);
-        virtual void apply(osg::ProxyNode& node);
-        virtual void apply(osg::CoordinateSystemNode& node);
-        virtual void apply(osg::Camera& node);
-        virtual void apply(osg::CameraView& node);
-        virtual void apply(osg::MatrixTransform& node);
-        virtual void apply(osg::PositionAttitudeTransform& node);
-
-        virtual void apply(osg::StateSet& ss);
-
-        virtual void apply(osg::StateAttribute & attr);
-        virtual void apply(osg::Uniform & uniform);
-        virtual void apply(osg::BufferData& buffer);
-
-
-    public:
-        void printHTML(std::ostream& out);
-
-    protected:
-        virtual void            updateNodeStats(osg::Node & node);
-        virtual void            updateCallbackStats(osg::NodeCallback * cb);
-
-    protected:
-        unsigned int _numInstancedPagedLOD;
-        unsigned int _numInstancedProxyNode;
-        unsigned int _numInstancedCSN;
-        unsigned int _numInstancedCamera;
-        unsigned int _numInstancedCameraView;
-        unsigned int _numInstancedMatrixTransform;
-        unsigned int _numInstancedPAT;
-        unsigned int _numInstancedSceneGraphNode;
-        unsigned int _numEventCallbacks;
-        unsigned int _numUpdateCallbacks;
-        unsigned int _numCullCallbacks;
-        unsigned int _numCullInactive;
-        unsigned int _numCullDisabled;
-        unsigned int _numAnimationCallbacks;
-        unsigned int _numInstancedStateAttribute;
-        unsigned int _numInstancedUniform;
-        unsigned int _estimatedMemory;
-        unsigned int _numInstancedAnimationSkeleton;
-        unsigned int _numInstancedAnimationBone;
-
-        enum { MaxStateAttributeType = osg::StateAttribute::FRAME_BUFFER_OBJECT };
-
-        unsigned int _numInstancedSA[MaxStateAttributeType + 1];
-
-        NodeSet             _pagedlodSet;
-        NodeSet             _proxynodeSet;
-        NodeSet             _csnSet;
-        NodeSet             _cameraSet;
-        NodeSet             _cameraViewSet;
-        NodeSet             _matrixTransformSet;
-        NodeSet             _patSet;
-        StateAttributeSet   _stateAttributeSet;
-        UniformSet          _uniformSet;
-        NodeSet             _animationSkeletonSet;
-        NodeSet             _animationBoneSet;
-    };
-    StatisticsVisitor::StatisticsVisitor()
-        : osgUtil::StatsVisitor()
-        , _numInstancedPagedLOD(0)
-        , _numInstancedProxyNode(0)
-        , _numInstancedCSN(0)
-        , _numInstancedCamera(0)
-        , _numInstancedCameraView(0)
-        , _numInstancedMatrixTransform(0)
-        , _numInstancedPAT(0)
-        , _numUpdateCallbacks(0)
-        , _numEventCallbacks(0)
-        , _numCullCallbacks(0)
-        , _numCullInactive(0)
-        , _numCullDisabled(0)
-        , _numAnimationCallbacks(0)
-        , _numInstancedStateAttribute(0)
-        , _numInstancedUniform(0)
-        , _estimatedMemory(0)
-        , _numInstancedAnimationSkeleton(0)
-        , _numInstancedAnimationBone(0)
-    {
-        for(int n = 0; n < MaxStateAttributeType; n++)
-            _numInstancedSA[n] = 0;
-    }
-
-    StatisticsVisitor::~StatisticsVisitor()
-    {
-    }
-
-    void StatisticsVisitor::reset()
-    {
-        _numInstancedPagedLOD = 0;
-        _numInstancedProxyNode = 0;
-        _numInstancedCSN = 0;
-        _numInstancedCamera = 0;
-        _numInstancedCameraView = 0;
-        _numInstancedMatrixTransform = 0;
-        _numInstancedPAT = 0;
-        _numInstancedSceneGraphNode = 0;
-        _numInstancedAnimationSkeleton = 0;
-        _numInstancedAnimationBone = 0;
-
-        _numUpdateCallbacks = 0;
-        _numEventCallbacks = 0;
-        _numCullCallbacks = 0;
-        _numCullInactive = 0;
-        _numCullDisabled = 0;
-        _numAnimationCallbacks = 0;
-
-        _numInstancedStateAttribute = 0;
-        for(int n = 0; n < MaxStateAttributeType; n++)
-            _numInstancedSA[n] = 0;
-        _numInstancedUniform = 0;
-        _estimatedMemory = 0;
-
-        _pagedlodSet.clear();
-        _proxynodeSet.clear();
-        _csnSet.clear();
-        _cameraSet.clear();
-        _cameraViewSet.clear();
-        _matrixTransformSet.clear();
-        _patSet.clear();
-        _stateAttributeSet.clear();
-        _uniformSet.clear();
-        _animationSkeletonSet.clear();
-        _animationBoneSet.clear();
-    }
-
-    void StatisticsVisitor::updateNodeStats(osg::Node & node)
-    {
-        osg::NodeCallback * cb;
-#if OSG_VERSION_GREATER_THAN(3,3,1)
-#else
-        cb = node.getUpdateCallback();
-        while(cb)
-        {
-            _numUpdateCallbacks++;
-            updateCallbackStats(cb);
-            cb = cb->getNestedCallback();
-        }
-        cb = node.getEventCallback();
-        while(cb)
-        {
-            _numEventCallbacks++;
-            updateCallbackStats(cb);
-            cb = cb->getNestedCallback();
-        }
-        cb = node.getCullCallback();
-        while(cb)
-        {
-            _numCullCallbacks++;
-            updateCallbackStats(cb);
-            cb = cb->getNestedCallback();
-        }
-#endif
-        if(!node.isCullingActive())
-            _numCullInactive++;
-        if(!node.getCullingActive())
-            _numCullDisabled++;
-    }
-
-    void StatisticsVisitor::updateCallbackStats(osg::NodeCallback * cb)
-    {
-        osgAnimation::AnimationManagerBase* anibase = dynamic_cast<osgAnimation::AnimationManagerBase*>(cb);
-        if(anibase)
-            _numAnimationCallbacks++;
-    }
-
-    void StatisticsVisitor::apply(osg::Node& node)
-    {
-        osgUtil::StatsVisitor::apply(node);
-        updateNodeStats(node);
-    }
-
-    void StatisticsVisitor::apply(osg::Group& node)
-    {
-        osgUtil::StatsVisitor::apply(node);
-        updateNodeStats(node);
-    }
-
-    void StatisticsVisitor::apply(osg::Transform& node)
-    {
-        osgUtil::StatsVisitor::apply(node);
-        updateNodeStats(node);
-    }
-
-    void StatisticsVisitor::apply(osg::LOD& node)
-    {
-        osgUtil::StatsVisitor::apply(node);
-        updateNodeStats(node);
-    }
-
-    void StatisticsVisitor::apply(osg::Switch& node)
-    {
-        osgUtil::StatsVisitor::apply(node);
-        updateNodeStats(node);
-    }
-
-    void StatisticsVisitor::apply(osg::Geode& node)
-    {
-        osgUtil::StatsVisitor::apply(node);
-        updateNodeStats(node);
-    }
-
-    void StatisticsVisitor::apply(osg::Drawable& node)
-    {
-        osgUtil::StatsVisitor::apply(node);
-        osg::Geometry* geometry = node.asGeometry();
-        if (geometry)
-        {
-            osg::Geometry::ArrayList arrays;
-            if(geometry->getArrayList(arrays))
-            {
-                for(osg::Geometry::ArrayList::const_iterator it = arrays.begin(); it != arrays.end(); it++)
-                {
-                    const osg::ref_ptr<osg::Array> & array = *it;
-                    apply(*array.get());
-                }
-            }
-            const osg::Geometry::PrimitiveSetList & primSets = geometry->getPrimitiveSetList();
-            for(osg::Geometry::PrimitiveSetList::const_iterator it = primSets.begin(); it != primSets.end(); it++)
-            {
-                const osg::ref_ptr<osg::PrimitiveSet> & primset = *it;
-                apply(*primset.get());
-            }
-        }
-    }
-
-    void StatisticsVisitor::apply(osg::PagedLOD& node)
-    {
-        if (node.getStateSet())
-        {
-            apply(*node.getStateSet());
-        }
-
-        ++_numInstancedPagedLOD;
-        _pagedlodSet.insert(&node);
-
-        updateNodeStats(node);
-        traverse(node);
-    }
-
-    void StatisticsVisitor::apply(osg::ProxyNode& node)
-    {
-        if (node.getStateSet())
-        {
-            apply(*node.getStateSet());
-        }
-
-        ++_numInstancedProxyNode;
-        _proxynodeSet.insert(&node);
-
-        updateNodeStats(node);
-        traverse(node);
-    }
-
-    void StatisticsVisitor::apply(osg::CoordinateSystemNode& node)
-    {
-        if (node.getStateSet())
-        {
-            apply(*node.getStateSet());
-        }
-
-        ++_numInstancedCSN;
-        _csnSet.insert(&node);
-
-        updateNodeStats(node);
-        traverse(node);
-    }
-
-    void StatisticsVisitor::apply(osg::Camera& node)
-    {
-        if (node.getStateSet())
-        {
-            apply(*node.getStateSet());
-        }
-
-        ++_numInstancedCamera;
-        _cameraSet.insert(&node);
-
-        updateNodeStats(node);
-        traverse(node);
-    }
-
-    void StatisticsVisitor::apply(osg::CameraView& node)
-    {
-        if (node.getStateSet())
-        {
-            apply(*node.getStateSet());
-        }
-
-        ++_numInstancedCameraView;
-        _cameraViewSet.insert(&node);
-
-        updateNodeStats(node);
-        traverse(node);
-    }
-
-    void StatisticsVisitor::apply(osg::BufferData& buffer)
-    {
-        _estimatedMemory += buffer.getTotalDataSize();
-    }
-
-    void StatisticsVisitor::apply(osg::MatrixTransform& node)
-    {
-        if (node.getStateSet())
-        {
-            apply(*node.getStateSet());
-        }
-
-        if(dynamic_cast<osgAnimation::Skeleton*>(&node))
-        {
-            ++_numInstancedAnimationSkeleton;
-            _animationSkeletonSet.insert(&node);
-        }
-        else if(dynamic_cast<osgAnimation::Bone*>(&node))
-        {
-            ++_numInstancedAnimationBone;
-            _animationBoneSet.insert(&node);
-        }
-        else
-        {
-            ++_numInstancedMatrixTransform;
-            _matrixTransformSet.insert(&node);
-        }
-
-        updateNodeStats(node);
-        traverse(node);
-    }
-
-    void StatisticsVisitor::apply(osg::PositionAttitudeTransform& node)
-    {
-        if (node.getStateSet())
-        {
-            apply(*node.getStateSet());
-        }
-
-        ++_numInstancedPAT;
-        _patSet.insert(&node);
-
-        updateNodeStats(node);
-        traverse(node);
-    }
-
-    void StatisticsVisitor::apply(osg::StateSet& ss)
-    {
-        osgUtil::StatsVisitor::apply(ss);
-        const osg::StateSet::AttributeList& attributes = ss.getAttributeList();
-        for(osg::StateSet::AttributeList::const_iterator it = attributes.begin(); it != attributes.end(); it++)
-        {
-            const osg::StateAttribute::TypeMemberPair & typememberpair = it->first;
-            const osg::StateAttribute::Type & type = typememberpair.first;
-            const unsigned int & member = typememberpair.second;
-            const osg::StateSet::RefAttributePair & attrpair = it->second;
-            const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
-            const osg::StateAttribute::OverrideValue & value = attrpair.second;
-            apply(*attr);
-        }
-
-        const osg::StateSet::TextureAttributeList & textureAttributes = ss.getTextureAttributeList();
-        for(osg::StateSet::TextureAttributeList::const_iterator it = textureAttributes.begin(); it != textureAttributes.end(); it++)
-        {
-            const osg::StateSet::AttributeList & attributes = *it;
-            for(osg::StateSet::AttributeList::const_iterator it2 = attributes.begin(); it2 != attributes.end(); it2++)
-            {
-                const osg::StateAttribute::TypeMemberPair & typememberpair = it2->first;
-                const osg::StateAttribute::Type & type = typememberpair.first;
-                const unsigned int & member = typememberpair.second;
-                const osg::StateSet::RefAttributePair & attrpair = it2->second;
-                const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
-                const osg::StateAttribute::OverrideValue & value = attrpair.second;
-
-                apply(*attr);
-            }
-        }
-
-        const osg::StateSet::UniformList & uniforms = ss.getUniformList();
-        for(osg::StateSet::UniformList::const_iterator it = uniforms.begin(); it != uniforms.end(); it++)
-        {
-            const std::string & name = it->first;
-            const osg::StateAttribute::OverrideValue & overridevalue = it->second.second;
-            const osg::ref_ptr<osg::Uniform> & uniform = it->second.first;
-            apply(*uniform);
-        }
-
-    }
-
-    void StatisticsVisitor::apply(osg::StateAttribute & attr)
-    {
-        ++_numInstancedStateAttribute;
-        _stateAttributeSet.insert(&attr);
-
-        switch(attr.getType())
-        {
-        case osg::StateAttribute::TEXTURE:
-            {
-                osg::Texture * texture = attr.asTexture();
-                if(texture)
-                {
-                    unsigned int numImages = texture->getNumImages();
-                    for(unsigned n = 0; n < numImages; n++)
-                    {
-                        osg::Image * image = texture->getImage(n);
-                        if(image)
-                            apply(*image);
-                    }
-                }
-            }
-            break;
-        }
-
-        ++_numInstancedSA[attr.getType()];
-    }
-
-    void StatisticsVisitor::apply(osg::Uniform & uniform)
-    {
-        ++_numInstancedUniform;
-        _uniformSet.insert(&uniform);
-
-        {
-            osg::FloatArray * a = uniform.getFloatArray();
-            if(a)
-                _estimatedMemory += a->getTotalDataSize();
-        }
-        {
-            osg::DoubleArray * a = uniform.getDoubleArray();
-            if(a)
-                _estimatedMemory += a->getTotalDataSize();
-        }
-        {
-            osg::IntArray * a = uniform.getIntArray();
-            if(a)
-                _estimatedMemory += a->getTotalDataSize();
-        }
-        {
-            osg::UIntArray * a = uniform.getUIntArray();
-            if(a)
-                _estimatedMemory += a->getTotalDataSize();
-        }
-    }
-
-    void StatisticsVisitor::printHTML(std::ostream& out)
-    {
-        // automatically call the update to gets the unique vertices and primitives
-        totalUpStats();
-
-        unsigned int unique_primitives = 0;
-        osgUtil::Statistics::PrimitiveCountMap::iterator pcmitr;
-        for(pcmitr = _uniqueStats.GetPrimitivesBegin();
-            pcmitr != _uniqueStats.GetPrimitivesEnd();
-            ++pcmitr)
-        {
-            unique_primitives += pcmitr->second;
-        }
-
-        unsigned int instanced_primitives = 0;
-        for(pcmitr = _instancedStats.GetPrimitivesBegin();
-            pcmitr != _instancedStats.GetPrimitivesEnd();
-            ++pcmitr)
-        {
-            instanced_primitives += pcmitr->second;
-        }
-
-        out << "<table border=\'1\' width=\'100%\'>" << std::endl;
-        out << "<tr><th>Object Type</th><th>Unique</th><th>Instanced</th></tr>" << std::endl;
-        out << "<tr><td>StateSet</td><td>" << _statesetSet.size() << "</td><td>" << _numInstancedStateSet << "</td></tr>" << std::endl;
-        out << "<tr><td>StateAttribute</td><td>" << _stateAttributeSet.size() << "</td><td>" << _numInstancedStateAttribute << "</td></tr>" << std::endl;
-        out << "<tr><td>est. memory size</td><td>N/A</td><td>" << _estimatedMemory << "</td></tr>" << std::endl;
-        for(int n = 0; n < MaxStateAttributeType; n++)
-        {
-            out << "<tr><td>StateAttribute " << (osg::StateAttribute::Type)n << "</td><td>N/A</td><td>" << _numInstancedSA[n] << "</td></tr>" << std::endl;
-        }
-        out << "<tr><td>Uniform</td><td>" << _uniformSet.size() << "</td><td>" << _numInstancedUniform << "</td></tr>" << std::endl;
-
-        out << "<tr><td>Group</td><td>" << _groupSet.size() << "</td><td>" << _numInstancedGroup << "</td></tr>" << std::endl;
-        out << "<tr><td>Camera</td><td>" << _cameraSet.size() << "</td><td>" << _numInstancedCamera << "</td></tr>" << std::endl;
-        out << "<tr><td>CameraView</td><td>" << _cameraViewSet.size() << "</td><td>" << _numInstancedCameraView << "</td></tr>" << std::endl;
-        out << "<tr><td>Transform</td><td>" << _transformSet.size() << "</td><td>" << _numInstancedTransform << "</td></tr>" << std::endl;
-        out << "<tr><td>MatrixTransform</td><td>" << _matrixTransformSet.size() << "</td><td>" << _numInstancedMatrixTransform << "</td></tr>" << std::endl;
-        out << "<tr><td>PositionAttitudeTransform</td><td>" << _patSet.size() << "</td><td>" << _numInstancedPAT << "</td></tr>" << std::endl;
-        out << "<tr><td>LOD</td><td>" << _lodSet.size() << "</td><td>" << _numInstancedLOD << "</td></tr>" << std::endl;
-        out << "<tr><td>PagedLOD</td><td>" << _pagedlodSet.size() << "</td><td>" << _numInstancedPagedLOD << "</td></tr>" << std::endl;
-        out << "<tr><td>ProxyNode</td><td>" << _proxynodeSet.size() << "</td><td>" << _numInstancedProxyNode << "</td></tr>" << std::endl;
-        out << "<tr><td>Switch</td><td>" << _switchSet.size() << "</td><td>" << _numInstancedSwitch << "</td></tr>" << std::endl;
-        out << "<tr><td>animation skeleton</td><td>" << _animationSkeletonSet.size() << "</td><td>" << _numInstancedAnimationSkeleton << "</td></tr>" << std::endl;
-        out << "<tr><td>animation bone</td><td>" << _animationBoneSet.size() << "</td><td>" << _numInstancedAnimationBone << "</td></tr>" << std::endl;
-        out << "<tr><td>Geode</td><td>" << _geodeSet.size() << "</td><td>" << _numInstancedGeode << "</td></tr>" << std::endl;
-        out << "<tr><td>Drawable</td><td>" << _drawableSet.size() << "</td><td>" << _numInstancedDrawable << "</td></tr>" << std::endl;
-        out << "<tr><td>Geometry</td><td>" << _geometrySet.size() << "</td><td>" << _numInstancedGeometry << "</td></tr>" << std::endl;
-        out << "<tr><td>Fast geom.</td><td>" << _fastGeometrySet.size() << "</td><td>" << _numInstancedFastGeometry << "</td></tr>" << std::endl;
-        out << "<tr><td>Vertices</td><td>" << _uniqueStats._vertexCount << "</td><td>" << _instancedStats._vertexCount << "</td></tr>" << std::endl;
-        out << "<tr><td>Primitives</td><td>" << unique_primitives << "</td><td>" << instanced_primitives << "</td></tr>" << std::endl;
-
-        out << "<tr><td>event callbacks</td><td>" << _numEventCallbacks << "</td><td>" << _numEventCallbacks << "</td></tr>" << std::endl;
-        out << "<tr><td>update callbacks</td><td>" << _numUpdateCallbacks << "</td><td>" << _numUpdateCallbacks << "</td></tr>" << std::endl;
-        out << "<tr><td>cull callbacks</td><td>" << _numCullCallbacks << "</td><td>" << _numCullCallbacks << "</td></tr>" << std::endl;
-        out << "<tr><td>animation callbacks</td><td>" << _numAnimationCallbacks << "</td><td>" << _numAnimationCallbacks << "</td></tr>" << std::endl;
-        out << "<tr><td>cull incative</td><td>" << _numCullInactive << "</td><td>" << _numCullInactive << "</td></tr>" << std::endl;
-        out << "<tr><td>cull disabled</td><td>" << _numCullDisabled << "</td><td>" << _numCullDisabled << "</td></tr>" << std::endl;
-
-        out << "</table>" << std::endl;
-    }
-
-}
 
 bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
 {
@@ -5104,12 +5310,8 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
             os << "<tr><td>numChildrenWithOccluderNodes</td><td>" << object->getNumChildrenWithOccluderNodes() << "</td></tr>" << std::endl;
             os << "<tr><td>numUpdateTraversal</td><td>" << object->getNumChildrenRequiringUpdateTraversal() << "</td></tr>" << std::endl;
             os << "<tr><td>numEventTraversal</td><td>" << object->getNumChildrenRequiringEventTraversal() << "</td></tr>" << std::endl;
-            os << "<tr><td>initialBound</td><td>";
-            osg_helpers::writePrettyHTML(os, object->getInitialBound(), object);
-            os << "</td></tr>" << std::endl;
-            os << "<tr><td>bound</td><td>";
-            osg_helpers::writePrettyHTML(os, object->getBound(), object);
-            os << "</td></tr>" << std::endl;
+            os << "<tr><td>initialBound</td><td>" << object->getInitialBound() << "</td></tr>" << std::endl;
+            os << "<tr><td>bound</td><td>" << access->getBoundNoCompute() << "</td></tr>" << std::endl;
             os << "<tr><td>isBoundingSphereComputed</td><td>" << (access->isBoundingSphereComputed()?"true":"false") << "</td></tr>" << std::endl;
 
             if(_table)
@@ -5171,7 +5373,7 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
             for(unsigned n = 0; n < object->getNumParents(); n++)
             {
                 const osg::Group * parent = object->getParent(n);
-                os << "<li>" << osg_helpers::getObjectNameAndType(parent) << ")</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(parent, true) << ")</li>" << std::endl;
             }
             os << "</ol>" << std::endl;
             ret = true;
@@ -5185,12 +5387,13 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
             if(numPath == ~0u)
             {
                 os << "<table border=\'1\' align=\'left\'>" << std::endl;
-                os << "<tr><td>" << osg_helpers::getObjectNameAndType(object) << " <i>" << parentalNodePaths.size() << "</i></td></tr>" << std::endl;
-                for(osg::NodePathList::const_iterator itPathList = parentalNodePaths.begin(); itPathList != parentalNodePaths.end(); itPathList++)
+                os << "<tr><td>" << osg_helpers::getObjectNameAndType(object, true) << " <i>" << parentalNodePaths.size() << "</i></td></tr>" << std::endl;
+                unsigned num = 0;
+                for(osg::NodePathList::const_iterator itPathList = parentalNodePaths.begin(); itPathList != parentalNodePaths.end(); ++itPathList, ++num)
                 {
                     const osg::NodePath & nodePath = *itPathList;
-                    os << "<tr><td>" << std::endl;
-                    osg_helpers::writePrettyHTML(os, nodePath);
+                    os << "<tr><td>ParentalNodePath <i>#" << numPath << "</i><br/>" << std::endl;
+                    osg_helpers::writePrettyHTML(os, nodePath, true);
                     os << "</td></tr>" << std::endl;
                 }
                 os << "</table>" << std::endl;
@@ -5200,18 +5403,18 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
                 const osg::NodePathList parentalNodePaths = object->getParentalNodePaths();
                 if(numPath >= parentalNodePaths.size())
                 {
-                    os << "<p>ParentalNodePath <i>" << numPath << "</i> for <b>" << osg_helpers::getObjectNameAndType(object) << "</b> is unavailable.</p>" << std::endl;
+                    os << "<p>ParentalNodePath <i>#" << numPath << "</i> for <b>" << osg_helpers::getObjectNameAndType(object, true) << "</b> is unavailable.</p>" << std::endl;
                 }
                 else
                 {
-                    os << "<p>ParentalNodePath <i>" << numPath << "</i> for <b>" << osg_helpers::getObjectNameAndType(object) << "</b></p>" << std::endl;
+                    os << "<p>ParentalNodePath <i>#" << numPath << "</i> for <b>" << osg_helpers::getObjectNameAndType(object, true) << "</b></p>" << std::endl;
                     unsigned parentalNodePathNum = 0;
                     for(osg::NodePathList::const_iterator itPathList = parentalNodePaths.begin(); itPathList != parentalNodePaths.end(); itPathList++, parentalNodePathNum++)
                     {
                         if(parentalNodePathNum == numPath)
                         {
                             const osg::NodePath & nodePath = *itPathList;
-                            osg_helpers::writePrettyHTML(os, nodePath);
+                            osg_helpers::writePrettyHTML(os, nodePath, true);
                             break;
                         }
                     }
@@ -5222,9 +5425,17 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
         break;
     case SGIItemTypeStatistics:
         {
-            StatisticsVisitor sv;
-            object->accept(sv);
-            sv.printHTML(os);
+            unsigned contextID = osg_helpers::findContextID(object);
+            if (contextID != ~0u)
+            {
+                osg_helpers::StatisticsVisitor sv(contextID);
+                object->accept(sv);
+                sv.printHTML(os);
+            }
+            else
+            {
+                os << "<p>Unable to find context id for <b>" << osg_helpers::getObjectNameAndType(object, true) << "</b></p>" << std::endl;
+            }
             ret = true;
         }
         break;
@@ -5252,14 +5463,11 @@ bool writePrettyHTMLImpl<osg::NodeCallback>::process(std::basic_ostream<char>& o
             // add remaining NodeCallback properties
             os << "<tr><td>nested</td><td>";
 #if OSG_VERSION_GREATER_THAN(3,3,1)
-            const osg::Callback * nested = (object!=NULL)?object->getNestedCallback():NULL;
+            const osg::Callback * nested = object->getNestedCallback();
 #else
-            const osg::NodeCallback * nested = (object!=NULL)?object->getNestedCallback():NULL;
+            const osg::NodeCallback * nested = object->getNestedCallback();
 #endif
-            if(nested)
-                os << osg_helpers::getObjectName(nested) << " (" << osg_helpers::getObjectTypename(nested) << ")" << std::endl;
-            else
-                os << "&lt;null&gt;";
+            os << osg_helpers::getObjectNameAndType(nested);
             os << "</td></tr>" << std::endl;
             if(_table)
                 os << "</table>" << std::endl;
@@ -5323,9 +5531,9 @@ bool writePrettyHTMLImpl<osg::View>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             // add remaining View properties
-            os << "<tr><td>lighting mode</td><td>" << (object?object->getLightingMode():osg::View::NO_LIGHT) << "</td></tr>" << std::endl;
-            os << "<tr><td>light</td><td>" << osg_helpers::getObjectNameAndType(object->getLight()) << "</td></tr>" << std::endl;
-            os << "<tr><td>camera</td><td>" << osg_helpers::getObjectNameAndType(object->getCamera()) << "</td></tr>" << std::endl;
+            os << "<tr><td>lighting mode</td><td>" << object->getLightingMode() << "</td></tr>" << std::endl;
+            os << "<tr><td>light</td><td>" << osg_helpers::getObjectNameAndType(object->getLight(), true) << "</td></tr>" << std::endl;
+            os << "<tr><td>camera</td><td>" << osg_helpers::getObjectNameAndType(object->getCamera(), true) << "</td></tr>" << std::endl;
             const osg::FrameStamp * fs = object->getFrameStamp();
             os << "<tr><td>frame stamp</td><td>" << osg_helpers::getObjectNameAndType(object->getFrameStamp()) << "</td></tr>" << std::endl;
             if(fs)
@@ -5380,9 +5588,14 @@ bool writePrettyHTMLImpl<osg::FrameStamp>::process(std::basic_ostream<char>& os)
             os << "<tr><td>calendar time</td><td>";
             struct tm caltime;
             object->getCalendarTime(caltime);
-            char sz[64];
-            ::strftime (sz,sizeof(sz)/sizeof(sz[0]),"%c",&caltime);
-            os << sz;
+            if (caltime.tm_mday >= 1 && caltime.tm_mday <= 31)
+            {
+                char sz[64];
+                ::strftime(sz, sizeof(sz) / sizeof(sz[0]), "%c", &caltime);
+                os << sz;
+            }
+            else
+                os << "N/A";
             os << "</td></tr>" << std::endl;
 
             if(_table)
@@ -5482,6 +5695,15 @@ bool writePrettyHTMLImpl<osg::UserDataContainer>::process(std::basic_ostream<cha
             }
             os << "</ol></td></tr>" << std::endl;
 
+            os << "<tr><td>user objects</td><td><ol>";
+            unsigned numUserObjects = object->getNumUserObjects();
+            for (unsigned n = 0; n < numUserObjects; n++)
+            {
+                osg::Object * uobj = object->getUserObject(n);
+                os << "<li>" << osg_helpers::getObjectNameAndType(uobj)<< "</li>";
+            }
+            os << "</ol></td></tr>" << std::endl;
+
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
@@ -5526,7 +5748,7 @@ bool writePrettyHTMLImpl<osg::Object>::process(std::basic_ostream<char>& os)
             os << "<tr><td>libname</td><td>" << object->libraryName() << "</td></tr>" << std::endl;
             os << "<tr><td>dataVariance</td><td>" << object->getDataVariance() << "</td></tr>" << std::endl;
             os << "<tr><td>userData</td><td>" << osg_helpers::getObjectNameAndType(object->getUserData()) << "</td></tr>" << std::endl;
-            os << "<tr><td>userDataContainer</td><td>" << osg_helpers::getObjectNameAndType(object->getUserDataContainer()) << "</td></tr>" << std::endl;
+            os << "<tr><td>userDataContainer</td><td>" << osg_helpers::getObjectNameAndType(object->getUserDataContainer(), true) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -5552,7 +5774,7 @@ bool writePrettyHTMLImpl<osg::Referenced>::process(std::basic_ostream<char>& os)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
             os << "<tr><td>this</td><td>" << std::hex << (void*)object << std::dec << "</td></tr>" << std::endl;
             os << "<tr><td>typename</td><td>" << helpers::getRTTITypename_html(object) << "</td></tr>" << std::endl;
-            os << "<tr><td>refCount</td><td>" << object->referenceCount() << "</td></tr>" << std::endl;
+            os << "<tr><td>refCount</td><td>" << (object?object->referenceCount():0) << "</td></tr>" << std::endl;
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
@@ -5643,6 +5865,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg::Array::T
     case osg::Array::Vec3dArrayType: os << "Vec3dArrayType"; break;
     case osg::Array::Vec4dArrayType: os << "Vec4dArrayType"; break;
     case osg::Array::MatrixArrayType: os << "MatrixArrayType"; break;
+    case osg::Array::MatrixdArrayType: os << "MatrixdArrayType"; break;
     default: os << (int)t; break;
     }
     return os;
@@ -5664,7 +5887,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg::Array::B
 
 #define writeArrayDataImpl(__elem_type) \
     { \
-        os << "<ol>"; \
+        os << "<ol start=\"0\">"; \
         const __elem_type * d = (const __elem_type*)object->getDataPointer(); \
         for(unsigned n = 0; n < object->getNumElements(); n++) \
             os << "<li>" << d[n] << "</li>"; \
@@ -5687,7 +5910,7 @@ bool writePrettyHTMLImpl<osg::Array>::process(std::basic_ostream<char>& os)
 
             // remaining Array properties
             os << "<tr><td>type</td><td>" << object->getType() << "</td></tr>" << std::endl;
-            os << "<tr><td>dataType</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getDataType()) << "</td></tr>" << std::endl;
+            os << "<tr><td>dataType</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getDataType()) << "</td></tr>" << std::endl;
             os << "<tr><td>dataSize</td><td>" << object->getDataSize() << "</td></tr>" << std::endl;
             os << "<tr><td>totalDataSize</td><td>" << object->getTotalDataSize() << "</td></tr>" << std::endl;
             os << "<tr><td>numElements</td><td>" << object->getNumElements() << "</td></tr>" << std::endl;
@@ -5708,6 +5931,7 @@ bool writePrettyHTMLImpl<osg::Array>::process(std::basic_ostream<char>& os)
             default:
             case osg::Array::ArrayType:
             case osg::Array::MatrixArrayType:
+            case osg::Array::MatrixdArrayType:
                 os << "array type " << object->getType() << " not implemented";
                 break;
             case osg::Array::ByteArrayType: writeArrayDataImpl(int8_t); break;
@@ -5756,11 +5980,6 @@ bool writePrettyHTMLImpl<osg::IndexArray>::process(std::basic_ostream<char>& os)
             // add osg::Array properties first
             callNextHandler(os);
 
-            // remaining IndexArray properties
-            /// @todo add more IndexArray properties
-
-            /// @todo add array data here
-
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
@@ -5787,8 +6006,8 @@ bool writePrettyHTMLImpl<osg::BufferObject>::process(std::basic_ostream<char>& o
             // add osg::Array properties first
             callNextHandler(os);
 
-            os << "<tr><td>target</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getTarget()) << "</td></tr>" << std::endl;
-            os << "<tr><td>usage</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(object->getUsage()) << "</td></tr>" << std::endl;
+            os << "<tr><td>target</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getTarget()) << "</td></tr>" << std::endl;
+            os << "<tr><td>usage</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getUsage()) << "</td></tr>" << std::endl;
             os << "<tr><td>size</td><td>" << object->getProfile()._size << "</td></tr>" << std::endl;
             os << "<tr><td>numBufferData</td><td>" << object->getNumBufferData() << "</td></tr>" << std::endl;
 
@@ -5803,7 +6022,7 @@ bool writePrettyHTMLImpl<osg::BufferObject>::process(std::basic_ostream<char>& o
             unsigned numBufferData = object->getNumBufferData();
             for(unsigned n = 0; n < numBufferData; n++)
             {
-                os << "<li>" << osg_helpers::getObjectNameAndType(object->getBufferData(n)) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(object->getBufferData(n), true) << "</li>" << std::endl;
             }
             os << "</ol>";
             ret = true;
@@ -5897,7 +6116,7 @@ bool writePrettyHTMLImpl<osg::ShaderComponent>::process(std::basic_ostream<char>
             unsigned numShaders = object->getNumShaders();
             for(unsigned n = 0; n < numShaders; n++)
             {
-                os << "<li>" << osg_helpers::getObjectNameAndType(object->getShader(n)) << "</li>" << std::endl;
+                os << "<li>" << osg_helpers::getObjectNameAndType(object->getShader(n), true) << "</li>" << std::endl;
             }
             os << "</ol>";
             ret = true;
@@ -5910,119 +6129,287 @@ bool writePrettyHTMLImpl<osg::ShaderComponent>::process(std::basic_ostream<char>
     return ret;
 }
 
-bool writePrettyHTMLImpl<RenderInfoDrawable>::process(std::basic_ostream<char>& os)
+bool writePrettyHTMLImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, std::basic_ostream<char>& os, bool table, SGIItemBase * item, const RenderInfoData & data)
 {
     bool ret = false;
-    RenderInfoDrawable* object = getObject<RenderInfoDrawable, SGIItemOsg>();
-    switch(itemType())
+    SGIItemBase * itemNext = item->nextBase();
+    switch(item->type())
     {
     case SGIItemTypeObject:
         {
-            if(_table)
+            if(table)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
             // add referenced properties first
-            callNextHandler(os);
+            ret = hostInterface->writePrettyHTML(os, itemNext, false);
 
-            // add remaining node properties
-/*
-            os << "<tr><td>lastView</td><td>" << osg_helpers::getObjectNameAndType(object->lastView()) << "</td></tr>" << std::endl;
-            {
-                const RenderInfoDrawable::StateSetStack & lastStack = object->lastStateSetStack();
-                os << "<tr><td>lastStateSetStack</td><td>" << lastStack.size() << " elements</td></tr>" << std::endl;
-            }
-            {
-                const RenderInfoDrawable::RenderBinStack & lastStack = object->lastRenderBinStack();
-                os << "<tr><td>lastRenderBinStack</td><td>" << lastStack.size() << " elements</td></tr>" << std::endl;
-            }
-            {
-                const RenderInfoDrawable::CameraStack & lastStack = object->lastCameraStack();
-                os << "<tr><td>lastCameraStack</td><td>" << lastStack.size() << " elements</td></tr>" << std::endl;
-            }
-*/
-            if(_table)
+            if(table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeRenderInfoState:
+        {
+            if (item->number() == ~0u)
+            {
+                const RenderInfoData::HashedState & hashedState = data.hashedState();
+                if(hashedState.empty())
+                    os << "No states available.." << std::endl;
+                else
+                {
+                    os << "<ul>";
+                    for (const auto & it : hashedState)
+                    {
+                        const RenderInfoData::State & state = it.second;
+                        os << "<li>0x" << std::hex << it.first << "<br/>";
+                        os << "contextID=#" << (state.state.valid()?state.state->getContextID():~0u) << "<br/>" << std::endl;
+                        os << "stateSetStack=#" << state.stateSetStack.size() << "<br/>" << std::endl;
+                        os << "renderBinStack=#" << state.renderBinStack.size() << "<br/>" << std::endl;
+                        os << "cameraStack=#" << state.cameraStack.size() << "<br/>" << std::endl;
+                        os << "appliedProgamSet=#" << state.appliedProgamSet.size() << "<br/>" << std::endl;
+                        os << "</li>" << std::endl;
+                    }
+                    os << "</ul>";
+                }
+            }
+            else
+            {
+                const RenderInfoData::HashedState & hashedState = data.hashedState();
+                RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
+                if (it != hashedState.end())
+                {
+                    const RenderInfoData::State & state = it->second;
+                    os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+                    os << "<tr><td>hash</td><td>0x" << std::hex << it->first << "</td></tr>" << std::endl;
+                    os << "<tr><td>state</td><td>" << osg_helpers::getObjectNameAndType(state.state.get(), true) << "</td></tr>" << std::endl;
+                    os << "<tr><td>contextID</td><td>" << (state.state.valid() ? state.state->getContextID() : ~0u) << "</td></tr>" << std::endl;
+                    os << "<tr><td>stateSetStack</td><td>" << state.stateSetStack.size() << " items</td></tr>" << std::endl;
+                    os << "<tr><td>renderBinStack</td><td>" << state.renderBinStack.size() << " items</td></tr>" << std::endl;
+                    os << "<tr><td>cameraStack</td><td>" << state.cameraStack.size() << " items</td></tr>" << std::endl;
+                    os << "<tr><td>appliedProgamSet</td><td>" << state.appliedProgamSet.size() << " items</td></tr>" << std::endl;
+                    os << "<tr><td>view</td><td>" << osg_helpers::getObjectNameAndType(state.view.get(), true) << "</td></tr>" << std::endl;
+                    os << "<tr><td>userData</td><td>" << osg_helpers::getObjectNameAndType(state.userData.get(), true) << "</td></tr>" << std::endl;
+                    os << "<tr><td>capturedStateSet</td><td>" << osg_helpers::getObjectNameAndType(state.capturedStateSet.get(), true) << "</td></tr>" << std::endl;
+                    os << "<tr><td>combinedStateSet</td><td>" << osg_helpers::getObjectNameAndType(state.combinedStateSet.get(), true) << "</td></tr>" << std::endl;
+                    os << "</table>" << std::endl;
+                }
+                else
+                {
+                    os << "<b>state <i>" << item->number() << "</i> not found<b>" << std::endl;
+                }
+            }
             ret = true;
         }
         break;
     case SGIItemTypeRenderInfoStateSetStack:
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
-            if(it != hashedState.end())
+            if (item->number() == ~0u)
             {
-                os << "<ol>";
-                const RenderInfoDrawable::State & state = it->second;
-                const RenderInfoDrawable::StateSetStack & set = state.stateSetStack;
-                for(RenderInfoDrawable::StateSetStack::const_iterator it = set.begin(); it != set.end(); it++)
+                const RenderInfoData::HashedState & hashedState = data.hashedState();
+                os << "<ul>";
+                for (const auto & state : hashedState)
                 {
-                    os << "<li>" << osg_helpers::getObjectNameAndType((*it).get()) << "</li>" << std::endl;
+                    os << "<li>" << state.first << "</li>" << std::endl;
                 }
-                os << "</ol>";
+                os << "</ul>";
+            }
+            else
+            {
+                const RenderInfoData::HashedState & hashedState = data.hashedState();
+                RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
+                if (it != hashedState.end())
+                {
+                    const RenderInfoData::State & state = it->second;
+                    const RenderInfoData::StateSetStack & set = state.stateSetStack;
+                    if(set.empty())
+                        os << "StateSet stack of state <i>" << item->number() << "</i> is empty." << std::endl;
+                    else
+                    {
+                        os << "<ol>";
+                        for (RenderInfoData::StateSetStack::const_iterator it = set.begin(); it != set.end(); it++)
+                        {
+                            const RenderInfoData::StateSetEntry & entry = *it;
+                            os << "<li>" << osg_helpers::getObjectNameAndType(entry.stateSet.get(), true) << "<br/>";
+                            for (const auto & paths : entry.parentalNodePaths)
+                            {
+                                os << "<ul>";
+                                for (const auto & path : paths)
+                                {
+                                    os << "<li>";
+                                    osg_helpers::writePrettyHTML(os, path);
+                                    os << "</li>";
+                                }
+                                os << "</ul>";
+                            }
+                            os << "</li>" << std::endl;
+                        }
+                        os << "</ol>";
+                    }
+                }
+                else
+                {
+                    os << "<b>state <i>" << item->number() << "</i> not found<b>" << std::endl;
+                }
             }
             ret = true;
         }
         break;
     case SGIItemTypeRenderInfoRenderBinStack:
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
+            const RenderInfoData::HashedState & hashedState = data.hashedState();
+            RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
             if(it != hashedState.end())
             {
-                os << "<ol>";
-                const RenderInfoDrawable::State & state = it->second;
-                const RenderInfoDrawable::RenderBinStack & set = state.renderBinStack;
-                for(RenderInfoDrawable::RenderBinStack::const_iterator it = set.begin(); it != set.end(); it++)
+                const RenderInfoData::State & state = it->second;
+                const RenderInfoData::RenderBinStack & set = state.renderBinStack;
+                if (set.empty())
+                    os << "render bin stack of state <i>" << item->number() << "</i> is empty." << std::endl;
+                else
                 {
-                    os << "<li>" << osg_helpers::getObjectNameAndType((*it).get()) << "</li>" << std::endl;
+                    os << "<ol>";
+                    for (RenderInfoData::RenderBinStack::const_iterator it = set.begin(); it != set.end(); it++)
+                    {
+                        os << "<li>" << osg_helpers::getObjectNameAndType((*it).get(), true) << "</li>" << std::endl;
+                    }
+                    os << "</ol>";
                 }
-                os << "</ol>";
+            }
+            else
+            {
+                os << "<b>state <i>" << item->number() << "</i> not found<b>" << std::endl;
             }
             ret = true;
         }
         break;
     case SGIItemTypeRenderInfoCameraStack:
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
+            const RenderInfoData::HashedState & hashedState = data.hashedState();
+            RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
             if(it != hashedState.end())
             {
-                os << "<ol>";
-                const RenderInfoDrawable::State & state = it->second;
-                const RenderInfoDrawable::CameraStack & set = state.cameraStack;
-                for(RenderInfoDrawable::CameraStack::const_iterator it = set.begin(); it != set.end(); it++)
+                const RenderInfoData::State & state = it->second;
+                const RenderInfoData::CameraStack & set = state.cameraStack;
+                if (set.empty())
+                    os << "camara stack of state <i>" << item->number() << "</i> is empty." << std::endl;
+                else
                 {
-                    os << "<li>" << osg_helpers::getObjectNameAndType((*it).get()) << "</li>" << std::endl;
+                    os << "<ol>";
+                    for (RenderInfoData::CameraStack::const_iterator it = set.begin(); it != set.end(); it++)
+                    {
+                        os << "<li>" << osg_helpers::getObjectNameAndType((*it).get(), true) << "</li>" << std::endl;
+                    }
+                    os << "</ol>";
                 }
-                os << "</ol>";
+            }
+            else
+            {
+                os << "<b>state <i>" << item->number() << "</i> not found<b>" << std::endl;
             }
             ret = true;
         }
         break;
     case SGIItemTypeRenderInfoAppliedProgramSet:
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
+            const RenderInfoData::HashedState & hashedState = data.hashedState();
+            RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
             if(it != hashedState.end())
             {
                 os << "<ol>";
-                const RenderInfoDrawable::State & state = it->second;
-                const RenderInfoDrawable::PerContextProgramSet & set = state.appliedProgamSet;
-                for(RenderInfoDrawable::PerContextProgramSet::const_iterator it = set.begin(); it != set.end(); it++)
+                const RenderInfoData::State & state = it->second;
+                const RenderInfoData::PerContextProgramSet & set = state.appliedProgamSet;
+                for(RenderInfoData::PerContextProgramSet::const_iterator it = set.begin(); it != set.end(); it++)
                 {
                     os << "<li>" << osg_helpers::getObjectNameAndType((*it).get()) << "</li>" << std::endl;
                 }
                 os << "</ol>";
             }
+            else
+            {
+                os << "<b>state <i>" << item->number() << "</i> not found<b>" << std::endl;
+            }
             ret = true;
         }
         break;
     default:
-        ret = callNextHandler(os);
+        ret = hostInterface->writePrettyHTML(os, itemNext, table);
         break;
     }
     return ret;
 }
+
+bool writePrettyHTMLImpl<RenderInfoDrawCallback>::process(std::basic_ostream<char>& os)
+{
+    RenderInfoDrawCallback * object = getObject<RenderInfoDrawCallback, SGIItemOsg, DynamicCaster>();
+    const RenderInfoData & data = object->data();
+    bool ret = writePrettyHTMLImpl_RenderInfoData(_hostInterface, os, _table, _item, data);
+    return ret;
+}
+
+bool writePrettyHTMLImpl<RenderInfoDrawable>::process(std::basic_ostream<char>& os)
+{
+    RenderInfoDrawable * object = getObject<RenderInfoDrawable, SGIItemOsg>();
+    const RenderInfoData & data = object->data();
+    bool ret = writePrettyHTMLImpl_RenderInfoData(_hostInterface, os, _table, _item, data);
+    return ret;
+}
+
+bool writePrettyHTMLImpl<RenderInfoGeometry>::process(std::basic_ostream<char>& os)
+{
+    RenderInfoGeometry * object = getObject<RenderInfoGeometry, SGIItemOsg>();
+    const RenderInfoData & data = object->data();
+    bool ret = writePrettyHTMLImpl_RenderInfoData(_hostInterface, os, _table, _item, data);
+    return ret;
+}
+
+#define writePrettyHTML_ValueObject(__c) \
+bool writePrettyHTMLImpl<__c>::process(std::basic_ostream<char>& os) \
+{ \
+    bool ret = false; \
+    __c * object = getObject<__c, SGIItemOsg>(); \
+    switch (itemType()) \
+    { \
+    case SGIItemTypeObject: \
+        {\
+            if (_table)\
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;\
+            callNextHandler(os); \
+            os << "<tr><td>value</td><td>" << object->getValue() << "</td></tr>" << std::endl; \
+            if (_table) \
+                os << "</table>" << std::endl; \
+            ret = true; \
+        } \
+        break; \
+    default: \
+        ret = callNextHandler(os); \
+        break; \
+    } \
+    return ret; \
+}
+
+writePrettyHTML_ValueObject(osg::StringValueObject)
+writePrettyHTML_ValueObject(osg::BoolValueObject)
+writePrettyHTML_ValueObject(osg::CharValueObject)
+writePrettyHTML_ValueObject(osg::UCharValueObject)
+writePrettyHTML_ValueObject(osg::ShortValueObject)
+writePrettyHTML_ValueObject(osg::UShortValueObject)
+writePrettyHTML_ValueObject(osg::IntValueObject)
+writePrettyHTML_ValueObject(osg::UIntValueObject)
+writePrettyHTML_ValueObject(osg::FloatValueObject)
+writePrettyHTML_ValueObject(osg::DoubleValueObject)
+writePrettyHTML_ValueObject(osg::Vec2fValueObject)
+writePrettyHTML_ValueObject(osg::Vec3fValueObject)
+writePrettyHTML_ValueObject(osg::Vec4fValueObject)
+writePrettyHTML_ValueObject(osg::Vec2dValueObject)
+writePrettyHTML_ValueObject(osg::Vec3dValueObject)
+writePrettyHTML_ValueObject(osg::Vec4dValueObject)
+writePrettyHTML_ValueObject(osg::QuatValueObject)
+writePrettyHTML_ValueObject(osg::PlaneValueObject)
+writePrettyHTML_ValueObject(osg::MatrixfValueObject)
+writePrettyHTML_ValueObject(osg::MatrixdValueObject)
+writePrettyHTML_ValueObject(osg::BoundingBoxfValueObject)
+writePrettyHTML_ValueObject(osg::BoundingBoxdValueObject)
+writePrettyHTML_ValueObject(osg::BoundingSpherefValueObject)
+writePrettyHTML_ValueObject(osg::BoundingSpheredValueObject)
 
 bool writePrettyHTMLImpl<sgi::ReferencedPickerBase>::process(std::basic_ostream<char>& os)
 {
@@ -6113,16 +6500,22 @@ namespace {
     }
 }
 
+#ifdef SGI_USE_OSGEARTH
 
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
+	typedef osgEarth::Picker PickerType;
+#else
+	typedef osgEarth::IntersectionPicker PickerType;
+#endif
 
-std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Picker::Limit & t)
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const PickerType::Limit & t)
 {
     switch(t)
     {
-    case osgEarth::Picker::NO_LIMIT: os << "NO_LIMIT"; break;
-    case osgEarth::Picker::LIMIT_ONE_PER_DRAWABLE: os << "LIMIT_ONE_PER_DRAWABLE"; break;
-    case osgEarth::Picker::LIMIT_ONE: os << "LIMIT_ONE"; break;
-    case osgEarth::Picker::LIMIT_NEAREST: os << "LIMIT_NEAREST"; break;
+    case PickerType::NO_LIMIT: os << "NO_LIMIT"; break;
+    case PickerType::LIMIT_ONE_PER_DRAWABLE: os << "LIMIT_ONE_PER_DRAWABLE"; break;
+    case PickerType::LIMIT_ONE: os << "LIMIT_ONE"; break;
+    case PickerType::LIMIT_NEAREST: os << "LIMIT_NEAREST"; break;
     default: os << (int)t; break;
     }
     return os;
@@ -6189,6 +6582,7 @@ bool writePrettyHTMLImpl<sgi::ReferencedPicker>::process(std::basic_ostream<char
     }
     return ret;
 }
+#endif // SGI_USE_OSGEARTH
 
 bool writePrettyHTMLImpl<sgi::ReferencedLinePicker>::process(std::basic_ostream<char>& os)
 {

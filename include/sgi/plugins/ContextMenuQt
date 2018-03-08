@@ -1,0 +1,26 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+#include <QtCore/QPointer>
+
+class QWidget;
+class QMenu;
+
+namespace sgi {
+
+class IHostCallback;
+
+class IContextMenuQt : public QObject
+{
+public:
+    virtual                 ~IContextMenuQt() {}
+    virtual QMenu *         getMenu() = 0;
+    virtual IHostCallback * getHostCallback() = 0;
+    virtual void            setObject(QObject * item, IHostCallback * callback=NULL) = 0;
+    virtual QWidget *       parentWidget() = 0;
+    virtual void            popup(QWidget * parent, int x, int y) = 0;
+};
+typedef QPointer<IContextMenuQt> IContextMenuQtPtr;
+
+} // namespace sgi

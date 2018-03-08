@@ -8,6 +8,7 @@
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SGIProxyItem.h>
 #include <sgi/plugins/SGIHostItemQt.h>
+#include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/helpers/string>
 
 #include <osg/UserDataContainer>
@@ -18,12 +19,24 @@
 #include <osg/Texture2D>
 #include <osg/Texture3D>
 #include <osg/ShapeDrawable>
-#include <osgViewer/View>
-#include <osgViewer/Renderer>
-#include <osgQt/GraphicsWindowQt>
+#include <osg/ValueObject>
 
 #include <osgDB/Registry>
+#define protected public
 #include <osgDB/DatabasePager>
+#undef protected
+#include <osgDB/ImagePager>
+#include <osgDB/ObjectCache>
+
+#include <osgViewer/View>
+#include <osgViewer/Renderer>
+#include <osgViewer/ViewerEventHandlers>
+
+#ifdef SGI_USE_OSGQT
+#include <osgQt/GraphicsWindowQt>
+#include <osgQt/QObjectWrapper>
+#include <sgi/plugins/SGIItemQt>
+#endif
 
 #include <osgTerrain/Terrain>
 #include <osgTerrain/TerrainTile>
@@ -39,7 +52,11 @@
 
 #include "osgdb_accessor.h"
 #include "DrawableHelper.h"
+#include "ObjectLoggerOSG.h"
+#include "osg_accessor.h"
 #include "osganimation_accessor.h"
+#include "osgviewer_accessor.h"
+#include "osgtext_accessor.h"
 #include <sys/stat.h>
 
 #ifdef min
@@ -55,99 +72,132 @@ class SGIItemOsg;
 
 namespace osg_plugin {
 
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Referenced)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::ObserverSet)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Object)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::UserDataContainer)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Node)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Group)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::StateSet)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Geode)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Drawable)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::ShapeDrawable)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Geometry)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Transform)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Camera)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::View)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Program)
-OBJECT_TREE_BUILD_IMPL_DECLARE(osg::Program::PerContextProgram)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Program::PerContextProgram)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Shader)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Uniform)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::GraphicsContext)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::NodeVisitor)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::ObserverSet)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Object)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::UserDataContainer)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Node)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Group)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::StateSet)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Geode)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Drawable)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::ShapeDrawable)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Geometry)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Transform)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Camera)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::View)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Program)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Program::PerContextProgram)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Shader)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Uniform)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::GraphicsContext)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::NodeVisitor)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Stats)
 
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::ProxyNode)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::PagedLOD)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::ProxyNode)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::PagedLOD)
 
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::StateAttribute)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Texture)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Texture2D)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Texture3D)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Image)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::BufferData)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::Array)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::BufferObject)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::StateAttribute)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObject)
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::TextureObjectSet)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::TextureObjectManager)
+#else
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObjectSet)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObjectManager)
+#endif
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture2D)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Texture3D)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Image)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::HeightField)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::BufferData)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Array)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::BufferObject)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::PrimitiveSet)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::DrawElements)
 
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::State)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osg::ShaderComposer)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::State)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::ShaderComposer)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::ShaderComponent)
 
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgDB::Registry)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgDB::Options)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgDB::ReaderWriter)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgDB::DatabasePager)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgDB::ImagePager)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgDB::DatabaseRevision)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgDB::DatabaseRevisions)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgDB::FileCache)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgDB::FileList)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgDB::ObjectWrapper)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgDB::ObjectWrapperManager)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(CullingNodeInfo)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(CullingInfo)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(CullingInfoForCamera)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(CullingInfoRegistry)
 
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgViewer::ViewerBase)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgViewer::View)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgViewer::GraphicsWindow)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgViewer::Scene)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgViewer::Renderer)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::Registry)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::Options)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::ReaderWriter)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::ImagePager)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::DatabaseRevision)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::DatabaseRevisions)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::FileCache)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::ObjectCache)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::FileList)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::ObjectWrapper)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::ObjectWrapperManager)
 
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgQt::GraphicsWindowQt)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::DatabaseRequest)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::RequestQueue)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::ReadQueue)
 
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgGA::GUIEventHandler)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgGA::GUIEventAdapter)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgGA::CameraManipulator)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgViewer::ViewerBase)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgViewer::View)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgViewer::GraphicsWindow)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgViewer::Scene)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgViewer::Renderer)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgViewer::HelpHandler)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgViewer::StatsHandler)
 
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgUtil::RenderBin)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgUtil::RenderStage)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgUtil::StateGraph)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgUtil::RenderLeaf)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgUtil::SceneView)
+#ifdef SGI_USE_OSGQT
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::GraphicsWindowQt)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::QObjectWrapper)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::GLWidget)
+#endif
 
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgTerrain::Terrain)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgTerrain::TerrainTile)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgTerrain::Layer)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgTerrain::ImageLayer)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgTerrain::ContourLayer)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgTerrain::HeightFieldLayer)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgTerrain::ProxyLayer)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgTerrain::CompositeLayer)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgGA::GUIEventHandler)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgGA::GUIEventAdapter)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgGA::CameraManipulator)
 
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgText::Font)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgText::TextBase)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgText::Text)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgUtil::RenderBin)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgUtil::RenderStage)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgUtil::StateGraph)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgUtil::RenderLeaf)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgUtil::SceneView)
 
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgAnimation::Animation)
-OBJECT_TREE_BUILD_IMPL_REGISTER(osgAnimation::AnimationManagerBase)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgTerrain::Terrain)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgTerrain::TerrainTile)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgTerrain::Layer)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgTerrain::ImageLayer)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgTerrain::ContourLayer)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgTerrain::HeightFieldLayer)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgTerrain::ProxyLayer)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgTerrain::CompositeLayer)
 
-OBJECT_TREE_BUILD_IMPL_REGISTER(RenderInfoDrawable)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgText::Font)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgText::TextBase)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgText::Text)
 
-OBJECT_TREE_BUILD_IMPL_REGISTER(sgi::ReferencedPickerBase)
-OBJECT_TREE_BUILD_IMPL_REGISTER(sgi::ReferencedPicker)
-OBJECT_TREE_BUILD_IMPL_REGISTER(sgi::ReferencedLinePicker)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgAnimation::Animation)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgAnimation::AnimationManagerBase)
+
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawable)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(RenderInfoGeometry)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawCallback)
+
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedPickerBase)
+#ifdef SGI_USE_OSGEARTH
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedPicker)
+#endif
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedLinePicker)
 
 using namespace sgi::osg_helpers;
 
 extern bool objectInfo_hasCallback(SGIPluginHostInterface * hostInterface, bool & result, const SGIItemBase * object);
 extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::StateAttribute::Type & t);
+extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg::Camera::BufferComponent t);
 
 bool objectTreeBuildImpl<osg::Referenced>::build(IObjectTreeItem * treeItem)
 {
@@ -160,10 +210,6 @@ bool objectTreeBuildImpl<osg::Referenced>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg observerSet(object->getObserverSet());
             if(observerSet.hasObject())
                 treeItem->addChild("ObserverSet", &observerSet);
-
-            bool hasCallback = false;
-            if(objectInfo_hasCallback(_hostInterface, hasCallback, _item->rootBase()) && hasCallback)
-                treeItem->addChildIfNotExists("Callbacks", _item->rootBase()->clone<SGIItemOsg>(SGIItemTypeCallbacks));
         }
         break;
     }
@@ -239,9 +285,15 @@ bool objectTreeBuildImpl<osg::UserDataContainer>::build(IObjectTreeItem * treeIt
             unsigned numUserObjects = object->getNumUserObjects();
             for(unsigned n = 0; n < numUserObjects; n++)
             {
-                SGIHostItemOsg userDataObject(object->getUserObject(n));
-                if(userDataObject.hasObject())
-                    treeItem->addChild(helpers::str_plus_count("UserDataObject", n), &userDataObject);
+                osg::Object * uobj = object->getUserObject(n);
+                if (uobj)
+                {
+                    SGIHostItemOsg userDataObject(uobj);
+                    if(uobj->getName().empty())
+                        treeItem->addChild(helpers::str_plus_count("UserDataObject", n), &userDataObject);
+                    else
+                        treeItem->addChild(helpers::str_plus_info("UserDataObject", uobj->getName()), &userDataObject);
+                }
             }
         }
         break;
@@ -264,12 +316,17 @@ bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
         {
             unsigned numParents = object->getNumParents();
             if(numParents)
-                treeItem->addChild(helpers::str_plus_count("Parents", numParents), cloneItem<SGIItemOsg>(SGIItemTypeParents));
-
-            if(numParents)
             {
-                const osg::NodePathList parentalNodePaths = object->getParentalNodePaths();
-                treeItem->addChild(helpers::str_plus_count("ParentNodePaths", parentalNodePaths.size()), cloneItem<SGIItemOsg>(SGIItemTypeParentalNodePath, ~0u));
+                treeItem->addChild(helpers::str_plus_count("Parents", numParents), cloneItem<SGIItemOsg>(SGIItemTypeParents));
+                treeItem->addChild("ParentNodePaths", cloneItem<SGIItemOsg>(SGIItemTypeParentalNodePath, ~0u));
+            }
+
+            if (object->getEventCallback() ||
+                object->getUpdateCallback() ||
+                object->getCullCallback() ||
+                object->getComputeBoundingSphereCallback() )
+            {
+                treeItem->addChildIfNotExists("Callbacks", cloneItem<SGIItemOsg>(SGIItemTypeCallbacks));
             }
 
             SGIHostItemOsg stateSet(object->getStateSet());
@@ -298,7 +355,7 @@ bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
             if(numPath == ~0u)
             {
                 for(osg::NodePathList::const_iterator itPathList = parentalNodePaths.begin(); itPathList != parentalNodePaths.end(); itPathList++, parentalNodePathNum++)
-                    treeItem->addChild(helpers::str_plus_number("Parent", parentalNodePathNum), cloneItem<SGIItemOsg>(SGIItemTypeParentalNodePath, parentalNodePathNum));
+                    treeItem->addChild(helpers::str_plus_number("Path", parentalNodePathNum), cloneItem<SGIItemOsg>(SGIItemTypeParentalNodePath, parentalNodePathNum));
             }
             else
             {
@@ -332,9 +389,8 @@ bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
         }
         break;
     case SGIItemTypeCallbacks:
-        ret = callNextHandler(treeItem);
-        if(ret)
         {
+            callNextHandler(treeItem);
             // add osg::Node callbacks now
 #if OSG_VERSION_GREATER_THAN(3,3,1)
             const osg::Callback * cb;
@@ -366,6 +422,7 @@ bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg computeBoundingSphereCallback(object->getComputeBoundingSphereCallback(), object);
             if(computeBoundingSphereCallback.hasObject())
                 treeItem->addChild("ComputeBoundingSphereCallback", &computeBoundingSphereCallback);
+            ret = true;
         }
         break;
     default:
@@ -442,14 +499,17 @@ bool objectTreeBuildImpl<osg::Geode>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
+#if OSG_VERSION_LESS_THAN(3,4,0)
             unsigned numDrawables = object->getNumDrawables();
             if(numDrawables)
                 treeItem->addChild(helpers::str_plus_count("Drawables", numDrawables), cloneItem<SGIItemOsg>(SGIItemTypeChilds));
+#endif
         }
         break;
-    case SGIItemTypeChilds:
+#if OSG_VERSION_LESS_THAN(3,4,0)
+	case SGIItemTypeChilds:
         {
-            unsigned numDrawables = object->getNumDrawables();
+			unsigned numDrawables = object->getNumDrawables();
             for(unsigned i = 0; i < numDrawables; i++)
             {
                 osg::Drawable * drawable = object->getDrawable(i);
@@ -459,7 +519,8 @@ bool objectTreeBuildImpl<osg::Geode>::build(IObjectTreeItem * treeItem)
             ret = true;
         }
         break;
-    default:
+#endif
+	default:
         ret = callNextHandler(treeItem);
         break;
     }
@@ -477,13 +538,17 @@ bool objectTreeBuildImpl<osg::Drawable>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
+#if OSG_VERSION_LESS_THAN(3,4,0)
             unsigned numParents = object->getNumParents();
             if(numParents)
                 treeItem->addChild(helpers::str_plus_count("Parents", numParents), cloneItem<SGIItemOsg>(SGIItemTypeParents));
+#endif // OSG_VERSION_LESS_THAN(3,4,0)
 
+#if OSG_VERSION_LESS_THAN(3,4,0)
             SGIHostItemOsg stateSet(object->getStateSet());
             if(stateSet.hasObject())
                 treeItem->addChild("StateSet", &stateSet);
+#endif // OSG_VERSION_LESS_THAN(3,4,0)
 
             if(object->getComputeBoundingBoxCallback() ||
                 object->getEventCallback() ||
@@ -497,6 +562,7 @@ bool objectTreeBuildImpl<osg::Drawable>::build(IObjectTreeItem * treeItem)
 
         }
         break;
+#if OSG_VERSION_LESS_THAN(3,4,0)
     case SGIItemTypeParents:
         {
             unsigned numParents = object->getNumParents();
@@ -508,6 +574,7 @@ bool objectTreeBuildImpl<osg::Drawable>::build(IObjectTreeItem * treeItem)
             ret = true;
         }
         break;
+#endif // OSG_VERSION_LESS_THAN(3,4,0)
     case SGIItemTypeCallbacks:
         {
             callNextHandler(treeItem);
@@ -573,6 +640,29 @@ bool objectTreeBuildImpl<osg::Geometry>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
+            bool isImageGeode = false;
+            if(!object->getUserValue<bool>("sgi_tree_imagegeode", isImageGeode))
+                isImageGeode = false;
+
+            if(isImageGeode)
+            {
+                osg::StateSet* stateSet = object->getStateSet();
+                if(stateSet)
+                {
+                    osg::StateAttribute * sa = stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
+                    osg::Texture * texture = sa ? sa->asTexture() : NULL;
+                    if(texture)
+                    {
+                        std::string itemname;
+                        object->getUserValue<std::string>("sgi_tree_itemname", itemname);
+
+                        SGIHostItemOsg image(texture->getImage(0));
+                        if(image.hasObject())
+                            treeItem->addChild(itemname, &image);
+                    }
+                }
+            }
+
             SGIHostItemOsg vertexArray(object->getVertexArray());
             if(vertexArray.hasObject())
                 treeItem->addChild(helpers::str_plus_count("Vertices", ((const osg::Array * )vertexArray.object())->getNumElements()), &vertexArray);
@@ -589,28 +679,46 @@ bool objectTreeBuildImpl<osg::Geometry>::build(IObjectTreeItem * treeItem)
             if(secondaryColorArray.hasObject())
                 treeItem->addChild(helpers::str_plus_count("Secondary colors", ((const osg::Array * )secondaryColorArray.object())->getNumElements()), &secondaryColorArray);
 
+            unsigned numVertexAttribArrays = object->getNumVertexAttribArrays();
+            if (numVertexAttribArrays)
+                treeItem->addChild(helpers::str_plus_count("VertexAttribArrays", numVertexAttribArrays), cloneItem<SGIItemOsg>(SGIItemTypeDrawableVertexAttribArrays));
+
             unsigned numTexCoordArrays = object->getNumTexCoordArrays();
             if(numTexCoordArrays)
                 treeItem->addChild(helpers::str_plus_count("Texture Coordinates", numTexCoordArrays), cloneItem<SGIItemOsg>(SGIItemTypeDrawableTexCoordsList));
 
+            
+
             unsigned numPrimitiveSets = object->getNumPrimitiveSets();
             if(numPrimitiveSets)
-                treeItem->addChild(helpers::str_plus_count("PrimitiveSets", numPrimitiveSets), cloneItem<SGIItemOsg>(SGIItemTypeDrawablePrimitiveSetList));
+                treeItem->addChild(helpers::str_plus_count("PrimitiveSets", numPrimitiveSets), cloneItem<SGIItemOsg>(SGIItemTypePrimitiveSetList));
+        }
+        break;
+    case SGIItemTypeDrawableVertexAttribArrays:
+        {
+            unsigned numVertexAttribArrays = object->getNumVertexAttribArrays();
+            for(unsigned i = 0; i < numVertexAttribArrays; ++i)
+            {
+                SGIHostItemOsg vertexAttribArray(object->getVertexAttribArray(i));
+                if(vertexAttribArray.hasObject())
+                    treeItem->addChild(helpers::str_plus_count(helpers::str_plus_number("VertexAttribArray", i).c_str(), ((const osg::Array * )vertexAttribArray.object())->getNumElements()), &vertexAttribArray);
+            }
+            ret = true;
         }
         break;
     case SGIItemTypeDrawableTexCoordsList:
         {
             unsigned numTexCoordArrays = object->getNumTexCoordArrays();
-            for(unsigned i = 0; i < numTexCoordArrays; i++)
+            for(unsigned textureUnit = 0; textureUnit < numTexCoordArrays; textureUnit++)
             {
-                SGIHostItemOsg texCoordArray(object->getTexCoordArray(i));
+                SGIHostItemOsg texCoordArray(object->getTexCoordArray(textureUnit));
                 if(texCoordArray.hasObject())
-                    treeItem->addChild(helpers::str_plus_count(helpers::str_plus_number("TexCoord", i).c_str(), ((const osg::Array * )texCoordArray.object())->getNumElements()), &texCoordArray);
+                    treeItem->addChild(helpers::str_plus_count(helpers::str_plus_number("Texture", textureUnit).c_str(), ((const osg::Array * )texCoordArray.object())->getNumElements()), &texCoordArray);
             }
             ret = true;
         }
         break;
-    case SGIItemTypeDrawablePrimitiveSetList:
+    case SGIItemTypePrimitiveSetList:
         {
             unsigned numPrimitiveSets = object->getNumPrimitiveSets();
             for(unsigned i = 0; i < numPrimitiveSets; i++)
@@ -646,21 +754,25 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
 
             const osg::StateSet::ModeList & modelist = object->getModeList();
             if(!modelist.empty())
-                treeItem->addChild(helpers::str_plus_count("Mode list", modelist.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetModeList, ~0u));
+                treeItem->addChild(helpers::str_plus_count("Modes", modelist.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetModeList, ~0u));
 
             const osg::StateSet::AttributeList & attributelist = object->getAttributeList();
             if(!attributelist.empty())
-                treeItem->addChild(helpers::str_plus_count("Attribute list", attributelist.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetAttributeList, ~0u));
+                treeItem->addChild(helpers::str_plus_count("Attributes", attributelist.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetAttributeList, ~0u));
 
             if(object->getNumTextureModeLists() != 0)
-                treeItem->addChild(helpers::str_plus_count("Texture mode lists", object->getNumTextureModeLists()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetTextureModeList, ~0u));
+                treeItem->addChild(helpers::str_plus_count("Texture modes", object->getNumTextureModeLists()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetTextureModeList, ~0u));
 
             if(object->getNumTextureAttributeLists() != 0)
-                treeItem->addChild(helpers::str_plus_count("Texture attribute lists", object->getNumTextureAttributeLists()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetTextureAttributeLists, ~0u));
+                treeItem->addChild(helpers::str_plus_count("Texture attributes", object->getNumTextureAttributeLists()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetTextureAttributeLists, ~0u));
 
             const osg::StateSet::UniformList & uniformlist = object->getUniformList();
             if(!uniformlist.empty())
-                treeItem->addChild(helpers::str_plus_count("Uniform list", uniformlist.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetUniformList, ~0u));
+                treeItem->addChild(helpers::str_plus_count("Uniforms", uniformlist.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetUniformList, ~0u));
+
+            const osg::StateSet::DefineList & definelist = object->getDefineList();
+            if(!definelist.empty())
+                treeItem->addChild(helpers::str_plus_count("Defines", definelist.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateSetDefineList, ~0u));
         }
         break;
     case SGIItemTypeParents:
@@ -675,8 +787,70 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
         }
         break;
     case SGIItemTypeStateSetModeList:
+        {
+            unsigned itemNumber = _item->number();
+            const osg::StateSet::TextureModeList & textureModeList = object->getTextureModeList();
+            if (!textureModeList.empty())
+            {
+                unsigned count = 0;
+
+                for (osg::StateSet::TextureModeList::const_iterator it = textureModeList.begin(); it != textureModeList.end(); it++, count++)
+                {
+                    if (itemNumber == ~0u)
+                    {
+                        const osg::StateSet::ModeList & modeList = *it;
+                        if (modeList.empty())
+                        {
+                            SGIItemBasePtr modeItem = cloneItem<SGIItemOsg>(SGIItemTypeStateSetModeList, count);
+                            std::stringstream ss;
+                            ss << "Unit #" << count << ": empty";
+                            treeItem->addChild(ss.str(), modeItem.get());
+                        }
+                        else
+                        {
+                            for (osg::StateSet::ModeList::const_iterator it2 = modeList.begin(); it2 != modeList.end(); it2++)
+                            {
+                                const osg::StateAttribute::GLMode & mode = it2->first;
+                                const osg::StateAttribute::GLModeValue & value = it2->second;
+
+                                SGIItemBasePtr modeItem = cloneItem<SGIItemOsg>(SGIItemTypeStateSetModeList, count);
+                                std::stringstream ss;
+                                ss << "Unit #" << count << ": " << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(mode) << "=" << glValueName(value);
+                                treeItem->addChild(ss.str(), modeItem.get());
+                            }
+                        }
+                    }
+
+                }
+            }
+            ret = true;
+        }
+        break;
     case SGIItemTypeStateSetTextureModeList:
-        ret = true;
+        {
+            unsigned itemNumber = _item->number();
+            const osg::StateSet::TextureModeList & textureModeList = object->getTextureModeList();
+            unsigned textureUnit = 0;
+            if (itemNumber == ~0u)
+            {
+                for (osg::StateSet::TextureModeList::const_iterator it = textureModeList.begin(); it != textureModeList.end(); it++, textureUnit++)
+                {
+                    const osg::StateSet::ModeList & modeList = *it;
+                    for (osg::StateSet::ModeList::const_iterator it2 = modeList.begin(); it2 != modeList.end(); it2++)
+                    {
+                        const osg::StateAttribute::GLMode & mode = it2->first;
+                        const osg::StateAttribute::GLModeValue & value = it2->second;
+
+                        SGIItemBasePtr modeItem = cloneItem<SGIItemOsg>(SGIItemTypeStateSetTextureModeList, textureUnit);
+
+                        std::stringstream ss;
+                        ss << helpers::str_plus_number("Texture", textureUnit) << '/' << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(mode);
+                        treeItem->addChild(ss.str(), modeItem.get());
+                    }
+                }
+            }
+            ret = true;
+        }
         break;
     case SGIItemTypeStateSetUniformList:
         {
@@ -695,6 +869,9 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
             ret = true;
         }
         break;
+    case SGIItemTypeStateSetDefineList:
+        ret = true;
+        break;
     case SGIItemTypeStateSetAttributeList:
         {
             unsigned childNo = 0;
@@ -708,7 +885,7 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
                 const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
                 SGIHostItemOsg attrItem(attr.get());
                 std::stringstream ss;
-                ss << childNo << ':' << type << ' ' << attr->getName();
+                ss << '#' << member << ':' << type << ' ' << attr->getName();
                 treeItem->addChild(ss.str(), &attrItem);
             }
             ret = true;
@@ -717,35 +894,27 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
     case SGIItemTypeStateSetTextureAttributeLists:
         {
             unsigned itemNumber = _item->number();
-            unsigned childNo = 0;
+            unsigned textureUnit = 0;
             const osg::StateSet::TextureAttributeList & textureAttributes = object->getTextureAttributeList();
-            if(itemNumber == ~0u)
+            for(osg::StateSet::TextureAttributeList::const_iterator it = textureAttributes.begin(); it != textureAttributes.end(); it++, textureUnit++)
             {
-                for(osg::StateSet::TextureAttributeList::const_iterator it = textureAttributes.begin(); it != textureAttributes.end(); it++, childNo++)
+                if(itemNumber == ~0u || textureUnit == itemNumber)
                 {
-                    treeItem->addChild(helpers::str_plus_count("TextureUnit", childNo), cloneItem<SGIItemOsg>(SGIItemTypeStateSetTextureAttributeLists, childNo));
-                }
-            }
-            else
-            {
-                for(osg::StateSet::TextureAttributeList::const_iterator it = textureAttributes.begin(); it != textureAttributes.end(); it++, childNo++)
-                {
-                    if(childNo == itemNumber)
+                    unsigned attrChildNo = 0;
+                    const osg::StateSet::AttributeList & attributes = *it;
+                    for(osg::StateSet::AttributeList::const_iterator it2 = attributes.begin(); it2 != attributes.end(); it2++, attrChildNo++)
                     {
-                        unsigned attrChildNo = 0;
-                        const osg::StateSet::AttributeList & attributes = *it;
-                        for(osg::StateSet::AttributeList::const_iterator it2 = attributes.begin(); it2 != attributes.end(); it2++, attrChildNo++)
-                        {
-                            const osg::StateAttribute::TypeMemberPair type = it2->first;
-                            const osg::StateSet::RefAttributePair & attrpair = it2->second;
-                            const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
-                            const osg::StateAttribute::OverrideValue & overrideValue = attrpair.second;
+                        const osg::StateAttribute::TypeMemberPair typepair = it2->first;
+                        const osg::StateAttribute::Type & type = typepair.first;
+                        const unsigned & member = typepair.second;
+                        const osg::StateSet::RefAttributePair & attrpair = it2->second;
+                        const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
+                        //const osg::StateAttribute::OverrideValue & overrideValue = attrpair.second;
 
-                            std::stringstream ss;
-                            ss << "Attribute#" << attrChildNo << '[' << type.first << ';' << type.second << ";ov=" << glOverrideValueName(overrideValue) << ']';
-                            SGIHostItemOsg attrItem(attr.get());
-                            treeItem->addChild(ss.str(), &attrItem);
-                        }
+                        std::stringstream ss;
+                        ss << helpers::str_plus_number("Texture", textureUnit) << '/' << member << ':' << type << ' ' << attr->getName();
+                        SGIHostItemOsg attrItem(attr.get());
+                        treeItem->addChild(ss.str(), &attrItem);
                     }
                 }
             }
@@ -806,6 +975,10 @@ bool objectTreeBuildImpl<osg::Camera>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg renderer(object->getRenderer());
             if(renderer.hasObject())
                 treeItem->addChild("Renderer", &renderer);
+
+            const osg::Camera::BufferAttachmentMap & bufferAttachmentMap = object->getBufferAttachmentMap();
+            if(!bufferAttachmentMap.empty())
+                treeItem->addChild(helpers::str_plus_count("Attachments", bufferAttachmentMap.size()), cloneItem<SGIItemOsg>(SGIItemTypeCameaBufferAttachments, ~0u));
         }
         break;
     case SGIItemTypeCallbacks:
@@ -827,6 +1000,37 @@ bool objectTreeBuildImpl<osg::Camera>::build(IObjectTreeItem * treeItem)
             if(clampProjectionMatrixCallback.hasObject())
                 treeItem->addChild("ClampProjectionMatrixCallback", &clampProjectionMatrixCallback);
             ret = true;
+        }
+        break;
+    case SGIItemTypeCameaBufferAttachments:
+        {
+            const osg::Camera::BufferAttachmentMap & bufferAttachmentMap = object->getBufferAttachmentMap();
+            if(_item->number() == ~0u)
+            {
+                for(auto it = bufferAttachmentMap.begin(); it != bufferAttachmentMap.end(); ++it)
+                {
+                    const osg::Camera::BufferComponent & buffercomponent = it->first;
+                    std::stringstream ss;
+                    ss << buffercomponent;
+                    treeItem->addChild(ss.str(), cloneItem<SGIItemOsg>(SGIItemTypeCameaBufferAttachments, (unsigned)buffercomponent));
+                }
+            }
+            else
+            {
+                const osg::Camera::BufferComponent buffercomponent = (osg::Camera::BufferComponent)_item->number();
+                auto it = bufferAttachmentMap.find(buffercomponent);
+                if(it != bufferAttachmentMap.end())
+                {
+                    const osg::Camera::Attachment & attachment = it->second;
+                    SGIHostItemOsg image(attachment._image.get());
+                    if(image.hasObject())
+                        treeItem->addChild("Image", &image);
+                    SGIHostItemOsg texture(attachment._texture.get());
+                    if(texture.hasObject())
+                        treeItem->addChild("Texture", &texture);
+                }
+            }
+			ret = true;
         }
         break;
     default:
@@ -1058,7 +1262,7 @@ bool objectTreeBuildImpl<osg::Program::PerContextProgram>::build(IObjectTreeItem
 
 bool objectTreeBuildImpl<osg::GraphicsContext>::build(IObjectTreeItem * treeItem)
 {
-    osg::GraphicsContext * object = getObject<osg::GraphicsContext,SGIItemOsg>();
+    GraphicsContextAccess * object = static_cast<GraphicsContextAccess*>(getObject<osg::GraphicsContext, SGIItemOsg>());
     bool ret = false;
     switch(itemType())
     {
@@ -1077,6 +1281,12 @@ bool objectTreeBuildImpl<osg::GraphicsContext>::build(IObjectTreeItem * treeItem
             SGIHostItemOsg graphicsThread(object->getGraphicsThread());
             if(graphicsThread.hasObject())
                 treeItem->addChild("GraphicsThread", &graphicsThread);
+
+#if OSG_VERSION_LESS_OR_EQUAL(3,4,0)
+            SGIHostItemOsg txtobjmgr(osg::Texture::getTextureObjectManager(object->getContextID()));
+            if (txtobjmgr.hasObject())
+                treeItem->addChild("TextureObjectManager", &txtobjmgr);
+#endif
 
             const osg::GraphicsContext::Cameras & cameras = object->getCameras();
             if(!cameras.empty())
@@ -1158,6 +1368,34 @@ bool objectTreeBuildImpl<osg::NodeVisitor>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg imageRequestHandler(object->getImageRequestHandler());
             if(imageRequestHandler.hasObject())
                 treeItem->addChild("ImageRequestHandler", &imageRequestHandler);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osg::Stats>::build(IObjectTreeItem * treeItem)
+{
+    osg::Stats * object = getObject<osg::Stats, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            for (unsigned frame = object->getEarliestFrameNumber(); frame <= object->getLatestFrameNumber(); ++frame)
+            {
+                treeItem->addChild(helpers::str_plus_number("Frame", frame), cloneItem<SGIItemOsg>(SGIItemTypeStatsFrame, frame));
+            }
+        }
+        break;
+    case SGIItemTypeStatsFrame:
+        {
+            ret = true;
         }
         break;
     default:
@@ -1293,7 +1531,7 @@ bool objectTreeBuildImpl<osg::StateAttribute>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::Texture>::build(IObjectTreeItem * treeItem)
 {
-    osg::Texture * object = dynamic_cast<osg::Texture*>(item<SGIItemOsg>()->object());
+    TextureAccess * object = static_cast<TextureAccess*>(getObject<osg::Texture,SGIItemOsg,DynamicCaster>());
     bool ret;
     switch(itemType())
     {
@@ -1301,10 +1539,179 @@ bool objectTreeBuildImpl<osg::Texture>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
+
             SGIHostItemOsg readPBuffer(object->getReadPBuffer());
             if(readPBuffer.hasObject())
                 treeItem->addChild("ReadPBuffer", &readPBuffer);
 
+            treeItem->addChild("TextureObjects", cloneItem<SGIItemOsg>(SGIItemTypeTextureObjects, ~0u));
+
+            for (unsigned n = 0; n < object->getNumImages(); ++n)
+            {
+                SGIHostItemOsg image(object->getImage(n));
+                if (image.hasObject())
+                    treeItem->addChild(helpers::str_plus_number("Image", n), &image);
+            }
+        }
+        break;
+    case SGIItemTypeTextureObjects:
+        {
+            TextureAccess::TextureObjectList list = object->getTextureObjectList();
+            if (itemNumber() == ~0u)
+            {
+                for (unsigned n = 0; n < list.size(); ++n)
+                {
+                    SGIHostItemOsg item(list[n]);
+                    if (item.hasObject())
+                        treeItem->addChild(helpers::str_plus_number("Context", n), &item);
+                }
+            }
+            else
+            {
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osg::Texture::TextureObject>::build(IObjectTreeItem * treeItem)
+{
+    osg::Texture::TextureObject * object = getObject<osg::Texture::TextureObject, SGIItemOsg>();
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsg texture(object->getTexture());
+            if (texture.hasObject())
+                treeItem->addChild("Texture", &texture);
+
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+bool objectTreeBuildImpl<osg::TextureObjectSet>::build(IObjectTreeItem * treeItem)
+#else
+bool objectTreeBuildImpl<osg::Texture::TextureObjectSet>::build(IObjectTreeItem * treeItem)
+#endif
+{
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+    TextureObjectSetAccess * object = static_cast<TextureObjectSetAccess*>(getObject<osg::TextureObjectSet, SGIItemOsg>());
+#else
+    TextureObjectSetAccess * object = static_cast<TextureObjectSetAccess*>(getObject<osg::Texture::TextureObjectSet, SGIItemOsg>());
+#endif
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsg parent(object->getParent());
+            if (parent.hasObject())
+                treeItem->addChild("Parent", &parent);
+
+            treeItem->addChild("TextureObjects", cloneItem<SGIItemOsg>(SGIItemTypeTextureObjects, ~0u));
+        }
+        break;
+    case SGIItemTypeTextureObjects:
+        {
+            TextureObjectSetAccess::TextureObjectList list = object->getTextureObjects();
+            for (auto to : list)
+            {
+                SGIHostItemOsg item(to.get());
+                if (item.hasObject())
+                    treeItem->addChild(std::string(), &item);
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+bool objectTreeBuildImpl<osg::TextureObjectManager>::build(IObjectTreeItem * treeItem)
+#else
+bool objectTreeBuildImpl<osg::Texture::TextureObjectManager>::build(IObjectTreeItem * treeItem)
+#endif
+{
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+    TextureObjectManagerAccess * object = static_cast<TextureObjectManagerAccess *>(getObject<osg::TextureObjectManager, SGIItemOsg>());
+#else
+    TextureObjectManagerAccess * object = static_cast<TextureObjectManagerAccess *>(getObject<osg::Texture::TextureObjectManager, SGIItemOsg>());
+#endif
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            treeItem->addChild("Statistics", cloneItem<SGIItemOsg>(SGIItemTypeStatistics, ~0u));
+
+            const TextureObjectManagerAccess::TextureSetMap & textureSetMap = object->getTextureSetMap();
+            treeItem->addChild(helpers::str_plus_count("TextureSetMap", textureSetMap.size()), cloneItem<SGIItemOsg>(SGIItemTypeTextureSetMap, ~0u));
+        }
+        break;
+    case SGIItemTypeStatistics:
+        ret = true;
+        break;
+    case SGIItemTypeTextureSetMap:
+        {
+            const TextureObjectManagerAccess::TextureSetMap & textureSetMap = object->getTextureSetMap();
+            if (itemNumber() == ~0u)
+            {
+                for (auto it = textureSetMap.begin(); it != textureSetMap.end(); ++it)
+                {
+                    const osg::Texture::TextureProfile & p = it->first;
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+                    const osg::ref_ptr<osg::TextureObjectSet> & s = it->second;
+#else
+                    const osg::ref_ptr<osg::Texture::TextureObjectSet> & s = it->second;
+#endif
+                    unsigned hash = TextureObjectManagerAccess::hash(p);
+                    std::string name = TextureObjectManagerAccess::shortName(p);
+                    SGIHostItemOsg item(s.get());
+                    //treeItem->addChild(helpers::str_plus_count(name, s.valid() ? s->size() : 0), cloneItem<SGIItemOsg>(SGIItemTypeTextureSetMap, hash));
+                    treeItem->addChild(helpers::str_plus_count(name, s.valid() ? s->size() : 0), &item);
+                }
+            }
+            else
+            {
+                for (auto it = textureSetMap.begin(); it != textureSetMap.end(); ++it)
+                {
+                    const osg::Texture::TextureProfile & p = it->first;
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+                    const osg::ref_ptr<osg::TextureObjectSet> & s = it->second;
+#else
+                    const osg::ref_ptr<osg::Texture::TextureObjectSet> & s = it->second;
+#endif
+                    unsigned hash = TextureObjectManagerAccess::hash(p);
+                    if (hash == itemNumber())
+                    {
+
+                        break;
+                    }
+                }
+            }
+            ret = true;
         }
         break;
     default:
@@ -1324,9 +1731,7 @@ bool objectTreeBuildImpl<osg::Texture2D>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            SGIHostItemOsg image(object->getImage());
-            if(image.hasObject())
-                treeItem->addChild("Image", &image);
+            // texture is already added by osg::Texture
         }
         break;
     default:
@@ -1346,9 +1751,7 @@ bool objectTreeBuildImpl<osg::Texture3D>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            SGIHostItemOsg image(object->getImage());
-            if(image.hasObject())
-                treeItem->addChild("Image", &image);
+            // texture is already added by osg::Texture
         }
         break;
     default:
@@ -1371,6 +1774,21 @@ bool objectTreeBuildImpl<osg::Image>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg pbo(object->getPixelBufferObject());
             if(pbo.hasObject())
                 treeItem->addChild("PBO", &pbo);
+
+            if (object->getNumMipmapLevels() > 1)
+            {
+                treeItem->addChildIfNotExists(helpers::str_plus_count("MipMaps", object->getNumMipmapLevels()), cloneItem<SGIItemOsg>(SGIItemTypeImageMipMap, ~0u));
+            }
+        }
+        break;
+    case SGIItemTypeImageMipMap:
+        {
+            if (itemNumber() == ~0u)
+            {
+                for(unsigned i = 0; i < object->getNumMipmapLevels(); ++i)
+                    treeItem->addChildIfNotExists(helpers::str_plus_number("Level", i), cloneItem<SGIItemOsg>(SGIItemTypeImageMipMap, i));
+            }
+            ret = true;
         }
         break;
     default:
@@ -1393,7 +1811,8 @@ bool objectTreeBuildImpl<osg::BufferData>::build(IObjectTreeItem * treeItem)
             if(object->getModifiedCallback())
                 treeItem->addChildIfNotExists("Callbacks", cloneItem<SGIItemOsg>(SGIItemTypeCallbacks));
 
-            treeItem->addChild("Data", cloneItem<SGIItemOsg>(SGIItemTypeArrayData));
+            if(object->getDataPointer())
+                treeItem->addChild("Data", cloneItem<SGIItemOsg>(SGIItemTypeArrayData));
 
             SGIHostItemOsg bufObj(object->getBufferObject());
             if(bufObj.hasObject())
@@ -1422,6 +1841,26 @@ bool objectTreeBuildImpl<osg::BufferData>::build(IObjectTreeItem * treeItem)
     return ret;
 }
 
+bool objectTreeBuildImpl<osg::HeightField>::build(IObjectTreeItem * treeItem)
+{
+	osg::HeightField * object = dynamic_cast<osg::HeightField*>(item<SGIItemOsg>()->object());
+	bool ret;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(treeItem);
+		if (ret)
+		{
+			treeItem->addChild("Data", cloneItem<SGIItemOsg>(SGIItemTypeArrayData));
+		}
+		break;
+	default:
+		ret = callNextHandler(treeItem);
+		break;
+	}
+	return ret;
+}
+
 bool objectTreeBuildImpl<osg::Array>::build(IObjectTreeItem * treeItem)
 {
     bool ret;
@@ -1432,9 +1871,12 @@ bool objectTreeBuildImpl<osg::Array>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            SGIHostItemOsg vbo(object->getVertexBufferObject());
-            if(vbo.hasObject())
-                treeItem->addChild("VertexBufferObject", &vbo);
+            osg::VertexBufferObject * vbo = object->getVertexBufferObject();
+            if (vbo && vbo != object->getBufferObject())
+            {
+                SGIHostItemOsg vboItem(vbo);
+                treeItem->addChild("VertexBufferObject", &vboItem);
+            }
         }
         break;
     case SGIItemTypeArrayData:
@@ -1483,6 +1925,56 @@ bool objectTreeBuildImpl<osg::BufferObject>::build(IObjectTreeItem * treeItem)
     return ret;
 }
 
+bool objectTreeBuildImpl<osg::PrimitiveSet>::build(IObjectTreeItem * treeItem)
+{
+    bool ret;
+    osg::PrimitiveSet * object = getObject<osg::PrimitiveSet, SGIItemOsg>();
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            unsigned numIndices = object->getNumIndices();
+            if (numIndices)
+                treeItem->addChild(helpers::str_plus_count("Indices", numIndices), cloneItem<SGIItemOsg>(SGIItemTypeDrawElementsIndicies));
+        }
+        break;
+    case SGIItemTypeDrawElementsIndicies:
+        ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osg::DrawElements>::build(IObjectTreeItem * treeItem)
+{
+    bool ret;
+    osg::DrawElements * object = getObject<osg::DrawElements, SGIItemOsg>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            unsigned numIndices = object->getNumIndices();
+            if(numIndices)
+                treeItem->addChild(helpers::str_plus_count("Indices", numIndices), cloneItem<SGIItemOsg>(SGIItemTypeDrawElementsIndicies));
+        }
+        break;
+    case SGIItemTypeDrawElementsIndicies:
+        ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
 bool objectTreeBuildImpl<osg::State>::build(IObjectTreeItem * treeItem)
 {
     bool ret;
@@ -1509,6 +2001,19 @@ bool objectTreeBuildImpl<osg::State>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg gfxcostest(object->getGraphicsCostEstimator());
             if(gfxcostest.hasObject())
                 treeItem->addChild("GraphicsCostEstimator", &gfxcostest);
+
+            SGIHostItemOsg vbo(object->getCurrentVertexBufferObject());
+            if (vbo.hasObject())
+                treeItem->addChild("CurrentVBO", &vbo);
+
+            SGIHostItemOsg ebo(object->getCurrentElementBufferObject());
+            if (ebo.hasObject())
+                treeItem->addChild("CurrentEBO", &ebo);
+
+            SGIHostItemOsg pbo(object->getCurrentPixelBufferObject());
+            if (pbo.hasObject())
+                treeItem->addChild("CurrentPBO", &pbo);
+
         }
         break;
     default:
@@ -1575,7 +2080,7 @@ bool objectTreeBuildImpl<osg::ShaderComponent>::build(IObjectTreeItem * treeItem
 
 bool objectTreeBuildImpl<osgViewer::ViewerBase>::build(IObjectTreeItem * treeItem)
 {
-    osgViewer::ViewerBase * object = dynamic_cast<osgViewer::ViewerBase*>(item<SGIItemOsg>()->object());
+    ViewerBaseAccess * object = static_cast<ViewerBaseAccess*>(getObject<osgViewer::ViewerBase, SGIItemOsg, DynamicCaster>());
     bool ret = false;
     switch(itemType())
     {
@@ -1798,6 +2303,54 @@ bool objectTreeBuildImpl<osgViewer::Renderer>::build(IObjectTreeItem * treeItem)
     return ret;
 }
 
+bool objectTreeBuildImpl<osgViewer::HelpHandler>::build(IObjectTreeItem * treeItem)
+{
+    osgViewer::HelpHandler * object = getObject<osgViewer::HelpHandler,SGIItemOsg, DynamicCaster>();
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsg camera(object->getCamera());
+            if (camera.hasObject())
+                treeItem->addChild("Camera", &camera);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osgViewer::StatsHandler>::build(IObjectTreeItem * treeItem)
+{
+    osgViewer::StatsHandler * object = getObject<osgViewer::StatsHandler, SGIItemOsg, DynamicCaster>();
+    osgViewerStatsHandlerAccess * access = static_cast<osgViewerStatsHandlerAccess*>(object);
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsg camera(object->getCamera());
+            if (camera.hasObject())
+                treeItem->addChild("Camera", &camera);
+            SGIHostItemOsg sw(access->getSwitch());
+            if (sw.hasObject())
+                treeItem->addChild("Switch", &sw);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
 bool objectTreeBuildImpl<osgViewer::GraphicsWindow>::build(IObjectTreeItem * treeItem)
 {
     osgViewer::GraphicsWindow * object = static_cast<osgViewer::GraphicsWindow*>(item<SGIItemOsg>()->object());
@@ -1805,6 +2358,7 @@ bool objectTreeBuildImpl<osgViewer::GraphicsWindow>::build(IObjectTreeItem * tre
     return ret;
 }
 
+#ifdef SGI_USE_OSGQT
 bool objectTreeBuildImpl<osgQt::GraphicsWindowQt>::build(IObjectTreeItem * treeItem)
 {
     osgQt::GraphicsWindowQt * object = static_cast<osgQt::GraphicsWindowQt*>(item<SGIItemOsg>()->object());
@@ -1827,6 +2381,51 @@ bool objectTreeBuildImpl<osgQt::GraphicsWindowQt>::build(IObjectTreeItem * treeI
     return ret;
 }
 
+bool objectTreeBuildImpl<osgQt::QObjectWrapper>::build(IObjectTreeItem * treeItem)
+{
+    osgQt::QObjectWrapper * object = getObject<osgQt::QObjectWrapper, SGIItemOsg>();
+    bool ret;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            SGIHostItemQt qobject(object->getQObject());
+            if(qobject.hasObject())
+                treeItem->addChild(std::string(), &qobject);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osgQt::GLWidget>::build(IObjectTreeItem * treeItem)
+{
+    osgQt::GLWidget * object = getObject<osgQt::GLWidget, SGIItemQt>();
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsg gw(object->getGraphicsWindow());
+            if (gw.hasObject())
+                treeItem->addChild(std::string(), &gw);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+#endif // SGI_USE_OSGQT
+
 bool objectTreeBuildImpl<osgGA::GUIEventHandler>::build(IObjectTreeItem * treeItem)
 {
     osgGA::GUIEventHandler * object = dynamic_cast<osgGA::GUIEventHandler*>(item<SGIItemOsg>()->object());
@@ -1848,6 +2447,10 @@ bool objectTreeBuildImpl<osgGA::GUIEventAdapter>::build(IObjectTreeItem * treeIt
     case SGIItemTypeObject:
         if(ret)
         {
+            SGIHostItemOsg context(object->getGraphicsContext());
+            if (context.hasObject())
+                treeItem->addChild("GraphicsContext", &context);
+
 //             ReferencedPicker * picker = new ReferencedPicker(const_cast<osgGA::GUIEventAdapter*>(object));
 //             buildTree(0, item, picker , SGIItemTypeObject, tr("osgEarth Picker"));
 //
@@ -1864,7 +2467,7 @@ bool objectTreeBuildImpl<osgGA::GUIEventAdapter>::build(IObjectTreeItem * treeIt
 
 bool objectTreeBuildImpl<osgGA::CameraManipulator>::build(IObjectTreeItem * treeItem)
 {
-    osgGA::CameraManipulator * object = dynamic_cast<osgGA::CameraManipulator*>(item<SGIItemOsg>()->object());
+    osgGA::CameraManipulator * object = getObject<osgGA::CameraManipulator, SGIItemOsg, DynamicCaster>();
     bool ret;
     switch(itemType())
     {
@@ -1872,6 +2475,11 @@ bool objectTreeBuildImpl<osgGA::CameraManipulator>::build(IObjectTreeItem * tree
         ret = callNextHandler(treeItem);
         if(ret)
         {
+            if (object->getCoordinateFrameCallback())
+            {
+                treeItem->addChildIfNotExists("Callbacks", cloneItem<SGIItemOsg>(SGIItemTypeCallbacks));
+            }
+
             SGIHostItemOsg node(object->getNode());
             if(node.hasObject())
                 treeItem->addChild("Node", &node);
@@ -1885,6 +2493,133 @@ bool objectTreeBuildImpl<osgGA::CameraManipulator>::build(IObjectTreeItem * tree
             SGIHostItemOsg coordinateFrameCallback(object->getCoordinateFrameCallback());
             if(coordinateFrameCallback.hasObject())
                 treeItem->addChild("CoordinateFrameCallback", &coordinateFrameCallback);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<CullingNodeInfo>::build(IObjectTreeItem * treeItem)
+{
+    CullingNodeInfo * object = getObject<CullingNodeInfo, SGIItemOsg>();
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsg node(object->node.get());
+            treeItem->addChild("Node", &node);
+            treeItem->addChild("Before", cloneItem<SGIItemOsg>(SGIItemTypeCullingInfoBefore));
+            treeItem->addChild("After", cloneItem<SGIItemOsg>(SGIItemTypeCullingInfoAfter));
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<CullingInfo>::build(IObjectTreeItem * treeItem)
+{
+    CullingInfo * object = getObject<CullingInfo, SGIItemOsg>();
+    bool ret;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            SGIHostItemOsg item(object->node());
+            treeItem->addChild("Node", &item);
+
+            unsigned pathnum = 0;
+            const CullingInfo::CullingNodeInfoPathList & pathlist = object->pathlist();
+            for (auto node : pathlist)
+            {
+                treeItem->addChild(helpers::str_plus_count("Path", pathnum++), cloneItem<SGIItemOsg>(SGIItemTypeChilds));
+            }
+
+        }
+        break;
+    case SGIItemTypeChilds:
+        {
+            unsigned pathnum = itemNumber();
+            const CullingInfo::CullingNodeInfoPathList & pathlist = object->pathlist();
+            if (pathnum < pathlist.size())
+            {
+                const CullingNodeInfoPath & path = pathlist[pathnum];
+                for (const CullingNodeInfoPtr & cullinfo : path)
+                {
+                    SGIHostItemOsg item(cullinfo.get());
+                    treeItem->addChild(std::string(), &item);
+                }
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<CullingInfoForCamera>::build(IObjectTreeItem * treeItem)
+{
+    CullingInfoForCamera * object = getObject<CullingInfoForCamera, SGIItemOsg>();
+    bool ret;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            SGIHostItemOsg camera(object->camera());
+            treeItem->addChild("Camera", &camera);
+
+            const CullingInfoPtrList & activeNodes = object->activeNodes();
+            for (auto node : activeNodes )
+            {
+                SGIHostItemOsg item(node.get());
+                treeItem->addChild(std::string(), &item);
+            }
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<CullingInfoRegistry>::build(IObjectTreeItem * treeItem)
+{
+    CullingInfoRegistry * object = getObject<CullingInfoRegistry, SGIItemOsg>();
+    bool ret;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            const CullingInfoRegistry::CameraCullingInfoMap & map = object->map();
+            for (auto it = map.begin(); it != map.end(); ++it)
+            {
+                const CullingInfoRegistry::CameraPtr & camera = it->first;
+                const CullingInfoRegistry::CullingInfoForCameraPtr cull_info = it->second;
+                osg::ref_ptr<osg::Camera> camera_ref;
+                if (camera.lock(camera_ref))
+                {
+                    SGIHostItemOsg item(cull_info.get());
+                    treeItem->addChild(std::string(), &item);
+                }
+            }
         }
         break;
     default:
@@ -1915,10 +2650,15 @@ bool objectTreeBuildImpl<osgDB::Registry>::build(IObjectTreeItem * treeItem)
 
             treeItem->addChild("Readers/Writers", cloneItem<SGIItemOsg>(SGIItemTypeReadersWriters));
             treeItem->addChild("Image processors", cloneItem<SGIItemOsg>(SGIItemTypeImageProcessors));
+			treeItem->addChild("Graphics contexts", cloneItem<SGIItemOsg>(SGIItemTypeGraphicsContexts));
 
             SGIHostItemOsg fileCache(object->getFileCache());
             if(fileCache.hasObject())
                 treeItem->addChild("FileCache", &fileCache);
+
+            SGIHostItemOsg objectCache(object->getObjectCache());
+            if (objectCache.hasObject())
+                treeItem->addChild("ObjectCache", &objectCache);
 
             SGIHostItemOsg opts(object->getOptions());
             if(opts.hasObject())
@@ -1977,6 +2717,18 @@ bool objectTreeBuildImpl<osgDB::Registry>::build(IObjectTreeItem * treeItem)
             ret = true;
         }
         break;
+	case SGIItemTypeGraphicsContexts:
+		{
+			const osg::GraphicsContext::GraphicsContexts & list = osg::GraphicsContext::getAllRegisteredGraphicsContexts();
+			for (osg::GraphicsContext::GraphicsContexts::const_iterator it = list.begin(); it != list.end(); it++)
+			{
+				SGIHostItemOsg ctx((*it));
+				if (ctx.hasObject())
+					treeItem->addChild(std::string(), &ctx);
+			}
+			ret = true;
+		}
+		break;
     default:
         ret = callNextHandler(treeItem);
         break;
@@ -2006,6 +2758,25 @@ bool objectTreeBuildImpl<osgDB::Options>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg fileCache(object->getFileCache());
             if(fileCache.hasObject())
                 treeItem->addChild("FileCache", &fileCache);
+
+            SGIHostItemOsg authenticationMap(object->getAuthenticationMap());
+            if(authenticationMap.hasObject())
+                treeItem->addChild("AuthenticationMap", &authenticationMap);
+
+            osg::ref_ptr<osg::Node> terrain;
+            if(object->getTerrain().lock(terrain) && terrain.valid())
+            {
+                SGIHostItemOsg item(terrain.get());
+                treeItem->addChild("Terrain", &item);
+            }
+
+            osg::ref_ptr<osg::Group> parentGroup;
+            if(object->getParentGroup().lock(parentGroup) && parentGroup.valid())
+            {
+                SGIHostItemOsg item(parentGroup.get());
+                treeItem->addChild("ParentGroup", &item);
+            }
+
         }
         break;
     case SGIItemTypeCallbacks:
@@ -2057,7 +2828,7 @@ bool objectTreeBuildImpl<osgDB::ReaderWriter>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osgDB::DatabasePager>::build(IObjectTreeItem * treeItem)
 {
-    osgDB::DatabasePager * object = dynamic_cast<osgDB::DatabasePager*>(item<SGIItemOsg>()->object());
+    DatabasePagerAccessor * object = static_cast<DatabasePagerAccessor*>(dynamic_cast<osgDB::DatabasePager*>(item<SGIItemOsg>()->object()));
     bool ret;
     switch(itemType())
     {
@@ -2065,17 +2836,20 @@ bool objectTreeBuildImpl<osgDB::DatabasePager>::build(IObjectTreeItem * treeItem
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            DatabasePagerAccessor * access = (DatabasePagerAccessor*)object;
-            unsigned numberOfPagedLODs = access->numberOfPagedLODs();
-            if(numberOfPagedLODs)
-                treeItem->addChild(helpers::str_plus_count("PagedLODs", numberOfPagedLODs), cloneItem<SGIItemOsg>(SGIItemTypeActivePagedLODs));
+            osgDB::DatabasePager::PagedLODList * activePagedLODList = object->activePagedLODList();
+            SGIHostItemOsg activePagedLODListItem(activePagedLODList);
+            if (activePagedLODListItem.hasObject())
+            {
+                unsigned numberOfPagedLODs = activePagedLODList->size();
+                treeItem->addChild(helpers::str_plus_count("PagedLODs", numberOfPagedLODs), &activePagedLODListItem);
+            }
 
             treeItem->addChild(helpers::str_plus_count("Threads", object->getNumDatabaseThreads()), cloneItem<SGIItemOsg>(SGIItemTypeThreads));
 
-            treeItem->addChild(helpers::str_plus_count("File requests", access->getLocalFileRequestListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerFileRequests));
-            treeItem->addChild(helpers::str_plus_count("HTTP requests", access->getHttpRequestListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerHttpRequests));
-            treeItem->addChild(helpers::str_plus_count("Data to compile", access->getDataToCompileListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerDataToCompile));
-            treeItem->addChild(helpers::str_plus_count("Data to merge", access->getDataToMergeListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerDataToMerge));
+            treeItem->addChild(helpers::str_plus_count("File requests", object->getLocalFileRequestListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerFileRequests));
+            treeItem->addChild(helpers::str_plus_count("HTTP requests", object->getHttpRequestListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerHttpRequests));
+            treeItem->addChild(helpers::str_plus_count("Data to compile", object->getDataToCompileListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerDataToCompile));
+            treeItem->addChild(helpers::str_plus_count("Data to merge", object->getDataToMergeListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerDataToMerge));
         }
         break;
     case SGIItemTypeThreads:
@@ -2090,8 +2864,8 @@ bool objectTreeBuildImpl<osgDB::DatabasePager>::build(IObjectTreeItem * treeItem
         break;
     case SGIItemTypeActivePagedLODs:
         {
-            DatabasePagerAccessor * access = (DatabasePagerAccessor*)object;
-            const DatabasePagerAccessor::SetBasedPagedLODList * list = access->activePagedLODList();
+            osgDB::DatabasePager::PagedLODList * activePagedLODList = object->activePagedLODList();
+            const DatabasePagerAccessor::SetBasedPagedLODList * list = static_cast<const DatabasePagerAccessor::SetBasedPagedLODList *>(activePagedLODList);
             for(DatabasePagerAccessor::SetBasedPagedLODList::const_iterator it = list->begin(); it != list->end(); it++)
             {
                 const osg::observer_ptr<osg::PagedLOD> & value = *it;
@@ -2100,6 +2874,74 @@ bool objectTreeBuildImpl<osgDB::DatabasePager>::build(IObjectTreeItem * treeItem
                 {
                     SGIHostItemOsg child(node);
                     if(child.hasObject())
+                        treeItem->addChild(std::string(), &child);
+                }
+            }
+            ret = true;
+        }
+        break;
+    case SGIItemTypeDBPagerFileRequests:
+        {
+            DatabasePagerAccessor::RequestList requestList;
+            object->copyFileRequests(requestList);
+            if (itemNumber() == ~0u)
+            {
+                for (auto it = requestList.begin(); it != requestList.end(); it++)
+                {
+                    const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
+                    SGIHostItemOsg child(req);
+                    if (child.hasObject())
+                        treeItem->addChild(std::string(), &child);
+                }
+            }
+            ret = true;
+        }
+        break;
+    case SGIItemTypeDBPagerHttpRequests:
+        {
+            DatabasePagerAccessor::RequestList requestList;
+            object->copyHttpRequests(requestList);
+            if (itemNumber() == ~0u)
+            {
+                for (auto it = requestList.begin(); it != requestList.end(); it++)
+                {
+                    const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
+                    SGIHostItemOsg child(req);
+                    if (child.hasObject())
+                        treeItem->addChild(std::string(), &child);
+                }
+            }
+            ret = true;
+        }
+        break;
+    case SGIItemTypeDBPagerDataToCompile:
+        {
+            DatabasePagerAccessor::RequestList requestList;
+            object->copyDataToCompile(requestList);
+            if (itemNumber() == ~0u)
+            {
+                for (auto it = requestList.begin(); it != requestList.end(); it++)
+                {
+                    const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
+                    SGIHostItemOsg child(req);
+                    if (child.hasObject())
+                        treeItem->addChild(std::string(), &child);
+                }
+            }
+            ret = true;
+        }
+        break;
+    case SGIItemTypeDBPagerDataToMerge:
+        {
+            DatabasePagerAccessor::RequestList requestList;
+            object->copyDataToMerge(requestList);
+            if (itemNumber() == ~0u)
+            {
+                for (auto it = requestList.begin(); it != requestList.end(); it++)
+                {
+                    const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
+                    SGIHostItemOsg child(req);
+                    if (child.hasObject())
                         treeItem->addChild(std::string(), &child);
                 }
             }
@@ -2213,6 +3055,54 @@ bool objectTreeBuildImpl<osgDB::FileList>::build(IObjectTreeItem * treeItem)
     return ret;
 }
 
+bool objectTreeBuildImpl<osgDB::ObjectCache>::build(IObjectTreeItem * treeItem)
+{
+    ObjectCacheAccess * object = static_cast<ObjectCacheAccess *>(getObject<osgDB::ObjectCache, SGIItemOsg>());
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            unsigned num = object->getNumItems();
+            if (num)
+                treeItem->addChild(helpers::str_plus_count("Objects", num), cloneItem<SGIItemOsg>(SGIItemTypeCachedObjects, ~0u));
+        }
+        break;
+    case SGIItemTypeCachedObjects:
+        {
+            ObjectCacheAccess::ItemList items;
+            object->getItems(items);
+            if (itemNumber() == ~0u)
+            {
+                for (unsigned i = 0; i < items.size(); ++i)
+                {
+                    const auto & item = items[i];
+                    treeItem->addChild(helpers::str_plus_info(item.name, i), cloneItem<SGIItemOsg>(SGIItemTypeCachedObjects, i));
+                }
+            }
+            else if(itemNumber() < items.size())
+            {
+                const auto & item = items[itemNumber()];
+                SGIHostItemOsg object(item.object);
+                if(object.hasObject())
+                    treeItem->addChild("Object", &object);
+                SGIHostItemOsg options(item.options);
+                if(options.hasObject())
+                    treeItem->addChild("Options", &options);
+
+            }
+            ret = true;
+        }
+        break;
+
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
 bool objectTreeBuildImpl<osgDB::ObjectWrapper>::build(IObjectTreeItem * treeItem)
 {
     osgDB::ObjectWrapper * object = getObject<osgDB::ObjectWrapper, SGIItemOsg>();
@@ -2226,20 +3116,23 @@ bool objectTreeBuildImpl<osgDB::ObjectWrapper>::build(IObjectTreeItem * treeItem
 #if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
             const osgDB::ObjectWrapper::SerializerList & serializers = object->getSerializerList();
             if(!serializers.empty())
-                treeItem->addChild(helpers::str_plus_count("Serializers", serializers.size()), cloneItem<SGIItemOsg>(SGIItemTypeSerializers));
+                treeItem->addChild(helpers::str_plus_count("Serializers", serializers.size()), cloneItem<SGIItemOsg>(SGIItemTypeSerializers, ~0u));
 #endif
         }
         break;
     case SGIItemTypeSerializers:
         {
-#if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
-            const osgDB::ObjectWrapper::SerializerList & serializers = object->getSerializerList();
-            for(auto it = serializers.begin(); it != serializers.end(); it++)
+            if (itemNumber() == ~0u)
             {
-                SGIHostItemOsg serializer((*it).get());
-                treeItem->addChild(std::string(), &serializer);
-            }
+#if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
+                const osgDB::ObjectWrapper::SerializerList & serializers = object->getSerializerList();
+                for(auto it = serializers.begin(); it != serializers.end(); it++)
+                {
+                    SGIHostItemOsg serializer((*it).get());
+                    treeItem->addChild(std::string(), &serializer);
+                }
 #endif
+            }
             ret = true;
         }
         break;
@@ -2358,6 +3251,97 @@ bool objectTreeBuildImpl<osgDB::DatabaseRevision>::build(IObjectTreeItem * treeI
     }
     return ret;
 }
+
+bool objectTreeBuildImpl<osgDB::DatabasePager::DatabaseRequest>::build(IObjectTreeItem * treeItem)
+{
+	osgDB::DatabasePager::DatabaseRequest * object = getObject<osgDB::DatabasePager::DatabaseRequest, SGIItemOsg>();
+	bool ret;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(treeItem);
+		if (ret)
+		{
+			osg::ref_ptr<osg::Node> terrain;
+			if (object->_terrain.lock(terrain))
+			{
+				SGIHostItemOsg item(terrain.get());
+				if (item.hasObject())
+					treeItem->addChild("Terrain", &item);
+			}
+			osg::ref_ptr<osg::Group> group;
+			if (object->_group.lock(group))
+			{
+				SGIHostItemOsg item(group.get());
+				if (item.hasObject())
+					treeItem->addChild("Group", &item);
+			}
+			SGIHostItemOsg loadedModel(object->_loadedModel.get());
+			if (loadedModel.hasObject())
+				treeItem->addChild("LoadedModel", &loadedModel);
+
+			SGIHostItemOsg options(object->_loadOptions.get());
+			if (options.hasObject())
+				treeItem->addChild("Options", &options);
+
+			SGIHostItemOsg objcache(object->_objectCache.get());
+			if (objcache.hasObject())
+				treeItem->addChild("Object cache", &objcache);
+
+			osg::ref_ptr<osgUtil::IncrementalCompileOperation::CompileSet> compileset;
+			if (object->_compileSet.lock(compileset))
+			{
+				SGIHostItemOsg item(compileset.get());
+				if (item.hasObject())
+					treeItem->addChild("ICO compile set", &item);
+			}
+		}
+		break;
+	default:
+		ret = callNextHandler(treeItem);
+		break;
+	}
+	return ret;
+}
+
+bool objectTreeBuildImpl<osgDB::DatabasePager::RequestQueue>::build(IObjectTreeItem * treeItem)
+{
+	osgDB::DatabasePager::RequestQueue * object = getObject<osgDB::DatabasePager::RequestQueue, SGIItemOsg>();
+	bool ret;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(treeItem);
+		if (ret)
+		{
+		}
+		break;
+	default:
+		ret = callNextHandler(treeItem);
+		break;
+	}
+	return ret;
+}
+
+bool objectTreeBuildImpl<osgDB::DatabasePager::ReadQueue>::build(IObjectTreeItem * treeItem)
+{
+	osgDB::DatabasePager::ReadQueue * object = getObject<osgDB::DatabasePager::ReadQueue, SGIItemOsg>();
+	bool ret;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(treeItem);
+		if (ret)
+		{
+		}
+		break;
+	default:
+		ret = callNextHandler(treeItem);
+		break;
+	}
+	return ret;
+}
+
 
 bool objectTreeBuildImpl<osgUtil::RenderBin>::build(IObjectTreeItem * treeItem)
 {
@@ -2652,11 +3636,11 @@ bool objectTreeBuildImpl<osgTerrain::TerrainTile>::build(IObjectTreeItem * treeI
 
             unsigned numColorLayers = object->getNumColorLayers();
             if(numColorLayers)
-                treeItem->addChild(helpers::str_plus_count("ColorLayers", numColorLayers), cloneItem<SGIItemOsg>(SGIItemTypeImageLayers));
+                treeItem->addChild(helpers::str_plus_count("ColorLayers", numColorLayers), cloneItem<SGIItemOsg>(SGIItemTypeColorLayers));
 
         }
         break;
-    case SGIItemTypeImageLayers:
+    case SGIItemTypeColorLayers:
         {
             unsigned numColorLayers = object->getNumColorLayers();
             for(unsigned n = 0; n < numColorLayers; n++)
@@ -2822,6 +3806,7 @@ bool objectTreeBuildImpl<osgText::Font>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
+#if OSG_VERSION_LESS_THAN(3,5,9)
             SGIHostItemOsg stateSet(object->getStateSet());
             if(stateSet.hasObject())
                 treeItem->addChild("StateSet", &stateSet);
@@ -2829,13 +3814,28 @@ bool objectTreeBuildImpl<osgText::Font>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg texEnv(object->getTexEnv());
             if(texEnv.hasObject())
                 treeItem->addChild("TexEnv", &texEnv);
+#endif
 
             SGIHostItemOsg implementation(object->getImplementation());
             if(implementation.hasObject())
                 treeItem->addChild("Implementation", &implementation);
 
+			const osgText::Font::GlyphTextureList & textureList = object->getGlyphTextureList();
+			if (!textureList.empty())
+				treeItem->addChild(helpers::str_plus_count("TextureList", textureList.size()), cloneItem<SGIItemOsg>(SGIItemTypeFontTextureList));
         }
         break;
+	case SGIItemTypeFontTextureList:
+		{
+			const osgText::Font::GlyphTextureList & textureList = object->getGlyphTextureList();
+			for(const auto & texture : textureList)
+			{
+				SGIHostItemOsg item(texture.get());
+				treeItem->addChild(std::string(), &item);
+			}
+			ret = true;
+		}
+		break;
     default:
         ret = callNextHandler(treeItem);
         break;
@@ -2845,7 +3845,7 @@ bool objectTreeBuildImpl<osgText::Font>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osgText::TextBase>::build(IObjectTreeItem * treeItem)
 {
-    osgText::TextBase * object = getObject<osgText::TextBase,SGIItemOsg>();
+    osgTextBaseAccess * object = static_cast<osgTextBaseAccess *>(getObject<osgText::TextBase, SGIItemOsg>());
     bool ret;
     switch(itemType())
     {
@@ -2853,6 +3853,34 @@ bool objectTreeBuildImpl<osgText::TextBase>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
+			SGIHostItemOsg font(object->getFont());
+			if (font.hasObject())
+				treeItem->addChild("Font", &font);
+			SGIHostItemOsg style(object->getStyle());
+			if (style.hasObject())
+				treeItem->addChild("Style", &style);
+
+            const auto & primitives = object->getPrimitives();
+            if (!primitives.empty())
+                treeItem->addChild(helpers::str_plus_count("Primitives", primitives.size()), cloneItem<SGIItemOsg>(SGIItemTypePrimitiveSetList));
+
+            SGIHostItemOsg vbo(object->getVBO());
+            if (vbo.hasObject())
+                treeItem->addChild("VBO", &vbo);
+            SGIHostItemOsg ebo(object->getEBO());
+            if (ebo.hasObject())
+                treeItem->addChild("EBO", &ebo);
+		}
+        break;
+    case SGIItemTypePrimitiveSetList:
+        {
+            for (auto prim : object->getPrimitives())
+            {
+                SGIHostItemOsg item(prim);
+                if (item.hasObject())
+                    treeItem->addChild(std::string(), &item);
+            }
+            ret = true;
         }
         break;
     default:
@@ -2954,67 +3982,87 @@ bool objectTreeBuildImpl<osgAnimation::AnimationManagerBase>::build(IObjectTreeI
     return ret;
 }
 
-bool objectTreeBuildImpl<RenderInfoDrawable>::build(IObjectTreeItem * treeItem)
+bool objectTreeBuildImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, IObjectTreeItem * treeItem, SGIItemBase * item, const RenderInfoData & data)
 {
-    RenderInfoDrawable * object = getObject<RenderInfoDrawable,SGIItemOsg>();
-    bool ret;
-    switch(itemType())
+    bool ret = false;
+    SGIItemBase * itemNext = item->nextBase();
+    switch (item->type())
     {
     case SGIItemTypeObject:
-        ret = callNextHandler(treeItem);
-        if(ret)
+        ret = hostInterface->objectTreeBuildTree(treeItem, itemNext);
+        if (ret)
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            treeItem->addChild(helpers::str_plus_count("States", hashedState.size()), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoState, ~0u));
+            const RenderInfoData::HashedState & hashedState = data.hashedState();
+            treeItem->addChild(helpers::str_plus_count("States", hashedState.size()), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoState, ~0u));
         }
         break;
     case SGIItemTypeRenderInfoState:
+    {
+        const RenderInfoData::HashedState & hashedState = data.hashedState();
+        if (item->number() == ~0u)
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            if(itemNumber() == ~0u)
+            for (RenderInfoData::HashedState::const_iterator it = hashedState.begin(); it != hashedState.end(); it++)
             {
-                for(RenderInfoDrawable::HashedState::const_iterator it = hashedState.begin(); it != hashedState.end(); it++)
-                {
-                    const unsigned & hash = it->first;
-                    treeItem->addChild(helpers::str_plus_hex("State", hash), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoState, hash));
-                }
+                const RenderInfoData::HashedStateId & hash = it->first;
+                const RenderInfoData::State & state = it->second;
+                unsigned contextID = (state.state.valid() ? state.state->getContextID() : ~0u);
+                treeItem->addChild(helpers::str_plus_hex("State", contextID, hash), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoState, hash));
             }
-            else
-            {
-                RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
-                if(it != hashedState.end())
-                {
-                    const RenderInfoDrawable::State & state = it->second;
-
-                    SGIHostItemOsg view(state.view);
-                    treeItem->addChild("View", &view);
-
-                    SGIHostItemOsg capturedStateSet(state.capturedStateSet);
-                    treeItem->addChild("CapturedStateSet", &capturedStateSet);
-
-                    SGIHostItemOsg combinedStateSet(state.combinedStateSet);
-                    treeItem->addChild("CombinedStateSet", &combinedStateSet);
-
-                    treeItem->addChild(helpers::str_plus_count("StateSetStack", state.stateSetStack.size()), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoStateSetStack, itemNumber()));
-                    treeItem->addChild(helpers::str_plus_count("RenderBinStack", state.renderBinStack.size()), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoRenderBinStack, itemNumber()));
-                    treeItem->addChild(helpers::str_plus_count("CameraStack", state.cameraStack.size()), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoCameraStack, itemNumber()));
-                    treeItem->addChild(helpers::str_plus_count("AppliedProgramSet", state.appliedProgamSet.size()), cloneItem<SGIItemOsg>(SGIItemTypeRenderInfoAppliedProgramSet, itemNumber()));
-                }
-            }
-            ret = true;
         }
-        break;
-    case SGIItemTypeRenderInfoStateSetStack:
+        else
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
-            if(it != hashedState.end())
+            RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
+            if (it != hashedState.end())
             {
-                const RenderInfoDrawable::State & state = it->second;
-                const RenderInfoDrawable::StateSetStack & lastStack = state.stateSetStack;
-                for(RenderInfoDrawable::StateSetStack::const_iterator it = lastStack.begin(); it != lastStack.end(); it++)
+                const RenderInfoData::State & state = it->second;
+
+                SGIHostItemOsg osgstate(state.state);
+                treeItem->addChild("State", &osgstate);
+
+                SGIHostItemOsg view(state.view);
+                treeItem->addChild("View", &view);
+
+                SGIHostItemOsg userData(state.userData);
+                if(userData.hasObject())
+                    treeItem->addChild("UserData", &userData);
+
+                SGIHostItemOsg capturedStateSet(state.capturedStateSet);
+                treeItem->addChild("CapturedStateSet", &capturedStateSet);
+
+                SGIHostItemOsg combinedStateSet(state.combinedStateSet);
+                treeItem->addChild("CombinedStateSet", &combinedStateSet);
+
+                treeItem->addChild(helpers::str_plus_count("StateSetStack", state.stateSetStack.size()), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoStateSetStack, item->number()));
+                treeItem->addChild(helpers::str_plus_count("RenderBinStack", state.renderBinStack.size()), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoRenderBinStack, item->number()));
+                treeItem->addChild(helpers::str_plus_count("CameraStack", state.cameraStack.size()), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoCameraStack, item->number()));
+                treeItem->addChild(helpers::str_plus_count("AppliedProgramSet", state.appliedProgamSet.size()), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoAppliedProgramSet, item->number()));
+            }
+        }
+        ret = true;
+    }
+    break;
+    case SGIItemTypeRenderInfoStateSetStack:
+    {
+        const RenderInfoData::HashedState & hashedState = data.hashedState();
+        if (item->number() == ~0u)
+        {
+            for (auto it = hashedState.begin(); it != hashedState.end(); ++it)
+            {
+                const RenderInfoData::HashedStateId & state = it->first;
+                treeItem->addChild(helpers::str_plus_hex("State", state), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoStateSetStack, state));
+            }
+        }
+        else
+        {
+            RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
+            if (it != hashedState.end())
+            {
+                const RenderInfoData::State & state = it->second;
+                const RenderInfoData::StateSetStack & lastStack = state.stateSetStack;
+                for (RenderInfoData::StateSetStack::const_iterator it = lastStack.begin(); it != lastStack.end(); it++)
                 {
-                    SGIHostItemOsg child(*it);
+                    const RenderInfoData::StateSetEntry & entry = *it;
+                    SGIHostItemOsg child(entry.stateSet.get());
                     treeItem->addChild(std::string(), &child);
                 }
 
@@ -3022,64 +4070,89 @@ bool objectTreeBuildImpl<RenderInfoDrawable>::build(IObjectTreeItem * treeItem)
                 treeItem->addChild("CombinedStateSet", &combinedStateSet);
 
             }
-            ret = true;
         }
-        break;
+        ret = true;
+    }
+    break;
     case SGIItemTypeRenderInfoRenderBinStack:
+    {
+        const RenderInfoData::HashedState & hashedState = data.hashedState();
+        RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
+        if (it != hashedState.end())
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
-            if(it != hashedState.end())
+            const RenderInfoData::State & state = it->second;
+            const RenderInfoData::RenderBinStack & lastStack = state.renderBinStack;
+            for (RenderInfoData::RenderBinStack::const_iterator it = lastStack.begin(); it != lastStack.end(); it++)
             {
-                const RenderInfoDrawable::State & state = it->second;
-                const RenderInfoDrawable::RenderBinStack & lastStack = state.renderBinStack;
-                for(RenderInfoDrawable::RenderBinStack::const_iterator it = lastStack.begin(); it != lastStack.end(); it++)
-                {
-                    SGIHostItemOsg child(*it);
-                    treeItem->addChild(std::string(), &child);
-                }
+                SGIHostItemOsg child(*it);
+                treeItem->addChild(std::string(), &child);
             }
-            ret = true;
         }
-        break;
+        ret = true;
+    }
+    break;
     case SGIItemTypeRenderInfoCameraStack:
+    {
+        const RenderInfoData::HashedState & hashedState = data.hashedState();
+        RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
+        if (it != hashedState.end())
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
-            if(it != hashedState.end())
+            const RenderInfoData::State & state = it->second;
+            const RenderInfoData::CameraStack & lastStack = state.cameraStack;
+            for (RenderInfoData::CameraStack::const_iterator it = lastStack.begin(); it != lastStack.end(); it++)
             {
-                const RenderInfoDrawable::State & state = it->second;
-                const RenderInfoDrawable::CameraStack & lastStack = state.cameraStack;
-                for(RenderInfoDrawable::CameraStack::const_iterator it = lastStack.begin(); it != lastStack.end(); it++)
-                {
-                    SGIHostItemOsg child(*it);
-                    treeItem->addChild(std::string(), &child);
-                }
+                SGIHostItemOsg child(*it);
+                treeItem->addChild(std::string(), &child);
             }
-            ret = true;
         }
-        break;
+        ret = true;
+    }
+    break;
     case SGIItemTypeRenderInfoAppliedProgramSet:
+    {
+        const RenderInfoData::HashedState & hashedState = data.hashedState();
+        RenderInfoData::HashedState::const_iterator it = hashedState.find(item->number());
+        if (it != hashedState.end())
         {
-            const RenderInfoDrawable::HashedState & hashedState = object->hashedState();
-            RenderInfoDrawable::HashedState::const_iterator it = hashedState.find(itemNumber());
-            if(it != hashedState.end())
+            const RenderInfoData::State & state = it->second;
+            const RenderInfoData::PerContextProgramSet & set = state.appliedProgamSet;
+            for (RenderInfoData::PerContextProgramSet::const_iterator it = set.begin(); it != set.end(); it++)
             {
-                const RenderInfoDrawable::State & state = it->second;
-                const RenderInfoDrawable::PerContextProgramSet & set = state.appliedProgamSet;
-                for(RenderInfoDrawable::PerContextProgramSet::const_iterator it = set.begin(); it != set.end(); it++)
-                {
-                    SGIHostItemOsg child(*it);
-                    treeItem->addChild(std::string(), &child);
-                }
+                SGIHostItemOsg child(*it);
+                treeItem->addChild(std::string(), &child);
             }
-            ret = true;
         }
-        break;
+        ret = true;
+    }
+    break;
     default:
-        ret = callNextHandler(treeItem);
+        ret = hostInterface->objectTreeBuildTree(treeItem, itemNext);
         break;
     }
+    return ret;
+}
+
+bool objectTreeBuildImpl<RenderInfoDrawCallback>::build(IObjectTreeItem * treeItem)
+{
+    RenderInfoDrawCallback * object = getObject<RenderInfoDrawCallback, SGIItemOsg, DynamicCaster>();
+    const RenderInfoData & data = object->data();
+    bool ret = objectTreeBuildImpl_RenderInfoData(_hostInterface, treeItem, _item, data);
+    return ret;
+}
+
+bool objectTreeBuildImpl<RenderInfoDrawable>::build(IObjectTreeItem * treeItem)
+{
+    RenderInfoDrawable * object = getObject<RenderInfoDrawable,SGIItemOsg>();
+    const RenderInfoData & data = object->data();
+    bool ret = objectTreeBuildImpl_RenderInfoData(_hostInterface, treeItem, _item, data);
+    return ret;
+}
+
+bool objectTreeBuildImpl<RenderInfoGeometry>::build(IObjectTreeItem * treeItem)
+{
+    RenderInfoGeometry * object = getObject<RenderInfoGeometry, SGIItemOsg>();
+    const RenderInfoData & data = object->data();
+    bool ret = objectTreeBuildImpl_RenderInfoData(_hostInterface, treeItem, _item, data);
     return ret;
 }
 
@@ -3109,6 +4182,7 @@ bool objectTreeBuildImpl<ReferencedPickerBase>::build(IObjectTreeItem * treeItem
     return ret;
 }
 
+#ifdef SGI_USE_OSGEARTH
 bool objectTreeBuildImpl<ReferencedPicker>::build(IObjectTreeItem * treeItem)
 {
     ReferencedPicker * object = dynamic_cast<ReferencedPicker*>(item<SGIItemOsg>()->object());
@@ -3172,6 +4246,7 @@ bool objectTreeBuildImpl<ReferencedPicker>::build(IObjectTreeItem * treeItem)
     }
     return ret;
 }
+#endif
 
 bool objectTreeBuildImpl<ReferencedLinePicker>::build(IObjectTreeItem * treeItem)
 {
@@ -3237,7 +4312,7 @@ bool objectTreeBuildImpl<ReferencedLinePicker>::build(IObjectTreeItem * treeItem
     return ret;
 }
 
-OBJECT_TREE_BUILD_ROOT_IMPL_REGISTER(ISceneGraphDialog)
+OBJECT_TREE_BUILD_ROOT_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 
 struct RegistrySingleton
 {
@@ -3250,12 +4325,123 @@ struct RegistrySingleton
     }
 };
 
+struct DefaultFontSingleton
+{
+    SGIItemBase * operator()(SGIPluginHostInterface * hostInterface)
+    {
+        SGIItemBasePtr item;
+        SGIHostItemOsg hostItem(osgText::Font::getDefaultFont());
+        hostInterface->generateItem(item, &hostItem);
+        return item.release();
+    }
+};
+
+struct CullingInfoSingleton
+{
+    SGIItemBase * operator()(SGIPluginHostInterface * hostInterface)
+    {
+        SGIItemBasePtr item;
+        SGIHostItemOsg hostItem(CullingInfoRegistry::instance());
+        hostInterface->generateItem(item, &hostItem);
+        return item.release();
+    }
+};
+
+
+class FindTreeItemNodeVisitor : public osg::NodeVisitor
+{
+public:
+    FindTreeItemNodeVisitor(TraversalMode tm=TRAVERSE_ALL_CHILDREN)
+        : osg::NodeVisitor(tm) {}
+    struct NodeItem
+    {
+        osg::ref_ptr<osg::Node> node;
+        std::string name;
+        bool imageGeode;
+    };
+    typedef std::vector<NodeItem> NodeList;
+    const NodeList &   results() const
+        { return _nodes; }
+
+    virtual void apply(osg::Node& node)
+    {
+        bool sgi_tree_item = false;
+        if(node.getUserValue<bool>("sgi_tree_item", sgi_tree_item))
+        {
+            if (sgi_tree_item)
+            {
+                NodeItem item;
+                item.node = &node;
+                item.imageGeode = false;
+                node.getUserValue<std::string>("sgi_tree_itemname", item.name);
+                if(!node.getUserValue<bool>("sgi_tree_imagegeode", item.imageGeode))
+                    item.imageGeode = false;
+                _nodes.push_back(item);
+            }
+        }
+        traverse(node);
+    }
+protected:
+    NodeList _nodes;
+};
+
 bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeItem)
 {
     ISceneGraphDialog * object = static_cast<ISceneGraphDialog*>(item<SGIItemInternal>()->object());
 
-    SGIHostItemOsg hostItem(new SGIProxyItemT<RegistrySingleton>(_hostInterface, "osgDB::Registry"));
-    treeItem->addChild(std::string(), &hostItem);
+    SGIHostItemInternal dbRegistryHostItem(new SGIProxyItemT<RegistrySingleton>(_hostInterface, "osgDB::Registry"));
+    treeItem->addChild(std::string(), &dbRegistryHostItem);
+
+    SGIHostItemInternal defaultFontHostItem(new SGIProxyItemT<DefaultFontSingleton>(_hostInterface, "osgText::DefaultFont"));
+    treeItem->addChild(std::string(), &defaultFontHostItem);
+
+    SGIHostItemInternal cullingInfoItem(new SGIProxyItemT<CullingInfoSingleton>(_hostInterface, "CullingInfo"));
+    treeItem->addChild(std::string(), &cullingInfoItem);
+
+    SGIItemOsg * osgitem = dynamic_cast<SGIItemOsg *>(object->item());
+    if (osgitem)
+    {
+        osg::Node * node = NULL;
+        osg::View * view = dynamic_cast<osg::View*>(osgitem->object());
+        if(view)
+            node = view->getCamera();
+        else
+            node = dynamic_cast<osg::Node*>(osgitem->object());
+        if (node)
+        {
+            FindTreeItemNodeVisitor ftinv;
+            node->accept(ftinv);
+            for(FindTreeItemNodeVisitor::NodeList::const_iterator it = ftinv.results().begin(); it != ftinv.results().end(); ++it)
+            {
+                const FindTreeItemNodeVisitor::NodeItem & item = *it;
+                osg::Node * node = item.node.get();
+                SGIHostItemOsg hostItem(node);
+                if(hostItem.hasObject())
+                {
+                    // always add the node item to the tree
+                    treeItem->addChild((*it).name, &hostItem);
+
+                    if(item.imageGeode)
+                    {
+                        // ... and if it is a image geode try to add the image to the tree as well
+                        osg::StateSet* stateSet = node->getStateSet();
+                        if(stateSet)
+                        {
+                            osg::StateAttribute * sa = stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
+                            osg::Texture * texture = sa ? sa->asTexture() : NULL;
+                            if(texture)
+                            {
+                                SGIHostItemOsg image(texture->getImage(0));
+                                if(image.hasObject())
+                                    treeItem->addChild(item.name, &image);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     return true;
 }
 

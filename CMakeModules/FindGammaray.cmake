@@ -1,0 +1,126 @@
+# - Find QT5
+# derived from the original FindQt5.cmake shipped with CMake 2.8.1
+# and modified for FAST specific handling.
+#
+
+INCLUDE(FastProtectMacros)
+include(FindPackageHandleStandardArgs)
+
+SET(GAMMARAY_DIR "${FAST_EXTERNAL_DIR}/gammaray")
+SET(Gammaray_FIND_VERBOSE "NO")
+
+MACRO(GAMMARAY_STATUS)
+    MESSAGE(STATUS "Gammaray include dir: ${GAMMARAY_INCLUDE_DIR}")
+    MESSAGE(STATUS "Gammaray common library: ${GAMMARAY_COMMON_LIBRARY}")
+    MESSAGE(STATUS "Gammaray core library: ${GAMMARAY_CORE_LIBRARY}")
+    MESSAGE(STATUS "Gammaray ui library: ${GAMMARAY_UI_LIBRARY}")
+    MESSAGE(STATUS "Gammaray kitemmodels library: ${GAMMARAY_KITEMMODELS_LIBRARY}")
+ENDMACRO(GAMMARAY_STATUS)
+
+IF(NOT Gammaray_FOUND)
+    FAST_FIND_HEADER(GAMMARAY_INCLUDE_DIR LIBRARYNAME gammaray HEADERS core/probecontroller.h DIRS ${GAMMARAY_DIR}/include SUFFIXES gammaray)
+	IF(WIN32)
+		set(GAMMARAY_PLUGIN_VERSION 2.6)
+	    set(GAMMARAY_PLUGIN_INSTALL_DIR gammaray)
+	else()
+		set(GAMMARAY_PLUGIN_VERSION 2.8)
+		set(GAMMARAY_PLUGIN_INSTALL_DIR lib/gammaray)
+	endif()
+
+	if(WIN32)
+		if(MSVC)
+			set(GAMMARAY_PROBE_ABI qt${QT_VERSION_MAJOR}_${QT_VERSION_MINOR}-MSVC-i686)
+		else()
+			set(GAMMARAY_PROBE_ABI qt${QT_VERSION_MAJOR}_${QT_VERSION_MINOR}-i686)
+		endif()
+	else()
+		set(GAMMARAY_PROBE_ABI qt${QT_VERSION_MAJOR}_${QT_VERSION_MINOR}-x86_64)
+	endif()
+    set(GAMMARAY_PROBE_PLUGIN_INSTALL_DIR ${GAMMARAY_PLUGIN_INSTALL_DIR}/${GAMMARAY_PLUGIN_VERSION}/${GAMMARAY_PROBE_ABI})
+
+    set(GAMMARAY_BUILD_UI ON)
+    set(GAMMARAY_PROBE_ONLY_BUILD OFF)
+
+    set(GAMMARAY_STATIC_PROBE OFF)
+    set(GAMMARAY_LIBRARY_TYPE SHARED)
+    set(GAMMARAY_PLUGIN_TYPE MODULE)
+
+    # regular libs
+	FAST_FIND_LIBRARY(GAMMARAY_LAUNCHER_LIBRARY LIBRARYNAME gammaray NAMES gammaray_launcher INTERNAL_NAME gammaray_launcher DIRS ${GAMMARAY_DIR}/lib)
+	FAST_FIND_LIBRARY(GAMMARAY_LAUNCHER_UI_LIBRARY LIBRARYNAME gammaray NAMES gammaray_launcher_ui INTERNAL_NAME gammaray_launcher_ui DIRS ${GAMMARAY_DIR}/lib)
+	FAST_FIND_LIBRARY(GAMMARAY_CLIENT_LIBRARY LIBRARYNAME gammaray NAMES gammaray_client INTERNAL_NAME gammaray_client DIRS ${GAMMARAY_DIR}/lib)
+	# Libs with probe-api suffix
+	FAST_FIND_LIBRARY(GAMMARAY_COMMON_LIBRARY LIBRARYNAME gammaray NAMES gammaray_common-${GAMMARAY_PROBE_ABI} INTERNAL_NAME gammaray_common DIRS ${GAMMARAY_DIR}/lib)
+	FAST_FIND_LIBRARY(GAMMARAY_CORE_LIBRARY LIBRARYNAME gammaray NAMES gammaray_core-${GAMMARAY_PROBE_ABI} INTERNAL_NAME gammaray_core DIRS ${GAMMARAY_DIR}/lib)
+	FAST_FIND_LIBRARY(GAMMARAY_UI_LIBRARY LIBRARYNAME gammaray NAMES gammaray_ui-${GAMMARAY_PROBE_ABI} INTERNAL_NAME gammaray_ui DIRS ${GAMMARAY_DIR}/lib)
+	FAST_FIND_LIBRARY(GAMMARAY_KITEMMODELS_LIBRARY LIBRARYNAME gammaray NAMES gammaray_kitemmodels-${GAMMARAY_PROBE_ABI} INTERNAL_NAME gammaray_kitemmodels DIRS ${GAMMARAY_DIR}/lib)
+
+    FIND_PACKAGE_HANDLE_STANDARD_ARGS(Gammaray FAIL_MESSAGE "Could not find Gammaray. Please install gammaray."
+		REQUIRED_VARS
+			GAMMARAY_INCLUDE_DIR
+			GAMMARAY_LAUNCHER_LIBRARY
+			GAMMARAY_CLIENT_LIBRARY
+			GAMMARAY_COMMON_LIBRARY
+			GAMMARAY_CORE_LIBRARY
+			GAMMARAY_UI_LIBRARY
+			GAMMARAY_KITEMMODELS_LIBRARY
+			)
+
+ENDIF(NOT Gammaray_FOUND)
+
+#
+# GAMMARAY_ADD_PLUGIN: create a gammaray plugin, install at the right place, etc
+# arguments:
+# - DESKTOP <file> - the Qt4 plugin .desktop file (optional)
+# - JSON <file> - the Qt5 plugin .json file (optional)
+# - SOURCES <files> - the plugin sources
+#
+macro(gammaray_add_plugin _target_name)
+  set(oneValueArgs JSON DESKTOP)
+  set(multiValueArgs SOURCES)
+  cmake_parse_arguments(_gammaray_add_plugin "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    if(_gammaray_add_plugin_SOURCES AND NOT TARGET_SRC)
+        set(TARGET_SRC ${_gammaray_add_plugin_SOURCES})
+    endif()
+      list(GET TARGET_SRC 0 mainSourceFile)
+      string(REPLACE ".cpp" ".h" mainHeaderFile ${mainSourceFile})
+
+      # sanity check
+      file(READ ${mainHeaderFile} mainHeaderFileContents)
+      string(FIND "${mainHeaderFileContents}" "Q_PLUGIN_METADATA" hasPluginMetadataMacroMatchRes)
+      if (hasPluginMetadataMacroMatchRes EQUAL -1)
+          message(FATAL_ERROR "First file passed to SOURCES must be the .cpp file which includes the header using the Q_PLUGIN_METADATA macro")
+      endif()
+
+      foreach(_src ${TARGET_SRC})
+        string(REPLACE ".cpp" ".h" _hdr ${_src})
+        LIST(APPEND TARGET_H ${_hdr})
+      endforeach()
+
+	SET(TARGET_NO_POSTFIX 1)
+	SET(TARGET_NO_LIBPREFIX 1)
+	SET(TARGET_NO_IMPORT_LIB 1)
+	SET(TARGET_FOLDER "gammaray Plugins")
+    LIST(APPEND TARGET_PRIVATE_LIBRARIES QT_QTCORE)
+    LIST(APPEND TARGET_LIBRARIES_VARS GAMMARAY_COMMON_LIBRARY)
+	IF(WIN32)
+		SET(TARGET_BIN_DIR ${FAST_WORK_BIN_DIR}/gammaray/${GAMMARAY_PLUGIN_VERSION}/${GAMMARAY_PROBE_ABI})
+		SET(TARGET_BIN_DIR_RELEASE ${FAST_WORK_BIN_DIR}/gammaray/${GAMMARAY_PLUGIN_VERSION}/${GAMMARAY_PROBE_ABI_RELEASE})
+		SET(TARGET_BIN_DIR_RELWITHDEBINFO ${FAST_WORK_BIN_DIR}/gammaray/${GAMMARAY_PLUGIN_VERSION}/${GAMMARAY_PROBE_ABI_RELWITHDEBINFO})
+		SET(TARGET_BIN_DIR_DEBUG ${FAST_WORK_BIN_DIR}/gammaray/${GAMMARAY_PLUGIN_VERSION}/${GAMMARAY_PROBE_ABI_DEBUG})
+		SET(TARGET_BIN_DIR_MINSIZEREL ${FAST_WORK_BIN_DIR}/gammaray/${GAMMARAY_PLUGIN_VERSION}/${GAMMARAY_PROBE_ABI_MINSIZEREL})
+		SET(TARGET_INSTALL_RUNTIME_DIR gammaray/${GAMMARAY_PLUGIN_VERSION}/${GAMMARAY_PROBE_ABI})
+		SET(TARGET_INSTALL_RUNTIME_DIR_RELEASE gammaray/${GAMMARAY_PLUGIN_VERSION}/${GAMMARAY_PROBE_ABI_RELEASE})
+		SET(TARGET_INSTALL_RUNTIME_DIR_RELWITHDEBINFO gammaray/${GAMMARAY_PLUGIN_VERSION}/${GAMMARAY_PROBE_ABI_RELWITHDEBINFO})
+		SET(TARGET_INSTALL_RUNTIME_DIR_DEBUG gammaray/${GAMMARAY_PLUGIN_VERSION}/${GAMMARAY_PROBE_ABI_DEBUG})
+		SET(TARGET_INSTALL_RUNTIME_DIR_MINSIZEREL gammaray/${GAMMARAY_PLUGIN_VERSION}/${GAMMARAY_PROBE_ABI_MINSIZEREL})
+	ELSE(WIN32)
+		SET(TARGET_BIN_DIR ${FAST_WORK_LIB_DIR}/gammaray/${GAMMARAY_PLUGIN_VERSION}/${GAMMARAY_PROBE_ABI})
+		SET(TARGET_INSTALL_LIBRARY_DIR gammaray/${GAMMARAY_PLUGIN_VERSION}/${GAMMARAY_PROBE_ABI})
+	ENDIF(WIN32)
+
+    FAST_SET_TARGET_AND_PRODUCT_VERSION(GAMMARAY)
+    QT5_AUTOMOC()
+  FAST_MODULE_LIBRARY(${_target_name} NO_MOC_INCLUDE)
+endmacro()

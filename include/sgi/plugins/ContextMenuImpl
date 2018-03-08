@@ -1,0 +1,106 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include "SGIItemBase.h"
+#include "SGIPluginInterface.h"
+#include <typeindex>
+#include <unordered_map>
+#include <string.h>
+
+#include <sgi/details/caster>
+#include <sgi/details/functionImplBase>
+
+namespace sgi {
+
+class SGIItemBase;
+class SGIPluginHostInterface;
+class IHostCallback;
+
+template<template<typename> class ImplT>
+class contextMenuPopulateImplBaseT : public details::functionImplBase
+{
+public:
+    struct TypePolicy {
+        struct CallParamType
+        {
+            CallParamType(SGIPluginHostInterface * hostInterface_, SGIItemBase * item_, IContextMenuItem * menuItem_)
+                : hostInterface(hostInterface_), item(item_), menuItem(menuItem_) {}
+            SGIPluginHostInterface * hostInterface;
+            SGIItemBase * item;
+            IContextMenuItem * menuItem;
+        };
+        typedef bool ResultType;
+    };
+
+    contextMenuPopulateImplBaseT(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL)
+        : functionImplBase(hostInterface, item) {}
+
+    typedef details::call_by_type_registryT<TypePolicy> Registry;
+    template<typename T>
+    class AutoRegisterTypeT : public details::call_by_type_auto_registerT<contextMenuPopulateImplBaseT, T>
+    {
+    };
+
+    typedef typename TypePolicy::CallParamType CallParamType;
+    typedef typename TypePolicy::ResultType ResultType;
+
+    template<typename T>
+    static bool callImpl(const details::TypeWrap<T> & t, const CallParamType & param, ResultType & result)
+    {
+        ImplT<T> f(param.hostInterface, param.item);
+        result = f.populate(param.menuItem);
+        return result;
+    }
+
+    static bool call(SGIPluginHostInterface * hostInterface, SGIItemBase * item, IContextMenuItem * menuItem)
+    {
+        CallParamType param(hostInterface, item, menuItem);
+        bool result;
+        if(!Registry::instance()->call(*item->typeInfo(), param, result))
+            return false;
+        else
+            return result;
+    }
+    bool callNextHandler(IContextMenuItem * menuItem)
+    {
+        bool ret = false;
+        SGIItemBase * itemNext = _item->nextBase();
+        if(itemNext)
+            ret = _hostInterface->contextMenuPopulate(menuItem, itemNext);
+        return ret;
+    }
+};
+
+#define CONTEXT_MENU_POPULATE_IMPL_TEMPLATE() \
+    template<typename T> \
+    class contextMenuPopulateImpl { \
+    public: \
+        typedef sgi::details::constexpr_false accept; \
+        contextMenuPopulateImpl(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL) {}\
+        bool populate(IContextMenuItem * menuItem) { return false; } \
+    }; \
+    typedef contextMenuPopulateImplBaseT<contextMenuPopulateImpl> contextMenuPopulateImplBase;
+
+#define CONTEXT_MENU_POPULATE_IMPL_DECLARE(__type) \
+    template<> \
+    class contextMenuPopulateImpl<__type> : public contextMenuPopulateImplBase { \
+    private: \
+        typedef AutoRegisterTypeT<__type> AutoRegisterType; \
+        static AutoRegisterType s_autoregister; \
+    public: \
+        typedef sgi::details::constexpr_true accept; \
+        contextMenuPopulateImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL) \
+            : contextMenuPopulateImplBase(hostInterface, item) {} \
+        bool populate(IContextMenuItem * menuItem); \
+    };
+
+#define CONTEXT_MENU_POPULATE_IMPL_REGISTER(__type) \
+    contextMenuPopulateImpl<__type>::AutoRegisterType contextMenuPopulateImpl<__type>::s_autoregister;
+
+#define CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(__type) \
+    CONTEXT_MENU_POPULATE_IMPL_DECLARE(__type) \
+    CONTEXT_MENU_POPULATE_IMPL_REGISTER(__type)
+
+} // namespace sgi

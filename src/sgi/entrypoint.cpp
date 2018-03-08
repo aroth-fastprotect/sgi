@@ -2,6 +2,10 @@
 #include "entrypoint.h"
 #include "SGIPlugin.h"
 
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
 extern "C" {
 
 static unsigned g_sgiModuleInitCount = 0;
@@ -21,6 +25,21 @@ const char* sgiGetLibraryName()
     return "SGI Library";
 }
 
+sgi::IHostCallback * sgi_defaultHostCallback()
+{
+	return sgi::SGIPlugins::instance()->defaultHostCallback();
+}
+
+sgi::IHostCallback * sgi_hostCallback()
+{
+    return sgi::SGIPlugins::instance()->hostCallback();
+}
+
+void sgi_setHostCallback(sgi::IHostCallback * callback)
+{
+	sgi::SGIPlugins::instance()->setHostCallback(callback);
+}
+
 bool sgi_generateItem(osg::ref_ptr<sgi::SGIItemBase> & item, const sgi::SGIHostItemBase * object)
 {
     return sgi::SGIPlugins::instance()->generateItem(item, object);
@@ -38,48 +57,62 @@ bool sgi_parentWidgetItem(sgi::QWidgetPtr & widget, sgi::SGIItemBase * item)
 
 void sgi_shutdown()
 {
-    sgi::SGIPlugins::instance()->shutdown();
-    sgi::SGIPlugins::instance(true);
+    sgi::SGIPlugins::shutdown();
 }
 
-sgi::ISceneGraphDialog * sgi_showSceneGraphDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::ISceneGraphDialogInfo * info)
+sgi::ISceneGraphDialog * sgi_showSceneGraphDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IHostCallback * callback)
 {
-    return sgi::SGIPlugins::instance()->showSceneGraphDialog(parent, object, info);
+    return sgi::SGIPlugins::instance()->showSceneGraphDialog(parent, object, callback);
 }
 
-sgi::ISceneGraphDialog * sgi_showSceneGraphDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::ISceneGraphDialogInfo * info)
+sgi::ISceneGraphDialog * sgi_showSceneGraphDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IHostCallback * callback)
 {
-    return sgi::SGIPlugins::instance()->showSceneGraphDialog(parent, item, info);
+    return sgi::SGIPlugins::instance()->showSceneGraphDialog(parent, item, callback);
 }
 
-sgi::IObjectLoggerDialog* sgi_showObjectLoggerDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IObjectLoggerDialogInfo * info)
+sgi::IObjectLoggerDialog* sgi_showObjectLoggerDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IHostCallback * callback)
 {
-    return sgi::SGIPlugins::instance()->showObjectLoggerDialog(parent, object, info);
+    return sgi::SGIPlugins::instance()->showObjectLoggerDialog(parent, object, callback);
 }
 
-sgi::IObjectLoggerDialog* sgi_showObjectLoggerDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IObjectLoggerDialogInfo * info)
+sgi::IObjectLoggerDialog* sgi_showObjectLoggerDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IHostCallback * callback)
 {
-    return sgi::SGIPlugins::instance()->showObjectLoggerDialog(parent, item, info);
+    return sgi::SGIPlugins::instance()->showObjectLoggerDialog(parent, item, callback);
 }
 
-sgi::IContextMenu * sgi_createContextMenu(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IContextMenuInfo * info)
+sgi::IImagePreviewDialog * sgi_showImagePreviewDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IHostCallback * callback)
 {
-    return sgi::SGIPlugins::instance()->createContextMenu(parent, object, info);
+    return sgi::SGIPlugins::instance()->showImagePreviewDialog(parent, object, callback);
 }
 
-sgi::IContextMenu * sgi_createContextMenuItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IContextMenuInfo * info)
+sgi::IImagePreviewDialog * sgi_showImagePreviewDialogItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IHostCallback * callback)
 {
-    return sgi::SGIPlugins::instance()->createContextMenu(parent, item, info);
+    return sgi::SGIPlugins::instance()->showImagePreviewDialog(parent, item, callback);
 }
 
-sgi::IContextMenuQt * sgi_createContextMenuItemQt(QWidget *parent, QObject * item, sgi::IContextMenuInfoQt * info)
+sgi::IContextMenu * sgi_createContextMenu(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IHostCallback * callback)
 {
-    return sgi::SGIPlugins::instance()->createContextMenu(parent, item, info);
+    return sgi::SGIPlugins::instance()->createContextMenu(parent, object, callback);
+}
+
+sgi::IContextMenu * sgi_createContextMenuItem(QWidget *parent, sgi::SGIItemBase * item, sgi::IHostCallback * callback)
+{
+    return sgi::SGIPlugins::instance()->createContextMenu(parent, item, callback);
+}
+
+sgi::IContextMenuQt * sgi_createContextMenuItemQt(QWidget *parent, QObject * item, sgi::IHostCallback * callback)
+{
+    return sgi::SGIPlugins::instance()->createContextMenu(parent, item, callback);
 }
 
 void sgi_writePrettyHTML(std::basic_ostream<char>& os, const sgi::SGIHostItemBase * object, bool table)
 {
     sgi::SGIPlugins::instance()->writePrettyHTML(os, object, table);
+}
+
+void sgi_writePrettyHTMLItem(std::basic_ostream<char>& os, const sgi::SGIItemBase * item, bool table)
+{
+    sgi::SGIPlugins::instance()->writePrettyHTML(os, item, table);
 }
 
 bool sgi_getObjectName(std::string & name, const sgi::SGIHostItemBase * object, bool full)

@@ -1,0 +1,8 @@
+{
+    "hidden": false,
+    "id": "gammaray_log4cplus",
+    "name": "log4cplus",
+    "types": [
+        "QObject"
+    ]
+}

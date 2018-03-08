@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sgi/plugins/SGIPluginMacros.h>
+#include <sgi/plugins/ContextMenuImpl>
 #include <sgi/plugins/SGIHostItemOsg.h>
 
 #include <osgEarth/Viewpoint>
@@ -17,8 +17,10 @@ namespace osgEarth {
     class MaskLayer;
     class TileSource;
     class TileBlacklist;
+    class TileKey;
     class VirtualProgram;
     class ElevationQuery;
+	class LevelDBDatabase;
 
     namespace Util {
         class SkyNode;
@@ -35,6 +37,9 @@ namespace sgi {
 namespace osgearth_plugin {
 
 typedef ReferencedRawPtrT<osgEarth::ElevationQuery> ElevationQueryReferenced;
+typedef ReferencedDataT<osgEarth::TileKey> TileKeyReferenced;
+struct TileSourceTileKeyData;
+typedef ReferencedDataT<TileSourceTileKeyData> TileSourceTileKey;
 
 class NamedViewpoint : public osgEarth::Viewpoint
 {
@@ -79,26 +84,6 @@ private:
 typedef ReferencedDataT<NamedViewpoint> ReferencedNamedViewpoint;
 
 CONTEXT_MENU_POPULATE_IMPL_TEMPLATE()
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osg::Node)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osg::Image)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::Registry)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::Map)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::MapNode)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::Layer)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::TerrainLayer)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::ImageLayer)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::ElevationLayer)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::ModelLayer)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::MaskLayer)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::Util::SkyNode)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::Util::AutoClipPlaneCullCallback)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::Util::Controls::Control)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::Util::Controls::Container)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::Util::Controls::ControlCanvas)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::TileSource)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::TileBlacklist)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(osgEarth::VirtualProgram)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE(ElevationQueryReferenced)
 
 } // namespace osgearth_plugin
 } // namespace sgi

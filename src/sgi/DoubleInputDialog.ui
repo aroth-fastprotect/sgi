@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>62</height>
+    <height>69</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -105,7 +105,7 @@
   </connection>
   <connection>
    <sender>horizontalSlider</sender>
-   <signal>sliderMoved(int)</signal>
+   <signal>valueChanged(int)</signal>
    <receiver>DoubleInputDialog</receiver>
    <slot>sliderChanged(int)</slot>
    <hints>

@@ -10,6 +10,7 @@
 #include <osg/TexGenNode>
 #include <osg/Sequence>
 #include <osg/OcclusionQueryNode>
+#include <osg/Polytope>
 
 #include <osgViewer/ViewerBase>
 #include <osgViewer/Renderer>
@@ -19,12 +20,15 @@
 #include <osgUtil/UpdateVisitor>
 #include <osgGA/EventVisitor>
 
-#include "FindTopMostNodeOfType"
+#include <OpenThreads/ScopedLock>
 
 #include <sgi/plugins/ContextMenu>
 #include <sgi/plugins/SceneGraphDialog>
+#include <sgi/helpers/osg>
 
 #include <cassert>
+
+#include "osg_accessor.h"
 
 namespace sgi {
 
@@ -67,224 +71,122 @@ protected:
     virtual void copyStateFromOriginal() = 0;
 
 public:
-    virtual void apply(osg::Node& node)
-    {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
-    virtual void apply(osg::Geode& node)
-    {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+#define NodeVisitorHook_apply() \
+    assert(_original.valid()); \
+	_operation.preApply(this, node); \
+	copyStateToOriginal(); \
+	_original->apply(node); \
+	copyStateFromOriginal(); \
+	_operation.postApply(this, node);
 
-    virtual void apply(osg::Billboard& node)
+    virtual void apply(osg::Node& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
+		NodeVisitorHook_apply();
     }
+    virtual void apply(osg::Geode& node) override
+    {
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::Group& node)
+    virtual void apply(osg::Billboard& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::ProxyNode& node)
+    virtual void apply(osg::Group& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::Projection& node)
+    virtual void apply(osg::ProxyNode& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::CoordinateSystemNode& node)
+    virtual void apply(osg::Projection& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
+
+    virtual void apply(osg::CoordinateSystemNode& node) override
+    {
+		NodeVisitorHook_apply();
+	}
 
 
-    virtual void apply(osg::ClipNode& node)
+    virtual void apply(osg::ClipNode& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::TexGenNode& node)
+    virtual void apply(osg::TexGenNode& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::LightSource& node)
+    virtual void apply(osg::LightSource& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::Transform& node)
+    virtual void apply(osg::Transform& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::Camera& node)
+    virtual void apply(osg::Camera& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::CameraView& node)
+    virtual void apply(osg::CameraView& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::MatrixTransform& node)
+    virtual void apply(osg::MatrixTransform& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::PositionAttitudeTransform& node)
+    virtual void apply(osg::PositionAttitudeTransform& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
-    virtual void apply(osg::Switch& node)
+		NodeVisitorHook_apply();
+	}
+    virtual void apply(osg::Switch& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::Sequence& node)
+    virtual void apply(osg::Sequence& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::LOD& node)
+    virtual void apply(osg::LOD& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::PagedLOD& node)
+    virtual void apply(osg::PagedLOD& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::ClearNode& node)
+    virtual void apply(osg::ClearNode& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::OccluderNode& node)
+    virtual void apply(osg::OccluderNode& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
-    virtual void apply(osg::OcclusionQueryNode& node)
+    virtual void apply(osg::OcclusionQueryNode& node) override
     {
-        assert(_original.valid());
-        _operation.preApply(this, node);
-        copyStateToOriginal();
-        _original->apply(node);
-        copyStateFromOriginal();
-        _operation.postApply(this, node);
-    }
+		NodeVisitorHook_apply();
+	}
 
 protected:
     osg::ref_ptr<BASE> _original;
@@ -328,20 +230,20 @@ public:
         _Base::release();
     }
 
-    virtual osg::Vec3 getEyePoint() const { return _Base::_original->getEyePoint(); }
-    virtual osg::Vec3 getViewPoint() const { return _Base::_original->getViewPoint(); }
+    osg::Vec3 getEyePoint() const override { return _Base::_original->getEyePoint(); }
+    osg::Vec3 getViewPoint() const override { return _Base::_original->getViewPoint(); }
 
-    virtual float getDistanceToEyePoint(const osg::Vec3& pos, bool withLODScale) const
+    float getDistanceToEyePoint(const osg::Vec3& pos, bool withLODScale) const override
         { return _Base::_original->getDistanceToEyePoint(pos, withLODScale); }
-    virtual float getDistanceFromEyePoint(const osg::Vec3& pos, bool withLODScale) const
+    float getDistanceFromEyePoint(const osg::Vec3& pos, bool withLODScale) const override
         { return _Base::_original->getDistanceFromEyePoint(pos, withLODScale); }
-    virtual float getDistanceToViewPoint(const osg::Vec3& pos, bool withLODScale) const
+    float getDistanceToViewPoint(const osg::Vec3& pos, bool withLODScale) const override
         { return _Base::_original->getDistanceToViewPoint(pos, withLODScale); }
 
-    virtual void popProjectionMatrix() { _Base::_original->popProjectionMatrix(); }
-    virtual bool clampProjectionMatrixImplementation(osg::Matrixf& projection, double& znear, double& zfar) const
+    void popProjectionMatrix() override { _Base::_original->popProjectionMatrix(); }
+    bool clampProjectionMatrixImplementation(osg::Matrixf& projection, double& znear, double& zfar) const override
         { return _Base::_original->clampProjectionMatrixImplementation(projection, znear, zfar); }
-    virtual bool clampProjectionMatrixImplementation(osg::Matrixd& projection, double& znear, double& zfar) const
+    bool clampProjectionMatrixImplementation(osg::Matrixd& projection, double& znear, double& zfar) const override
         { return _Base::_original->clampProjectionMatrixImplementation(projection, znear, zfar); }
 
 protected:
@@ -465,12 +367,12 @@ protected:
 
         }
     };
-    virtual void copyStateToOriginal()
+    virtual void copyStateToOriginal() override
     {
         // properties from osgUtil::CullVisitor
         reinterpret_cast<CopyCullVisitorState*>(this)->copyStateTo(* reinterpret_cast<CopyCullVisitorState*>(_Base::_original.get()));
     }
-    virtual void copyStateFromOriginal()
+    virtual void copyStateFromOriginal() override
     {
         // properties from osgUtil::CullVisitor
         reinterpret_cast<CopyCullVisitorState*>(this)->copyStateFrom(* reinterpret_cast<CopyCullVisitorState*>(_Base::_original.get()));
@@ -517,10 +419,10 @@ public:
         _Base::release();
     }
 protected:
-    virtual void copyStateToOriginal()
+    virtual void copyStateToOriginal() override
     {
     }
-    virtual void copyStateFromOriginal()
+    virtual void copyStateFromOriginal() override
     {
     }
 protected:
@@ -564,10 +466,10 @@ public:
         _Base::release();
     }
 protected:
-    virtual void copyStateToOriginal()
+    virtual void copyStateToOriginal() override
     {
     }
-    virtual void copyStateFromOriginal()
+    virtual void copyStateFromOriginal() override
     {
     }
 protected:
@@ -771,7 +673,7 @@ ObjectLogger * ObjectLogger::getLogger(SGIItemBase * item)
     osg::Node* object = static_cast<osg::Node*>(static_cast<const SGIItemOsg*>(item)->object());
     osg::Camera * camera = dynamic_cast<osg::Camera*>(object);
     if(!camera)
-        camera = findFirstParentOfType<osg::Camera>(object);
+        camera = osg_helpers::findFirstParentOfType<osg::Camera>(object);
 
     ObjectLogger * logger = getLoggerFromCamera(camera);
     return logger;
@@ -783,7 +685,7 @@ ObjectLogger * ObjectLogger::getOrCreateLogger(SGIItemBase * item, SGIPluginHost
     
     osg::Camera * camera = dynamic_cast<osg::Camera*>(object);
     if(!camera)
-        camera = findFirstParentOfType<osg::Camera>(object);
+        camera = osg_helpers::findFirstParentOfType<osg::Camera>(object);
 
     ObjectLogger * logger = getLoggerFromCamera(camera);
     if(!logger)
@@ -794,10 +696,15 @@ ObjectLogger * ObjectLogger::getOrCreateLogger(SGIItemBase * item, SGIPluginHost
     return logger;
 }
 
-IObjectLoggerDialog * ObjectLogger::getOrCreateDialog(QWidget *parent, IObjectLoggerDialogInfo * info)
+IObjectLoggerDialog * ObjectLogger::getOrCreateDialog(QWidget *parent, IHostCallback * callback)
 {
     if(!_dialog.valid())
-        _dialog = _hostInterface->showObjectLoggerDialog(parent, this, info);
+    {
+        if(callback)
+            _dialog = callback->showObjectLoggerDialog(parent, this);
+        else
+            _dialog = _hostInterface->showObjectLoggerDialog(parent, this, callback);
+    }
     return _dialog.get();
 }
 
@@ -811,6 +718,372 @@ bool getOrCreateObjectLoggerImpl<osg::Node>::execute(IObjectLoggerPtr & result)
         result = ObjectLogger::getLogger(_item);
     return result.valid();
 }
+
+
+
+class CullingInfoForCamera::CullCallbackHandler
+{
+public:
+    CullingInfoForCamera * inspector()
+    {
+        return _logger;
+    }
+    void setInspector(CullingInfoForCamera * inspector)
+    {
+        _logger = inspector;
+    }
+    void preApply(osg::NodeVisitor * nv, osg::Node & node);
+    void postApply(osg::NodeVisitor * nv, osg::Node & node);
+
+protected:
+    CullingNodeInfo * getCullingNodeInfo(osg::Node & node);
+    unsigned getCullingMask(osgUtil::CullVisitor * cv, osg::Node & node);
+    unsigned getCullingMask(osgUtil::CullVisitor * cv, osg::BoundingSphere & bs);
+
+private:
+    CullingInfoForCamera * _logger;
+    osg::NodePathList::const_iterator _currentItem;
+};
+
+class CullingInfoForCamera::CullVisitor : public CullVisitorHook<CullingInfoForCamera::CullCallbackHandler>
+{
+public:
+    typedef CullVisitorHook<CullingInfoForCamera::CullCallbackHandler> _Base;
+    CullVisitor(CullingInfoForCamera * inspector, osg::Camera * camera)
+        : _Base(camera)
+    {
+        _operation.setInspector(inspector);
+    }
+};
+
+CullingNodeInfo * CullingInfoForCamera::CullCallbackHandler::getCullingNodeInfo(osg::Node & node)
+{
+    CullingNodeInfo * ret = nullptr;
+    for (CullingInfoPtr & cullinfo : _logger->_activeNodes)
+    {
+        for (const CullingNodeInfoPath & path : cullinfo->pathlist())
+        {
+            const osg::Node * pnode = &node;
+            auto pathit = std::find_if(path.begin(), path.end(), [pnode](const CullingNodeInfoPtr & other) { return other->node == pnode; });
+            if (pathit != path.end())
+                ret = const_cast<CullingNodeInfo *>(pathit->get());
+        }
+    }
+    return ret;
+}
+
+namespace {
+    class CullingSetAccess : public osg::CullingSet
+    {
+    public:
+        const osg::Vec4 & pixelSizeVector() const {
+            return _pixelSizeVector;
+        }
+        const OccluderList & occluderList() const {
+            return _occluderList;
+        }
+    };
+}
+
+unsigned CullingInfoForCamera::CullCallbackHandler::getCullingMask(osgUtil::CullVisitor * cv, osg::BoundingSphere & bs)
+{
+    unsigned ret = osg::CullingSet::NO_CULLING;
+    const CullingSetAccess & cs = static_cast<const CullingSetAccess&>(cv->getCurrentCullingSet());
+    unsigned mask = cs.getCullingMask();
+
+    if (mask&osg::CullingSet::VIEW_FRUSTUM_CULLING)
+    {
+        osg::Polytope & frustum = const_cast<osg::Polytope &>(cs.getFrustum());
+        // is it outside the view frustum...
+        if (!frustum.contains(bs)) 
+            ret |= osg::CullingSet::VIEW_FRUSTUM_CULLING;
+    }
+
+    if (mask&osg::CullingSet::SMALL_FEATURE_CULLING)
+    {
+        float smallFeatureCullingPixelSize = cs.getSmallFeatureCullingPixelSize();
+        const osg::Vec4 & pixelSizeVector = cs.pixelSizeVector();
+        if (((bs.center()*pixelSizeVector)*smallFeatureCullingPixelSize) > bs.radius()) 
+            ret |= osg::CullingSet::SMALL_FEATURE_CULLING;
+    }
+#ifdef COMPILE_WITH_SHADOW_OCCLUSION_CULLING
+    if (mask&osg::CullingSet::SHADOW_OCCLUSION_CULLING)
+    {
+        const osg::CullingSet::OccluderList & occluderList = cs.occluderList();
+        // is it in one of the shadow occluder volumes.
+        if (!occluderList.empty())
+        {
+            for (osg::CullingSet::OccluderList::const_iterator itr = occluderList.begin();
+                itr != occluderList.end();
+                ++itr)
+            {
+                if (const_cast<osg::ShadowVolumeOccluder&>(*itr).contains(bs))
+                {
+                    ret |= osg::CullingSet::SHADOW_OCCLUSION_CULLING;
+                    break;
+                }
+            }
+        }
+    }
+#endif
+    return ret;
+}
+
+unsigned CullingInfoForCamera::CullCallbackHandler::getCullingMask(osgUtil::CullVisitor * cv, osg::Node & node)
+{
+    unsigned ret = osg::CullingSet::NO_CULLING;
+    if (node.isCullingActive())
+    {
+        osg::BoundingSphere bs = static_cast<NodeAccess&>(node).getBoundNoCompute();
+        ret = getCullingMask(cv, bs);
+    }
+    return ret;
+}
+
+#define CullingNodeInfo_fill(_state) \
+        info->_state.cullStack = *cv; \
+        info->_state.boundingSphereComputed = static_cast<NodeAccess&>(node).isBoundingSphereComputed(); \
+        info->_state.boundingSphere = static_cast<NodeAccess&>(node).getBoundNoCompute(); \
+        info->_state.cullingMask = getCullingMask(cv, node); \
+        void(0)
+
+void CullingInfoForCamera::CullCallbackHandler::preApply(osg::NodeVisitor * nv, osg::Node & node)
+{
+    CullVisitor* cv = dynamic_cast<CullVisitor*>(nv->asCullVisitor());
+    CullingNodeInfo * info = getCullingNodeInfo(node);
+    if (info)
+    {
+        CullingNodeInfo_fill(before);
+    }
+}
+
+void CullingInfoForCamera::CullCallbackHandler::postApply(osg::NodeVisitor * nv, osg::Node & node)
+{
+    CullVisitor* cv = dynamic_cast<CullVisitor*>(nv->asCullVisitor());
+    CullingNodeInfo * info = getCullingNodeInfo(node);
+    if (info)
+    {
+        CullingNodeInfo_fill(after);
+    }
+}
+
+
+CullingInfoForCamera::CullingInfoForCamera(osg::Camera * camera, SGIPluginHostInterface * hostInterface)
+    : osg::Object(hostInterface)
+{
+    setup(camera);
+}
+
+CullingInfoForCamera::CullingInfoForCamera(const CullingInfoForCamera & rhs, const osg::CopyOp& copyop)
+    : osg::Object(rhs, copyop)
+{
+}
+
+CullingInfoForCamera::~CullingInfoForCamera()
+{
+    setup(NULL);
+}
+
+void CullingInfoForCamera::setup(osg::Camera * camera)
+{
+    if (_activeCamera.valid())
+    {
+        // restore old camera
+        _cullVisitor->release();
+    }
+
+    if (camera)
+    {
+        _cullVisitor = new CullVisitor(this, camera);
+        CullingInfoRegistry::instance()->add(camera, this);
+    }
+    else
+    {
+        _cullVisitor = NULL;
+        CullingInfoRegistry::instance()->remove(_activeCamera.get(), this);
+    }
+    _activeCamera = camera;
+}
+
+CullingInfoForCamera * CullingInfoForCamera::getCullingInfoForCamera(osg::Camera * camera)
+{
+    CullingInfoForCamera * ret = NULL;
+    osgViewer::View * view = camera ? dynamic_cast<osgViewer::View*>(camera->getView()) : NULL;
+    osgViewer::ViewerBase * viewer = (view) ? view->getViewerBase() : NULL;
+    if (viewer)
+    {
+        osgUtil::UpdateVisitor * updateVisitorBase = viewer->getUpdateVisitor();
+        CullCallbackHandler * updateVisitor = dynamic_cast<CullCallbackHandler*>(updateVisitorBase);
+        if (updateVisitor)
+            ret = updateVisitor->inspector();
+    }
+    return ret;
+}
+
+CullingInfoForCamera * CullingInfoForCamera::getOrCreateCullingInfoForCamera(osg::Camera * camera, SGIPluginHostInterface * hostInterface)
+{
+    CullingInfoForCamera * ret = NULL;
+    osgViewer::View * view = camera ? dynamic_cast<osgViewer::View*>(camera->getView()) : NULL;
+    osgViewer::ViewerBase * viewer = (view) ? view->getViewerBase() : NULL;
+    if (viewer)
+    {
+        osgUtil::UpdateVisitor * updateVisitorBase = viewer->getUpdateVisitor();
+        CullCallbackHandler * updateVisitor = dynamic_cast<CullCallbackHandler*>(updateVisitorBase);
+        if (updateVisitor)
+            ret = updateVisitor->inspector();
+        else
+            ret = new CullingInfoForCamera(camera, hostInterface);
+    }
+    return ret;
+}
+
+bool CullingInfoForCamera::isNodeActive(osg::Node * node) const
+{
+    bool ret = false;
+    for (CullingInfoPtr ptr : _activeNodes)
+    {
+        if (ptr->node() == node)
+        {
+            ret = true;
+            break;
+        }
+    }
+    return ret;
+}
+
+bool CullingInfoForCamera::enableNode(osg::Node * node, bool enable)
+{
+    bool ret = false;
+    bool found = false;
+
+    for(CullingInfoPtrList::iterator it = _activeNodes.begin(); it != _activeNodes.end(); ++it)
+    {
+        CullingInfoPtr & ptr = *it;
+        if (ptr->node() == node)
+        {
+            if (!enable)
+            {
+                _activeNodes.erase(it);
+                ret = true;
+            }
+            found = true;
+            break;
+        }
+    }
+    if (!found && enable)
+    {
+        _activeNodes.push_back(new CullingInfo(node, _activeCamera));
+        ret = true;
+    }
+    return ret;
+}
+
+CullingInfo::CullingInfo(osg::Node * node, osg::Camera * camera)
+    : osg::Object()
+    , _node(node)
+{
+    osg::NodePathList paths = node->getParentalNodePaths(camera);
+    _pathlist.resize(paths.size());
+    for (unsigned i = 0; i < paths.size(); ++i)
+    {
+        osg::NodePath & path = paths[i];
+        CullingNodeInfoPath & outpath = _pathlist[i];
+        for (auto & pathnode : path)
+            outpath.push_back(new CullingNodeInfo(pathnode));
+    }
+}
+
+CullingInfo::CullingInfo(const CullingInfo & rhs, const osg::CopyOp& copyop)
+    : osg::Object(rhs, copyop)
+    , _node(rhs._node)
+    , _pathlist(rhs._pathlist)
+{
+}
+
+bool CullingInfo::isPresent(osg::Node * node)
+{
+    bool ret = false;
+    osg::Camera * camera = osg_helpers::findCamera(node);
+    if (camera)
+    {
+        CullingInfoForCamera * perCamera = CullingInfoForCamera::getCullingInfoForCamera(camera);
+        if(perCamera)
+            ret = perCamera->isNodeActive(node);
+    }
+    return ret;
+}
+
+bool CullingInfo::enable(osg::Node * node, bool enable, SGIPluginHostInterface * hostInterface)
+{
+    bool ret = false;
+    osg::Camera * camera = osg_helpers::findCamera(node);
+    if (camera)
+    {
+        CullingInfoForCamera * perCamera = CullingInfoForCamera::getOrCreateCullingInfoForCamera(camera, hostInterface);
+        if (perCamera)
+            ret = perCamera->enableNode(node, enable);
+    }
+    return ret;
+}
+
+CullingInfoRegistry::CullingInfoRegistry()
+{
+}
+
+CullingInfoRegistry::~CullingInfoRegistry()
+{
+}
+
+CullingInfoRegistry::CullingInfoRegistry(const CullingInfoRegistry & rhs, const osg::CopyOp& copyop)
+{
+}
+
+CullingInfoRegistry * CullingInfoRegistry::instance()
+{
+    static osg::ref_ptr<CullingInfoRegistry> s_reg = new CullingInfoRegistry;
+    return s_reg.get();
+}
+
+CullingInfoForCamera * CullingInfoRegistry::getCullingInfoForCamera(osg::Camera * camera)
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+    CullingInfoForCamera * ret = NULL;
+    CameraCullingInfoMap::const_iterator it = _map.find(camera);
+    if (it != _map.end())
+        ret = it->second.get();
+    return ret;
+}
+
+CullingInfoForCamera * CullingInfoRegistry::getOrCreateCullingInfoForCamera(osg::Camera * camera, SGIPluginHostInterface * hostInterface)
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+    CullingInfoForCamera * ret = NULL;
+    CameraCullingInfoMap::const_iterator it = _map.find(camera);
+    if (it != _map.end())
+        ret = it->second.get();
+    if(!ret)
+        ret = CullingInfoForCamera::getOrCreateCullingInfoForCamera(camera, hostInterface);
+    return ret;
+}
+
+void CullingInfoRegistry::add(osg::Camera * camera, CullingInfoForCamera * cullInfo)
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+    CameraCullingInfoMap::iterator it = _map.find(camera);
+    if (it == _map.end())
+        _map.insert(CameraCullingInfoMap::value_type(camera, cullInfo));
+    else
+        it->second = cullInfo;
+}
+
+void CullingInfoRegistry::remove(osg::Camera * camera, CullingInfoForCamera * cullInfo)
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+    CameraCullingInfoMap::iterator it = _map.find(camera);
+    if (it != _map.end())
+        _map.erase(it);
+}
+
 
 } // namespace osg_plugin
 } // namespace sgi

@@ -111,6 +111,5 @@ void setStateAttributeModeFromObject(const osg::Object * object, osg::StateAttri
     }
 }
 
-
 } // namespace osg_plugin
 } // namespace sgi

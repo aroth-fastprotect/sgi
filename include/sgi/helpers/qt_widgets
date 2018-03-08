@@ -1,0 +1,16 @@
+// kate: syntax C++11;
+
+#pragma once
+
+#include <QWidget>
+#include <sgi/Export>
+
+class QTimer;
+
+namespace sgi {
+namespace qt_helpers {
+
+SGI_QT_HELPER_EXPORT QWidget * createHighlightWidget(QWidget * w);
+
+    } // namespace qt_helpers
+} // namespace sgi

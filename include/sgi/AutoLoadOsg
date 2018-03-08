@@ -14,6 +14,7 @@ namespace autoload {
     public:
         typedef void*   PROC_ADDRESS;
 
+    protected:
         Osg()
             : _loadStatus(osgDB::Registry::NOT_LOADED)
         {
@@ -38,15 +39,15 @@ namespace autoload {
         {
             return (_library.valid())?_library->getProcAddress(std::string(procName)):NULL;
         }
-        std::string libraryFilename() const
+        const std::string & libraryFilename() const
         {
-            return (_library.valid())?_library->getFullName():_libraryFilename;
+            return (_library.valid())?_library->getName():_libraryFilename;
         }
         std::string libraryError() const
         {
-            return (_library.valid())?std::string():std::string("Unknown");
+            return (_library.valid())?std::string():std::string();
         }
-
+    public:
         typedef helpers::SingletonT<Osg> Singleton;
         typedef Singleton::InstanceAction InstanceAction;
         static Singleton::value_type * instance(InstanceAction action=Singleton::InstanceActionGetOrCreate)
@@ -75,7 +76,7 @@ namespace autoload {
         {
             return std::string(SGI_LIBRARY_NAME);
         }
-        static inline std::string sgiLibraryFilename()
+        static inline const std::string & sgiLibraryFilename()
         {
             return Osg::instance()->libraryFilename();
         }

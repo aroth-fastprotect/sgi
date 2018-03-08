@@ -1,6 +1,7 @@
 #pragma once
 
-#include <sgi/plugins/SGIPluginMacros.h>
+#include <sgi/plugins/GetObjectInfoImpl>
+#include <sgi/plugins/ConvertToImageImpl>
 #include <sgi/plugins/SGIHostItemOsg.h>
 
 namespace osg {
@@ -49,6 +50,8 @@ GET_OBJECT_NAME_IMPL_DECLARE(osg::Group)
 GET_OBJECT_NAME_IMPL_DECLARE(osg::LOD)
 GET_OBJECT_NAME_IMPL_DECLARE(osg::PagedLOD)
 GET_OBJECT_NAME_IMPL_DECLARE(osg::Operation)
+GET_OBJECT_NAME_IMPL_DECLARE(osg::Image)
+GET_OBJECT_NAME_IMPL_DECLARE(osg::GraphicsContext)
 GET_OBJECT_NAME_IMPL_DECLARE(osgDB::Registry)
 GET_OBJECT_NAME_IMPL_DECLARE(osgDB::BaseSerializer)
 
@@ -115,6 +118,11 @@ WRITE_OBJECT_FILE_IMPL_TEMPLATE()
 WRITE_OBJECT_FILE_IMPL_DECLARE(osg::Object)
 WRITE_OBJECT_FILE_IMPL_DECLARE(osg::Node)
 WRITE_OBJECT_FILE_IMPL_DECLARE(osg::Image)
+
+//--------------------------------------------------------------------------------
+// convertToImageConvertImpl
+//--------------------------------------------------------------------------------
+CONVERT_TO_IMAGE_CONVERT_IMPL_TEMPLATE()
 
 } // namespace osg_plugin
 } // namespace sgi

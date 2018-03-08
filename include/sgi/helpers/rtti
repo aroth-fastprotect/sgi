@@ -102,6 +102,39 @@ inline static std::string getRTTITypename_html(const T * obj)
     return ret;
 }
 
+template<typename T>
+std::string getRTTIObjectNameAndType(const T * object)
+{
+    std::string ret;
+    if(object)
+    {
+        std::stringstream buf;
+        buf << (void*)object;
+        buf << " (" << getRTTITypename(object) << ")";
+        ret = buf.str();
+    }
+    else
+        ret = "(null)";
+    return ret;
+}
+
+template<typename T>
+std::string getRTTIObjectNameAndType_html(const T * object)
+{
+    std::string ret;
+    if(object)
+    {
+        std::stringstream buf;
+        buf << (void*)object;
+        buf << " (" << getRTTITypename_html(object) << ")";
+        ret = buf.str();
+    }
+    else
+        ret = "(null)";
+    return ret;
+}
+
+
 inline static bool is_same_class(const std::string & a, const std::string & b)
 {
     bool ret;

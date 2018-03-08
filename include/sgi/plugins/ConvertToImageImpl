@@ -1,0 +1,103 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include "SGIItemBase.h"
+#include "SGIPluginInterface.h"
+#include <typeindex>
+#include <unordered_map>
+#include <string.h>
+
+#include <sgi/details/caster>
+#include <sgi/details/functionImplBase>
+
+namespace sgi {
+
+class SGIItemBase;
+class SGIPluginHostInterface;
+class IHostCallback;
+
+template<template<typename> class ImplT>
+class convertToImageConvertImplBaseT : public details::functionImplBase
+{
+public:
+    struct TypePolicy {
+        struct CallParamType
+        {
+            CallParamType(SGIPluginHostInterface * hostInterface_, ImagePtr * image_, const SGIItemBase * item_)
+                : hostInterface(hostInterface_), image(image_), item(item_) {}
+            SGIPluginHostInterface * hostInterface;
+            ImagePtr * image;
+            const SGIItemBase * item;
+        };
+        typedef bool ResultType;
+    };
+
+    convertToImageConvertImplBaseT(SGIPluginHostInterface * hostInterface=NULL, ImagePtr * image=NULL, const SGIItemBase * item=NULL)
+        : functionImplBase(hostInterface, item)
+        , _image(image)
+        {}
+
+    typedef details::call_by_type_registryT<TypePolicy> Registry;
+    template<typename T>
+    class AutoRegisterTypeT : public details::call_by_type_auto_registerT<convertToImageConvertImplBaseT, T>
+    {
+    };
+
+    typedef typename TypePolicy::CallParamType CallParamType;
+    typedef typename TypePolicy::ResultType ResultType;
+
+    template<typename T>
+    static bool callImpl(const details::TypeWrap<T> & t, const CallParamType & param, ResultType & result)
+    {
+        ImplT<T> f(param.hostInterface, param.image, param.item);
+        result = f.convert();
+        return result;
+    }
+
+    static bool call(SGIPluginHostInterface * hostInterface, ImagePtr & image, const SGIItemBase * item)
+    {
+        CallParamType param(hostInterface, &image, item);
+        bool result;
+        if(!Registry::instance()->call(*item->typeInfo(), param, result))
+            return false;
+        else
+            return result;
+    }
+protected:
+    ImagePtr * _image;
+};
+
+
+#define CONVERT_TO_IMAGE_CONVERT_IMPL_TEMPLATE() \
+    template<typename T> \
+    class convertToImageConvertImpl { \
+    public: \
+        typedef sgi::details::constexpr_false accept; \
+        convertToImageConvertImpl(SGIPluginHostInterface * hostInterface=NULL, ImagePtr * image=NULL, const SGIItemBase * item=NULL) {} \
+        bool convert() { return false; } \
+    }; \
+    typedef convertToImageConvertImplBaseT<convertToImageConvertImpl> convertToImageConvertImplBase;
+
+#define CONVERT_TO_IMAGE_CONVERT_IMPL_DECLARE(__type) \
+    template<> \
+    class convertToImageConvertImpl<__type> : public convertToImageConvertImplBase { \
+    private: \
+        typedef AutoRegisterTypeT<__type> AutoRegisterType; \
+        static AutoRegisterType s_autoregister; \
+    public: \
+        typedef sgi::details::constexpr_true accept; \
+        convertToImageConvertImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, ImagePtr * image=NULL, const SGIItemBase * item=NULL) \
+            : convertToImageConvertImplBase(hostInterface, image, item) {} \
+        bool convert(); \
+    };
+
+#define CONVERT_TO_IMAGE_CONVERT_IMPL_REGISTER(__type) \
+    convertToImageConvertImpl<__type>::AutoRegisterType convertToImageConvertImpl<__type>::s_autoregister;
+
+#define CONVERT_TO_IMAGE_CONVERT_IMPL_DECLARE_AND_REGISTER(__type) \
+    CONVERT_TO_IMAGE_CONVERT_IMPL_DECLARE(__type) \
+    CONVERT_TO_IMAGE_CONVERT_IMPL_REGISTER(__type)
+
+} // namespace sgi

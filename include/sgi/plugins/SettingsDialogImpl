@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include "SGIPluginMacros.h"
 #include "SettingsDialog"
+#include <sgi/details/functionImplBase>
 
 namespace sgi {
 
 template<template<unsigned> class ImplT>
-class settingsDialogCreateImplBaseT : public functionImplBase
+class settingsDialogCreateImplBaseT : public details::functionImplBase
 {
 public:
     struct TypePolicy {

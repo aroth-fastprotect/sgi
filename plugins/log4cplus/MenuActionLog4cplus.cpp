@@ -12,20 +12,14 @@ class SGIItemOsg;
 
 namespace log4cplus_plugin {
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectInfo)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionLoggerLogLevel)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectInfo)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLoggerLogLevel)
 
 bool actionHandlerImpl<MenuActionObjectInfo>::execute()
 {
-    IContextMenuInfo * info = menuInfo();
-    if(info)
-        info->showSceneGraphDialog(_item->rootBase());
-    else
-    {
-        ISceneGraphDialog * dlg = _hostInterface->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());
-        if(dlg)
-            dlg->show();
-    }
+    IHostCallback * callback = hostCallback();
+    assert(callback);
+    callback->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());
     return true;
 }
 

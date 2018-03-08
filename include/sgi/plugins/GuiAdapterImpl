@@ -1,0 +1,203 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include "SGIItemBase.h"
+#include "SGIPluginInterface.h"
+#include <typeindex>
+#include <unordered_map>
+#include <string.h>
+
+#include <sgi/details/caster>
+#include <sgi/details/functionImplBase>
+
+namespace sgi {
+
+class SGIItemBase;
+class SGIPluginHostInterface;
+class IHostCallback;
+
+template<template<typename> class ImplT>
+class guiAdapterParentWidgetImplBaseT : public details::functionImplBase
+{
+public:
+    struct TypePolicy {
+        struct CallParamType
+        {
+            CallParamType(SGIPluginHostInterface * hostInterface_, QWidgetPtr * widget_, SGIItemBase * item_)
+                : hostInterface(hostInterface_), widget(widget_), item(item_) {}
+            SGIPluginHostInterface * hostInterface;
+            QWidgetPtr * widget;
+            SGIItemBase * item;
+        };
+        typedef bool ResultType;
+    };
+
+    guiAdapterParentWidgetImplBaseT(SGIPluginHostInterface * hostInterface=NULL, QWidgetPtr * widget=NULL, SGIItemBase * item=NULL)
+        : functionImplBase(hostInterface, item)
+        , _widget(widget)
+        {}
+
+    typedef details::call_by_type_registryT<TypePolicy> Registry;
+    template<typename T>
+    class AutoRegisterTypeT : public details::call_by_type_auto_registerT<guiAdapterParentWidgetImplBaseT, T>
+    {
+    };
+
+    typedef typename TypePolicy::CallParamType CallParamType;
+    typedef typename TypePolicy::ResultType ResultType;
+
+    template<typename T>
+    static bool callImpl(const details::TypeWrap<T> & t, const CallParamType & param, ResultType & result)
+    {
+        ImplT<T> f(param.hostInterface, param.widget, param.item);
+        result = f.execute();
+        return result;
+    }
+
+    static bool call(SGIPluginHostInterface * hostInterface, QWidgetPtr * widget, SGIItemBase * item)
+    {
+        CallParamType param(hostInterface, widget, item);
+        bool result;
+        if(!Registry::instance()->call(*item->typeInfo(), param, result))
+            return false;
+        else
+            return result;
+    }
+protected:
+    QWidgetPtr * _widget;
+};
+
+
+#define GUI_ADAPTER_PARENT_WIDGET_IMPL_TEMPLATE() \
+    template<typename T> \
+    class guiAdapterParentWidgetImpl { \
+    public: \
+        typedef sgi::details::constexpr_false accept; \
+        guiAdapterParentWidgetImpl(SGIPluginHostInterface * hostInterface=NULL, QWidgetPtr * widget=NULL, SGIItemBase * item=NULL) {} \
+        bool execute() { return false; } \
+    }; \
+    typedef guiAdapterParentWidgetImplBaseT<guiAdapterParentWidgetImpl> guiAdapterParentWidgetImplBase;
+
+#define GUI_ADAPTER_PARENT_WIDGET_IMPL_DECLARE(__type) \
+    template<> \
+    class guiAdapterParentWidgetImpl<__type> : public guiAdapterParentWidgetImplBase { \
+    private: \
+        typedef AutoRegisterTypeT<__type> AutoRegisterType; \
+        static AutoRegisterType s_autoregister; \
+    public: \
+        typedef sgi::details::constexpr_true accept; \
+        guiAdapterParentWidgetImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, QWidgetPtr * widget=NULL, SGIItemBase * item=NULL) \
+            : guiAdapterParentWidgetImplBase(hostInterface, widget, item) {} \
+        bool execute(); \
+    };
+
+#define GUI_ADAPTER_PARENT_WIDGET_IMPL_REGISTER(__type) \
+    guiAdapterParentWidgetImpl<__type>::AutoRegisterType guiAdapterParentWidgetImpl<__type>::s_autoregister;
+
+#define GUI_ADAPTER_PARENT_WIDGET_IMPL_DECLARE_AND_REGISTER(__type) \
+    GUI_ADAPTER_PARENT_WIDGET_IMPL_DECLARE(__type) \
+    GUI_ADAPTER_PARENT_WIDGET_IMPL_REGISTER(__type)
+
+template<template<typename> class ImplT>
+class guiAdapterSetViewImplBaseT : public details::functionImplBase
+{
+public:
+    struct TypePolicy {
+        struct CallParamType
+        {
+            CallParamType(SGIPluginHostInterface * hostInterface_, SGIItemBase * view_, const SGIItemBase * item_, double animationTime_)
+                : hostInterface(hostInterface_), view(view_), item(item_), animationTime(animationTime_) {}
+            SGIPluginHostInterface * hostInterface;
+            SGIItemBase * view;
+            const SGIItemBase * item;
+            double animationTime;
+        };
+        typedef bool ResultType;
+    };
+
+    guiAdapterSetViewImplBaseT(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * view=NULL, const SGIItemBase * targetItem=NULL, double animationTime=0)
+        : functionImplBase(hostInterface, view)
+        , _targetItem(targetItem)
+        , _animationTime(animationTime) {}
+
+    typedef details::call_by_type_registryT<TypePolicy> Registry;
+    template<typename T>
+    class AutoRegisterTypeT : public details::call_by_type_auto_registerT<guiAdapterSetViewImplBaseT, T>
+    {
+    };
+
+    typedef typename TypePolicy::CallParamType CallParamType;
+    typedef typename TypePolicy::ResultType ResultType;
+
+    template<typename T>
+    static bool callImpl(const details::TypeWrap<T> & t, const CallParamType & param, ResultType & result)
+    {
+        ImplT<T> f(param.hostInterface, param.view, param.item, param.animationTime);
+        result = f.execute();
+        return result;
+    }
+
+    static bool call(SGIPluginHostInterface * hostInterface, SGIItemBase * view, const SGIItemBase * item, double animationTime)
+    {
+        CallParamType param(hostInterface, view, item, animationTime);
+        bool result;
+        if(!Registry::instance()->call(*view->typeInfo(), param, result))
+            return false;
+        else
+            return result;
+    }
+
+    template<typename T, typename ItemType >
+    inline const T * getTargetObject() const
+    {
+        return getTargetObject<T, ItemType, DynamicCaster>();
+    }
+    template<typename T, typename ItemType, typename CasterT>
+    const T * getTargetObject() const
+    {
+        if(!_targetItem.valid())
+            return NULL;
+        typedef typename ItemType::ObjectType ObjectType;
+        const ObjectType * obj = static_cast<const ItemType*>(_targetItem.get())->object();
+        const T * ret = CasterT::template cast<const T, const ObjectType>(obj);
+        return ret;
+    }
+protected:
+    osg::ref_ptr<const SGIItemBase> _targetItem;
+    double _animationTime;
+};
+
+
+#define GUI_ADAPTER_SET_VIEW_IMPL_TEMPLATE() \
+    template<typename T> \
+    class guiAdapterSetViewImpl { \
+    public: \
+        typedef sgi::details::constexpr_false accept; \
+        guiAdapterSetViewImpl(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * view=NULL, const SGIItemBase * item=NULL, double animationTime=0) {} \
+        bool execute() { return false; } \
+    }; \
+    typedef guiAdapterSetViewImplBaseT<guiAdapterSetViewImpl> guiAdapterSetViewImplBase;
+
+#define GUI_ADAPTER_SET_VIEW_IMPL_DECLARE(__type) \
+    template<> \
+    class guiAdapterSetViewImpl<__type> : public guiAdapterSetViewImplBase { \
+    private: \
+        typedef AutoRegisterTypeT<__type> AutoRegisterType; \
+        static AutoRegisterType s_autoregister; \
+    public: \
+        typedef sgi::details::constexpr_true accept; \
+        guiAdapterSetViewImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * view=NULL, const SGIItemBase * item=NULL, double animationTime=0) \
+            : guiAdapterSetViewImplBase(hostInterface, view, item, animationTime) {} \
+        bool execute(); \
+    };
+
+#define GUI_ADAPTER_SET_VIEW_IMPL_REGISTER(__type) \
+    guiAdapterSetViewImpl<__type>::AutoRegisterType guiAdapterSetViewImpl<__type>::s_autoregister;
+
+#define GUI_ADAPTER_SET_VIEW_IMPL_DECLARE_AND_REGISTER(__type) \
+    GUI_ADAPTER_SET_VIEW_IMPL_DECLARE(__type) \
+    GUI_ADAPTER_SET_VIEW_IMPL_REGISTER(__type)
+
+} // namespace sgi

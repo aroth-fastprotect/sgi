@@ -3,6 +3,8 @@
 #include <sgi/helpers/qt>
 #include <sgi/helpers/rtti>
 
+#include <sgi/plugins/SGIHostItemQt.h>
+#include <sgi/plugins/SGIImage.h>
 #include <sgi/plugins/SGIItemQt>
 
 namespace sgi {
@@ -11,14 +13,19 @@ class SGIItemQt;
 
 namespace qt_plugin {
 
-GET_OBJECT_NAME_IMPL_REGISTER(QObject)
-GET_OBJECT_NAME_IMPL_REGISTER(QMetaObject)
-GET_OBJECT_NAME_IMPL_REGISTER(QPaintDevice)
-GET_OBJECT_TYPE_IMPL_REGISTER(QObject)
-GET_OBJECT_TYPE_IMPL_REGISTER(QMetaObject)
-GET_OBJECT_TYPE_IMPL_REGISTER(QPaintDevice)
-GET_OBJECT_PATH_IMPL_REGISTER(QObject)
-GET_OBJECT_PATH_IMPL_REGISTER(QMetaObject)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(QObject)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(QMetaObject)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(QPaintDevice)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(QIcon)
+GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(QObject)
+GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(QMetaObject)
+GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(QPaintDevice)
+GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(QIcon)
+GET_OBJECT_PATH_IMPL_DECLARE_AND_REGISTER(QObject)
+GET_OBJECT_PATH_IMPL_DECLARE_AND_REGISTER(QMetaObject)
+
+CONVERT_TO_IMAGE_CONVERT_IMPL_DECLARE_AND_REGISTER(QImage)
+CONVERT_TO_IMAGE_CONVERT_IMPL_DECLARE_AND_REGISTER(QPixmap)
 
 using namespace sgi::qt_helpers;
 
@@ -38,7 +45,7 @@ std::string getObjectNameImpl<QObject>::process()
         ret = ss.str();
     }
     else
-        ret = toLocal8Bit(objectName);
+        ret = toUtf8(objectName);
     return ret;
 }
 
@@ -54,6 +61,16 @@ std::string getObjectNameImpl<QPaintDevice>::process()
     std::stringstream ss;
     std::string ret;
     ss << "QPaintDevice(" << (void*)object << ")";
+    ret = ss.str();
+    return ret;
+}
+
+std::string getObjectNameImpl<QIcon>::process()
+{
+    QIcon * object = static_cast<QIcon*>(item<SGIItemQtIcon>()->object());
+    std::stringstream ss;
+    std::string ret;
+    ss << "QIcon(" << (void*)object << ")";
     ret = ss.str();
     return ret;
 }
@@ -95,6 +112,20 @@ std::string getObjectTypeImpl<QPaintDevice>::process()
     QPaintDevice * object = static_cast<QPaintDevice*>(item<SGIItemQtPaintDevice>()->object());
     std::string ret;
     std::string classname = "QPaintDevice";
+    std::string rtticlass = helpers::getRTTITypename(object);
+
+    if(helpers::is_same_class(classname, rtticlass))
+        ret = classname;
+    else
+        ret = classname + '(' + rtticlass + ')';
+    return ret;
+}
+
+std::string getObjectTypeImpl<QIcon>::process()
+{
+    QIcon * object = static_cast<QIcon*>(item<SGIItemQtIcon>()->object());
+    std::string ret;
+    std::string classname = "QIcon";
     std::string rtticlass = helpers::getRTTITypename(object);
 
     if(helpers::is_same_class(classname, rtticlass))
@@ -153,6 +184,24 @@ SGIItemBasePtrPath getObjectPathImpl<QMetaObject>::process()
     }
     std::reverse(ret.begin(), ret.end());
     return ret;
+}
+
+//--------------------------------------------------------------------------------
+// convertToImageConvertImpl
+//--------------------------------------------------------------------------------
+bool convertToImageConvertImpl<QImage>::convert()
+{
+    QImage * object = getObject<QImage, SGIItemQtPaintDevice>();
+    *_image = new sgi::Image(object);
+    return true;
+}
+
+bool convertToImageConvertImpl<QPixmap>::convert()
+{
+    QPixmap * object = getObject<QPixmap, SGIItemQtPaintDevice>();
+    QImage img = object->toImage();
+    *_image = new sgi::Image(&img);
+    return true;
 }
 
 } // namespace qt_plugin

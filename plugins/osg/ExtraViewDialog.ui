@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ExtraViewDialog</class>
+ <widget class="QDialog" name="ExtraViewDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>521</width>
+    <height>358</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Extra View</string>
+  </property>
+  <property name="windowOpacity">
+   <double>1.000000000000000</double>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="sgi::osg_plugin::ViewOSG" name="widget" native="true"/>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Close|QDialogButtonBox::RestoreDefaults</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>sgi::osg_plugin::ViewOSG</class>
+   <extends>QWidget</extends>
+   <header location="global">ExtraViewDialog.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+ <slots>
+  <slot>changeLODScale(int)</slot>
+  <slot>changeLODScale(double)</slot>
+  <slot>changeSmallFeature(int)</slot>
+  <slot>changeSmallFeature(double)</slot>
+  <slot>changeFarClipping(int)</slot>
+  <slot>changeFarClipping(double)</slot>
+  <slot>changeNearClipping(int)</slot>
+  <slot>changeNearClipping(double)</slot>
+  <slot>changeComputeNearFarMode(int)</slot>
+  <slot>changeNearFarRatio(int)</slot>
+  <slot>changeNearFarRatio(double)</slot>
+  <slot>nearClippingEnable(bool)</slot>
+  <slot>farClippingEnable(bool)</slot>
+  <slot>smallFeatureEnable(bool)</slot>
+  <slot>changeFovy(int)</slot>
+  <slot>changeFovy(double)</slot>
+ </slots>
+</ui>

@@ -9,16 +9,18 @@ enum MenuAction {
     MenuActionObjectInfo,
     MenuActionDumpObjectInfo,
     MenuActionDumpObjectTree,
+    MenuActionWidgetGrab,
+    MenuActionWidgetSetVisibility,
+    MenuActionWidgetSetEnabled,
+    MenuActionWidgetSetAcceptDrops,
+    MenuActionWidgetSetAutoFillBackground,
+    MenuActionWidgetHighlight,
     MenuActionObjectMethodInvoke,
-    MenuActionImagePreview
+    MenuActionObjectModifyProperty,
+    MenuActionImagePreview,
 };
 
 ACTION_HANDLER_IMPL_TEMPLATE()
-ACTION_HANDLER_IMPL_DECLARE(MenuActionObjectInfo)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionDumpObjectInfo)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionDumpObjectTree)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionObjectMethodInvoke)
-ACTION_HANDLER_IMPL_DECLARE(MenuActionImagePreview)
 
 } // namespace qt_plugin
 } // namespace sgi

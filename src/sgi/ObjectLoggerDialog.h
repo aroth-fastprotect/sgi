@@ -17,14 +17,17 @@ namespace sgi {
 class SGIPluginHostInterface;
 class ObjectTreeItem;
 class IObjectLogger;
+class IContextMenu;
+typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
+typedef osg::ref_ptr<IHostCallback> IHostCallbackPtr;
 
 class ObjectLoggerDialog : public QDialog
 {
 	Q_OBJECT
 
 public:
-                        ObjectLoggerDialog(SGIItemBase * item, IObjectLoggerDialogInfo * info=NULL, QWidget *parent = 0, Qt::WindowFlags f = 0);
-                        ObjectLoggerDialog(IObjectLogger * logger, IObjectLoggerDialogInfo * info=NULL, QWidget *parent = 0, Qt::WindowFlags f = 0);
+                        ObjectLoggerDialog(SGIItemBase * item, IHostCallback * callback=NULL, QWidget *parent = 0, Qt::WindowFlags f = 0);
+                        ObjectLoggerDialog(IObjectLogger * logger, IHostCallback * callback=NULL, QWidget *parent = 0, Qt::WindowFlags f = 0);
 	virtual				~ObjectLoggerDialog();
 
 private:
@@ -33,6 +36,7 @@ private:
 
 public:
     IObjectLoggerDialog *   dialogInterface() { return _interface; }
+    IHostCallback *         getHostCallback() { return _hostCallback.get(); }
 
     bool                    addItem(SGIItemBase * item, bool alsoChilds=true);
     bool                    addItems(const SGIItemBasePtrPath & path);
@@ -65,11 +69,13 @@ signals:
     void                    triggerUpdateLog();
 
 protected:
-    class ContextMenuCallback;
+    class HostCallback;
     class SceneGraphDialogInfo;
     class ObjectLoggerDialogImpl;
 
 protected:
+    virtual void            closeEvent(QCloseEvent * event) override;
+
     bool                    buildTree(ObjectTreeItem * treeItem, SGIItemBase * item);
 
     void                    triggerRepaint();
@@ -80,6 +86,8 @@ protected:
     bool                    newInstance(SGIItemBase * item);
     bool                    newInstance(const SGIHostItemBase * item);
 
+	void					setNodeInfo(const SGIItemBase * item);
+
 private:
     void                    init();
 
@@ -89,17 +97,15 @@ private:
 private:
     Ui_ObjectLoggerDialog *             ui;
     SGIPluginHostInterface *            _hostInterface;
-    IObjectLoggerDialogPtr              _interface;
+    IObjectLoggerDialog *               _interface;
+    IHostCallbackPtr                    _hostCallback;
     IObjectLoggerPtr                    _logger;
     SGIItemBasePtr                      _item;
-    IObjectLoggerDialogInfoPtr          _info;
     QToolBar *                          _toolBar;
     QAction *                           _actionReload;
     QSpinBox *                          _spinBoxRefreshTime;
     QTimer *                            _refreshTimer;
-    osg::ref_ptr<IContextMenu>          _contextMenu;
-    osg::ref_ptr<ContextMenuCallback>   _contextMenuCallback;
-    osg::ref_ptr<SceneGraphDialogInfo>  _sceneGraphDialogInfo;
+    IContextMenuPtr                     _contextMenu;
     OperationQueue *                    _queuedOperations;
 };
 

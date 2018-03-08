@@ -7,9 +7,16 @@
 #include "SGIItemOsgEarth"
 
 #include <osgEarth/Registry>
+#include <osgEarth/Version>
 #include <osgEarth/Map>
+#include <osgEarth/MapFrame>
 #include <osgEarth/MapNode>
+#include <osgEarth/ModelLayer>
+#include <osgEarth/MaskLayer>
 #include <osgEarth/XmlUtils>
+#ifdef SGI_USE_OSGEARTH_FAST
+#include <osgEarth/LevelDBFactory>
+#endif
 #include "ElevationQueryReferenced"
 #include <sgi/helpers/rtti>
 
@@ -19,26 +26,29 @@ class SGIItemOsg;
 
 namespace osgearth_plugin {
 
-GET_OBJECT_NAME_IMPL_REGISTER(osgEarth::TerrainLayer)
-GET_OBJECT_NAME_IMPL_REGISTER(osgEarth::ModelLayer)
-GET_OBJECT_NAME_IMPL_REGISTER(osgEarth::MaskLayer)
-GET_OBJECT_NAME_IMPL_REGISTER(osgEarth::Registry)
-GET_OBJECT_NAME_IMPL_REGISTER(osgEarth::Config)
-GET_OBJECT_NAME_IMPL_REGISTER(osgEarth::ConfigOptions)
-GET_OBJECT_NAME_IMPL_REGISTER(TileKeyReferenced)
-GET_OBJECT_NAME_IMPL_REGISTER(TileSourceTileKey)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::TerrainLayer)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelLayer)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskLayer)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::Registry)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::Config)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::ConfigOptions)
+#ifdef SGI_USE_OSGEARTH_FAST
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::LevelDBDatabase)
+#endif
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(TileKeyReferenced)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
 
-GET_OBJECT_TYPE_IMPL_REGISTER(osgEarth::Config)
-GET_OBJECT_TYPE_IMPL_REGISTER(osgEarth::ConfigOptions)
+GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(osgEarth::Config)
+GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(osgEarth::ConfigOptions)
 
-GET_OBJECT_SUGGESTED_FILENAME_IMPL_REGISTER(osgEarth::Map)
-GET_OBJECT_SUGGESTED_FILENAME_IMPL_REGISTER(osgEarth::MapNode)
-GET_OBJECT_SUGGESTED_FILENAME_EXTENSION_IMPL_REGISTER(osgEarth::Map)
-GET_OBJECT_SUGGESTED_FILENAME_EXTENSION_IMPL_REGISTER(osgEarth::MapNode)
-GET_OBJECT_FILENAME_FILTERS_IMPL_REGISTER(osgEarth::Map)
-GET_OBJECT_FILENAME_FILTERS_IMPL_REGISTER(osgEarth::MapNode)
-WRITE_OBJECT_FILE_IMPL_REGISTER(osgEarth::Map)
-WRITE_OBJECT_FILE_IMPL_REGISTER(osgEarth::MapNode)
+GET_OBJECT_SUGGESTED_FILENAME_IMPL_DECLARE_AND_REGISTER(osgEarth::Map)
+GET_OBJECT_SUGGESTED_FILENAME_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNode)
+GET_OBJECT_SUGGESTED_FILENAME_EXTENSION_IMPL_DECLARE_AND_REGISTER(osgEarth::Map)
+GET_OBJECT_SUGGESTED_FILENAME_EXTENSION_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNode)
+GET_OBJECT_FILENAME_FILTERS_IMPL_DECLARE_AND_REGISTER(osgEarth::Map)
+GET_OBJECT_FILENAME_FILTERS_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNode)
+WRITE_OBJECT_FILE_IMPL_DECLARE_AND_REGISTER(osgEarth::Map)
+WRITE_OBJECT_FILE_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNode)
 
 //--------------------------------------------------------------------------------
 // getObjectNameImpl
@@ -78,6 +88,14 @@ std::string getObjectNameImpl<osgEarth::Registry>::process()
     return "osgEarth::Registry";
 }
 
+#ifdef SGI_USE_OSGEARTH_FAST
+std::string getObjectNameImpl<osgEarth::LevelDBDatabase>::process()
+{
+	osgEarth::LevelDBDatabase * object = static_cast<osgEarth::LevelDBDatabase*>(item<SGIItemOsg>()->object());
+	return object->rootPath().full();
+}
+#endif
+
 std::string getObjectNameImpl<TileKeyReferenced>::process()
 {
     TileKeyReferenced * object_ptr = static_cast<TileKeyReferenced*>(item<SGIItemOsg>()->object());
@@ -85,15 +103,24 @@ std::string getObjectNameImpl<TileKeyReferenced>::process()
     return object.str();
 }
 
+extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const TileSourceTileKeyData::Status & t);
+
 std::string getObjectNameImpl<TileSourceTileKey>::process()
 {
     TileSourceTileKey * object_ptr = static_cast<TileSourceTileKey*>(item<SGIItemOsg>()->object());
     const TileSourceTileKeyData object = object_ptr->data();
     std::stringstream ss;
     std::string tilesourceName;
-    SGIHostItemOsg ts(object.tileSource.get());
-    _hostInterface->getObjectName(tilesourceName, &ts);
-    ss << tilesourceName << '/' << object.tileKey.str();
+	if (object.tileSource.valid())
+		tilesourceName = object.tileSource->getName();
+//	SGIHostItemOsg ts(object.tileSource.get());
+//	_hostInterface->getObjectName(tilesourceName, &ts);
+	if(tilesourceName.empty())
+		ss << object.tileKey.str();
+	else
+        ss << tilesourceName << '/' << object.tileKey.str();
+    ss << '(' << object.status << ')';
+
     return ss.str();
 }
 
@@ -189,6 +216,9 @@ osgEarth::Config serializeMapNode( const osgEarth::MapNode* input, const osgEart
     if ( !input || !input->getMap() )
         return mapConf;
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+    mapConf = input->getConfig();
+#else
     const osgEarth::Map* map = input->getMap();
     osgEarth::MapFrame mapf( map, osgEarth::Map::ENTIRE_MODEL );
 
@@ -198,6 +228,7 @@ osgEarth::Config serializeMapNode( const osgEarth::MapNode* input, const osgEart
     mapConf.add( "options", optionsConf );
 
     // the layers
+
     for( osgEarth::ImageLayerVector::const_iterator i = mapf.imageLayers().begin(); i != mapf.imageLayers().end(); ++i )
     {
         osgEarth::ImageLayer* layer = i->get();
@@ -228,6 +259,7 @@ osgEarth::Config serializeMapNode( const osgEarth::MapNode* input, const osgEart
         layerConf.set("driver", layer->getModelLayerOptions().driver()->getDriver());
         mapConf.add( "model", layerConf );
     }
+#endif
 
     osgEarth::Config ext = input->externalConfig();
     if ( !ext.empty() || !mergeExternal.empty())

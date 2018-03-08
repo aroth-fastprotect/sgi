@@ -4,6 +4,10 @@
 
 #include <osgEarth/optional>
 #include <osgEarth/Units>
+#include <osgEarth/GeoData>
+#include <osgEarth/TileKey>
+
+class QLineEdit;
 
 namespace osgEarth {
     class Bounds;
@@ -53,6 +57,13 @@ namespace osgEarth {
     struct ReadResult;
 }
 
+namespace sgi {
+	namespace osg_helpers {
+		template<typename T>
+		std::string vec4fToHtmlColor(const T& c);
+	} // namespace osg_helpers
+} // namespace sgi
+
 namespace std {
 
 template<typename T>
@@ -71,6 +82,15 @@ inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const 
         return os << "unset(" << (v.defaultValue()?"true":"false") << ")";
     else
         return os << (v.value()?"true":"false");
+}
+
+template<>
+inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::optional<osg::Vec4> & v)
+{
+	if (!v.isSet())
+		return os << "unset(" << sgi::osg_helpers::vec4fToHtmlColor(v.defaultValue()) << ")";
+	else
+		return os << sgi::osg_helpers::vec4fToHtmlColor(v.value());
 }
 
 template<typename T>
@@ -98,3 +118,25 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Features::FeatureSourceIndexOptions & opts);
 
 } // namespace std
+
+
+namespace sgi {
+	namespace osgearth_plugin {
+
+struct CoordinateResult {
+	osgEarth::TileKey tileKey;
+	osgEarth::GeoPoint geoPoint;
+	std::string errorText;
+};
+
+double parseCoordinate(const QString & txt, const char positiveChar, const char negativeChar, bool * ok);
+double parseLatitude(const QString & txt, bool * ok);
+double parseLongitude(const QString & txt, bool * ok);
+double parseElevation(const QString & txt, bool * ok);
+osgEarth::GeoPoint geoPointFromString(const QString & str, bool * ok);
+osgEarth::TileKey tileKeyFromString(const QString & input, const osgEarth::Profile * profile, int inputLod, bool * ok);
+CoordinateResult coordinateFromString(const QString & input, const osgEarth::Profile * profile, int inputLod, bool * ok);
+CoordinateResult coordinateFromString(QLineEdit * lineEdit, const osgEarth::Profile * profile, int inputLod, bool * ok);
+
+	} // namespace osgearth_plugin
+} // namespace sgi

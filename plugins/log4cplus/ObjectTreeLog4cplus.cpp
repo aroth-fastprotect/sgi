@@ -2,23 +2,22 @@
 #include "ObjectTreeLog4cplus.h"
 #include "SGIItemLog4cplus"
 
-#include "sgi_log4cplus_plugin.h"
 #include <sgi/SGIItemInternal>
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/SGIProxyItem.h>
-#include <sgi/plugins/SGIHostItemOsg.h>
+#include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/helpers/string>
 #include <log4cplus/hierarchy.h>
 
 namespace sgi {
 namespace log4cplus_plugin {
 
-OBJECT_TREE_BUILD_IMPL_REGISTER(Log4cplusObjectLogger)
-OBJECT_TREE_BUILD_IMPL_REGISTER(Log4cplusObjectHierarchy)
-OBJECT_TREE_BUILD_IMPL_REGISTER(Log4cplusObjectAppender)
-OBJECT_TREE_BUILD_IMPL_REGISTER(Log4cplusObjectLayout)
-OBJECT_TREE_BUILD_IMPL_REGISTER(Log4cplusObjectSimpleLayout)
-OBJECT_TREE_BUILD_IMPL_REGISTER(Log4cplusObjectPatternLayout)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectLogger)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectHierarchy)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectAppender)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectLayout)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectSimpleLayout)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectPatternLayout)
 
 bool objectTreeBuildImpl<Log4cplusObjectLogger>::build(IObjectTreeItem * treeItem)
 {
@@ -205,7 +204,7 @@ bool objectTreeBuildImpl<Log4cplusObjectPatternLayout>::build(IObjectTreeItem * 
     return ret;
 }
 
-OBJECT_TREE_BUILD_ROOT_IMPL_REGISTER(ISceneGraphDialog)
+OBJECT_TREE_BUILD_ROOT_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 
 struct LoggerRootSingleton
 {
@@ -223,7 +222,7 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
 {
     ISceneGraphDialog * object = static_cast<ISceneGraphDialog*>(item<SGIItemInternal>()->object());
 
-    SGIHostItemOsg hostItem(new SGIProxyItemT<LoggerRootSingleton>(_hostInterface, "log4cplus::RootLogger"));
+    SGIHostItemInternal hostItem(new SGIProxyItemT<LoggerRootSingleton>(_hostInterface, "log4cplus::RootLogger"));
     treeItem->addChild(std::string(), &hostItem);
     return true;
 }

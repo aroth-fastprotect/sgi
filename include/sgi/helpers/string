@@ -2,6 +2,8 @@
 #pragma once
 
 #include <sstream>
+#include <vector>
+#include <sgi/Export>
 
 namespace sgi {
 namespace helpers {
@@ -16,6 +18,22 @@ inline std::string str_plus_count(const char * str, const INT_TYPE & n)
 
 template<typename INT_TYPE, typename INT_TYPE2>
 inline std::string str_plus_count(const char * str, const INT_TYPE & n, const INT_TYPE2 & n2)
+{
+    std::stringstream buf;
+    buf << str << '(' << n << ':' << n2 << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE>
+inline std::string str_plus_count(const std::string str, const INT_TYPE & n)
+{
+    std::stringstream buf;
+    buf << str << '(' << n << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE, typename INT_TYPE2>
+inline std::string str_plus_count(const std::string str, const INT_TYPE & n, const INT_TYPE2 & n2)
 {
     std::stringstream buf;
     buf << str << '(' << n << ':' << n2 << ')';
@@ -39,10 +57,58 @@ inline std::string str_plus_info(const char * str, const INT_TYPE & n, const INT
 }
 
 template<typename INT_TYPE>
+inline std::string str_plus_info(const std::string & str, const INT_TYPE & n)
+{
+    std::stringstream buf;
+    buf << str << '(' << n << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE, typename INT_TYPE2>
+inline std::string str_plus_info(const std::string & str, const INT_TYPE & n, const INT_TYPE2 & n2)
+{
+    std::stringstream buf;
+    buf << str << '(' << n << ':' << n2 << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE>
+inline std::string str_plus_hex(const std::string & str, const INT_TYPE & n)
+{
+    std::stringstream buf;
+    buf << str << "(0x" << std::hex << n << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE>
 inline std::string str_plus_hex(const char * str, const INT_TYPE & n)
 {
     std::stringstream buf;
     buf << str << "(0x" << std::hex << n << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE, typename INT_TYPE2>
+inline std::string str_plus_hex(const std::string & str, const INT_TYPE & n, const INT_TYPE2 & n2)
+{
+    std::stringstream buf;
+    buf << str << "(0x" << std::hex << n << ':' << n2 << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE, typename INT_TYPE2>
+inline std::string str_plus_hex(const char * str, const INT_TYPE & n, const INT_TYPE2 & n2)
+{
+    std::stringstream buf;
+    buf << str << "(0x" << std::hex << n << ':' << n2 << ')';
+    return buf.str();
+}
+
+template<typename INT_TYPE>
+inline std::string str_plus_number(const std::string & str, const INT_TYPE & n)
+{
+    std::stringstream buf;
+    buf << str << '#' << n;
     return buf.str();
 }
 
@@ -65,7 +131,59 @@ inline void str_append(std::string & str, const INT_TYPE & n, const char seperat
     str = buf.str();
 }
 
-void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size);
+SGI_IMPL_EXPORT void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size);
+SGI_IMPL_EXPORT std::string joinStrings(const std::vector<std::string>& input, char delim);
+SGI_IMPL_EXPORT std::vector<std::string> & split(const std::string &s, char delim, std::vector<std::string> &elems);
+SGI_IMPL_EXPORT std::vector<std::string> split(const std::string &s, char delim);
+
+
+/** Replaces all the instances of "pattern" with "replacement" in "in_out" */
+SGI_IMPL_EXPORT std::string& replaceIn(
+    std::string&       in_out,
+    const std::string& pattern,
+    const std::string& replacement );
+
+/** Replaces all the instances of "pattern" with "replacement" in "in_out" (case-insensitive) */
+SGI_IMPL_EXPORT std::string& ciReplaceIn(
+    std::string&       in_out,
+    const std::string& pattern,
+    const std::string& replacement );
+
+/**
+    * Trims whitespace from the ends of a string.
+    */
+SGI_IMPL_EXPORT std::string trim( const std::string& in );
+/**
+    * Trims whitespace from the ends of a string; in-place modification on the string to reduce string copies.
+    */
+SGI_IMPL_EXPORT void trim2( std::string& str );
+
+
+/**
+    * Assembles and returns an inline string using a stream-like << operator.
+    * Example:
+    *     std::string str = Stringify() << "Hello, world " << variable;
+    */
+struct Stringify
+{
+    operator std::string () const
+    {
+        std::string result;
+        result = buf.str();
+        return result;
+    }
+
+    template<typename T>
+    Stringify& operator << (const T& val) { buf << val; return (*this); }
+
+    Stringify& operator << (const Stringify& val) { buf << (std::string)val; return (*this); }
+
+protected:
+    std::stringstream buf;
+};
+
+template<> inline
+Stringify& Stringify::operator << <bool>(const bool& val) { buf << (val ? "true" : "false"); return (*this); }
 
 } // namespace helpers
 } // namespace sgi

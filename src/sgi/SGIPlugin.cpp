@@ -10,12 +10,23 @@
 #include <QInputDialog>
 #include <QFileDialog>
 #include <QColorDialog>
+//#include <QDebug>
 
 #include "QtProxy.h"
 #include "sgi_internal.h"
 #include "QTextDialog.h"
 #include "DoubleInputDialog.h"
+#include "QuatInputDialog.h"
+#include "MatrixInputDialog.h"
+#include <sgi/plugins/ImagePreviewDialog>
+#include <sgi/plugins/ObjectLoggerDialog>
+#include <sgi/plugins/SceneGraphDialog>
+#include <sgi/plugins/ContextMenu>
 #include <sgi/helpers/qt>
+
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
 
 using namespace sgi;
 using namespace sgi::qt_helpers;
@@ -29,6 +40,29 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const SGIItem
         << '}';
 }
 
+namespace {
+	class DisableLibraryLoadErrors 
+	{
+	public:
+		DisableLibraryLoadErrors()
+		{
+#ifdef _WIN32
+			_oldErrorMode = ::SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
+#endif
+		}
+		~DisableLibraryLoadErrors()
+		{
+#ifdef _WIN32
+			::SetErrorMode(_oldErrorMode);
+#endif
+		}
+	private:
+#ifdef _WIN32
+		unsigned _oldErrorMode;
+#endif
+	};
+}
+
 class SGIPlugins::SGIPluginsImpl
 {
 public:
@@ -37,13 +71,15 @@ public:
 
     enum PluginType {
         PluginTypeModel = 0,
-        PluginTypeUI
     };
 
     SGIPluginsImpl()
         : _pluginsLoaded(false)
         , _hostInterface(this)
+        , _hostInterfaceVersion(0)
+        , _defaultHostCallback(new DefaultHostCallback(this))
     {
+        _hostInterfaceVersion = _hostInterface.version();
         {
             const std::string& value_type = details::StaticTypeName<sgi::SGIItemType>::name();
             registerNamedEnum(value_type, "SGIItemType", false);
@@ -65,13 +101,14 @@ public:
 
     static SGIPluginsImpl* instance(bool erase=false)
     {
-        static SGIPluginsImpl* s_impl = new SGIPluginsImpl;
+		static SGIPluginsImpl* s_impl = NULL;
         if (erase)
         {
             delete s_impl;
             s_impl = 0;
         }
-
+		else if(!s_impl)
+			s_impl = new SGIPluginsImpl;
         return s_impl; // will return NULL on erase
     }
 
@@ -79,6 +116,25 @@ public:
     {
         return &_hostInterface;
     }
+	IHostCallback * defaultHostCallback()
+	{
+		return _defaultHostCallback.get();
+	}
+	IHostCallback * hostCallback()
+	{
+		if (_hostCallback.valid())
+			return _hostCallback.get();
+		else
+			return _defaultHostCallback.get();
+	}
+	void setHostCallback(IHostCallback * callback)
+	{
+        //OSG_WARN << "SGIPluginsImpl::setHostCallback " << _hostCallback.get() << " new:" << callback << std::endl;
+		if (callback)
+			_hostCallback = callback;
+		else
+			_hostCallback = NULL;
+	}
 
     class HostInterface : public SGIPluginHostInterface
     {
@@ -87,7 +143,27 @@ public:
             : _impl(impl)
             {
             }
+        ~HostInterface()
+        {
+//             qDebug() << "~HostInterface()" << this << _impl;
+        }
 
+        unsigned version()
+        {
+            return SGIPLUGIN_HOSTINTERFACE_CURRENT_VERSION;
+        }
+		IHostCallback * defaultHostCallback() 
+		{
+			return _impl->defaultHostCallback();
+		}
+		IHostCallback * hostCallback()
+		{
+			return _impl->hostCallback();
+		}
+		void setHostCallback(IHostCallback * callback)
+		{
+			return _impl->setHostCallback(callback);
+		}
         bool generateItem(osg::ref_ptr<SGIItemBase> & item, const SGIHostItemBase * object)
         {
             return _impl->generateItem(item, object);
@@ -164,21 +240,21 @@ public:
         {
             return _impl->writeObjectFile(result, item, filename, options);
         }
-        IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IContextMenuInfo * info)
+        IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
         {
-            return _impl->createContextMenu(parent, object, info);
+            return _impl->createContextMenu(parent, object, callback);
         }
-        IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IContextMenuInfo * info)
+        IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
         {
-            return _impl->createContextMenu(parent, item, info);
+            return _impl->createContextMenu(parent, item, callback);
         }
-        ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, ISceneGraphDialogInfo * info)
+        ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
         {
-            return _impl->showSceneGraphDialog(parent, object, info);
+            return _impl->showSceneGraphDialog(parent, object, callback);
         }
-        ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, ISceneGraphDialogInfo * info)
+        ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
         {
-            return _impl->showSceneGraphDialog(parent, item, info);
+            return _impl->showSceneGraphDialog(parent, item, callback);
         }
         bool createObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object)
         {
@@ -204,17 +280,17 @@ public:
         {
             return _impl->getOrCreateObjectLogger(logger, item);
         }
-        IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IObjectLoggerDialogInfo * info)
+        IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback)
         {
-            return _impl->showObjectLoggerDialog(parent, logger, info);
+            return _impl->showObjectLoggerDialog(parent, logger, callback);
         }
-        IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IObjectLoggerDialogInfo * info)
+        IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
         {
-            return _impl->showObjectLoggerDialog(parent, object, info);
+            return _impl->showObjectLoggerDialog(parent, object, callback);
         }
-        IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IObjectLoggerDialogInfo * info)
+        IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
         {
-            return _impl->showObjectLoggerDialog(parent, item, info);
+            return _impl->showObjectLoggerDialog(parent, item, callback);
         }
         bool objectTreeBuildTree(IObjectTreeItem * treeItem, SGIItemBase * item)
         {
@@ -236,6 +312,14 @@ public:
         {
             return _impl->contextMenuExecute(menuAction, item);
         }
+        IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
+        {
+            return _impl->showImagePreviewDialog(parent, item, callback);
+        }
+        IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
+        {
+            return _impl->showImagePreviewDialog(parent, object, callback);
+        }
         bool openSettingsDialog(osg::ref_ptr<ISettingsDialog> & dialog, const SGIHostItemBase * object, ISettingsDialogInfo * info)
         {
             return _impl->openSettingsDialog(dialog, object, info);
@@ -256,6 +340,10 @@ public:
         {
             return _impl->inputDialogInteger(parent, number, label, windowTitle, minNumber, maxNumber, step, item);
         }
+        bool inputDialogInteger64(QWidget *parent, int64_t & number, const std::string & label, const std::string & windowTitle, int64_t minNumber, int64_t maxNumber, int step, SGIItemBase * item)
+        {
+            return _impl->inputDialogInteger64(parent, number, label, windowTitle, minNumber, maxNumber, step, item);
+        }
         bool inputDialogDouble(QWidget *parent, double & number, const std::string & label, const std::string & windowTitle, double minNumber, double maxNumber, int decimals, SGIItemBase * item)
         {
             return _impl->inputDialogDouble(parent, number, label, windowTitle, minNumber, maxNumber, decimals, item);
@@ -275,6 +363,14 @@ public:
         bool inputDialogImage(QWidget *parent, Image & image, const std::string & label, const std::string & windowTitle, SGIItemBase * item)
         {
             return _impl->inputDialogImage(parent, image, label, windowTitle, item);
+        }
+        bool inputDialogQuat(QWidget *parent, Quat & quat, const std::string & label, const std::string & windowTitle, SGIItemBase * item)
+        {
+            return _impl->inputDialogQuat(parent, quat, label, windowTitle, item);
+        }
+        bool inputDialogMatrix(QWidget *parent, Matrix & matrix, MatrixUsage usage, const std::string & label, const std::string & windowTitle, SGIItemBase * item)
+        {
+            return _impl->inputDialogMatrix(parent, matrix, usage, label, windowTitle, item);
         }
         bool setView(SGIItemBase * view, const SGIItemBase * item, double animationTime = -1.0)
         {
@@ -309,24 +405,160 @@ public:
             return _impl->namedEnumValueToString(enumname, text, value);
         }
 
+        bool convertToImage(ImagePtr & image, const SGIHostItemBase * object)
+        {
+            return _impl->convertToImage(image, object);
+        }
+        bool convertToImage(ImagePtr & image, const SGIItemBase * item)
+        {
+            return _impl->convertToImage(image, item);
+        }
+
     private:
         SGIPluginsImpl * _impl;
     };
+
+	class DefaultHostCallback : public IHostCallback
+	{
+	public:
+		DefaultHostCallback(SGIPluginsImpl * impl)
+			: _impl(impl) {}
+		~DefaultHostCallback() override
+		{
+//             qDebug() << "~DefaultHostCallback()" << this << _impl;
+		}
+
+		IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) override
+		{
+            if (_contextMenu.valid() && _contextMenu->parentWidget() == parent)
+			{
+				_contextMenu->setObject(const_cast<SGIItemBase*>(item));
+			}
+			else
+				_contextMenu = _impl->createContextMenu(parent, const_cast<SGIItemBase*>(item), this);
+			return _contextMenu.get();
+		}
+		IContextMenu *          contextMenu(QWidget * parent, const SGIHostItemBase * item) override
+		{
+			if (_contextMenu.valid() && _contextMenu->parentWidget() == parent)
+			{
+				_contextMenu->setObject(item);
+			}
+			else
+				_contextMenu = _impl->createContextMenu(parent, item, this);
+			return _contextMenu.get();
+		}
+		ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, SGIItemBase * item) override
+		{
+            if (_dialog.valid())
+                _dialog->setObject(item);
+            else
+                _dialog = _impl->showSceneGraphDialog(parent, item, this);
+            if (_dialog.valid())
+                _dialog->show();
+            return _dialog.get();
+		}
+		ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, const SGIHostItemBase * item) override
+		{
+            if (_dialog.valid())
+                _dialog->setObject(item);
+            else
+                _dialog = _impl->showSceneGraphDialog(parent, item, this);
+            if (_dialog.valid())
+                _dialog->show();
+            return _dialog.get();
+		}
+		IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, SGIItemBase * item) override
+		{
+            if (!_loggerDialog.valid())
+                _loggerDialog = _impl->showObjectLoggerDialog(parent, item, this);
+            if (!_loggerDialog.valid())
+                _loggerDialog->show();
+            return _loggerDialog.get();
+		}
+		IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, const SGIHostItemBase * item) override
+		{
+            if (!_loggerDialog.valid())
+                _loggerDialog = _impl->showObjectLoggerDialog(parent, item, this);
+            if (!_loggerDialog.valid())
+                _loggerDialog->show();
+            return _loggerDialog.get();
+		}
+        IObjectLoggerDialog *   showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger) override
+        {
+            if (!_loggerDialog.valid())
+                _loggerDialog = _impl->showObjectLoggerDialog(parent, logger, this);
+            if (!_loggerDialog.valid())
+                _loggerDialog->show();
+            return _loggerDialog.get();
+        }
+		IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, SGIItemBase * item) override
+		{
+            if (_imagePreviewDialog.valid())
+                _imagePreviewDialog->setObject(item);
+            else
+                _imagePreviewDialog = _impl->showImagePreviewDialog(parent, item, this);
+            if(_imagePreviewDialog.valid())
+                _imagePreviewDialog->show();
+			return _imagePreviewDialog.get();
+		}
+		IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, const SGIHostItemBase * item) override
+		{
+			if (_imagePreviewDialog.valid())
+				_imagePreviewDialog->setObject(item);
+			else
+				_imagePreviewDialog = _impl->showImagePreviewDialog(parent, item, this);
+            if(_imagePreviewDialog.valid())
+                _imagePreviewDialog->show();
+			return _imagePreviewDialog.get();
+		}
+		virtual ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
+		{
+			return NULL;
+		}
+		void triggerRepaint() override
+		{
+			/* NOP */
+		}
+		SGIItemBase * getView() override
+		{
+			return NULL;
+		}
+        virtual QWidget * getFallbackParentWidget() override
+        {
+            return NULL;
+        }
+		virtual void shutdown() override
+		{
+			_contextMenu = NULL;
+			_dialog = NULL;
+			_loggerDialog = NULL;
+			_imagePreviewDialog = NULL;
+		}
+
+	private:
+		SGIPluginsImpl * _impl;
+		sgi::IContextMenuPtr _contextMenu;
+		sgi::ISceneGraphDialogPtr _dialog;
+		sgi::IObjectLoggerDialogPtr _loggerDialog;
+		sgi::IImagePreviewDialogPtr _imagePreviewDialog;
+	};
 
     static std::string createLibraryNameForPlugin(const std::string& name)
     {
         return ".sgi_" + name + "_plugin";
     }
 
-    static std::string createLibraryNameForPluginUI(const std::string& name)
-    {
-        return ".sgiui_" + name + "_plugin";
-    }
-
     const PluginInfo * loadInternalPlugin()
     {
-        PluginMap::iterator it = _plugins.find(SGIPlugin_internal::PluginName);
-        if(it == _plugins.end())
+        const PluginInfo * ret = nullptr;
+        {
+            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+            PluginMap::iterator it = _plugins.find(SGIPlugin_internal::PluginName);
+            if (it != _plugins.end())
+                ret = &it->second;
+        }
+        if(!ret)
         {
             PluginInfo info;
             info.pluginName = SGIPlugin_internal::PluginName;
@@ -339,74 +571,95 @@ public:
                 info.objectLoggerInterface = info.pluginInterface->getObjectLogger();
                 info.contextMenuInterface = info.pluginInterface->getContextMenu();
                 info.settingsDialogInterface = info.pluginInterface->getSettingsDialog();
-                if(info.settingsDialogInterface)
-                    info.pluginUIInterface = info.pluginInterface;
+                info.guiAdapterInterface = info.pluginInterface->getGUIAdapter();
+                info.convertToImage = info.pluginInterface->getConvertToImage();
             }
-            it = _plugins.insert(PluginMap::value_type(info.pluginName, info)).first;
+            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+            PluginMap::iterator it = _plugins.find(info.pluginName);
+            if (it != _plugins.end())
+                ret = &it->second;
+            else
+            {
+                PluginMap::iterator it = _plugins.insert(PluginMap::value_type(info.pluginName, info)).first;
+                ret = &it->second;
+            }
         }
-        return &it->second;
+        return ret;
     }
 
     /// @brief load the given plugin
-    /// @note only loads the model plugin (not the UI)
+    /// @note only loads the model plugin
     /// @param name internal name of the plugin to load without any prefix or suffix
     /// @param filename optional filename of the library to load
     /// @return pointer to plugin info struct
     const PluginInfo * loadPlugin(const std::string & name, const std::string & filename=std::string())
     {
-        PluginMap::iterator it = _plugins.find(name);
-        if(it == _plugins.end())
+        const PluginInfo * ret = nullptr;
+        {
+            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+            PluginMap::iterator it = _plugins.find(name);
+            if (it != _plugins.end())
+                ret = &it->second;
+        }
+        if(!ret)
         {
             PluginInfo info;
             info.pluginName = name;
 
             if(!_pluginLoadOpts.valid())
             {
-                osg::ref_ptr<osgDB::Options> defaultOpts = osgDB::Registry::instance()->getOptions();
-                if(defaultOpts.valid())
-                    _pluginLoadOpts = static_cast<osgDB::Options*>(osgDB::Registry::instance()->getOptions()->clone(osg::CopyOp::SHALLOW_COPY));
-                else
-                    _pluginLoadOpts = new osgDB::Options();
-                _pluginLoadOpts->setPluginData("hostInterface", &_hostInterface);
+                OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+                if (!_pluginLoadOpts.valid())
+                {
+                    osg::ref_ptr<osgDB::Options> defaultOpts = osgDB::Registry::instance()->getOptions();
+                    if (defaultOpts.valid())
+                        _pluginLoadOpts = static_cast<osgDB::Options*>(osgDB::Registry::instance()->getOptions()->clone(osg::CopyOp::SHALLOW_COPY));
+                    else
+                        _pluginLoadOpts = new osgDB::Options();
+                    _pluginLoadOpts->setPluginData("hostInterface", &_hostInterface);
+                    _pluginLoadOpts->setPluginData("hostInterfaceVersion", &_hostInterfaceVersion);
+                }
             }
 
             std::string pluginFilename = createLibraryNameForPlugin(name);
-            osgDB::ReaderWriter::ReadResult result = osgDB::Registry::instance()->readObject(pluginFilename, _pluginLoadOpts.get(), false);
-            info.pluginInterface = (SGIPluginInterface*)result.getObject();
+			{
+				DisableLibraryLoadErrors disable_load_errors;
+				osgDB::ReaderWriter::ReadResult result = osgDB::Registry::instance()->readObject(pluginFilename, _pluginLoadOpts.get(), false);
+				info.pluginInterface = (SGIPluginInterface*)result.getObject();
+			}
             if (info.pluginInterface)
             {
-                info.pluginFilename = filename;
-                info._pluginScore = info.pluginInterface->getPluginScore();
-                info.writePrettyHTMLInterface = info.pluginInterface->getWritePrettyHTML();
-                info.objectInfoInterface = info.pluginInterface->getObjectInfo();
-                info.objectTreeInterface = info.pluginInterface->getObjectTree();
-                info.objectLoggerInterface = info.pluginInterface->getObjectLogger();
-                info.contextMenuInterface = info.pluginInterface->getContextMenu();
-                info.settingsDialogInterface = info.pluginInterface->getSettingsDialog();
-                info.guiAdapterInterface = info.pluginInterface->getGUIAdapter();
-                if(info.settingsDialogInterface)
-                    info.pluginUIInterface = info.pluginInterface;
+                if(info.pluginInterface->getRequiredInterfaceVersion() != _hostInterface.version())
+                {
+                    // release the plugin because version does not match
+                    std::cout << "Drop plugin " << name << "(" << pluginFilename << ") because to version mismatch " <<
+                        info.pluginInterface->getRequiredInterfaceVersion() << "!=" << _hostInterface.version() << std::endl;
+                    info.pluginInterface = NULL;
+                }
+                else
+                {
+                    info.pluginFilename = filename;
+                    info._pluginScore = info.pluginInterface->getPluginScore();
+                    info.writePrettyHTMLInterface = info.pluginInterface->getWritePrettyHTML();
+                    info.objectInfoInterface = info.pluginInterface->getObjectInfo();
+                    info.objectTreeInterface = info.pluginInterface->getObjectTree();
+                    info.objectLoggerInterface = info.pluginInterface->getObjectLogger();
+                    info.contextMenuInterface = info.pluginInterface->getContextMenu();
+                    info.settingsDialogInterface = info.pluginInterface->getSettingsDialog();
+                    info.guiAdapterInterface = info.pluginInterface->getGUIAdapter();
+                    info.convertToImage = info.pluginInterface->getConvertToImage();
+                }
             }
-            it = _plugins.insert(PluginMap::value_type(name, info)).first;
-        }
-        return &it->second;
-    }
-
-    bool loadPluginUI(PluginInfo & info)
-    {
-        bool ret = false;
-        if(!info.pluginUIInterface)
-        {
-            osgDB::ReaderWriter::ReadResult result = osgDB::Registry::instance()->readObject(createLibraryNameForPluginUI(info.pluginName), _pluginLoadOpts.get(), false);
-            info.pluginUIInterface = (SGIPluginInterface*)result.getObject();
-            if (info.pluginUIInterface)
+            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+            PluginMap::iterator it = _plugins.find(info.pluginName);
+            if (it != _plugins.end())
+                ret = &it->second;
+            else
             {
-                info.settingsDialogInterface = info.pluginUIInterface->getSettingsDialog();
-                ret = (info.settingsDialogInterface != NULL);
+                PluginMap::iterator it = _plugins.insert(PluginMap::value_type(info.pluginName, info)).first;
+                ret = &it->second;
             }
         }
-        else
-            ret = true;
         return ret;
     }
 
@@ -426,7 +679,6 @@ public:
             switch(pluginType)
             {
             case PluginTypeModel: pos = basename.find("osgdb_sgi_"); break;
-            case PluginTypeUI: pos = basename.find("osgdb_sgiui_"); break;
             default: pos = std::string::npos; break;
             }
             if (pos == std::string::npos)
@@ -440,7 +692,6 @@ public:
             switch(pluginType)
             {
             case PluginTypeModel: pluginName = std::string(basename.begin()+pos+10,basename.begin()+posSuffix); break;
-            case PluginTypeUI: pluginName = std::string(basename.begin()+pos+12,basename.begin()+posSuffix); break;
             default: break;
             }
 
@@ -451,7 +702,6 @@ public:
                 switch(pluginType)
                 {
                 case PluginTypeModel: expectedFilename = std::string("osgdb_sgi_") + pluginName + std::string("_plugin") + postfix; break;
-                case PluginTypeUI: expectedFilename = std::string("osgdb_sgiui_") + pluginName + std::string("_plugin") + postfix; break;
                 default: pos = std::string::npos; break;
                 }
                 if(basename_no_ext == expectedFilename)
@@ -468,6 +718,7 @@ public:
 
     bool getPlugins(PluginInfoList & pluginList)
     {
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
         pluginList.clear();
         for(PluginMap::const_iterator it = _plugins.begin(); it != _plugins.end(); it++)
         {
@@ -791,51 +1042,65 @@ public:
         return ret;
     }
 
-    IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IContextMenuInfo * info)
+    IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
     {
         osg::ref_ptr<SGIItemBase> item;
         if(generateItem(item, object))
-            return createContextMenu(parent, item, info);
+            return createContextMenu(parent, item, callback);
         else
             return NULL;
     }
-    IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IContextMenuInfo * info)
+    IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->createContextMenu(parent, item, info);
+        return QtProxy::instance()->createContextMenu(parent, item, true, callback?callback:_defaultHostCallback.get());
     }
-    IContextMenuQt * createContextMenu(QWidget *parent, QObject * item, IContextMenuInfoQt * info)
+    IContextMenuQt * createContextMenu(QWidget *parent, QObject * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->createContextMenu(parent, item, info);
+        return QtProxy::instance()->createContextMenu(parent, item, true, callback?callback:_defaultHostCallback.get());
     }
 
-    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, ISceneGraphDialogInfo * info)
+    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
     {
         osg::ref_ptr<SGIItemBase> item;
         if(generateItem(item, object))
-            return showSceneGraphDialog(parent, item, info);
+            return showSceneGraphDialog(parent, item, callback);
         else
             return NULL;
     }
-    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, ISceneGraphDialogInfo * info)
+    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->showSceneGraphDialog(parent, item, info);
+        return QtProxy::instance()->showSceneGraphDialog(parent, item, callback?callback:_defaultHostCallback.get());
     }
-    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IObjectLoggerDialogInfo * info)
+    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
     {
         osg::ref_ptr<SGIItemBase> item;
         if(generateItem(item, object))
-            return showObjectLoggerDialog(parent, item, info);
+            return showObjectLoggerDialog(parent, item, callback);
         else
             return NULL;
     }
-    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IObjectLoggerDialogInfo * info)
+    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->showObjectLoggerDialog(parent, item, info);
+        return QtProxy::instance()->showObjectLoggerDialog(parent, item, callback?callback:_defaultHostCallback.get());
     }
-    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IObjectLoggerDialogInfo * info)
+    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback)
     {
-        return QtProxy::instance()->showObjectLoggerDialog(parent, logger, info);
+        return QtProxy::instance()->showObjectLoggerDialog(parent, logger, callback?callback:_defaultHostCallback.get());
     }
+
+    IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
+    {
+        return QtProxy::instance()->showImagePreviewDialog(parent, item, callback?callback:_defaultHostCallback.get());
+    }
+    IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
+    {
+        osg::ref_ptr<SGIItemBase> item;
+        if(generateItem(item, object))
+            return showImagePreviewDialog(parent, item, callback);
+        else
+            return NULL;
+    }
+
 
     bool objectTreeBuildTree(IObjectTreeItem * treeItem, SGIItemBase * item)
     {
@@ -924,13 +1189,9 @@ public:
         do
         {
             const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
-            if(pluginInfo)
+            if(pluginInfo && pluginInfo->settingsDialogInterface)
             {
-                if(loadPluginUI(*const_cast<PluginInfo *>(pluginInfo)) &&
-                    pluginInfo->settingsDialogInterface)
-                {
-                    ret = pluginInfo->settingsDialogInterface->create(dialog, item, info);
-                }
+                ret = pluginInfo->settingsDialogInterface->create(dialog, item, info);
             }
             item = item->nextBase();
         }
@@ -988,13 +1249,13 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
         QString oldText = copyStringFromStdString(text, encoding);
         bool ok = false;
-        QString newText = QInputDialog::getText(parent, qwindowTitle, fromLocal8Bit(label), QLineEdit::Normal, oldText, &ok);
+        QString newText = QInputDialog::getText(parent, qwindowTitle, fromUtf8(label), QLineEdit::Normal, oldText, &ok);
         if(ok)
         {
             text = copyStringToStdString(newText, encoding);
@@ -1009,17 +1270,17 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
-        
+            qwindowTitle = fromUtf8(windowTitle);
+
         QString qtext = copyStringFromStdString(text, encoding);
         QTextDialog dialog(parent);
         dialog.setWindowTitle(qwindowTitle);
         dialog.setButtons(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
-        dialog.setLabel(fromLocal8Bit(label));
-        dialog.setText(fromLocal8Bit(text));
+        dialog.setLabel(fromUtf8(label));
+        dialog.setText(fromUtf8(text));
         dialog.setReadOnly(false);
         if(dialog.exec() == QDialog::Accepted)
         {
@@ -1035,12 +1296,31 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
         bool ok = false;
-        int newNumber = QInputDialog::getInt(parent, qwindowTitle, fromLocal8Bit(label), number, minNumber, maxNumber, step, &ok);
+        int newNumber = QInputDialog::getInt(parent, qwindowTitle, fromUtf8(label), number, minNumber, maxNumber, step, &ok);
+        if(ok)
+        {
+            number = newNumber;
+        }
+        return ok;
+    }
+    bool inputDialogInteger64(QWidget *parent, int64_t & number, const std::string & label, const std::string & windowTitle, int64_t minNumber, int64_t maxNumber, int step, SGIItemBase * item)
+    {
+        QString qwindowTitle;
+        if(item)
+        {
+            std::string objectDisplayName;
+            getObjectDisplayName(objectDisplayName, item, true);
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
+        }
+        else
+            qwindowTitle = fromUtf8(windowTitle);
+        bool ok = false;
+        int newNumber = QInputDialog::getInt(parent, qwindowTitle, fromUtf8(label), number, minNumber, maxNumber, step, &ok);
         if(ok)
         {
             number = newNumber;
@@ -1054,14 +1334,14 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
         bool ok = false;
         DoubleInputDialog dlg(parent);
         dlg.setWindowTitle(qwindowTitle);
-        dlg.setLabel(fromLocal8Bit(label));
+        dlg.setLabel(fromUtf8(label));
         dlg.setRange(minNumber, maxNumber);
         dlg.setDecimals(decimals);
         dlg.setValue(number);
@@ -1079,13 +1359,13 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
         QString oldText = "0x" + QString::number(number, 16);
         bool ok = false;
-        QString newText = QInputDialog::getText(parent, qwindowTitle, fromLocal8Bit(label), QLineEdit::Normal, oldText, &ok);
+        QString newText = QInputDialog::getText(parent, qwindowTitle, fromUtf8(label), QLineEdit::Normal, oldText, &ok);
         if(ok)
         {
             bool isHexNumber = false;
@@ -1114,10 +1394,10 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
         bool ok = false;
         QColor oldColor;
         oldColor.setRgbF(color.r, color.g, color.b, color.a);
@@ -1140,10 +1420,10 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
         QString qfilters;
         if(filters.empty())
         {
@@ -1158,13 +1438,13 @@ public:
             for(std::vector<std::string>::const_iterator it = filters.begin(); it != filters.end(); it++)
             {
                 if(qfilters.isEmpty())
-                    qfilters = fromLocal8Bit(*it);
+                    qfilters = fromUtf8(*it);
                 else
-                    qfilters.append(QString(";;") + fromLocal8Bit(*it));
+                    qfilters.append(QString(";;") + fromUtf8(*it));
             }
         }
         QString * selectedFilter = NULL;
-        QString oldFilename = fromLocal8Bit(filename);
+        QString oldFilename = fromUtf8(filename);
         QString newFilename;
         bool ok = false;
         QFileDialog::Options dialogFlags = QFileDialog::DontResolveSymlinks;
@@ -1184,7 +1464,7 @@ public:
         }
         if(ok)
         {
-            filename = toLocal8Bit(newFilename);
+            filename = toUtf8(newFilename);
         }
         return ok;
 
@@ -1196,10 +1476,10 @@ public:
         {
             std::string objectDisplayName;
             getObjectDisplayName(objectDisplayName, item, true);
-            qwindowTitle = fromLocal8Bit(windowTitle) + QString(" (%1)").arg(fromLocal8Bit(objectDisplayName));
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
         }
         else
-            qwindowTitle = fromLocal8Bit(windowTitle);
+            qwindowTitle = fromUtf8(windowTitle);
         bool ok = false;
         /*
         QColor oldColor;
@@ -1216,6 +1496,57 @@ public:
         */
         return ok;
     }
+    bool inputDialogQuat(QWidget *parent, Quat & quat, const std::string & label, const std::string & windowTitle, SGIItemBase * item)
+    {
+        QString qwindowTitle;
+        if(item)
+        {
+            std::string objectDisplayName;
+            getObjectDisplayName(objectDisplayName, item, true);
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
+        }
+        else
+            qwindowTitle = fromUtf8(windowTitle);
+        bool ok = false;
+        QuatInputDialog dlg(parent);
+        dlg.setWindowTitle(qwindowTitle);
+        dlg.setLabel(fromUtf8(label));
+        //dlg.setDecimals(decimals);
+        dlg.setOriginalValue(quat);
+        dlg.setValue(quat);
+        ok = (dlg.exec() == QDialog::Accepted);
+        if(ok)
+        {
+            quat = dlg.value();
+        }
+        return ok;
+    }
+    bool inputDialogMatrix(QWidget *parent, Matrix & matrix, MatrixUsage usage, const std::string & label, const std::string & windowTitle, SGIItemBase * item)
+    {
+        QString qwindowTitle;
+        if(item)
+        {
+            std::string objectDisplayName;
+            getObjectDisplayName(objectDisplayName, item, true);
+            qwindowTitle = fromUtf8(windowTitle) + QString(" (%1)").arg(fromUtf8(objectDisplayName));
+        }
+        else
+            qwindowTitle = fromUtf8(windowTitle);
+        bool ok = false;
+        MatrixInputDialog dlg(parent);
+        dlg.setWindowTitle(qwindowTitle);
+        dlg.setLabel(fromUtf8(label));
+        //dlg.setDecimals(decimals);
+        dlg.setOriginalValue(matrix, usage);
+        dlg.setValue(matrix, usage);
+        ok = (dlg.exec() == QDialog::Accepted);
+        if(ok)
+        {
+            matrix = dlg.value();
+        }
+        return ok;
+    }
+
     bool setView(SGIItemBase * view, const SGIItemBase * item, double animationTime = -1.0)
     {
         bool ret = false;
@@ -1363,21 +1694,58 @@ public:
         while(item != NULL && !ret);
         return ret;
     }
+
+    bool convertToImage(ImagePtr & image, const SGIHostItemBase * object)
+    {
+        osg::ref_ptr<SGIItemBase> item;
+        if(generateItem(item, object))
+            return convertToImage(image, item);
+        else
+            return false;
+    }
+    bool convertToImage(ImagePtr & image, const SGIItemBase * item)
+    {
+        bool ret = false;
+        do
+        {
+            const PluginInfo * pluginInfo = (const PluginInfo * )item->pluginInfo();
+            if(pluginInfo)
+            {
+                if(pluginInfo && pluginInfo->convertToImage)
+                {
+                    ret = pluginInfo->convertToImage->convert(image, item);
+                }
+            }
+            item = item->nextBase();
+        }
+        while(item != NULL && !ret);
+        return ret;
+    }
+
     void shutdown()
     {
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+        QtProxy::instance(true);
         for(auto it = _plugins.begin(); it != _plugins.end(); ++it)
         {
-            PluginInfo & pluginInfo = it->second;
+            const PluginInfo & pluginInfo = it->second;
             if(pluginInfo.pluginInterface)
                 pluginInfo.pluginInterface->shutdown();
         }
-        _plugins.clear();
+		_plugins.clear();
         _pluginsLoaded = false;
         _namedEnums.clear();
-    }
+        if (_hostCallback.valid())
+            _hostCallback->shutdown();
+        _hostCallback = NULL;
+		if(_defaultHostCallback.valid())
+			_defaultHostCallback->shutdown();
+		_defaultHostCallback = NULL;
+	}
 
     bool registerNamedEnum(const std::string & enumname, const std::string & description, bool bitmask)
     {
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
         NamedEnumType::const_iterator it = _namedEnums.find(enumname);
         bool ret = (it == _namedEnums.end());
         if(ret)
@@ -1391,6 +1759,7 @@ public:
     }
     bool registerNamedEnumValue(const std::string & enumname, int value, const std::string & valuename)
     {
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
         NamedEnumType::iterator it = _namedEnums.find(enumname);
         bool ret = (it != _namedEnums.end());
         if(ret)
@@ -1405,6 +1774,7 @@ public:
     }
     bool registerNamedEnumValues(const std::string & enumname, const std::map<int, std::string> & values)
     {
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
         NamedEnumType::iterator it = _namedEnums.find(enumname);
         bool ret = (it != _namedEnums.end());
         if(ret)
@@ -1417,6 +1787,7 @@ public:
     }
     bool namedEnumValueToString(const std::string & enumname, std::string & text, int value)
     {
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
         NamedEnumType::iterator it = _namedEnums.find(enumname);
         bool ret = (it != _namedEnums.end());
         if(ret)
@@ -1425,7 +1796,7 @@ public:
             if(et.bitmask)
             {
                 std::stringstream ss;
-                if(value == 0)
+                if((unsigned)value == 0u)
                 {
                     NamedEnumValues::const_iterator itv = et.values.find(0);
                     if((itv != et.values.end()))
@@ -1433,9 +1804,9 @@ public:
                     else
                         ss << "zero";
                 }
-                else if(value == ~0)
+                else if((unsigned)value == ~0u)
                 {
-                    NamedEnumValues::const_iterator itv = et.values.find(~0);
+                    NamedEnumValues::const_iterator itv = et.values.find((int)(~0u));
                     if((itv != et.values.end()))
                         ss << itv->second;
                     else
@@ -1446,12 +1817,12 @@ public:
                     bool first = true;
                     for(unsigned n = 0; n < 32; n++)
                     {
-                        int bitfield_value = (1 << n);
-                        if(value & bitfield_value)
+						unsigned bitfield_value = (1 << n);
+                        if(((unsigned)value) & bitfield_value)
                         {
                             if(!first)
                                 ss << '|';
-                            NamedEnumValues::const_iterator itv = et.values.find(bitfield_value);
+                            NamedEnumValues::const_iterator itv = et.values.find((int)bitfield_value);
                             if((itv != et.values.end()))
                                 ss << itv->second;
                             else
@@ -1496,21 +1867,47 @@ public:
 private:
     bool _pluginsLoaded;
     PluginMap   _plugins;
+    OpenThreads::Mutex _mutex;
     osg::ref_ptr<osgDB::Options> _pluginLoadOpts;
     HostInterface _hostInterface;
+    unsigned _hostInterfaceVersion;
+	IHostCallbackPtr _defaultHostCallback;
+	IHostCallbackPtr _hostCallback;
     NamedEnumType _namedEnums;
 };
 
-
 SGIPlugins* SGIPlugins::instance(bool erase)
 {
-    static osg::ref_ptr<SGIPlugins> s_plugins = new SGIPlugins;
-    if (erase)
-    {
-        s_plugins->destruct();
-        s_plugins = 0;
-    }
-    return s_plugins.get(); // will return NULL on erase
+	return instanceImpl(erase);
+}
+
+SGIPlugins * SGIPlugins::instanceImpl(bool erase, bool autoCreate)
+{
+	static osg::ref_ptr<SGIPlugins> s_plugins = NULL;
+	if (erase)
+	{
+		if(s_plugins.valid())
+			s_plugins->destruct();
+		s_plugins = 0;
+	}
+	else if (autoCreate)
+	{
+		if (!s_plugins.valid())
+			s_plugins = new SGIPlugins;
+	}
+	return s_plugins.get(); // will return NULL on erase
+}
+
+void SGIPlugins::shutdown()
+{
+	// check for an existing SGIPlugins  instance
+	SGIPlugins * p = instanceImpl(false, false);
+	if (p)
+	{
+		p->_impl->shutdown();
+	}
+	// now erase the SGIPlugins instance (if any)
+	instanceImpl(true, false);
 }
 
 SGIPlugins::SGIPlugins()
@@ -1536,6 +1933,21 @@ void SGIPlugins::destruct()
 SGIPluginHostInterface * SGIPlugins::hostInterface()
 {
     return _impl->hostInterface();
+}
+
+IHostCallback * SGIPlugins::defaultHostCallback()
+{
+	return _impl->defaultHostCallback();
+}
+
+IHostCallback * SGIPlugins::hostCallback()
+{
+	return _impl->hostCallback();
+}
+
+void SGIPlugins::setHostCallback(IHostCallback * callback)
+{
+	_impl->setHostCallback(callback);
 }
 
 bool SGIPlugins::generateItem(osg::ref_ptr<SGIItemBase> & item, const SGIHostItemBase * object)
@@ -1623,14 +2035,14 @@ bool SGIPlugins::getObjectPath(SGIItemBasePtrPath & path, const SGIItemBase * it
     return _impl->getObjectPath(path, item);
 }
 
-ISceneGraphDialog * SGIPlugins::showSceneGraphDialog(QWidget *parent, SGIItemBase * item, ISceneGraphDialogInfo * info)
+ISceneGraphDialog * SGIPlugins::showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
 {
-    return _impl->showSceneGraphDialog(parent, item, info);
+    return _impl->showSceneGraphDialog(parent, item, callback);
 }
 
-ISceneGraphDialog * SGIPlugins::showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, ISceneGraphDialogInfo * info)
+ISceneGraphDialog * SGIPlugins::showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
 {
-    return _impl->showSceneGraphDialog(parent, object, info);
+    return _impl->showSceneGraphDialog(parent, object, callback);
 }
 
 bool SGIPlugins::createObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object)
@@ -1663,35 +2075,46 @@ bool SGIPlugins::getOrCreateObjectLogger(IObjectLoggerPtr & logger, SGIItemBase 
     return _impl->getOrCreateObjectLogger(logger, item);
 }
 
-IObjectLoggerDialog * SGIPlugins::showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IObjectLoggerDialogInfo * info)
+IObjectLoggerDialog * SGIPlugins::showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
 {
-    return _impl->showObjectLoggerDialog(parent, object, info);
+    return _impl->showObjectLoggerDialog(parent, object, callback);
 }
 
-IObjectLoggerDialog * SGIPlugins::showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IObjectLoggerDialogInfo * info)
+IObjectLoggerDialog * SGIPlugins::showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback)
 {
-    return _impl->showObjectLoggerDialog(parent, logger, info);
+    return _impl->showObjectLoggerDialog(parent, logger, callback);
 }
 
-IObjectLoggerDialog * SGIPlugins::showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IObjectLoggerDialogInfo * info)
+IObjectLoggerDialog * SGIPlugins::showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
 {
-    return _impl->showObjectLoggerDialog(parent, item, info);
+    return _impl->showObjectLoggerDialog(parent, item, callback);
 }
 
-IContextMenu * SGIPlugins::createContextMenu(QWidget *parent, const SGIHostItemBase * object, IContextMenuInfo * info)
+IContextMenu * SGIPlugins::createContextMenu(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
 {
-    return _impl->createContextMenu(parent, object, info);
+    return _impl->createContextMenu(parent, object, callback);
 }
 
-IContextMenu * SGIPlugins::createContextMenu(QWidget *parent, SGIItemBase * item, IContextMenuInfo * info)
+IContextMenu * SGIPlugins::createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
 {
-    return _impl->createContextMenu(parent, item, info);
+    return _impl->createContextMenu(parent, item, callback);
 }
 
-IContextMenuQt * SGIPlugins::createContextMenu(QWidget *parent, QObject * item, IContextMenuInfoQt * info)
+IContextMenuQt * SGIPlugins::createContextMenu(QWidget *parent, QObject * item, IHostCallback * callback)
 {
-    return _impl->createContextMenu(parent, item, info);
+    return _impl->createContextMenu(parent, item, callback);
 }
+
+IImagePreviewDialog * SGIPlugins::showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
+{
+    return _impl->showImagePreviewDialog(parent, item, callback);
+}
+
+IImagePreviewDialog * SGIPlugins::showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
+{
+    return _impl->showImagePreviewDialog(parent, object, callback);
+}
+
 
 bool SGIPlugins::objectTreeBuildTree(IObjectTreeItem * treeItem, SGIItemBase * item)
 {
@@ -1748,7 +2171,12 @@ bool SGIPlugins::parentWidget(QWidgetPtr & widget, SGIItemBase * item)
     return _impl->parentWidget(widget, item);
 }
 
-void SGIPlugins::shutdown()
+bool SGIPlugins::convertToImage(ImagePtr & image, const SGIHostItemBase * item)
 {
-    _impl->shutdown();
+    return _impl->convertToImage(image, item);
+}
+
+bool SGIPlugins::convertToImage(ImagePtr & image, const SGIItemBase * item)
+{
+    return _impl->convertToImage(image, item);
 }

@@ -3,6 +3,7 @@
 #include <log4cplus/hierarchy.h>
 #include "writeHTMLLog4cplus.h"
 #include "SGIItemLog4cplus"
+#include <sgi/plugins/SGIHostItemLog4cplus.h>
 
 #include <sgi/helpers/rtti>
 
@@ -13,13 +14,13 @@
 namespace sgi {
 namespace log4cplus_plugin {
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(Log4cplusObjectBase)
-WRITE_PRETTY_HTML_IMPL_REGISTER(Log4cplusObjectLogger)
-WRITE_PRETTY_HTML_IMPL_REGISTER(Log4cplusObjectHierarchy)
-WRITE_PRETTY_HTML_IMPL_REGISTER(Log4cplusObjectAppender)
-WRITE_PRETTY_HTML_IMPL_REGISTER(Log4cplusObjectLayout)
-WRITE_PRETTY_HTML_IMPL_REGISTER(Log4cplusObjectSimpleLayout)
-WRITE_PRETTY_HTML_IMPL_REGISTER(Log4cplusObjectPatternLayout)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectBase)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectLogger)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectHierarchy)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectAppender)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectLayout)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectSimpleLayout)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectPatternLayout)
 
 bool writePrettyHTMLImpl<Log4cplusObjectBase>::process(std::basic_ostream<char>& os)
 {
@@ -200,8 +201,10 @@ bool writePrettyHTMLImpl<Log4cplusObjectAppender>::process(std::basic_ostream<ch
             // add Log4cplusObjectBase properties first
             callNextHandler(os);
 
+            log4cplus::LogLevelManager& llmgr = log4cplus::getLogLevelManager();
+
             os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
-            os << "<tr><td>threshold</td><td>" << object->getThreshold() << "</td></tr>" << std::endl;
+            os << "<tr><td>threshold</td><td>" << llmgr.toString(object->getThreshold()) << "</td></tr>" << std::endl;
             os << "<tr><td>layout</td><td>" << object->getLayout() << "</td></tr>" << std::endl;
             os << "<tr><td>filter</td><td>" << object->getFilter() << "</td></tr>" << std::endl;
 

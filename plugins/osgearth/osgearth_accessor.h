@@ -1,12 +1,26 @@
 #pragma once
 
+#ifdef MAPNODE_ACCESS_HACK
+#define private protected
+#endif
+#include <osgEarth/MapNode>
+#include <osgEarth/Map>
+#ifdef MAPNODE_ACCESS_HACK
+#undef private
+#endif
+
 #include <osgEarthUtil/Controls>
 #include <osgEarthUtil/EarthManipulator>
 #include <osgEarthUtil/AutoClipPlaneHandler>
+#include <osgEarthUtil/RTTPicker>
+#include <osgEarth/TerrainEngineNode>
+#include <osgEarth/Registry>
 #include <osgEarth/VirtualProgram>
 #include <osgEarth/ElevationQuery>
 #include <osgEarthFeatures/FeatureModelSource>
 #include <osg/io_utils>
+
+class QWidget;
 
 namespace std {
 
@@ -19,6 +33,51 @@ inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const 
 
 namespace sgi {
 namespace osgearth_plugin {
+
+	class RegistryAccess : public osgEarth::Registry
+	{
+	public:
+		unsigned numBlacklistFilenames()
+		{
+			unsigned ret;
+			_blacklistMutex.readLock();
+			ret = _blacklistedFilenames.size();
+			_blacklistMutex.readUnlock();
+			return ret;
+		}
+		void getBlacklistFilenames(StringSet & filenames)
+		{
+			_blacklistMutex.readLock();
+			filenames = _blacklistedFilenames;
+			_blacklistMutex.readUnlock();
+		}
+	};
+    class MapAccess : public osgEarth::Map
+    {
+    public:
+        void getMapCallbacks(osgEarth::MapCallbackList & mapCallbacks) const;
+    };
+
+	class MapNodeAccess : public osgEarth::MapNode
+	{
+	public:
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
+		const osgEarth::Terrain* terrain() const { return _terrainEngine.valid() ? _terrainEngine->getTerrain() : NULL; }
+		osgEarth::TerrainEngineNode * terrainEngineNode() const { return _terrainEngine.get(); }
+		bool terrainEngineInitialized() const { return _terrainEngineInitialized; }
+		osg::Group* terrainEngineContainer() const { return _terrainEngineContainer; }
+#endif
+		bool hasMapInspector() const;
+		void toggleMapInspector();
+		
+		bool isTerrainProfileActive() const;
+		void toggleTerrainProfile(QWidget * parent);
+
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
+        bool getCullDataCameras(osg::NodeList & cameras);
+        const osgEarth::MapNodeCullData * getCullDataForCamera(osg::Camera* camera);
+#endif
+	};
 
     class ControlCanvasAccess : public osgEarth::Util::Controls::ControlCanvas
     {
@@ -42,7 +101,6 @@ namespace osgearth_plugin {
         void appendAllViews(std::basic_ostream<char>& os) const
         {
             os << "<ul></li>" << std::endl;
-#ifdef OSGEARTH_CONTROLS_V2_5
             for(TravSpecificDataMap::const_iterator it = _travDataMap.begin(); it != _travDataMap.end(); it++)
             {
                 const osg::Camera* camera = it->first;
@@ -50,30 +108,21 @@ namespace osgearth_plugin {
                 appendCamera(os, it->first, it->second);
                 os << "</li>" << std::endl;
             }
-#else // OSGEARTH_CONTROLS_V2_5
-            for(PerViewDataMap::const_iterator it = _perViewData.begin(); it != _perViewData.end(); it++)
-            {
-                const osg::View * view = it->first;
-                os << "<li>0x" << std::hex << (void*)view << "<br/>" << std::dec;
-                appendView(os, it->first, it->second);
-                os << "</li>" << std::endl;
-            }
-#endif // OSGEARTH_CONTROLS_V2_5
             os << "</ul>" << std::endl;
         }
     protected:
-#ifdef OSGEARTH_CONTROLS_V2_5
         void appendCamera(std::basic_ostream<char>& os, const osg::Camera * camera, const TravSpecificData & viewdata) const
-#else // OSGEARTH_CONTROLS_V2_5
-        void appendView(std::basic_ostream<char>& os, const osg::View * view, const PerViewData & viewdata) const
-#endif // OSGEARTH_CONTROLS_V2_5
         {
             os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
             os << "<tr><td>obscured</td><td>" << (viewdata._obscured?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>screenPos</td><td>" << viewdata._screenPos << "</td></tr>" << std::endl;
             os << "<tr><td>visibleTime</td><td>" << viewdata._visibleTime << "</td></tr>" << std::endl;
             os << "<tr><td>visitFrame</td><td>" << viewdata._visitFrame << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
             os << "<tr><td>_uniform</td><td>" << viewdata._uniform << "</td></tr>" << std::endl;
+#else
+            os << "<tr><td>_uniform</td><td>" << viewdata._uniform.get() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>_canvas</td><td>";
             if(viewdata._canvas.valid())
                 os << viewdata._canvas.get();
@@ -81,16 +130,32 @@ namespace osgearth_plugin {
             os << "</table>" << std::endl;
         }
     };
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+    class LayerAccessor : public osgEarth::Layer
+    {
+    public:
+        typedef std::vector<osg::ref_ptr<osgEarth::LayerCallback> > LayerCallbackList;
+        void getLayerCallbacks(LayerCallbackList & callbacks) const;
+        osgEarth::CacheSettings * getCacheSettings() const { return _cacheSettings.get(); }
+    };
+#endif
+
     class TerrainLayerAccessor : public osgEarth::TerrainLayer
     {
     public:
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
         inline void setCachePolicy( const osgEarth::CachePolicy& cp ) { osgEarth::TerrainLayer::setCachePolicy(cp); }
         inline const osgEarth::CachePolicy& getCachePolicy() const { return osgEarth::TerrainLayer::getCachePolicy(); }
+#endif
         inline std::string getURL() const
         {
             std::string url;
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
             const osgEarth::TerrainLayerOptions & layerOpts = getTerrainLayerRuntimeOptions();
             osgEarth::Config layerConf = layerOpts.getConfig();
+#else
+            osgEarth::Config layerConf = getConfig();
+#endif
             if(layerConf.hasValue("url"))
                 url = layerConf.value("url");
             return url;
@@ -100,22 +165,28 @@ namespace osgearth_plugin {
             (void)(0);
         }
 
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
         inline osgEarth::TileSource * tileSourceNoInit() { return _tileSource.get(); }
-        inline const osgEarth::Profile * profileNoInit() { return _profile.get(); }
+		inline bool tileSourceInitFailed() const { return _tileSourceInitFailed; }
+#endif
+		inline const osgEarth::Profile * profileNoInit() { return _profile.get(); }
         inline const osgEarth::Profile * targetProfileHintNoInit() { return _targetProfileHint.get(); }
         
-        inline bool tileSourceInitAttempted() const { return _tileSourceInitAttempted; }
-        inline bool tileSourceInitFailed() const { return _tileSourceInitFailed; }
         inline unsigned tileSize() const { return _tileSize; }
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
+        inline bool tileSourceInitAttempted() const { return _tileSourceInitAttempted; }
         inline osgDB::Options * dbOptions() { return _dbOptions.get(); }
+#endif
     };
     class ElevationLayerAccessor : public osgEarth::ElevationLayer
     {
     public:
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
         inline std::string suggestCacheFormatStr() const
         {
             return suggestCacheFormat();
         }
+#endif
     };
 
     class ModelLayerAccessor : public osgEarth::ModelLayer
@@ -140,9 +211,11 @@ namespace osgearth_plugin {
         typedef osgEarth::VirtualProgram::ShaderEntry ShaderEntry;
         typedef osgEarth::VirtualProgram::ProgramMap ProgramMap;
 
-        const ProgramMap & programCache() const { return _programCache; }
+        void getProgramCache(ProgramMap & programCache);
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
         void getShaderMap( ShaderMap& out ) const { osgEarth::VirtualProgram::getShaderMap(out); }
         void getFunctions( osgEarth::ShaderComp::FunctionLocationMap& out ) const { osgEarth::VirtualProgram::getFunctions(out); }
+#endif
 
         unsigned int                 mask() const { return _mask; }
         void                         setMask(unsigned int mask) { _mask = mask; }
@@ -150,6 +223,12 @@ namespace osgearth_plugin {
         const AttribAliasMap &       attribAliases() const { return _attribAliases; }
         bool                         inherit() const { return _inherit; }
         bool                         inheritSet() const { return _inheritSet; }
+
+        bool                         getShaderLogging() const { return _logShaders; }
+        const std::string &          getShaderLogFile() const { return _logPath; }
+
+        void                         getGLSLExtensions(ExtensionsSet & extensions);
+        
         
         void                         setInheritShadersToUnspecified()
         {
@@ -157,8 +236,13 @@ namespace osgearth_plugin {
             {
                 // clear the program cache please
                 {
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
                     osgEarth::Threading::ScopedWriteLock exclusive(_programCacheMutex);
                     _programCache.clear();
+#else
+					osgEarth::Threading::ScopedMutexLock exclusive(_programCacheMutex);
+					_programCache.clear();
+#endif
                 }
 
                 _inheritSet = false;
@@ -214,11 +298,18 @@ namespace osgearth_plugin {
         const osgEarth::Profile* getProfile() const { return ((DataAccess*)this)->_mapf.getProfile(); }
     };
 
-
     class TileBlacklistAccess : public osgEarth::TileBlacklist
     {
     public:
+        typedef std::set<osgEarth::TileKey> TileKeySet;
 
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0) && defined(OSGEARTH_WITH_FAST_MODIFICATIONS)
+        void getTileKeySet(TileKeySet & ts)
+        {
+            osgEarth::Threading::ScopedReadLock lock(_mutex);
+            ts = _tiles;
+        }
+#endif
     };
 
     class CacheAccess : public osgEarth::Cache
@@ -237,7 +328,11 @@ namespace osgearth_plugin {
         osgEarth::Threading::ReadWriteMutex  _mutex;
     };
 
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
     typedef osgEarth::Threading::PerObjectRefMap<std::string, osgEarth::CacheBin> ThreadSafeCacheBinMap;
+#else
+	typedef osgEarth::PerObjectRefMap<std::string, osgEarth::CacheBin> ThreadSafeCacheBinMap;
+#endif
     typedef PerObjectRefMapAccessor<std::string, osgEarth::CacheBin> ThreadSafeCacheBinMapAccessor;
 
     class FeatureModelSourceAccess : public osgEarth::Features::FeatureModelSource
@@ -245,7 +340,22 @@ namespace osgearth_plugin {
     public:
         bool getMap(osg::ref_ptr<const osgEarth::Map> & map) const { return _map.lock(map); }
         osgEarth::Features::FeatureNodeFactory * getFeatureNodeFactory() { return _factory.get(); }
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
         const osgDB::Options * getDBOptions() { return _dbOptions.get(); }
+#endif
+    };
+
+    class RTTPickerAccess : public osgEarth::Util::RTTPicker 
+    {
+    public:
+        int                    getRttSize() const { return _rttSize; }
+
+        Callback *              getDefaultCallback() const { return _defaultCallback.get(); }
+
+        typedef std::list<PickContext> PickContexts;
+        void getPickContexts( PickContexts & contexts) const;
+
+        osg::Group *            getGroup() const { return _group.get(); }
     };
 
 } // namespace osgearth_plugin

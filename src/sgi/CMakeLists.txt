@@ -1,7 +1,13 @@
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 IF(OSGEARTH_FOUND)
 	include_directories(${OSGEARTH_INCLUDE_DIR})
 ENDIF()
+
+if(SGI_USE_FFMPEG AND FFMPEG_FOUND)
+    include_directories(${FFMPEG_INCLUDE_DIR})
+    LIST(APPEND TARGET_DEFINITIONS SGI_USE_FFMPEG)
+endif()
 
 SET(CMAKE_SHARED_MODULE_PREFIX ${SGI_PLUGIN_PREFIX})
 
@@ -13,6 +19,8 @@ SET(SGI_VERSION ${SGI_MAJOR_VERSION}.${SGI_MINOR_VERSION}.${SGI_PATCH_VERSION})
 SET(TARGET_MAJOR_VERSION ${SGI_MAJOR_VERSION})
 SET(TARGET_MINOR_VERSION ${SGI_MINOR_VERSION})
 SET(TARGET_PATCH_VERSION ${SGI_PATCH_VERSION})
+SET(TARGET_NO_TRANSLATION 1)
+SET(TARGET_NO_IMPORT_LIB)
 
 if(WIN32)
     set(_lib_prefix "")
@@ -23,7 +31,15 @@ SET(SGI_LIBRARY_NAME_DEBUG "${_lib_prefix}${LIB_NAME}${CMAKE_DEBUG_POSTFIX}${CMA
 SET(SGI_LIBRARY_NAME_RELEASE "${_lib_prefix}${LIB_NAME}${CMAKE_RELEASE_POSTFIX}${CMAKE_SHARED_MODULE_SUFFIX}")
 SET(SGI_LIBRARY_NAME_RELWITHDEBINFO "${_lib_prefix}${LIB_NAME}${CMAKE_RELWITHDEBINFO_POSTFIX}${CMAKE_SHARED_MODULE_SUFFIX}")
 SET(SGI_LIBRARY_NAME_MINSIZEREL "${_lib_prefix}${LIB_NAME}${CMAKE_MINSIZEREL_POSTFIX}${CMAKE_SHARED_MODULE_SUFFIX}")
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../../Export.in ${SGI_INCLUDE_DIR}/sgi/Export)
+
+SET(SGI_LIBRARY_POSTFIX_DEBUG "${CMAKE_DEBUG_POSTFIX}")
+SET(SGI_LIBRARY_POSTFIX_RELEASE "${CMAKE_RELEASE_POSTFIX}")
+SET(SGI_LIBRARY_POSTFIX_RELWITHDEBINFO "${CMAKE_RELWITHDEBINFO_POSTFIX}")
+SET(SGI_LIBRARY_POSTFIX_MINSIZEREL "${CMAKE_MINSIZEREL_POSTFIX}")
+
+SET(SGI_LIBRARY_SHARED_MODULE_SUFFIX "${CMAKE_SHARED_MODULE_SUFFIX}")
+
+fast_configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../../Export.in ${SGI_INCLUDE_DIR}/sgi/Export)
 
 SET(TARGET_H
 	# precompiled header
@@ -31,9 +47,10 @@ SET(TARGET_H
 	SGIPlugin.h
 	entrypoint.h
 	sgi_internal.h
+	dxt.h
 )
 
-SET(TARGET_H
+LIST(APPEND TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/Export
     ${SGI_INCLUDE_DIR}/sgi/AutoLoadOsg
     ${SGI_INCLUDE_DIR}/sgi/AutoLoadQt
@@ -42,9 +59,14 @@ SET(TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/ContextMenu
     ${SGI_INCLUDE_DIR}/sgi/SceneGraphDialog
     ${SGI_INCLUDE_DIR}/sgi/ObjectLoggerDialog
+    ${SGI_INCLUDE_DIR}/sgi/ImagePreviewDialog
 
 	${SGI_INCLUDE_DIR}/sgi/helpers/qt
+	${SGI_INCLUDE_DIR}/sgi/helpers/qt_widgets
 	${SGI_INCLUDE_DIR}/sgi/helpers/osg
+
+	${SGI_INCLUDE_DIR}/sgi/details/type_list
+	${SGI_INCLUDE_DIR}/sgi/details/functionImplBase
 
     ${SGI_INCLUDE_DIR}/sgi/plugins/fallback_support.h
     ${SGI_INCLUDE_DIR}/sgi/plugins/log4cplus_support.h
@@ -60,50 +82,51 @@ SET(TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIHostItemQt.h
 
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemBase.h
+	${SGI_INCLUDE_DIR}/sgi/plugins/SGIImage.h
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIPluginImpl.h
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIPluginInterface.h
-    ${SGI_INCLUDE_DIR}/sgi/plugins/SGIPluginMacros.h
 
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIDataItemBase.h
 
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIHostItemGenerator
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIHostSupport
+
+    ${SGI_INCLUDE_DIR}/sgi/plugins/ContextMenu
+    ${SGI_INCLUDE_DIR}/sgi/plugins/SceneGraphDialog
+    ${SGI_INCLUDE_DIR}/sgi/plugins/ObjectLoggerDialog
+    ${SGI_INCLUDE_DIR}/sgi/plugins/ImagePreviewDialog
+
+	${SGI_INCLUDE_DIR}/sgi/plugins/Matrix
+	${SGI_INCLUDE_DIR}/sgi/plugins/Quat
+	${SGI_INCLUDE_DIR}/sgi/plugins/Vector
+
+    ${SGI_INCLUDE_DIR}/sgi/plugins/SettingsDialogImpl
+    ${SGI_INCLUDE_DIR}/sgi/plugins/SGISettingsDialogImpl
+    ${SGI_INCLUDE_DIR}/sgi/plugins/WritePrettyHTMLImpl
+
 	)
 
-SET(LIB_QT_UIS
-	SceneGraphDialog.ui
+SET(TARGET_UI
 	ObjectLoggerDialog.ui
 	QTextDialog.ui
 	DoubleInputDialog.ui
-	)
+	QuatInputDialog.ui
+	MatrixInputDialog.ui
+    ImagePreviewDialog.ui
+    )
 
-SET(LIB_MOC_HDRS
+SET(TARGET_MOC_H
 	SceneGraphDialog.h
 	ContextMenu.h
 	ObjectLoggerDialog.h
 	QtProxy.h
 	QTextDialog.h
 	DoubleInputDialog.h
+	QuatInputDialog.h
+	MatrixInputDialog.h
+	ImagePreviewDialog.h
+	ImageGLWidget.h
 )
-
-
-IF(Qt5Widgets_FOUND)
-    #QT5_ADD_RESOURCES( LIB_RC_SRCS ${LIB_QT_RCS} )
-    QT5_WRAP_UI( LIB_UI_HDRS ${LIB_QT_UIS} )
-    IF(Qt5Widgets_VERSION VERSION_LESS 5.2.0)
-        QT5_WRAP_CPP( LIB_UI_SRCS ${LIB_UI_HDRS} OPTIONS "-f" )
-        QT5_WRAP_CPP( LIB_MOC_SRCS ${LIB_MOC_HDRS} OPTIONS "-f" )
-    ELSE()
-        QT5_WRAP_CPP( LIB_UI_SRCS ${LIB_UI_HDRS} )
-        QT5_WRAP_CPP( LIB_MOC_SRCS ${LIB_MOC_HDRS} )
-    ENDIF()
-ELSE()
-    INCLUDE( ${QT_USE_FILE} )
-    #QT4_ADD_RESOURCES( LIB_RC_SRCS ${LIB_QT_RCS} )
-    QT4_WRAP_UI( LIB_UI_HDRS ${LIB_QT_UIS} )
-    QT4_WRAP_CPP( LIB_UI_SRCS ${LIB_UI_HDRS} OPTIONS "-f" )
-    QT4_WRAP_CPP( LIB_MOC_SRCS ${LIB_MOC_HDRS} OPTIONS "-f" )
-ENDIF()
 
 # CHECK-IT:
 # add your source files here
@@ -118,45 +141,64 @@ SET(TARGET_SRC
 	QtProxy.cpp
 	QTextDialog.cpp
 	DoubleInputDialog.cpp
+	QuatInputDialog.cpp
+	MatrixInputDialog.cpp
+	ImagePreviewDialog.cpp
+	ImageGLWidget.cpp
+	dxt.cpp
 )
+set(_imagewidget_dir .)
+set(TARGET_GLSL
+    ImageGLWidget.vert.glsl
+    ImageGLWidget.frag.glsl
+    )
 
-LIST(APPEND TARGET_SRC ${LIB_UI_SRCS} ${LIB_MOC_SRCS})
+set(SHADERS_CPP "${CMAKE_CURRENT_BINARY_DIR}/AutoGenShaders.cpp")
 
+SGI_CONFIGURE_SHADERS(
+    ${_imagewidget_dir}/Shaders.cpp.in
+    ${SHADERS_CPP}
+    ${TARGET_GLSL} )
+
+list(APPEND TARGET_SRC
+    ${_imagewidget_dir}/ImageGLWidget.cpp
+    )
+list(APPEND TARGET_SRC_NO_PCH
+    ${SHADERS_CPP}
+)
 
 SET(TARGET_LIBRARIES_VARS
     SGI_PLUGIN_IMPL_LIBRARY
+    SGI_QT_HELPER_LIBRARY
 	OPENTHREADS_LIBRARY
 	OSG_LIBRARY
 	OSGDB_LIBRARY
-	OSGUTIL_LIBRARY
+    OSGUTIL_LIBRARY
 	OSGGA_LIBRARY
 	OSGVIEWER_LIBRARY
 )
-IF ( NOT Qt5Widgets_FOUND )
-    LIST(APPEND TARGET_LIBRARIES_VARS
-        QT_QTCORE_LIBRARY
-        QT_QTGUI_LIBRARY
-        )
+LIST(APPEND TARGET_LIBRARIES_VARS
+    QT_QTCORE_LIBRARY
+    QT_QTGUI_LIBRARY
+    )
+IF ( Qt5Widgets_FOUND )
+    # Add the include directories for the Qt 5 Widgets module to
+    # the compile lines.
+    include_directories(${Qt5Widgets_INCLUDE_DIRS})
+    LIST(APPEND TARGET_LIBRARIES_VARS QT_QTWIDGETS_LIBRARY )
 ENDIF()
 
-ADD_LIBRARY( ${LIB_NAME} SHARED
-    ${TARGET_H} ${TARGET_PUBLIC_H}
-    ${TARGET_SRC}
-)
+FAST_SHARED_LIBRARY(${LIB_NAME} NO_MOC_INCLUDE)
 
-LINK_WITH_VARIABLES(${LIB_NAME} ${TARGET_LIBRARIES_VARS})
-LINK_CORELIB_DEFAULT(${LIB_NAME} ${CMAKE_THREAD_LIBS_INIT} ${MATH_LIBRARY})
-
-SET_PROPERTY(TARGET ${TARGET_DEFAULT_PREFIX}${LIB_NAME} PROPERTY FOLDER "Libs")
+if(SGI_SWSCALE_USE_LIBRARY_POSTFIX)
+    set(_swscale "${SGI_SWSCALE_LIBRARYNAME}$<$<CONFIG:Debug>:${CMAKE_DEBUG_POSTFIX}>$<$<CONFIG:Release>:${CMAKE_RELEASE_POSTFIX}>$<$<CONFIG:RelWithDebInfo>:${CMAKE_RELWITHDEBINFO_POSTFIX}>$<$<CONFIG:MinSizeRel>:${CMAKE_MINSIZEREL_POSTFIX}>")
+else()
+    set(_swscale "${SGI_SWSCALE_LIBRARYNAME}")
+endif()
 
 target_compile_definitions(${TARGET_DEFAULT_PREFIX}${LIB_NAME} PRIVATE
     SGI_LIBRARY
+	SGI_SWSCALE_LIBRARYNAME="${_swscale}"
     SGI_PLUGIN_EXTENSION=${CMAKE_SHARED_MODULE_SUFFIX}
     OSG_LIBRARY_POSTFIX="$<$<CONFIG:Debug>:${CMAKE_DEBUG_POSTFIX}>$<$<CONFIG:Release>:${CMAKE_RELEASE_POSTFIX}>$<$<CONFIG:RelWithDebInfo>:${CMAKE_RELWITHDEBINFO_POSTFIX}>$<$<CONFIG:MinSizeRel>:${CMAKE_MINSIZEREL_POSTFIX}>"
     )
-
-IF ( Qt5Widgets_FOUND )
-    qt5_use_modules( ${TARGET_DEFAULT_PREFIX}${LIB_NAME} Gui Widgets)
-ENDIF( Qt5Widgets_FOUND )
-
-INCLUDE(ModuleInstall OPTIONAL)

@@ -18,6 +18,9 @@
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
 #include <osgEarth/OverlayDecorator>
+#ifdef SGI_USE_OSGEARTH_FAST
+#include <osgEarth/LevelDBFactory>
+#endif
 
 #include <osgEarth/ImageLayer>
 #include <osgEarth/ElevationLayer>
@@ -25,6 +28,7 @@
 #include <osgEarth/MaskLayer>
 
 #include <osgEarthFeatures/FeatureModelSource>
+#include <osgEarthFeatures/GeometryCompiler>
 #include <osgEarthUtil/LatLongFormatter>
 
 #include <osgEarthDrivers/cache_filesystem/FileSystemCache>
@@ -34,7 +38,10 @@
 #include <osgEarthDrivers/vpb/VPBOptions>
 #include <osgEarthDrivers/model_simple/SimpleModelOptions>
 #include <osgEarthDrivers/model_feature_geom/FeatureGeomModelOptions>
+
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
 #include <osgEarthDrivers/model_feature_stencil/FeatureStencilModelOptions>
+#endif
 #include <osgEarthDrivers/feature_ogr/OGRFeatureOptions>
 #include <osgEarthDrivers/gdal/GDALOptions>
 
@@ -48,44 +55,52 @@ inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const 
 {
     if(!v.isSet())
     {
-        return os << "unset(" << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(v.defaultValue()) << ")";
+        return os << "unset(" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(v.defaultValue()) << ")";
     }
     else
-        return os << sgi::castToEnumValueString<sgi::osg_helpers::GLConstant>(v.value());
+        return os << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(v.value());
 }
 } // namespace std
 
 namespace sgi {
 namespace osgearth_plugin {
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Config)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::ConfigOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::DriverConfigOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::MapOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::MapNodeOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Config)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ConfigOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::DriverConfigOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MapOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNodeOptions)
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::ProfileOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::TerrainOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::TerrainLayerOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::ImageLayerOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::ElevationLayerOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::ModelLayerOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::MaskLayerOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::TileSourceOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::ModelSourceOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::CacheOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Features::FeatureModelSourceOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Features::GeometryCompilerOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ProfileOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TerrainOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TerrainLayerOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ImageLayerOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationLayerOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelLayerOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskLayerOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TileSourceOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelSourceOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheOptions)
+#ifdef SGI_USE_OSGEARTH_FAST
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LevelDBOptions)
+#endif
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSourceOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSourceOptions)
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::GeometryCompilerOptions)
+#endif
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Drivers::TMSOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Drivers::WMSOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Drivers::VPBOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Drivers::ArcGISOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Drivers::FileSystemCacheOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Drivers::SimpleModelOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Drivers::FeatureGeomModelOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Drivers::FeatureStencilModelOptions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgEarth::Drivers::OGRFeatureOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::TMSOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::WMSOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::VPBOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::ArcGISOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::FileSystemCacheOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::SimpleModelOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::FeatureGeomModelOptions)
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::FeatureStencilModelOptions)
+#endif
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::OGRFeatureOptions)
 
 using namespace osg_helpers;
 
@@ -95,8 +110,10 @@ void writePrettyHTMLImplForDriverOptions(SGIPluginHostInterface * hostInterface,
     const std::string driver = opts.getDriver();
     if(driver == "feature_geom")
         actualOpts = new osgEarth::Drivers::FeatureGeomModelOptions(opts);
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
     else if(driver == "feature_stencil")
         actualOpts = new osgEarth::Drivers::FeatureStencilModelOptions(opts);
+#endif
     else if(driver == "simple")
         actualOpts = new osgEarth::Drivers::SimpleModelOptions(opts);
     else if(driver == "tms")
@@ -264,7 +281,9 @@ bool writePrettyHTMLImpl<osgEarth::MapOptions>::process(std::basic_ostream<char>
             os << "<tr><td>name</td><td>" << object->name() << "</td></tr>" << std::endl;
             os << "<tr><td>coordSysType</td><td>" << object->coordSysType() << "</td></tr>" << std::endl;
             os << "<tr><td>elevationInterpolation</td><td>" << object->elevationInterpolation() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>elevationTileSize</td><td>" << object->elevationTileSize() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>profile</td><td>";
             SGIHostItemOsgEarthConfigOptions profile(object->profile());
             if(profile.hasObject())
@@ -274,7 +293,9 @@ bool writePrettyHTMLImpl<osgEarth::MapOptions>::process(std::basic_ostream<char>
             writePrettyHTMLImplForDriverOptions(_hostInterface, os, object->cache());
             os << "</td></tr>" << std::endl;
             os << "<tr><td>cachePolicy</td><td>" << object->cachePolicy() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
             os << "<tr><td>referenceURI</td><td>" << object->referenceURI() << "</td></tr>" << std::endl;
+#endif
             if(_table)
                 os << "</table>" << std::endl;
             ret = true;
@@ -365,7 +386,9 @@ bool writePrettyHTMLImpl<osgEarth::TerrainOptions>::process(std::basic_ostream<c
             callNextHandler(os);
 
             os << "<tr><td>vertScale</td><td>" << object->verticalScale() << "</td></tr>" << std::endl;
-            os << "<tr><td>sampleRatio</td><td>" << object->heightFieldSampleRatio() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
+            os << "<tr><td>heightFieldSampleRatio</td><td>" << object->heightFieldSampleRatio() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>minTileRangeFactor</td><td>" << object->minTileRangeFactor() << "</td></tr>" << std::endl;
             os << "<tr><td>maxLOD</td><td>" << object->maxLOD() << "</td></tr>" << std::endl;
             os << "<tr><td>lighting</td><td>" << object->enableLighting() << "</td></tr>" << std::endl;
@@ -413,9 +436,13 @@ bool writePrettyHTMLImpl<osgEarth::TerrainLayerOptions>::process(std::basic_ostr
             os << "<tr><td>reprojectedTileSize</td><td>" << object->reprojectedTileSize() << "</td></tr>" << std::endl;
             os << "<tr><td>cacheId</td><td>" << object->cacheId() << "</td></tr>" << std::endl;
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>cacheFormat</td><td>" << object->cacheFormat() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>cachePolicy</td><td>" << object->cachePolicy() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>loadingWeight</td><td>" << object->loadingWeight() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>edgeBufferRatio</td><td>" << object->edgeBufferRatio() << "</td></tr>" << std::endl;
             os << "<tr><td>proxySettings</td><td>" << object->proxySettings() << "</td></tr>" << std::endl;
 
@@ -449,7 +476,9 @@ bool writePrettyHTMLImpl<osgEarth::ImageLayerOptions>::process(std::basic_ostrea
             os << "<tr><td>maxVisibleRange</td><td>" << object->maxVisibleRange() << "</td></tr>" << std::endl;
             os << "<tr><td>noDataImageFilename</td><td>" << object->noDataImageFilename() << "</td></tr>" << std::endl;
             os << "<tr><td>transparentColor</td><td>" << object->transparentColor() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
             os << "<tr><td>lodBlending</td><td>" << object->lodBlending() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>colorFilters</td><td>";
             const osgEarth::ColorFilterChain & colorFilters = object->colorFilters();
             if(colorFilters.empty())
@@ -560,9 +589,11 @@ bool writePrettyHTMLImpl<osgEarth::MaskLayerOptions>::process(std::basic_ostream
             callNextHandler(os);
 
             os << "<tr><td>name</td><td>" << object->name() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>driver</td><td>";
             writePrettyHTMLImplForDriverOptions(_hostInterface, os, object->driver());
             os << "</td></tr>" << std::endl;
+#endif
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -589,6 +620,7 @@ bool writePrettyHTMLImpl<osgEarth::TileSourceOptions>::process(std::basic_ostrea
 
             callNextHandler(os);
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>tileSize</td><td>" << object->tileSize() << "</td></tr>" << std::endl;
             os << "<tr><td>noDataValue</td><td>" << object->noDataValue() << "</td></tr>" << std::endl;
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
@@ -598,6 +630,7 @@ bool writePrettyHTMLImpl<osgEarth::TileSourceOptions>::process(std::basic_ostrea
             os << "<tr><td>noDataMinValue</td><td>" << object->noDataMinValue() << "</td></tr>" << std::endl;
             os << "<tr><td>noDataMaxValue</td><td>" << object->noDataMaxValue() << "</td></tr>" << std::endl;
 #endif
+#endif // OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>blacklistFilename</td><td>" << object->blacklistFilename() << "</td></tr>" << std::endl;
             os << "<tr><td>profile</td><td>";
             if(object->profile().isSet())
@@ -679,6 +712,85 @@ bool writePrettyHTMLImpl<osgEarth::CacheOptions>::process(std::basic_ostream<cha
     return ret;
 }
 
+#ifdef SGI_USE_OSGEARTH_FAST
+bool writePrettyHTMLImpl<osgEarth::LevelDBOptions>::process(std::basic_ostream<char>& os)
+{
+	osgEarth::LevelDBOptions * object = getObject<osgEarth::LevelDBOptions, SGIItemEarthConfigOptions>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+	{
+		if (_table)
+			os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+		callNextHandler(os);
+
+		os << "<tr><td>rootPath</td><td>" << object->rootPath() << "</td></tr>" << std::endl;
+		os << "<tr><td>blockSize</td><td>" << object->blockSize() << "</td></tr>" << std::endl;
+		os << "<tr><td>maxOpenFiles</td><td>" << object->maxOpenFiles() << "</td></tr>" << std::endl;
+		os << "<tr><td>createIfMissing</td><td>" << object->createIfMissing() << "</td></tr>" << std::endl;
+
+		if (_table)
+			os << "</table>" << std::endl;
+		ret = true;
+	}
+	break;
+	default:
+		ret = callNextHandler(os);
+		break;
+	}
+	return ret;
+}
+#endif
+
+bool writePrettyHTMLImpl<osgEarth::Features::FeatureSourceOptions>::process(std::basic_ostream<char>& os)
+{
+	osgEarth::Features::FeatureSourceOptions * object = getObject<osgEarth::Features::FeatureSourceOptions, SGIItemEarthConfigOptions>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+	{
+		if (_table)
+			os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+		callNextHandler(os);
+
+		os << "<tr><td>profile</td><td>";
+		writePrettyHTMLImplForDriverOptions(_hostInterface, os, object->profile());
+		os << "</td></tr>" << std::endl;
+
+		os << "<tr><td>name</td><td>" << object->name() << "</td></tr>" << std::endl;
+		os << "<tr><td>filters</td><td><ul>"; 
+		for (const auto & f : object->filters())
+        {
+            os << "<li>";
+            ;
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
+			os << f;
+#else
+            writePrettyHTMLImplForDriverOptions(_hostInterface, os, f);
+#endif
+            os << "</li>";
+
+        }
+		os << "</ul></td></tr>" << std::endl;
+		os << "<tr><td>openWrite</td><td>" << object->openWrite() << "</td></tr>" << std::endl;
+		os << "<tr><td>geoInterp</td><td>" << object->geoInterp() << "</td></tr>" << std::endl;
+
+		if (_table)
+			os << "</table>" << std::endl;
+		ret = true;
+	}
+	break;
+	default:
+		ret = callNextHandler(os);
+		break;
+	}
+	return ret;
+}
+
 bool writePrettyHTMLImpl<osgEarth::Features::FeatureModelSourceOptions>::process(std::basic_ostream<char>& os)
 {
     osgEarth::Features::FeatureModelSourceOptions * object = getObject<osgEarth::Features::FeatureModelSourceOptions,SGIItemEarthConfigOptions>();
@@ -697,13 +809,17 @@ bool writePrettyHTMLImpl<osgEarth::Features::FeatureModelSourceOptions>::process
             os << "</td></tr>" << std::endl;
 
             os << "<tr><td>maxGranularity</td><td>" << object->maxGranularity() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>mergeGeometry</td><td>" << object->mergeGeometry() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>enableLighting</td><td>" << object->maxGranularity() << "</td></tr>" << std::endl;
             os << "<tr><td>clusterCulling</td><td>" << object->clusterCulling() << "</td></tr>" << std::endl;
             os << "<tr><td>featureName</td><td>" << object->featureName() << "</td></tr>" << std::endl;
             os << "<tr><td>backfaceCulling</td><td>" << object->backfaceCulling() << "</td></tr>" << std::endl;
             os << "<tr><td>alphaBlending</td><td>" << object->alphaBlending() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
             os << "<tr><td>cachePolicy</td><td>" << object->cachePolicy() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>fading</td><td>" << object->fading() << "</td></tr>" << std::endl;
             os << "<tr><td>featureIndexing</td><td>" << object->featureIndexing() << "</td></tr>" << std::endl;
 
@@ -731,6 +847,7 @@ bool writePrettyHTMLImpl<osgEarth::Features::FeatureModelSourceOptions>::process
     return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 bool writePrettyHTMLImpl<osgEarth::Features::GeometryCompilerOptions>::process(std::basic_ostream<char>& os)
 {
     osgEarth::Features::GeometryCompilerOptions * object = getObject<osgEarth::Features::GeometryCompilerOptions,SGIItemEarthConfigOptions>();
@@ -767,6 +884,7 @@ bool writePrettyHTMLImpl<osgEarth::Features::GeometryCompilerOptions>::process(s
     }
     return ret;
 }
+#endif // OSGEARTH_VERSION_LESS_THAN(2,9,0)
 
 bool writePrettyHTMLImpl<osgEarth::Drivers::TMSOptions>::process(std::basic_ostream<char>& os)
 {
@@ -853,7 +971,7 @@ bool writePrettyHTMLImpl<osgEarth::Drivers::VPBOptions>::process(std::basic_ostr
             os << "<tr><td>url</td><td>" << object->url() << "</td></tr>" << std::endl;
             os << "<tr><td>primarySplitLevel</td><td>" << object->primarySplitLevel() << "</td></tr>" << std::endl;
             os << "<tr><td>secondarySplitLevel</td><td>" << object->secondarySplitLevel() << "</td></tr>" << std::endl;
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0) && defined(SGI_USE_OSGEARTH_FAST)
             os << "<tr><td>maxDataLevelOverride</td><td>" << object->maxDataLevelOverride() << "</td></tr>" << std::endl;
 #endif
             os << "<tr><td>directoryStructure</td><td>" << object->directoryStructure() << "</td></tr>" << std::endl;
@@ -968,6 +1086,7 @@ bool writePrettyHTMLImpl<osgEarth::Drivers::SimpleModelOptions>::process(std::ba
     return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
 bool writePrettyHTMLImpl<osgEarth::Drivers::FeatureStencilModelOptions>::process(std::basic_ostream<char>& os)
 {
     osgEarth::Drivers::FeatureStencilModelOptions * object = getObject<osgEarth::Drivers::FeatureStencilModelOptions,SGIItemEarthConfigOptions>();
@@ -998,6 +1117,7 @@ bool writePrettyHTMLImpl<osgEarth::Drivers::FeatureStencilModelOptions>::process
     }
     return ret;
 }
+#endif // OSGEARTH_VERSION_LESS_THAN(2,8,0)
 
 bool writePrettyHTMLImpl<osgEarth::Drivers::OGRFeatureOptions>::process(std::basic_ostream<char>& os)
 {
@@ -1044,11 +1164,13 @@ bool writePrettyHTMLImpl<osgEarth::Drivers::FeatureGeomModelOptions>::process(st
 
             callNextHandler(os);
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>compilerOptions</td><td>";
             SGIHostItemOsgEarthConfigOptions compilerOptions(object->compilerOptions());
             if(compilerOptions.hasObject())
                 _hostInterface->writePrettyHTML(os, &compilerOptions);
             os << "</td></tr>" << std::endl;
+#endif
 
             if(_table)
                 os << "</table>" << std::endl;

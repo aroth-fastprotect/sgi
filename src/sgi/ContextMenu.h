@@ -6,9 +6,9 @@
 
 namespace sgi {
 
-    namespace qt_helpers {
-        class QtSGIItem;
-    }
+namespace qt_helpers {
+    class QtSGIItem;
+}
 
 class SGIItemBase;
 class SGIHostItemBase;
@@ -19,25 +19,52 @@ typedef std::list<SGIDataItemBasePtr> SGIDataItemBasePtrList;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrVector;
 
-class ContextMenu : public QMenu
+class ContextMenuBase : public QMenu
+{
+    Q_OBJECT
+public:
+    ContextMenuBase(QWidget *parent = 0);
+    virtual ~ContextMenuBase();
+signals:
+    void hidden();
+
+protected:
+    void hideEvent(QHideEvent *event) override;
+};
+
+class ContextMenu : public ContextMenuBase
 {
     Q_OBJECT
 public:
                                     ContextMenu(bool onlyRootItem=true, QWidget *parent = 0);
-                                    ContextMenu(SGIItemBase * item, IContextMenuInfo* info, bool onlyRootItem=true, QWidget *parent=0);
+                                    ContextMenu(SGIItemBase * item, IHostCallback * callback, bool onlyRootItem=true, QWidget *parent=0);
     virtual					        ~ContextMenu();
 
 public:
     IContextMenu *                  menuInterface() { return _interface; }
-    void                            setObject(SGIItemBase * item, IContextMenuInfo * info=NULL);
-    void                            setObject(const SGIHostItemBase * item, IContextMenuInfo * info=NULL);
-    IContextMenuInfo *              getInfo();
+    void                            setObject(SGIItemBase * item, IHostCallback * callback=NULL);
+    void                            setObject(const SGIHostItemBase * item, IHostCallback * callback=NULL);
+    IHostCallback *                 getHostCallback();
+
+    bool                            donotClearItem() const {
+        return _donotClearItem;
+    }
+    void                            setDonotClearItem(bool enable) {
+        _donotClearItem = enable;
+    }
+
+signals:
+	void                            triggerPopup(QWidget * parent, int x, int y);
+	void							triggerUpdateMenu();
 
 protected:
     void                            populateMenu(QMenu * menu, const SGIItemBase * item);
 
 protected slots:
+	void                            popup(QWidget * parent, int x, int y);
+	void							updateMenu();
     void                            slotPopulateItemMenu();
+    void                            slotClearItemMenu();
     void                            slotSimpleItemAction();
     void                            slotBoolItemAction(bool newState);
     void                            slotActionGroup(QAction * action);
@@ -55,34 +82,39 @@ protected:
     class ContextMenuImpl;
 
 protected:
-    IContextMenuPtr      _interface;
+    // use a simple raw-ptr to the interface to avoid a circular ref-ptr
+    IContextMenu *       _interface;
     SGIItemBasePtr       _item;
-    IContextMenuInfoPtr  _info;
+    IHostCallbackPtr     _hostCallback;
     bool                 _onlyRootItem;
+    bool                 _donotClearItem;
 };
 
 class ContextMenuQt : public QObject
 {
+    Q_OBJECT
+
 public:
-    ContextMenuQt(QObject * item, IContextMenuInfoQt* info, bool onlyRootItem=true, QWidget *parent=0);
+    ContextMenuQt(QObject * item, IHostCallback * callback, bool onlyRootItem=true, QWidget *parent=0);
     virtual ~ContextMenuQt();
 
 public:
     IContextMenuQt *                menuInterface() { return _interface; }
-    void                            setObject(QObject * item, IContextMenuInfoQt * info=NULL);
-    IContextMenuInfoQt *            getInfo();
+    void                            setObject(QObject * item, IHostCallback * callback=NULL);
+    IHostCallback *                 getHostCallback();
 
     QWidget *                       parentWidget();
     QMenu *                         getMenu();
+    void                            popup(QWidget * parent, int x, int y);
 
 protected:
     class ContextMenuQtImpl;
 
 protected:
-    IContextMenuQtPtr       _interface;
-    SGIItemBasePtr          _item;
+    // use a simple raw-ptr to the interface to avoid a circular ref-ptr
+    IContextMenuQt *        _interface;
+    IHostCallbackPtr        _hostCallback;
     QObject *               _qobject;
-    IContextMenuInfoQtPtr   _info;
     bool                    _onlyRootItem;
     IContextMenuPtr         _realMenu;
 };

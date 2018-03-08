@@ -1,0 +1,28 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2017 FAST Protect, Andreas Roth
+
+#pragma once
+#include <sgi/Export>
+
+namespace sgi {
+
+class SGI_IMPL_EXPORT Vector2 {
+
+public:
+    typedef double value_type;
+    value_type _v[2];
+};
+class SGI_IMPL_EXPORT Vector3 {
+
+public:
+    typedef double value_type;
+    value_type _v[3];
+};
+class SGI_IMPL_EXPORT Vector4 {
+
+public:
+    typedef double value_type;
+    value_type _v[4];
+};
+
+} // namespace sgi

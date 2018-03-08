@@ -2,7 +2,6 @@
 #include <ostream>
 #include <sstream>
 #include "writeHTMLOSG.h"
-#include "writeHTMLOSGAnimation.h"
 
 #include <osgAnimation/AnimationManagerBase>
 
@@ -13,9 +12,9 @@
 namespace sgi {
 namespace osg_plugin {
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgAnimation::AnimationManagerBase)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgAnimation::Animation)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgAnimation::Channel)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgAnimation::AnimationManagerBase)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgAnimation::Animation)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgAnimation::Channel)
 
 bool writePrettyHTMLImpl<osgAnimation::AnimationManagerBase>::process(std::basic_ostream<char>& os)
 {

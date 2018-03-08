@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>LODScaleOverrideDialog</class>
+ <widget class="QDialog" name="LODScaleOverrideDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>69</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Set LOD scale</string>
+  </property>
+  <layout class="QFormLayout" name="formLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>LOD Scale</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QSlider" name="horizontalSlider">
+       <property name="maximum">
+        <number>100</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDoubleSpinBox" name="doubleSpinBox">
+       <property name="maximum">
+        <double>10.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Apply|QDialogButtonBox::Close|QDialogButtonBox::Reset</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>doubleSpinBox</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>LODScaleOverrideDialog</receiver>
+   <slot>spinBoxChanged(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>367</x>
+     <y>15</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>30</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>horizontalSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>LODScaleOverrideDialog</receiver>
+   <slot>sliderChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>197</x>
+     <y>16</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>30</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>sliderChanged(int)</slot>
+  <slot>spinBoxChanged(double)</slot>
+ </slots>
+</ui>

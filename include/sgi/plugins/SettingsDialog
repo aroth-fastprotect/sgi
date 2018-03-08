@@ -3,31 +3,87 @@
 
 #pragma once
 
-#include "ContextMenu"
+#include "HostCallback"
 
 class QWidget;
 class QDialog;
 
 namespace sgi {
 
-class ISettingsDialogInfo : public osg::Referenced
+class SGIHostItemBase;
+
+class ISettingsDialogInfo : public IHostCallback
 {
 public:
     virtual unsigned dialogId() = 0;
     virtual QWidget * parent() = 0;
-    virtual void triggerRepaint() = 0;
 };
 typedef osg::ref_ptr<ISettingsDialogInfo> ISettingsDialogInfoPtr;
 
 class SettingsDialogInfoBase : public ISettingsDialogInfo
 {
 public:
-    SettingsDialogInfoBase(unsigned dialogId, QWidget * parent)
-        : _dialogId(dialogId), _parent(parent)
-        {}
+    SettingsDialogInfoBase(unsigned dialogId, QWidget * parent, IHostCallback * callback)
+        : _dialogId(dialogId), _parent(parent), _hostCallback(callback) {}
+
     virtual unsigned dialogId() { return _dialogId; }
     virtual QWidget * parent() { return _parent; }
-    virtual void triggerRepaint() { }
+    IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) override
+    {
+        return _hostCallback->contextMenu(parent, item);
+    }
+    IContextMenu *          contextMenu(QWidget * parent, const SGIHostItemBase * item) override
+    {
+        return _hostCallback->contextMenu(parent, item);
+    }
+    ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, SGIItemBase * item) override
+    {
+        return _hostCallback->showSceneGraphDialog(parent, item);
+    }
+    ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, const SGIHostItemBase * item) override
+    {
+        return _hostCallback->showSceneGraphDialog(parent, item);
+    }
+    IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, SGIItemBase * item) override
+    {
+        return _hostCallback->showObjectLoggerDialog(parent, item);
+    }
+    IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, const SGIHostItemBase * item) override
+    {
+        return _hostCallback->showObjectLoggerDialog(parent, item);
+    }
+    IObjectLoggerDialog *   showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger) override
+    {
+        return _hostCallback->showObjectLoggerDialog(parent, logger);
+    }
+    IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, SGIItemBase * item) override
+    {
+        return _hostCallback->showImagePreviewDialog(parent, item);
+    }
+    IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, const SGIHostItemBase * item) override
+    {
+        return _hostCallback->showImagePreviewDialog(parent, item);
+    }
+    virtual ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
+    {
+        return _hostCallback->createPicker(type, x, y);
+    }
+    void triggerRepaint() override
+    {
+        return _hostCallback->triggerRepaint();
+    }
+    SGIItemBase * getView() override
+    {
+        return _hostCallback->getView();
+    }
+    virtual QWidget * getFallbackParentWidget() override
+    {
+        return _parent;
+    }
+	virtual void shutdown() override
+	{
+		_hostCallback->shutdown();
+	}
 
 protected:
     // hide it to force allocation on heap (using ref_ptr)
@@ -36,23 +92,8 @@ protected:
 private:
     unsigned _dialogId;
     QWidget * _parent;
+    IHostCallbackPtr _hostCallback;
 };
-
-class SettingsDialogInfoForMenu : public SettingsDialogInfoBase
-{
-public:
-    SettingsDialogInfoForMenu(unsigned dialogId, QWidget * parent, IContextMenuInfo * menuInfo)
-        : SettingsDialogInfoBase(dialogId, parent), _menuInfo(menuInfo) {}
-    virtual void triggerRepaint() { _menuInfo->triggerRepaint(); }
-
-protected:
-    // hide it to force allocation on heap (using ref_ptr)
-    virtual ~SettingsDialogInfoForMenu() {}
-
-private:
-    IContextMenuInfoPtr _menuInfo;
-};
-
 
 class ISettingsDialog : public osg::Referenced
 {

@@ -6,7 +6,9 @@
 
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SGIHostItemQt.h>
+#include <sgi/plugins/SGIItemQt>
 #include <sgi/plugins/SGIProxyItem.h>
+#include <sgi/plugins/SGIImage.h>
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/SGIItemInternal>
 #include "SGIPlugin.h"
@@ -15,10 +17,60 @@
 #include <sgi/plugins/SettingsDialog>
 
 #include "sgi/helpers/rtti"
+#include "sgi/helpers/qt"
 
-#include <sgi/InspectorHandler>
+#include "ImageGLWidget.h"
+#include <QOpenGLShaderProgram>
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLBuffer>
+#include <QOpenGLTexture>
+
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
+#define OBJECTTREE_PROXYITEM_GET_INSTANCE true
+#define CONTEXTMENU_PROXYITEM_GET_INSTANCE true
+#define WRITE_PRETTY_HTML_PROXYITEM_GET_INSTANCE true
+#define GET_OBJECT_NAME_PROXYITEM_GET_INSTANCE false
+#define GET_OBJECT_TYPE_PROXYITEM_GET_INSTANCE false
+#define GET_OBJECT_DISPLAYNAME_PROXYITEM_GET_INSTANCE false
 
 sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = NULL;
+
+SGI_OBJECT_INFO_BEGIN(osg::Referenced)
+    sgi::SGIPlugins,
+    sgi::ISceneGraphDialog,
+    sgi::IContextMenu,
+    sgi::IObjectLoggerDialog,
+    sgi::ISettingsDialog,
+    sgi::ISettingsDialogInfo,
+    sgi::ReferencedInternalItemData,
+    sgi::ReferencedInternalInfoData,
+    sgi::Image,
+    osg::Object
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osg::Object)
+    sgi::SGIItemBase
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(sgi::SGIItemBase)
+    sgi::SGIProxyItemBase
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(QObject)
+    QWidget
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(QWidget)
+    QOpenGLWidget
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(QOpenGLWidget)
+    sgi::ImageGLWidget
+SGI_OBJECT_INFO_END()
+
 
 namespace sgi {
 namespace internal_plugin {
@@ -26,35 +78,47 @@ namespace internal_plugin {
 GENERATE_IMPL_TEMPLATE()
 GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
 GENERATE_IMPL_NO_ACCEPT(osg::Object)
-GENERATE_IMPL_NO_ACCEPT(osg::NodeCallback)
-GENERATE_IMPL_NO_ACCEPT(osgGA::GUIEventHandler)
-
-SGI_CALL_FUNCTION_FOR_OBJECT_TEMPLATE()
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Referenced,
-                                  LOKI_TYPELIST(SGIPlugins,
-                                                ISceneGraphDialog,
-                                                ISceneGraphDialogInfo,
-                                                IContextMenu,
-                                                IContextMenuInfo,
-                                                IObjectLoggerDialog,
-                                                IObjectLoggerDialogInfo,
-                                                ISettingsDialog,
-                                                ISettingsDialogInfo,
-                                                ReferencedInternalItemData,
-                                                ReferencedInternalInfoData,
-                                                osg::Object))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::Object, LOKI_TYPELIST(SGIItemBase, osg::NodeCallback))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osg::NodeCallback, LOKI_TYPELIST(osgGA::GUIEventHandler))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(osgGA::GUIEventHandler, LOKI_TYPELIST(SceneGraphInspectorHandler))
-SGI_CALL_FUNCTION_FOR_OBJECT_BASE(SGIItemBase, LOKI_TYPELIST(SGIProxyItemBase))
+GENERATE_IMPL_NO_ACCEPT(QObject)
+GENERATE_IMPL_NO_ACCEPT(QWidget)
+GENERATE_IMPL_NO_ACCEPT(QOpenGLWidget)
 
 WRITE_PRETTY_HTML_IMPL_TEMPLATE()
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(SGIPlugins)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(Image)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
-WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(SceneGraphInspectorHandler)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(sgi::ImageGLWidget)
 
+bool writePrettyHTMLImpl<osg::Referenced>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    osg::Referenced * object = getObject<osg::Referenced,SGIItemInternal>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+            os << "<tr><td>this</td><td>" << std::hex << (void*)object << std::dec << "</td></tr>" << std::endl;
+            os << "<tr><td>typename</td><td>" << helpers::getRTTITypename_html(object) << "</td></tr>" << std::endl;
+            os << "<tr><td>refCount</td><td>" << (object?object->referenceCount():0) << "</td></tr>" << std::endl;
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        // no more forwarding
+        break;
+    }
+    return ret;
+}
+
+#define HAS_SUPPORT(__pp_name) \
+    os << "<tr><td>" << #__pp_name << "</td><td>" << ((SGI_HAS_ ## __pp_name ## _SUPPORT) ?"true":"false") << "</td></tr>" << std::endl
 
 bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
 {
@@ -69,6 +133,11 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
             os << "<tr><td>libraryName</td><td>" << sgiGetLibraryName() << "</td></tr>" << std::endl;
             os << "<tr><td>version</td><td>" << sgiGetVersion() << "</td></tr>" << std::endl;
             os << "<tr><td>.so version</td><td>" << sgiGetSOVersion() << "</td></tr>" << std::endl;
+            HAS_SUPPORT(LOG4CPLUS);
+            HAS_SUPPORT(OSGQT);
+            HAS_SUPPORT(OSGEARTH);
+            HAS_SUPPORT(FFMPEG);
+            HAS_SUPPORT(GAMMARAY);
 
             os << "<tr><td>plugins</td><td>";
             SGIPlugins::PluginInfoList plugins;
@@ -114,15 +183,25 @@ bool writePrettyHTMLImpl<ReferencedInternalItemData>::process(std::basic_ostream
             if(_table)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
+            SGIProxyItemBase * proxyObject = dynamic_cast<SGIProxyItemBase*>(data.get());
+
             os << "<tr><td>this</td><td>" << (void*)data.get() << "</td></tr>" << std::endl;
             os << "<tr><td>type</td><td>" << helpers::getRTTITypename_html(data.get()) << "</td></tr>" << std::endl;
+            os << "<tr><td>proxy</td><td>" << (proxyObject?"true":"false") << "</td></tr>" << std::endl;
+            if(proxyObject)
+            {
+                os << "<tr><td>proxyName</td><td>" << proxyObject->name() << "</td></tr>" << std::endl;
+                os << "<tr><td>proxyDisplayName</td><td>" << proxyObject->displayName() << "</td></tr>" << std::endl;
+                os << "<tr><td>proxyTypeName</td><td>" << proxyObject->typeName() << "</td></tr>" << std::endl;
+                os << "<tr><td>realItem</td><td>" << helpers::getRTTIObjectNameAndType_html(proxyObject->realItem(false)) << "</td></tr>" << std::endl;
+            }
 
             os << "<tr><td>itemType</td><td>" << enumValueToString(data->type()) << "</td></tr>" << std::endl;
             os << "<tr><td>flags</td><td>0x" << std::hex << data->flags() << std::dec << "</td></tr>" << std::endl;
             os << "<tr><td>score</td><td>" << data->score() << "</td></tr>" << std::endl;
             os << "<tr><td>typeName</td><td>" << helpers::demangle_html(data->typeName()) << "</td></tr>" << std::endl;
             os << "<tr><td>number</td><td>" << data->number() << "</td></tr>" << std::endl;
-            os << "<tr><td>userData</td><td>" << (void*)data->userData<osg::Referenced>() << "</td></tr>" << std::endl;
+            os << "<tr><td>userData</td><td>" << helpers::getRTTIObjectNameAndType_html(data->userData<osg::Referenced>()) << "</td></tr>" << std::endl;
             os << "<tr><td>root</td><td>" << (void*)data->rootBase() << "</td></tr>" << std::endl;
             os << "<tr><td>prev</td><td>" << (void*)data->previousBase() << "</td></tr>" << std::endl;
             os << "<tr><td>next</td><td>" << (void*)data->nextBase() << "</td></tr>" << std::endl;
@@ -188,10 +267,18 @@ bool writePrettyHTMLImpl<ReferencedInternalInfoData>::process(std::basic_ostream
 bool writePrettyHTMLImpl<SGIProxyItemBase>::process(std::basic_ostream<char>& os)
 {
     SGIProxyItemBase * object = getObject<SGIProxyItemBase,SGIItemInternal>();
-    bool ret;
-    SGIItemBase * realObject = object->realItem(true);
-    if(realObject)
-        ret = _hostInterface->writePrettyHTML(os, realObject);
+    bool ret = false;
+    if(WRITE_PRETTY_HTML_PROXYITEM_GET_INSTANCE)
+    {
+        SGIItemBase * realObject = object->realItem(true);
+        if(realObject)
+            ret = _hostInterface->writePrettyHTML(os, realObject);
+        else
+        {
+            os <<  "<i>NULL</i>";
+            ret = true;
+        }
+    }
     else
     {
         switch(itemType())
@@ -205,9 +292,22 @@ bool writePrettyHTMLImpl<SGIProxyItemBase>::process(std::basic_ostream<char>& os
                 os << "<tr><td>proxyName</td><td>" << object->name() << "</td></tr>" << std::endl;
                 os << "<tr><td>proxyDisplayName</td><td>" << object->displayName() << "</td></tr>" << std::endl;
                 os << "<tr><td>proxyTypeName</td><td>" << object->typeName() << "</td></tr>" << std::endl;
+                os << "<tr><td>realItem</td><td>" << helpers::getRTTIObjectNameAndType_html(object->realItem(false)) << "</td></tr>" << std::endl;
 
                 if(_table)
                     os << "</table>" << std::endl;
+            }
+            break;
+        case SGIItemTypeProxyRealItem:
+            {
+                SGIItemBase * realObject = object->realItem(true);
+                if(realObject)
+                    ret = _hostInterface->writePrettyHTML(os, realObject);
+                else
+                {
+                    os <<  "<i>NULL</i>";
+                    ret = true;
+                }
             }
             break;
         default:
@@ -218,10 +318,49 @@ bool writePrettyHTMLImpl<SGIProxyItemBase>::process(std::basic_ostream<char>& os
     return ret;
 }
 
-bool writePrettyHTMLImpl<SceneGraphInspectorHandler>::process(std::basic_ostream<char>& os)
+bool writePrettyHTMLImpl<Image>::process(std::basic_ostream<char>& os)
 {
-    bool ret = false;
-    SceneGraphInspectorHandler * object = getObject<SceneGraphInspectorHandler,SGIItemInternal,DynamicCaster>();
+    Image * object = getObject<Image, SGIItemInternal>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+            callNextHandler(os);
+
+            os << "<tr><td>width</td><td>" << object->width() << "</td></tr>" << std::endl;
+            os << "<tr><td>height</td><td>" << object->height() << "</td></tr>" << std::endl;
+            os << "<tr><td>allocatedWidth</td><td>" << object->allocatedWidth() << "</td></tr>" << std::endl;
+            os << "<tr><td>allocatedHeight</td><td>" << object->allocatedHeight() << "</td></tr>" << std::endl;
+            os << "<tr><td>depth</td><td>" << object->depth() << "</td></tr>" << std::endl;
+            os << "<tr><td>pitch</td><td>" << object->pitch(0) << "," << object->pitch(1) << "," << object->pitch(2) << "," << object->pitch(3) << "</td></tr>" << std::endl;
+            os << "<tr><td>planeOffset</td><td>" << object->planeOffset(0) << "," << object->planeOffset(1) << "," << object->planeOffset(2) << "," << object->planeOffset(3) << "</td></tr>" << std::endl;
+            os << "<tr><td>scale</td><td>" << object->hscale() << '/' << object->vscale() << "</td></tr>" << std::endl;
+            os << "<tr><td>pixelSize</td><td>" << object->horizontalPixelSize() << '/' << object->verticalPixelSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>origin</td><td>" << Image::originToString(object->origin()) << "</td></tr>" << std::endl;
+            os << "<tr><td>format</td><td>" << Image::imageFormatToString(object->format()) << "</td></tr>" << std::endl;
+            os << "<tr><td>dataType</td><td>" << Image::dataTypeToString(object->dataType()) << "</td></tr>" << std::endl;
+            os << "<tr><td>bitsPerPixel</td><td>" << object->bitsPerPixel() << "</td></tr>" << std::endl;
+            os << "<tr><td>data</td><td>" << object->data() << "</td></tr>" << std::endl;
+            os << "<tr><td>length</td><td>" << object->length() << "</td></tr>" << std::endl;
+            os << "<tr><td>originalImage</td><td>" << helpers::getRTTIObjectNameAndType_html(object->originalImage()) << "</td></tr>" << std::endl;
+            os << "<tr><td>originalImageQt</td><td>" << helpers::getRTTIObjectNameAndType_html(object->originalImageQt()) << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+        }
+        break;
+    default:
+        callNextHandler(os);
+        break;
+    }
+    return true;
+}
+
+bool writePrettyHTMLImpl<ISceneGraphDialog>::process(std::basic_ostream<char>& os)
+{
+    ISceneGraphDialog * object = getObject<ISceneGraphDialog,SGIItemInternal>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -231,25 +370,72 @@ bool writePrettyHTMLImpl<SceneGraphInspectorHandler>::process(std::basic_ostream
 
             callNextHandler(os);
 
-            os << "<tr><td>info</td><td>" << (void*)object->info() << "</td></tr>" << std::endl;
+            os << "<tr><td>dialog</td><td>" << helpers::getRTTIObjectNameAndType_html(object->getDialog()) << "</td></tr>" << std::endl;
+            os << "<tr><td>visible</td><td>" << (object->isVisible()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>host callback</td><td>" << helpers::getRTTIObjectNameAndType_html(object->getHostCallback()) << "</td></tr>" << std::endl;
+            os << "<tr><td>toolsMenu</td><td>" << helpers::getRTTIObjectNameAndType_html(object->toolsMenu()) << "</td></tr>" << std::endl;
+            os << "<tr><td>selectedItem</td><td>" << helpers::getRTTIObjectNameAndType_html(object->selectedItem()) << "</td></tr>" << std::endl;
+            os << "<tr><td>rootItem</td><td>" << helpers::getRTTIObjectNameAndType_html(object->rootItem()) << "</td></tr>" << std::endl;
+            os << "<tr><td>item</td><td>" << helpers::getRTTIObjectNameAndType_html(object->item()) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
-            ret = true;
         }
         break;
     default:
-        ret = callNextHandler(os);
+        callNextHandler(os);
         break;
     }
-    return ret;
+    return true;
+}
+
+bool writePrettyHTMLImpl<sgi::ImageGLWidget>::process(std::basic_ostream<char>& os)
+{
+    sgi::ImageGLWidget * object = getObject<sgi::ImageGLWidget,SGIItemQt>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>hasError</td><td>" << (object->hasError() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>image</td><td>" << helpers::getRTTIObjectNameAndType_html(object->image()) << "</td></tr>" << std::endl;
+            os << "<tr><td>backgroundColor</td><td>" << object->backgroundColor() << "</td></tr>" << std::endl;
+            os << "<tr><td>colorFilterFragment</td><td><pre>" << object->colorFilterFragment() << "</pre></td></tr>" << std::endl;
+            os << "<tr><td>colorFilterVertex</td><td><pre>" << object->colorFilterVertex() << "</pre></td></tr>" << std::endl;
+
+            os << "<tr><td>vertexBuffer</td><td>" << helpers::getRTTIObjectNameAndType_html(object->vertexBuffer()) << "</td></tr>" << std::endl;
+            os << "<tr><td>vao</td><td>" << helpers::getRTTIObjectNameAndType_html(object->vao()) << "</td></tr>" << std::endl;
+            os << "<tr><td>program</td><td>" << helpers::getRTTIObjectNameAndType_html(object->program()) << "</td></tr>" << std::endl;
+            os << "<tr><td>texture</td><td>" << helpers::getRTTIObjectNameAndType_html(object->texture()) << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+        }
+        break;
+    default:
+        callNextHandler(os);
+        break;
+    }
+    return true;
 }
 
 GET_OBJECT_NAME_IMPL_TEMPLATE()
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(Image)
+
+std::string getObjectNameImpl<osg::Referenced>::process()
+{
+    osg::Referenced * object = getObject<osg::Referenced,SGIItemInternal>();
+    return helpers::getRTTIObjectNameAndType(object);
+}
 
 std::string getObjectNameImpl<ReferencedInternalItemData>::process()
 {
@@ -266,26 +452,47 @@ std::string getObjectNameImpl<SGIPlugins>::process()
     return "SGIPlugins";
 }
 
+std::string getObjectNameImpl<Image>::process()
+{
+    return "SGIImage";
+}
+
 std::string getObjectNameImpl<SGIProxyItemBase>::process()
 {
     SGIProxyItemBase * object = getObject<SGIProxyItemBase,SGIItemInternal>();
-    SGIItemBase * realObject = object->realItem(false);
+    SGIItemBase * realObject = object->realItem(GET_OBJECT_NAME_PROXYITEM_GET_INSTANCE);
     std::string ret;
-    if(realObject)
+    switch(itemType())
     {
-        if(!_hostInterface->getObjectName(ret, realObject))
+    case SGIItemTypeProxyRealItem:
+        if(realObject)
+        {
+            if(!_hostInterface->getObjectName(ret, realObject))
+                ret = object->name();
+        }
+        else
             ret = object->name();
-    }
-    else
+        break;
+    default:
         ret = object->name();
+        break;
+    }
     return ret;
 }
 
 GET_OBJECT_TYPE_IMPL_TEMPLATE()
+GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
+GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(Image)
+
+std::string getObjectTypeImpl<osg::Referenced>::process()
+{
+    osg::Referenced * object = getObject<osg::Referenced, SGIItemInternal>();
+    return helpers::getRTTITypename(object);
+}
 
 std::string getObjectTypeImpl<ReferencedInternalItemData>::process()
 {
@@ -302,10 +509,15 @@ std::string getObjectTypeImpl<SGIPlugins>::process()
     return "sgi::SGIPlugins";
 }
 
+std::string getObjectTypeImpl<Image>::process()
+{
+    return "sgi::Image";
+}
+
 std::string getObjectTypeImpl<SGIProxyItemBase>::process()
 {
     SGIProxyItemBase * object = getObject<SGIProxyItemBase,SGIItemInternal>();
-    SGIItemBase * realObject = object->realItem(false);
+    SGIItemBase * realObject = object->realItem(GET_OBJECT_TYPE_PROXYITEM_GET_INSTANCE);
     std::string ret;
     if(realObject)
     {
@@ -314,14 +526,24 @@ std::string getObjectTypeImpl<SGIProxyItemBase>::process()
     }
     else
         ret = object->typeName();
+    if(ret.empty())
+        ret = "sgi::SGIProxyItemBase";
     return ret;
 }
 
 GET_OBJECT_DISPLAYNAME_IMPL_TEMPLATE()
+GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
+GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(Image)
+
+std::string getObjectDisplayNameImpl<osg::Referenced>::process()
+{
+    osg::Referenced * object = getObject<osg::Referenced, SGIItemInternal>();
+    return helpers::getRTTIObjectNameAndType(object);
+}
 
 std::string getObjectDisplayNameImpl<ReferencedInternalItemData>::process()
 {
@@ -341,7 +563,7 @@ std::string getObjectDisplayNameImpl<SGIPlugins>::process()
 std::string getObjectDisplayNameImpl<SGIProxyItemBase>::process()
 {
     SGIProxyItemBase * object = getObject<SGIProxyItemBase,SGIItemInternal>();
-    SGIItemBase * realObject = object->realItem(false);
+    SGIItemBase * realObject = object->realItem(GET_OBJECT_DISPLAYNAME_PROXYITEM_GET_INSTANCE);
     std::string ret;
     if(realObject)
     {
@@ -350,15 +572,21 @@ std::string getObjectDisplayNameImpl<SGIProxyItemBase>::process()
     }
     else
         ret = object->displayName();
+    if(ret.empty())
+        ret = object->name();
     return ret;
 }
 
+std::string getObjectDisplayNameImpl<Image>::process()
+{
+    return "SGIImage";
+}
 OBJECT_TREE_BUILD_IMPL_TEMPLATE()
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
-OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialogInfo)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ImageGLWidget)
 
 bool objectTreeBuildImpl<ReferencedInternalItemData>::build(IObjectTreeItem * treeItem)
 {
@@ -418,32 +646,33 @@ bool objectTreeBuildImpl<SGIProxyItemBase>::build(IObjectTreeItem * treeItem)
 {
     SGIProxyItemBase * object = getObject<SGIProxyItemBase,SGIItemInternal>();
     bool ret;
-    SGIItemBase * realObject = object->realItem(true);
+    bool getInstance = (itemType() == SGIItemTypeProxyRealItem)?true:OBJECTTREE_PROXYITEM_GET_INSTANCE;
+    SGIItemBase * realObject = object->realItem(getInstance);
     if(realObject)
         ret = _hostInterface->objectTreeBuildTree(treeItem, realObject);
     else
-        ret = callNextHandler(treeItem);
-    return ret;
-}
-
-bool objectTreeBuildImpl<ISceneGraphDialogInfo>::build(IObjectTreeItem * treeItem)
-{
-    ISceneGraphDialogInfo * object = getObject<ISceneGraphDialogInfo,SGIItemInternal>();
-    bool ret = false;
-    switch(itemType())
     {
-    case SGIItemTypeObject:
+        bool ret = false;
+        switch(itemType())
         {
-            callNextHandler(treeItem);
-
-            SGIItemBasePtr view = object->getView();
-            if(view.valid())
-                treeItem->addChild("View", view.get());
-            ret = true;
+        case SGIItemTypeObject:
+            {
+                ret = callNextHandler(treeItem);
+                if(!OBJECTTREE_PROXYITEM_GET_INSTANCE)
+                {
+                    treeItem->addChild("Real item", _item->clone<SGIItemInternal>(SGIItemTypeProxyRealItem));
+                    ret = true;
+                }
+            }
+            break;
+        case SGIItemTypeProxyRealItem:
+            ret = false;
+            break;
+        default:
+            ret = callNextHandler(treeItem);
+            break;
         }
-        break;
-    default:
-        break;
+        return ret;
     }
     return ret;
 }
@@ -462,13 +691,51 @@ bool objectTreeBuildImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeItem)
             if(dialog.hasObject())
                 treeItem->addChild("Dialog", &dialog);
 
-            SGIHostItemInternal info(object->getInfo());
-            if(info.hasObject())
-                treeItem->addChild("Info", &info);
+            SGIHostItemInternal hostCallback(object->getHostCallback());
+            if(hostCallback.hasObject())
+                treeItem->addChild("Host callback", &hostCallback);
+
+            SGIHostItemInternal toolsMenu(object->toolsMenu());
+            if(toolsMenu.hasObject())
+                treeItem->addChild("Tools menu", &toolsMenu);
+
             ret = true;
         }
         break;
     default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<sgi::ImageGLWidget>::build(IObjectTreeItem * treeItem)
+{
+    sgi::ImageGLWidget * object = getObject<sgi::ImageGLWidget,SGIItemQt>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            SGIHostItemInternal image(object->image());
+            if(image.hasObject())
+                treeItem->addChild("Image", &image);
+
+            SGIHostItemQt vao(object->vao());
+            if(vao.hasObject())
+                treeItem->addChild("VAO", &vao);
+
+            SGIHostItemQt program(object->program());
+            if(program.hasObject())
+                treeItem->addChild("Program", &program);
+
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
         break;
     }
     return ret;
@@ -481,11 +748,32 @@ bool contextMenuPopulateImpl<SGIProxyItemBase>::populate(IContextMenuItem * menu
 {
     SGIProxyItemBase * object = getObject<SGIProxyItemBase,SGIItemInternal>();
     bool ret;
-    SGIItemBase * realObject = object->realItem(true);
+    bool getInstance = (itemType() == SGIItemTypeProxyRealItem)?true:CONTEXTMENU_PROXYITEM_GET_INSTANCE;
+    SGIItemBase * realObject = object->realItem(getInstance);
     if(realObject)
         ret = _hostInterface->contextMenuPopulate(menuItem, realObject);
     else
-        ret = callNextHandler(menuItem);
+    {
+        switch(itemType())
+        {
+        case SGIItemTypeObject:
+            {
+                ret = callNextHandler(menuItem);
+                if(!CONTEXTMENU_PROXYITEM_GET_INSTANCE)
+                {
+                    menuItem->addMenu("Real item", _item->clone<SGIItemInternal>(SGIItemTypeProxyRealItem));
+                    ret = true;
+                }
+            }
+            break;
+        case SGIItemTypeProxyRealItem:
+            ret = false;
+            break;
+        default:
+            ret = callNextHandler(menuItem);
+            break;
+        }
+    }
     return ret;
 }
 
@@ -500,17 +788,17 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
     SGIHostItemInternal hostItem(SGIPlugins::instance());
     treeItem->addChild(std::string(), &hostItem);
 
-    treeItem->addChild(std::string(), _item);
+    treeItem->addChild(std::string("ISceneGraphDialog"), _item);
     return true;
 }
 
-typedef SGIPluginImplementationT< LOKI_TYPELIST(SGIItemInternal),
-                                        call_function_for_object_type,
-                                        generateItemImpl,
+typedef generateItemImplT<generateItemAcceptImpl, SGIItemInternal, SGIItemQt> generateItemImpl;
+
+typedef SGIPluginImplementationT<       generateItemImpl,
                                         writePrettyHTMLImpl,
                                         getObjectNameImpl,
-                                        getObjectNameImpl,
-                                        defaultPluginGetObjectInfoStringImpl,
+                                        getObjectDisplayNameImpl,
+                                        getObjectTypeImpl,
                                         defaultPluginGetObjectPathImpl,
                                         defaultPluginGetObjectInfoStringImpl,
                                         defaultPluginGetObjectInfoStringImpl,
@@ -543,145 +831,10 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeChilds);
         SGIITEMTYPE_NAME(SGIItemTypeParents);
         SGIITEMTYPE_NAME(SGIItemTypeObservers);
-        SGIITEMTYPE_NAME(SGIItemTypeStateSetEffective);
-        SGIITEMTYPE_NAME(SGIItemTypeStateSetModeList);
-        SGIITEMTYPE_NAME(SGIItemTypeStateSetAttributeList);
-        SGIITEMTYPE_NAME(SGIItemTypeStateSetTextureModeList);
-        SGIITEMTYPE_NAME(SGIItemTypeStateSetTextureAttributeLists);
-        SGIITEMTYPE_NAME(SGIItemTypeStateSetUniformList);
-        SGIITEMTYPE_NAME(SGIItemTypeParentalNodePath);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawables);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawable);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawableColors);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawableColorIndicies);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawableNormals);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawableNormalIndicies);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawableVertices);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawableVertexIndicies);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawableTexCoords);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawableTexCoordsList);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawableTexCoordIndicies);
-        SGIITEMTYPE_NAME(SGIItemTypeDrawablePrimitiveSetList);
-        SGIITEMTYPE_NAME(SGIItemTypeImageLayers);
-        SGIITEMTYPE_NAME(SGIItemTypeElevationLayers);
-        SGIITEMTYPE_NAME(SGIItemTypeModelLayers);
-        SGIITEMTYPE_NAME(SGIItemTypeMaskLayers);
-        SGIITEMTYPE_NAME(SGIItemTypeImageLayer);
-        SGIITEMTYPE_NAME(SGIItemTypeElevationLayer);
-        SGIITEMTYPE_NAME(SGIItemTypeModelLayer);
-        SGIITEMTYPE_NAME(SGIItemTypeMaskLayer);
-        SGIITEMTYPE_NAME(SGIItemTypeTerrain);
-        SGIITEMTYPE_NAME(SGIItemTypeMap);
-        SGIITEMTYPE_NAME(SGIItemTypeMapNode);
         SGIITEMTYPE_NAME(SGIItemTypeStatistics);
         SGIITEMTYPE_NAME(SGIItemTypeCallbacks);
-        SGIITEMTYPE_NAME(SGIItemTypeGraphicsContextCameras);
-        SGIITEMTYPE_NAME(SGIItemTypeGraphicsContextOperations);
-        SGIITEMTYPE_NAME(SGIItemTypeGraphicsContextGLExtensions);
-        SGIITEMTYPE_NAME(SGIItemTypeModel);
-        SGIITEMTYPE_NAME(SGIItemTypeModelRaw);
-        SGIITEMTYPE_NAME(SGIItemTypeModelType);
-        SGIITEMTYPE_NAME(SGIItemTypeModelObject);
-        SGIITEMTYPE_NAME(SGIItemTypeModelObjectProperty);
-        SGIITEMTYPE_NAME(SGIItemTypeLocationTrack);
-        SGIITEMTYPE_NAME(SGIItemTypeLocationFutureTrack);
-        SGIITEMTYPE_NAME(SGIItemTypeDigitalSensorDevices);
-        SGIITEMTYPE_NAME(SGIItemTypeRelayDevices);
-        SGIITEMTYPE_NAME(SGIItemTypeCameras);
-        SGIITEMTYPE_NAME(SGIItemTypeCamerasAsync);
-        SGIITEMTYPE_NAME(SGIItemTypePlacemarks);
-        SGIITEMTYPE_NAME(SGIItemTypeGlobalPlacemarks);
-        SGIITEMTYPE_NAME(SGIItemTypeGroupPlacemarks);
-        SGIITEMTYPE_NAME(SGIItemTypeUserPlacemarks);
-        SGIITEMTYPE_NAME(SGIItemTypeTemporaryPlacemarks);
-        SGIITEMTYPE_NAME(SGIItemTypeBeings);
-        SGIITEMTYPE_NAME(SGIItemTypeAlarms);
-        SGIITEMTYPE_NAME(SGIItemTypePointOfInterests);
-        SGIITEMTYPE_NAME(SGIItemTypeLayers);
-        SGIITEMTYPE_NAME(SGIItemTypeVicinities);
-        SGIITEMTYPE_NAME(SGIItemTypeBuildings);
-        SGIITEMTYPE_NAME(SGIItemTypeFloors);
-        SGIITEMTYPE_NAME(SGIItemTypeRooms);
-        SGIITEMTYPE_NAME(SGIItemTypeSky);
-        SGIITEMTYPE_NAME(SGIItemTypeView);
-        SGIITEMTYPE_NAME(SGIItemTypeImage);
-        SGIITEMTYPE_NAME(SGIItemTypeShaders);
-        SGIITEMTYPE_NAME(SGIItemTypeShaderSource);
-        SGIITEMTYPE_NAME(SGIItemTypeShaderCodeInjectionMap);
-        SGIITEMTYPE_NAME(SGIItemTypeVirtualProgramShaderMap);
-        SGIITEMTYPE_NAME(SGIItemTypeVirtualProgramFunctions);
-        SGIITEMTYPE_NAME(SGIItemTypePopulated);
-        SGIITEMTYPE_NAME(SGIItemTypeFixLocations);
-        SGIITEMTYPE_NAME(SGIItemTypeVisibleLocations);
-        SGIITEMTYPE_NAME(SGIItemTypeString);
-        SGIITEMTYPE_NAME(SGIItemTypeWatcherEntries);
-        SGIITEMTYPE_NAME(SGIItemTypeWatcherNodes);
-        SGIITEMTYPE_NAME(SGIItemTypePickerHits);
-        SGIITEMTYPE_NAME(SGIItemTypePickerHit);
-        SGIITEMTYPE_NAME(SGIItemTypeOptions);
-        SGIITEMTYPE_NAME(SGIItemTypeCachedNodes);
         SGIITEMTYPE_NAME(SGIItemTypeSettings);
-        SGIITEMTYPE_NAME(SGIItemTypeImageLayerOptions);
-        SGIITEMTYPE_NAME(SGIItemTypeElevationLayerOptions);
-        SGIITEMTYPE_NAME(SGIItemTypeModelLayerOptions);
-        SGIITEMTYPE_NAME(SGIItemTypeMaskLayerOptions);
-        SGIITEMTYPE_NAME(SGIItemTypeDataExtents);
-        SGIITEMTYPE_NAME(SGIItemTypeSlaves);
-        SGIITEMTYPE_NAME(SGIItemTypeConfig);
-        SGIITEMTYPE_NAME(SGIItemTypeTour);
         SGIITEMTYPE_NAME(SGIItemTypeObjectLogger);
-        SGIITEMTYPE_NAME(SGIItemTypeArrayData);
-        SGIITEMTYPE_NAME(SGIItemTypeEventHandlers);
-        SGIITEMTYPE_NAME(SGIItemTypeDevices);
-        SGIITEMTYPE_NAME(SGIItemTypeLocationTypes);
-        SGIITEMTYPE_NAME(SGIItemTypeTrackingDevices);
-        SGIITEMTYPE_NAME(SGIItemTypePolygonTypes);
-        SGIITEMTYPE_NAME(SGIItemTypeControlPorts);
-        SGIITEMTYPE_NAME(SGIItemTypeDataMaps);
-        SGIITEMTYPE_NAME(SGIItemTypeWidgets);
-        SGIITEMTYPE_NAME(SGIItemTypeActivePagedLODs);
-        SGIITEMTYPE_NAME(SGIItemTypeThreads);
-        SGIITEMTYPE_NAME(SGIItemTypeTileCache);
-        SGIITEMTYPE_NAME(SGIItemTypeTileCacheLRU);
-        SGIITEMTYPE_NAME(SGIItemTypeTileCacheMap);
-        SGIITEMTYPE_NAME(SGIItemTypeUpdatableNodeBaseRequired);
-        SGIITEMTYPE_NAME(SGIItemTypeUpdatableNodeBaseNotify);
-        SGIITEMTYPE_NAME(SGIItemTypeZones);
-        SGIITEMTYPE_NAME(SGIItemTypeParentCullState);
-        SGIITEMTYPE_NAME(SGIItemTypeStateAttibutes);
-        SGIITEMTYPE_NAME(SGIItemTypeStateSets);
-        SGIITEMTYPE_NAME(SGIItemTypeViewerBaseScenes);
-        SGIITEMTYPE_NAME(SGIItemTypeViewerBaseViews);
-        SGIITEMTYPE_NAME(SGIItemTypeViewerBaseCameras);
-        SGIITEMTYPE_NAME(SGIItemTypeViewerBaseContexts);
-        SGIITEMTYPE_NAME(SGIItemTypeLeaves);
-        SGIITEMTYPE_NAME(SGIItemTypeShaderComposerShaderMap);
-        SGIITEMTYPE_NAME(SGIItemTypeShaderComposerProgramFunctions);
-        SGIITEMTYPE_NAME(SGIItemTypeRenderInfoStateSetStack);
-        SGIITEMTYPE_NAME(SGIItemTypeRenderInfoRenderBinStack);
-        SGIITEMTYPE_NAME(SGIItemTypeRenderInfoCameraStack);
-        SGIITEMTYPE_NAME(SGIItemTypeRenderInfoAppliedProgramSet);
-        SGIITEMTYPE_NAME(SGIItemTypeRenderInfoState);
-        SGIITEMTYPE_NAME(SGIItemTypeSymbols);
-        SGIITEMTYPE_NAME(SGIItemTypeReadersWriters);
-        SGIITEMTYPE_NAME(SGIItemTypeImageProcessors);
-        SGIITEMTYPE_NAME(SGIItemTypeDatabaseRevisions);
-        SGIITEMTYPE_NAME(SGIItemTypeBufferDatas);
-        SGIITEMTYPE_NAME(SGIItemTypePendingChild);
-        SGIITEMTYPE_NAME(SGIItemTypeTasks);
-        SGIITEMTYPE_NAME(SGIItemTypeMethods);
-        SGIITEMTYPE_NAME(SGIItemTypeCameraFrustum);
-        SGIITEMTYPE_NAME(SGIItemTypeCameraVideoProjection);
-        SGIITEMTYPE_NAME(SGIItemTypeCameraPolygon);
-        SGIITEMTYPE_NAME(SGIItemTypeChannels);
-        SGIITEMTYPE_NAME(SGIItemTypeAnimations);
-        SGIITEMTYPE_NAME(SGIItemTypeSerializers);
-        SGIITEMTYPE_NAME(SGIItemTypeWrappers);
-        SGIITEMTYPE_NAME(SGIItemTypeCompressors);
-        SGIITEMTYPE_NAME(SGIItemTypeDBPagerFileRequests);
-        SGIITEMTYPE_NAME(SGIItemTypeDBPagerHttpRequests);
-        SGIITEMTYPE_NAME(SGIItemTypeDBPagerDataToCompile);
-        SGIITEMTYPE_NAME(SGIItemTypeDBPagerDataToMerge);
     }
     Plugin(const Plugin & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
         : internal_plugin::SGIPluginImpl(rhs, copyop)

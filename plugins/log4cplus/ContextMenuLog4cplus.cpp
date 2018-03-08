@@ -4,16 +4,14 @@
 #include <sgi/helpers/string>
 #include "MenuActionLog4cplus.h"
 
-#include "sgi_log4cplus_plugin.h"
-
 namespace sgi {
 
 class SGIItemLog4cplus;
 
 namespace log4cplus_plugin {
 
-CONTEXT_MENU_POPULATE_IMPL_REGISTER(Log4cplusObjectLogger)
-CONTEXT_MENU_POPULATE_IMPL_REGISTER(Log4cplusObjectAppender)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectLogger)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectAppender)
 
 bool contextMenuPopulateImpl<Log4cplusObjectLogger>::populate(IContextMenuItem * menuItem)
 {

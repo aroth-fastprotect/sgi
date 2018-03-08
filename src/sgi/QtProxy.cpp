@@ -7,7 +7,14 @@
 #include "SceneGraphDialog.h"
 #include "ContextMenu.h"
 #include "ObjectLoggerDialog.h"
+#include "ImagePreviewDialog.h"
 #include <sgi/helpers/qt>
+
+#include <cassert>
+
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
 
 namespace sgi {
 
@@ -34,6 +41,63 @@ namespace {
 
 }
 
+struct QtProxy::JobShowSceneGraphDialog
+{
+    JobShowSceneGraphDialog(QWidget *parent_, SGIItemBase * item_, IHostCallback * callback_)
+        : retval(NULL), parent(parent_), item(item_), callback(callback_) {}
+    ISceneGraphDialogPtr retval;
+    QWidget *parent;
+    SGIItemBase * item;
+    IHostCallback * callback;
+};
+struct QtProxy::JobShowObjectLoggerDialog
+{
+    JobShowObjectLoggerDialog(QWidget *parent_, SGIItemBase * item_, IHostCallback * callback_)
+        : retval(NULL), parent(parent_), item(item_), callback(callback_) {}
+    IObjectLoggerDialogPtr retval;
+    QWidget *parent;
+    SGIItemBase * item;
+    IHostCallback * callback;
+};
+struct QtProxy::JobShowObjectLoggerDialogForLogger
+{
+    JobShowObjectLoggerDialogForLogger(QWidget *parent_, IObjectLogger * logger_, IHostCallback * callback_)
+        : retval(NULL), parent(parent_), logger(logger_), callback(callback_) {}
+    IObjectLoggerDialogPtr retval;
+    QWidget *parent;
+    IObjectLogger * logger;
+    IHostCallback * callback;
+};
+struct QtProxy::JobCreateContextMenu
+{
+    JobCreateContextMenu(QWidget *parent_, SGIItemBase * item_, bool onlyRootItem_, IHostCallback * callback_)
+        : retval(NULL), parent(parent_), item(item_), onlyRootItem(onlyRootItem_), callback(callback_) {}
+    IContextMenuPtr retval;
+    QWidget *parent;
+    SGIItemBase * item;
+    bool onlyRootItem;
+    IHostCallback * callback;
+};
+struct QtProxy::JobCreateContextMenuQt
+{
+    JobCreateContextMenuQt(QWidget *parent_, QObject * item_, bool onlyRootItem_, IHostCallback * callback_)
+        : retval(NULL), parent(parent_), item(item_), onlyRootItem(onlyRootItem_), callback(callback_) {}
+    IContextMenuQtPtr retval;
+    QWidget *parent;
+    QObject * item;
+    bool onlyRootItem;
+    IHostCallback * callback;
+};
+struct QtProxy::JobShowImagePreviewDialog
+{
+    JobShowImagePreviewDialog(QWidget *parent_, SGIItemBase * item_, IHostCallback * callback_)
+        : retval(NULL), parent(parent_), item(item_), callback(callback_) {}
+    IImagePreviewDialogPtr retval;
+    QWidget *parent;
+    SGIItemBase * item;
+    IHostCallback * callback;
+};
+
 QtProxy::QtProxy()
 {
     ensure_QApplication();
@@ -45,23 +109,23 @@ QtProxy::QtProxy()
     // implementation function using a BlockingQueuedConnection to
     // transfer the creation of GUI related objects to the main
     // thread and the result back again.
-    connect(this, SIGNAL(triggerShowSceneGraphDialog(JobShowSceneGraphDialog *)),
-            this, SLOT(implShowSceneGraphDialog(JobShowSceneGraphDialog *)),
+    connect(this, &QtProxy::triggerShowSceneGraphDialog,
+            this, &QtProxy::implShowSceneGraphDialog,
             Qt::BlockingQueuedConnection);
-
-    connect(this, SIGNAL(triggerShowObjectLoggerDialog(JobShowObjectLoggerDialog *)),
-            this, SLOT(implShowObjectLoggerDialog(JobShowObjectLoggerDialog *)),
+    connect(this, &QtProxy::triggerShowObjectLoggerDialog,
+            this, &QtProxy::implShowObjectLoggerDialog,
             Qt::BlockingQueuedConnection);
-
-    connect(this, SIGNAL(triggerShowObjectLoggerDialogForLogger(JobShowObjectLoggerDialogForLogger *)),
-            this, SLOT(implShowObjectLoggerDialogForLogger(JobShowObjectLoggerDialogForLogger *)),
+    connect(this, &QtProxy::triggerShowObjectLoggerDialogForLogger,
+            this, &QtProxy::implShowObjectLoggerDialogForLogger,
             Qt::BlockingQueuedConnection);
-
-    connect(this, SIGNAL(triggerCreateContextMenu(JobCreateContextMenu *)),
-            this, SLOT(implCreateContextMenu(JobCreateContextMenu *)),
+    connect(this, &QtProxy::triggerShowImagePreviewDialog,
+            this, &QtProxy::implShowImagePreviewDialog,
             Qt::BlockingQueuedConnection);
-    connect(this, SIGNAL(triggerCreateContextMenuQt(JobCreateContextMenuQt *)),
-            this, SLOT(implCreateContextMenuQt(JobCreateContextMenuQt *)),
+    connect(this, &QtProxy::triggerCreateContextMenu,
+            this, &QtProxy::implCreateContextMenu,
+            Qt::BlockingQueuedConnection);
+    connect(this, &QtProxy::triggerCreateContextMenuQt,
+            this, &QtProxy::implCreateContextMenuQt,
             Qt::BlockingQueuedConnection);
 }
 
@@ -76,73 +140,93 @@ QtProxy * QtProxy::instance(bool erase)
     return s_proxy;
 }
 
-ISceneGraphDialog * QtProxy::showSceneGraphDialog(QWidget *parent, SGIItemBase * item, ISceneGraphDialogInfo * info)
+ISceneGraphDialog * QtProxy::showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
 {
-    JobShowSceneGraphDialog job(parent, item, info);
+    assert(callback);
+    if(!parent)
+        parent = callback->getFallbackParentWidget();
+
+    JobShowSceneGraphDialog job(parent, item, callback);
     if(QThread::currentThread() == thread())
         implShowSceneGraphDialog(&job);
     else
         emit triggerShowSceneGraphDialog(&job);
-    return job.retval;
+    return job.retval.release();
 }
 
 void QtProxy::implShowSceneGraphDialog(JobShowSceneGraphDialog * job)
 {
-    SceneGraphDialog * qtdialog = new SceneGraphDialog(job->item, job->info, job->parent);
+    SceneGraphDialog * qtdialog = new SceneGraphDialog(job->item, job->callback, job->parent);
     job->retval = qtdialog->dialogInterface();
 }
 
-IObjectLoggerDialog * QtProxy::showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IObjectLoggerDialogInfo * info)
+IObjectLoggerDialog * QtProxy::showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
 {
-    JobShowObjectLoggerDialog job(parent, item, info);
+    assert(callback);
+    if(!parent)
+        parent = callback->getFallbackParentWidget();
+
+    JobShowObjectLoggerDialog job(parent, item, callback);
     if(QThread::currentThread() == thread())
         implShowObjectLoggerDialog(&job);
     else
         emit triggerShowObjectLoggerDialog(&job);
-    return job.retval;
+    return job.retval.release();
 }
 
 void QtProxy::implShowObjectLoggerDialog(JobShowObjectLoggerDialog * job)
 {
-    ObjectLoggerDialog * qtdialog = new ObjectLoggerDialog(job->item, job->info, job->parent);
+    ObjectLoggerDialog * qtdialog = new ObjectLoggerDialog(job->item, job->callback, job->parent);
     job->retval = qtdialog->dialogInterface();
 }
 
-IObjectLoggerDialog * QtProxy::showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IObjectLoggerDialogInfo * info)
+IObjectLoggerDialog * QtProxy::showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback)
 {
-    JobShowObjectLoggerDialogForLogger job(parent, logger, info);
+    assert(callback);
+    if(!parent)
+        parent = callback->getFallbackParentWidget();
+
+    JobShowObjectLoggerDialogForLogger job(parent, logger, callback);
     if(QThread::currentThread() == thread())
         implShowObjectLoggerDialogForLogger(&job);
     else
         emit triggerShowObjectLoggerDialogForLogger(&job);
-    return job.retval;
+    return job.retval.release();
 }
 
 void QtProxy::implShowObjectLoggerDialogForLogger(JobShowObjectLoggerDialogForLogger * job)
 {
-    ObjectLoggerDialog * qtdialog = new ObjectLoggerDialog(job->logger, job->info, job->parent);
+    ObjectLoggerDialog * qtdialog = new ObjectLoggerDialog(job->logger, job->callback, job->parent);
     job->retval = qtdialog->dialogInterface();
 }
 
-IContextMenu * QtProxy::createContextMenu(QWidget *parent, SGIItemBase * item, IContextMenuInfo * info)
+IContextMenu * QtProxy::createContextMenu(QWidget *parent, SGIItemBase * item, bool onlyRootItem, IHostCallback * callback)
 {
-    JobCreateContextMenu job(parent, item, info);
+    assert(callback);
+    if(!parent)
+        parent = callback->getFallbackParentWidget();
+
+    JobCreateContextMenu job(parent, item, onlyRootItem, callback);
     if(QThread::currentThread() == thread())
         implCreateContextMenu(&job);
     else
         emit triggerCreateContextMenu(&job);
-    return job.retval;
+    return job.retval.release();
 }
 
 void QtProxy::implCreateContextMenu(JobCreateContextMenu * job)
 {
-    ContextMenu * qtmenu = new ContextMenu(job->item, job->info, job->parent);
+    ContextMenu * qtmenu = new ContextMenu(job->item, job->callback, job->onlyRootItem, job->parent);
     job->retval = qtmenu->menuInterface();
 }
 
-IContextMenuQt * QtProxy::createContextMenu(QWidget *parent, QObject * item, IContextMenuInfoQt * info)
+IContextMenuQt * QtProxy::createContextMenu(QWidget *parent, QObject * item, bool onlyRootItem, IHostCallback * callback)
 {
-    JobCreateContextMenuQt job(parent, item, info);
+    assert(callback);
+    if(!parent)
+        parent = callback->getFallbackParentWidget();
+
+    JobCreateContextMenuQt job(parent, item, onlyRootItem, callback);
     if(QThread::currentThread() == thread())
         implCreateContextMenuQt(&job);
     else
@@ -152,8 +236,28 @@ IContextMenuQt * QtProxy::createContextMenu(QWidget *parent, QObject * item, ICo
 
 void QtProxy::implCreateContextMenuQt(JobCreateContextMenuQt * job)
 {
-    ContextMenuQt * qtmenu = new ContextMenuQt(job->item, job->info, job->parent);
+    ContextMenuQt * qtmenu = new ContextMenuQt(job->item, job->callback, job->onlyRootItem, job->parent);
     job->retval = qtmenu->menuInterface();
+}
+
+IImagePreviewDialog * QtProxy::showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
+{
+    assert(callback);
+    if(!parent)
+        parent = callback->getFallbackParentWidget();
+
+    JobShowImagePreviewDialog job(parent, item, callback);
+    if(QThread::currentThread() == thread())
+        implShowImagePreviewDialog(&job);
+    else
+        emit triggerShowImagePreviewDialog(&job);
+    return job.retval.release();
+}
+
+void QtProxy::implShowImagePreviewDialog(JobShowImagePreviewDialog * job)
+{
+    ImagePreviewDialog * qtdialog = new ImagePreviewDialog(job->item, job->callback, job->parent);
+    job->retval = qtdialog->dialogInterface();
 }
 
 } // namespace sgi

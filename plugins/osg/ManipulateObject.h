@@ -102,12 +102,15 @@ public:
         invokeObjectUpdateCallbackT<osg::Node, OPERATION_TYPE, OPERATION_PARAM_TYPE> op;
         op(static_cast<osg::Node*>(object), dynamic_cast<osg::NodeVisitor*>(data), _param);
 
-        static_cast<osg::Node*>(object)->setUpdateCallback(_oldCallback.get());
-        _oldCallback = NULL;
-        // note, callback is responsible for scenegraph traversal so
+        // note, callback is responsible for scene graph traversal so
         // they must call traverse(node,nv) to ensure that the
         // scene graph subtree (and associated callbacks) are traversed.
-        return osg::Callback::run(object, data);
+        bool ret = osg::Callback::run(object, data);
+
+        osg::ref_ptr<osg::Callback> myself = this;
+        static_cast<osg::Node*>(object)->setUpdateCallback(_oldCallback.get());
+        _oldCallback = NULL;
+        return ret;
     }
 #else
     virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)
@@ -119,12 +122,14 @@ public:
         invokeObjectUpdateCallbackT<osg::Node, OPERATION_TYPE, OPERATION_PARAM_TYPE> op;
         op(node, nv, _param);
 
-        node->setUpdateCallback(_oldCallback.get());
-        _oldCallback = NULL;
         // note, callback is responsible for scenegraph traversal so
         // they must call traverse(node,nv) to ensure that the
         // scene graph subtree (and associated callbacks) are traversed.
-        traverse(node,nv);
+        traverse(node, nv);
+
+        osg::ref_ptr<osg::NodeCallback> myself = this;
+		static_cast<osg::Node*>(object)->setUpdateCallback(_oldCallback.get());
+		_oldCallback = NULL;
     }
 #endif
 

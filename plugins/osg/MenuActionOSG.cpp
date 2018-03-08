@@ -9,6 +9,9 @@
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/ObjectLoggerDialog>
 #include <sgi/plugins/SettingsDialog>
+#include <sgi/plugins/ImagePreviewDialog>
+#include <sgi/plugins/ObjectTree>
+#include <sgi/plugins/SGIImage.h>
 #include <sgi/SGIItemInternal>
 #include <sgi/helpers/string>
 
@@ -19,6 +22,17 @@
 #include <osg/Material>
 #include <osg/LineWidth>
 #include <osg/LineStipple>
+#include <osg/PolygonStipple>
+#include <osg/LightModel>
+#include <osg/AlphaFunc>
+#include <osg/BlendColor>
+#include <osg/BlendFunc>
+#include <osg/Point>
+#include <osg/PolygonMode>
+#include <osg/TexEnv>
+#include <osg/TexEnvFilter>
+#include <osg/TexMat>
+#include <osg/TexGen>
 #include <osg/ProxyNode>
 #include <osg/MatrixTransform>
 #include <osg/PositionAttitudeTransform>
@@ -29,17 +43,27 @@
 #include <osgViewer/View>
 #include <osgText/Text>
 #include <osgUtil/CullVisitor>
+#include <osgUtil/Optimizer>
 #include <osg/io_utils>
 #include <osg/ComputeBoundsVisitor>
 #include <osgDB/ReadFile>
 #include <osgAnimation/AnimationManagerBase>
+#include <osgUtil/IncrementalCompileOperation>
+#include <osgUtil/SmoothingVisitor>
+
+#include <osgViewer/ViewerEventHandlers>
+
+#include <QtCore/QMutex>
+#include <cassert>
 
 #include "osg_accessor.h"
+#include "osgtext_accessor.h"
 #include "stateset_helpers.h"
 #include "SettingsDialogOSG.h"
-#include "FindTopMostNodeOfType"
 #include "DrawableHelper.h"
+#include "NodeHelper.h"
 #include "ManipulateObject.h"
+#include "ObjectLoggerOSG.h"
 
 #undef max
 #undef min
@@ -47,154 +71,245 @@
 namespace sgi {
 namespace osg_plugin {
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectInfo)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectSetName)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectSave)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectDataVariance)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionNotifyLevel)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeMask)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeNumUpdateTraversal)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeNumEventTraversal)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeRecomputeBound)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeCullingActive)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeLookAt)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeCreateStateSet)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionNodeStripTextures)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectLogger)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectLoggerVisible)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionObjectLoggerActive)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectInfo)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectSetName)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectSave)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectDataVariance)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNotifyLevel)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeMask)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeMaskAndChilds)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeNumUpdateTraversal)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeNumEventTraversal)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeRecomputeBound)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeCullingActive)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeLookAt)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeCreateStateSet)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeStripTextures)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeOptimizerRun)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeSmoothingVisitor)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeToggleCenterMarker)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeRenderInfo)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeFixDeprecatedData)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeInspectCulling)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectLogger)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectLoggerVisible)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectLoggerActive)
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionGroupAddChild)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetRenderHint)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetRenderBinName)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetRenderBinNumber)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetRenderBinMode)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetTextureAttributeList)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetMode)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetAddUniform)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetAddAttribute)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetAttributeValue)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionStateSetUniformValue)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionGroupAddChild)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionGroupRemoveChild)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetRenderHint)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetRenderBinName)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetRenderBinNumber)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetRenderBinMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetTextureAttributeSet)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetTextureAttributeRemove)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetTextureModeSet)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetTextureModeRemove)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetModeSet)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetModeRemove)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetAttributeAdd)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetAttributeSet)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetAttributeRemove)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetUniformAdd)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetUniformSet)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetUniformRemove)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetDefineAdd)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetDefineSet)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetDefineEdit)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetDefineRemove)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionStateSetClear)
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionProgramAddShader)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProgramAddShader)
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionCameraCullSettings)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionCameraClearColor)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionCameraComputeNearFarMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraCullSettings)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraClearColor)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraComputeNearFarMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraProjectionResizePolicy)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraViewMatrix)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraProjectionMatrix)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraLiveView)
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionProxyNodeSetCenterMode)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionProxyNodeSetCenter)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionProxyNodeSetRadius)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionProxyNodeLoadingExternalReferenceMode)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionProxyNodeForceLoad)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionProxyNodeSetDatabasePath)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionLODSetRangeMode)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionPagedLODDisableExternalChildrenPaging)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionPagedLODNumChildrenThatCannotBeExpired)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionPagedLODFrameNumberOfLastTraversal)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetCenterMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetCenter)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetRadius)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeLoadingExternalReferenceMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeForceLoad)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeReload)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProxyNodeSetDatabasePath)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLODSetRangeMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionPagedLODDisableExternalChildrenPaging)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionPagedLODNumChildrenThatCannotBeExpired)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionPagedLODFrameNumberOfLastTraversal)
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionClipNodeReset)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionClipNodeSetState)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionClipNodeReset)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionClipNodeSetState)
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionUniformEdit)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionBufferDataEdit)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionBufferDirty)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionArrayDataEdit)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionLineWidthSet)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionLineStipplePattern)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionLineStippleFactor)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialColorMode)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialAmbient)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialDiffuse)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialSpecular)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialEmission)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionMaterialShininess)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionUniformDirty)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionUniformEdit)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionBufferDataEdit)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionBufferDirty)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionBufferObjectDirty)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionArrayDataEdit)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionArrayBinding)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionArrayNormalize)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionArrayPreserveDataType)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionArrayTrim)
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTexturePreview)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureBorderColor)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureBorderWidth)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureSetMinFilter)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureSetMagFilter)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureSetResizeNonPowerOfTwoHint)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureUseHardwareMipMapGeneration)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureUnRefImageDataAfterApply)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTextureSetImage)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionDrawableToggleDisabled)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionGeodeAddShapeDrawable)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionGeodeRenderInfoDrawable)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeDrawableColor)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionGeometryColor)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionGeometryDirtyDisplayList)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeCenter)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeRotation)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionShapeBoxHalfLength)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionImagePreview)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionHeightFieldPreview)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionBillboardMode)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTransformReferenceFrame)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionMatrixTransformEdit)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionPositionAttitudeTransformEdit)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineWidthSet)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineStipplePattern)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineStippleFactor)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLightModelColorControl)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLightModelLocalViewer)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLightModelTwoSided)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLightModelAmbientIntensity)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionBlendColorConstantColor)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionPolygonModeFront)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionPolygonModeBack)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionPolygonModeFrontAndBack)
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionAutoTransformAutoScaleToScreen)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionAutoTransformAutoRotateMode)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionAutoTransformSetAxis)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionAutoTransformSetNormal)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionAutoTransformSetScale)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionAutoTransformSetPivotPoint)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionAutoTransformSetMinimumScale)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionAutoTransformSetMaximumScale)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionAutoTransformSetAutoUpdateEyeMovementTolerance)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionAutoTransformSetAutoScaleTransitionWidthRatio)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMaterialColorMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMaterialAmbient)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMaterialDiffuse)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMaterialSpecular)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMaterialEmission)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMaterialShininess)
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionCameraManipulatorAutoComputeHome)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextureBorderColor)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextureBorderWidth)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextureSetMinFilter)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextureSetMagFilter)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextureSetResizeNonPowerOfTwoHint)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextureUseHardwareMipMapGeneration)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextureUnRefImageDataAfterApply)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextureSetImage)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextureDirtyTextureObject)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextureDirtyTextureParameters)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextureAllocateMipmapLevels)
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionShaderEditSource)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionDepthFunction)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionDepthWriteMask)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionDepthSetZNear)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionDepthSetZFar)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTexEnvMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTexEnvColor)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTexEnvFilterLodBias)
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseAutoRotateToScreen)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseCharacterHeight)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseCharacterAspectRatio)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseCharacterSizeMode)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseModifyText)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseDrawMode)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBaseAxisAlignment)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionTextBackdropType)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableToggleDisabled)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionGeodeAddShapeDrawable)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeDrawableColor)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeDrawableBuild)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableUseDisplayList)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableSupportsDisplayList)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableDirtyGLObjects)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableUseVBO)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableRenderInfoDrawCallback)
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerPause)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerAcceptNewRequests)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerDoPreCompile)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerDeleteSubgraphsInDBThread)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionDatabasePagerTargetPageLODNumber)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionGeometryColor)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionGeometryFixDeprecatedData)
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionAnimationManagerBaseAutomaticLink)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeCenter)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeRotation)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeBoxHalfLength)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionImagePreview)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionBillboardMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTransformReferenceFrame)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMatrixTransformEdit)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionPositionAttitudeTransformEdit)
 
-ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindUpdateNodes)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindEventNodes)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindNaNNodes)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindVisibleNodes)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionToolListNodeMasks)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindPagedLODChilds)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionToolEffectiveStateSet)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindCamera)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionToolFindView)
-ACTION_HANDLER_IMPL_REGISTER(MenuActionToolDistanceToCamera)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAutoTransformAutoScaleToScreen)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAutoTransformAutoRotateMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAutoTransformSetAxis)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAutoTransformSetNormal)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAutoTransformSetScale)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAutoTransformSetPivotPoint)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAutoTransformSetMinimumScale)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAutoTransformSetMaximumScale)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAutoTransformSetAutoUpdateEyeMovementTolerance)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAutoTransformSetAutoScaleTransitionWidthRatio)
+
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraManipulatorAutoComputeHome)
+
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewerBaseMaxFrameRate)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewerBaseRunFrameScheme)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewerBaseThreadingModel)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewerBaseIncrementalCompileOperation)
+
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShaderDirty)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShaderEditSource)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDepthFunction)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDepthWriteMask)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDepthSetZNear)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDepthSetZFar)
+
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseAutoRotateToScreen)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseCharacterHeight)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseCharacterAspectRatio)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseCharacterSizeMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseLayout)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseSetFontWidth)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseSetFontHeight)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseModifyText)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseDrawMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseAxisAlignment)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseSetMaximumWidth)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseSetMaximumHeight)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropEnableDepthWrites)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropType)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropImplementation)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropHorizontalOffset)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropVerticalOffset)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropColor)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropColorGradientMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseComputeGlyphRepresentation)
+
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerPause)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerDatabaseThreads)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerAcceptNewRequests)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerDoPreCompile)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerDeleteSubgraphsInDBThread)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerTargetPageLODNumber)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerIncrementalCompileOperation)
+
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAnimationManagerBaseAutomaticLink)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAnimationManagerBaseDirty)
+
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionIncrementalCompileOperationTargetFrameRate)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionIncrementalCompileOperationMinimumTimeAvailableForGLCompileAndDeletePerFrame)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionIncrementalCompileOperationMaximumNumOfObjectsToCompilePerFrame)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionIncrementalCompileOperationFlushTimeRatio)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionIncrementalCompileOperationConservativeTimeRatio)
+
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolFindUpdateNodes)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolFindEventNodes)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolFindAllStateSets)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolFindNaNNodes)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolFindVisibleNodes)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolListNodeMasks)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolFindPagedLODChilds)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolEffectiveStateSet)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolFindCamera)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolFindView)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolDistanceToCamera)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionToolFindClosestNodeToCamera)
+
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewLightingMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewCaptureScreenshot)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewPortModify)
 
 using namespace sgi::osg_helpers;
 
+namespace {
+    std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
+        std::stringstream ss(s);
+        std::string item;
+        while (std::getline(ss, item, delim)) {
+            elems.push_back(item);
+        }
+        return elems;
+    }
+}
+
 bool actionHandlerImpl<MenuActionObjectInfo>::execute()
 {
-    IContextMenuInfo * info = menuInfo();
-    if(info)
-        info->showSceneGraphDialog(_item->rootBase());
-    else
-    {
-        ISceneGraphDialog * dlg = _hostInterface->showSceneGraphDialog(menu()->parentWidget(), _item->rootBase());
-        if(dlg)
-            dlg->show();
-    }
+    IHostCallback * callback = hostCallback();
+    assert(callback);
+    callback->showSceneGraphDialog(menuAction()->menu()->parentWidget(), _item->rootBase());
     return true;
 }
 
@@ -253,6 +368,25 @@ bool actionHandlerImpl<MenuActionNotifyLevel>::execute()
     return true;
 }
 
+namespace {
+    class SetNodeMaskVisitor : public osg::NodeVisitor
+    {
+        unsigned _nodemask;
+    public:
+        SetNodeMaskVisitor(unsigned mask, osg::NodeVisitor::TraversalMode tm)
+            : osg::NodeVisitor(tm), _nodemask(mask) {
+            // ignore node mask when applying the new node mask
+            setTraversalMask(~0u);
+            setNodeMaskOverride(~0u);
+        }
+        virtual void apply(osg::Node& node) override
+        {
+            node.setNodeMask(_nodemask);
+            traverse(node);
+        }
+    };
+}
+
 bool actionHandlerImpl<MenuActionNodeMask>::execute()
 {
     osg::Node * object = getObject<osg::Node, SGIItemOsg>();
@@ -264,8 +398,28 @@ bool actionHandlerImpl<MenuActionNodeMask>::execute()
                                              "Node mask:", "Set node mask",
                                              _item
                                             );
-    if(ret)
-        object->setNodeMask((osg::Node::NodeMask)nodeMask);
+    if (ret)
+        object->setNodeMask(nodeMask);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionNodeMaskAndChilds>::execute()
+{
+    osg::Node * object = getObject<osg::Node, SGIItemOsg>();
+
+    unsigned nodeMask = object->getNodeMask();
+    bool ret;
+    ret = _hostInterface->inputDialogBitmask(menu()->parentWidget(),
+        nodeMask,
+        "Node mask:", "Set node mask (+childs)",
+        _item
+        );
+    if (ret)
+    {
+        SetNodeMaskVisitor snmv(nodeMask, osg::NodeVisitor::TRAVERSE_ALL_CHILDREN);
+        object->accept(snmv);
+        object->setNodeMask(nodeMask);
+    }
     return true;
 }
 
@@ -327,9 +481,9 @@ bool actionHandlerImpl<MenuActionNodeLookAt>::execute()
     SGIHostItemOsg viewpointItem(new ReferencedSetViewNodeLookAt(SetViewNodeLookAt(object, mode)));
 
     SGIItemBasePtr view;
-    IContextMenuInfo * info = menuAction()->menu()->getInfo();
-    if(info)
-        view = info->getView();
+    IHostCallback * callback = hostCallback();
+    if(callback)
+        view = callback->getView();
     _hostInterface->setView(view, &viewpointItem);
     return true;
 }
@@ -412,17 +566,103 @@ bool actionHandlerImpl<MenuActionNodeStripTextures>::execute()
     return true;
 }
 
+namespace {
+	class OptimizerRun
+	{
+	public:
+		OptimizerRun(MenuActionOptimizerRunMode mode)
+			: _mode(mode) {}
+		void operator()(osg::Node * object, osg::NodeVisitor* nv)
+		{
+			osgUtil::Optimizer optimizer;
+			switch(_mode)
+			{
+			case MenuActionOptimizerRunModeAll:
+				optimizer.optimize(object, osgUtil::Optimizer::ALL_OPTIMIZATIONS);
+				break;
+			case MenuActionOptimizerRunModeDefault:
+				optimizer.optimize(object, osgUtil::Optimizer::DEFAULT_OPTIMIZATIONS);
+				break;
+			case MenuActionOptimizerRunModeCheck:
+				optimizer.optimize(object, osgUtil::Optimizer::CHECK_GEOMETRY);
+				break;
+			case MenuActionOptimizerRunModeFastGeometry:
+				optimizer.optimize(object, osgUtil::Optimizer::MAKE_FAST_GEOMETRY);
+				break;
+			}
+		}
+	private:
+		MenuActionOptimizerRunMode _mode;
+	};
+
+}
+
+bool actionHandlerImpl<MenuActionNodeOptimizerRun>::execute()
+{
+	osg::Node * object = getObject<osg::Node, SGIItemOsg>();
+	MenuActionOptimizerRunMode mode = (MenuActionOptimizerRunMode)menuAction()->mode();
+	manipulateObject<OptimizerRun>(object, mode);
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionNodeSmoothingVisitor>::execute()
+{
+    osg::Node * object = getObject<osg::Node, SGIItemOsg>();
+    osgUtil::SmoothingVisitor sv;
+    object->accept(sv);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionNodeToggleCenterMarker>::execute()
+{
+    osg::Node * object = getObject<osg::Node, SGIItemOsg>();
+    ToggleCenterMarkerVisitor tcmv(menuAction()->state());
+    object->accept(tcmv);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionNodeRenderInfo>::execute()
+{
+    osg::Node * node = getObject<osg::Node, SGIItemOsg>();
+    RenderInfo::enable(node, menuAction()->state());
+    return true;
+}
+
+class FixDeprecatedDataVisitor : public osg::NodeVisitor
+{
+public:
+    FixDeprecatedDataVisitor()
+        : osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN)
+    {
+    }
+    void apply(osg::Geometry& geometry) override
+    {
+        if(geometry.checkForDeprecatedData())
+            geometry.fixDeprecatedData();
+        osg::NodeVisitor::apply(geometry);
+    }
+};
+
+bool actionHandlerImpl<MenuActionNodeFixDeprecatedData>::execute()
+{
+    osg::Node * node = getObject<osg::Node, SGIItemOsg>();
+    FixDeprecatedDataVisitor fddv;
+    node->accept(fddv);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionNodeInspectCulling>::execute()
+{
+    osg::Node * node = getObject<osg::Node, SGIItemOsg>();
+    CullingInfo::enable(node, menuAction()->state(), _hostInterface);
+    return true;
+}
+
 bool actionHandlerImpl<MenuActionObjectLogger>::execute()
 {
-    IContextMenuInfo * info = menuInfo();
-    if(info)
-        info->showObjectLoggerDialog(_item->rootBase());
-    else
-    {
-        IObjectLoggerDialogPtr dialog = _hostInterface->showObjectLoggerDialog(menu()->parentWidget(), _item->rootBase());
-        if(dialog)
-            dialog->show();
-    }
+    IHostCallback * callback = hostCallback();
+    assert(callback);
+    callback->showObjectLoggerDialog(menu()->parentWidget(), _item->rootBase());
     return true;
 }
 
@@ -464,7 +704,7 @@ bool actionHandlerImpl<MenuActionObjectLoggerActive>::execute()
     }
     else
     {
-        menuInfo()->showObjectLoggerDialog(_item->rootBase());
+        hostCallback()->showObjectLoggerDialog(menu()->parentWidget(), _item->rootBase());
     }
     return true;
 }
@@ -518,6 +758,28 @@ bool actionHandlerImpl<MenuActionGroupAddChild>::execute()
     return true;
 }
 
+namespace {
+    struct RemoveChildUpdateOperation
+    {
+    public:
+        RemoveChildUpdateOperation(osg::Node * child)
+            : _child(child) { }
+        void operator()(osg::Node * object, osg::NodeVisitor* nv)
+        {
+            static_cast<osg::Group*>(object)->removeChild(_child.release());
+        }
+        osg::ref_ptr<osg::Node> _child;
+    };
+}
+
+bool actionHandlerImpl<MenuActionGroupRemoveChild>::execute()
+{
+    osg::Group * object = getObject<osg::Group, SGIItemOsg>();
+    osg::Node * child = userData<osg::Node>();
+    manipulateObject<RemoveChildUpdateOperation>(static_cast<osg::Node*>(object), child);
+    return true;
+}
+
 bool actionHandlerImpl<MenuActionStateSetRenderHint>::execute()
 {
     osg::StateSet * object = getObject<osg::StateSet,SGIItemOsg>();
@@ -564,13 +826,45 @@ bool actionHandlerImpl<MenuActionStateSetRenderBinMode>::execute()
     return true;
 }
 
-bool actionHandlerImpl<MenuActionStateSetTextureAttributeList>::execute()
+bool actionHandlerImpl<MenuActionStateSetTextureAttributeSet>::execute()
 {
     osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    TextureAttributePair pair = modeUserData<ReferencedDataTextureAttributePair>()->data();
+    osg::StateAttribute::OverrideValue value = stateAttributeModeValueToOverrideValue((StateAttributeModeValue)menuAction()->mode());
+    object->setTextureAttribute(pair.textureUnit, pair.attr.get(), value);
     return true;
 }
 
-bool actionHandlerImpl<MenuActionStateSetMode>::execute()
+bool actionHandlerImpl<MenuActionStateSetTextureAttributeRemove>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    TextureAttributePair pair = userData<ReferencedDataTextureAttributePair>()->data();
+    object->removeTextureAttribute(pair.textureUnit, pair.attr.get());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetTextureModeSet>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    IntPair pair = modeUserData<ReferencedDataIntPair>()->data();
+    unsigned textureUnit = (unsigned)pair.first;
+    osg::StateAttribute::GLMode mode = (osg::StateAttribute::GLMode)pair.second;
+    osg::StateAttribute::OverrideValue value = stateAttributeModeValueToOverrideValue((StateAttributeModeValue)menuAction()->mode());
+    object->setTextureMode(textureUnit, mode, value);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetTextureModeRemove>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    IntPair pair = userData<ReferencedDataIntPair>()->data();
+    unsigned textureUnit = (unsigned)pair.first;
+    osg::StateAttribute::GLMode mode = (osg::StateAttribute::GLMode)pair.second;
+    object->removeTextureMode(textureUnit, mode);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetModeSet>::execute()
 {
     osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
     osg::StateAttribute::GLModeValue mode = (osg::StateAttribute::GLModeValue)modeUserData<ReferencedDataInt>()->data();
@@ -579,18 +873,16 @@ bool actionHandlerImpl<MenuActionStateSetMode>::execute()
     return true;
 }
 
-bool actionHandlerImpl<MenuActionStateSetAddUniform>::execute()
+bool actionHandlerImpl<MenuActionStateSetModeRemove>::execute()
 {
     osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
-    osg::Uniform::Type type = (osg::Uniform::Type)menuAction()->mode();
-    std::string name;
-    bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), name, "Name:", "Enter name of new uniform", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
-    if(gotInput)
-        object->addUniform(new osg::Uniform(type, name, 1), osg::StateAttribute::OFF);
+    osg::StateAttribute::GLModeValue mode = (osg::StateAttribute::GLModeValue)userData<ReferencedDataInt>()->data();
+    std::cout << "remove " << std::hex << mode << std::endl;
+    object->removeMode(mode);
     return true;
 }
 
-bool actionHandlerImpl<MenuActionStateSetAddAttribute>::execute()
+bool actionHandlerImpl<MenuActionStateSetAttributeAdd>::execute()
 {
     osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
     osg::StateAttribute::Type type = (osg::StateAttribute::Type)menuAction()->mode();
@@ -612,13 +904,55 @@ bool actionHandlerImpl<MenuActionStateSetAddAttribute>::execute()
     case osg::StateAttribute::MATERIAL:
         newAttr = new osg::Material;
         break;
+    case osg::StateAttribute::ALPHAFUNC:
+        newAttr = new osg::AlphaFunc;
+        break;
+    case osg::StateAttribute::BLENDCOLOR:
+        newAttr = new osg::BlendColor;
+        break;
+    case osg::StateAttribute::BLENDFUNC:
+        newAttr = new osg::BlendFunc;
+        break;
+    case osg::StateAttribute::LIGHTMODEL:
+        newAttr = new osg::LightModel;
+        break;
+    case osg::StateAttribute::LIGHT:
+        newAttr = new osg::Light;
+        break;
+    case osg::StateAttribute::POLYGONMODE:
+        newAttr = new osg::PolygonMode;
+        break;
+    case osg::StateAttribute::LINESTIPPLE:
+        newAttr = new osg::LineStipple;
+        break;
+    case osg::StateAttribute::LINEWIDTH:
+        newAttr = new osg::LineWidth;
+        break;
+    case osg::StateAttribute::POINT:
+        newAttr = new osg::Point;
+        break;
+    case osg::StateAttribute::POLYGONSTIPPLE:
+        newAttr = new osg::PolygonStipple;
+        break;
+    case osg::StateAttribute::TEXENV:
+        newAttr = new osg::TexEnv;
+        break;
+    case osg::StateAttribute::TEXENVFILTER:
+        newAttr = new osg::TexEnvFilter;
+        break;
+    case osg::StateAttribute::TEXMAT:
+        newAttr = new osg::TexMat;
+        break;
+    case osg::StateAttribute::TEXGEN:
+        newAttr = new osg::TexGen;
+        break;
     }
     if(newAttr.valid())
         object->setAttribute(newAttr.get(), osg::StateAttribute::OFF);
     return true;
 }
 
-bool actionHandlerImpl<MenuActionStateSetAttributeValue>::execute()
+bool actionHandlerImpl<MenuActionStateSetAttributeSet>::execute()
 {
     osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
     osg::StateAttribute * attr = modeUserData<osg::StateAttribute>();
@@ -627,13 +961,96 @@ bool actionHandlerImpl<MenuActionStateSetAttributeValue>::execute()
     return true;
 }
 
-bool actionHandlerImpl<MenuActionStateSetUniformValue>::execute()
+bool actionHandlerImpl<MenuActionStateSetAttributeRemove>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    const ReferencedDataIntPair * attr = userData<ReferencedDataIntPair>();
+    const osg::StateAttribute::Type & type = (const osg::StateAttribute::Type &)attr->data().first;
+    const unsigned & member = (const unsigned &)attr->data().second;
+    object->removeAttribute(type, member);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetUniformAdd>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    osg::Uniform::Type type = (osg::Uniform::Type)menuAction()->mode();
+    std::string name;
+    bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), name, "Name:", "Enter name of new uniform", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+    if(gotInput)
+        object->addUniform(new osg::Uniform(type, name, 1), osg::StateAttribute::OFF);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetUniformSet>::execute()
 {
     osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
     osg::ref_ptr<osg::Uniform> uniform = modeUserData<osg::Uniform>();
     object->removeUniform(uniform);
     osg::StateAttribute::OverrideValue value = stateAttributeModeValueToOverrideValue((StateAttributeModeValue)menuAction()->mode());
     object->addUniform(uniform, value);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetUniformRemove>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    const ReferencedDataString * uniformName = userData<ReferencedDataString>();
+    object->removeUniform(uniformName->data());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetDefineAdd>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    std::string name;
+    bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), name, "Name:", "Enter name of new define", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+    if(gotInput)
+        object->setDefine(name);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetDefineSet>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    const ReferencedDataString * defineName = userData<ReferencedDataString>();
+    const osg::StateSet::DefinePair* defpair = object->getDefinePair(defineName->data());
+    osg::StateAttribute::OverrideValue value = stateAttributeModeValueToOverrideValue((StateAttributeModeValue)menuAction()->mode());
+    object->setDefine(defineName->data(), defpair->first, value);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetDefineEdit>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    const ReferencedDataString * defineName = userData<ReferencedDataString>();
+    const osg::StateSet::DefinePair* defpair = object->getDefinePair(defineName->data());
+
+    std::string value = defpair->first;
+    bool ret;
+    ret = _hostInterface->inputDialogText(menu()->parentWidget(),
+                                             value,
+                                             "Value:", "Edit value for define " + defineName->data(),
+                                             SGIPluginHostInterface::InputDialogStringEncodingSystem,
+                                            _item
+                                            );
+    if(ret)
+        object->setDefine(defineName->data(), value, defpair->second);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetDefineRemove>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    const ReferencedDataString * defineName = userData<ReferencedDataString>();
+    object->removeDefine(defineName->data());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionStateSetClear>::execute()
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    object->clear();
     return true;
 }
 
@@ -718,17 +1135,17 @@ bool actionHandlerImpl<MenuActionProxyNodeLoadingExternalReferenceMode>::execute
     return true;
 }
 
-bool actionHandlerImpl<MenuActionProxyNodeForceLoad>::execute()
+bool forceLoadingProxyNode(osg::ProxyNode * object)
 {
-    osg::ProxyNode * object = getObject<osg::ProxyNode, SGIItemOsg>();
+    bool ret = false;
     unsigned numFilenames = object->getNumFileNames();
     unsigned numChildren = object->getNumChildren();
-    if(numFilenames > numChildren)
+    if (numFilenames > numChildren)
     {
         osg::Camera* camera = findFirstParentOfType<osg::Camera>(object);
-        osgViewer::View * viewptr = camera?dynamic_cast<osgViewer::View*>(camera->getView()):NULL;
+        osgViewer::View * viewptr = camera ? dynamic_cast<osgViewer::View*>(camera->getView()) : NULL;
         osg::NodePathList nodepaths = object->getParentalNodePaths();
-        if(!nodepaths.empty() && viewptr)
+        if (!nodepaths.empty() && viewptr)
         {
             osg::NodePath nodepath = nodepaths.front();
             const osgDB::DatabasePager * pager = viewptr->getDatabasePager();
@@ -736,14 +1153,36 @@ bool actionHandlerImpl<MenuActionProxyNodeForceLoad>::execute()
             osg::ref_ptr<osg::Referenced> opts = object->getDatabaseOptions();
             const std::string & databasePath = object->getDatabasePath();
 
-            for(unsigned int i=numChildren; i<numFilenames; ++i)
+            for (unsigned int i = numChildren; i < numFilenames; ++i)
             {
                 const std::string & filename = object->getFileName(i);
                 const float priority = 1.0f;
                 const_cast<osgDB::DatabasePager*>(pager)->requestNodeFile(databasePath + filename, nodepath, priority, fs, object->getDatabaseRequest(i), opts);
+                ret = true;
             }
         }
     }
+    return ret;
+}
+
+bool actionHandlerImpl<MenuActionProxyNodeForceLoad>::execute()
+{
+    osg::ProxyNode * object = getObject<osg::ProxyNode, SGIItemOsg>();
+    forceLoadingProxyNode(object);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionProxyNodeReload>::execute()
+{
+    osg::ProxyNode * object = getObject<osg::ProxyNode, SGIItemOsg>();
+    unsigned num = object->getNumFileNames();
+    std::vector<std::string> filenames(num);
+    for (unsigned i = 0; i < num; ++i)
+        filenames[i] = object->getFileName(i);
+    object->removeChildren(0, object->getNumChildren());
+    for (unsigned i = 0; i < num; ++i)
+        object->setFileName(i, filenames[i]);
+    forceLoadingProxyNode(object);
     return true;
 }
 
@@ -833,7 +1272,7 @@ bool actionHandlerImpl<MenuActionCameraCullSettings>::execute()
 {
     ISettingsDialogPtr dialog;
     bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogCamera, menu()->parentWidget());
+    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogCamera, menu()->parentWidget(), hostCallback());
     ret = _hostInterface->openSettingsDialog(dialog, _item, info);
     if(ret)
     {
@@ -860,6 +1299,56 @@ bool actionHandlerImpl<MenuActionCameraComputeNearFarMode>::execute()
 {
     osg::Camera * object = getObject<osg::Camera,SGIItemOsg>();
     object->setComputeNearFarMode((osg::Camera::ComputeNearFarMode)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionCameraProjectionResizePolicy>::execute()
+{
+    osg::Camera * object = getObject<osg::Camera, SGIItemOsg>();
+    object->setProjectionResizePolicy((osg::Camera::ProjectionResizePolicy)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionCameraViewMatrix>::execute()
+{
+    osg::Camera * object = getObject<osg::Camera, SGIItemOsg>();
+    Matrix matrix = osgMatrix(object->getViewMatrix());
+    if(_hostInterface->inputDialogMatrix(menu()->parentWidget(), matrix, MatrixUsageView, "Matrix:", "Modify projection matrix", _item.get()))
+    {
+        object->setViewMatrix(osgMatrix(matrix));
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionCameraProjectionMatrix>::execute()
+{
+    osg::Camera * object = getObject<osg::Camera, SGIItemOsg>();
+    Matrix matrix = osgMatrix(object->getProjectionMatrix());
+    if(_hostInterface->inputDialogMatrix(menu()->parentWidget(), matrix, MatrixUsageProjection, "Matrix:", "Modify projection matrix"))
+    {
+        object->setProjectionMatrix(osgMatrix(matrix));
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionCameraLiveView>::execute()
+{
+    ISettingsDialogPtr dialog;
+    bool ret;
+    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogExtraView, menu()->parentWidget(), hostCallback());
+    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
+    if (ret)
+    {
+        if (dialog.valid())
+            dialog->show();
+    }
+    return ret;
+}
+
+bool actionHandlerImpl<MenuActionUniformDirty>::execute()
+{
+    osg::Uniform * object = getObject<osg::Uniform, SGIItemOsg>();
+    object->dirty();
     return true;
 }
 
@@ -929,15 +1418,91 @@ bool actionHandlerImpl<MenuActionUniformEdit>::execute()
     return true;
 }
 
+#define writeDrawElementsDataImpl(__elem_type) \
+    { \
+        const __elem_type * d = (const __elem_type*)object->getDataPointer(); \
+        for(unsigned n = 0; n < object->getNumElements(); n++) \
+            os << d[n] << std::endl; \
+    }
+
+#define readDrawElementsDataImpl(__elem_type) \
+    { \
+        unsigned d = (__elem_type*)object->getElement(); \
+        for(unsigned n = 0; n < tokens.size(); n++) \
+        { \
+            std::istringstream ss(tokens[n]); \
+            ss >> d[n]; \
+        } \
+    }
+
+
 bool actionHandlerImpl<MenuActionBufferDataEdit>::execute()
 {
     osg::BufferData * object = getObject<osg::BufferData,SGIItemOsg>();
+    osg::Array* array = object->asArray();
+    osg::PrimitiveSet* primitiveSet = object->asPrimitiveSet();
+    osg::Image* image = object->asImage();
+    if (array)
+    {
+    }
+    else if (primitiveSet)
+    {
+        std::stringstream os;
+
+        osg::DrawElements* drawElements = primitiveSet->getDrawElements();
+        if(drawElements)
+        {
+            unsigned maxNum = drawElements->getNumIndices();
+            for(unsigned n = 0; n < maxNum; n++)
+                os << drawElements->getElement(n) << std::endl;
+
+            std::string value = os.str();
+            bool ret;
+            ret = _hostInterface->inputDialogText(menu()->parentWidget(),
+                value,
+                "Indices:", "Indices",
+                SGIPluginHostInterface::InputDialogStringEncodingSystem,
+                _item
+                );
+            if(ret)
+            {
+                std::istringstream iss(value);
+                std::vector<std::string> tokens;
+                split(value, '\n', tokens);
+                if(tokens.size() != maxNum)
+                    drawElements->resizeElements(tokens.size());
+
+                for(unsigned n = 0; n < tokens.size(); n++)
+                {
+                    std::istringstream ss(tokens[n]);
+                    unsigned idx = 0;
+                    ss >> idx;
+                    drawElements->setElement(n, idx);
+                }
+            }
+        }
+    }
+    else if (image)
+    {
+        SGIHostItemOsg item(image);
+        IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), &item);
+        if (dialog.valid())
+            dialog->show();
+    }
+
     return true;
 }
 
 bool actionHandlerImpl<MenuActionBufferDirty>::execute()
 {
     osg::BufferData * object = getObject<osg::BufferData,SGIItemOsg>();
+    object->dirty();
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionBufferObjectDirty>::execute()
+{
+    osg::BufferObject * object = getObject<osg::BufferObject, SGIItemOsg>();
     object->dirty();
     return true;
 }
@@ -958,17 +1523,6 @@ bool actionHandlerImpl<MenuActionBufferDirty>::execute()
             ss >> d[n]; \
         } \
     }
-
-namespace {
-    std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
-        std::stringstream ss(s);
-        std::string item;
-        while (std::getline(ss, item, delim)) {
-            elems.push_back(item);
-        }
-        return elems;
-    }
-}
 
 bool actionHandlerImpl<MenuActionArrayDataEdit>::execute()
 {
@@ -1055,6 +1609,34 @@ bool actionHandlerImpl<MenuActionArrayDataEdit>::execute()
     return true;
 }
 
+bool actionHandlerImpl<MenuActionArrayBinding>::execute()
+{
+    osg::Array * object = getObject<osg::Array,SGIItemOsg>();
+    object->setBinding((osg::Array::Binding)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionArrayNormalize>::execute()
+{
+    osg::Array * object = getObject<osg::Array,SGIItemOsg>();
+    object->setNormalize(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionArrayPreserveDataType>::execute()
+{
+    osg::Array * object = getObject<osg::Array,SGIItemOsg>();
+    object->setPreserveDataType(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionArrayTrim>::execute()
+{
+    osg::Array * object = getObject<osg::Array,SGIItemOsg>();
+    object->trim();
+    return true;
+}
+
 bool actionHandlerImpl<MenuActionLineWidthSet>::execute()
 {
     osg::LineWidth * object = getObject<osg::LineWidth,SGIItemOsg>();
@@ -1099,6 +1681,74 @@ bool actionHandlerImpl<MenuActionLineStippleFactor>::execute()
                                             );
     if(ok)
         object->setFactor(value);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionLightModelColorControl>::execute()
+{
+    osg::LightModel * object = getObject<osg::LightModel, SGIItemOsg>();
+    object->setColorControl((osg::LightModel::ColorControl)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionLightModelLocalViewer>::execute()
+{
+    osg::LightModel * object = getObject<osg::LightModel, SGIItemOsg>();
+    object->setLocalViewer(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionLightModelTwoSided>::execute()
+{
+    osg::LightModel * object = getObject<osg::LightModel, SGIItemOsg>();
+    object->setTwoSided(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionLightModelAmbientIntensity>::execute()
+{
+    osg::LightModel * object = getObject<osg::LightModel, SGIItemOsg>();
+
+    sgi::Color color = osgColor(object->getAmbientIntensity());
+    if (_hostInterface->inputDialogColor(menu()->parentWidget(), color, "Ambient intensity", "Set ambient intensity", _item))
+    {
+        object->setAmbientIntensity(osgColor(color));
+        triggerRepaint();
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionBlendColorConstantColor>::execute()
+{
+    osg::BlendColor * object = getObject<osg::BlendColor, SGIItemOsg>();
+
+    sgi::Color color = osgColor(object->getConstantColor());
+    if (_hostInterface->inputDialogColor(menu()->parentWidget(), color, "Constant color", "Set constant color", _item))
+    {
+        object->setConstantColor(osgColor(color));
+        triggerRepaint();
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionPolygonModeFront>::execute()
+{
+    osg::PolygonMode * object = getObject<osg::PolygonMode, SGIItemOsg>();
+    object->setMode(osg::PolygonMode::FRONT, (osg::PolygonMode::Mode)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionPolygonModeBack>::execute()
+{
+    osg::PolygonMode * object = getObject<osg::PolygonMode, SGIItemOsg>();
+    object->setMode(osg::PolygonMode::BACK, (osg::PolygonMode::Mode)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionPolygonModeFrontAndBack>::execute()
+{
+    osg::PolygonMode * object = getObject<osg::PolygonMode, SGIItemOsg>();
+    object->setMode(osg::PolygonMode::FRONT_AND_BACK, (osg::PolygonMode::Mode)menuAction()->mode());
     return true;
 }
 
@@ -1209,21 +1859,6 @@ bool actionHandlerImpl<MenuActionMaterialShininess>::execute()
     return true;
 }
 
-bool actionHandlerImpl<MenuActionTexturePreview>::execute()
-{
-    osg::Texture * object = getObject<osg::Texture,SGIItemOsg>();
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogImagePreview, menu()->parentWidget());
-    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-    if(ret)
-    {
-        if(dialog.valid())
-            dialog->show();
-    }
-    return ret;
-}
-
 bool actionHandlerImpl<MenuActionTextureBorderColor>::execute()
 {
     osg::Texture * object = getObject<osg::Texture,SGIItemOsg>();
@@ -1313,10 +1948,101 @@ bool actionHandlerImpl<MenuActionTextureSetImage>::execute()
     return true;
 }
 
-bool actionHandlerImpl<MenuActionGeometryDirtyDisplayList>::execute()
+bool actionHandlerImpl<MenuActionTextureDirtyTextureObject>::execute()
 {
-    osg::Geometry * object = getObject<osg::Geometry,SGIItemOsg>();
-    object->dirtyDisplayList();
+	osg::Texture * object = getObject<osg::Texture,SGIItemOsg>();
+	object->dirtyTextureObject();
+	triggerRepaint();
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionTextureDirtyTextureParameters>::execute()
+{
+	osg::Texture * object = getObject<osg::Texture,SGIItemOsg>();
+	object->dirtyTextureParameters();
+	triggerRepaint();
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionTextureAllocateMipmapLevels>::execute()
+{
+	osg::Texture * object = getObject<osg::Texture,SGIItemOsg>();
+	object->allocateMipmapLevels();
+	triggerRepaint();
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionTexEnvMode>::execute()
+{
+    osg::TexEnv * object = getObject<osg::TexEnv, SGIItemOsg>();
+    object->setMode((osg::TexEnv::Mode)menuAction()->mode());
+    triggerRepaint();
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTexEnvColor>::execute()
+{
+    osg::TexEnv * object = getObject<osg::TexEnv, SGIItemOsg>();
+    sgi::Color color = osgColor(object->getColor());
+    if (_hostInterface->inputDialogColor(menu()->parentWidget(), color, "Color", "Select color", _item))
+    {
+        object->setColor(osgColor(color));
+        triggerRepaint();
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTexEnvFilterLodBias>::execute()
+{
+    osg::TexEnvFilter * object = getObject<osg::TexEnvFilter, SGIItemOsg>();
+    double value = object->getLodBias();
+    bool gotInput = _hostInterface->inputDialogDouble(menuAction()->menu()->parentWidget(), value, "Value", "Set Lod bias", 0.0, 1000.0, 1, _item);
+    if (gotInput)
+    {
+        object->setLodBias(value);
+        triggerRepaint();
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionDrawableUseDisplayList>::execute()
+{
+	osg::Drawable * object = getObject<osg::Drawable, SGIItemOsg>();
+	object->setUseDisplayList(menuAction()->state());
+	object->dirtyGLObjects();
+	triggerRepaint();
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionDrawableSupportsDisplayList>::execute()
+{
+	osg::Drawable * object = getObject<osg::Drawable, SGIItemOsg>();
+	object->setSupportsDisplayList(menuAction()->state());
+	object->dirtyGLObjects();
+	triggerRepaint();
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionDrawableDirtyGLObjects>::execute()
+{
+	osg::Drawable * object = getObject<osg::Drawable, SGIItemOsg>();
+	object->dirtyGLObjects();
+	triggerRepaint();
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionDrawableUseVBO>::execute()
+{
+	osg::Drawable * object = getObject<osg::Drawable, SGIItemOsg>();
+	object->setUseVertexBufferObjects(menuAction()->state());
+	triggerRepaint();
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionDrawableRenderInfoDrawCallback>::execute()
+{
+    osg::Drawable * object = getObject<osg::Drawable, SGIItemOsg>();
+    RenderInfo::installDrawCallback(object, menuAction()->state());
     triggerRepaint();
     return true;
 }
@@ -1332,39 +2058,78 @@ bool actionHandlerImpl<MenuActionGeometryColor>::execute()
         {
             for(unsigned i = 0; i < colorArray->size(); i++)
                 (*colorArray)[i] = osgColor(color);
-            object->dirtyDisplayList();
+            object->dirtyGLObjects();
             triggerRepaint();
         }
     }
     return true;
 }
 
-bool actionHandlerImpl<MenuActionImagePreview>::execute()
+bool actionHandlerImpl<MenuActionGeometryFixDeprecatedData>::execute()
 {
-    osg::Image * object = getObject<osg::Image,SGIItemOsg>();
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogImagePreview, menu()->parentWidget());
-    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-    if(ret)
-    {
-        if(dialog.valid())
-            dialog->show();
-    }
-    return ret;
+    osg::Geometry * object = getObject<osg::Geometry, SGIItemOsg>();
+    object->fixDeprecatedData();
+    return true;
 }
 
-bool actionHandlerImpl<MenuActionHeightFieldPreview>::execute()
+bool actionHandlerImpl<MenuActionImagePreview>::execute()
 {
-    osg::HeightField * object = getObject<osg::HeightField,SGIItemOsg>();
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogImagePreview, menu()->parentWidget());
-    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-    if(ret)
+    bool ret = false;
+    osg::Texture * texture = getObject<osg::Texture, SGIItemOsg, DynamicCaster>();
+    if (texture)
     {
-        if(dialog.valid())
+        ISettingsDialogPtr dialog;
+        ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogExtraView, menu()->parentWidget(), hostCallback());
+        ret = _hostInterface->openSettingsDialog(dialog, _item, info);
+        if (ret)
+        {
+            if (dialog.valid())
+                dialog->show();
+        }
+    }
+    else
+    {
+        osg::Image * image = getObject<osg::Image, SGIItemOsg, DynamicCaster>();
+        IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), _item.get());
+
+        if (dialog.valid())
+        {
+            if (image)
+                dialog->setObject(_item.get(), osg_helpers::convertImage(image), std::string(), hostCallback());
+            else if (texture)
+            {
+
+                bool imageOk = false;
+                osg::ref_ptr<const sgi::Image> textureImage;
+                /*
+                for (unsigned n = 0; n < texture->getNumImages() && !textureImage.valid(); ++n)
+                {
+                    osg::Image * txtimg = texture->getImage(n);
+                    if(txtimg)
+                    {
+                        textureImage = osg_helpers::convertImage(txtimg);
+                        if(textureImage.valid())
+                            imageOk = true;
+                    }
+                }
+                */
+                if (!imageOk)
+                {
+                    osg::Camera * camera = findCamera(texture);
+                    if (camera)
+                    {
+                        osg::ref_ptr<osg::Image> image;
+                        if (convertTextureToImage(camera, texture, image))
+                            textureImage = osg_helpers::convertImage(image);
+                    }
+                }
+                dialog->setObject(_item.get(), textureImage, std::string(), hostCallback());
+            }
+            else
+                dialog->setObject(_item.get(), nullptr, std::string(), hostCallback());
             dialog->show();
+            ret = true;
+        }
     }
     return ret;
 }
@@ -1399,7 +2164,7 @@ bool actionHandlerImpl<MenuActionGeodeAddShapeDrawable>::execute()
         newShape = new osg::Cylinder;
         break;
     case MenuActionAddShapeCapsule:
-        newShape = new osg::Cylinder;
+        newShape = new osg::Capsule;
         break;
     }
     if(newShape.valid())
@@ -1408,13 +2173,6 @@ bool actionHandlerImpl<MenuActionGeodeAddShapeDrawable>::execute()
         object->addDrawable(newDrawable.get());
         triggerRepaint();
     }
-    return true;
-}
-
-bool actionHandlerImpl<MenuActionGeodeRenderInfoDrawable>::execute()
-{
-    osg::Geode * object = getObject<osg::Geode,SGIItemOsg>();
-    RenderInfoDrawable::enable(object, menuAction()->state());
     return true;
 }
 
@@ -1427,6 +2185,13 @@ bool actionHandlerImpl<MenuActionShapeDrawableColor>::execute()
         object->setColor(osgColor(color));
         triggerRepaint();
     }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionShapeDrawableBuild>::execute()
+{
+    osg::ShapeDrawable * object = getObject<osg::ShapeDrawable, SGIItemOsg>();
+    object->build();
     return true;
 }
 
@@ -1667,6 +2432,24 @@ bool actionHandlerImpl<MenuActionDatabasePagerPause>::execute()
     return true;
 }
 
+bool actionHandlerImpl<MenuActionDatabasePagerDatabaseThreads>::execute()
+{
+	osgDB::DatabasePager * object = getObject<osgDB::DatabasePager, SGIItemOsg>();
+	int number = (int)object->getNumDatabaseThreads();
+
+	int defaultNumThreads = OpenThreads::GetNumberOfProcessors();
+	bool ret;
+	ret = _hostInterface->inputDialogInteger(menu()->parentWidget(),
+		number,
+		"Number:", helpers::str_plus_count("Set number of database threads", defaultNumThreads),
+		0, 64, 1,
+		_item
+		);
+	if (ret)
+		object->setUpThreads((unsigned)number, 0);
+	return true;
+}
+
 bool actionHandlerImpl<MenuActionDatabasePagerAcceptNewRequests>::execute()
 {
     osgDB::DatabasePager * object = getObject<osgDB::DatabasePager,SGIItemOsg>();
@@ -1704,10 +2487,24 @@ bool actionHandlerImpl<MenuActionDatabasePagerTargetPageLODNumber>::execute()
     return true;
 }
 
+bool actionHandlerImpl<MenuActionDatabasePagerIncrementalCompileOperation>::execute()
+{
+	osgDB::DatabasePager * object = getObject<osgDB::DatabasePager, SGIItemOsg>();
+	object->setIncrementalCompileOperation(new osgUtil::IncrementalCompileOperation);
+	return true;
+}
+
 bool actionHandlerImpl<MenuActionCameraManipulatorAutoComputeHome>::execute()
 {
     osgGA::CameraManipulator * object = getObject<osgGA::CameraManipulator,SGIItemOsg, DynamicCaster>();
     object->setAutoComputeHomePosition(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionShaderDirty>::execute()
+{
+    osg::Shader * object = getObject<osg::Shader, SGIItemOsg>();
+    object->dirtyShader();
     return true;
 }
 
@@ -1725,6 +2522,43 @@ bool actionHandlerImpl<MenuActionShaderEditSource>::execute()
     if(ret)
         object->setShaderSource(source);
     return true;
+}
+
+bool actionHandlerImpl<MenuActionViewerBaseMaxFrameRate>::execute()
+{
+	osgViewer::ViewerBase * object = getObject<osgViewer::ViewerBase, SGIItemOsg, DynamicCaster>();
+	double number = object->getRunMaxFrameRate();
+	bool ret;
+	ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+		number,
+		"Number:", "Set target maximum number of PageLODs",
+		0, 120.0, 1,
+		_item
+		);
+	if (ret)
+		object->setRunMaxFrameRate(number);
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionViewerBaseRunFrameScheme>::execute()
+{
+	osgViewer::ViewerBase * object = getObject<osgViewer::ViewerBase, SGIItemOsg, DynamicCaster>();
+	object->setRunFrameScheme((osgViewer::ViewerBase::FrameScheme)menuAction()->mode());
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionViewerBaseThreadingModel>::execute()
+{
+    osgViewer::ViewerBase * object = getObject<osgViewer::ViewerBase, SGIItemOsg, DynamicCaster>();
+    object->setThreadingModel((osgViewer::ViewerBase::ThreadingModel)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionViewerBaseIncrementalCompileOperation>::execute()
+{
+	osgViewer::ViewerBase * object = getObject<osgViewer::ViewerBase, SGIItemOsg, DynamicCaster>();
+	object->setIncrementalCompileOperation(new osgUtil::IncrementalCompileOperation);
+	return true;
 }
 
 bool actionHandlerImpl<MenuActionDepthFunction>::execute()
@@ -1788,11 +2622,11 @@ bool actionHandlerImpl<MenuActionTextBaseCharacterHeight>::execute()
     ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
                                              number,
                                              "Character height:", "Set height for characters",
-                                             0.0, 1000.0, 1,
+                                             0.0, 100000.0, 1,
                                              _item
                                             );
     if(ret)
-        object->setCharacterSize(number);
+        object->setCharacterSize((float)number);
     return true;
 }
 
@@ -1819,6 +2653,45 @@ bool actionHandlerImpl<MenuActionTextBaseCharacterSizeMode>::execute()
     return true;
 }
 
+bool actionHandlerImpl<MenuActionTextBaseLayout>::execute()
+{
+    osgText::TextBase * object = getObject<osgText::TextBase, SGIItemOsg>();
+    object->setLayout((osgText::TextBase::Layout)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBaseSetFontWidth>::execute()
+{
+	osgText::Text * object = getObject<osgText::Text, SGIItemOsg>();
+	double number = object->getFontWidth();
+	bool ret;
+	ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+		number,
+		"Font width:", "Set font width (resolution)",
+		0.0, 100.0, 1,
+		_item
+		);
+	if (ret)
+		object->setFontResolution(number, object->getFontHeight());
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBaseSetFontHeight>::execute()
+{
+	osgText::Text * object = getObject<osgText::Text, SGIItemOsg>();
+	double number = object->getFontHeight();
+	bool ret;
+	ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+		number,
+		"Font height:", "Set font height (resolution)",
+		0.0, 100.0, 1,
+		_item
+		);
+	if (ret)
+		object->setFontResolution(object->getFontWidth(), number);
+	return true;
+}
+
 bool actionHandlerImpl<MenuActionTextBaseDrawMode>::execute()
 {
     osgText::TextBase * object = getObject<osgText::TextBase,SGIItemOsg>();
@@ -1833,10 +2706,115 @@ bool actionHandlerImpl<MenuActionTextBaseAxisAlignment>::execute()
     return true;
 }
 
+bool actionHandlerImpl<MenuActionTextBaseSetMaximumWidth>::execute()
+{
+    osgText::TextBase * object = getObject<osgText::TextBase, SGIItemOsg>();
+    double number = object->getMaximumWidth();
+    bool ret;
+    ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+        number,
+        "Width:", "Set maximum width",
+        0.0, 1000.0, 1,
+        _item
+        );
+    if (ret)
+        object->setMaximumWidth(number);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBaseSetMaximumHeight>::execute()
+{
+    osgText::TextBase * object = getObject<osgText::TextBase, SGIItemOsg>();
+    double number = object->getMaximumHeight();
+    bool ret;
+    ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+        number,
+        "Height:", "Set maximum height",
+        0.0, 1000.0, 1,
+        _item
+        );
+    if (ret)
+        object->setMaximumHeight(number);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBaseComputeGlyphRepresentation>::execute()
+{
+    osgTextBaseAccess * object = static_cast<osgTextBaseAccess*>(getObject<osgText::TextBase, SGIItemOsg>());
+    object->forceComputeGlyphRepresentation();
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBackdropEnableDepthWrites>::execute()
+{
+    osgText::Text * object = getObject<osgText::Text,SGIItemOsg>();
+    object->setEnableDepthWrites(menuAction()->state());
+    return true;
+}
+
 bool actionHandlerImpl<MenuActionTextBackdropType>::execute()
 {
     osgText::Text * object = getObject<osgText::Text,SGIItemOsg>();
     object->setBackdropType((osgText::Text::BackdropType)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBackdropImplementation>::execute()
+{
+    osgText::Text * object = getObject<osgText::Text, SGIItemOsg>();
+    object->setBackdropImplementation((osgText::Text::BackdropImplementation)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBackdropHorizontalOffset>::execute()
+{
+    osgText::Text * object = getObject<osgText::Text, SGIItemOsg>();
+    double number = object->getBackdropHorizontalOffset();
+    bool ret;
+    ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+                                             number,
+                                             "Horizontal offset:", "Set backdrop horizontal offset",
+                                             0.0, 100.0, 1,
+                                             _item
+                                            );
+    if(ret)
+        object->setBackdropOffset(number, object->getBackdropVerticalOffset());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBackdropVerticalOffset>::execute()
+{
+    osgText::Text * object = getObject<osgText::Text, SGIItemOsg>();
+    double number = object->getBackdropVerticalOffset();
+    bool ret;
+    ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+                                             number,
+                                             "Vertical offset:", "Set backdrop vertical offset",
+                                             0.0, 100.0, 1,
+                                             _item
+                                            );
+    if(ret)
+        object->setBackdropOffset(object->getBackdropHorizontalOffset(), number);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBackdropColor>::execute()
+{
+    osgText::Text * object = getObject<osgText::Text, SGIItemOsg>();
+
+    sgi::Color color = osgColor(object->getBackdropColor());
+    if(_hostInterface->inputDialogColor(menu()->parentWidget(), color, "Backdrop color", "Select backdrop color", _item))
+    {
+        object->setBackdropColor(osgColor(color));
+        triggerRepaint();
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextBackdropColorGradientMode>::execute()
+{
+    osgText::Text * object = getObject<osgText::Text, SGIItemOsg>();
+    object->setColorGradientMode((osgText::Text::ColorGradientMode)menuAction()->mode());
     return true;
 }
 
@@ -1868,6 +2846,86 @@ bool actionHandlerImpl<MenuActionAnimationManagerBaseDirty>::execute()
     osgAnimation::AnimationManagerBase * object = getObject<osgAnimation::AnimationManagerBase, SGIItemOsg, DynamicCaster>();
     object->dirty();
     return true;
+}
+
+bool actionHandlerImpl<MenuActionIncrementalCompileOperationTargetFrameRate>::execute()
+{
+	osgUtil::IncrementalCompileOperation * object = getObject<osgUtil::IncrementalCompileOperation, SGIItemOsg, DynamicCaster>();
+	double number = object->getTargetFrameRate();
+	bool ret;
+	ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+		number,
+		"Frame rate:", "Set target frame rate",
+		0.0, 120.0, 1,
+		_item
+		);
+	if (ret)
+		object->setTargetFrameRate(number);
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionIncrementalCompileOperationMinimumTimeAvailableForGLCompileAndDeletePerFrame>::execute()
+{
+	osgUtil::IncrementalCompileOperation * object = getObject<osgUtil::IncrementalCompileOperation, SGIItemOsg, DynamicCaster>();
+	double number = object->getMinimumTimeAvailableForGLCompileAndDeletePerFrame();
+	bool ret;
+	ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+		number,
+		"Time:", "Set minimum time available for GL compile and delete per frame",
+		0.0, 600.0, 1,
+		_item
+		);
+	if (ret)
+		object->setMinimumTimeAvailableForGLCompileAndDeletePerFrame(number);
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionIncrementalCompileOperationMaximumNumOfObjectsToCompilePerFrame>::execute()
+{
+	osgUtil::IncrementalCompileOperation * object = getObject<osgUtil::IncrementalCompileOperation, SGIItemOsg, DynamicCaster>();
+	int number = object->getMaximumNumOfObjectsToCompilePerFrame();
+	bool ret;
+	ret = _hostInterface->inputDialogInteger(menu()->parentWidget(),
+		number,
+		"Number:", "Set maximum number of objects to compile per frame",
+		0, 1000, 1,
+		_item
+		);
+	if (ret)
+		object->setMaximumNumOfObjectsToCompilePerFrame(number);
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionIncrementalCompileOperationFlushTimeRatio>::execute()
+{
+	osgUtil::IncrementalCompileOperation * object = getObject<osgUtil::IncrementalCompileOperation, SGIItemOsg, DynamicCaster>();
+	double number = object->getFlushTimeRatio();
+	bool ret;
+	ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+		number,
+		"Time ratio:", "Set flush time ratio",
+		0.0, 100.0, 1,
+		_item
+		);
+	if (ret)
+		object->setFlushTimeRatio(number);
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionIncrementalCompileOperationConservativeTimeRatio>::execute()
+{
+	osgUtil::IncrementalCompileOperation * object = getObject<osgUtil::IncrementalCompileOperation, SGIItemOsg, DynamicCaster>();
+	double number = object->getConservativeTimeRatio();
+	bool ret;
+	ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+		number,
+		"Time ratio:", "Set convervative time ratio",
+		0.0, 100.0, 1,
+		_item
+		);
+	if (ret)
+		object->setConservativeTimeRatio(number);
+	return true;
 }
 
 namespace {
@@ -2080,6 +3138,90 @@ bool actionHandlerImpl<MenuActionToolFindEventNodes>::execute()
                     SGIHostItemOsg item(node.get());
                     pathNode->addChild(std::string(), &item);
                 }
+            }
+        }
+
+    }
+    return true;
+}
+
+
+class FindStateSetTraversalNodesVisitor : public osg::NodeVisitor
+{
+public:
+    FindStateSetTraversalNodesVisitor(TraversalMode tm = TRAVERSE_ALL_CHILDREN)
+        : osg::NodeVisitor(tm), _results(), _unique(true) {}
+
+    FindStateSetTraversalNodesVisitor(VisitorType type, TraversalMode tm = TRAVERSE_ALL_CHILDREN)
+        : osg::NodeVisitor(type, tm), _results(), _unique(true) {}
+
+    void clear()
+    {
+        _results.clear();
+    }
+
+    typedef std::vector< osg::ref_ptr<osg::StateSet> > StateSetList;
+
+    const StateSetList &   results() const
+    {
+        return _results;
+    }
+
+    virtual void apply(osg::Node& node)
+    {
+        if (node.getStateSet() != 0)
+            foundStateSet(node.getStateSet());
+        traverse(node);
+    }
+
+protected:
+    void                    foundStateSet(osg::StateSet * ss)
+    {
+        if(!_unique)
+            _results.push_back(ss);
+        else
+        {
+            auto it = std::find(_results.begin(), _results.end(), ss);
+            if (it == _results.end())
+                _results.push_back(ss);
+        }
+    }
+protected:
+    StateSetList       _results;
+    bool _unique;
+};
+
+bool actionHandlerImpl<MenuActionToolFindAllStateSets>::execute()
+{
+    ISceneGraphDialogToolsMenu * toolsMenu = static_cast<ISceneGraphDialogToolsMenu*>(item<SGIItemInternal>()->object());
+    ISceneGraphDialog * dialog = (toolsMenu) ? toolsMenu->getDialog() : NULL;
+    IObjectTreeItem * selectedItem = (dialog) ? dialog->selectedItem() : NULL;
+    SGIItemOsg * item = selectedItem ? dynamic_cast<SGIItemOsg *>(selectedItem->item()) : NULL;
+    osg::Node * object = item ? dynamic_cast<osg::Node*>(item->object()) : NULL;
+
+    if (object)
+    {
+        FindStateSetTraversalNodesVisitor visitor;
+        object->accept(visitor);
+
+        const auto & results = visitor.results();
+        if (results.empty())
+        {
+            std::stringstream os;
+            os << "<i>no state sets found</i><br/>" << std::endl;
+            dialog->setInfoText(os.str());
+        }
+        else
+        {
+            selectedItem->expand();
+            IObjectTreeItem * stateSetsItem = selectedItem->addChild("Found StateSets", (SGIItemBase*)NULL);
+
+            unsigned num = 0;
+            for (auto it = results.begin(); it != results.end(); num++, it++)
+            {
+                const osg::ref_ptr<osg::StateSet> & ss = *it;
+                SGIHostItemOsg item(ss.get());
+                stateSetsItem->addChild(std::string(), &item);
             }
         }
 
@@ -2614,6 +3756,143 @@ bool actionHandlerImpl<MenuActionToolDistanceToCamera>::execute()
     return true;
 }
 
+class FindClosestNodeVisitor : public osg::NodeVisitor
+{
+public:
+    typedef std::map<osg::Node::NodeMask, osg::NodePathList> NodeMaskUsers;
+
+public:
+    FindClosestNodeVisitor(const osg::Camera * camera, bool onlyLODs, const osg::NodeVisitor::TraversalMode mode= osg::NodeVisitor::TRAVERSE_ACTIVE_CHILDREN)
+        : osg::NodeVisitor(mode) 
+        , _onlyLODs(onlyLODs)
+    {
+        camera->getViewMatrixAsLookAt(_eye, _center, _up);
+    }
+
+    /** Get the eye point in local coordinates.
+    * Note, not all NodeVisitor implement this method, it is mainly cull visitors which will implement.*/
+    osg::Vec3 getEyePoint() const override { return _eye; }
+
+    /** Get the distance from a point to the eye point, distance value in local coordinate system.
+    * Note, not all NodeVisitor implement this method, it is mainly cull visitors which will implement.
+    * If the getDistanceFromEyePoint(pos) is not implemented then a default value of 0.0 is returned.*/
+    virtual float getDistanceToEyePoint(const osg::Vec3& pos, bool /*useLODScale*/) const override
+    {
+        return (pos - _eye).length();
+    }
+
+    /** Get the distance of a point from the eye point, distance value in the eye coordinate system.
+    * Note, not all NodeVisitor implement this method, it is mainly cull visitors which will implement.
+    * If the getDistanceFromEyePoint(pos) is not implemented than a default value of 0.0 is returned.*/
+    virtual float getDistanceFromEyePoint(const osg::Vec3& pos, bool /*useLODScale*/) const override
+    {
+        return (_eye - pos).length();
+    }
+
+    /** Get the distance from a point to the view point, distance value in local coordinate system.
+    * Note, not all NodeVisitor implement this method, it is mainly cull visitors which will implement.
+    * If the getDistanceToViewPoint(pos) is not implemented then a default value of 0.0 is returned.*/
+    virtual float getDistanceToViewPoint(const osg::Vec3& pos, bool /*useLODScale*/) const override
+    {
+        return (_eye - pos).length();
+    }
+
+
+    void clear()
+    {
+        _list.clear();
+    }
+
+    typedef std::pair<float, osg::NodePath> DistancedNodePath;
+    typedef std::list<DistancedNodePath> DistancedNodePathList;
+
+    const DistancedNodePathList & results() const
+    {
+        return _list;
+    }
+
+    static bool sort_by_distance(const DistancedNodePath& first, const DistancedNodePath& second)
+    {
+        return first.first < second.first;
+    }
+
+    const DistancedNodePathList & sorted_results()
+    {
+        _list.sort(sort_by_distance);
+        return _list;
+    }
+
+    void apply(osg::Node& node) override
+    {
+        if (!_onlyLODs)
+        {
+            float distance = getDistanceToViewPoint(node.getBound().center(), true);
+            DistancedNodePath item(distance, getNodePath());
+            _list.push_back(item);
+            traverse(node);
+        }
+    }
+    void apply(osg::PagedLOD& node) override
+    {
+        if (_onlyLODs)
+        {
+            float distance = getDistanceToViewPoint(node.getCenter(), true);
+            DistancedNodePath item(distance, getNodePath());
+            _list.push_back(item);
+            traverse(node);
+        }
+        else
+            osg::NodeVisitor::apply(node);
+    }
+    void apply(osg::LOD& node) override
+    {
+        if (_onlyLODs)
+        {
+            float distance = getDistanceToViewPoint(node.getCenter(), true);
+            DistancedNodePath item(distance, getNodePath());
+            _list.push_back(item);
+            traverse(node);
+        }
+        else
+            osg::NodeVisitor::apply(node);
+    }
+
+private:
+    osg::Vec3d _eye, _center, _up;
+    DistancedNodePathList _list;
+    bool _onlyLODs;
+};
+
+bool actionHandlerImpl<MenuActionToolFindClosestNodeToCamera>::execute()
+{
+    ISceneGraphDialogToolsMenu * toolsMenu = static_cast<ISceneGraphDialogToolsMenu*>(item<SGIItemInternal>()->object());
+    ISceneGraphDialog * dialog = (toolsMenu) ? toolsMenu->getDialog() : NULL;
+    IObjectTreeItem * selectedItem = (dialog) ? dialog->selectedItem() : NULL;
+    SGIItemOsg * item = selectedItem ? dynamic_cast<SGIItemOsg *>(selectedItem->item()) : NULL;
+    osg::Node * object = item ? dynamic_cast<osg::Node*>(item->object()) : NULL;
+    if (object)
+    {
+        osg::Camera * camera = dynamic_cast<osg::Camera*>(object);
+        if (!camera)
+            camera = findFirstParentOfType<osg::Camera>(object);
+        if (camera)
+        {
+            FindClosestNodeVisitor fcnv(camera, true);
+            object->accept(fcnv);
+
+            selectedItem->expand();
+            for (const FindClosestNodeVisitor::DistancedNodePath & nodepath : fcnv.sorted_results())
+            {
+                SGIHostItemOsg item(nodepath.second.back());
+                std::string name;
+                _hostInterface->getObjectDisplayName(name, &item);
+                selectedItem->addChild(helpers::str_plus_number(name, nodepath.first), &item);
+            }
+        }
+    }
+    return true;
+}
+
 bool actionHandlerImpl<MenuActionToolFindCamera>::execute()
 {
     ISceneGraphDialogToolsMenu * toolsMenu = static_cast<ISceneGraphDialogToolsMenu*>(item<SGIItemInternal>()->object());
@@ -2662,6 +3941,160 @@ bool actionHandlerImpl<MenuActionToolFindView>::execute()
     }
     return true;
 }
+
+
+bool actionHandlerImpl<MenuActionViewLightingMode>::execute()
+{
+    osg::View * object = getObject<osg::View, SGIItemOsg, DynamicCaster>();
+    object->setLightingMode((osg::View::LightingMode)menuAction()->mode());
+    return true;
+}
+
+
+
+class CaptureImage : public osgViewer::ScreenCaptureHandler::CaptureOperation
+{
+public:
+	CaptureImage()
+		: _image()
+	{
+		_mutex.lock();
+	}
+    ~CaptureImage()
+    {
+        // avoid Qt warning
+        _mutex.unlock();
+    }
+	osg::Image * takeImage() { return _image.release(); }
+public:
+	virtual void operator()(const osg::Image& image, const unsigned int context_id) override
+	{
+		_image = static_cast<osg::Image*>(image.clone(osg::CopyOp::DEEP_COPY_ALL));
+		_mutex.unlock();
+	}
+	void wait()
+	{
+		_mutex.lock();
+	}
+protected:
+	osg::ref_ptr<osg::Image> _image;
+	QMutex _mutex;
+};
+
+bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
+{
+	SGIItemOsg * osgitem = static_cast<SGIItemOsg*>(_item.get());
+
+    osgViewer::View * view = nullptr;
+	osgViewer::ViewerBase * viewerbase = dynamic_cast<osgViewer::ViewerBase *>(osgitem->object());
+    osg::Camera * camera = nullptr;
+    osg::Camera * masterCamera = nullptr;
+	if(!viewerbase)
+	{
+		view = dynamic_cast<osgViewer::View*>(osgitem->object());
+		if(view)
+			viewerbase = view->getViewerBase();
+		else
+        {
+            camera = dynamic_cast<osg::Camera*>(osgitem->object());
+            if (camera)
+            {
+                view = dynamic_cast<osgViewer::View*>(camera->getView());
+                if(view)
+                    viewerbase = view->getViewerBase();
+
+                for (auto * parent : camera->getParents())
+                {
+                    osg::Camera * nextCamera = findFirstParentOfType<osg::Camera>(parent);
+                    if (nextCamera)
+                    {
+                        view = dynamic_cast<osgViewer::View*>(nextCamera->getView());
+                        if (view)
+                        {
+                            masterCamera = nextCamera;
+                            viewerbase = view->getViewerBase();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+	}
+	
+    osg::ref_ptr<osg::Image> image;
+    if (camera)
+    {
+        captureCameraImage(camera, image, masterCamera);
+    }
+    else if(viewerbase)
+	{
+		osg::ref_ptr<osgViewer::ScreenCaptureHandler> capture = new osgViewer::ScreenCaptureHandler;
+		capture->setFramesToCapture(1);
+		osg::ref_ptr<CaptureImage> handler = new CaptureImage;
+		capture->setCaptureOperation(handler);
+		capture->captureNextFrame(*viewerbase);
+
+		osgViewer::ViewerBase::Views views;
+		viewerbase->getViews(views);
+		if (!views.empty() || view)
+		{
+			bool stopThreads = false;
+			if(!viewerbase->areThreadsRunning())
+			{
+				viewerbase->startThreading();
+				stopThreads = true;
+			}
+            if (viewerbase->getThreadingModel() != osgViewer::ViewerBase::SingleThreaded)
+            {
+                if (!view)
+                    views.front()->requestRedraw();
+                else
+                    view->requestRedraw();
+                handler->wait();
+            }
+            else
+                viewerbase->renderingTraversals();
+			if (stopThreads)
+				viewerbase->stopThreading();
+			image = handler->takeImage();
+		}
+	}
+    if (image.valid())
+    {
+        IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), _item.get());
+        if (dialog.valid())
+        {
+            dialog->setObject(_item.get(), convertImage(image), std::string(), hostCallback());
+            dialog->show();
+        }
+    }
+
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionViewPortModify>::execute()
+{
+    osg::Viewport * object = getObject<osg::Viewport, SGIItemOsg>();
+    std::stringstream ss;
+    ss << object->x() << ' ' << object->y() << ' ' << object->width() << ' ' << object->height();
+    std::string str = ss.str();
+    bool ret;
+    ret = _hostInterface->inputDialogString(menu()->parentWidget(),
+        str,
+        "Viewport:", "Modify viewport",
+        SGIPluginHostInterface::InputDialogStringEncodingSystem,
+        _item
+    );
+    if (ret)
+    {
+        double x, y, w, h;
+        std::stringstream ss(str);
+        ss >> x >> y >> w >> h;
+        object->setViewport(x, y, w, h);
+    }
+    return true;
+}
+
 
 } // namespace osg_plugin
 } // namespace sgi

@@ -1,0 +1,63 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#if !defined(SGI_NO_HOSTITEM_GENERATOR)
+#include "plugins/SGIHostItemGenerator"
+#endif
+#include "plugins/ImagePreviewDialog"
+
+namespace sgi {
+
+template<typename AUTOLOADCLASS>
+inline IImagePreviewDialog * showImagePreviewDialogImpl(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=NULL)
+{
+    IImagePreviewDialog * ret;
+    typedef IImagePreviewDialog * (*pfn)(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback);
+    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_showImagePreviewDialog");
+    if(func)
+        ret = func(parent, object, callback);
+    else
+        ret = NULL;
+    return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline IImagePreviewDialog * showImagePreviewDialogImpl(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL)
+{
+    IImagePreviewDialog * ret;
+    typedef IImagePreviewDialog * (*pfn)(QWidget *parent, const SGIItemBase * item, IHostCallback * callback);
+    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_showImagePreviewDialogItem");
+    if(func)
+        ret = func(parent, item, callback);
+    else
+        ret = NULL;
+    return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL)
+{
+    IImagePreviewDialog * ret = showImagePreviewDialogImpl<AUTOLOADCLASS>(parent, item, callback);
+    return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * item, IHostCallback * callback=NULL)
+{
+    IImagePreviewDialog * ret = showImagePreviewDialogImpl<AUTOLOADCLASS>(parent, item, callback);
+    return ret;
+}
+
+#if !defined(SGI_NO_HOSTITEM_GENERATOR)
+template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
+inline IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, OBJECT_TYPE * object, IHostCallback * callback=NULL)
+{
+    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    IImagePreviewDialog * ret = showImagePreviewDialogImpl<AUTOLOADCLASS>(parent, hostitem.get(), callback);
+    return ret;
+}
+#endif // !defined(SGI_NO_HOSTITEM_GENERATOR)
+
+} // namespace sgi

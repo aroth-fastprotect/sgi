@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include <ostream>
 #include "writeHTMLOSG.h"
-#include "writeHTMLOSGTerrain.h"
 #include "SGIItemOsg"
 
 #include <osg/io_utils>
@@ -14,14 +13,14 @@
 namespace sgi {
 namespace osg_plugin {
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgTerrain::Layer)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgTerrain::ImageLayer)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgTerrain::ContourLayer)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgTerrain::HeightFieldLayer)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgTerrain::ProxyLayer)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgTerrain::CompositeLayer)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgTerrain::Terrain)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgTerrain::TerrainTile)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgTerrain::Layer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgTerrain::ImageLayer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgTerrain::ContourLayer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgTerrain::HeightFieldLayer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgTerrain::ProxyLayer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgTerrain::CompositeLayer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgTerrain::Terrain)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgTerrain::TerrainTile)
 
 bool writePrettyHTMLImpl<osgTerrain::Layer>::process(std::basic_ostream<char>& os)
 {

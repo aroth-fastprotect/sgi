@@ -14,12 +14,10 @@ enum SettingsDialog {
     SettingsDialogAutoClipPlaneCullCallback,
     SettingsDialogTileInspector,
     SettingsDialogRetrieveElevation,
+    SettingsDialogLODScaleOverride
 };
 
 SETTINGS_DIALOG_CREATE_IMPL_TEMPLATE()
-SETTINGS_DIALOG_CREATE_IMPL_DECLARE(SettingsDialogAutoClipPlaneCullCallback)
-SETTINGS_DIALOG_CREATE_IMPL_DECLARE(SettingsDialogTileInspector)
-SETTINGS_DIALOG_CREATE_IMPL_DECLARE(SettingsDialogRetrieveElevation)
 
 } // namespace osgearth_plugin
 } // namespace sgi

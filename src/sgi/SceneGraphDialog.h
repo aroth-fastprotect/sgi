@@ -4,7 +4,6 @@
 #include <sgi/plugins/SceneGraphDialog>
 
 QT_BEGIN_NAMESPACE
-class Ui_SceneGraphDialog;
 class QTimer;
 class QTreeWidgetItem;
 class QToolBar;
@@ -15,6 +14,8 @@ QT_END_NAMESPACE
 namespace sgi {
 
 class IContextMenuItem;
+class IContextMenu;
+typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
 class IObjectTreeItem;
 class ObjectTreeItem;
 class ContextMenu;
@@ -34,29 +35,31 @@ class SceneGraphDialog : public QDialog
 
 public:
 							SceneGraphDialog(QWidget *parent = 0, Qt::WindowFlags f = 0);
-							SceneGraphDialog(SGIItemBase * item, ISceneGraphDialogInfo * info=NULL, QWidget *parent = 0, Qt::WindowFlags f = 0);
+							SceneGraphDialog(SGIItemBase * item, IHostCallback * callback=NULL, QWidget *parent = 0, Qt::WindowFlags f = 0);
 	virtual					~SceneGraphDialog();
 
 public:
     ISceneGraphDialog *     dialogInterface() { return _interface; }
     IContextMenu *          toolsMenu();
-    void                    setObject(const SGIHostItemBase * hostitem, ISceneGraphDialogInfo * info);
-    void                    setObject(SGIItemBase * item, ISceneGraphDialogInfo * info);
+    void                    setObject(const SGIHostItemBase * hostitem, IHostCallback * callback);
+    void                    setObject(SGIItemBase * item, IHostCallback * callback);
     IObjectTreeItem *       selectedItem();
     IObjectTreeItem *       rootItem();
+	SGIItemBase *           item() const;
+	const SGIItemBasePtrPath & itemPath() const;
     void                    setInfoText(const std::string & text);
 
 public slots:
     void					itemPrevious();
     void					itemNext();
-    void					onObjectChanged();
+    void					onObjectChanged(SGIItemBase * item);
 
 	void					onItemExpanded(QTreeWidgetItem * item);
 	void					onItemCollapsed(QTreeWidgetItem * item);
     void					onItemClicked(QTreeWidgetItem * item, int column);
 	void					onItemActivated(QTreeWidgetItem * item, int column);
 	void					onItemContextMenu(QPoint pt);
-    void                    onItemSelectionChanged();
+    void					onItemSelectionChanged();
 
 protected slots:
     void                    selectItemFromPath(int index);
@@ -65,17 +68,24 @@ protected slots:
     void                    reload();
     void                    reloadSelectedItem();
 
+    void                    tabChanged(int index);
+    void                    addNewTab();
+    void                    closeTab();
+
     void                    showBesideParent();
 
 signals:
-    void                    triggerOnObjectChanged();
+    void                    triggerOnObjectChanged(SGIItemBase * item);
     void                    triggerShow();
     void                    triggerHide();
 
 protected:
-    class ContextMenuCallback;
+    class HostCallback;
     class SceneGraphDialogImpl;
     class ToolsMenuImpl;
+private:
+    class Ui_SceneGraphDialog;
+    class Ui_TabPage;
 
 protected:
     bool                    buildRootTree(ObjectTreeItem * treeItem);
@@ -94,35 +104,28 @@ protected:
 
     void                    selectItemInPathBox();
 
+    virtual void            closeEvent(QCloseEvent * event) override;
+    virtual void            showEvent(QShowEvent * event) override;
+
 private:
-    void                    init();
     void                    updatePathComboBox();
 
 private:
 	Ui_SceneGraphDialog *	ui;
+    Ui_TabPage *            uiPage;
 
 protected:  // for now
 	SGIItemBasePtr                      _itemSelf;
-    ISceneGraphDialogPtr                _interface;
-    SGIItemBasePtr                      _item;
-    SGIItemBasePtrPath                  _itemPath;
-	osg::ref_ptr<ISceneGraphDialogInfo> _info;
-    QToolBar *                          _toolBar;
-    QAction *                           _actionReload;
-    QAction *                           _actionReloadSelected;
-    QAction *                           _actionItemPrevious;
-    QAction *                           _actionItemNext;
-    QComboBox *                         _comboBoxPath;
-    osg::ref_ptr<IContextMenu>          _contextMenu;
-    osg::ref_ptr<ContextMenuCallback>   _contextMenuCallback;
-    QSpinBox *                          _spinBoxRefreshTime;
+    // use a simple raw-ptr to the interface to avoid a circular ref-ptr
+    ISceneGraphDialog *                 _interface;
+	IHostCallbackPtr                    _hostCallback;
+    IContextMenuPtr                     _contextMenu;
     QTimer *                            _refreshTimer;
     ContextMenu *                       _toolsMenu;
     ISceneGraphDialogToolsMenuPtr       _toolsMenuInterface;
     SGIItemBasePtr                      _itemToolsMenu;
-    IObjectTreeItemPtr                  _rootTreeItem;
-    IObjectTreeItemPtr                  _selectedTreeItem;
     bool                                _firstShow;
+    SGIItemBasePtr                      _itemPending;
 };
 
 } // namespace sgi

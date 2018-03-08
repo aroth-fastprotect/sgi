@@ -1,5 +1,9 @@
 include_directories(${LOG4CPLUS_INCLUDE_DIR})
 
+if(CMAKE_COMPILER_IS_GNUCXX OR CLANG)
+    add_compile_options(-Wno-deprecated-declarations)
+endif()
+
 SET(TARGET_SRC
     stdafx.cpp
     sgi_log4cplus_plugin.cpp
@@ -19,7 +23,7 @@ SET(TARGET_H
     ContextMenuLog4cplus.h
     MenuActionLog4cplus.h
     )
-configure_file(SGIItemLog4cplus ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemLog4cplus COPYONLY)
+fast_configure_file(SGIItemLog4cplus ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemLog4cplus COPYONLY)
 
 SET(TARGET_LIBRARIES_VARS
     OSG_LIBRARY
@@ -27,8 +31,13 @@ SET(TARGET_LIBRARIES_VARS
     LOG4CPLUS_LIBRARY
 )
 
-IF((UNIX AND FAST_PLATFORM_BITS EQUAL 32) OR WIN32)
+IF((UNIX AND FAST_PLATFORM_BITS EQUAL 32) OR WIN32 OR APPLE)
     LIST(APPEND TARGET_LIBRARIES_VARS OPENTHREADS_LIBRARY)
 ENDIF()
+
+LIST(APPEND TARGET_LIBRARIES_VARS
+    QT_QTCORE_LIBRARY
+    QT_QTGUI_LIBRARY
+    )
 
 SGI_PLUGIN(log4cplus)

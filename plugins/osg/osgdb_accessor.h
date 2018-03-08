@@ -1,4 +1,5 @@
 #pragma once
+
 namespace osgDB {
     class DynamicLibrary;
 }
@@ -14,9 +15,11 @@ public:
     const DynamicLibraryList & getDynamicLibraryList() const { return _dlList; }
 };
 
-class DatabasePagerAccessor : osgDB::DatabasePager
+class DatabasePagerAccessor : public osgDB::DatabasePager
 {
 public:
+	typedef DatabaseRequest DatabaseRequestAccess;
+
     unsigned int numberOfPagedLODs() const
     {
         return _activePagedLODList->size();
@@ -52,14 +55,10 @@ public:
         const_iterator begin() const { return _pagedLODs.begin(); }
         const_iterator end() const { return _pagedLODs.end(); }
     };
-    const SetBasedPagedLODList * activePagedLODList() const
+    PagedLODList * activePagedLODList() const
     {
-        return (const SetBasedPagedLODList*)_activePagedLODList.get();
+        return _activePagedLODList.get();
     }
-
-    struct DatabaseRequestAccess : public DatabaseRequest
-    {
-    };
 
     typedef std::list< osg::ref_ptr<DatabaseRequest> > RequestList;
 
@@ -91,6 +90,37 @@ class DatabaseThreadAccess : public osgDB::DatabasePager::DatabaseThread
 {
 public:
     Mode                getMode() const { return _mode; }
+};
+
+class OptionsAccess : public osgDB::Options
+{
+public:
+    typedef std::map<std::string, void*> PluginDataMap;
+    typedef std::map<std::string, std::string> PluginStringDataMap;
+
+    const PluginDataMap & getPluginDataMap() const 
+    {
+        return _pluginData;
+    }
+    const PluginStringDataMap & getPluginStringDataMap() const
+    {
+        return _pluginStringData;
+    }
+};
+
+class ObjectCacheAccess : public osgDB::ObjectCache
+{
+public:
+    struct Item {
+        std::string name;
+        osg::ref_ptr<const osgDB::Options> options;
+        osg::ref_ptr<osg::Object> object;
+        double timestamp;
+    };
+    typedef std::vector<Item> ItemList;
+
+    unsigned getNumItems();
+    void getItems(ItemList & items);
 };
 
 } // namespace osg_plugin

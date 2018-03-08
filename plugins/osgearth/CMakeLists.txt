@@ -14,7 +14,9 @@ SET(TARGET_SRC
     AutoClipPlaneCullCallbackDialog.cpp
     TileInspectorDialog.cpp
     RetrieveElevationDialog.cpp
+	LODScaleOverrideDialog.cpp
     geo_helpers.cpp
+	osgearth_accessor.cpp
     )
 
 SET(TARGET_H
@@ -31,39 +33,49 @@ SET(TARGET_H
     GUIAdapterOSGEarth.h
     string_helpers.h
     geo_helpers.h
+	osgearth_accessor.h
     )
 
-configure_file(SGIItemOsgEarth ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsgEarth COPYONLY)
-configure_file(ElevationQueryReferenced ${SGI_INCLUDE_DIR}/sgi/plugins/ElevationQueryReferenced COPYONLY)
+if(EXISTS ${OSGEARTH_INCLUDE_DIR}/osgEarth/LevelDBFactory)
+    add_definitions(-DSGI_USE_OSGEARTH_FAST=1)
+endif()
+
+fast_configure_file(SGIItemOsgEarth ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsgEarth COPYONLY)
+fast_configure_file(ElevationQueryReferenced ${SGI_INCLUDE_DIR}/sgi/plugins/ElevationQueryReferenced COPYONLY)
 
 SET(TARGET_MOC_H
     AutoClipPlaneCullCallbackDialog.h
     TileInspectorDialog.h
     RetrieveElevationDialog.h
+	LODScaleOverrideDialog.h
     )
 SET(TARGET_UI
     AutoClipPlaneCullCallbackDialog.ui
     TileInspectorDialog.ui
     RetrieveElevationDialog.ui
+	LODScaleOverrideDialog.ui
     )
 
 SET(TARGET_LIBRARIES_VARS
+    SGI_OSG_HELPER_LIBRARY
+    SGI_QT_HELPER_LIBRARY
     OPENTHREADS_LIBRARY
-    OSG_LIBRARY
-    OSGDB_LIBRARY
-    SGI_PLUGIN_IMPL_LIBRARY
+	OSGGA_LIBRARY
+	OSGUTIL_LIBRARY
+	OSGVIEWER_LIBRARY
     OSGEARTH_LIBRARY
     OSGEARTHUTIL_LIBRARY
+	#OSGEARTHQT_LIBRARY
     OSGEARTHFEATURES_LIBRARY
     OSGEARTHANNOTATION_LIBRARY
 	OSGEARTHSYMBOLOGY_LIBRARY
 )
-IF ( NOT Qt5Widgets_FOUND )
-    LIST(APPEND TARGET_LIBRARIES_VARS QT_QTCORE_LIBRARY QT_QTGUI_LIBRARY)
-ENDIF(  )
-
-SGI_PLUGIN(osgearth)
-
+LIST(APPEND TARGET_LIBRARIES_VARS
+    QT_QTCORE_LIBRARY
+    QT_QTGUI_LIBRARY
+    )
 IF ( Qt5Widgets_FOUND )
-    qt5_use_modules( osgdb_sgi_osgearth_plugin Gui Widgets)
-ENDIF( Qt5Widgets_FOUND )
+	LIST(APPEND TARGET_LIBRARIES_VARS QT_QTWIDGETS_LIBRARY )
+ENDIF()
+LIST(APPEND TARGET_DEFINITIONS OSGEARTH_WITH_FAST_MODIFICATIONS)
+SGI_PLUGIN(osgearth)

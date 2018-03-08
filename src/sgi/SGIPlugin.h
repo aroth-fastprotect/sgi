@@ -12,8 +12,6 @@ namespace osgDB {
 
 namespace sgi {
 
-class IContextMenuInfoQt;
-
 class SGIHostItemBase;
 class SGIItemBase;
 
@@ -21,16 +19,13 @@ typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 
 class ISceneGraphDialog;
-class ISceneGraphDialogInfo;
 class IObjectLoggerDialog;
-class IObjectLoggerDialogInfo;
 class IContextMenu;
-class IContextMenuInfo;
 class IContextMenuQt;
-class IContextMenuInfoQt;
 class IObjectTreeItem;
 class IContextMenuItem;
 class IContextMenuAction;
+class IHostCallback;
 class ISettingsDialog;
 class ISettingsDialogInfo;
 
@@ -41,7 +36,6 @@ public:
         : pluginName()
         , pluginFilename()
         , pluginInterface(NULL)
-        , pluginUIInterface(NULL)
         , writePrettyHTMLInterface(NULL)
         , objectInfoInterface(NULL)
         , objectTreeInterface(NULL)
@@ -49,6 +43,7 @@ public:
         , contextMenuInterface(NULL)
         , settingsDialogInterface(NULL)
         , guiAdapterInterface(NULL)
+        , convertToImage(NULL)
         , _pluginScore(0)
     {
     }
@@ -56,7 +51,6 @@ public:
         : pluginName(rhs.pluginName)
         , pluginFilename(rhs.pluginFilename)
         , pluginInterface(rhs.pluginInterface)
-        , pluginUIInterface(rhs.pluginUIInterface)
         , writePrettyHTMLInterface(rhs.writePrettyHTMLInterface)
         , objectInfoInterface(rhs.objectInfoInterface)
         , objectTreeInterface(rhs.objectTreeInterface)
@@ -64,6 +58,7 @@ public:
         , contextMenuInterface(rhs.contextMenuInterface)
         , settingsDialogInterface(rhs.settingsDialogInterface)
         , guiAdapterInterface(rhs.guiAdapterInterface)
+        , convertToImage(rhs.convertToImage)
         , _pluginScore(rhs._pluginScore)
     {
     }
@@ -72,7 +67,6 @@ public:
     std::string                             pluginName;
     std::string                             pluginFilename;
     osg::ref_ptr<SGIPluginInterface>        pluginInterface;
-    osg::ref_ptr<SGIPluginInterface>        pluginUIInterface;
     SGIPluginInterface::WritePrettyHTML*    writePrettyHTMLInterface;
     SGIPluginInterface::ObjectInfo*         objectInfoInterface;
     SGIPluginInterface::ObjectTree*         objectTreeInterface;
@@ -80,6 +74,7 @@ public:
     SGIPluginInterface::ContextMenu*        contextMenuInterface;
     SGIPluginInterface::SettingsDialog*     settingsDialogInterface;
     SGIPluginInterface::GUIAdapter*         guiAdapterInterface;
+    SGIPluginInterface::ConvertToImage*     convertToImage;
     unsigned                                _pluginScore;
 };
 
@@ -99,6 +94,9 @@ public:
 
 public:
     SGIPluginHostInterface * hostInterface();
+	IHostCallback * defaultHostCallback();
+	IHostCallback * hostCallback();
+	void setHostCallback(IHostCallback * callback);
 
     bool generateItem(osg::ref_ptr<SGIItemBase> & item, const SGIHostItemBase * object);
 
@@ -121,8 +119,8 @@ public:
     bool getObjectPath(SGIItemBasePtrPath & path, const SGIHostItemBase * object);
     bool getObjectPath(SGIItemBasePtrPath & path, const SGIItemBase * item);
 
-    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * item, ISceneGraphDialogInfo * info=NULL);
-    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, ISceneGraphDialogInfo * info=NULL);
+    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * item, IHostCallback * callback=NULL);
+    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL);
 
     bool createObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object);
     bool createObjectLogger(IObjectLoggerPtr & logger, SGIItemBase * item);
@@ -131,13 +129,16 @@ public:
     bool getOrCreateObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object);
     bool getOrCreateObjectLogger(IObjectLoggerPtr & logger, SGIItemBase * item);
 
-    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * item, IObjectLoggerDialogInfo * info=NULL);
-    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IObjectLoggerDialogInfo * info=NULL);
-    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IObjectLoggerDialogInfo * info=NULL);
+    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * item, IHostCallback * callback=NULL);
+    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback=NULL);
+    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL);
 
-    IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IContextMenuInfo * info=NULL);
-    IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IContextMenuInfo * info=NULL);
-    IContextMenuQt * createContextMenu(QWidget *parent, QObject * item, IContextMenuInfoQt * info=NULL);
+    IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=NULL);
+    IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL);
+    IContextMenuQt * createContextMenu(QWidget *parent, QObject * item, IHostCallback * callback=NULL);
+
+    IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback);
+    IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback);
 
     bool objectTreeBuildTree(IObjectTreeItem * treeItem, SGIItemBase * item);
     bool objectTreeBuildRootTree(IObjectTreeItem * treeItem, SGIItemBase * item);
@@ -153,10 +154,15 @@ public:
     bool parentWidget(QWidgetPtr & widget, const SGIHostItemBase * item);
     bool parentWidget(QWidgetPtr & widget, SGIItemBase * item);
 
-    void shutdown();
+    bool convertToImage(ImagePtr & image, const SGIHostItemBase * item);
+    bool convertToImage(ImagePtr & image, const SGIItemBase * item);
 
 public:
     static SGIPlugins * instance(bool erase=false);
+	static void shutdown();
+
+private:
+	static SGIPlugins * instanceImpl(bool erase = false, bool autoCreate=true);
 
 private:
     class SGIPluginsImpl;

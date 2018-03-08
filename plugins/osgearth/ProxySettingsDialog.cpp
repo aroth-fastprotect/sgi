@@ -1,9 +1,6 @@
 #include "stdafx.h"
 #include "ProxySettingsDialog.h"
-#include "ProxySettingsDialog.moc"
 
-#include "terra3d/Terra3DView.h"
-#include "terra3d/SceneGraphManager.h"
 #include "ui_ProxySettingsDialog.h"
 
 #include <osgEarth/Registry>
@@ -14,8 +11,6 @@
 #endif
 
 namespace terra3d {
-
-static logging::LoggerPtr logger = logging::getLogger("net.fastprotect.terra3d.ProxySettingsDialog");
 
 ProxySettingsDialog::ProxySettingsDialog(Terra3DView * view)
 	: QDialog(view)

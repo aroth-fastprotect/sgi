@@ -1,9 +1,15 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2017 FAST Protect, Andreas Roth
+
 #pragma once
 #include <osg/Object>
 #include <osg/ref_ptr>
 #include <osg/observer_ptr>
 #include <vector>
 #include <typeinfo>
+#include <sgi/Export>
+
+class QImage;
 
 namespace sgi {
 
@@ -16,148 +22,19 @@ enum SGIItemType
     SGIItemTypeChilds,
     SGIItemTypeParents,
     SGIItemTypeObservers,
-    SGIItemTypeStateSetEffective,
-    SGIItemTypeStateSetModeList,
-    SGIItemTypeStateSetAttributeList,
-    SGIItemTypeStateSetTextureModeList,
-    SGIItemTypeStateSetTextureAttributeLists,
-    SGIItemTypeStateSetUniformList,
-    SGIItemTypeParentalNodePath,
-    SGIItemTypeDrawables,
-    SGIItemTypeDrawable,
-    SGIItemTypeDrawableColors,
-    SGIItemTypeDrawableColorIndicies,
-    SGIItemTypeDrawableNormals,
-    SGIItemTypeDrawableNormalIndicies,
-    SGIItemTypeDrawableVertices,
-    SGIItemTypeDrawableVertexIndicies,
-    SGIItemTypeDrawableTexCoords,
-    SGIItemTypeDrawableTexCoordsList,
-    SGIItemTypeDrawableTexCoordIndicies,
-    SGIItemTypeDrawablePrimitiveSetList,
-    SGIItemTypeImageLayers,
-    SGIItemTypeElevationLayers,
-    SGIItemTypeModelLayers,
-    SGIItemTypeMaskLayers,
-    SGIItemTypeImageLayer,
-    SGIItemTypeElevationLayer,
-    SGIItemTypeModelLayer,
-    SGIItemTypeMaskLayer,
-    SGIItemTypeTerrain,
-    SGIItemTypeMap,
-    SGIItemTypeMapNode,
     SGIItemTypeStatistics,
     SGIItemTypeCallbacks,
-    SGIItemTypeGraphicsContextCameras,
-    SGIItemTypeGraphicsContextOperations,
-    SGIItemTypeGraphicsContextGLExtensions,
-    SGIItemTypeModel,
-    SGIItemTypeModelRaw,
-    SGIItemTypeModelType,
-    SGIItemTypeModelObject,
-    SGIItemTypeModelObjectProperty,
-    SGIItemTypeLocationTrack,
-    SGIItemTypeLocationFutureTrack,
-    SGIItemTypeDigitalSensorDevices,
-    SGIItemTypeRelayDevices,
-    SGIItemTypeCameras,
-    SGIItemTypeCamerasAsync,
-    SGIItemTypePlacemarks,
-    SGIItemTypeGlobalPlacemarks,
-    SGIItemTypeGroupPlacemarks,
-    SGIItemTypeUserPlacemarks,
-    SGIItemTypeTemporaryPlacemarks,
-    SGIItemTypeBeings,
-    SGIItemTypeCommBeings,
-    SGIItemTypeAlarms,
-    SGIItemTypePointOfInterests,
-    SGIItemTypeLayers,
-    SGIItemTypeVicinities,
-    SGIItemTypeBuildings,
-    SGIItemTypeFloors,
-    SGIItemTypeRooms,
-    SGIItemTypeSky,
-    SGIItemTypeView,
-    SGIItemTypeImage,
-    SGIItemTypeShaders,
-    SGIItemTypeShaderSource,
-    SGIItemTypeShaderCodeInjectionMap,
-    SGIItemTypeVirtualProgramShaderMap,
-    SGIItemTypeVirtualProgramFunctions,
-    SGIItemTypePopulated,
-    SGIItemTypeFixLocations,
-    SGIItemTypeVisibleLocations,
-    SGIItemTypeString,
-    SGIItemTypeWatcherEntries,
-    SGIItemTypeWatcherNodes,
-    SGIItemTypePickerHits,
-    SGIItemTypePickerHit,
-    SGIItemTypeOptions,
-    SGIItemTypeCachedNodes,
     SGIItemTypeSettings,
-    SGIItemTypeImageLayerOptions,
-    SGIItemTypeElevationLayerOptions,
-    SGIItemTypeModelLayerOptions,
-    SGIItemTypeMaskLayerOptions,
-    SGIItemTypeDataExtents,
-    SGIItemTypeSlaves,
-    SGIItemTypeConfig,
-    SGIItemTypeTour,
     SGIItemTypeObjectLogger,
-    SGIItemTypeArrayData,
-    SGIItemTypeEventHandlers,
-    SGIItemTypeDevices,
-    SGIItemTypeLocationTypes,
-    SGIItemTypeCommDisplayTypes,
-    SGIItemTypeTrackingDevices,
-    SGIItemTypeRadarDevices,
-    SGIItemTypePolygonTypes,
-    SGIItemTypeControlPorts,
-    SGIItemTypeDataMaps,
-    SGIItemTypeWidgets,
-    SGIItemTypeActivePagedLODs,
-    SGIItemTypeThreads,
-    SGIItemTypeTileCache,
-    SGIItemTypeTileCacheLRU,
-    SGIItemTypeTileCacheMap,
-    SGIItemTypeUpdatableNodeBaseRequired,
-    SGIItemTypeUpdatableNodeBaseNotify,
-    SGIItemTypeZones,
-    SGIItemTypeParentCullState,
-    SGIItemTypeStateAttibutes,
-    SGIItemTypeStateSets,
-    SGIItemTypeViewerBaseScenes,
-    SGIItemTypeViewerBaseViews,
-    SGIItemTypeViewerBaseCameras,
-    SGIItemTypeViewerBaseContexts,
-    SGIItemTypeLeaves,
-    SGIItemTypeShaderComposerShaderMap,
-    SGIItemTypeShaderComposerProgramFunctions,
-    SGIItemTypeRenderInfoStateSetStack,
-    SGIItemTypeRenderInfoRenderBinStack,
-    SGIItemTypeRenderInfoCameraStack,
-    SGIItemTypeRenderInfoAppliedProgramSet,
-    SGIItemTypeRenderInfoState,
-    SGIItemTypeSymbols,
-    SGIItemTypeReadersWriters,
-    SGIItemTypeImageProcessors,
-    SGIItemTypeDatabaseRevisions,
-    SGIItemTypeBufferDatas,
-    SGIItemTypePendingChild,
-    SGIItemTypeTasks,
-    SGIItemTypeMethods,
-    SGIItemTypeCameraFrustum,
-    SGIItemTypeCameraVideoProjection,
-    SGIItemTypeCameraPolygon,
-    SGIItemTypeChannels,
-    SGIItemTypeAnimations,
-    SGIItemTypeSerializers,
-    SGIItemTypeWrappers,
-    SGIItemTypeCompressors,
-    SGIItemTypeDBPagerFileRequests,
-    SGIItemTypeDBPagerHttpRequests,
-    SGIItemTypeDBPagerDataToCompile,
-    SGIItemTypeDBPagerDataToMerge
+    SGIItemTypeProxyRealItem,
+
+    SGIItemTypeDefaultPluginBase = 0x1000,
+    SGIItemTypePluginBaseOsg = SGIItemTypeDefaultPluginBase + 0x0000,
+    SGIItemTypePluginBaseOsgEarth = SGIItemTypeDefaultPluginBase + 0x1000,
+    SGIItemTypePluginBaseQt = SGIItemTypeDefaultPluginBase + 0x2000,
+    SGIItemTypePluginBaseLog4cplus = SGIItemTypeDefaultPluginBase + 0x3000,
+
+    SGIItemTypeUserPluginBase = 0x10000,
 };
 
 enum SGIItemFlags {
@@ -172,7 +49,12 @@ typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
 typedef osg::observer_ptr<SGIItemBase> SGIItemBaseOverserverPtr;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrVector;
+class SGIHostItemBase;
 class SGIPluginInfo;
+
+class Image;
+typedef osg::ref_ptr<Image> ImagePtr;
+typedef osg::ref_ptr<const Image> ConstImagePtr;
 
 class ISGIPluginInfo
 {
@@ -180,33 +62,18 @@ public:
     virtual unsigned pluginScore() const = 0;
 };
 
-class SGIItemBase : public osg::Object
+class SGI_IMPL_EXPORT SGIItemBase : public osg::Object
 {
 public:
-    SGIItemBase(SGIItemType type=SGIItemTypeInvalid, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
-        : osg::Object(), _type(type), _flags(flags), _score(score), _type_info(NULL)
-        , _pluginInfo(NULL), _next(NULL), _prev(), _number(0), _userData(userData) {}
-    SGIItemBase(const SGIItemBase & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : osg::Object(rhs, copyop), _type(rhs._type), _flags(rhs._flags), _score(rhs._score), _type_info(rhs._type_info)
-        , _pluginInfo(rhs._pluginInfo), _next(rhs._next), _prev(rhs._prev), _number(rhs._number), _userData(rhs._userData) {}
-    ~SGIItemBase()
-        { }
+    static unsigned getTotalItemCount();
+public:
+    SGIItemBase(SGIItemType type=SGIItemTypeInvalid, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL);
+    SGIItemBase(const SGIItemBase & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
+    virtual ~SGIItemBase();
 
     META_Object(sgi, SGIItemBase);
 
-    SGIItemBase & operator = (const SGIItemBase & rhs)
-    {
-        _type = rhs._type;
-        _flags = rhs._flags;
-        _score = rhs._score;
-        _type_info = rhs._type_info;
-        _pluginInfo = rhs._pluginInfo;
-        _next = rhs._next;
-        _prev = rhs._prev;
-        _number = rhs._number;
-        _userData = rhs._userData;
-        return *this;
-    }
+    SGIItemBase & operator = (const SGIItemBase & rhs);
     bool operator == (const SGIItemBase & rhs) const
     {
         return compare(rhs) == 0;
@@ -240,42 +107,9 @@ public:
     const ISGIPluginInfo * pluginInfo() const { return _pluginInfo; }
     void setPluginInfo(const ISGIPluginInfo * pluginInfo);
 
-    SGIItemBase * rootBase() const
-    {
-        SGIItemBasePtr current = const_cast<SGIItemBase *>(this);
-        SGIItemBasePtr parent;
-        do
-        {
-            if(current->_prev.lock(parent) && parent.valid())
-                current = parent;
-        }
-        while(parent.valid());
-        return current.release();
-    }
-    void insertAfter(SGIItemBase * item)
-    {
-        SGIItemBasePtr next_prev;
-        if(_next.valid())
-        {
-            next_prev = _next->_prev;
-            _next->_prev = item;
-        }
-        item->_next = this->_next;
-        item->_prev = this;
-        this->_next = item;
-    }
-    void insertBefore(SGIItemBase * item)
-    {
-        SGIItemBasePtr prev_next;
-        if(_prev.valid())
-        {
-            prev_next = _prev->_next;
-            _prev->_next = item;
-        }
-        item->_prev = this->_prev;
-        item->_next = this;
-        this->_prev = item;
-    }
+    SGIItemBase * rootBase() const;
+    void insertAfter(SGIItemBase * item);
+    void insertBefore(SGIItemBase * item);
     void insertByScore(SGIItemBase * item, SGIItemBasePtr & front);
     bool isListValid() const;
     size_t listSize() const;
@@ -283,59 +117,25 @@ public:
     template<typename ANOTHER_ITEMTYPE>
     ANOTHER_ITEMTYPE * clone(SGIItemType newType=SGIItemTypeInvalid, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
     {
-        SGIItemBasePtr ret;
-        SGIItemBasePtr previous_cloned;
-        SGIItemBasePtr current = this;
-        SGIItemBasePtr safe_this = this;
-        while(current.valid())
-        {
-            SGIItemBasePtr clonedItem = (SGIItemBase*)current->clone(copyop);
-            if(newType!=SGIItemTypeInvalid)
-                clonedItem->setType(newType);
-            if(!ret.valid())
-            {
-                // we always return the first cloned item
-                ret = clonedItem;
-            }
-            if(previous_cloned.valid())
-            {
-                previous_cloned->_next = clonedItem;
-                clonedItem->_prev = previous_cloned;
-            }
-            // remember the item cloned in the last loop
-            previous_cloned = clonedItem;
-            current = current->nextBase();
-        }
-        return static_cast<ANOTHER_ITEMTYPE *>(ret.release());
+        return static_cast<ANOTHER_ITEMTYPE *>(cloneImpl(newType, copyop));
     }
 
     template<typename ANOTHER_ITEMTYPE>
     ANOTHER_ITEMTYPE * clone(SGIItemType newType, unsigned number, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
     {
-        SGIItemBasePtr ret;
-        SGIItemBasePtr previous_cloned;
-        SGIItemBasePtr current = this;
-        while(current.valid())
-        {
-            SGIItemBasePtr clonedItem = (SGIItemBase*)current->clone(copyop);
-            if(newType!=SGIItemTypeInvalid)
-                clonedItem->setType(newType);
-            clonedItem->setNumber(number);
-            if(!ret.valid())
-            {
-                // we always return the first cloned item
-                ret = clonedItem;
-            }
-            if(previous_cloned.valid())
-            {
-                previous_cloned->_next = clonedItem;
-                clonedItem->_prev = previous_cloned;
-            }
-            // remember the item cloned in the last loop
-            previous_cloned = clonedItem;
-            current = current->nextBase();
-        }
-        return static_cast<ANOTHER_ITEMTYPE *>(ret.release());
+        return static_cast<ANOTHER_ITEMTYPE *>(cloneImpl(newType, number, copyop));
+    }
+
+    template<typename ANOTHER_ITEMTYPE>
+    ANOTHER_ITEMTYPE * clone(SGIItemType newType, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
+    {
+        return static_cast<ANOTHER_ITEMTYPE *>(cloneImpl(newType, userData, copyop));
+    }
+
+    template<typename ANOTHER_ITEMTYPE>
+    ANOTHER_ITEMTYPE * clone(SGIItemType newType, unsigned number, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
+    {
+        return static_cast<ANOTHER_ITEMTYPE *>(cloneImpl(newType, number, userData, copyop));
     }
 
     SGIItemBase * previousBase() const { return _prev.get(); }
@@ -370,15 +170,12 @@ public:
     }
 
 protected:
-    virtual int compare(const SGIItemBase & rhs) const
-    {
-        if(rhs._type == _type)
-            return 0;
-        else if(rhs._type < _type)
-            return -1;
-        else
-            return 1;
-    }
+    virtual int compare(const SGIItemBase & rhs) const;
+
+    SGIItemBase * cloneImpl(SGIItemType newType, const osg::CopyOp & copyop);
+    SGIItemBase * cloneImpl(SGIItemType newType, unsigned number, const osg::CopyOp & copyop);
+    SGIItemBase * cloneImpl(SGIItemType newType, osg::Referenced * userData, const osg::CopyOp & copyop);
+    SGIItemBase * cloneImpl(SGIItemType newType, unsigned number, osg::Referenced * userData, const osg::CopyOp & copyop);
 
 protected:
     SGIItemType             _type;
@@ -392,6 +189,18 @@ private:
     unsigned                _number;
     osg::ref_ptr<osg::Referenced> _userData;
 };
+
+namespace internal {
+    class ReferencedAccess : public osg::Referenced {
+    public:
+        int getRefCount() const { return _refCount; }
+    };
+}
+
+template<typename T>
+int getRefCount(const T * ref) {
+    return static_cast<const internal::ReferencedAccess*>(static_cast<const osg::Referenced*>(ref))->getRefCount();
+}
 
 template<typename T>
 class ReferencedDataT : public osg::Referenced
@@ -419,6 +228,8 @@ private:
 };
 
 typedef ReferencedDataT<int> ReferencedDataInt;
+typedef std::pair<int, int> IntPair;
+typedef ReferencedDataT<IntPair> ReferencedDataIntPair;
 typedef ReferencedDataT<std::string> ReferencedDataString;
 
 template<typename T>
@@ -449,32 +260,6 @@ private:
     T* _ptr;
 };
 
-template <class To, class From>
-struct StaticCaster
-{
-    static To* cast(From* obj)
-    {
-        return static_cast<To*>(obj);
-    }
-    static const To* cast(const From* obj)
-    {
-        return static_cast<const To*>(obj);
-    }
-};
-
-template <class To, class From>
-struct DynamicCaster
-{
-    static To* cast(From* obj)
-    {
-        return dynamic_cast<To*>(obj);
-    }
-    static const To* cast(const From* obj)
-    {
-        return dynamic_cast<const To*>(obj);
-    }
-};
-
 struct Color {
     Color(float r_=0.0f, float g_=0.0f, float b_=0.0f, float a_=1.0f)
         : r(r_), g(g_), b(b_), a(a_) {}
@@ -489,47 +274,6 @@ struct Color {
     Color & operator=(const Color & rhs)
         { r=rhs.r; g=rhs.g; b=rhs.b; a=rhs.a; return *this; }
     float r, g, b, a;
-};
-
-class Image : public osg::Referenced
-{
-public:
-    enum ImageFormat {
-        ImageFormatInvalid = -1,
-        ImageFormatRGB = 0,
-        ImageFormatARGB,
-        ImageFormatFloat
-    };
-    Image(ImageFormat format=ImageFormatInvalid, void * data=NULL, size_t length=0, unsigned width=0, unsigned height=0, unsigned depth=0)
-        : _format(format), _data(data), _length(length), _width(width), _height(height), _depth(depth) {}
-    Image(const Image & rhs)
-        : _format(rhs._format), _data(rhs._data), _length(rhs._length), _width(rhs._width), _height(rhs._height), _depth(rhs._depth) {}
-    Image & operator=(const Image & rhs)
-        {
-            _format = rhs._format;
-            _data = rhs._data;
-            _length = rhs._length;
-            _width = rhs._width;
-            _height = rhs._height;
-            _depth = rhs._depth;
-            return *this;
-        }
-
-    ImageFormat format() const { return _format; }
-    const void * data() const { return _data; }
-    void * data() { return _data; }
-    size_t length() const { return _length; }
-    unsigned width() const { return _width; }
-    unsigned height() const { return _height; }
-    unsigned depth() const { return _depth; }
-
-protected:
-    ImageFormat _format;
-    void * _data;
-    size_t _length;
-    unsigned _width;
-    unsigned _height;
-    unsigned _depth;
 };
 
 } // namespace sgi

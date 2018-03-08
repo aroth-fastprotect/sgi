@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "getObjectInfoOSG.h"
 #include <sgi/helpers/osg>
+#include <sgi/helpers/string>
+#include <sgi/plugins/SGIImage.h>
 
 #include "SGIItemOsg"
 
@@ -16,6 +18,8 @@
 #include <sgi/helpers/rtti>
 #include <sgi/helpers/html>
 
+#include "ObjectLoggerOSG.h"
+
 namespace sgi {
 
 class SGIItemOsg;
@@ -29,13 +33,20 @@ GET_OBJECT_NAME_IMPL_REGISTER(osg::Group)
 GET_OBJECT_NAME_IMPL_REGISTER(osg::LOD)
 GET_OBJECT_NAME_IMPL_REGISTER(osg::PagedLOD)
 GET_OBJECT_NAME_IMPL_REGISTER(osg::Operation)
+GET_OBJECT_NAME_IMPL_REGISTER(osg::Image)
+GET_OBJECT_NAME_IMPL_REGISTER(osg::GraphicsContext)
 GET_OBJECT_NAME_IMPL_REGISTER(osgDB::Registry)
 GET_OBJECT_NAME_IMPL_REGISTER(osgDB::BaseSerializer)
+
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(CullingNodeInfo)
+
 GET_OBJECT_DISPLAYNAME_IMPL_REGISTER(osg::Referenced)
 GET_OBJECT_DISPLAYNAME_IMPL_REGISTER(osg::Object)
 GET_OBJECT_DISPLAYNAME_IMPL_REGISTER(osg::Operation)
 GET_OBJECT_DISPLAYNAME_IMPL_REGISTER(osgDB::Registry)
 GET_OBJECT_DISPLAYNAME_IMPL_REGISTER(osgDB::BaseSerializer)
+GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(CullingNodeInfo)
+
 GET_OBJECT_TYPE_IMPL_REGISTER(osg::Referenced)
 GET_OBJECT_TYPE_IMPL_REGISTER(osg::Object)
 GET_OBJECT_SUGGESTED_FILENAME_IMPL_REGISTER(osg::Object)
@@ -56,6 +67,8 @@ WRITE_OBJECT_FILE_IMPL_REGISTER(osg::Object)
 WRITE_OBJECT_FILE_IMPL_REGISTER(osg::Node)
 WRITE_OBJECT_FILE_IMPL_REGISTER(osg::Image)
 
+CONVERT_TO_IMAGE_CONVERT_IMPL_DECLARE_AND_REGISTER(osg::Image)
+
 using namespace sgi::osg_helpers;
 
 //--------------------------------------------------------------------------------
@@ -63,32 +76,27 @@ using namespace sgi::osg_helpers;
 //--------------------------------------------------------------------------------
 std::string getObjectNameImpl<osg::Referenced>::process()
 {
-    osg::Referenced * object = static_cast<osg::Referenced*>(item<SGIItemOsg>()->object());
-    std::stringstream ss;
-    ss << helpers::getRTTITypenameShort(object) << "(" << (void*)object << ")";
-    std::string ret;
-    ret = ss.str();
-    return ret;
+    osg::Referenced * object = getObject<osg::Referenced, SGIItemOsg>();
+    return helpers::getRTTIObjectNameAndType(object);
 }
 
 std::string getObjectNameImpl<osg::Object>::process()
 {
     osg::Object * object = static_cast<osg::Object*>(item<SGIItemOsg>()->object());
-
-    std::string classname = getObjectTypename(object);
-    std::string name = object->getName();
-    std::string ret;
-    if(name.empty())
-    {
-        std::stringstream ss;
-        ss << helpers::getRTTITypenameShort(object) << "(" << (void*)object << ")";
-        name = ss.str();
-    }
-    if(classname.empty())
-        ret = name;
-    else
-        ret = classname + "/" + name;
-    return ret;
+	std::string classname = getObjectTypename(object);
+	std::string name = object->getName();
+	std::string ret;
+	if (name.empty())
+	{
+		std::stringstream ss;
+		ss << helpers::getRTTITypenameShort(object) << "(" << (void*)object << ")";
+		name = ss.str();
+	}
+	if (classname.empty())
+		ret = name;
+	else
+		ret = classname + "/" + name;
+	return ret;
 }
 
 std::string getObjectNameImpl<osg::Node>::process()
@@ -145,7 +153,43 @@ std::string getObjectNameImpl<osg::PagedLOD>::process()
 std::string getObjectNameImpl<osg::Operation>::process()
 {
     osg::Operation * object = dynamic_cast<osg::Operation*>(item<SGIItemOsg>()->object());
-    return object->getName();
+    std::string ret = object->getName();
+	if (!ret.empty())
+		return ret;
+	getObjectNameImpl<osg::Referenced> f(_hostInterface, _item);
+	return f.process();
+}
+
+std::string getObjectNameImpl<osg::Image>::process()
+{
+	osg::Image * object = dynamic_cast<osg::Image*>(item<SGIItemOsg>()->object());
+	std::string ret = object->getName();
+	if (ret.empty())
+		ret = object->getFileName();
+	if (!ret.empty())
+		return ret;
+	getObjectNameImpl<osg::Object> f(_hostInterface, _item);
+	return f.process();
+}
+
+std::string getObjectNameImpl<osg::GraphicsContext>::process()
+{
+	osg::GraphicsContext * object = dynamic_cast<osg::GraphicsContext*>(item<SGIItemOsg>()->object());
+	std::string ret = object->getName();
+	if (ret.empty())
+	{
+		osg::State * state = object->getState();
+		if (state)
+		{
+			std::stringstream ss;
+			ss << "Ctx" << state->getContextID() << " " << helpers::getRTTITypenameShort(object) << "(" << (void*)object << ")";
+			ret = ss.str();
+		}
+	}
+	if (!ret.empty())
+		return ret;
+	getObjectNameImpl<osg::Object> f(_hostInterface, _item);
+	return f.process();
 }
 
 std::string getObjectNameImpl<osgDB::Registry>::process()
@@ -159,17 +203,22 @@ std::string getObjectNameImpl<osgDB::BaseSerializer>::process()
     return object->getName();
 }
 
+std::string getObjectNameImpl<CullingNodeInfo>::process()
+{
+    CullingNodeInfo* object = static_cast<CullingNodeInfo*>(item<SGIItemOsg>()->object());
+    SGIHostItemOsg node(object->node);
+    std::string ret;
+    _hostInterface->getObjectName(ret, &node);
+    return ret;
+}
+
 //--------------------------------------------------------------------------------
 // getObjectDisplayNameImpl
 //--------------------------------------------------------------------------------
 std::string getObjectDisplayNameImpl<osg::Referenced>::process()
 {
-    osg::Referenced * object = static_cast<osg::Referenced*>(item<SGIItemOsg>()->object());
-    std::stringstream ss;
-    ss << helpers::getRTTITypenameShort(object) << "(" << (void*)object << ")";
-    std::string ret;
-    ret = ss.str();
-    return ret;
+    osg::Referenced * object = getObject<osg::Referenced, SGIItemOsg>();
+    return helpers::getRTTIObjectNameAndType(object);
 }
 
 std::string getObjectDisplayNameImpl<osg::Object>::process()
@@ -207,14 +256,21 @@ std::string getObjectDisplayNameImpl<osgDB::BaseSerializer>::process()
     return object->getName();
 }
 
+std::string getObjectDisplayNameImpl<CullingNodeInfo>::process()
+{
+    CullingNodeInfo* object = static_cast<CullingNodeInfo*>(item<SGIItemOsg>()->object());
+    SGIHostItemOsg node(object->node);
+    std::string ret;
+    _hostInterface->getObjectDisplayName(ret, &node);
+    return ret;
+}
 //--------------------------------------------------------------------------------
 // getObjectTypeImpl
 //--------------------------------------------------------------------------------
 std::string getObjectTypeImpl<osg::Referenced>::process()
 {
-    osg::Referenced * object = static_cast<osg::Referenced*>(item<SGIItemOsg>()->object());
-    std::string ret = helpers::getRTTITypename(object);
-    return ret;
+    osg::Referenced * object = getObject<osg::Referenced, SGIItemOsg>();
+    return helpers::getRTTITypename(object);
 }
 
 std::string getObjectTypeImpl<osg::Object>::process()
@@ -272,7 +328,7 @@ std::string getObjectSuggestedFilenameImpl<osg::Image>::process()
 
 std::string getObjectSuggestedFilenameExtensionImpl<osg::Object>::process()
 {
-    return "osgx";
+    return "osgb";
 }
 
 std::string getObjectSuggestedFilenameExtensionImpl<osg::Image>::process()
@@ -303,7 +359,7 @@ std::string getObjectSuggestedFilenameExtensionImpl<osg::HeightField>::process()
 std::vector<std::string> getObjectFilenameFiltersImpl<osg::Object>::process()
 {
     std::vector<std::string> ret;
-    ret.push_back("OSG Files (*.osgx *.osgt *.osgb *.osg *.ive)");
+    ret.push_back("OSG Files (*.osgb *.osgx *.osgt *.osg *.ive)");
     return ret;
 }
 
@@ -420,20 +476,24 @@ bool writeObjectFileImpl<osg::Object>::process(const std::string& filename, cons
 {
     osg::Object* object = getObject<osg::Object,SGIItemOsg>();
     bool ret = false;
-    const bool noOptimizer = true;
-    osg::ref_ptr<osgDB::Options> cloned_opts =
-        options ? static_cast<osgDB::Options*>(options->clone(osg::CopyOp::SHALLOW_COPY)) :
-        osgDB::Registry::instance()->getOptions();
-
-    if(!cloned_opts.valid())
-        cloned_opts = new osgDB::Options;
-
-    cloned_opts->setPluginStringData("noOptimizer",(noOptimizer==true)?"true":"false");
 
     switch(itemType())
     {
     case SGIItemTypeObject:
-        ret = osgDB::writeObjectFile(*object, filename, cloned_opts);
+        {
+            const bool noOptimizer = true;
+            osg::ref_ptr<osgDB::Options> cloned_opts =
+                options ? static_cast<osgDB::Options*>(options->clone(osg::CopyOp::SHALLOW_COPY)) :
+                osgDB::Registry::instance()->getOptions();
+
+            if(!cloned_opts.valid())
+                cloned_opts = new osgDB::Options;
+
+            cloned_opts->setPluginStringData("noOptimizer",(noOptimizer==true)?"true":"false");
+            cloned_opts->setPluginStringData("WriteImageHint", "IncludeData");
+
+            ret = osgDB::writeObjectFile(*object, filename, cloned_opts);
+        }
         break;
     }
     return ret;
@@ -483,6 +543,17 @@ bool writeObjectFileImpl<osg::Image>::process(const std::string& filename, const
         break;
     }
     return ret;
+}
+
+//--------------------------------------------------------------------------------
+// convertToImageConvertImpl
+//--------------------------------------------------------------------------------
+bool convertToImageConvertImpl<osg::Image>::convert()
+{
+    osg::Image* object = getObject<osg::Image,SGIItemOsg>();
+
+    *_image = const_cast<sgi::Image*>(osg_helpers::convertImage(object));
+    return true;
 }
 
 } // namespace osg_plugin

@@ -9,10 +9,31 @@
     #  else
     #    define SGI_EXPORT   __declspec(dllimport)
     #  endif
+    #  if defined( SGI_IMPL_LIBRARY )
+    #    define SGI_IMPL_EXPORT   __declspec(dllexport)
+    #  else
+    #    define SGI_IMPL_EXPORT   __declspec(dllimport)
+    #  endif
+    #  if defined( SGI_OSG_HELPER_LIBRARY )
+    #    define SGI_OSG_HELPER_EXPORT   __declspec(dllexport)
+    #  else
+    #    define SGI_OSG_HELPER_EXPORT   __declspec(dllimport)
+    #  endif
+    #  if defined( SGI_QT_HELPER_LIBRARY )
+    #    define SGI_QT_HELPER_EXPORT    __declspec(dllexport)
+    #  else
+    #    define SGI_QT_HELPER_EXPORT    __declspec(dllimport)
+    #  endif
 #elif defined(__GNUC__)
     #  define SGI_EXPORT __attribute__ ((visibility ("default")))
+    #  define SGI_IMPL_EXPORT __attribute__ ((visibility ("default")))
+    #  define SGI_OSG_HELPER_EXPORT __attribute__ ((visibility ("default")))
+    #  define SGI_QT_HELPER_EXPORT __attribute__ ((visibility ("default")))
 #else
     #  define SGI_EXPORT
+    #  define SGI_IMPL_EXPORT
+    #  define SGI_OSG_HELPER_EXPORT
+    #  define SGI_QT_HELPER_EXPORT
 #endif
 /**
 
@@ -30,19 +51,32 @@ The sgi library is a NodeKit that allows to inspect and modify a scene graph dur
 #define SGI_VERSION_STR      "@SGI_VERSION@"
 #define SGI_SOVERSION_STR    "@SGI_SOVERSION@"
 
+#define SGI_LIBRARY_POSTFIX_DEBUG    "@SGI_LIBRARY_POSTFIX_DEBUG@"
+#define SGI_LIBRARY_SHARED_MODULE_SUFFIX "@SGI_LIBRARY_SHARED_MODULE_SUFFIX@"
+
 #ifdef _DEBUG
 #define SGI_LIBRARY_NAME "@SGI_LIBRARY_NAME_DEBUG@"
+#define SGI_LIBRARY_POSTFIX "@SGI_LIBRARY_POSTFIX_DEBUG@"
 #else // _DEBUG
 #  ifdef _MINSIZEREL
 #    define SGI_LIBRARY_NAME "@SGI_LIBRARY_NAME_MINSIZEREL@"
+#    define SGI_LIBRARY_POSTFIX "@SGI_LIBRARY_POSTFIX_MINSIZEREL@"
 #  else // _MINSIZEREL
 #    ifdef _RELWITHDEBINFO
 #      define SGI_LIBRARY_NAME "@SGI_LIBRARY_NAME_RELWITHDEBINFO@"
+#      define SGI_LIBRARY_POSTFIX "@SGI_LIBRARY_POSTFIX_RELWITHDEBINFO@"
 #    else // _RELWITHDEBINFO
 #      define SGI_LIBRARY_NAME "@SGI_LIBRARY_NAME_RELEASE@"
+#      define SGI_LIBRARY_POSTFIX "@SGI_LIBRARY_POSTFIX_RELEASE@"
 #    endif // _RELWITHDEBINFO
 #  endif // _MINSIZEREL
 #endif // _DEBUG
+
+#cmakedefine01 SGI_HAS_GAMMARAY_SUPPORT
+#cmakedefine01 SGI_HAS_FFMPEG_SUPPORT
+#cmakedefine01 SGI_HAS_OSGQT_SUPPORT
+#cmakedefine01 SGI_HAS_OSGEARTH_SUPPORT
+#cmakedefine01 SGI_HAS_LOG4CPLUS_SUPPORT
 
 extern "C" {
 /**

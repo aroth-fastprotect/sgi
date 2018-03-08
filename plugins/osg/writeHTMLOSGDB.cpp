@@ -1,13 +1,15 @@
 #include "stdafx.h"
 #include <ostream>
 #include "writeHTMLOSG.h"
-#include "writeHTMLOSGDB.h"
 #include "SGIItemOsg"
 
 #include <osg/Version>
 #include <osgDB/Registry>
 #include <osgDB/ImagePager>
+#define protected public
 #include <osgDB/DatabasePager>
+#undef protected
+#include <osgDB/ObjectCache>
 
 #include <osg/ClipNode>
 
@@ -19,18 +21,24 @@
 namespace sgi {
 namespace osg_plugin {
 
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgDB::Registry)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgDB::Options)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgDB::ReaderWriter)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgDB::ImagePager)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgDB::DatabasePager)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgDB::FileCache)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgDB::DatabaseRevision)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgDB::DatabaseRevisions)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgDB::FileList)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgDB::ObjectWrapper)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgDB::ObjectWrapperManager)
-WRITE_PRETTY_HTML_IMPL_REGISTER(osgDB::BaseSerializer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::Registry)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::Options)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::ReaderWriter)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::ImagePager)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::FileCache)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::ObjectCache)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabaseRevision)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabaseRevisions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::FileList)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::ObjectWrapper)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::ObjectWrapperManager)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::BaseSerializer)
+
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::DatabaseRequest)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::RequestQueue)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::ReadQueue)
+
 
 bool writePrettyHTMLImpl<osgDB::Registry>::process(std::basic_ostream<char>& os)
 {
@@ -86,7 +94,7 @@ bool writePrettyHTMLImpl<osgDB::Registry>::process(std::basic_ostream<char>& os)
             os << "</ol></td></tr>" << std::endl;
 
             RegistryAccessor * access = (RegistryAccessor *)object;
-            os << "<tr><td>archiveExtensions</td><td><ul>";
+            os << "<tr><td>dynamic libraries</td><td><ul>";
             const RegistryAccessor::DynamicLibraryList & dllist = access->getDynamicLibraryList();
             for(RegistryAccessor::DynamicLibraryList::const_iterator it = dllist.begin(); it != dllist.end(); it++)
             {
@@ -142,6 +150,19 @@ bool writePrettyHTMLImpl<osgDB::Registry>::process(std::basic_ostream<char>& os)
             ret = true;
         }
         break;
+	case SGIItemTypeGraphicsContexts:
+		{
+			os << "<ul>";
+			const osg::GraphicsContext::GraphicsContexts & list = osg::GraphicsContext::getAllRegisteredGraphicsContexts();
+			for (osg::GraphicsContext::GraphicsContexts::const_iterator it = list.begin(); it != list.end(); it++)
+			{
+				os << "<li>" << osg_helpers::getObjectNameAndType(*it) << "</li>";
+			}
+			os << "</ul>";
+			ret = true;
+		}
+		break;
+
     default:
         ret = callNextHandler(os);
         break;
@@ -149,10 +170,72 @@ bool writePrettyHTMLImpl<osgDB::Registry>::process(std::basic_ostream<char>& os)
     return ret;
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgDB::Options::CacheHintOptions & t)
+{
+    if (t == osgDB::Options::CACHE_NONE)
+        os << "none";
+    else
+    {
+        std::vector<std::string> l;
+        if (t & osgDB::Options::CACHE_ARCHIVES)
+            l.push_back("archives");
+        if (t & osgDB::Options::CACHE_NODES)
+            l.push_back("nodes");
+        if (t & osgDB::Options::CACHE_IMAGES)
+            l.push_back("images");
+        if (t & osgDB::Options::CACHE_HEIGHTFIELDS)
+            l.push_back("heightfields");
+        if (t & osgDB::Options::CACHE_OBJECTS)
+            l.push_back("objects");
+        if (t & osgDB::Options::CACHE_SHADERS)
+            l.push_back("shaders");
+        os << helpers::joinStrings(l, ',');
+    }
+    return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgDB::Options::PrecisionHint & t)
+{
+    if (t == osgDB::Options::FLOAT_PRECISION_ALL)
+        os << "float";
+    else
+    {
+        std::vector<std::string> l;
+        if (t & osgDB::Options::DOUBLE_PRECISION_VERTEX)
+            l.push_back("double vertex");
+        if (t & osgDB::Options::DOUBLE_PRECISION_NORMAL)
+            l.push_back("double normal");
+        if (t & osgDB::Options::DOUBLE_PRECISION_COLOR)
+            l.push_back("double color");
+        if (t & osgDB::Options::DOUBLE_PRECISION_SECONDARY_COLOR)
+            l.push_back("double second color");
+        if (t & osgDB::Options::DOUBLE_PRECISION_FOG_COORD)
+            l.push_back("double fog coord");
+        if (t & osgDB::Options::DOUBLE_PRECISION_TEX_COORD)
+            l.push_back("double tex coord");
+        if (t & osgDB::Options::DOUBLE_PRECISION_VERTEX_ATTRIB)
+            l.push_back("double vertex attrib");
+        os << helpers::joinStrings(l, ',');
+    }
+    return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgDB::Options::BuildKdTreesHint & t)
+{
+    switch (t)
+    {
+    case osgDB::Options::NO_PREFERENCE: os << "NO_PREFERENCE"; break;
+    case osgDB::Options::DO_NOT_BUILD_KDTREES: os << "DO_NOT_BUILD_KDTREES"; break;
+    case osgDB::Options::BUILD_KDTREES: os << "BUILD_KDTREES"; break;
+    default: os << "unknown" << (int)t; break;
+    }
+    return os;
+}
+
 bool writePrettyHTMLImpl<osgDB::Options>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osgDB::Options * object = getObject<osgDB::Options,SGIItemOsg>();
+    OptionsAccess * object = static_cast<OptionsAccess *>(getObject<osgDB::Options, SGIItemOsg>());
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -177,9 +260,39 @@ bool writePrettyHTMLImpl<osgDB::Options>::process(std::basic_ostream<char>& os)
             os << "<tr><td>precision hint</td><td>" << object->getPrecisionHint() << "</td></tr>" << std::endl;
             os << "<tr><td>build KD tree hint</td><td>" << object->getBuildKdTreesHint() << "</td></tr>" << std::endl;
 
-            os << "<tr><td>authentication map</td><td>" << (object->getAuthenticationMap()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>authentication map</td><td>" << osg_helpers::getObjectNameAndType(object->getAuthenticationMap()) << "</td></tr>" << std::endl;
 
-            os << "<tr><td>plugin data</td><td>not available yet</td></tr>" << std::endl;
+            os << "<tr><td>terrain</td><td>";
+            osg::ref_ptr<osg::Node> terrain;
+            object->getTerrain().lock(terrain);
+            os << osg_helpers::getObjectNameAndType(terrain.get());
+            os << "</td></tr>" << std::endl;
+
+            os << "<tr><td>parent group</td><td>";
+            osg::ref_ptr<osg::Group> parentGroup;
+            object->getParentGroup().lock(parentGroup);
+            os << osg_helpers::getObjectNameAndType(parentGroup.get());
+            os << "</td></tr>" << std::endl;
+
+            const OptionsAccess::PluginDataMap & pluginData = object->getPluginDataMap();
+            os << "<tr><td>plugin data</td><td><ul>";
+            for(auto it = pluginData.begin(); it != pluginData.end(); ++it)
+            {
+                const std::string & key = it->first;
+                const void * data = it->second;
+                os << "<li>" << key << "=" << data << "</li>" << std::endl;
+            }
+            os << "<ul></td></tr>" << std::endl;
+
+            const OptionsAccess::PluginStringDataMap & pluginStringData = object->getPluginStringDataMap();
+            os << "<tr><td>plugin string data</td><td><ul>";
+            for (auto it = pluginStringData.begin(); it != pluginStringData.end(); ++it)
+            {
+                const std::string & key = it->first;
+                const std::string & data = it->second;
+                os << "<li>" << key << "=" << data << "</li>" << std::endl;
+            }
+            os << "<ul></td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -314,6 +427,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgDB::
     return os;
 }
 
+extern bool writePrettyHTMLImpl_OpenThreads_Thread(std::basic_ostream<char>& os, OpenThreads::Thread * object);
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::DatabaseThread)
 
 bool writePrettyHTMLImpl<osgDB::DatabasePager::DatabaseThread>::process(std::basic_ostream<char>& os)
@@ -332,6 +446,8 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager::DatabaseThread>::process(std::bas
             // add object properties first
             callNextHandler(os);
 
+            writePrettyHTMLImpl_OpenThreads_Thread(os, object);
+
             os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
             os << "<tr><td>mode</td><td>" << access->getMode() << "</td></tr>" << std::endl;
             os << "<tr><td>active</td><td>" << (object->getActive()?"true":"false") << "</td></tr>" << std::endl;
@@ -349,13 +465,10 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager::DatabaseThread>::process(std::bas
     return ret;
 }
 
-#if 0
-WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::DatabaseRequest)
-
 bool writePrettyHTMLImpl<osgDB::DatabasePager::DatabaseRequest>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osgDB::DatabasePager::DatabaseRequest * object = getObject<osgDB::DatabasePager::DatabaseRequest,SGIItemOsg>();
+	osgDB::DatabasePager::DatabaseRequest * object = getObject<osgDB::DatabasePager::DatabaseRequest,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -366,6 +479,28 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager::DatabaseRequest>::process(std::ba
             // add object properties first
             callNextHandler(os);
 
+			os << "<tr><td>valid</td><td>" << (object->_valid ? "true" : "false") << "</td></tr>" << std::endl;
+			os << "<tr><td>fileName</td><td>" << object->_fileName << "</td></tr>" << std::endl;
+			os << "<tr><td>frame no first request</td><td>" << object->_frameNumberFirstRequest << "</td></tr>" << std::endl;
+			os << "<tr><td>timestamp first request</td><td>" << object->_timestampFirstRequest << "</td></tr>" << std::endl;
+			os << "<tr><td>priority first request</td><td>" << object->_priorityFirstRequest << "</td></tr>" << std::endl;
+
+			os << "<tr><td>frame no last request</td><td>" << object->_frameNumberLastRequest << "</td></tr>" << std::endl;
+			os << "<tr><td>timestamp last request</td><td>" << object->_timestampLastRequest << "</td></tr>" << std::endl;
+			os << "<tr><td>priority last request</td><td>" << object->_priorityLastRequest << "</td></tr>" << std::endl;
+
+			os << "<tr><td>num requests</td><td>" << object->_numOfRequests << "</td></tr>" << std::endl;
+
+			os << "<tr><td>terrain</td><td>" << osg_helpers::getObjectNameAndType(object->_terrain.get(), true) << "</td></tr>" << std::endl;
+			os << "<tr><td>group</td><td>" << osg_helpers::getObjectNameAndType(object->_group.get(), true) << "</td></tr>" << std::endl;
+
+			os << "<tr><td>loadedModel</td><td>" << osg_helpers::getObjectNameAndType(object->_loadedModel.get(), true) << "</td></tr>" << std::endl;
+			os << "<tr><td>loadOptions</td><td>" << osg_helpers::getObjectNameAndType(object->_loadOptions.get(), true) << "</td></tr>" << std::endl;
+			os << "<tr><td>objectCache</td><td>" << osg_helpers::getObjectNameAndType(object->_objectCache.get()) << "</td></tr>" << std::endl;
+
+			os << "<tr><td>ICO compile set</td><td>" << osg_helpers::getObjectNameAndType(object->_compileSet.get()) << "</td></tr>" << std::endl;
+
+			os << "<tr><td>groupExpired</td><td>" << (object->_groupExpired ? "true" : "false") << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -378,7 +513,90 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager::DatabaseRequest>::process(std::ba
     }
     return ret;
 }
-#endif // 0
+
+
+bool writePrettyHTMLImpl<osgDB::DatabasePager::RequestQueue>::process(std::basic_ostream<char>& os)
+{
+	bool ret = false;
+	osgDB::DatabasePager::RequestQueue * object = getObject<osgDB::DatabasePager::RequestQueue, SGIItemOsg>();
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+	{
+		if (_table)
+			os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+		// add object properties first
+		callNextHandler(os);
+
+		os << "<tr><td>size</td><td>" << object->size() << "</td></tr>" << std::endl;
+		os << "<tr><td>frame no last pruned</td><td>" << object->_frameNumberLastPruned << "</td></tr>" << std::endl;
+
+		if (_table)
+			os << "</table>" << std::endl;
+		ret = true;
+	}
+	break;
+	default:
+		ret = callNextHandler(os);
+		break;
+	}
+	return ret;
+}
+
+
+bool writePrettyHTMLImpl<osgDB::DatabasePager::ReadQueue>::process(std::basic_ostream<char>& os)
+{
+	bool ret = false;
+	osgDB::DatabasePager::ReadQueue * object = getObject<osgDB::DatabasePager::ReadQueue, SGIItemOsg>();
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+	{
+		if (_table)
+			os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+		// add object properties first
+		callNextHandler(os);
+
+		os << "<tr><td>name</td><td>" << object->_name << "</td></tr>" << std::endl;
+		os << "<tr><td>block</td><td>" << osg_helpers::getObjectNameAndType(object->_block.get()) << "</td></tr>" << std::endl;
+
+		if (_table)
+			os << "</table>" << std::endl;
+		ret = true;
+	}
+	break;
+	default:
+		ret = callNextHandler(os);
+		break;
+	}
+	return ret;
+}
+
+void writePrettyHTMLImpl_DatabaseRequest(std::basic_ostream<char>& os, const DatabasePagerAccessor::DatabaseRequestAccess * req, bool brief=true)
+{
+    if (brief)
+    {
+        os << "<li>";
+        if (req)
+        {
+            os << osg_helpers::getObjectNameAndType(req) << "&nbsp;";
+            if (!req->_valid)
+                os << "invalid";
+            else
+            {
+                os << req->_fileName << "&nbsp;" << req->_frameNumberLastRequest << '/' << req->_timestampLastRequest << '@' << req->_priorityLastRequest << '#' << req->_numOfRequests;
+            }
+        }
+        else
+            os << "(null)";
+        os << "</li>";
+    }
+    else
+    {
+    }
+}
 
 bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>& os)
 {
@@ -415,10 +633,18 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
             os << "<tr><td>num compiles</td><td>" << object->getDataToCompileListSize() << "</td></tr>" << std::endl;
             os << "<tr><td>num merges</td><td>" << object->getDataToMergeListSize() << "</td></tr>" << std::endl;
             os << "<tr><td>require update</td><td>" << (object->requiresUpdateSceneGraph()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>pre-compile</td><td>" << (object->getDoPreCompile()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>apply PBO to images</td><td>" << (object->getApplyPBOToImages()?"true":"false") << "</td></tr>" << std::endl;
 
             os << "<tr><td>active PagedLODs</td><td>" << access->numberOfPagedLODs() << "</td></tr>" << std::endl;
+
+			bool changeAutoUnRef = false, valueAutoUnRef = false;
+			object->getUnrefImageDataAfterApplyPolicy(changeAutoUnRef, valueAutoUnRef);
+			os << "<tr><td>unref image data after apply</td><td>" << (changeAutoUnRef ? "true" : "false") << "/" << (valueAutoUnRef ? "true" : "false") << "</td></tr>" << std::endl;
+			
+			bool changeAnisotropy = false;
+			float valueAnisotropy = 0;
+			object->getMaxAnisotropyPolicy(changeAnisotropy, valueAnisotropy);
+			os << "<tr><td>max anisotropy policy</td><td>" << (changeAnisotropy ? "true" : "false") << "/" << valueAnisotropy << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -444,8 +670,11 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
     case SGIItemTypeActivePagedLODs:
         {
             os << "<ul>";
-            const DatabasePagerAccessor::SetBasedPagedLODList * list = access->activePagedLODList();
-            for(DatabasePagerAccessor::SetBasedPagedLODList::const_iterator it = list->begin(); it != list->end(); it++)
+            DatabasePagerAccessor * access = (DatabasePagerAccessor*)object;
+
+            osgDB::DatabasePager::PagedLODList * activePagedLODList = access->activePagedLODList();
+            const DatabasePagerAccessor::SetBasedPagedLODList * list = static_cast<const DatabasePagerAccessor::SetBasedPagedLODList *>(activePagedLODList);
+            for (DatabasePagerAccessor::SetBasedPagedLODList::const_iterator it = list->begin(); it != list->end(); it++)
             {
                 const osg::observer_ptr<osg::PagedLOD> & value = *it;
                 osg::ref_ptr<osg::PagedLOD> node;
@@ -460,13 +689,13 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
         break;
     case SGIItemTypeDBPagerFileRequests:
         {
-            os << "<ul>";
             DatabasePagerAccessor::RequestList requestList;
             access->copyFileRequests(requestList);
+            os << requestList.size() << " items<br/><ul>";
             for(auto it = requestList.begin(); it != requestList.end(); it++)
             {
                 const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
-                os << "<li>" << osg_helpers::getObjectNameAndType(req) << "</li>";
+                writePrettyHTMLImpl_DatabaseRequest(os, req, true);
             }
             os << "</ul>";
             ret = true;
@@ -474,13 +703,13 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
         break;
     case SGIItemTypeDBPagerHttpRequests:
         {
-            os << "<ul>";
             DatabasePagerAccessor::RequestList requestList;
             access->copyHttpRequests(requestList);
+            os << requestList.size() << " items<br/><ul>";
             for(auto it = requestList.begin(); it != requestList.end(); it++)
             {
                 const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
-                os << "<li>" << osg_helpers::getObjectNameAndType(req) << "</li>";
+                writePrettyHTMLImpl_DatabaseRequest(os, req, true);
             }
             os << "</ul>";
             ret = true;
@@ -488,13 +717,13 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
         break;
     case SGIItemTypeDBPagerDataToCompile:
         {
-            os << "<ul>";
             DatabasePagerAccessor::RequestList requestList;
             access->copyDataToCompile(requestList);
+            os << requestList.size() << " items<br/><ul>";
             for(auto it = requestList.begin(); it != requestList.end(); it++)
             {
                 const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
-                os << "<li>" << osg_helpers::getObjectNameAndType(req) << "</li>";
+                writePrettyHTMLImpl_DatabaseRequest(os, req, true);
             }
             os << "</ul>";
             ret = true;
@@ -502,13 +731,13 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
         break;
     case SGIItemTypeDBPagerDataToMerge:
         {
-            os << "<ul>";
             DatabasePagerAccessor::RequestList requestList;
             access->copyDataToMerge(requestList);
+            os << requestList.size() << " items<br/><ul>";
             for(auto it = requestList.begin(); it != requestList.end(); it++)
             {
                 const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
-                os << "<li>" << osg_helpers::getObjectNameAndType(req) << "</li>";
+                writePrettyHTMLImpl_DatabaseRequest(os, req, true);
             }
             os << "</ul>";
             ret = true;
@@ -553,6 +782,69 @@ bool writePrettyHTMLImpl<osgDB::FileCache>::process(std::basic_ostream<char>& os
                 os << "<li>" << osg_helpers::getObjectNameAndType((*it).get()) << "</li>";
             }
             os << "</ol>";
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgDB::ObjectCache>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    ObjectCacheAccess * object = static_cast<ObjectCacheAccess *>(getObject<osgDB::ObjectCache, SGIItemOsg>());
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add object properties first
+            callNextHandler(os);
+
+            os << "<tr><td>num items</td><td>" << object->getNumItems() << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeCachedObjects:
+        {
+            ObjectCacheAccess::ItemList items;
+            object->getItems(items);
+            if (itemNumber() == ~0u)
+            {
+
+                os << "<table border=\'1\' align=\'left\'><tr><th>Name</th><th>Object</th><th>Timestamp</th></tr>" << std::endl;
+                for (const auto & item : items)
+                {
+                    os << "<tr><td>" << item.name;
+                    if (item.options.valid())
+                        os << "&nbsp;" << osg_helpers::getObjectNameAndType(item.options.get());
+                    os << "</td><td>";
+                    os << osg_helpers::getObjectNameAndType(item.object.get()) << "</td><td>" << item.timestamp << "</td></tr>" << std::endl;
+                }
+                os << "</table>" << std::endl;
+            }
+            else if (itemNumber() < items.size())
+            {
+                const auto & item = items[itemNumber()];
+                os << "<table border=\'1\' align=\'left\'>" << std::endl;
+                os << "<tr><td>name</td><td>" << item.name << "</td></tr>" << std::endl;
+                os << "<tr><td>object</td><td>" << osg_helpers::getObjectNameAndType(item.object) << "</td></tr>" << std::endl;
+                os << "<tr><td>options</td><td>" << osg_helpers::getObjectNameAndType(item.options) << "</td></tr>" << std::endl;
+                os << "<tr><td>timestamp</td><td>" << item.timestamp << "</td></tr>" << std::endl;
+                os << "</table>" << std::endl;
+            }
+            else
+            {
+                os << "Cached object #" << itemNumber() << " does not exist." << std::endl;
+            }
             ret = true;
         }
         break;
@@ -667,6 +959,14 @@ bool writePrettyHTMLImpl<osgDB::FileList>::process(std::basic_ostream<char>& os)
     return ret;
 }
 
+#if OSG_VERSION_GREATER_OR_EQUAL(3,5,0)
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgDB::ObjectWrapperAssociate & a)
+{
+    os << "firstVersion " << a._firstVersion << ", lastVersion " << a._lastVersion << " " << a._name;
+    return os;
+}
+#endif
+
 bool writePrettyHTMLImpl<osgDB::ObjectWrapper>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -688,11 +988,19 @@ bool writePrettyHTMLImpl<osgDB::ObjectWrapper>::process(std::basic_ostream<char>
             os << "<tr><td>updated version</td><td>" << object->getUpdatedVersion() << "</td></tr>" << std::endl;
 
             os << "<tr><td>associates</td><td><ul>";
+#if OSG_VERSION_GREATER_OR_EQUAL(3,5,0)
+            const osgDB::ObjectWrapper::RevisionAssociateList & associates = object->getAssociates();
+            for(osgDB::ObjectWrapper::RevisionAssociateList::const_iterator it = associates.begin(); it != associates.end(); it++)
+            {
+                os << "<li>" << *it << "</li>";
+            }
+#else
             const osgDB::StringList & associates = object->getAssociates();
             for(osgDB::StringList::const_iterator it = associates.begin(); it != associates.end(); it++)
             {
                 os << "<li>" << *it << "</li>";
             }
+#endif
             os << "</ul></td></tr>" << std::endl;
 
 #if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
@@ -830,6 +1138,35 @@ bool writePrettyHTMLImpl<osgDB::BaseSerializer>::process(std::basic_ostream<char
     }
     return ret;
 }
+
+unsigned ObjectCacheAccess::getNumItems()
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_objectCacheMutex);
+    return _objectCache.size();
+}
+
+void ObjectCacheAccess::getItems(ItemList & items)
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_objectCacheMutex);
+    unsigned num = _objectCache.size();
+    items.resize(num);
+    unsigned idx = 0;
+    for (auto it = _objectCache.begin(); it != _objectCache.end(); ++it, ++idx)
+    {
+        Item & item = items[idx];
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+        const FileNameOptionsPair & filename_options = it->first;
+        item.name = filename_options.first;
+        item.options = filename_options.second;
+#else
+        item.name = it->first;
+        item.options = nullptr;
+#endif
+        item.object = it->second.first;
+        item.timestamp = it->second.second;
+    }
+}
+
 
 } // namespace osg_plugin
 } // namespace sgi

@@ -49,7 +49,7 @@ private:
 private:
 	Ui_RetrieveElevationDialog *    ui;
     SGIPluginHostInterface *        _hostInterface;
-    ISettingsDialogPtr              _interface;
+    ISettingsDialogPtr _interface;
     ISettingsDialogInfoPtr          _info;
     SGIItemBasePtr                  _item;
 };

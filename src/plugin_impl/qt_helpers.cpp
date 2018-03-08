@@ -19,6 +19,9 @@
 #include <QDateTime>
 #include <QLocale>
 #include <QEasingCurve>
+#include <QSizePolicy>
+#include <QPaintDevice>
+#include <sgi/helpers/rtti>
 
 namespace sgi {
     namespace qt_helpers {
@@ -38,34 +41,90 @@ std::string toLocal8Bit(const QString & str)
     return std::string(qba.constData(), qba.size());
 }
 
+QString fromUtf8(const std::string & str)
+{
+    return QString::fromUtf8(str.data(), str.size());
+}
+
+std::string toUtf8(const QString & str)
+{
+    QByteArray qba = str.toUtf8();
+    return std::string(qba.constData(), qba.size());
+}
+
 std::string getObjectTypename(const QObject * object)
 {
     const QMetaObject * meta = object?object->metaObject():NULL;
     return meta?std::string(meta->className()):"(null)";
 }
 
-std::string getObjectName(const QObject * object)
+std::string getObjectName(const QObject * object, bool includeAddr)
 {
-    std::string ret = object?toLocal8Bit(object->objectName()):std::string("(null)");
-    if(ret.empty())
+    std::string ret;
+    if(includeAddr)
     {
         std::stringstream buf;
         buf << (void*)object;
+        if(object)
+        {
+            QString name = object->objectName();
+            if(!name.isEmpty())
+                buf << ' ' << toUtf8(name);
+        }
         ret = buf.str();
+    }
+    else
+    {
+        ret = object? toUtf8(object->objectName()):std::string("(null)");
+        if(ret.empty())
+        {
+            std::stringstream buf;
+            buf << (void*)object;
+            ret = buf.str();
+        }
     }
     return ret;
 }
 
-std::string getObjectNameAndType(const QObject * object)
+std::string getObjectNameAndType(const QObject * object, bool includeAddr)
 {
-std::string name = object?toLocal8Bit(object->objectName()):std::string("(null)");
-    std::stringstream buf;
-    if(name.empty())
-        buf << (void*)object;
+    std::string ret;
+    if(object)
+    {
+        std::stringstream buf;
+        buf << getObjectName(object, includeAddr) << " (" << getObjectTypename(object) << ")";
+        ret = buf.str();
+    }
     else
-        buf << name;
-    buf << " (" << getObjectTypename(object) << ")";
-    std::string ret = buf.str();
+        ret = "(null)";
+    return ret;
+}
+
+std::string getObjectTypename(const QPaintDevice * object)
+{
+    return object?(helpers::getRTTITypename_html(object)):"(null)";
+}
+
+std::string getObjectName(const QPaintDevice * object, bool includeAddr)
+{
+    std::string ret;
+    std::stringstream buf;
+    buf << (void*)object;
+    ret = buf.str();
+    return ret;
+}
+
+std::string getObjectNameAndType(const QPaintDevice * object, bool includeAddr)
+{
+    std::string ret;
+    if(object)
+    {
+        std::stringstream buf;
+        buf << getObjectName(object, includeAddr) << " (" << getObjectTypename(object) << ")";
+        ret = buf.str();
+    }
+    else
+        ret = "(null)";
     return ret;
 }
 
@@ -116,14 +175,14 @@ namespace std {
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QString& str)
     {
-        return os << str.toLocal8Bit().constData();
+        return os << str.toUtf8().constData();
     }
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QStringRef& str)
     {
         const QString * p = str.string();
         if(p)
-            return os << p->toLocal8Bit().constData();
+            return os << p->toUtf8().constData();
         else
             return os << "(null)";
     }
@@ -230,6 +289,25 @@ namespace std {
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QUrl & url)
     {
-        return os  << url.toString();
+        return os << url.toString();
+    }
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSizePolicy::Policy & p)
+    {
+        switch(p)
+        {
+        case QSizePolicy::Fixed: os << "Fixed"; break;
+        case QSizePolicy::Minimum: os << "Minimum"; break;
+        case QSizePolicy::Maximum: os << "Maximum"; break;
+        case QSizePolicy::Preferred: os << "Preferred"; break;
+        case QSizePolicy::MinimumExpanding: os << "MinimumExpanding"; break;
+        case QSizePolicy::Expanding: os << "Expanding"; break;
+        case QSizePolicy::Ignored: os << "Ignored"; break;
+        default: os << (int)p; break;
+        }
+        return os;
+    }
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSizePolicy & sp)
+    {
+        return os << "(" << sp.horizontalPolicy() << ", " << sp.verticalPolicy() << ")";
     }
 }

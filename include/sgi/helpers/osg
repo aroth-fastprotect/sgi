@@ -9,7 +9,11 @@
 #include <osg/Vec4f>
 #include <osg/Vec4d>
 #include <osg/Vec3>
+#include <osg/NodeVisitor>
 #include <sgi/helpers/rtti>
+
+#include <sgi/plugins/Matrix>
+#include <sgi/plugins/Quat>
 
 namespace osg {
     class Referenced;
@@ -22,6 +26,12 @@ namespace osg {
     class ObserverNodePath;
     class Matrixf;
     class Matrixd;
+    class Viewport;
+    class Image;
+	class HeightField;
+    class Camera;
+    class StateSet;
+    class StateAttribute;
     class Image;
 
     typedef std::vector< Node* > NodePath;
@@ -29,8 +39,8 @@ namespace osg {
     template<typename VT>
     class BoundingBoxImpl;
 
-    typedef BoundingBoxImpl<Vec3f> BoundingBoxf;
-    typedef BoundingBoxImpl<Vec3d> BoundingBoxd;
+    typedef BoundingBoxImpl<osg::Vec3f> BoundingBoxf;
+    typedef BoundingBoxImpl<osg::Vec3d> BoundingBoxd;
 
 #ifdef OSG_USE_FLOAT_BOUNDINGBOX
     typedef BoundingBoxf BoundingBox;
@@ -41,8 +51,8 @@ namespace osg {
     template<typename VT>
     class BoundingSphereImpl;
 
-    typedef BoundingSphereImpl<Vec3f> BoundingSpheref;
-    typedef BoundingSphereImpl<Vec3d> BoundingSphered;
+    typedef BoundingSphereImpl<osg::Vec3f> BoundingSpheref;
+    typedef BoundingSphereImpl<osg::Vec3d> BoundingSphered;
 
 #ifdef OSG_USE_FLOAT_BOUNDINGSPHERE
     typedef BoundingSpheref BoundingSphere;
@@ -54,7 +64,9 @@ namespace osg {
 class QImage;
 
 namespace sgi {
-    namespace osg_helpers {
+
+class Image;
+namespace osg_helpers {
 
 /** Makes an HTML color ("#rrggbb" or "#rrggbbaa") from an OSG color. */
 template<typename T>
@@ -75,25 +87,25 @@ inline std::string vec4fToHtmlColor( const T& c )
 // create an empty enum for the string representation of the
 // osg::NodeMask (which is a typedef to unsigned int).
 enum osgNodeMask { };
-// extra type for GL constants
-enum GLConstant { };
+// extra type for GL enums
+enum GLEnum { };
 
 // extra type for GL modes values
 enum GLModeValue { };
 enum GLModeOverrideValue { };
 
-std::string getObjectTypename(const ::osg::Referenced * object);
-std::string getObjectTypename(const ::osg::Observer * object);
-std::string getObjectTypename(const ::osg::Object * object);
-std::string getObjectName(const ::osg::Referenced * object);
-std::string getObjectName(const ::osg::Observer * object);
-std::string getObjectName(const ::osg::Object * object);
+SGI_OSG_HELPER_EXPORT std::string getObjectTypename(const osg::Referenced * object);
+SGI_OSG_HELPER_EXPORT std::string getObjectTypename(const osg::Observer * object);
+SGI_OSG_HELPER_EXPORT std::string getObjectTypename(const osg::Object * object);
+SGI_OSG_HELPER_EXPORT std::string getObjectName(const osg::Referenced * object, bool includeAddr=true);
+SGI_OSG_HELPER_EXPORT std::string getObjectName(const osg::Observer * object, bool includeAddr=true);
+SGI_OSG_HELPER_EXPORT std::string getObjectName(const osg::Object * object, bool includeAddr=true);
 
-std::string getObjectNameAndType(const ::osg::Referenced * object);
-std::string getObjectNameAndType(const ::osg::Observer * object);
-std::string getObjectNameAndType(const ::osg::Object * object);
+SGI_OSG_HELPER_EXPORT std::string getObjectNameAndType(const osg::Referenced * object, bool includeAddr=true);
+SGI_OSG_HELPER_EXPORT std::string getObjectNameAndType(const osg::Observer * object, bool includeAddr=true);
+SGI_OSG_HELPER_EXPORT std::string getObjectNameAndType(const osg::Object * object, bool includeAddr=true);
 
-inline sgi::Color osgColor(const ::osg::Vec4f & c)
+inline sgi::Color osgColor(const osg::Vec4f & c)
 {
     return sgi::Color(c.r(), c.g(), c.b(), c.a());
 }
@@ -103,37 +115,58 @@ inline ::osg::Vec4f osgColor(const sgi::Color & c)
     return ::osg::Vec4f(c.r, c.g, c.b, c.a);
 }
 
-std::string glValueName(unsigned n);
-std::string glOverrideValueName(unsigned n);
-std::string clearMaskToString(unsigned clearMask);
+inline sgi::Matrix osgMatrix(const osg::Matrixd & m)
+{
+    return sgi::Matrix(m.ptr());
+}
 
-const osg::EllipsoidModel & getDefaultEllipsoid();
+inline ::osg::Matrixd osgMatrix(const sgi::Matrix & m)
+{
+    return ::osg::Matrixd(m.ptr());
+}
 
-osg::Vec3d fromECEFToXYZ(const osg::EllipsoidModel & ellipsoid, const osg::Vec3d & coord);
-osg::Vec3d fromXYZToECEF(const osg::EllipsoidModel & ellipsoid, const osg::Vec3d & v);
-osg::Vec3d fromECEFToXYZ(const osg::Vec3d & coord);
-osg::Vec3d fromXYZToECEF(const osg::Vec3d & v);
+inline sgi::Quat osgQuat(const osg::Quat & q)
+{
+    return sgi::Quat(q.x(), q.y(), q.z(), q.w());
+}
 
-void getHPRFromQuat(const osg::Quat& q, double &h, double &p, double &r);
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec2f & v);
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec3f & v);
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec4f & v);
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec2d & v);
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec3d & v);
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec4d & v);
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::Quat & q);
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::NodePath & path);
+inline ::osg::Quat osgQuat(const sgi::Quat & q)
+{
+    return ::osg::Quat(q.x(), q.y(), q.z(), q.w());
+}
 
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::ObserverNodePath & path);
+SGI_OSG_HELPER_EXPORT std::string glValueName(unsigned n);
+SGI_OSG_HELPER_EXPORT std::string glOverrideValueName(unsigned n);
+SGI_OSG_HELPER_EXPORT std::string clearMaskToString(unsigned clearMask);
+SGI_OSG_HELPER_EXPORT std::string cullingMaskToString(unsigned cullingMask);
 
-void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Node * refNode=NULL);
-void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Drawable * refDrawable=NULL);
-void writePrettyRotationHTML(std::basic_ostream<char>& os, const osg::Quat & q);
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSphere & bs, const osg::Node * refNode=NULL);
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSphere * bs, const osg::Node * refNode=NULL);
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox & bb, const osg::Node * refNode);
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox & bb, const osg::Drawable * refDrawable);
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox * bb, const osg::Drawable * refDrawable);
+SGI_OSG_HELPER_EXPORT const osg::EllipsoidModel & getDefaultEllipsoid();
+
+SGI_OSG_HELPER_EXPORT osg::Vec3d fromECEFToXYZ(const osg::EllipsoidModel & ellipsoid, const osg::Vec3d & coord);
+SGI_OSG_HELPER_EXPORT osg::Vec3d fromXYZToECEF(const osg::EllipsoidModel & ellipsoid, const osg::Vec3d & v);
+SGI_OSG_HELPER_EXPORT osg::Vec3d fromECEFToXYZ(const osg::Vec3d & coord);
+SGI_OSG_HELPER_EXPORT osg::Vec3d fromXYZToECEF(const osg::Vec3d & v);
+
+SGI_OSG_HELPER_EXPORT void getHPRFromQuat(const osg::Quat& q, double &h, double &p, double &r);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec2f & v);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec3f & v);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec4f & v);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec2d & v);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec3d & v);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Vec4d & v);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Quat & q);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::NodePath & path, bool includeNodeMask = false);
+
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::ObserverNodePath & path, bool includeNodeMask = false);
+
+SGI_OSG_HELPER_EXPORT void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Node * refNode=NULL);
+SGI_OSG_HELPER_EXPORT void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Drawable * refDrawable=NULL);
+SGI_OSG_HELPER_EXPORT void writePrettyRotationHTML(std::basic_ostream<char>& os, const osg::Quat & q);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSphere & bs, const osg::Node * refNode=NULL);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSphere * bs, const osg::Node * refNode=NULL);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox & bb, const osg::Node * refNode);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox & bb, const osg::Drawable * refDrawable);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox * bb, const osg::Drawable * refDrawable);
 
 enum MatrixUsageType
 {
@@ -143,12 +176,231 @@ enum MatrixUsageType
     MatrixUsageTypeLookAt,
     MatrixUsageTypeFrustum,
     MatrixUsageTypeOrtho,
+    MatrixUsageTypeWindow,
 };
 
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Node * refNode=NULL);
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Drawable * refDrawable);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Node * refNode=NULL);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Drawable * refDrawable);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::RefMatrixd * mat, MatrixUsageType type, const osg::Node * refNode = NULL);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::RefMatrixd * mat, MatrixUsageType type, const osg::Drawable * refDrawable);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Viewport * vp);
 
-bool osgImageToQImage(const osg::Image * image, QImage * qimage);
+SGI_OSG_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxf & b);
+SGI_OSG_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxd & b);
+SGI_OSG_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSpheref & b);
+SGI_OSG_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSphered & b);
+
+SGI_QT_HELPER_EXPORT bool osgImageToQImage(const osg::Image * image, QImage * qimage);
+SGI_OSG_HELPER_EXPORT const sgi::Image * convertImage(const osg::Image * image);
+
+SGI_OSG_HELPER_EXPORT void heightFieldDumpHTML(std::basic_ostream<char>& os, const osg::HeightField * hf);
+SGI_OSG_HELPER_EXPORT void heightFieldDumpPlainText(std::basic_ostream<char>& os, const osg::HeightField * hf);
+
+    /**
+     * Visitor that locates a node by its type
+     */
+    template<typename T>
+    class FindTopMostNodeOfTypeVisitor : public osg::NodeVisitor
+    {
+    public:
+        FindTopMostNodeOfTypeVisitor():
+          osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN),
+              _foundNode(0)
+          {}
+
+          void apply(osg::Node& node)
+          {
+              T* result = dynamic_cast<T*>(&node);
+              if (result)
+              {
+                  _foundNode = result;
+              }
+              else
+              {
+                  traverse(node);
+              }
+          }
+          T* excludedNode() const { return _excludedNode; }
+          void setExcludedNode(T * node) { _excludedNode = node; }
+
+          T* _foundNode;
+          T* _excludedNode;
+    };
+
+    /**
+     * Collects all the nodes of type "T"
+     */
+    template<typename T>
+    struct FindNodesVisitor : public osg::NodeVisitor
+    {
+        FindNodesVisitor() : osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN) { }
+
+        void apply(osg::Node& node)
+        {
+            T* result = dynamic_cast<T*>( &node );
+            if ( result )
+                _results.push_back( result );
+            traverse(node);
+        }
+
+        std::vector<T*> _results;
+    };
+
+    /**
+     * Searchs the scene graph downward starting at [node] and returns the first node found
+     * that matches the template parameter type.
+     */
+    template<typename T>
+    T* findTopMostNodeOfType(osg::Node* node, unsigned traversalMask =~0u, T * excludedNode=NULL)
+    {
+        if (!node) return 0;
+
+        FindTopMostNodeOfTypeVisitor<T> fnotv;
+        fnotv.setTraversalMode(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN);
+        fnotv.setTraversalMask(traversalMask);
+        fnotv.setExcludedNode(excludedNode);
+        node->accept(fnotv);
+
+        return fnotv._foundNode;
+    }
+
+    /**
+     * Searchs the scene graph upward starting at [node] and returns the first node found
+     * that matches the template parameter type.
+     */
+    template<typename T>
+    T* findFirstParentOfType(osg::Node* node, unsigned traversalMask =~0u, T * excludedNode=NULL)
+    {
+        if (!node) return 0;
+
+        FindTopMostNodeOfTypeVisitor<T> fnotv;
+        fnotv.setTraversalMode(osg::NodeVisitor::TRAVERSE_PARENTS);
+        fnotv.setTraversalMask(traversalMask);
+        fnotv.setExcludedNode(excludedNode);
+        node->accept(fnotv);
+
+        return fnotv._foundNode;
+    }
+
+    /**
+     * Searchs the scene graph starting at [node] and returns the first node found
+     * that matches the template parameter type. First searched upward, then downward.
+     */
+    template<typename T>
+    T* findRelativeNodeOfType(osg::Node* node, unsigned traversalMask =~0u, T * excludedNode=NULL)
+    {
+        if ( !node ) return 0;
+        T* result = findFirstParentOfType<T>( node, traversalMask, excludedNode );
+        if ( !result )
+            result = findTopMostNodeOfType<T>( node, traversalMask, excludedNode );
+        return result;
+    }
+
+    /**
+     * Collects all the nodes of type "T" and given name
+     */
+    template<typename T>
+    struct FindNamedNodesVisitor : public osg::NodeVisitor
+    {
+        FindNamedNodesVisitor(const std::string& name)
+            : osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN)
+            , _name(name) {}
+
+        void apply(osg::Node& node)
+        {
+            T* result = dynamic_cast<T*>( &node );
+            if ( result )
+            {
+                if (node.getName()==_name)
+                    _results.push_back( result );
+            }
+            traverse(node);
+        }
+        const std::string & _name;
+        std::vector<T*> _results;
+    };
+    /**
+     * Collects all the nodes of type "T" and given name
+     */
+    template<typename T>
+    struct FindTopMostNamedNodesVisitor : public osg::NodeVisitor
+    {
+        FindTopMostNamedNodesVisitor(const std::string& name)
+            : osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN)
+            , _name(name), _foundNode(NULL) {}
+
+        void apply(osg::Node& node)
+        {
+            T* result = dynamic_cast<T*>( &node );
+            if ( result )
+            {
+                if (node.getName()==_name)
+                {
+                    _foundNode = result;
+                }
+            }
+            if(!_foundNode)
+                traverse(node);
+        }
+        const std::string & _name;
+        T* _foundNode;
+    };
+   /**
+     * Searchs the scene graph downward starting at [node] and returns the first node found
+     * that matches the template parameter type.
+     */
+    template<typename T>
+    T* findTopMostNodeByName(osg::Node* node, const std::string & name, unsigned traversalMask =~0u)
+    {
+        if (!node) return 0;
+
+        FindTopMostNamedNodesVisitor<T> fnnv(name);
+        fnnv.setTraversalMode(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN);
+        fnnv.setTraversalMask(traversalMask);
+        node->accept(fnnv);
+
+        return fnnv._foundNode;
+    }
+
+    /**
+     * Searchs the scene graph upward starting at [node] and returns the first node found
+     * that matches the template parameter type.
+     */
+    template<typename T>
+    T* findFirstParentByName(osg::Node* node, const std::string & name, unsigned traversalMask =~0u)
+    {
+        if (!node) return 0;
+
+        FindTopMostNamedNodesVisitor<T> fnnv(name);
+        fnnv.setTraversalMode(osg::NodeVisitor::TRAVERSE_PARENTS);
+        fnnv.setTraversalMask(traversalMask);
+        node->accept(fnnv);
+
+        return fnnv._foundNode;
+    }
+
+    /**
+     * Searchs the scene graph starting at [node] and returns the first node found
+     * that matches the template parameter type. First searched upward, then downward.
+     */
+    template<typename T>
+    T* findRelativeNodeByName(osg::Node* node, const std::string & name, unsigned traversalMask =~0u)
+    {
+        if ( !node ) return 0;
+        T* result = findFirstParentByName<T>( node, name, traversalMask );
+        if ( !result )
+            result = findTopMostNodeByName<T>( node, name, traversalMask );
+        return result;
+    }
+
+    SGI_OSG_HELPER_EXPORT osg::Camera * findCamera(const osg::Node * node);
+    SGI_OSG_HELPER_EXPORT osg::Camera * findCamera(const osg::StateSet * stateset);
+    SGI_OSG_HELPER_EXPORT osg::Camera * findCamera(const osg::StateAttribute * sa);
+
+    SGI_OSG_HELPER_EXPORT unsigned findContextID(const osg::Camera * camera);
+    SGI_OSG_HELPER_EXPORT unsigned findContextID(const osg::Node * node);
+    SGI_OSG_HELPER_EXPORT unsigned findContextID(const osg::StateSet * stateset);
+    SGI_OSG_HELPER_EXPORT unsigned findContextID(const osg::StateAttribute * sa);
 
     } // namespace osg_helpers
 } // namespace sgi

@@ -3,19 +3,23 @@
 
 #include <osg/StateAttribute>
 #include <osg/Texture>
+#include <osg/Camera>
 #include <osg/CoordinateSystemNode>
 #include <osg/ObserverNodePath>
 #include <osg/io_utils>
-
-#include <QImage>
-#include <QGLWidget>
+#include <osg/Shape>
+#include <osg/CullingSet>
 
 #include <sgi/plugins/SGIItemBase.h>
+#include <sgi/plugins/SGIImage.h>
 #include <sgi/helpers/string>
 #include <sgi/helpers/rtti>
 #include <sgi/helpers/osg>
 
+#include <algorithm>
+
 namespace sgi {
+
     namespace osg_helpers {
 
 std::string getObjectTypename(const osg::Referenced * object)
@@ -33,7 +37,7 @@ std::string getObjectTypename(const osg::Object * object)
     return object?(std::string(object->libraryName()) + std::string("::") + std::string(object->className())):"(null)";
 }
 
-std::string getObjectName(const osg::Referenced * object)
+std::string getObjectName(const osg::Referenced * object, bool includeAddr)
 {
     std::string ret;
     if(object)
@@ -50,7 +54,7 @@ std::string getObjectName(const osg::Referenced * object)
     return ret;
 }
 
-std::string getObjectName(const osg::Observer * object)
+std::string getObjectName(const osg::Observer * object, bool includeAddr)
 {
     std::string ret;
     if(object)
@@ -67,19 +71,35 @@ std::string getObjectName(const osg::Observer * object)
     return ret;
 }
 
-std::string getObjectName(const osg::Object * object)
+std::string getObjectName(const osg::Object * object, bool includeAddr)
 {
-    std::string ret = object?(object->getName()):"(null)";
-    if(ret.empty())
+    std::string ret;
+    if(includeAddr)
     {
         std::stringstream buf;
         buf << (void*)object;
+        if(object)
+        {
+            const std::string& name = object->getName();
+            if(!name.empty())
+                buf << ' ' << name;
+        }
         ret = buf.str();
+    }
+    else
+    {
+        std::string ret = object?(object->getName()):"(null)";
+        if(ret.empty())
+        {
+            std::stringstream buf;
+            buf << (void*)object;
+            ret = buf.str();
+        }
     }
     return ret;
 }
 
-std::string getObjectNameAndType(const osg::Referenced * object)
+std::string getObjectNameAndType(const osg::Referenced * object, bool includeAddr)
 {
     std::string ret;
     if(object)
@@ -94,7 +114,7 @@ std::string getObjectNameAndType(const osg::Referenced * object)
     return ret;
 }
 
-std::string getObjectNameAndType(const osg::Observer * object)
+std::string getObjectNameAndType(const osg::Observer * object, bool includeAddr)
 {
     std::string ret;
     if(object)
@@ -109,13 +129,13 @@ std::string getObjectNameAndType(const osg::Observer * object)
     return ret;
 }
 
-std::string getObjectNameAndType(const osg::Object * object)
+std::string getObjectNameAndType(const osg::Object * object, bool includeAddr)
 {
     std::string ret;
     if(object)
     {
         std::stringstream buf;
-        buf << getObjectName(object) << " (" << getObjectTypename(object) << ")";
+        buf << getObjectName(object, includeAddr) << " (" << getObjectTypename(object) << ")";
         ret = buf.str();
     }
     else
@@ -153,7 +173,7 @@ std::string glOverrideValueName(unsigned n)
     else
     {
         if(n & osg::StateAttribute::ON)
-            ret = "Override disabled";
+            ret = "ON";
         else
         {
             if(n & osg::StateAttribute::OVERRIDE)
@@ -222,6 +242,27 @@ std::string clearMaskToString(unsigned clearMask)
             sgi::helpers::str_append(ret, "texture");
         if(clearMask & GL_SCISSOR_BIT)
             sgi::helpers::str_append(ret, "scissor");
+    }
+    return ret;
+}
+
+std::string cullingMaskToString(unsigned cullingMask)
+{
+    std::string ret;
+    if (cullingMask == 0u)
+        ret = "visible";
+    else
+    {
+        if (cullingMask & osg::CullingSet::VIEW_FRUSTUM_SIDES_CULLING)
+            sgi::helpers::str_append(ret, "frustum");
+        if (cullingMask & osg::CullingSet::NEAR_PLANE_CULLING)
+            sgi::helpers::str_append(ret, "near-plane");
+        if (cullingMask & osg::CullingSet::FAR_PLANE_CULLING)
+            sgi::helpers::str_append(ret, "far-plane");
+        if (cullingMask & osg::CullingSet::SMALL_FEATURE_CULLING)
+            sgi::helpers::str_append(ret, "small-feature");
+        if (cullingMask & osg::CullingSet::SMALL_FEATURE_CULLING)
+            sgi::helpers::str_append(ret, "shadow-occlusion");
     }
     return ret;
 }
@@ -314,7 +355,7 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::Quat & q)
     os << std::setprecision(12) << "(" << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << ")";
 }
 
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::NodePath & path)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::NodePath & path, bool includeNodeMask)
 {
     if(path.empty())
         os << "&lt;empty&gt;";
@@ -324,17 +365,21 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::NodePath & path)
         for(osg::NodePath::const_iterator it = path.begin(); it != path.end(); it++)
         {
             const osg::Node * node = *it;
-            os << "<li>" << osg_helpers::getObjectNameAndType(node) << "</li>" << std::endl;
+			os << "<li>";
+			os << osg_helpers::getObjectNameAndType(node, true);
+			if (includeNodeMask)
+				os << " 0x" << std::hex << node->getNodeMask() << std::dec;
+			os << "</li>" << std::endl;
         }
         os << "</ol>";
     }
 }
 
-void writePrettyHTML(std::basic_ostream<char>& os, const osg::ObserverNodePath & path)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::ObserverNodePath & path, bool includeNodeMask)
 {
     osg::NodePath nodepath;
     if(path.getNodePath(nodepath))
-        writePrettyHTML(os, nodepath);
+        writePrettyHTML(os, nodepath, includeNodeMask);
     else
         os << "&lt;none&gt;";
 }
@@ -425,6 +470,7 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, Mat
     {
     default:
     case MatrixUsageTypeGeneric:
+    case MatrixUsageTypeWindow:
         os << std::setprecision(12) << "<table border=\'1\' align=\'left\'>" << std::endl;
         os << "<tr><td>" << mat(0,0) << "</td><td>" << mat(0,1) << "</td><td>" << mat(0,2) << "</td><td>" << mat(0,3) << "</td></tr>" << std::endl;
         os << "<tr><td>" << mat(1,0) << "</td><td>" << mat(1,1) << "</td><td>" << mat(1,2) << "</td><td>" << mat(1,3) << "</td></tr>" << std::endl;
@@ -513,6 +559,7 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, Mat
     {
     default:
     case MatrixUsageTypeGeneric:
+    case MatrixUsageTypeWindow:
         os << std::setprecision(12) << "<table border=\'1\' align=\'left\'>" << std::endl;
         os << "<tr><td>" << mat(0,0) << "</td><td>" << mat(0,1) << "</td><td>" << mat(0,2) << "</td><td>" << mat(0,3) << "</td></tr>" << std::endl;
         os << "<tr><td>" << mat(1,0) << "</td><td>" << mat(1,1) << "</td><td>" << mat(1,2) << "</td><td>" << mat(1,3) << "</td></tr>" << std::endl;
@@ -576,164 +623,276 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, Mat
     }
 }
 
-namespace {
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::RefMatrixd * mat, MatrixUsageType type, const osg::Node * refNode)
+{
+    if (!mat)
+        os << "<i>(null)</i>";
+    else
+        writePrettyHTML(os, *mat, type, refNode);
+}
 
-    static inline QRgb qt_gl_convertToGLFormatHelper(QRgb src_pixel, GLenum texture_format)
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::RefMatrixd * mat, MatrixUsageType type, const osg::Drawable * refDrawable)
+{
+    if (!mat)
+        os << "<i>(null)</i>";
+    else
+        writePrettyHTML(os, *mat, type, refDrawable);
+}
+
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::Viewport* object)
+{
+    if (!object)
+        os << "<i>(null)</i>";
+    else
     {
-        if (texture_format == GL_BGRA) {
-            if (QSysInfo::ByteOrder == QSysInfo::BigEndian) {
-                return ((src_pixel << 24) & 0xff000000)
-                    | ((src_pixel >> 24) & 0x000000ff)
-                    | ((src_pixel << 8) & 0x00ff0000)
-                    | ((src_pixel >> 8) & 0x0000ff00);
-            } else {
-                return src_pixel;
-            }
-        } else {  // GL_RGBA
-            if (QSysInfo::ByteOrder == QSysInfo::BigEndian) {
-                return (src_pixel << 8) | ((src_pixel >> 24) & 0xff);
-            } else {
-                return ((src_pixel << 16) & 0xff0000)
-                    | ((src_pixel >> 16) & 0xff)
-                    | (src_pixel & 0xff00ff00);
-            }
-        }
-    }
-
-    QRgb qt_gl_convertToGLFormat(QRgb src_pixel, GLenum texture_format)
-    {
-        return qt_gl_convertToGLFormatHelper(src_pixel, texture_format);
-    }
-
-    static void convertToGLFormatHelper(QImage &dst, const QImage &img, GLenum texture_format)
-    {
-        Q_ASSERT(dst.depth() == 32);
-        Q_ASSERT(img.depth() == 32);
-
-        if (dst.size() != img.size()) {
-            int target_width = dst.width();
-            int target_height = dst.height();
-            qreal sx = target_width / qreal(img.width());
-            qreal sy = target_height / qreal(img.height());
-
-            quint32 *dest = (quint32 *) dst.scanLine(0); // NB! avoid detach here
-            uchar *srcPixels = (uchar *) img.scanLine(img.height() - 1);
-            int sbpl = img.bytesPerLine();
-            int dbpl = dst.bytesPerLine();
-
-            int ix = int(0x00010000 / sx);
-            int iy = int(0x00010000 / sy);
-
-            quint32 basex = int(0.5 * ix);
-            quint32 srcy = int(0.5 * iy);
-
-            // scale, swizzle and mirror in one loop
-            while (target_height--) {
-                const uint *src = (const quint32 *) (srcPixels - (srcy >> 16) * sbpl);
-                int srcx = basex;
-                for (int x=0; x<target_width; ++x) {
-                    dest[x] = qt_gl_convertToGLFormatHelper(src[srcx >> 16], texture_format);
-                    srcx += ix;
-                }
-                dest = (quint32 *)(((uchar *) dest) + dbpl);
-                srcy += iy;
-            }
-        } else {
-            const int width = img.width();
-            const int height = img.height();
-            const uint *p = (const uint*) img.scanLine(img.height() - 1);
-            uint *q = (uint*) dst.scanLine(0);
-
-            if (texture_format == GL_BGRA) {
-                if (QSysInfo::ByteOrder == QSysInfo::BigEndian) {
-                    // mirror + swizzle
-                    for (int i=0; i < height; ++i) {
-                        const uint *end = p + width;
-                        while (p < end) {
-                            *q = ((*p << 24) & 0xff000000)
-                                | ((*p >> 24) & 0x000000ff)
-                                | ((*p << 8) & 0x00ff0000)
-                                | ((*p >> 8) & 0x0000ff00);
-                            p++;
-                            q++;
-                        }
-                        p -= 2 * width;
-                    }
-                } else {
-                    const uint bytesPerLine = img.bytesPerLine();
-                    for (int i=0; i < height; ++i) {
-                        memcpy(q, p, bytesPerLine);
-                        q += width;
-                        p -= width;
-                    }
-                }
-            } else {
-                if (QSysInfo::ByteOrder == QSysInfo::BigEndian) {
-                    for (int i=0; i < height; ++i) {
-                        const uint *end = p + width;
-                        while (p < end) {
-                            *q = (*p << 8) | ((*p >> 24) & 0xff);
-                            p++;
-                            q++;
-                        }
-                        p -= 2 * width;
-                    }
-                } else {
-                    for (int i=0; i < height; ++i) {
-                        const uint *end = p + width;
-                        while (p < end) {
-                            *q = ((*p << 16) & 0xff0000) | ((*p >> 16) & 0xff) | (*p & 0xff00ff00);
-                            p++;
-                            q++;
-                        }
-                        p -= 2 * width;
-                    }
-                }
-            }
-        }
-    }
-
-    QImage convertToGLFormat(const QImage& img)
-    {
-        QImage res(img.size(), QImage::Format_ARGB32);
-        convertToGLFormatHelper(res, img.convertToFormat(QImage::Format_ARGB32), GL_BGRA);
-        return res;
+        os << "<tr><td>x</td><td>" << object->x() << "</td></tr>" << std::endl;
+        os << "<tr><td>y</td><td>" << object->y() << "</td></tr>" << std::endl;
+        os << "<tr><td>width</td><td>" << object->width() << "</td></tr>" << std::endl;
+        os << "<tr><td>height</td><td>" << object->height() << "</td></tr>" << std::endl;
+        os << "<tr><td>aspect ratio</td><td>" << object->aspectRatio() << "</td></tr>" << std::endl;
     }
 }
 
-bool osgImageToQImage(const osg::Image * image, QImage * qimage)
+const sgi::Image * convertImage(const osg::Image * image)
 {
-    bool ret = false;
-    QImage::Format format;
+    if (!image)
+        return NULL;
+
+    sgi::Image * ret = NULL;
+    sgi::Image::ImageFormat imageFormat;
+    sgi::Image::DataType dataType;
     switch(image->getPixelFormat())
     {
-    case GL_RGB:
-        format = QImage::Format_RGB888;
+    case 0:imageFormat = sgi::Image::ImageFormatInvalid; break;
+    case GL_RGB8:
+    case GL_RGB: imageFormat = sgi::Image::ImageFormatRGB24; break;
+    case GL_RGBA8:
+    case GL_RGBA:imageFormat = sgi::Image::ImageFormatRGBA32; break;
+    case GL_BGR: imageFormat = sgi::Image::ImageFormatBGR24; break;
+    case GL_BGRA:imageFormat = sgi::Image::ImageFormatBGRA32; break;
+    case GL_DEPTH_COMPONENT:imageFormat = sgi::Image::ImageFormatDepth; break;
+    case GL_RED:imageFormat = sgi::Image::ImageFormatRed; break;
+    case GL_GREEN:imageFormat = sgi::Image::ImageFormatGreen; break;
+    case GL_BLUE:imageFormat = sgi::Image::ImageFormatBlue; break;
+    case GL_ALPHA:imageFormat = sgi::Image::ImageFormatAlpha; break;
+    case GL_LUMINANCE: imageFormat = sgi::Image::ImageFormatLuminance; break;
+    case GL_LUMINANCE_ALPHA:imageFormat = sgi::Image::ImageFormatLuminanceAlpha; break;
+    case GL_COMPRESSED_ALPHA:imageFormat = sgi::Image::ImageFormatAlpha; break;
+    case GL_COMPRESSED_LUMINANCE:imageFormat = sgi::Image::ImageFormatLuminance; break;
+    case GL_COMPRESSED_LUMINANCE_ALPHA:imageFormat = sgi::Image::ImageFormatLuminanceAlpha; break;
+    case GL_COMPRESSED_INTENSITY:imageFormat = sgi::Image::ImageFormatGray; break;
+    case GL_COMPRESSED_RGB:imageFormat = sgi::Image::ImageFormatRGB24; break;
+    case GL_COMPRESSED_RGBA:imageFormat = sgi::Image::ImageFormatRGBA32; break;
+    case GL_COMPRESSED_RGB_S3TC_DXT1_EXT: imageFormat = sgi::Image::ImageFormatDXT1; break;
+    case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT: imageFormat = sgi::Image::ImageFormatDXT1Alpha; break;
+    case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT: imageFormat = sgi::Image::ImageFormatDXT3; break;
+    case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT: imageFormat = sgi::Image::ImageFormatDXT5; break;
+    case GL_RG:
+    case GL_RG_INTEGER:
+    case GL_R8:
+    case GL_R16:
+    case GL_RG8:
+    case GL_RG16:
+    case GL_R16F:
+    case GL_R32F:
+    case GL_RG16F:
+    case GL_RG32F:
+    case GL_R8I:
+    case GL_R8UI:
+    case GL_R16I:
+    case GL_R16UI:
+    case GL_R32I:
+    case GL_R32UI:
+    case GL_RG8I:
+    case GL_RG8UI:
+    case GL_RG16I:
+    case GL_RG16UI:
+    case GL_RG32I:
+    case GL_RG32UI:
+        switch (image->getInternalTextureFormat())
+        {
+        case GL_RED:imageFormat = sgi::Image::ImageFormatRed; break;
+        case GL_GREEN:imageFormat = sgi::Image::ImageFormatGreen; break;
+        case GL_BLUE:imageFormat = sgi::Image::ImageFormatBlue; break;
+        case GL_ALPHA:imageFormat = sgi::Image::ImageFormatAlpha; break;
+        case GL_LUMINANCE: imageFormat = sgi::Image::ImageFormatLuminance; break;
+        default: imageFormat = sgi::Image::ImageFormatInvalid; break;
+        }
         break;
-    case GL_RGBA:
-        //format = QImage::Format_ARGB32;
-        format = QImage::Format_ARGB32_Premultiplied;
-        break;
-    case GL_LUMINANCE:
-        format = QImage::Format_Indexed8;
-        break;
-    default:
-        format = QImage::Format_Invalid;
-        break;
+    default: imageFormat = sgi::Image::ImageFormatInvalid; break;
     }
-
-    if(format != QImage::Format_Invalid)
+    switch (image->getDataType())
     {
-        int bytesPerLine = image->getRowSizeInBytes();
-        int width = image->s();
-        int height = image->t();
-        *qimage = QImage(image->data(), width, height, bytesPerLine, format);
-        *qimage = convertToGLFormat(*qimage);
-        //ret = ret.mirrored(false, true);
-        ret = true;
+    case GL_BYTE: dataType = sgi::Image::DataTypeSignedByte; break;
+    case GL_UNSIGNED_BYTE: dataType = sgi::Image::DataTypeUnsignedByte; break;
+    case GL_SHORT: dataType = sgi::Image::DataTypeSignedShort; break;
+    case GL_UNSIGNED_SHORT: dataType = sgi::Image::DataTypeUnsignedShort; break;
+    case GL_INT: dataType = sgi::Image::DataTypeSignedInt; break;
+    case GL_UNSIGNED_INT: dataType = sgi::Image::DataTypeUnsignedInt; break;
+    case GL_FLOAT: dataType = sgi::Image::DataTypeFloat32; break;
+    case GL_DOUBLE: dataType = sgi::Image::DataTypeDouble; break;
+    default: dataType = sgi::Image::DataTypeInvalid; break;
+    }
+    sgi::Image::Origin origin = (image->getOrigin() == osg::Image::TOP_LEFT) ? sgi::Image::OriginTopLeft : sgi::Image::OriginBottomLeft;
+    if(imageFormat != sgi::Image::ImageFormatInvalid)
+    {
+        ret = new sgi::Image(imageFormat, dataType, origin,
+                            const_cast<unsigned char*>(image->data()), image->getTotalDataSize(),
+                            image->s(), image->t(), image->r(), image->getRowStepInBytes(),
+                            image);
     }
     return ret;
 }
+
+void heightFieldDumpHTML(std::basic_ostream<char>& os, const osg::HeightField * hf)
+{
+	os << "<pre>";
+	heightFieldDumpPlainText(os, hf);
+	os << "</pre>";
+}
+
+void heightFieldDumpPlainText(std::basic_ostream<char>& os, const osg::HeightField * hf)
+{
+	unsigned max_rows = hf->getNumRows();
+	unsigned max_cols = hf->getNumColumns();
+	float min_height = FLT_MAX;
+	float max_height = FLT_MIN;
+	float sum_height = 0;
+	unsigned num_sum = 0;
+	unsigned num_nodata = 0;
+	for (unsigned row = 0; row < max_rows; ++row)
+	{
+		for (unsigned col = 0; col < max_cols; ++col)
+		{
+			float h = hf->getHeight(col, row);
+			if (h == -FLT_MAX)
+				++num_nodata;
+			else
+			{
+				min_height = std::min(min_height, h);
+				max_height = std::max(max_height, h);
+				sum_height += h;
+				++num_sum;
+			}
+		}
+	}
+	os << "min " << std::setw(7) << (num_sum ? min_height : 0) << std::endl;
+	os << "max " << std::setw(7) << (num_sum ? max_height : 0) << std::endl;
+	os << "avg " << std::setw(7) << (num_sum ? (sum_height / num_sum) : -FLT_MAX) << std::endl;
+	os << "nodata " << num_nodata << '/' << (num_sum + num_nodata) << std::endl;
+	os << std::setfill(' ') << "     ";
+	for (unsigned col = 0; col < max_cols; ++col)
+	{
+		os << std::setw(7) << col << std::setw(0) << ' ';
+	}
+	os << std::endl;
+	for (unsigned row = 0; row < max_rows; ++row)
+	{
+		os << std::setfill(' ') << std::setw(3) << row << std::setw(0) << ':' << ' ';
+		os << std::setfill(' ') << std::fixed << std::setprecision(1);
+		for (unsigned col = 0; col < max_cols; ++col)
+		{
+			float h = hf->getHeight(col, row);
+			os << std::setw(7);
+			if (h == -FLT_MAX)
+				os << "n/a";
+			else
+				os << h;
+			os << std::setw(0);
+			os << ' ';
+		}
+		os << std::endl;
+	}
+}
+
+osg::Camera * findCamera(const osg::Node * node)
+{
+    osg::Camera * ret = dynamic_cast<osg::Camera*>(const_cast<osg::Node*>(node));
+    if (!ret)
+        ret = findFirstParentOfType<osg::Camera>(const_cast<osg::Node*>(node));
+    return ret;
+}
+
+osg::Camera * findCamera(const osg::StateSet * stateset)
+{
+    osg::Camera * ret = NULL;
+    const osg::StateSet::ParentList & parents = stateset->getParents();
+    for (osg::Node * ss : parents)
+    {
+        ret = findCamera(ss);
+        if (ret)
+            break;
+    }
+    return ret;
+}
+
+osg::Camera * findCamera(const osg::StateAttribute * sa)
+{
+    osg::Camera * ret = NULL;
+    const osg::StateAttribute::ParentList & parents = sa->getParents();
+    for (osg::StateSet * ss : parents)
+    {
+        ret = findCamera(ss);
+        if (ret)
+            break;
+    }
+    return ret;
+}
+
+unsigned findContextID(const osg::Camera * camera)
+{
+    unsigned ret = ~0u;
+    if (camera)
+    {
+        const osg::GraphicsContext * gc = camera->getGraphicsContext();
+        if (gc)
+        {
+            const osg::State * state = gc->getState();
+            if (state)
+                ret = state->getContextID();
+        }
+    }
+    return ret;
+}
+
+unsigned findContextID(const osg::Node * node)
+{
+    osg::Camera * camera = findCamera(node);
+    return findContextID(camera);
+}
+
+unsigned findContextID(const osg::StateSet * stateset)
+{
+    osg::Camera * camera = findCamera(stateset);
+    return findContextID(camera);
+}
+
+unsigned findContextID(const osg::StateAttribute * sa)
+{
+    osg::Camera * camera = findCamera(sa);
+    return findContextID(camera);
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxf & b)
+{
+    return output << std::setprecision(12) << '[' << b._min << ',' << b._max << ']';
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxd & b)
+{
+    return output << std::setprecision(12) << '[' << b._min << ',' << b._max << ']';
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSpheref & b)
+{
+    return output << std::setprecision(12) << '[' << b._center << ",r=" << b._radius << ']';
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSphered & b)
+{
+    return output << std::setprecision(12) << '[' << b._center << ",r=" << b._radius << ']';
+}
+
 
 } // namespace osg_helpers
 } // namespace sgi
