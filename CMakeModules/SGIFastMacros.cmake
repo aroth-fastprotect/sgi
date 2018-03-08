@@ -11,9 +11,10 @@ macro(FAST_PROJECT prjname)
         # Qt5 qt5_use_modules usage was causing "Policy CMP0043 is not set: Ignore COMPILE_DEFINITIONS_<Config> properties." warnings
         cmake_policy(SET CMP0043 NEW)
         
-        # Let AUTOMOC and AUTOUIC process GENERATED files.
-        cmake_policy(SET CMP0071 NEW)
-
+        if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.10.0")
+            # Let AUTOMOC and AUTOUIC process GENERATED files.
+            cmake_policy(SET CMP0071 NEW)
+        endif()
     endif(COMMAND cmake_policy)
 
     if(UNIX)
