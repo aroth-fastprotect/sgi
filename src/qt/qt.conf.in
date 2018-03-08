@@ -1,2 +1,2 @@
 [Paths]
-Plugins = @CMAKE_CURRENT_BINARY_DIR@/lib/plugins
+Plugins = @FAST_WORK_PLUGINS_DIR@

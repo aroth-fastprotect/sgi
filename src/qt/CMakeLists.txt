@@ -40,4 +40,6 @@ SET(TARGET_NO_TRANSLATION 1)
 
 FAST_PLUGIN(qsgi_loader PLUGINTYPE imageformats NO_MOC_INCLUDE)
 
-fast_configure_file(qt.conf.in ${CMAKE_BINARY_DIR}/qt.conf @ONLY)
+if(FAST_SGI_CMAKE_SYSTEM)
+    fast_configure_file(qt.conf.in ${FAST_WORK_BIN_DIR}/qt.conf @ONLY)
+endif()

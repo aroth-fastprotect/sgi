@@ -121,6 +121,12 @@ IF ( Qt5Widgets_FOUND )
     include_directories(${Qt5Widgets_INCLUDE_DIRS})
     LIST(APPEND TARGET_LIBRARIES_VARS QT_QTWIDGETS_LIBRARY )
 ENDIF()
+IF ( Qt5OpenGL_FOUND )
+    # Add the include directories for the Qt 5 Widgets module to
+    # the compile lines.
+    include_directories(${Qt5OpenGL_INCLUDE_DIRS})
+    LIST(APPEND TARGET_LIBRARIES_VARS QT_QTOPENGL_LIBRARY )
+ENDIF()
 
 LIST(APPEND TARGET_DEFINITIONS SGI_QT_HELPER_LIBRARY)
 
