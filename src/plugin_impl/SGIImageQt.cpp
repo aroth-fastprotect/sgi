@@ -49,6 +49,7 @@ namespace {
         case QImage::Format_ARGB32_Premultiplied:
         case QImage::Format_ARGB32: imageFormat = Image::ImageFormatARGB32; break;
         case QImage::Format_RGB888: imageFormat = Image::ImageFormatRGB24; break;
+        case QImage::Format_RGBX8888: imageFormat = Image::ImageFormatRGB32; break;
         case QImage::Format_RGB16:
         case QImage::Format_ARGB8565_Premultiplied:
         case QImage::Format_RGB666:
@@ -57,7 +58,6 @@ namespace {
         case QImage::Format_ARGB8555_Premultiplied:
         case QImage::Format_RGB444:
         case QImage::Format_ARGB4444_Premultiplied:
-        case QImage::Format_RGBX8888:
         case QImage::Format_BGR30:
         case QImage::Format_A2BGR30_Premultiplied:
         case QImage::Format_RGB30:
@@ -73,17 +73,16 @@ namespace {
 Image::Image(QImage * originalImage, bool copyData)
     : _format(imageFormatFromQImage(originalImage->format()))
     , _dataType(DataTypeUnsignedByte)
-    , _origin(OriginTopLeft), _data(NULL), _length(0)
+    , _origin(OriginTopLeft), _data(NULL), _length(originalImage->byteCount())
     , _width(originalImage->width()), _height(originalImage->height()), _depth(1)
     , _allocatedWidth(originalImage->width()), _allocatedHeight(originalImage->height())
     , _pitch { (unsigned)originalImage->bytesPerLine(), 0, 0, 0 }
     , _lines{ (unsigned)originalImage->height(), 0, 0, 0 }
     , _planeOffset{0, 0, 0, 0}
-    , _originalImage(NULL), _originalImageQt((originalImage) ? new QImage(*originalImage) : NULL)
+    , _originalImage(NULL), _originalImageQt(new QImage(*originalImage))
     , _freeQt(&Image::freeQt), _copyQt(&Image::copyQt)
     , _allocated(false)
 {
-    _length = _originalImageQt->byteCount();
     if (copyData)
     {
         _data = malloc(_length);

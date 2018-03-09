@@ -48,17 +48,20 @@ public:
         CommandNone = 0,
         CommandImage,
     };
-    SGIEvent(Command command, const QString & filename)
-        : QEvent((QEvent::Type)SGIEvent_type), _command(command), _filename(filename)
+    SGIEvent(Command command, const QString & filename, const QString & format)
+        : QEvent((QEvent::Type)SGIEvent_type)
+        , _command(command), _filename(filename), _format(format)
     {
     }
 
     const Command & command() const { return _command; }
     const QString & filename() const { return _filename; }
+    const QString & format() const { return _format; }
 
 private:
     Command _command;
     QString _filename;
+    QString _format;
 };
 
 int SGIEvent::SGIEvent_type = 0;
@@ -139,14 +142,16 @@ bool ApplicationEventFilter::handleEvent(SGIEvent * ev)
     {
     case SGIEvent::CommandImage:
         {
-            qDebug() << "Open" << ev->filename();
 /*
             QSharedPointer<QImage> image(new QImage(ev->filename()));
             imagePreviewDialog(nullptr, image.data());
 */
 
-            QImage * image = new QImage(ev->filename());
-            imagePreviewDialog(nullptr, image);
+            QWidget * widget = QApplication::activeWindow();
+            QImage * image = new QImage(ev->filename(), ev->format().toLocal8Bit().constData());
+            qWarning() << "Open" << ev->filename() << "as" << ev->format() << "loaded" << image->format();
+
+            imagePreviewDialog(widget, image);
             ret = true;
         }
         break;
@@ -341,7 +346,9 @@ bool sgiImageIOHandler::read(QImage *image)
         {
             QJsonObject image = obj.value("image").toObject();
             QString filename = image.value("filename").toString();
-            ApplicationEventFilter::postEvent(new SGIEvent(SGIEvent::CommandImage, filename));
+            QString format = image.value("format").toString();
+            if(!filename.isEmpty())
+                ApplicationEventFilter::postEvent(new SGIEvent(SGIEvent::CommandImage, filename, format));
             bSuccess = sendLogoImage = true;
         }
     }

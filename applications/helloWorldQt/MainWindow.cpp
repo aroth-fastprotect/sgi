@@ -36,6 +36,19 @@ void MainWindow::fileQuit()
     QApplication::quit();
 }
 
+bool isImageFile(const QString & filename)
+{
+    QByteArray format = QImageReader::imageFormat(filename);
+    return !format.isNull();
+}
+
+struct ImageFile {
+    ImageFile(const QString & file, const QByteArray & fmt )
+        : filename(file), format(fmt) {}
+    QString filename;
+    QByteArray format;
+};
+
 int main(int argc, char **argv)
 {
     QApplication app (argc, argv);
@@ -44,19 +57,48 @@ int main(int argc, char **argv)
     path = QDir::cleanPath(path + SGI_QT_PLUGIN_DIR);
     qDebug(helloWorldQt) << "addLibraryPath " << path;
     QCoreApplication::addLibraryPath(path);
+
+    QList<ImageFile> imageFiles;
+    bool first = true;
+    for(const QString & arg : app.arguments())
+    {
+        if(first)
+        {
+            // skip the application name
+            first = false;
+            continue;
+        }
+        QFileInfo fi(arg);
+        QString filename = fi.absoluteFilePath();
+        QByteArray format = QImageReader::imageFormat(filename);
+        if(!format.isNull())
+            imageFiles.append(ImageFile(filename, format));
+    }
+
+
     QImage load_sgi;
     QBuffer dummyMem;
-    dummyMem.setData("{\n\"image\": {\n\"filename\": \"s:/tmp/logo.png\"\n}\n}");
     if(load_sgi.load(&dummyMem, "sgi_loader"))
-        qDebug(helloWorldQt) << "sgi loaded.";
+        qWarning(helloWorldQt) << "sgi loaded.";
     else
-        qDebug(helloWorldQt) << "failed to load sgi.";
+        qWarning(helloWorldQt) << "failed to load sgi.";
 
     for(const QByteArray & format : QImageReader::supportedImageFormats())
     {
-        qDebug(helloWorldQt) << "reader " << format;
+        qWarning(helloWorldQt) << "reader " << format;
     }
 
+    if(!load_sgi.isNull())
+    {
+        for(const ImageFile & imgf : imageFiles)
+        {
+            QBuffer dummyMem;
+            QImage load_file_with_sgi;
+            dummyMem.setData("{\n\"image\": {\n\"filename\": \"" + imgf.filename.toLocal8Bit() + "\",\n\"format\": \"" + imgf.format + "\"}\n}");
+            if(load_file_with_sgi.load(&dummyMem, "sgi_loader"))
+                qWarning(helloWorldQt) << imgf.filename << " loading...";
+        }
+    }
 
     MainWindow * window = new MainWindow(&load_sgi);
     window->show();
