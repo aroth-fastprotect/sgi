@@ -7,11 +7,13 @@
 #include <QWidget>
 #include <QJsonDocument>
 
+#define SGI_NO_HOSTITEM_GENERATOR
 #include <sgi/ContextMenuQt>
 #include <sgi/Shutdown>
 #include <sgi/AutoLoadQt>
 #include <sgi/ImagePreviewDialog>
 #include <sgi/helpers/qt_widgetwindow>
+#include <sgi/plugins/SGIHostItemQt.h>
 
 #include <QImage>
 #include <QtCore/QDebug>
