@@ -131,7 +131,11 @@ typedef SGIPluginImplementationT<       generateItemImpl,
                                         objectTreeBuildRootImpl,
                                         contextMenuPopulateImpl,
                                         actionHandlerImpl,
-                                        settingsDialogCreateImpl
+                                        settingsDialogCreateImpl,
+                                        defaultPluginGuiAdapterParentWidgetImpl,
+                                        defaultPluginGuiAdapterSetViewImpl,
+                                        defaultPluginGetOrCreateLoggerImpl,
+                                        convertToImageConvertImpl
                                         >
     SGIPluginImpl;
 
