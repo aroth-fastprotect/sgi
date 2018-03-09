@@ -1368,7 +1368,7 @@ private:
         case Image::ImageFormatLuminanceAlpha:
             ret = to_qimage_argb32_single_channel(src, dest, s_defaultColorGradient, horizontalFlip);
             break;
-#ifdef _WIN32
+#if defined(_WIN32) && 1
         case Image::ImageFormatRGB24:
             ret = convertImageToQImage_RGB24(&src, dest);
             if (horizontalFlip)
@@ -1537,9 +1537,9 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
     const QColor default_osg_view_clear_color = QColor::fromRgbF(0.2f, 0.2f, 0.4f, 1.0f);
     pal.setColor(QPalette::Base, default_osg_view_clear_color);
     ui->imageLabel->setPalette(pal);
-    ui->scrollArea->setPalette(pal);
+    ui->scrollAreaImageQt->setPalette(pal);
     ui->imageLabel->setBackgroundRole(QPalette::Base);
-    ui->scrollArea->setBackgroundRole(QPalette::Base);
+    ui->scrollAreaImageQt->setBackgroundRole(QPalette::Base);
     ui->imageGL->setBackgroundColor(default_osg_view_clear_color);
 
 	createToolbar();
@@ -1548,7 +1548,8 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
 	QList<int> sizes = QList<int>() << (w * 3 / 4) << (w / 4);
 	ui->splitter->setSizes(sizes);
 
-    ui->scrollArea->setWidgetResizable(true);
+    ui->scrollAreaImageGL->setWidgetResizable(true);
+    ui->scrollAreaImageQt->setWidgetResizable(true);
 
 	ui->tabWidget->setCurrentIndex(0);
 }
@@ -1769,8 +1770,10 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::scaleImage(double factor)
     ui->imageLabel->setScaledContents(true);
     ui->imageLabel->resize(scaleFactor * ui->imageLabel->pixmap()->size());
 
-	adjustScrollBar(ui->scrollArea->horizontalScrollBar(), factor);
-	adjustScrollBar(ui->scrollArea->verticalScrollBar(), factor);
+	adjustScrollBar(ui->scrollAreaImageQt->horizontalScrollBar(), factor);
+	adjustScrollBar(ui->scrollAreaImageQt->verticalScrollBar(), factor);
+    adjustScrollBar(ui->scrollAreaImageGL->horizontalScrollBar(), factor);
+    adjustScrollBar(ui->scrollAreaImageGL->verticalScrollBar(), factor);
 
 	zoomInAction->setEnabled(scaleFactor < 3.0);
 	zoomOutAction->setEnabled(scaleFactor > 0.333);
@@ -1805,7 +1808,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::selectBackgroundColor()
     {
         pal.setColor(QPalette::Base, color);
         ui->imageLabel->setPalette(pal);
-        ui->scrollArea->setPalette(pal);
+        ui->scrollAreaImageQt->setPalette(pal);
     }
 }
 
@@ -2375,14 +2378,23 @@ void ImagePreviewDialog::refreshImpl()
     {
         int width = _workImage.valid() ? _workImage->width() : 0;
         int height = _workImage.valid() ? _workImage->height() : 0;
-        _priv->ui->scrollArea->horizontalScrollBar()->setMaximum(width);
-        _priv->ui->scrollArea->verticalScrollBar()->setMaximum(height);
-        _priv->ui->scrollArea->horizontalScrollBar()->setPageStep((width / 10));
-        _priv->ui->scrollArea->verticalScrollBar()->setMaximum((height / 10));
-        _priv->ui->scrollArea->horizontalScrollBar()->setValue(0);
-        _priv->ui->scrollArea->verticalScrollBar()->setValue(0);
+        _priv->ui->scrollAreaImageQt->horizontalScrollBar()->setMaximum(width);
+        _priv->ui->scrollAreaImageQt->verticalScrollBar()->setMaximum(height);
+        _priv->ui->scrollAreaImageQt->horizontalScrollBar()->setPageStep((width / 10));
+        _priv->ui->scrollAreaImageQt->verticalScrollBar()->setMaximum((height / 10));
+        _priv->ui->scrollAreaImageQt->horizontalScrollBar()->setValue(0);
+        _priv->ui->scrollAreaImageQt->verticalScrollBar()->setValue(0);
+        _priv->ui->scrollAreaImageQt->horizontalScrollBar()->setValue(0);
+        _priv->ui->scrollAreaImageQt->verticalScrollBar()->setValue(0);
+        _priv->ui->scrollAreaImageGL->horizontalScrollBar()->setMaximum(width);
+        _priv->ui->scrollAreaImageGL->verticalScrollBar()->setMaximum(height);
+        _priv->ui->scrollAreaImageGL->horizontalScrollBar()->setPageStep((width / 10));
+        _priv->ui->scrollAreaImageGL->verticalScrollBar()->setMaximum((height / 10));
+        _priv->ui->scrollAreaImageGL->horizontalScrollBar()->setValue(0);
+        _priv->ui->scrollAreaImageGL->verticalScrollBar()->setValue(0);
         bool fitToWindow = _priv->fitToWindowAction->isChecked();
-        _priv->ui->scrollArea->setWidgetResizable(fitToWindow);
+        _priv->ui->scrollAreaImageQt->setWidgetResizable(fitToWindow);
+        _priv->ui->scrollAreaImageGL->setWidgetResizable(fitToWindow);
         _priv->ui->imageLabel->setScaledContents(fitToWindow);
     }
 

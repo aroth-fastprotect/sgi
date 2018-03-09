@@ -234,6 +234,8 @@ void ImageGLWidget::paintGL()
     _program->setAttributeBuffer(_locationIdPosition, GL_FLOAT /*type*/, 0                   /*offset*/, 3 /*tupleSize*/, 5 * sizeof(GLfloat) /*stride*/);
     _program->setAttributeBuffer(_locationIdTexCoord, GL_FLOAT /*type*/, 3 * sizeof(GLfloat) /*offset*/, 2 /*tupleSize*/, 5 * sizeof(GLfloat) /*stride*/);
 
+    glEnable(GL_BLEND);
+
     const unsigned numTrianglePoints = 6;
     glDrawArrays(GL_TRIANGLES, 0, numTrianglePoints);
     _program->disableAttributeArray(_locationIdPosition);
@@ -513,6 +515,7 @@ void ImageGLWidget::setBackgroundColor(const QColor & color)
 
     makeCurrent();
     glClearColor(_backgroundColor.redF(), _backgroundColor.greenF(), _backgroundColor.blueF(), _backgroundColor.alphaF());
+    _texture->setBorderColor(_backgroundColor.red(), _backgroundColor.green(), _backgroundColor.blue(), _backgroundColor.alpha());
 
     doneCurrent();
     // trigger a repaint because we changed the widgets content outside repaintGL
