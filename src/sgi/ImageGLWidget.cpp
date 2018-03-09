@@ -529,6 +529,9 @@ const QColor & ImageGLWidget::backgroundColor() const
 
 void ImageGLWidget::setMirrored(bool horizontal, bool vertical)
 {
+    if (!_object)
+        return;
+
     _object->bind();
     _vertex->bind();
     GLfloat v[30];
