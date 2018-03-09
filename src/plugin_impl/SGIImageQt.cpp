@@ -80,7 +80,7 @@ Image::Image(QImage * originalImage, bool copyData)
     , _lines{ (unsigned)originalImage->height(), 0, 0, 0 }
     , _planeOffset{0, 0, 0, 0}
     , _originalImage(NULL), _originalImageQt((originalImage) ? new QImage(*originalImage) : NULL)
-    , _freeQt(&Image::freeQt)
+    , _freeQt(&Image::freeQt), _copyQt(&Image::copyQt)
     , _allocated(false)
 {
     _length = _originalImageQt->byteCount();
@@ -100,6 +100,13 @@ void Image::freeQt()
         delete _originalImageQt;
         _originalImageQt = NULL;
     }
+}
+
+QImage * Image::copyQt() const
+{
+    if (!_originalImageQt)
+        return nullptr;
+    return new QImage(*_originalImageQt);
 }
 
 } // namespace sgi

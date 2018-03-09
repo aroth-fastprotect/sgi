@@ -21,7 +21,7 @@ Image::Image(ImageFormat format, DataType type)
     , _width(0), _height(0), _depth(0)
     , _allocatedWidth(0), _allocatedHeight(0)
     , _pitch { 0, 0, 0, 0 }, _lines{ 0, 0, 0, 0 }, _planeOffset{0, 0, 0, 0}
-    , _originalImage(NULL), _originalImageQt(NULL), _freeQt(NULL)
+    , _originalImage(NULL), _originalImageQt(NULL), _freeQt(NULL), _copyQt(NULL)
     , _allocated(false)
 {
 }
@@ -34,7 +34,7 @@ Image::Image(ImageFormat format, DataType type, Origin origin, void * data, size
     , _allocatedWidth(width), _allocatedHeight(height)
     , _pitch { bytesPerLine, 0, 0, 0 }, _lines{ height, 0, 0, 0 }
     , _planeOffset{0, 0, 0, 0}
-    , _originalImage(originalImage), _originalImageQt(NULL), _freeQt(NULL)
+    , _originalImage(originalImage), _originalImageQt(NULL), _freeQt(NULL), _copyQt(NULL)
     , _allocated(copyData)
 {
     if (copyData)
@@ -47,7 +47,7 @@ Image::Image(ImageFormat format, DataType type, void * data, size_t length, bool
     , _width(0), _height(0), _depth(0)
     , _allocatedWidth(0), _allocatedHeight(0)
     , _pitch{ 0, 0, 0, 0 }, _lines{ 0, 0, 0, 0 }, _planeOffset{ 0, 0, 0, 0 }
-    , _originalImage(NULL), _originalImageQt(NULL), _freeQt(NULL)
+    , _originalImage(NULL), _originalImageQt(NULL), _freeQt(NULL), _copyQt(NULL)
     , _allocated(copyData)
 {
     if (copyData)
@@ -62,10 +62,12 @@ Image::Image(const Image & rhs)
     , _pitch { rhs._pitch[0], rhs._pitch[1], rhs._pitch[2], rhs._pitch[3] }
     , _lines{ rhs._lines[0], rhs._lines[1], rhs._lines[2], rhs._lines[3] }
     , _planeOffset { rhs._planeOffset[0], rhs._planeOffset[1], rhs._planeOffset[2], rhs._planeOffset[3] }
-    , _originalImage(rhs._originalImage), _originalImageQt(rhs._originalImageQt), _freeQt(rhs._freeQt)
+    , _originalImage(rhs._originalImage)
+    , _originalImageQt( (rhs._originalImageQt && rhs._copyQt) ? (rhs.*_copyQt)() : NULL)
+    , _freeQt(rhs._freeQt), _copyQt(rhs._copyQt)
     , _allocated(false)
 {
-
+    //(this->*_freeQt)();
 }
 
 Image::~Image()
@@ -107,6 +109,7 @@ Image & Image::operator=(const Image & rhs)
     _originalImage = rhs._originalImage;
     _originalImageQt = rhs._originalImageQt;
     _freeQt = rhs._freeQt;
+    _copyQt = rhs._copyQt;
     return *this;
 }
 
@@ -811,15 +814,15 @@ const void * Image::pixelPtr(unsigned x, unsigned y, unsigned z, unsigned plane)
     if (_data)
     {
         const uint8_t * src_data = reinterpret_cast<const uint8_t *>(_data);
-        unsigned src_bits = bitsForDataElement(_dataType);
+        unsigned src_bits = bitsPerPixel();
         size_t src_offset = 0;
         switch(_origin)
         {
-        case OriginBottomLeft:
-            src_offset = _planeOffset[plane] + ((y * _pitch[plane]) + (x * src_bits / 8));
-            break;
         case OriginTopLeft:
         default:
+            src_offset = _planeOffset[plane] + ((y * _pitch[plane]) + (x * src_bits / 8));
+            break;
+        case OriginBottomLeft:
             src_offset = _planeOffset[plane] + (((_lines[plane] - y) * _pitch[plane]) + (x * src_bits / 8));
             break;
         }
