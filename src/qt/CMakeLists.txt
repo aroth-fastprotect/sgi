@@ -34,6 +34,9 @@ SET(TARGET_NO_TRANSLATION 1)
 FAST_PLUGIN(qsgi_loader PLUGINTYPE imageformats NO_MOC_INCLUDE)
 
 if(SGI_GENERATE_QT_CONF)
+    # Attempt to find qmake from the Qt5Core include directory
+    list(GET Qt5Core_INCLUDE_DIRS 0 _first_inc_dir)
+    find_program(QT_QMAKE_EXECUTABLE NAMES qmake HINTS ${_first_inc_dir}/../bin)
     if(NOT QT_QMAKE_EXECUTABLE)
         set(QT_QMAKE_EXECUTABLE qmake)
     endif()
