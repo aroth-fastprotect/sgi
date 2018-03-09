@@ -13,11 +13,14 @@ namespace sgi {
 
     namespace qt_loader {
 
+class SGIEvent;
+
 class ApplicationEventFilter : public QObject
 {
     Q_OBJECT
 public:
     static void install();
+    static void postEvent(QEvent * ev);
 protected:
     ApplicationEventFilter(QCoreApplication * parent=NULL);
     ~ApplicationEventFilter();
@@ -26,6 +29,9 @@ protected:
     void uninstall();
 
     bool contextMenu(QWidget * widget, QObject * item, float x, float y);
+    bool imagePreviewDialog(QWidget * parent, QImage * image);
+
+    bool handleEvent(SGIEvent * ev);
 
 private:
     static ApplicationEventFilter * s_instance;

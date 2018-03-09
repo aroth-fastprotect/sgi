@@ -5,12 +5,15 @@
 #include <QApplication>
 #include <QMouseEvent>
 #include <QWidget>
+#include <QJsonDocument>
 
 #include <sgi/ContextMenuQt>
 #include <sgi/Shutdown>
 #include <sgi/AutoLoadQt>
+#include <sgi/ImagePreviewDialog>
 #include <sgi/helpers/qt_widgetwindow>
 
+#include <QImage>
 #include <QtCore/QDebug>
 
 #if defined(_DEBUG)
@@ -35,6 +38,29 @@ namespace sgi {
 
 ApplicationEventFilter * ApplicationEventFilter::s_instance = NULL;
 
+class SGIEvent : public QEvent
+{
+public:
+    static int SGIEvent_type;
+    enum Command {
+        CommandNone = 0,
+        CommandImage,
+    };
+    SGIEvent(Command command, const QString & filename)
+        : QEvent((QEvent::Type)SGIEvent_type), _command(command), _filename(filename)
+    {
+    }
+
+    const Command & command() const { return _command; }
+    const QString & filename() const { return _filename; }
+
+private:
+    Command _command;
+    QString _filename;
+};
+
+int SGIEvent::SGIEvent_type = 0;
+
 ApplicationEventFilter::ApplicationEventFilter(QCoreApplication * parent)
     : QObject(parent)
     , _inspectorContextMenuMouseButton(Qt::RightButton)
@@ -49,6 +75,7 @@ ApplicationEventFilter::ApplicationEventFilter(QCoreApplication * parent)
 
     connect(parent, &QCoreApplication::aboutToQuit, this, &ApplicationEventFilter::uninstall);
     parent->installEventFilter(this);
+    SGIEvent::SGIEvent_type = QEvent::registerEventType();
 }
 
 ApplicationEventFilter::~ApplicationEventFilter()
@@ -62,6 +89,11 @@ void ApplicationEventFilter::install()
     {
         s_instance = new ApplicationEventFilter(QCoreApplication::instance());
     }
+}
+
+void ApplicationEventFilter::postEvent(QEvent * ev)
+{
+    qApp->postEvent(ApplicationEventFilter::s_instance, ev);
 }
 
 void ApplicationEventFilter::uninstall()
@@ -89,8 +121,43 @@ bool ApplicationEventFilter::contextMenu(QWidget * widget, QObject * obj, float 
     return ret;
 }
 
+bool ApplicationEventFilter::imagePreviewDialog(QWidget * parent, QImage * image)
+{
+    sgi::SGIHostItemQtPaintDevice item(image);
+    IImagePreviewDialog * dialog = sgi::showImagePreviewDialog<sgi::autoload::Qt>(parent, static_cast<const SGIHostItemBase *>(&item));
+    if (dialog)
+        dialog->show();
+    return true;
+}
+
+bool ApplicationEventFilter::handleEvent(SGIEvent * ev)
+{
+    bool ret = false;
+    switch (ev->command())
+    {
+    case SGIEvent::CommandImage:
+        {
+            qDebug() << "Open" << ev->filename();
+/*
+            QSharedPointer<QImage> image(new QImage(ev->filename()));
+            imagePreviewDialog(nullptr, image.data());
+*/
+
+            QImage * image = new QImage(ev->filename());
+            imagePreviewDialog(nullptr, image);
+            ret = true;
+        }
+        break;
+    }
+    return ret;
+}
+
 bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
 {
+    if (obj == this && event->type() == SGIEvent::SGIEvent_type)
+    {
+        return this->handleEvent(static_cast<SGIEvent*>(event));
+    }
     bool ret = false;
     switch(event->type())
     {
@@ -258,14 +325,35 @@ bool sgiImageIOHandler::canRead() const
 bool sgiImageIOHandler::read(QImage *image)
 {
     bool bSuccess = false;
-    QImage img = logoImage();
-
-    // Make sure we only write to \a image when we succeed.
-    if (!img.isNull()) {
-        bSuccess = true;
-        *image = img;
+    bool sendLogoImage = false;
+    QByteArray data = device()->readAll();
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    if (doc.isNull())
+    {
+        bSuccess = sendLogoImage = true;
+    }
+    else if (doc.isObject())
+    {
+        QJsonObject obj = doc.object();
+        if (obj.contains("image"))
+        {
+            QJsonObject image = obj.value("image").toObject();
+            QString filename = image.value("filename").toString();
+            ApplicationEventFilter::postEvent(new SGIEvent(SGIEvent::CommandImage, filename));
+            bSuccess = sendLogoImage = true;
+        }
     }
 
+    if (bSuccess && sendLogoImage)
+    {
+        QImage img = logoImage();
+
+        // Make sure we only write to \a image when we succeed.
+        if (!img.isNull()) {
+            bSuccess = true;
+            *image = img;
+        }
+    }
     return bSuccess;
 }
 

@@ -46,6 +46,7 @@ int main(int argc, char **argv)
     QCoreApplication::addLibraryPath(path);
     QImage load_sgi;
     QBuffer dummyMem;
+    dummyMem.setData("{\n\"image\": {\n\"filename\": \"s:/tmp/logo.png\"\n}\n}");
     if(load_sgi.load(&dummyMem, "sgi_loader"))
         qDebug(helloWorldQt) << "sgi loaded.";
     else
