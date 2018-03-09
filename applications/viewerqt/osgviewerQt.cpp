@@ -7,6 +7,9 @@
 #include <QMessageBox>
 #include <QHBoxLayout>
 #include <QThread>
+#include <QWindow>
+#include <QKeyEvent>
+#include <QWidget>
 
 #include <osg/ValueObject>
 #include <osgViewer/ViewerEventHandlers>
@@ -30,6 +33,11 @@
 #include <osgQt/GraphicsWindowQt>
 #endif
 
+#ifdef _WIN32
+#include <osgViewer/api/Win32/GraphicsWindowWin32>
+#else
+#endif
+
 #ifdef SGI_USE_OSGEARTH
 #include <osgEarth/Notify>
 #include <osgEarth/MapNode>
@@ -47,11 +55,6 @@
 
 #include <sgi/helpers/osg_helper_nodes>
 #include <sgi/plugins/SGIItemBase.h>
-
-#if defined(_WIN32) && !defined(SGI_USE_OSGQT)
-extern "C" long __stdcall AllocConsole();
-extern "C" long __stdcall FreeConsole();
-#endif
 
 namespace std {
 
@@ -785,11 +788,36 @@ ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared)
     _viewer->addView(_view);
 }
 
+class EventFilter : public QObject
+{
+    QWidget * _widget;
+public:
+    EventFilter(QWidget * parent)
+        : QObject(parent)
+        , _widget(parent)
+    {
+    }
+    bool eventFilter(QObject *obj, QEvent *event)
+    {
+        if (event->type() == QEvent::KeyPress) {
+            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+            //_widget->event(keyEvent);
+            qDebug("Ate key press %d", keyEvent->key());
+            return true;
+        }
+        else {
+            // standard event processing
+            return QObject::eventFilter(obj, event);
+        }
+    }
+};
+
 ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     : QMainWindow(parent)
     , _viewer(new osgViewer::CompositeViewer(arguments))
     , _thread(nullptr)
     , _timer(nullptr)
+    , _viewWidget(nullptr)
 {
     int screenNum = -1;
     while (arguments.read("--screen", screenNum)) {}
@@ -809,20 +837,43 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     _mainGW = createGraphicsWindow(0, 0, QMainWindow::width(), QMainWindow::height(), nullptr);
 #ifdef SGI_USE_OSGQT
     osgQt::GraphicsWindowQt* gwq = dynamic_cast<osgQt::GraphicsWindowQt*>(_mainGW.get());
-    if(gwq)
-        setCentralWidget(gwq->getGLWidget());
+    if (gwq)
+        _viewWidget = gwq->getGLWidget();
 #endif
+#ifdef _WIN32
+    if (!_viewWidget)
+    {
+        osgViewer::GraphicsWindowWin32* gwin32 = dynamic_cast<osgViewer::GraphicsWindowWin32*>(_mainGW.get());
+        if (gwin32)
+        {
+            HWND hwnd = gwin32->getHWND();
+            QWindow * wnd = QWindow::fromWinId((WId)hwnd);
+            wnd->setFlag(Qt::ForeignWindow);
+            wnd->setFlag(Qt::MSWindowsOwnDC);
+            wnd->installEventFilter(new EventFilter(this));
+            _viewWidget = QWidget::createWindowContainer(wnd, this);
+            _viewWidget->setAttribute(Qt::WA_NativeWindow);
+            _viewWidget->setAttribute(Qt::WA_PaintOnScreen);
+            _viewWidget->setFocusPolicy(Qt::StrongFocus);
+
+            QCoreApplication::instance()->installEventFilter(new EventFilter(_viewWidget));
+        }
+    }
+#endif
+    setCentralWidget(_viewWidget);
+    _viewWidget->setProperty("sgi_skip_object", true);
 
     _view = new osgViewer::View;
 
     osg::Camera* camera = _view->getCamera();
     camera->setGraphicsContext(_mainGW);
 
-    const osg::GraphicsContext::Traits* traits = _mainGW->getTraits();
-
+    const osg::GraphicsContext::Traits* traits = _mainGW ? _mainGW->getTraits() : nullptr;
+    int widget_width = traits ? traits->width : 100;
+    int widget_height = traits ? traits->height : 100;
     camera->setClearColor(osg::Vec4(0.2, 0.2, 0.6, 1.0));
-    camera->setViewport(new osg::Viewport(0, 0, traits->width, traits->height));
-    camera->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(traits->width) / static_cast<double>(traits->height), 1.0f, 10000.0f);
+    camera->setViewport(new osg::Viewport(0, 0, widget_width, widget_height));
+    camera->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(widget_width) / static_cast<double>(widget_height), 1.0f, 10000.0f);
 
     if (x >= 0 && y >= 0 && width >= 0 && height >= 0)
     {
@@ -842,6 +893,8 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
         _thread = new CompositeViewerThread(_viewer);
         _thread->start();
     }
+    if(_viewWidget)
+        _viewWidget->setFocus();
 }
 
 ViewerWidget::~ViewerWidget()
@@ -858,7 +911,6 @@ ViewerWidget::~ViewerWidget()
 void ViewerWidget::init()
 {
 }
-
 
 void ViewerWidget::onTimer()
 {
@@ -901,7 +953,16 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
 #ifdef SGI_USE_OSGQT
     return new osgQt::GraphicsWindowQt(traits.get());
 #else
-    return nullptr;
+    osg::GraphicsContext::WindowingSystemInterface* wsi = osg::GraphicsContext::getWindowingSystemInterface();
+    if (!wsi)
+    {
+        OSG_NOTICE << "SingleWindow::configure() : Error, no WindowSystemInterface available, cannot create windows." << std::endl;
+        return nullptr;
+    }
+    osg::GraphicsContext * gc = osg::GraphicsContext::createGraphicsContext(traits.get());
+    osgViewer::GraphicsWindow* gw = dynamic_cast<osgViewer::GraphicsWindow*>(gc);
+
+    return gw;
 #endif
 }
 

@@ -53,6 +53,10 @@ bool writePrettyHTMLImpl<osgDB::Registry>::process(std::basic_ostream<char>& os)
 
             callNextHandler(os);
 
+            os << "<tr><td>OSG version</td><td>" << osgGetVersion() << "</td></tr>" << std::endl;
+            os << "<tr><td>OSG SO version</td><td>" << osgGetSOVersion() << "</td></tr>" << std::endl;
+            os << "<tr><td>OSG library name</td><td>" << osgGetLibraryName() << "</td></tr>" << std::endl;
+
             // add Registry properties
             os << "<tr><td>mime-type map</td><td><table border=\'1\' align=\'left\' width=\'100%\'>";
             const osgDB::Registry::MimeTypeExtensionMap & mimemap = object->getMimeTypeExtensionMap();
