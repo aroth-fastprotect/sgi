@@ -8,6 +8,7 @@
 
 #if !defined(_WIN32)
 #include <QtCore/QCoreApplication>
+#include <QtCore/QDebug>
 #endif
 #include <QtCore/QLibrary>
 
@@ -29,6 +30,7 @@ namespace sgi {
             // is started from the bin directory. So a little trick is required to find
             // the library.
             QString libfile = QCoreApplication::applicationDirPath() + QString::fromLatin1("/../lib/" SGI_LIBRARY_NAME);
+            qWarning() << "Load SGI" << libfile;
             _library = new QLibrary(libfile);
 #endif
             if(!_library->load())
