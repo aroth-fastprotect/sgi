@@ -135,4 +135,5 @@ protected:
     osg::ref_ptr<osgViewer::GraphicsWindow> _mainGW;
     osg::ref_ptr<osgViewer::View> _view;
     osg::ref_ptr<osgViewer::CompositeViewer> _viewer;
+    QWidget * _viewWidget;
 };
