@@ -70,7 +70,10 @@ namespace sgi {
             QOpenGLShaderProgram * program,
             ShaderType type,
             const std::string&    filename);
-
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4251)
+#endif()
     public:
         typedef std::map<std::string, std::string> SourceMap;
         typedef std::map<std::string, std::string> ReplaceMap;
@@ -83,6 +86,9 @@ namespace sgi {
         SourceMap _sources;
         DefineMap _defines;
         ReplaceMap _replaces;
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif()
         friend class ShaderLoader;
     };
     /**
