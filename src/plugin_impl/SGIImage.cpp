@@ -63,7 +63,7 @@ Image::Image(const Image & rhs)
     , _lines{ rhs._lines[0], rhs._lines[1], rhs._lines[2], rhs._lines[3] }
     , _planeOffset { rhs._planeOffset[0], rhs._planeOffset[1], rhs._planeOffset[2], rhs._planeOffset[3] }
     , _originalImage(rhs._originalImage)
-    , _originalImageQt( (rhs._originalImageQt && rhs._copyQt) ? (rhs.*_copyQt)() : NULL)
+    , _originalImageQt( (rhs._originalImageQt && rhs._copyQt) ? (rhs.*rhs._copyQt)() : NULL)
     , _freeQt(rhs._freeQt), _copyQt(rhs._copyQt)
     , _allocated(false)
 {
@@ -107,7 +107,14 @@ Image & Image::operator=(const Image & rhs)
     _planeOffset[2] = rhs._planeOffset[2];
     _planeOffset[3] = rhs._planeOffset[3];
     _originalImage = rhs._originalImage;
-    _originalImageQt = rhs._originalImageQt;
+    if (rhs._originalImageQt && rhs._copyQt)
+    {
+        const Image * prhs = &rhs;
+        // copy/clone the QImage instance using the rhs object with the copyQt function ptr from rhs object
+        _originalImageQt = (rhs.*rhs._copyQt)();
+    }
+    else
+        _originalImageQt = nullptr;
     _freeQt = rhs._freeQt;
     _copyQt = rhs._copyQt;
     return *this;
