@@ -48,6 +48,8 @@ SET(TARGET_H
 	entrypoint.h
 	sgi_internal.h
 	dxt.h
+	swscale.h
+	colorconversion.h
 )
 
 LIST(APPEND TARGET_H
@@ -146,6 +148,8 @@ SET(TARGET_SRC
 	ImagePreviewDialog.cpp
 	ImageGLWidget.cpp
 	dxt.cpp
+	swscale.cpp
+	colorconversion.cpp
 )
 set(_imagewidget_dir .)
 set(TARGET_GLSL
