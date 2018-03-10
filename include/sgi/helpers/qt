@@ -6,6 +6,7 @@
 #include <QColor>
 #include <QMetaType>
 #include <sgi/plugins/SGIDataItemBase.h>
+#include <sgi/plugins/SGIImage.h>
 
 #if !defined(Q_VERIFY)
 # if !defined(QT_NO_DEBUG)
@@ -40,6 +41,7 @@ class QPointF;
 class QChar;
 class QUrl;
 class QPaintDevice;
+class QImage;
 
 namespace sgi {
 
@@ -168,6 +170,13 @@ inline QColor qtColor(const sgi::Color & c)
     return QColor::fromRgbF(c.r, c.g, c.b, c.a);
 }
 
+SGI_QT_HELPER_EXPORT bool convertImageToQImage_RGB24(const sgi::Image * image, QImage & qimage);
+SGI_QT_HELPER_EXPORT bool convertImageToQImage_BGR24(const sgi::Image * image, QImage & qimage);
+SGI_QT_HELPER_EXPORT bool convertImageToQImage_RGB32(const sgi::Image * image, QImage & qimage);
+SGI_QT_HELPER_EXPORT bool convertImageToQImage_BGR32(const sgi::Image * image, QImage & qimage);
+SGI_QT_HELPER_EXPORT bool convertImageToQImage_RGBA32(const sgi::Image * image, QImage & qimage);
+SGI_QT_HELPER_EXPORT bool convertImageToQImage(const sgi::Image * image, sgi::Image::ImageFormat destFormat, QImage & qimage);
+
     } // namespace qt_helpers
 } // namespace sgi
 
@@ -192,7 +201,9 @@ namespace std {
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QChar & c);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QUrl & url);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSizePolicy & sp);
-
+#ifdef QIMAGE_H
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, QImage::Format t);
+#endif // QIMAGE_H
     template<typename T>
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QList<T> & list)
     {

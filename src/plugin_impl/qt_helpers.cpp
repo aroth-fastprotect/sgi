@@ -21,7 +21,12 @@
 #include <QEasingCurve>
 #include <QSizePolicy>
 #include <QPaintDevice>
+#include <QImage>
 #include <sgi/helpers/rtti>
+
+namespace std {
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, QImage::Format t);
+}
 
 namespace sgi {
     namespace qt_helpers {
@@ -310,4 +315,37 @@ namespace std {
     {
         return os << "(" << sp.horizontalPolicy() << ", " << sp.verticalPolicy() << ")";
     }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, QImage::Format t)
+    {
+        switch(t)
+        {
+        case QImage::Format_Invalid: os << "Invalid"; break;
+        case QImage::Format_Mono: os << "Mono"; break;
+        case QImage::Format_MonoLSB: os << "MonoLSB"; break;
+        case QImage::Format_Indexed8: os << "Indexed8"; break;
+        case QImage::Format_RGB32: os << "RGB32"; break;
+        case QImage::Format_ARGB32: os << "ARGB32"; break;
+        case QImage::Format_ARGB32_Premultiplied: os << "ARGB32_Premultiplied"; break;
+        case QImage::Format_RGB16: os << "RGB16"; break;
+        case QImage::Format_ARGB8565_Premultiplied: os << "ARGB8565_Premultiplied"; break;
+        case QImage::Format_RGB666: os << "RGB666"; break;
+        case QImage::Format_ARGB6666_Premultiplied: os << "ARGB6666_Premultiplied"; break;
+        case QImage::Format_RGB555: os << "RGB555"; break;
+        case QImage::Format_ARGB8555_Premultiplied: os << "ARGB8555_Premultiplied"; break;
+        case QImage::Format_RGB888: os << "RGB888"; break;
+        case QImage::Format_RGB444: os << "RGB444"; break;
+        case QImage::Format_ARGB4444_Premultiplied: os << "ARGB4444_Premultiplied"; break;
+        case QImage::Format_RGBX8888: os << "RGBX8888"; break;
+        case QImage::Format_RGBA8888: os << "RGBA8888"; break;
+        case QImage::Format_RGBA8888_Premultiplied: os << "RGBA8888_Premultiplied"; break;
+        case QImage::Format_BGR30: os << "BGR30"; break;
+        case QImage::Format_A2BGR30_Premultiplied: os << "A2BGR30_Premultiplied"; break;
+        case QImage::Format_RGB30: os << "RGB30"; break;
+        case QImage::Format_A2RGB30_Premultiplied: os << "A2RGB30_Premultiplied"; break;
+        default: os << (int)t; break;
+        }
+        return os;
+    }
+
 }
