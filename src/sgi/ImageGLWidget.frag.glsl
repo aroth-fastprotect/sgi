@@ -186,45 +186,53 @@ void main()
     {
         switch (format)
         {
-            default:
-            case ImageFormatInvalid:
-                color = vec4(1.0, 0.0, 0.0, 1.0);
-                break;
-            case ImageFormatAutomatic:
-                color = vec4(0.0, 0.0, 1.0, 1.0);
-                break;
-            case ImageFormatBGR24:
-            case ImageFormatRGB24:
-                // handle bgr and rgb identical because color order is already fixed by OpenGL
-                color = rgb24();
-                break;
-            case ImageFormatABGR32:
-            case ImageFormatARGB32:
-            case ImageFormatRGBA32:
-            case ImageFormatBGRA32:
-                // handle bgr and rgb identical because color order is already fixed by OpenGL
-                color = argb32();
-                break;
-            case ImageFormatBGR32:
-            case ImageFormatRGB32:
-                // handle bgr and rgb identical because color order is already fixed by OpenGL
-                color = rgb32();
-                break;
-            case ImageFormatYUV420:
-                color = yuv420p();
-                break;
-            case ImageFormatYUV422:
-                color = yuv422p();
-                break;
-            case ImageFormatYUV444:
-                color = yuv444p();
-                break;
-            case ImageFormatYUYV:
-                color = yuyv();
-                break;
-            case ImageFormatUYVY:
-                color = uyvy();
-                break;
+        default:
+        case ImageFormatInvalid:
+            color = vec4(1.0, 0.0, 0.0, 1.0);
+            break;
+        case ImageFormatAutomatic:
+            color = vec4(0.0, 0.0, 1.0, 1.0);
+            break;
+        case ImageFormatBGR24:
+        case ImageFormatRGB24:
+            // handle bgr and rgb identical because color order is already fixed by OpenGL
+            color = rgb24();
+            break;
+        case ImageFormatABGR32:
+        case ImageFormatARGB32:
+        case ImageFormatRGBA32:
+        case ImageFormatBGRA32:
+            // handle bgr and rgb identical because color order is already fixed by OpenGL
+            color = argb32();
+            break;
+        case ImageFormatBGR32:
+        case ImageFormatRGB32:
+            // handle bgr and rgb identical because color order is already fixed by OpenGL
+            color = rgb32();
+            break;
+        case ImageFormatYUV420:
+            color = yuv420p();
+            break;
+        case ImageFormatYUV422:
+            color = yuv422p();
+            break;
+        case ImageFormatYUV444:
+            color = yuv444p();
+            break;
+        case ImageFormatYUYV:
+            color = yuyv();
+            break;
+        case ImageFormatUYVY:
+            color = uyvy();
+            break;
+        case ImageFormatDXT1:
+            color = rgb24();
+            break;
+        case ImageFormatDXT1Alpha:
+        case ImageFormatDXT3:
+        case ImageFormatDXT5:
+            color = argb32();
+            break;
         }
         color = applyColorFilter(color);
     }

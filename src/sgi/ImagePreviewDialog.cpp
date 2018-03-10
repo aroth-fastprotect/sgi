@@ -302,7 +302,7 @@ void ImagePreviewDialog::Histogram::calculate(const QImage & image)
 		calcMinMax(minBlue, maxBlue, minBlueValue, maxBlueValue, i, _blue);
 		calcMinMax(minGray, maxGray, minGrayValue, maxGrayValue, i, _gray);
 	}
-};
+}
 
 bool applyColorFilterQImage(QImage & src, QImage & dest, ImagePreviewDialog::ColorFilter filter)
 {
@@ -1328,17 +1328,36 @@ private:
         }
         return ret;
     }
+    static bool to_qimage_argb32_indexed8(const sgi::Image& src, QImage& dest, bool horizontalFlip = false)
+    {
+        bool ret = false;
+        QImage * src_qimg = src.originalImageQt();
+        if(src_qimg)
+        {
+            dest = src_qimg->convertToFormat(QImage::Format_ARGB32);
+            ret = !dest.isNull();
+            if(ret && horizontalFlip)
+                dest = dest.mirrored(false, true);
+        }
+        return ret;
+    }
 
     static bool convert(const sgi::Image& src, sgi::Image& dest)
     {
         bool ret;
         switch (src.format())
         {
+        case Image::ImageFormatInvalid:
+            ret = false;
+            break;
         case Image::ImageFormatDXT1:
         case Image::ImageFormatDXT1Alpha:
         case Image::ImageFormatDXT3:
         case Image::ImageFormatDXT5:
             ret = convert_dxt(src, dest);
+            break;
+        case Image::ImageFormatIndexed8:
+            ret = false;
             break;
         default:
             ret = convert_with_avcodec(src, dest);
@@ -1367,6 +1386,9 @@ private:
         case Image::ImageFormatLuminance:
         case Image::ImageFormatLuminanceAlpha:
             ret = to_qimage_argb32_single_channel(src, dest, s_defaultColorGradient, horizontalFlip);
+            break;
+        case Image::ImageFormatIndexed8:
+            ret = to_qimage_argb32_indexed8(src, dest, horizontalFlip);
             break;
 #if defined(_WIN32) && 1
         case Image::ImageFormatRGB24:

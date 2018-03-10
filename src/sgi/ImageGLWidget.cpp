@@ -426,6 +426,36 @@ void ImageGLWidget::setImageImpl(const sgi::Image * image, bool reset)
             textureFormat = QOpenGLTexture::RGBA8_UNorm;
             pixelFormat = QOpenGLTexture::RGBA;
             break;
+        case Image::ImageFormatIndexed8:
+            textureWidth = image->width();
+            textureHeight = image->height();
+            textureFormat = QOpenGLTexture::R8_UNorm;
+            pixelFormat = QOpenGLTexture::Red;
+            break;
+        case Image::ImageFormatDXT1:
+            textureWidth = image->width();
+            textureHeight = image->height();
+            textureFormat = QOpenGLTexture::RGB_DXT1;
+            pixelFormat = QOpenGLTexture::RGB;
+            break;
+        case Image::ImageFormatDXT1Alpha:
+            textureWidth = image->width();
+            textureHeight = image->height();
+            textureFormat = QOpenGLTexture::RGBA_DXT1;
+            pixelFormat = QOpenGLTexture::RGBA;
+            break;
+        case Image::ImageFormatDXT3:
+            textureWidth = image->width();
+            textureHeight = image->height();
+            textureFormat = QOpenGLTexture::RGBA_DXT3;
+            pixelFormat = QOpenGLTexture::RGBA;
+            break;
+        case Image::ImageFormatDXT5:
+            textureWidth = image->width();
+            textureHeight = image->height();
+            textureFormat = QOpenGLTexture::RGBA_DXT5;
+            pixelFormat = QOpenGLTexture::RGBA;
+            break;
         default:
             textureWidth = image->width();
             textureHeight = image->height();
