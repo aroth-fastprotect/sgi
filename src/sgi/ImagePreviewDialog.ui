@@ -27,7 +27,7 @@
      </property>
      <widget class="QTabWidget" name="tabWidgetImageView">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tabImageViewQt">
        <attribute name="title">
@@ -35,7 +35,7 @@
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QScrollArea" name="scrollAreaImageQt">
+         <widget class="sgi::ImageScrollArea" name="scrollAreaImageQt">
           <property name="widgetResizable">
            <bool>true</bool>
           </property>
@@ -95,7 +95,7 @@
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
-         <widget class="QScrollArea" name="scrollAreaImageGL">
+         <widget class="sgi::ImageScrollArea" name="scrollAreaImageGL">
           <property name="widgetResizable">
            <bool>true</bool>
           </property>
@@ -343,6 +343,12 @@
    <class>sgi::ImageQtWidget</class>
    <extends>QLabel</extends>
    <header location="global">ImageQtWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>sgi::ImageScrollArea</class>
+   <extends>QScrollArea</extends>
+   <header location="global">ImageScrollArea.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

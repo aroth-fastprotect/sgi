@@ -309,7 +309,6 @@ public:
     void createToolbar();
     void updateToolbar();
     void scaleImage(double factor);
-    static void adjustScrollBar(QScrollBar *scrollBar, double factor);
 
     Image::ImageFormat currentImageFormat() const;
     ColorFilter currentColorFilter() const;
@@ -318,7 +317,7 @@ public:
     void zoomIn();
     void zoomOut();
     void normalSize();
-    void fitToWindow();
+    void fitToWindow(bool enable);
     void saveImageAs();
     void openImageAs();
     void refresh();
@@ -444,6 +443,7 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
     ui->scrollAreaImageQt->setWidgetResizable(true);
 
 	ui->tabWidget->setCurrentIndex(0);
+    ui->tabWidgetImageView->setCurrentIndex(0);
 }
 
 ImagePreviewDialog::ImagePreviewDialogImpl::~ImagePreviewDialogImpl()
@@ -474,15 +474,23 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::normalSize()
 //! [11] //! [12]
 {
 	ui->imageLabel->adjustSize();
+    ui->imageGL->adjustSize();
 	scaleFactor = 1.0;
+    refresh();
 }
 //! [12]
 
 //! [13]
-void ImagePreviewDialog::ImagePreviewDialogImpl::fitToWindow()
+void ImagePreviewDialog::ImagePreviewDialogImpl::fitToWindow(bool enable)
 //! [13] //! [14]
 {
-    refresh();
+    if(!enable)
+        normalSize();
+    else
+    {
+        scaleFactor = 1.0;
+        refresh();
+    }
 }
 //! [14]
 
@@ -524,7 +532,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 	fitToWindowAction->setCheckable(true);
     fitToWindowAction->setChecked(true);
 	fitToWindowAction->setShortcut(tr("Ctrl+F"));
-	connect(fitToWindowAction, &QAction::triggered, this, &ImagePreviewDialogImpl::fitToWindow);
+    connect(fitToWindowAction, &QAction::toggled, this, &ImagePreviewDialogImpl::fitToWindow);
 
 	flipHorizontalAction = new QAction(tr("&Mirror"), _dialog);
 	flipHorizontalAction->setIcon(QIcon::fromTheme("object-flip-horizontal"));
@@ -659,27 +667,14 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::scaleImage(double factor)
 {
 	Q_ASSERT(ui->imageLabel->pixmap());
 	scaleFactor *= factor;
-    ui->imageLabel->setScaledContents(true);
-    ui->imageLabel->resize(scaleFactor * ui->imageLabel->pixmap()->size());
-
-	adjustScrollBar(ui->scrollAreaImageQt->horizontalScrollBar(), factor);
-	adjustScrollBar(ui->scrollAreaImageQt->verticalScrollBar(), factor);
-    adjustScrollBar(ui->scrollAreaImageGL->horizontalScrollBar(), factor);
-    adjustScrollBar(ui->scrollAreaImageGL->verticalScrollBar(), factor);
+    ui->scrollAreaImageQt->setScaleFactor(scaleFactor);
+    ui->scrollAreaImageGL->setScaleFactor(scaleFactor);
 
 	zoomInAction->setEnabled(scaleFactor < 3.0);
 	zoomOutAction->setEnabled(scaleFactor > 0.333);
 }
 //! [24]
 
-//! [25]
-void ImagePreviewDialog::ImagePreviewDialogImpl::adjustScrollBar(QScrollBar *scrollBar, double factor)
-//! [25] //! [26]
-{
-	scrollBar->setValue(int(factor * scrollBar->value()
-		+ ((factor - 1) * scrollBar->pageStep() / 2)));
-}
-//! [26]
 void ImagePreviewDialog::ImagePreviewDialogImpl::flipHorizontal()
 {
     // just refresh the actual change is done in refreshImpl
@@ -1165,34 +1160,16 @@ void ImagePreviewDialog::refreshImpl()
         _priv->imageWidth->setCurrentText(QString::number(_image->width()));
         _priv->imageHeight->setCurrentText(QString::number(_image->height()));
         _priv->ui->imageLabel->setImage(actualImage);
+        _priv->ui->scrollAreaImageGL->setImage(actualImage);
+        _priv->ui->scrollAreaImageQt->setImage(actualImage);
     }
     else
     {
         _priv->imageWidth->setCurrentText(tr("N/A"));
         _priv->imageHeight->setCurrentText(tr("N/A"));
         _priv->ui->imageLabel->setImage(qimg);
-    }
-
-    {
-        int width = _workImage.valid() ? _workImage->width() : 0;
-        int height = _workImage.valid() ? _workImage->height() : 0;
-        _priv->ui->scrollAreaImageQt->horizontalScrollBar()->setMaximum(width);
-        _priv->ui->scrollAreaImageQt->verticalScrollBar()->setMaximum(height);
-        _priv->ui->scrollAreaImageQt->horizontalScrollBar()->setPageStep((width / 10));
-        _priv->ui->scrollAreaImageQt->verticalScrollBar()->setMaximum((height / 10));
-        _priv->ui->scrollAreaImageQt->horizontalScrollBar()->setValue(0);
-        _priv->ui->scrollAreaImageQt->verticalScrollBar()->setValue(0);
-        _priv->ui->scrollAreaImageQt->horizontalScrollBar()->setValue(0);
-        _priv->ui->scrollAreaImageQt->verticalScrollBar()->setValue(0);
-        _priv->ui->scrollAreaImageGL->horizontalScrollBar()->setMaximum(width);
-        _priv->ui->scrollAreaImageGL->verticalScrollBar()->setMaximum(height);
-        _priv->ui->scrollAreaImageGL->horizontalScrollBar()->setPageStep((width / 10));
-        _priv->ui->scrollAreaImageGL->verticalScrollBar()->setMaximum((height / 10));
-        _priv->ui->scrollAreaImageGL->horizontalScrollBar()->setValue(0);
-        _priv->ui->scrollAreaImageGL->verticalScrollBar()->setValue(0);
-        bool fitToWindow = _priv->fitToWindowAction->isChecked();
-        _priv->ui->scrollAreaImageQt->setWidgetResizable(fitToWindow);
-        _priv->ui->scrollAreaImageGL->setWidgetResizable(fitToWindow);
+        _priv->ui->scrollAreaImageGL->setImage(qimg);
+        _priv->ui->scrollAreaImageQt->setImage(qimg);
     }
 
     std::stringstream ss;

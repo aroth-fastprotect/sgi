@@ -603,7 +603,8 @@ void ImageGLWidget::mouseMoveEvent(QMouseEvent *ev)
 
 void ImageGLWidget::resizeEvent(QResizeEvent *event)
 {
-    QSize s(_image->width(), _image->height());
+
+    QSize s(_image ? _image->width() : 0, _image ? _image->height() : 0);
     s.scale(event->size(), Qt::KeepAspectRatio);
     s = QLayout::closestAcceptableSize(this, s);
     QRect imageRect = QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, s, rect());

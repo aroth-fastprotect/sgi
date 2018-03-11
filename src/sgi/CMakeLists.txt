@@ -129,6 +129,7 @@ SET(TARGET_MOC_H
 	ImagePreviewDialog.h
 	ImageGLWidget.h
 	ImageQtWidget.h
+	ImageScrollArea.h
 )
 
 # CHECK-IT:
@@ -149,6 +150,7 @@ SET(TARGET_SRC
 	ImagePreviewDialog.cpp
 	ImageGLWidget.cpp
 	ImageQtWidget.cpp
+	ImageScrollArea.cpp
 	dxt.cpp
 	swscale.cpp
 	colorconversion.cpp
