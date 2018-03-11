@@ -9,6 +9,8 @@
 #include <QVector3D>
 #include <QPainter>
 #include <QPaintEvent>
+#include <QStyle>
+#include <QLayout>
 #include <QDir>
 
 #include <sgi/plugins/SGIImage.h>
@@ -74,6 +76,11 @@ ImageGLWidget::ImageGLWidget(QWidget * parent)
     setFormat(format);
 
     setUpdateBehavior(NoPartialUpdate);
+
+    QSizePolicy sizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    setSizePolicy(sizePolicy);
+    setFocusPolicy(Qt::StrongFocus);
+    setMouseTracking(true);
 }
 
 ImageGLWidget::~ImageGLWidget()
@@ -582,6 +589,27 @@ void ImageGLWidget::setMirrored(bool horizontal, bool vertical)
 
     _vertex->release();
     _object->release();
+}
+
+void ImageGLWidget::mouseMoveEvent(QMouseEvent *ev)
+{
+    QOpenGLWidget::mouseMoveEvent(ev);
+
+    float x = float(ev->x()) / float(width());
+    float y = float(ev->y()) / float(height());
+
+    emit mouseMoved(x, y);
+}
+
+void ImageGLWidget::resizeEvent(QResizeEvent *event)
+{
+    QSize s(_image->width(), _image->height());
+    s.scale(event->size(), Qt::KeepAspectRatio);
+    s = QLayout::closestAcceptableSize(this, s);
+    QRect imageRect = QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, s, rect());
+    setGeometry(imageRect);
+
+    QOpenGLWidget::resizeEvent(event);
 }
 
 } // namespace sgi

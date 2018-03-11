@@ -422,7 +422,8 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
 	ui->setupUi(_dialog);
 
 	connect(ui->buttonBox->button(QDialogButtonBox::Close), &QPushButton::clicked, _dialog, &ImagePreviewDialog::reject);
-    connect(ui->imageLabel, &ImagePreviewLabel::mouseMoved, _dialog, &ImagePreviewDialog::onMouseMoved);
+    connect(ui->imageLabel, &ImageQtWidget::mouseMoved, _dialog, &ImagePreviewDialog::onMouseMoved);
+    connect(ui->imageGL, &ImageGLWidget::mouseMoved, _dialog, &ImagePreviewDialog::onMouseMoved);
 
     QPalette pal = ui->imageLabel->palette();
     const QColor default_osg_view_clear_color = QColor::fromRgbF(0.2f, 0.2f, 0.4f, 1.0f);
@@ -1154,25 +1155,22 @@ void ImagePreviewDialog::refreshImpl()
             _priv->ui->imageGL->setColorFilter(fragment, vertex);
         }
 
-        QPixmap actualDisplayedPixmap;
+        QImage actualImage;
         if(_priv->flipHorizontalAction->isChecked() || _priv->flipVerticalAction->isChecked())
-        {
-            QImage mirroredImage = qimgDisplay.mirrored(_priv->flipHorizontalAction->isChecked(), _priv->flipVerticalAction->isChecked());
-            actualDisplayedPixmap = QPixmap::fromImage(mirroredImage);
-        }
+            actualImage = qimgDisplay.mirrored(_priv->flipHorizontalAction->isChecked(), _priv->flipVerticalAction->isChecked());
         else
-            actualDisplayedPixmap = QPixmap::fromImage(qimgDisplay);
+            actualImage = qimgDisplay;
         _priv->ui->imageGL->setMirrored(_priv->flipHorizontalAction->isChecked(), _priv->flipVerticalAction->isChecked());
 
         _priv->imageWidth->setCurrentText(QString::number(_image->width()));
         _priv->imageHeight->setCurrentText(QString::number(_image->height()));
-        _priv->ui->imageLabel->setPixmap(actualDisplayedPixmap);
+        _priv->ui->imageLabel->setImage(actualImage);
     }
     else
     {
         _priv->imageWidth->setCurrentText(tr("N/A"));
         _priv->imageHeight->setCurrentText(tr("N/A"));
-        _priv->ui->imageLabel->setPixmap(QPixmap());
+        _priv->ui->imageLabel->setImage(qimg);
     }
 
     {
@@ -1195,7 +1193,6 @@ void ImagePreviewDialog::refreshImpl()
         bool fitToWindow = _priv->fitToWindowAction->isChecked();
         _priv->ui->scrollAreaImageQt->setWidgetResizable(fitToWindow);
         _priv->ui->scrollAreaImageGL->setWidgetResizable(fitToWindow);
-        _priv->ui->imageLabel->setScaledContents(fitToWindow);
     }
 
     std::stringstream ss;
@@ -1445,22 +1442,5 @@ void ImagePreviewDialog::colorFilterChanged()
     QString vertex = _priv->ui->colorFilterVertex->toPlainText();
     _priv->ui->imageGL->setColorFilter(fragment, vertex);
 }
-
-ImagePreviewLabel::ImagePreviewLabel(QWidget *parent, Qt::WindowFlags f)
-    : QLabel(parent, f)
-{
-    setMouseTracking(true);
-}
-
-void ImagePreviewLabel::mouseMoveEvent(QMouseEvent *ev)
-{
-    QLabel::mouseMoveEvent(ev);
-    
-    float x = float(ev->x()) / float(width());
-    float y = float(ev->y()) / float(height());
-
-    emit mouseMoved(x, y);
-}
-
 
 } // namespace sgi

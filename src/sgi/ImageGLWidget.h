@@ -52,9 +52,14 @@ public:
 
     void setMirrored(bool horizontal, bool vertical);
 
+signals:
+    void mouseMoved(float x, float y);
+
 protected:
     void teardownGL();
     void paintEvent(QPaintEvent *e) override;
+    void mouseMoveEvent(QMouseEvent *ev) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 protected:
     void setImageImpl(const sgi::Image * image, bool reset=false);

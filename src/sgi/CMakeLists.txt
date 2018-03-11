@@ -128,6 +128,7 @@ SET(TARGET_MOC_H
 	MatrixInputDialog.h
 	ImagePreviewDialog.h
 	ImageGLWidget.h
+	ImageQtWidget.h
 )
 
 # CHECK-IT:
@@ -147,6 +148,7 @@ SET(TARGET_SRC
 	MatrixInputDialog.cpp
 	ImagePreviewDialog.cpp
 	ImageGLWidget.cpp
+	ImageQtWidget.cpp
 	dxt.cpp
 	swscale.cpp
 	colorconversion.cpp

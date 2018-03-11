@@ -25,19 +25,6 @@ class SGIPluginHostInterface;
 class IContextMenu;
 typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
 
-class ImagePreviewLabel : public QLabel
-{
-    Q_OBJECT
-public:
-    ImagePreviewLabel(QWidget *parent = 0, Qt::WindowFlags f = 0);
-
-signals:
-    void mouseMoved(float x, float y);
-
-protected:
-    virtual void mouseMoveEvent(QMouseEvent *ev) override;
-};
-
 class ImagePreviewDialog : public QDialog
 {
     Q_OBJECT
