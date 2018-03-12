@@ -44,6 +44,8 @@ namespace {
         case QImage::Format_Mono: imageFormat = Image::ImageFormatMono; break;
         case QImage::Format_MonoLSB: imageFormat = Image::ImageFormatMonoLSB; break;
         case QImage::Format_Indexed8: imageFormat = Image::ImageFormatIndexed8; break;
+        case QImage::Format_Alpha8: imageFormat = Image::ImageFormatAlpha; break;
+        case QImage::Format_Grayscale8: imageFormat = Image::ImageFormatGray; break;
         case QImage::Format_RGB32: imageFormat = Image::ImageFormatRGB32; break;
         case QImage::Format_RGBA8888:
         case QImage::Format_RGBA8888_Premultiplied:
@@ -69,6 +71,48 @@ namespace {
         }
         return imageFormat;
     }
+    unsigned bytesPerPixelFromQImage(QImage::Format format)
+    {
+        unsigned ret = 0;
+        switch (format)
+        {
+        case QImage::Format_Invalid: ret = 0; break;
+        case QImage::Format_Mono:
+        case QImage::Format_MonoLSB:
+        case QImage::Format_Indexed8:
+        case QImage::Format_Alpha8:
+        case QImage::Format_Grayscale8:
+            ret = 1;
+            break;
+        case QImage::Format_RGB16: 
+            ret = 2; 
+            break;
+        case QImage::Format_ARGB8565_Premultiplied:
+        case QImage::Format_RGB444:
+        case QImage::Format_RGB555:
+        case QImage::Format_RGB666: ret = 3;
+        case QImage::Format_ARGB6666_Premultiplied:
+        case QImage::Format_ARGB8555_Premultiplied:
+        case QImage::Format_ARGB4444_Premultiplied:
+        case QImage::Format_BGR30:
+        case QImage::Format_A2BGR30_Premultiplied:
+        case QImage::Format_RGB30:
+        case QImage::Format_A2RGB30_Premultiplied:
+        case QImage::Format_RGB32:
+        case QImage::Format_RGBA8888:
+        case QImage::Format_RGBA8888_Premultiplied:
+        case QImage::Format_ARGB32_Premultiplied:
+        case QImage::Format_ARGB32:
+        case QImage::Format_RGB888:
+        case QImage::Format_RGBX8888:
+            ret = 4;
+            break;
+        default:
+            ret = 1;
+            break;
+        }
+        return ret;
+    }
 }
 
 Image::Image(QImage * originalImage, bool copyData)
@@ -76,7 +120,7 @@ Image::Image(QImage * originalImage, bool copyData)
     , _dataType(DataTypeUnsignedByte)
     , _origin(OriginTopLeft), _data(NULL), _length(originalImage->byteCount())
     , _width(originalImage->width()), _height(originalImage->height()), _depth(1)
-    , _allocatedWidth(originalImage->width()), _allocatedHeight(originalImage->height())
+    , _allocatedWidth(originalImage->bytesPerLine() / bytesPerPixelFromQImage(originalImage->format())), _allocatedHeight(originalImage->height())
     , _pitch { (unsigned)originalImage->bytesPerLine(), 0, 0, 0 }
     , _lines{ (unsigned)originalImage->height(), 0, 0, 0 }
     , _planeOffset{0, 0, 0, 0}

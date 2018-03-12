@@ -450,6 +450,8 @@ bool SWScale::convert(const sgi::Image& src, sgi::Image& dest)
             ret = to_qimage_argb32_dxt(src, dest, horizontalFlip);
             break;
         case Image::ImageFormatGray:
+            ret = to_qimage_argb32_single_channel(src, dest, ColorGradient(ColorGradient::Monochrome), horizontalFlip);
+            break;
         case Image::ImageFormatRed:
         case Image::ImageFormatGreen:
         case Image::ImageFormatBlue:

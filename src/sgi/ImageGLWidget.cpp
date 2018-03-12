@@ -373,99 +373,109 @@ void ImageGLWidget::setImageImpl(const sgi::Image * image, bool reset)
         switch(image->format())
         {
         case Image::ImageFormatBGR24:
-            textureWidth = image->width();
-            textureHeight = image->height();
+            textureWidth = image->allocatedWidth();
+            textureHeight = image->allocatedHeight();
             textureFormat = QOpenGLTexture::RGB8_UNorm;
             pixelFormat = QOpenGLTexture::BGR;
             break;
         case Image::ImageFormatRGB24:
-            textureWidth = image->width();
-            textureHeight = image->height();
+            textureWidth = image->allocatedWidth();
+            textureHeight = image->allocatedHeight();
             textureFormat = QOpenGLTexture::RGB8_UNorm;
             pixelFormat = QOpenGLTexture::RGB;
             break;
         case Image::ImageFormatBGRA32:
-            textureWidth = image->width();
-            textureHeight = image->height();
+            textureWidth = image->allocatedWidth();
+            textureHeight = image->allocatedHeight();
             textureFormat = QOpenGLTexture::RGBA8_UNorm;
             pixelFormat = QOpenGLTexture::BGRA;
             break;
         case Image::ImageFormatRGBA32:
-            textureWidth = image->width();
-            textureHeight = image->height();
+            textureWidth = image->allocatedWidth();
+            textureHeight = image->allocatedHeight();
             textureFormat = QOpenGLTexture::RGBA8_UNorm;
             pixelFormat = QOpenGLTexture::RGBA;
             break;
         case Image::ImageFormatABGR32:
-            textureWidth = image->width();
-            textureHeight = image->height();
+            textureWidth = image->allocatedWidth();
+            textureHeight = image->allocatedHeight();
             textureFormat = QOpenGLTexture::RGBA8_UNorm;
             pixelFormat = QOpenGLTexture::BGRA;
             break;
         case Image::ImageFormatARGB32:
-            textureWidth = image->width();
-            textureHeight = image->height();
+            textureWidth = image->allocatedWidth();
+            textureHeight = image->allocatedHeight();
             textureFormat = QOpenGLTexture::RGBA8_UNorm;
             pixelFormat = QOpenGLTexture::BGRA;
             break;
         case Image::ImageFormatYUV444:
-            textureWidth = image->width();
-            textureHeight = image->height();
+            textureWidth = image->allocatedWidth();
+            textureHeight = image->allocatedHeight();
             textureFormat = QOpenGLTexture::R8_UNorm;
             pixelFormat = QOpenGLTexture::Red;
             break;
         case Image::ImageFormatYUV420:
-            textureWidth = image->width();
-            textureHeight = image->height() + (image->height() / 2);
+            textureWidth = image->allocatedWidth();
+            textureHeight = image->allocatedHeight() + (image->allocatedHeight() / 2);
             textureFormat = QOpenGLTexture::R8_UNorm;
             pixelFormat = QOpenGLTexture::Red;
             break;
         case Image::ImageFormatYUV422:
-            textureWidth = image->width();
-            textureHeight = image->height() + image->height();
+            textureWidth = image->allocatedWidth();
+            textureHeight = image->allocatedHeight() + image->allocatedHeight();
             textureFormat = QOpenGLTexture::R8_UNorm;
             pixelFormat = QOpenGLTexture::Red;
             break;
         case Image::ImageFormatYUYV:
         case Image::ImageFormatUYVY:
-            textureWidth = image->width() / 2;
-            textureHeight = image->height();
+            textureWidth = image->allocatedWidth() / 2;
+            textureHeight = image->allocatedHeight();
             textureFormat = QOpenGLTexture::RGBA8_UNorm;
             pixelFormat = QOpenGLTexture::RGBA;
             break;
         case Image::ImageFormatIndexed8:
-            textureWidth = image->width();
-            textureHeight = image->height();
+            textureWidth = image->allocatedWidth();
+            textureHeight = image->allocatedHeight();
             textureFormat = QOpenGLTexture::R8_UNorm;
             pixelFormat = QOpenGLTexture::Red;
             break;
         case Image::ImageFormatDXT1:
-            textureWidth = image->width();
-            textureHeight = image->height();
+            textureWidth = image->allocatedWidth();
+            textureHeight = image->allocatedHeight();
             textureFormat = QOpenGLTexture::RGB_DXT1;
             pixelFormat = QOpenGLTexture::RGB;
             break;
         case Image::ImageFormatDXT1Alpha:
-            textureWidth = image->width();
-            textureHeight = image->height();
+            textureWidth = image->allocatedWidth();
+            textureHeight = image->allocatedHeight();
             textureFormat = QOpenGLTexture::RGBA_DXT1;
             pixelFormat = QOpenGLTexture::RGBA;
             break;
         case Image::ImageFormatDXT3:
-            textureWidth = image->width();
-            textureHeight = image->height();
+            textureWidth = image->allocatedWidth();
+            textureHeight = image->allocatedHeight();
             textureFormat = QOpenGLTexture::RGBA_DXT3;
             pixelFormat = QOpenGLTexture::RGBA;
             break;
         case Image::ImageFormatDXT5:
-            textureWidth = image->width();
-            textureHeight = image->height();
+            textureWidth = image->allocatedWidth();
+            textureHeight = image->allocatedHeight();
             textureFormat = QOpenGLTexture::RGBA_DXT5;
             pixelFormat = QOpenGLTexture::RGBA;
             break;
+        case Image::ImageFormatGray:
+        case Image::ImageFormatRed:
+        case Image::ImageFormatGreen:
+        case Image::ImageFormatBlue:
+        case Image::ImageFormatAlpha:
+            textureWidth = image->allocatedWidth();
+            textureHeight = image->allocatedHeight();
+            textureFormat = QOpenGLTexture::R8_UNorm;
+            pixelFormat = QOpenGLTexture::Red;
+            break;
         default:
-            textureWidth = image->width();
-            textureHeight = image->height();
+            textureWidth = image->allocatedWidth();
+            textureHeight = image->allocatedHeight();
             textureFormat = QOpenGLTexture::R8_UNorm;
             pixelFormat = QOpenGLTexture::Red;
             break;

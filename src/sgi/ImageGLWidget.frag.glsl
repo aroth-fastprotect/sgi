@@ -172,6 +172,41 @@ vec4 argb32()
     return texture(oe_sg_sampler0, real_tx );
 }
 
+vec4 gray()
+{
+    vec2 real_tx = vec2(oe_sg_texcoord0.s * texture_scale.s, oe_sg_texcoord0.t * texture_scale.t);
+    vec4 c = texture(oe_sg_sampler0, real_tx );
+    return vec4(c.r, c.r, c.r, 1.0);
+}
+
+vec4 red()
+{
+    vec2 real_tx = vec2(oe_sg_texcoord0.s * texture_scale.s, oe_sg_texcoord0.t * texture_scale.t);
+    vec4 c = texture(oe_sg_sampler0, real_tx );
+    return vec4(c.r, 0.0, 0.0, 1.0);
+}
+
+vec4 green()
+{
+    vec2 real_tx = vec2(oe_sg_texcoord0.s * texture_scale.s, oe_sg_texcoord0.t * texture_scale.t);
+    vec4 c = texture(oe_sg_sampler0, real_tx );
+    return vec4(0.0, c.r, 0.0, 1.0);
+}
+
+vec4 blue()
+{
+    vec2 real_tx = vec2(oe_sg_texcoord0.s * texture_scale.s, oe_sg_texcoord0.t * texture_scale.t);
+    vec4 c = texture(oe_sg_sampler0, real_tx );
+    return vec4(0.0, 0.0, c.r, 1.0);
+}
+
+vec4 alpha()
+{
+    vec2 real_tx = vec2(oe_sg_texcoord0.s * texture_scale.s, oe_sg_texcoord0.t * texture_scale.t);
+    vec4 c = texture(oe_sg_sampler0, real_tx );
+    return vec4(c.r, c.r, c.r, 1.0);
+}
+
 vec4 applyColorFilter(vec4 color)
 {
     $GLSL_COLOR_FILTER_FRAGMENT
@@ -232,6 +267,21 @@ void main()
         case ImageFormatDXT3:
         case ImageFormatDXT5:
             color = argb32();
+            break;
+        case ImageFormatGray:
+            color = gray();
+            break;
+        case ImageFormatRed:
+            color = red();
+            break;
+        case ImageFormatGreen:
+            color = green();
+            break;
+        case ImageFormatBlue:
+            color = blue();
+            break;
+        case ImageFormatAlpha:
+            color = alpha();
             break;
         }
         color = applyColorFilter(color);

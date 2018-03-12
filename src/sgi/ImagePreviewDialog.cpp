@@ -484,6 +484,9 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::normalSize()
 void ImagePreviewDialog::ImagePreviewDialogImpl::fitToWindow(bool enable)
 //! [13] //! [14]
 {
+    ui->scrollAreaImageGL->setFitToWindow(enable);
+    ui->scrollAreaImageQt->setFitToWindow(enable);
+
     if(!enable)
         normalSize();
     else
@@ -1171,6 +1174,8 @@ void ImagePreviewDialog::refreshImpl()
         _priv->ui->scrollAreaImageGL->setImage(qimg);
         _priv->ui->scrollAreaImageQt->setImage(qimg);
     }
+    _priv->ui->scrollAreaImageGL->setFitToWindow(_priv->fitToWindowAction->isChecked());
+    _priv->ui->scrollAreaImageQt->setFitToWindow(_priv->fitToWindowAction->isChecked());
 
     std::stringstream ss;
     ss << "<i>Info for displayed image:</i><br/>\r\n";
