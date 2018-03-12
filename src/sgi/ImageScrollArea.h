@@ -17,12 +17,16 @@ public:
     void setScaleFactor(float factor);
     float scaleFactor() const;
 
+    bool fitToWindow() const;
+    void setFitToWindow(bool enable);
+
 protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private:
     QSize _imageSize;
     float _scaleFactor;
+    bool _fitToWindow;
 };
 
 } // namespace sgi

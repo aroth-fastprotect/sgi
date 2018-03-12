@@ -15,10 +15,13 @@ ImageScrollArea::ImageScrollArea(QWidget *parent)
     : QScrollArea(parent)
     , _imageSize(0,0)
     , _scaleFactor(1.0f)
+    , _fitToWindow(false)
 {
     setMouseTracking(true);
     QSizePolicy sizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     setSizePolicy(sizePolicy);
+
+    this->setWidgetResizable(_fitToWindow);
 }
 
 
@@ -50,6 +53,8 @@ void ImageScrollArea::setScaleFactor(float factor)
     vbar->setMaximum(height);
     vbar->setPageStep((height / 10));
 
+    this->widget()->resize(width, height);
+
     //_priv->ui->scrollAreaImageQt->setWidgetResizable(fitToWindow);
     //_priv->ui->scrollAreaImageGL->setWidgetResizable(fitToWindow);
 
@@ -58,6 +63,17 @@ void ImageScrollArea::setScaleFactor(float factor)
 float ImageScrollArea::scaleFactor() const
 {
     return _scaleFactor;
+}
+
+void ImageScrollArea::setFitToWindow(bool enable)
+{
+    _fitToWindow = enable;
+    this->setWidgetResizable(_fitToWindow);
+}
+
+bool ImageScrollArea::fitToWindow() const
+{
+    return _fitToWindow;
 }
 
 void ImageScrollArea::resizeEvent(QResizeEvent *event)
