@@ -148,7 +148,9 @@ public:
 protected:
     void loadPitchAndPlaneOffsets();
     void freeQt();
+    QImage * copyQt() const;
     typedef void (Image::* pfnFreeQt)();
+    typedef QImage * (Image::* pfnCopyImageQt)() const;
 
 protected:
     ImageFormat _format;
@@ -167,6 +169,7 @@ protected:
     osg::ref_ptr<const osg::Referenced> _originalImage;
     QImage * _originalImageQt;
     pfnFreeQt _freeQt;
+    pfnCopyImageQt _copyQt;
     bool _allocated;
 };
 

@@ -48,6 +48,8 @@ SET(TARGET_H
 	entrypoint.h
 	sgi_internal.h
 	dxt.h
+	swscale.h
+	colorconversion.h
 )
 
 LIST(APPEND TARGET_H
@@ -126,6 +128,8 @@ SET(TARGET_MOC_H
 	MatrixInputDialog.h
 	ImagePreviewDialog.h
 	ImageGLWidget.h
+	ImageQtWidget.h
+	ImageScrollArea.h
 )
 
 # CHECK-IT:
@@ -145,7 +149,11 @@ SET(TARGET_SRC
 	MatrixInputDialog.cpp
 	ImagePreviewDialog.cpp
 	ImageGLWidget.cpp
+	ImageQtWidget.cpp
+	ImageScrollArea.cpp
 	dxt.cpp
+	swscale.cpp
+	colorconversion.cpp
 )
 set(_imagewidget_dir .)
 set(TARGET_GLSL

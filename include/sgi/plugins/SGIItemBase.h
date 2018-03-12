@@ -83,12 +83,12 @@ public:
         return compare(rhs) != 0;
     }
 
-    bool valid() const { return _type != SGIItemTypeInvalid; }
-    SGIItemType type() const { return _type; }
-    void setType(SGIItemType type) { _type = type; }
-    unsigned score() const { return _score; }
-    unsigned incrementScore() { return ++_score; }
-    unsigned decrementScore() { return --_score; }
+    bool valid() const;
+    SGIItemType type() const;
+    void setType(SGIItemType type);
+    unsigned score() const;
+    unsigned incrementScore();
+    unsigned decrementScore();
 
     unsigned number() const { return _number; }
     void setNumber(unsigned num) { _number = num; }

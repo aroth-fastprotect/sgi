@@ -29,15 +29,6 @@
 #include <osgDB/FileNameUtils>
 #include <osgUtil/Optimizer>
 
-#ifdef SGI_USE_OSGQT
-#include <osgQt/GraphicsWindowQt>
-#endif
-
-#ifdef _WIN32
-#include <osgViewer/api/Win32/GraphicsWindowWin32>
-#else
-#endif
-
 #ifdef SGI_USE_OSGEARTH
 #include <osgEarth/Notify>
 #include <osgEarth/MapNode>
@@ -55,6 +46,17 @@
 
 #include <sgi/helpers/osg_helper_nodes>
 #include <sgi/plugins/SGIItemBase.h>
+
+#ifdef SGI_USE_OSGQT
+#include <osgQt/GraphicsWindowQt>
+#endif
+
+#ifdef _WIN32
+#include <osgViewer/api/Win32/GraphicsWindowWin32>
+#elif defined(__linux__)
+#include <osgViewer/api/X11/GraphicsWindowX11>
+#undef KeyPress
+#endif
 
 namespace std {
 
@@ -840,9 +842,9 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     if (gwq)
         _viewWidget = gwq->getGLWidget();
 #endif
-#ifdef _WIN32
     if (!_viewWidget)
     {
+#ifdef _WIN32
         osgViewer::GraphicsWindowWin32* gwin32 = dynamic_cast<osgViewer::GraphicsWindowWin32*>(_mainGW.get());
         if (gwin32)
         {
@@ -853,13 +855,23 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
             wnd->installEventFilter(new EventFilter(this));
             _viewWidget = QWidget::createWindowContainer(wnd, this);
             _viewWidget->setAttribute(Qt::WA_NativeWindow);
-            _viewWidget->setAttribute(Qt::WA_PaintOnScreen);
             _viewWidget->setFocusPolicy(Qt::StrongFocus);
 
             QCoreApplication::instance()->installEventFilter(new EventFilter(_viewWidget));
         }
-    }
+#elif defined(__linux__)
+        osgViewer::GraphicsWindowX11* gwx11 = dynamic_cast<osgViewer::GraphicsWindowX11*>(_mainGW.get());
+        if (gwx11)
+        {
+            Window xwnd = gwx11->getWindow();
+            QWindow * wnd = QWindow::fromWinId((WId)xwnd);
+            wnd->setFlag(Qt::ForeignWindow);
+            _viewWidget = QWidget::createWindowContainer(wnd, this);
+            _viewWidget->setAttribute(Qt::WA_NativeWindow);
+            _viewWidget->setFocusPolicy(Qt::StrongFocus);
+        }
 #endif
+    }
     setCentralWidget(_viewWidget);
     _viewWidget->setProperty("sgi_skip_object", true);
 

@@ -9,7 +9,6 @@
 #include <QDesktopWidget>
 #include <QImageWriter>
 #include <QImageReader>
-#include <QLibrary>
 #include <QMouseEvent>
 
 #include "ImagePreviewDialog.h"
@@ -20,14 +19,9 @@
 #include <sgi/helpers/qt>
 #include <sgi/helpers/osg>
 
-#ifdef SGI_USE_FFMPEG
-namespace ffmpeg {
-#include <libswscale/swscale.h>
-#include <libavutil/pixfmt.h>
-}
-#endif
-
 #include "dxt.h"
+#include "swscale.h"
+#include "colorconversion.h"
 
 #include <iostream>
 
@@ -36,137 +30,6 @@ namespace ffmpeg {
 #endif
 
 namespace sgi {
-
-/// @see http://www.andrewnoske.com/wiki/Code_-_heatmaps_and_color_gradients
-class ColorGradient
-{
-private:
-    struct ColorPoint  // Internal class used to store colors at different points in the gradient.
-    {
-        float r, g, b;      // Red, green and blue values of our color.
-        float val;        // Position of our color along the gradient (between 0 and 1).
-        ColorPoint(float red=0, float green=0, float blue=0, float value=0)
-            : r(red), g(green), b(blue), val(value) {}
-    };
-    std::vector<ColorPoint> color;      // An array of color points in ascending value.
-    ColorPoint invalidColor;
-
-public:
-    /// @see https://en.wikipedia.org/wiki/Heat_map
-    enum NamedGradient {
-        FivePoint,
-        Monochrome,
-        MonochromeInverse,
-        Heat,
-    };
-    //-- Default constructor:
-    ColorGradient(NamedGradient type=FivePoint)
-    { 
-        switch (type)
-        {
-        default:
-        case FivePoint: createFivePointGradient(); break;
-        case Monochrome: createMonochromeGradient(); break;
-        case MonochromeInverse: createMonochromeInverseGradient(); break;
-        case Heat: createHeatGradient(); break;
-        }
-    }
-
-    //-- Inserts a new color point into its correct position:
-    void addColorPoint(float red, float green, float blue, float value)
-    {
-        for (unsigned i = 0; i < color.size(); i++) {
-            if (value < color[i].val) {
-                color.insert(color.begin() + i, ColorPoint(red, green, blue, value));
-                return;
-            }
-        }
-        color.push_back(ColorPoint(red, green, blue, value));
-    }
-
-    //-- Inserts a new color point into its correct position:
-    void clearGradient() { color.clear(); }
-
-    //-- Places a 5 color heatmap gradient into the "color" vector:
-    void createFivePointGradient()
-    {
-        color.clear();
-        color.push_back(ColorPoint(0, 0, 1, 0.0f));      // Blue.
-        color.push_back(ColorPoint(0, 1, 1, 0.25f));     // Cyan.
-        color.push_back(ColorPoint(0, 1, 0, 0.5f));      // Green.
-        color.push_back(ColorPoint(1, 1, 0, 0.75f));     // Yellow.
-        color.push_back(ColorPoint(1, 0, 0, 1.0f));      // Red.
-        invalidColor = ColorPoint(1, 0, 0, 0.0f); // black
-    }
-
-    void createMonochromeGradient()
-    {
-        color.clear();
-        color.push_back(ColorPoint(0, 0, 0, 0.0f));      // Black.
-        color.push_back(ColorPoint(1, 1, 1, 1.0f));      // White.
-        invalidColor = ColorPoint(0, 1, 1, 0.0f);     // Cyan.
-    }
-
-    void createMonochromeInverseGradient()
-    {
-        color.clear();
-        color.push_back(ColorPoint(1, 1, 1, 0.0f));      // White.
-        color.push_back(ColorPoint(0, 0, 0, 1.0f));      // Black.
-        invalidColor = ColorPoint(0, 1, 1, 0.0f);     // Cyan.
-    }
-
-    void createHeatGradient()
-    {
-        color.clear();
-        color.push_back(ColorPoint(0, 0, 1, 0.0f));      // Blue.
-        color.push_back(ColorPoint(1, 0, 0, 1.0f));      // Red.
-        invalidColor = ColorPoint(0, 1, 0, 0.0f);      // Green.
-    }
-
-    //-- Inputs a (value) between 0 and 1 and outputs the (red), (green) and (blue)
-    //-- values representing that position in the gradient.
-    void getColorAtValue(const float value, float &red, float &green, float &blue) const
-    {
-        if (color.size() == 0)
-            return;
-
-        for (unsigned i = 0; i < color.size(); i++)
-        {
-            const ColorPoint &currC = color[i];
-            if (value < currC.val)
-            {
-                const ColorPoint &prevC = color[ (i > 0) ? (i-1) : 0 ];
-                float valueDiff = (prevC.val - currC.val);
-                float fractBetween = (valueDiff == 0) ? 0 : (value - currC.val) / valueDiff;
-                red = (prevC.r - currC.r)*fractBetween + currC.r;
-                green = (prevC.g - currC.g)*fractBetween + currC.g;
-                blue = (prevC.b - currC.b)*fractBetween + currC.b;
-                return;
-            }
-        }
-        red = color.back().r;
-        green = color.back().g;
-        blue = color.back().b;
-        return;
-    }
-
-    QRgb getColor(const float value) const
-    {
-        float r = 0, g = 0, b = 0;
-        getColorAtValue(value, r, g, b);
-        return qRgba(r * 255.0f, g * 255.0f, b * 255.0f, 255);
-    }
-    void getInvalidColor(float &red, float &green, float &blue) const
-    {
-        red = invalidColor.r;
-        green = invalidColor.g;
-        blue = invalidColor.b;
-    }
-    QRgb getInvalidColor() const
-    {
-        return qRgba(invalidColor.r * 255.0f, invalidColor.g * 255.0f, invalidColor.b * 255.0f, 255);
-    }
-};
 
 class ImagePreviewDialog::Histogram
 {
@@ -302,7 +165,7 @@ void ImagePreviewDialog::Histogram::calculate(const QImage & image)
 		calcMinMax(minBlue, maxBlue, minBlueValue, maxBlueValue, i, _blue);
 		calcMinMax(minGray, maxGray, minGrayValue, maxGrayValue, i, _gray);
 	}
-};
+}
 
 bool applyColorFilterQImage(QImage & src, QImage & dest, ImagePreviewDialog::ColorFilter filter)
 {
@@ -446,7 +309,6 @@ public:
     void createToolbar();
     void updateToolbar();
     void scaleImage(double factor);
-    static void adjustScrollBar(QScrollBar *scrollBar, double factor);
 
     Image::ImageFormat currentImageFormat() const;
     ColorFilter currentColorFilter() const;
@@ -455,7 +317,7 @@ public:
     void zoomIn();
     void zoomOut();
     void normalSize();
-    void fitToWindow();
+    void fitToWindow(bool enable);
     void saveImageAs();
     void openImageAs();
     void refresh();
@@ -510,978 +372,6 @@ public:
 
 std::map<Image::ImageFormat, QString> ImagePreviewDialog::ImagePreviewDialogImpl::ImageFormatDisplayText;
 
-bool convertImageToQImage_RGB24(const sgi::Image * image, QImage & qimage)
-{
-    bool ret = false;
-    qimage = QImage(image->width(), image->height(), QImage::Format_RGB888);
-    uchar * dest = qimage.bits();
-    uchar * src = (uchar *)const_cast<void*>(image->data());
-    unsigned pixels = image->width() * image->height();
-    switch (image->format())
-    {
-    case Image::ImageFormatRGB24:
-        memcpy(dest, src, image->width() * image->height() * 3);
-        ret = true;
-        break;
-    case Image::ImageFormatARGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[2];
-            dest[1] = src[1];
-            dest[2] = src[0];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 3;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatLuminance:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[0];
-            dest[2] = src[0];
-            src++;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    }
-    return ret;
-}
-
-bool convertImageToQImage_BGR24(const sgi::Image * image, QImage & qimage)
-{
-    bool ret = false;
-    qimage = QImage(image->width(), image->height(), QImage::Format_RGB888);
-    uchar * dest = qimage.bits();
-    uchar * src = (uchar *)const_cast<void*>(image->data());
-    unsigned pixels = image->width() * image->height();
-    switch (image->format())
-    {
-    case Image::ImageFormatBGR24:
-        memcpy(dest, src, image->width() * image->height() * 3);
-        ret = true;
-        break;
-    case Image::ImageFormatARGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 4;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            src += 3;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatLuminance:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[0];
-            dest[2] = src[0];
-            src++;
-            dest += 3;
-        }
-        ret = true;
-    }
-    break;
-    }
-    return ret;
-}
-
-bool convertImageToQImage_RGB32(const sgi::Image * image, QImage & qimage)
-{
-    bool ret = false;
-    qimage = QImage(image->width(), image->height(), QImage::Format_RGB32);
-    uchar * dest = qimage.bits();
-    uchar * src = (uchar *)const_cast<void*>(image->data());
-    unsigned pixels = image->width() * image->height();
-    switch (image->format())
-    {
-    case Image::ImageFormatRGB32:
-        memcpy(dest, src, image->width() * image->height() * 4);
-        ret = true;
-        break;
-    case Image::ImageFormatARGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = 0xFF;
-            src += 4;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = 0xFF;
-            src += 3;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[2];
-            dest[1] = src[1];
-            dest[2] = src[0];
-            dest[3] = 0xFF;
-            src += 4;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[2];
-            dest[1] = src[1];
-            dest[2] = src[0];
-            dest[3] = 0xFF;
-            src += 3;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatLuminance:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[0];
-            dest[2] = src[0];
-            dest[3] = 0xFF;
-            src++;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    }
-    return ret;
-}
-
-bool convertImageToQImage_BGR32(const sgi::Image * image, QImage & qimage)
-{
-    bool ret = false;
-    qimage = QImage(image->width(), image->height(), QImage::Format_RGB32);
-    uchar * dest = qimage.bits();
-    uchar * src = (uchar *)const_cast<void*>(image->data());
-    unsigned pixels = image->width() * image->height();
-    switch (image->format())
-    {
-    case Image::ImageFormatBGR32:
-        memcpy(dest, src, image->width() * image->height() * 4);
-        ret = true;
-        break;
-    case Image::ImageFormatARGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = 0xFF;
-            src += 4;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = 0xFF;
-            src += 3;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[2];
-            dest[1] = src[1];
-            dest[2] = src[0];
-            dest[3] = 0xFF;
-            src += 4;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = 0xFF;
-            src += 3;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatLuminance:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[0];
-            dest[2] = src[0];
-            dest[3] = 0xFF;
-            src++;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    }
-    return ret;
-}
-
-bool convertImageToQImage_RGBA32(const sgi::Image * image, QImage & qimage)
-{
-    bool ret = false;
-    qimage = QImage(image->width(), image->height(), QImage::Format_ARGB32);
-    uchar * dest = qimage.bits();
-    uchar * src = (uchar *)const_cast<void*>(image->data());
-    unsigned pixels = image->width() * image->height();
-    switch (image->format())
-    {
-    case Image::ImageFormatARGB32:
-        memcpy(dest, src, image->width() * image->height() * 4);
-        ret = true;
-        break;
-    case Image::ImageFormatRGBA32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[2];
-            dest[1] = src[1];
-            dest[2] = src[0];
-            dest[3] = src[3];
-            src += 4;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = 0xFF;
-            src += 3;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatRGB32:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[2];
-            dest[1] = src[1];
-            dest[2] = src[0];
-            dest[3] = 0xFF;
-            src += 4;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatBGR24:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = 0xFF;
-            src += 3;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    case Image::ImageFormatLuminance:
-    {
-        for (unsigned n = 0; n < pixels; ++n)
-        {
-            dest[0] = src[0];
-            dest[1] = src[0];
-            dest[2] = src[0];
-            dest[3] = 0xFF;
-            src++;
-            dest += 4;
-        }
-        ret = true;
-    }
-    break;
-    }
-    return ret;
-}
-
-#if defined(SGI_USE_FFMPEG)
-class SWScale
-{
-private:
-    static QLibrary * library;
-    static bool loadAttempted;
-    static bool ready;
-    typedef struct ffmpeg::SwsContext * (*pfn_sws_getContext)(int srcW, int srcH, enum ffmpeg::AVPixelFormat srcFormat,
-                                  int dstW, int dstH, enum ffmpeg::AVPixelFormat dstFormat,
-                                  int flags, ffmpeg::SwsFilter *srcFilter,
-                                  ffmpeg::SwsFilter *dstFilter, const double *param);
-    typedef int (*pfn_sws_scale)(struct ffmpeg::SwsContext *c, const uint8_t *const srcSlice[],
-              const int srcStride[], int srcSliceY, int srcSliceH,
-              uint8_t *const dst[], const int dstStride[]);
-    typedef void (*pfn_sws_freeContext)(struct ffmpeg::SwsContext *swsContext);
-    static pfn_sws_getContext sws_getContext;
-    static pfn_sws_scale sws_scale;
-    static pfn_sws_freeContext sws_freeContext;
-
-public:
-    static bool load()
-    {
-        if(!loadAttempted)
-        {
-            library = new QLibrary(SGI_SWSCALE_LIBRARYNAME);
-            if(library->load())
-            {
-                sws_getContext = (pfn_sws_getContext)library->resolve("sws_getContext");
-                sws_scale = (pfn_sws_scale)library->resolve("sws_scale");
-                sws_freeContext = (pfn_sws_freeContext)library->resolve("sws_freeContext");
-                ready = (sws_getContext != NULL && sws_scale != NULL && sws_freeContext != NULL);
-                std::cout << "Loaded swscale library " << library->fileName() << " ready=" << ready << std::endl;
-            }
-            else
-            {
-                std::cerr << "Failed to load swscale library: " << library->errorString() << std::endl;
-            }
-            loadAttempted = true;
-        }
-        return ready;
-    }
-
-private:
-    static Image::ImageFormat ImageFormatFromAVCodec(ffmpeg::AVPixelFormat pix_fmt)
-    {
-        Image::ImageFormat ret = Image::ImageFormatInvalid;
-        switch (pix_fmt)
-        {
-        case ffmpeg::AV_PIX_FMT_NONE: ret = Image::ImageFormatInvalid; break;
-        case ffmpeg::AV_PIX_FMT_RGB24: ret = Image::ImageFormatRGB24; break;
-        case ffmpeg::AV_PIX_FMT_BGR24: ret = Image::ImageFormatBGR24; break;
-        //case ffmpeg::AV_PIX_FMT_RGB32: ret = Image::ImageFormatRGB32; break;
-        //case ffmpeg::AV_PIX_FMT_BGR32: ret = Image::ImageFormatBGR32; break;
-
-        case ffmpeg::AV_PIX_FMT_PAL8:
-        case ffmpeg::AV_PIX_FMT_ARGB:
-            ret = Image::ImageFormatARGB32;
-            break;
-        case ffmpeg::AV_PIX_FMT_RGBA:
-            ret = Image::ImageFormatRGBA32;
-            break;
-        case ffmpeg::AV_PIX_FMT_ABGR:
-            ret = Image::ImageFormatABGR32;
-            break;
-        case ffmpeg::AV_PIX_FMT_BGRA:
-            ret = Image::ImageFormatBGRA32;
-            break;
-
-        case ffmpeg::AV_PIX_FMT_YUVJ420P:
-        case ffmpeg::AV_PIX_FMT_YUV420P: ret = Image::ImageFormatYUV420; break;
-        case ffmpeg::AV_PIX_FMT_YUVJ422P:
-        case ffmpeg::AV_PIX_FMT_YUV422P: ret = Image::ImageFormatYUV422; break;
-        case ffmpeg::AV_PIX_FMT_YUVJ444P:
-        case ffmpeg::AV_PIX_FMT_YUV444P: ret = Image::ImageFormatYUV444; break;
-        case ffmpeg::AV_PIX_FMT_YUYV422: ret = Image::ImageFormatYUYV; break;
-        case ffmpeg::AV_PIX_FMT_UYVY422: ret = Image::ImageFormatUYVY; break;
-        case ffmpeg::AV_PIX_FMT_GRAY8: 
-        case ffmpeg::AV_PIX_FMT_GRAY16BE:
-        case ffmpeg::AV_PIX_FMT_GRAY16LE:
-            ret = Image::ImageFormatGray;
-            break;
-        case ffmpeg::AV_PIX_FMT_YA8: ret = Image::ImageFormatLuminanceAlpha; break;
-        default:
-            Q_ASSERT_X(false, __FUNCTION__, "Unhandled frame format from avcodec");
-            break;
-        }
-        return ret;
-    }
-    static ffmpeg::AVPixelFormat ImageFormatToAVCodec(Image::ImageFormat format, Image::DataType dataType)
-    {
-        ffmpeg::AVPixelFormat ret = ffmpeg::AV_PIX_FMT_NONE;
-        switch (format)
-        {
-        case Image::ImageFormatRGB24: ret = ffmpeg::AV_PIX_FMT_RGB24; break;
-        case Image::ImageFormatRGB32: ret = ffmpeg::AV_PIX_FMT_RGB32; break;
-        case Image::ImageFormatRGBA32: ret = ffmpeg::AV_PIX_FMT_RGBA; break;
-        case Image::ImageFormatARGB32: ret = ffmpeg::AV_PIX_FMT_ARGB; break;
-        case Image::ImageFormatMono: ret = ffmpeg::AV_PIX_FMT_MONOBLACK; break;
-        case Image::ImageFormatMonoLSB: ret = ffmpeg::AV_PIX_FMT_MONOBLACK; break;
-        case Image::ImageFormatIndexed8: ret = ffmpeg::AV_PIX_FMT_RGB24; break;
-        //case Image::ImageFormatFloat: ret = ffmpeg::AV_PIX_FMT_FLOAT; break;
-        case Image::ImageFormatBGR24: ret = ffmpeg::AV_PIX_FMT_BGR24; break;
-        case Image::ImageFormatBGR32: ret = ffmpeg::AV_PIX_FMT_BGR32; break;
-        case Image::ImageFormatBGRA32: ret = ffmpeg::AV_PIX_FMT_BGRA; break;
-        case Image::ImageFormatABGR32: ret = ffmpeg::AV_PIX_FMT_ABGR; break;
-        case Image::ImageFormatYUV420: ret = ffmpeg::AV_PIX_FMT_YUV420P; break;
-        case Image::ImageFormatYUV422: ret = ffmpeg::AV_PIX_FMT_YUV422P; break;
-        case Image::ImageFormatYUV444: ret = ffmpeg::AV_PIX_FMT_YUV444P; break;
-        case Image::ImageFormatYUYV: ret = ffmpeg::AV_PIX_FMT_YUYV422; break;
-        case Image::ImageFormatUYVY: ret = ffmpeg::AV_PIX_FMT_UYVY422; break;
-        case Image::ImageFormatGray: 
-        case Image::ImageFormatRed:
-        case Image::ImageFormatGreen:
-        case Image::ImageFormatBlue:
-        case Image::ImageFormatLuminance:
-        case Image::ImageFormatLuminanceAlpha:
-            switch (dataType)
-            {
-            case Image::DataTypeSignedShort:
-                ret = ffmpeg::AV_PIX_FMT_GRAY16LE;
-                break;
-            default:
-                ret = ffmpeg::AV_PIX_FMT_GRAY8;
-                break;
-            }
-            break;
-        case Image::ImageFormatAlpha: ret = ffmpeg::AV_PIX_FMT_RGB24; break;
-        case Image::ImageFormatDepth: ret = ffmpeg::AV_PIX_FMT_RGB24; break;
-        case Image::ImageFormatInvalid:
-        default: ret = ffmpeg::AV_PIX_FMT_NONE; break;
-        }
-        return ret;
-    }
-
-    static bool convert_with_avcodec(const sgi::Image& src, sgi::Image& dest)
-    {
-        ffmpeg::AVPixelFormat srcPixelFormat = ImageFormatToAVCodec(src.format(), src.dataType());
-        ffmpeg::AVPixelFormat destPixelFormat = ImageFormatToAVCodec(dest.format(), src.dataType());
-        if (srcPixelFormat == ffmpeg::AV_PIX_FMT_NONE || src.width() == 0 || src.height() == 0 || dest.width() == 0 || dest.height() == 0)
-            return false;
-
-        const uint8_t* srcdata = reinterpret_cast<const uint8_t*>(src.data());
-        const int srcPitch[4] = { (int)src.pitch(0), (int)src.pitch(1), (int)src.pitch(2), (int)src.pitch(3) };
-        const unsigned srcPlaneOffset[4] = { src.planeOffset(0), src.planeOffset(1), src.planeOffset(2), src.planeOffset(3) };
-        const uint8_t* srcPlanes[4] = { srcdata + srcPlaneOffset[0], srcdata + srcPlaneOffset[1], srcdata + srcPlaneOffset[2], srcdata + srcPlaneOffset[3] };
-
-        uint8_t* destdata = reinterpret_cast<uint8_t*>(dest.data());
-        const int destPitch[4] = { (int)dest.pitch(0), (int)dest.pitch(1), (int)dest.pitch(2), (int)dest.pitch(3) };
-        const unsigned destPlaneOffset[4] = { dest.planeOffset(0), dest.planeOffset(1), dest.planeOffset(2), dest.planeOffset(3) };
-        uint8_t* destPlanes[4] = { destdata + destPlaneOffset[0], destdata + destPlaneOffset[1], destdata + destPlaneOffset[2], destdata + destPlaneOffset[3] };
-
-        Q_ASSERT(sws_getContext != NULL);
-        ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
-            dest.width(), dest.height(), destPixelFormat,
-            SWS_BILINEAR, NULL, NULL, NULL);
-        sws_scale(ctx, srcPlanes, srcPitch, 0, src.height(), destPlanes, destPitch);
-        sws_freeContext(ctx);
-        return true;
-    }
-
-    static bool to_qimage_argb32_with_avcodec(const sgi::Image& src, QImage& dest, bool horizontalFlip=false)
-    {
-        ffmpeg::AVPixelFormat srcPixelFormat = ImageFormatToAVCodec(src.format(), src.dataType());
-        if(srcPixelFormat == ffmpeg::AV_PIX_FMT_NONE || src.width() == 0 || src.height() == 0)
-            return false;
-
-        if(!horizontalFlip)
-        {
-            const uint8_t* srcdata = reinterpret_cast<const uint8_t*>(src.data());
-            const int srcPitch[4] = { (int)src.pitch(0), (int)src.pitch(1), (int)src.pitch(2), (int)src.pitch(3) };
-            const unsigned srcPlaneOffset[4] = { src.planeOffset(0), src.planeOffset(1), src.planeOffset(2), src.planeOffset(3) };
-            const uint8_t* srcPlanes[4] = { srcdata + srcPlaneOffset[0], srcdata + srcPlaneOffset[1], srcdata + srcPlaneOffset[2], srcdata + srcPlaneOffset[3] };
-
-            dest = QImage(src.width(), src.height(), QImage::Format_ARGB32);
-
-            uint8_t* dstdata = reinterpret_cast<uint8_t*>(dest.bits());
-            int dstPitch[4] = { (int)dest.bytesPerLine(), 0, 0, 0 };
-            const unsigned dstPlaneOffset[4] = { 0, 0, 0, 0 };
-            uint8_t * dstPlanes[4] = { dstdata + dstPlaneOffset[0], NULL, NULL, NULL };
-
-            Q_ASSERT(sws_getContext != NULL);
-            ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
-                                                      dest.width(), dest.height(),
-                                                      // The QImage::Format_ARGB32 is the BGRA format on ffmpeg side, with the more
-                                                      // obvious ffmpeg::AV_PIX_FMT_ARGB the red-blue colors are swapped.
-                                                      ffmpeg::AV_PIX_FMT_BGRA,
-                                                      SWS_BILINEAR, NULL, NULL, NULL);
-            sws_scale(ctx, srcPlanes, srcPitch, 0, src.height(), dstPlanes, dstPitch);
-            sws_freeContext(ctx);
-        }
-        else
-        {
-            const uint8_t* srcdata = reinterpret_cast<const uint8_t*>(src.data());
-            const int srcPitch[4] = { -(int)src.pitch(0), -(int)src.pitch(1), -(int)src.pitch(2), -(int)src.pitch(3) };
-            const unsigned srcPlaneOffset[4] = { src.planeEndOffset(0), src.planeEndOffset(1), src.planeEndOffset(2), src.planeEndOffset(3) };
-            const uint8_t* srcPlanes[4] = { srcdata + srcPlaneOffset[0], srcdata + srcPlaneOffset[1], srcdata + srcPlaneOffset[2], srcdata + srcPlaneOffset[3] };
-
-            dest = QImage(src.width(), src.height(), QImage::Format_ARGB32);
-
-            uint8_t* dstdata = reinterpret_cast<uint8_t*>(dest.bits());
-            int dstPitch[4] = { (int)dest.bytesPerLine(), 0, 0, 0 };
-            const unsigned dstPlaneOffset[4] = { 0, 0, 0, 0 };
-            uint8_t * dstPlanes[4] = { dstdata + dstPlaneOffset[0], NULL, NULL, NULL };
-
-            Q_ASSERT(sws_getContext != NULL);
-            ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
-                                                      dest.width(), dest.height(),
-                                                      // The QImage::Format_ARGB32 is the BGRA format on ffmpeg side, with the more
-                                                      // obvious ffmpeg::AV_PIX_FMT_ARGB the red-blue colors are swapped.
-                                                      ffmpeg::AV_PIX_FMT_BGRA,
-                                                      SWS_BILINEAR, NULL, NULL, NULL);
-            sws_scale(ctx, srcPlanes, srcPitch, 0, src.height(), dstPlanes, dstPitch);
-            sws_freeContext(ctx);
-        }
-        return true;
-    }
-
-    static DDS_COMPRESSION_TYPE ImageFormatToDDS(Image::ImageFormat format)
-    {
-        DDS_COMPRESSION_TYPE ret = DDS_COMPRESS_NONE;
-        switch (format)
-        {
-        case Image::ImageFormatDXT1: ret = DDS_COMPRESS_BC1; break;
-        case Image::ImageFormatDXT1Alpha: ret = DDS_COMPRESS_BC1; break;
-        case Image::ImageFormatDXT3: ret = DDS_COMPRESS_BC2; break;
-        case Image::ImageFormatDXT5: ret = DDS_COMPRESS_BC3; break;
-        default: ret = DDS_COMPRESS_NONE; break;
-        }
-        return ret;
-    }
-
-    static bool convert_dxt(const sgi::Image& src, sgi::Image& dest)
-    {
-        bool ret;
-        sgi::Image tmp;
-        ret = tmp.allocate(src.width(), src.height(), Image::ImageFormatBGRA32, src.origin());
-        if (ret)
-        {
-            int format = ImageFormatToDDS(src.format());
-            const int bytes_per_pixel = 4;
-            const int normalize_blocks = 0;
-            // actually the image is decoded into BGRA32
-            ret = (dxt_decompress((unsigned char*)tmp.data(), (unsigned char*)src.data(), format, src.length(), src.width(), src.height(), bytes_per_pixel, normalize_blocks) != 0);
-            if (ret)
-            {
-                ret = convert_with_avcodec(tmp, dest);
-                tmp.free();
-            }
-        }
-        return ret;
-    }
-
-    static bool to_qimage_argb32_dxt(const sgi::Image& src, QImage& dest, bool horizontalFlip = false)
-    {
-        bool ret;
-        sgi::Image tmp;
-        ret = tmp.allocate(src.width(), src.height(), Image::ImageFormatBGRA32, src.origin());
-        if (ret)
-        {
-            int format = ImageFormatToDDS(src.format());
-            const int bytes_per_pixel = 4;
-            const int normalize_blocks = 0;
-            // actually the image is decoded into BGRA32
-            ret = (dxt_decompress((unsigned char*)tmp.data(), (unsigned char*)src.data(), format, src.length(), src.width(), src.height(), bytes_per_pixel, normalize_blocks) != 0);
-            if (ret)
-            {
-                ret = to_qimage_argb32_with_avcodec(tmp, dest, !horizontalFlip);
-            }
-        }
-        return ret;
-    }
-
-#define QIMAGE_RGB32(a,r,g,b) qRgba(r,g,b,a)
-#define QIMAGE_RGB24(r,g,b) QIMAGE_RGB32(0xff,r,g,b)
-#define QIMAGE_GRAY(gr) QIMAGE_RGB32(0xff,gr,gr,gr)
-
-    template<typename ELEM_TYPE>
-    static inline QRgb compute_pixel(const ColorGradient & colorGradient, const ELEM_TYPE & p, const ELEM_TYPE & min, const ELEM_TYPE & max, const ELEM_TYPE & range)
-    {
-        if (range != 0)
-        {
-            float value = float(p - min) / float(range);
-            return colorGradient.getColor(value);
-        }
-        else
-            return colorGradient.getInvalidColor();
-    }
-#if 0
-    template<>
-    static inline uint32_t compute_pixel<short>(const short & p, const short & min, const short & max, const short & range)
-    {
-        return QIMAGE_GRAY(p);
-    }
-    template<>
-    static inline uint32_t compute_pixel<unsigned short>(const unsigned short & p, const unsigned short & min, const unsigned short & max, const unsigned short & range)
-    {
-        return QIMAGE_GRAY(p);
-    }
-    template<>
-    static inline uint32_t compute_pixel<int>(const int & p, const int & min, const int & max, const int & range)
-    {
-        return QIMAGE_GRAY(p);
-    }
-    template<>
-    static inline uint32_t compute_pixel<unsigned int>(const unsigned int & p, const unsigned int & min, const unsigned int & max, const unsigned int & range)
-    {
-        return QIMAGE_GRAY(p);
-    }
-#endif
-    
-
-
-    template<typename ELEM_TYPE>
-    static bool to_qimage_argb32_single_channel_impl(const sgi::Image& src, QImage& dest, const ColorGradient & colorGradient, bool horizontalFlip)
-    {
-        dest = QImage(src.width(), src.height(), QImage::Format_ARGB32);
-
-        size_t src_elem_size = sizeof(ELEM_TYPE);
-        const uint8_t * src_data = reinterpret_cast<const uint8_t *>(src.data());
-        uint8_t * dest_data = reinterpret_cast<uint8_t *>(dest.bits());
-        const size_t dest_elem_size = 4; // RGB32
-        unsigned src_pitch0 = src.pitch(0);
-        unsigned dest_pitch0 = dest.bytesPerLine();
-        ELEM_TYPE elem_min = std::numeric_limits<ELEM_TYPE>::max();
-        ELEM_TYPE elem_max = std::numeric_limits<ELEM_TYPE>::min();
-        for (unsigned x = 0; x < src.width(); ++x)
-        {
-            for (unsigned y = 0; y < src.height(); ++y)
-            {
-                size_t src_offset = (y * src_pitch0) + (x * src_elem_size);
-                const ELEM_TYPE * src_pixel = reinterpret_cast<const ELEM_TYPE *>(src_data + src_offset);
-                elem_min = std::min(elem_min, *src_pixel);
-                elem_max = std::max(elem_max, *src_pixel);
-            }
-        }
-        ELEM_TYPE elem_range = elem_max - elem_min;
-        for (unsigned x = 0; x < src.width(); ++x)
-        {
-            for (unsigned y = 0; y < src.height(); ++y)
-            {
-                size_t src_offset = (y * src_pitch0) + (x * src_elem_size);
-                size_t dest_offset = (y * dest_pitch0) + (x * dest_elem_size);
-                const ELEM_TYPE * src_pixel = reinterpret_cast<const ELEM_TYPE *>(src_data + src_offset);
-                QRgb* dest_pixel = reinterpret_cast<QRgb*>(dest_data + dest_offset);
-                *dest_pixel = compute_pixel<ELEM_TYPE>(colorGradient, *src_pixel, elem_min, elem_max, elem_range);
-            }
-        }
-        return true;
-    }
-
-    static bool to_qimage_argb32_single_channel(const sgi::Image& src, QImage& dest, const ColorGradient & colorGradient, bool horizontalFlip = false)
-    {
-        bool ret = false;
-        switch (src.format())
-        {
-        case Image::ImageFormatGray:
-        case Image::ImageFormatRed:
-        case Image::ImageFormatGreen:
-        case Image::ImageFormatBlue:
-        case Image::ImageFormatLuminance:
-        case Image::ImageFormatLuminanceAlpha:
-        case Image::ImageFormatDepth:
-            switch (src.dataType())
-            {
-            case Image::DataTypeSignedByte:
-                ret = to_qimage_argb32_single_channel_impl<char>(src, dest, colorGradient, horizontalFlip);
-                break;
-            case Image::DataTypeUnsignedByte:
-                ret = to_qimage_argb32_single_channel_impl<unsigned char>(src, dest, colorGradient, horizontalFlip);
-                break;
-            case Image::DataTypeSignedShort:
-                ret = to_qimage_argb32_single_channel_impl<short>(src, dest, colorGradient, horizontalFlip);
-                break;
-            case Image::DataTypeUnsignedShort:
-                ret = to_qimage_argb32_single_channel_impl<unsigned short>(src, dest, colorGradient, horizontalFlip);
-                break;
-            case Image::DataTypeSignedInt:
-                ret = to_qimage_argb32_single_channel_impl<int>(src, dest, colorGradient, horizontalFlip);
-                break;
-            case Image::DataTypeUnsignedInt:
-                ret = to_qimage_argb32_single_channel_impl<unsigned int>(src, dest, colorGradient, horizontalFlip);
-                break;
-            case Image::DataTypeFloat32:
-                ret = to_qimage_argb32_single_channel_impl<float>(src, dest, colorGradient, horizontalFlip);
-                break;
-            case Image::DataTypeFloat64:
-                ret = to_qimage_argb32_single_channel_impl<double>(src, dest, colorGradient, horizontalFlip);
-                break;
-            }
-            break;
-        }
-        return ret;
-    }
-
-    static bool convert(const sgi::Image& src, sgi::Image& dest)
-    {
-        bool ret;
-        switch (src.format())
-        {
-        case Image::ImageFormatDXT1:
-        case Image::ImageFormatDXT1Alpha:
-        case Image::ImageFormatDXT3:
-        case Image::ImageFormatDXT5:
-            ret = convert_dxt(src, dest);
-            break;
-        default:
-            ret = convert_with_avcodec(src, dest);
-            break;
-        }
-        return ret;
-    }
-
-    static ColorGradient s_defaultColorGradient;
-
-    static bool to_qimage_argb32(const sgi::Image& src, QImage& dest, bool horizontalFlip = false)
-    {
-        bool ret = false;
-        switch (src.format())
-        {
-        case Image::ImageFormatDXT1:
-        case Image::ImageFormatDXT1Alpha:
-        case Image::ImageFormatDXT3:
-        case Image::ImageFormatDXT5:
-            ret = to_qimage_argb32_dxt(src, dest, horizontalFlip);
-            break;
-        case Image::ImageFormatGray:
-        case Image::ImageFormatRed:
-        case Image::ImageFormatGreen:
-        case Image::ImageFormatBlue:
-        case Image::ImageFormatLuminance:
-        case Image::ImageFormatLuminanceAlpha:
-            ret = to_qimage_argb32_single_channel(src, dest, s_defaultColorGradient, horizontalFlip);
-            break;
-#ifdef _WIN32
-        case Image::ImageFormatRGB24:
-            ret = convertImageToQImage_RGB24(&src, dest);
-            if (horizontalFlip)
-                dest = dest.mirrored(false, true);
-            break;
-        case Image::ImageFormatBGR24:
-            ret = convertImageToQImage_BGR24(&src, dest);
-            if (horizontalFlip)
-                dest = dest.mirrored(false, true);
-            break;
-        case Image::ImageFormatRGB32:
-            ret = convertImageToQImage_RGB32(&src, dest);
-            if (horizontalFlip)
-                dest = dest.mirrored(false, true);
-            break;
-        case Image::ImageFormatBGR32:
-            ret = convertImageToQImage_BGR32(&src, dest);
-            if (horizontalFlip)
-                dest = dest.mirrored(false, true);
-            break;
-        case Image::ImageFormatRGBA32:
-            ret = convertImageToQImage_RGBA32(&src, dest);
-            if (horizontalFlip)
-                dest = dest.mirrored(false, true);
-            break;
-#endif
-        default:
-            ret = to_qimage_argb32_with_avcodec(src, dest, horizontalFlip);
-            break;
-        }
-        return ret;
-    }
-
-public:
-    static bool convert(const sgi::Image& src, Image::ImageFormat destFormat, sgi::Image& dest)
-    {
-        bool ret;
-        if(destFormat == src.format() || destFormat == Image::ImageFormatAutomatic)
-        {
-            dest = src;
-            ret = true;
-        }
-        else
-        {
-            ret = load();
-            if(ret)
-            {
-                ret = dest.allocate(src.width(), src.height(), destFormat);
-                if(ret)
-                    ret = convert(src, dest);
-            }
-        }
-        return ret;
-    }
-    static bool convertToQImage(const sgi::Image& src, Image::ImageFormat destFormat, QImage & dest)
-    {
-        bool ret;
-        sgi::Image tmpImage;
-        ret = convert(src, destFormat, tmpImage);
-        if(ret)
-        {
-            ret = load();
-            if(ret)
-            {
-                bool horizontalFlip = src.origin() == sgi::Image::OriginBottomLeft;
-                ret = to_qimage_argb32(tmpImage, dest, horizontalFlip);
-            }
-        }
-        return ret;
-    }
-    static bool convertToQImage(const sgi::Image& src, QImage & dest)
-    {
-        bool ret;
-        ret = load();
-        if(ret)
-        {
-            bool horizontalFlip = src.origin() == sgi::Image::OriginBottomLeft;
-            ret = to_qimage_argb32(src, dest, horizontalFlip);
-        }
-        return ret;
-    }
-};
-
-template<>
-inline QRgb SWScale::compute_pixel<float>(const ColorGradient & colorGradient, const float & p, const float & min, const float & max, const float & range)
-{
-    if (range != 0)
-    {
-        if (std::isnan(p))
-            return colorGradient.getInvalidColor();
-        else
-        {
-            float value = float(p - min) / float(range);
-            if (std::isnan(value))
-                return colorGradient.getInvalidColor();
-            else
-                return colorGradient.getColor(value);
-        }
-    }
-    else
-        return colorGradient.getInvalidColor();
-}
-
-
-QLibrary * SWScale::library = NULL;
-bool SWScale::loadAttempted = false;
-bool SWScale::ready = false;
-SWScale::pfn_sws_getContext SWScale::sws_getContext = NULL;
-SWScale::pfn_sws_scale SWScale::sws_scale = NULL;
-SWScale::pfn_sws_freeContext SWScale::sws_freeContext = NULL;
-ColorGradient sgi::SWScale::s_defaultColorGradient(ColorGradient::MonochromeInverse);
-
-#endif // defined(SGI_USE_FFMPEG)
 
 ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewDialog * dialog_)
     : _dialog(dialog_)
@@ -1531,15 +421,16 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
 	ui->setupUi(_dialog);
 
 	connect(ui->buttonBox->button(QDialogButtonBox::Close), &QPushButton::clicked, _dialog, &ImagePreviewDialog::reject);
-    connect(ui->imageLabel, &ImagePreviewLabel::mouseMoved, _dialog, &ImagePreviewDialog::onMouseMoved);
+    connect(ui->imageLabel, &ImageQtWidget::mouseMoved, _dialog, &ImagePreviewDialog::onMouseMoved);
+    connect(ui->imageGL, &ImageGLWidget::mouseMoved, _dialog, &ImagePreviewDialog::onMouseMoved);
 
     QPalette pal = ui->imageLabel->palette();
     const QColor default_osg_view_clear_color = QColor::fromRgbF(0.2f, 0.2f, 0.4f, 1.0f);
     pal.setColor(QPalette::Base, default_osg_view_clear_color);
     ui->imageLabel->setPalette(pal);
-    ui->scrollArea->setPalette(pal);
+    ui->scrollAreaImageQt->setPalette(pal);
     ui->imageLabel->setBackgroundRole(QPalette::Base);
-    ui->scrollArea->setBackgroundRole(QPalette::Base);
+    ui->scrollAreaImageQt->setBackgroundRole(QPalette::Base);
     ui->imageGL->setBackgroundColor(default_osg_view_clear_color);
 
 	createToolbar();
@@ -1548,9 +439,11 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
 	QList<int> sizes = QList<int>() << (w * 3 / 4) << (w / 4);
 	ui->splitter->setSizes(sizes);
 
-    ui->scrollArea->setWidgetResizable(true);
+    ui->scrollAreaImageGL->setWidgetResizable(true);
+    ui->scrollAreaImageQt->setWidgetResizable(true);
 
 	ui->tabWidget->setCurrentIndex(0);
+    ui->tabWidgetImageView->setCurrentIndex(0);
 }
 
 ImagePreviewDialog::ImagePreviewDialogImpl::~ImagePreviewDialogImpl()
@@ -1581,15 +474,26 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::normalSize()
 //! [11] //! [12]
 {
 	ui->imageLabel->adjustSize();
+    ui->imageGL->adjustSize();
 	scaleFactor = 1.0;
+    refresh();
 }
 //! [12]
 
 //! [13]
-void ImagePreviewDialog::ImagePreviewDialogImpl::fitToWindow()
+void ImagePreviewDialog::ImagePreviewDialogImpl::fitToWindow(bool enable)
 //! [13] //! [14]
 {
-    refresh();
+    ui->scrollAreaImageGL->setFitToWindow(enable);
+    ui->scrollAreaImageQt->setFitToWindow(enable);
+
+    if(!enable)
+        normalSize();
+    else
+    {
+        scaleFactor = 1.0;
+        refresh();
+    }
 }
 //! [14]
 
@@ -1631,7 +535,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 	fitToWindowAction->setCheckable(true);
     fitToWindowAction->setChecked(true);
 	fitToWindowAction->setShortcut(tr("Ctrl+F"));
-	connect(fitToWindowAction, &QAction::triggered, this, &ImagePreviewDialogImpl::fitToWindow);
+    connect(fitToWindowAction, &QAction::toggled, this, &ImagePreviewDialogImpl::fitToWindow);
 
 	flipHorizontalAction = new QAction(tr("&Mirror"), _dialog);
 	flipHorizontalAction->setIcon(QIcon::fromTheme("object-flip-horizontal"));
@@ -1766,25 +670,14 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::scaleImage(double factor)
 {
 	Q_ASSERT(ui->imageLabel->pixmap());
 	scaleFactor *= factor;
-    ui->imageLabel->setScaledContents(true);
-    ui->imageLabel->resize(scaleFactor * ui->imageLabel->pixmap()->size());
-
-	adjustScrollBar(ui->scrollArea->horizontalScrollBar(), factor);
-	adjustScrollBar(ui->scrollArea->verticalScrollBar(), factor);
+    ui->scrollAreaImageQt->setScaleFactor(scaleFactor);
+    ui->scrollAreaImageGL->setScaleFactor(scaleFactor);
 
 	zoomInAction->setEnabled(scaleFactor < 3.0);
 	zoomOutAction->setEnabled(scaleFactor > 0.333);
 }
 //! [24]
 
-//! [25]
-void ImagePreviewDialog::ImagePreviewDialogImpl::adjustScrollBar(QScrollBar *scrollBar, double factor)
-//! [25] //! [26]
-{
-	scrollBar->setValue(int(factor * scrollBar->value()
-		+ ((factor - 1) * scrollBar->pageStep() / 2)));
-}
-//! [26]
 void ImagePreviewDialog::ImagePreviewDialogImpl::flipHorizontal()
 {
     // just refresh the actual change is done in refreshImpl
@@ -1805,7 +698,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::selectBackgroundColor()
     {
         pal.setColor(QPalette::Base, color);
         ui->imageLabel->setPalette(pal);
-        ui->scrollArea->setPalette(pal);
+        ui->scrollAreaImageQt->setPalette(pal);
     }
 }
 
@@ -2133,39 +1026,6 @@ void ImagePreviewDialog::setLabel(const QString & label)
     _priv->labelText = label;
 }
 
-std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, QImage::Format t)
-{
-    switch(t)
-    {
-    case QImage::Format_Invalid: os << "Invalid"; break;
-    case QImage::Format_Mono: os << "Mono"; break;
-    case QImage::Format_MonoLSB: os << "MonoLSB"; break;
-    case QImage::Format_Indexed8: os << "Indexed8"; break;
-    case QImage::Format_RGB32: os << "RGB32"; break;
-    case QImage::Format_ARGB32: os << "ARGB32"; break;
-    case QImage::Format_ARGB32_Premultiplied: os << "ARGB32_Premultiplied"; break;
-    case QImage::Format_RGB16: os << "RGB16"; break;
-    case QImage::Format_ARGB8565_Premultiplied: os << "ARGB8565_Premultiplied"; break;
-    case QImage::Format_RGB666: os << "RGB666"; break;
-    case QImage::Format_ARGB6666_Premultiplied: os << "ARGB6666_Premultiplied"; break;
-    case QImage::Format_RGB555: os << "RGB555"; break;
-    case QImage::Format_ARGB8555_Premultiplied: os << "ARGB8555_Premultiplied"; break;
-    case QImage::Format_RGB888: os << "RGB888"; break;
-    case QImage::Format_RGB444: os << "RGB444"; break;
-    case QImage::Format_ARGB4444_Premultiplied: os << "ARGB4444_Premultiplied"; break;
-    case QImage::Format_RGBX8888: os << "RGBX8888"; break;
-    case QImage::Format_RGBA8888: os << "RGBA8888"; break;
-    case QImage::Format_RGBA8888_Premultiplied: os << "RGBA8888_Premultiplied"; break;
-    case QImage::Format_BGR30: os << "BGR30"; break;
-    case QImage::Format_A2BGR30_Premultiplied: os << "A2BGR30_Premultiplied"; break;
-    case QImage::Format_RGB30: os << "RGB30"; break;
-    case QImage::Format_A2RGB30_Premultiplied: os << "A2RGB30_Premultiplied"; break;
-    default: os << (int)t; break;
-    }
-    return os;
-}
-
-
 Image::ImageFormat ImagePreviewDialog::ImagePreviewDialogImpl::currentImageFormat() const
 {
     int index = imageFormat->currentIndex();
@@ -2180,64 +1040,6 @@ ImagePreviewDialog::ColorFilter ImagePreviewDialog::ImagePreviewDialogImpl::curr
     return ret;
 }
 
-QImage convertImageToQImage(const sgi::Image * image, Image::ImageFormat destFormat)
-{
-    QImage ret;
-    if(!image)
-        return ret;
-    bool convertOk = false;
-    switch (destFormat)
-    {
-    case Image::ImageFormatInvalid:
-        // invalid -> return emtpy QImage
-        break;
-    case Image::ImageFormatRGB24: 
-        convertOk = convertImageToQImage_RGB24(image, ret);
-        break;
-    case Image::ImageFormatBGR24:
-        convertOk = convertImageToQImage_BGR24(image, ret);
-        break;
-    case Image::ImageFormatRGB32: 
-        convertOk = convertImageToQImage_RGB32(image, ret);
-        break;
-    case Image::ImageFormatBGR32:
-        convertOk = convertImageToQImage_BGR32(image, ret);
-        break;
-    case Image::ImageFormatAutomatic:
-        if (image->originalImageQt())
-            ret = *image->originalImageQt();
-        else
-        {
-            QImage::Format qt_format = QImage::Format_Invalid;
-            switch (image->format())
-            {
-            case Image::ImageFormatRGB24: qt_format = QImage::Format_RGB888; break;
-            case Image::ImageFormatRGB32: qt_format = QImage::Format_RGB32; break;
-            case Image::ImageFormatARGB32: qt_format = QImage::Format_ARGB32; break;
-            case Image::ImageFormatMono: qt_format = QImage::Format_Mono; break;
-            case Image::ImageFormatMonoLSB: qt_format = QImage::Format_MonoLSB; break;
-            case Image::ImageFormatIndexed8: qt_format = QImage::Format_Indexed8; break;
-            case Image::ImageFormatFloat:
-            case Image::ImageFormatInvalid:
-            default: qt_format = QImage::Format_Invalid; break;
-            }
-            if (qt_format != QImage::Format_Invalid)
-            {
-                ret = QImage((uchar*)image->data(), (int)image->width(), (int)image->height(), (int)image->pitch(0), qt_format);
-                if (image->origin() == Image::OriginBottomLeft)
-                    ret.mirrored(false, true);
-            }
-            else
-            {
-                QImage qimage;
-                if (convertImageToQImage_RGB32(image, qimage))
-                    ret = qimage;
-            }
-        }
-        break;
-    }
-    return ret;
-}
 
 namespace {
 	QTreeWidgetItem * addStatisticsValueImpl(QTreeWidgetItem * root, const QString & name, const QString & value)
@@ -2315,17 +1117,17 @@ void ImagePreviewDialog::refreshImpl()
     if (_workImage.valid())
         _workImage->reinterpretFormat(format);
 
-#if defined(SGI_USE_FFMPEG)
     QImage qimg;
+#if defined(SGI_USE_FFMPEG)
     if (_workImage.valid())
     {
         if(SWScale::load())
             SWScale::convertToQImage(*_workImage.get(), format, qimg);
         else
-            qimg = convertImageToQImage(_workImage.get(), format);
+            qt_helpers::convertImageToQImage(_workImage.get(), format, qimg);
     }
 #else
-    QImage qimg = convertImageToQImage(_workImage.get(), format);
+    qt_helpers::convertImageToQImage(_workImage.get(), format, qimg);
 #endif
 
     _priv->ui->imageGL->setImage(_workImage.get());
@@ -2351,40 +1153,29 @@ void ImagePreviewDialog::refreshImpl()
             _priv->ui->imageGL->setColorFilter(fragment, vertex);
         }
 
-        QPixmap actualDisplayedPixmap;
+        QImage actualImage;
         if(_priv->flipHorizontalAction->isChecked() || _priv->flipVerticalAction->isChecked())
-        {
-            QImage mirroredImage = qimgDisplay.mirrored(_priv->flipHorizontalAction->isChecked(), _priv->flipVerticalAction->isChecked());
-            actualDisplayedPixmap = QPixmap::fromImage(mirroredImage);
-        }
+            actualImage = qimgDisplay.mirrored(_priv->flipHorizontalAction->isChecked(), _priv->flipVerticalAction->isChecked());
         else
-            actualDisplayedPixmap = QPixmap::fromImage(qimgDisplay);
+            actualImage = qimgDisplay;
         _priv->ui->imageGL->setMirrored(_priv->flipHorizontalAction->isChecked(), _priv->flipVerticalAction->isChecked());
 
         _priv->imageWidth->setCurrentText(QString::number(_image->width()));
         _priv->imageHeight->setCurrentText(QString::number(_image->height()));
-        _priv->ui->imageLabel->setPixmap(actualDisplayedPixmap);
+        _priv->ui->imageLabel->setImage(actualImage);
+        _priv->ui->scrollAreaImageGL->setImage(actualImage);
+        _priv->ui->scrollAreaImageQt->setImage(actualImage);
     }
     else
     {
         _priv->imageWidth->setCurrentText(tr("N/A"));
         _priv->imageHeight->setCurrentText(tr("N/A"));
-        _priv->ui->imageLabel->setPixmap(QPixmap());
+        _priv->ui->imageLabel->setImage(qimg);
+        _priv->ui->scrollAreaImageGL->setImage(qimg);
+        _priv->ui->scrollAreaImageQt->setImage(qimg);
     }
-
-    {
-        int width = _workImage.valid() ? _workImage->width() : 0;
-        int height = _workImage.valid() ? _workImage->height() : 0;
-        _priv->ui->scrollArea->horizontalScrollBar()->setMaximum(width);
-        _priv->ui->scrollArea->verticalScrollBar()->setMaximum(height);
-        _priv->ui->scrollArea->horizontalScrollBar()->setPageStep((width / 10));
-        _priv->ui->scrollArea->verticalScrollBar()->setMaximum((height / 10));
-        _priv->ui->scrollArea->horizontalScrollBar()->setValue(0);
-        _priv->ui->scrollArea->verticalScrollBar()->setValue(0);
-        bool fitToWindow = _priv->fitToWindowAction->isChecked();
-        _priv->ui->scrollArea->setWidgetResizable(fitToWindow);
-        _priv->ui->imageLabel->setScaledContents(fitToWindow);
-    }
+    _priv->ui->scrollAreaImageGL->setFitToWindow(_priv->fitToWindowAction->isChecked());
+    _priv->ui->scrollAreaImageQt->setFitToWindow(_priv->fitToWindowAction->isChecked());
 
     std::stringstream ss;
     ss << "<i>Info for displayed image:</i><br/>\r\n";
@@ -2633,22 +1424,5 @@ void ImagePreviewDialog::colorFilterChanged()
     QString vertex = _priv->ui->colorFilterVertex->toPlainText();
     _priv->ui->imageGL->setColorFilter(fragment, vertex);
 }
-
-ImagePreviewLabel::ImagePreviewLabel(QWidget *parent, Qt::WindowFlags f)
-    : QLabel(parent, f)
-{
-    setMouseTracking(true);
-}
-
-void ImagePreviewLabel::mouseMoveEvent(QMouseEvent *ev)
-{
-    QLabel::mouseMoveEvent(ev);
-    
-    float x = float(ev->x()) / float(width());
-    float y = float(ev->y()) / float(height());
-
-    emit mouseMoved(x, y);
-}
-
 
 } // namespace sgi
