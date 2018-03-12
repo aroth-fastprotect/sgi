@@ -78,6 +78,13 @@ int SGIItemBase::compare(const SGIItemBase & rhs) const
         return 1;
 }
 
+bool SGIItemBase::valid() const { return _type != SGIItemTypeInvalid; }
+SGIItemType SGIItemBase::type() const { return _type; }
+void SGIItemBase::setType(SGIItemType type) { _type = type; }
+unsigned SGIItemBase::score() const { return _score; }
+unsigned SGIItemBase::incrementScore() { return ++_score; }
+unsigned SGIItemBase::decrementScore() { return --_score; }
+
 
 /// @brief override the plugin info in all items in the list
 /// @param pluginInfo pointer to plugin info
