@@ -462,27 +462,27 @@ bool SWScale::convert(const sgi::Image& src, sgi::Image& dest)
             break;
 #if defined(_WIN32) && 1
         case Image::ImageFormatRGB24:
-            ret = convertImageToQImage_RGB24(&src, dest);
+            ret = qt_helpers::convertImageToQImage_RGB24(&src, dest);
             if (horizontalFlip)
                 dest = dest.mirrored(false, true);
             break;
         case Image::ImageFormatBGR24:
-            ret = convertImageToQImage_BGR24(&src, dest);
+            ret = qt_helpers::convertImageToQImage_BGR24(&src, dest);
             if (horizontalFlip)
                 dest = dest.mirrored(false, true);
             break;
         case Image::ImageFormatRGB32:
-            ret = convertImageToQImage_RGB32(&src, dest);
+            ret = qt_helpers::convertImageToQImage_RGB32(&src, dest);
             if (horizontalFlip)
                 dest = dest.mirrored(false, true);
             break;
         case Image::ImageFormatBGR32:
-            ret = convertImageToQImage_BGR32(&src, dest);
+            ret = qt_helpers::convertImageToQImage_BGR32(&src, dest);
             if (horizontalFlip)
                 dest = dest.mirrored(false, true);
             break;
         case Image::ImageFormatRGBA32:
-            ret = convertImageToQImage_RGBA32(&src, dest);
+            ret = qt_helpers::convertImageToQImage_RGBA32(&src, dest);
             if (horizontalFlip)
                 dest = dest.mirrored(false, true);
             break;
