@@ -4369,6 +4369,8 @@ struct PerContextInfo {
     std::string glversion;
     std::string glvendor;
     std::string glrenderer;
+    int majorVersion;
+    int minorVersion;
     unsigned contextProfileMask;
     unsigned contextFlags;
 };
@@ -4385,6 +4387,8 @@ struct CollectPerContextInfo : public osg::Operation {
         info.glrenderer = std::string(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
         info.glversion = std::string(reinterpret_cast<const char*>(glGetString(GL_VERSION)));
 
+        glGetIntegerv(GL_MAJOR_VERSION, &info.majorVersion);
+        glGetIntegerv(GL_MINOR_VERSION, &info.minorVersion);
         glGetIntegerv(GL_CONTEXT_PROFILE_MASK, (GLint*)&info.contextProfileMask);
         glGetIntegerv(GL_CONTEXT_FLAGS, (GLint*)&info.contextProfileMask);
     }
@@ -4422,7 +4426,8 @@ bool writePrettyHTMLImpl<osg::GraphicsContext>::process(std::basic_ostream<char>
                 const PerContextInfo & info = itContextInfo->second;
                 os << "<tr><td>GL vendor</td><td>" << info.glvendor << "</td></tr>" << std::endl;
                 os << "<tr><td>GL renderer</td><td>" << info.glrenderer << "</td></tr>" << std::endl;
-                os << "<tr><td>GL version</td><td>" << info.glversion << "</td></tr>" << std::endl;
+                os << "<tr><td>GL version string</td><td>" << info.glversion << "</td></tr>" << std::endl;
+                os << "<tr><td>GL version number</td><td>" << info.majorVersion << "." << info.minorVersion << "</td></tr>" << std::endl;
                 os << "<tr><td>GL profile mask</td><td>0x" << std::hex << info.contextProfileMask << "</td></tr>" << std::endl;
                 os << "<tr><td>GL context flags</td><td>0x" << std::hex << info.contextFlags << "</td></tr>" << std::endl;
                 os << std::dec;
