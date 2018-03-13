@@ -194,7 +194,11 @@ bool objectTreeBuildImpl<QWidget>::build(IObjectTreeItem * treeItem)
             SGIHostItemQt windowHandle(object->windowHandle());
             if(windowHandle.hasObject())
                 treeItem->addChild("WindowHandle", &windowHandle);
+            treeItem->addChild("Palette", cloneItemMulti<SGIItemQt, SGIItemQtPaintDevice>(SGIItemTypePalette, ~0u));
         }
+        break;
+    case SGIItemTypePalette:
+        ret = true;
         break;
     default:
         ret = callNextHandler(treeItem);

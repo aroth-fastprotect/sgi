@@ -169,6 +169,9 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
                     const char *typeName = metaproperty.typeName();
                     QVariant value = object->property(name);
 
+                    if(value.type() == QVariant::Palette)
+                        value = QString("palette:%1").arg(value.value<QPalette>().cacheKey());
+
                     os << "<tr><td>" << metaObject->className() << "::" << name << "(" << typeName << ")</td><td>" << value << "</td></tr>" << std::endl;
                 }
                 metaObject = metaObject->superClass();
@@ -207,6 +210,9 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
                     const char *name = metaproperty.name();
                     const char *typeName = metaproperty.typeName();
                     QVariant value = object->property(name);
+
+                    if(value.type() == QVariant::Palette)
+                        value = QString("palette:%1").arg(value.value<QPalette>().cacheKey());
 
                     os << "<tr><td>" << metaObject->className() << "::" << name << "(" << typeName << ")</td><td>" << value << "</td></tr>" << std::endl;
                 }
@@ -294,6 +300,12 @@ bool writePrettyHTMLImpl<QWidget>::process(std::basic_ostream<char>& os)
 
             if(_table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypePalette:
+        {
+            os << object->palette();
             ret = true;
         }
         break;
