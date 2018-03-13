@@ -2452,7 +2452,16 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
 #endif
                 os << "<table border=\'1\' align=\'left\'>";
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
-                os << "<tr><td>shader</td><td>" << getObjectNameAndType(entry._shader.get(), true) << "</td></tr>";
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+                os << "<tr><td>shader</td><td>";
+                if (entry._shader.valid())
+                    os << entry._shader->getName();
+                else
+                    os << "<i>null</i>";
+                os << "</td></tr>";
+#else
+                os << "<tr><td>shader</td><td>" << glOverrideValueName(entry._shader.get()) << "</td></tr>";
+#endif
                 os << "<tr><td>override</td><td>" << glOverrideValueName(entry._overrideValue) << "</td></tr>";
                 os << "<tr><td>accept</td><td>" << getObjectNameAndType(entry._accept.get()) << "</td></tr>";
 #else
