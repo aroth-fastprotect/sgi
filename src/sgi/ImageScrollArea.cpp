@@ -34,6 +34,28 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::adjustScrollBar(QScrollBar *scr
 }
 #endif
 
+const QColor & ImageScrollArea::backgroundColor() const
+{
+    return _backgroundColor;
+}
+
+void ImageScrollArea::setBackgroundColor(const QColor & color)
+{
+    _backgroundColor = color;
+    QWidget * w = widget();
+    QPalette pal = w->palette();
+    pal.setColor(QPalette::Base, color);
+    w->setPalette(pal);
+    w->setBackgroundRole(QPalette::Base);
+
+    w = viewport();
+    w->setAutoFillBackground(true);
+    pal = w->palette();
+    pal.setColor(QPalette::Base, color);
+    w->setPalette(pal);
+    w->setBackgroundRole(QPalette::Base);
+}
+
 void ImageScrollArea::setScaleFactor(float factor)
 {
     _scaleFactor = factor;
@@ -82,7 +104,7 @@ void ImageScrollArea::resizeEvent(QResizeEvent *event)
     s.scale(event->size(), Qt::KeepAspectRatio);
     s = QLayout::closestAcceptableSize(this, s);
     QRect imageRect = QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, s, rect());
-    setGeometry(imageRect);
+    //setGeometry(imageRect);
 
     QScrollArea::resizeEvent(event);
 }
@@ -94,6 +116,10 @@ void ImageScrollArea::setImage(const QImage & image)
     else
         _imageSize = image.size();
     _scaleFactor = 1.0f;
+    if (!_fitToWindow)
+        widget()->resize(_imageSize);
+    else
+        widget()->adjustSize();
 }
 
 QSize ImageScrollArea::sizeHint() const

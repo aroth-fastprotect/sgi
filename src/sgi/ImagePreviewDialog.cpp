@@ -294,14 +294,10 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
     connect(ui->imageLabel, &ImageQtWidget::mouseMoved, _dialog, &ImagePreviewDialog::onMouseMoved);
     connect(ui->imageGL, &ImageGLWidget::mouseMoved, _dialog, &ImagePreviewDialog::onMouseMoved);
 
-    QPalette pal = ui->imageLabel->palette();
     const QColor default_osg_view_clear_color = QColor::fromRgbF(0.2f, 0.2f, 0.4f, 1.0f);
-    pal.setColor(QPalette::Base, default_osg_view_clear_color);
-    ui->imageLabel->setPalette(pal);
-    ui->scrollAreaImageQt->setPalette(pal);
-    ui->imageLabel->setBackgroundRole(QPalette::Base);
-    ui->scrollAreaImageQt->setBackgroundRole(QPalette::Base);
     ui->imageGL->setBackgroundColor(default_osg_view_clear_color);
+    ui->scrollAreaImageQt->setBackgroundColor(default_osg_view_clear_color);
+    ui->scrollAreaImageGL->setBackgroundColor(default_osg_view_clear_color);
 
 	createToolbar();
 
@@ -558,13 +554,12 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::flipVertical()
 
 void ImagePreviewDialog::ImagePreviewDialogImpl::selectBackgroundColor()
 {
-    QPalette pal = ui->imageLabel->palette();
-    QColor color = QColorDialog::getColor(pal.color(QPalette::Base), _dialog, tr("Select background color"));
+    QColor oldColor = ui->scrollAreaImageQt->backgroundColor();
+    QColor color = QColorDialog::getColor(oldColor, _dialog, tr("Select background color"));
     if(color.isValid())
     {
-        pal.setColor(QPalette::Base, color);
-        ui->imageLabel->setPalette(pal);
-        ui->scrollAreaImageQt->setPalette(pal);
+        ui->scrollAreaImageQt->setBackgroundColor(color);
+        ui->scrollAreaImageGL->setBackgroundColor(color);
     }
 }
 
