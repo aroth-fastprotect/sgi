@@ -49,4 +49,50 @@ public:
     QRgb getInvalidColor() const;
 };
 
+class ColorFilter
+{
+public:
+    enum FilterType {
+        FilterNone = 0,
+        FilterGrayscale,
+        FilterGrayscaleInverse,
+        FilterRed,
+        FilterGreen,
+        FilterBlue,
+        FilterAlpha,
+        FilterLuminance,
+        FilterHue,
+        FilterSaturation,
+        FilterSwap,
+        FilterCustom1,
+        FilterCustom2,
+        FilterCustom3,
+        FilterMax = FilterCustom3
+    };
+
+    const FilterType & type() const;
+    const QString & name() const;
+    const QString & vertexShader() const;
+    const QString & fragmentShader() const;
+
+    bool apply(const QImage & src, QImage & dest) const;
+
+public:
+    static const ColorFilter & getFilter(FilterType type);
+    static unsigned numberOfFilters();
+
+protected:
+    typedef bool(*pixelTranslateFunc)(const QRgb & src, QRgb & dest);
+    ColorFilter(const QString & name, const QString & vertexShader=QString(), const QString & fragmentShader=QString(), pixelTranslateFunc translate=NULL);
+
+private:
+    static ColorFilter s_filters[];
+
+    FilterType _type;
+    QString _name;
+    QString _vertexShader;
+    QString _fragmentShader;
+    pixelTranslateFunc _pixelTranslate;
+};
+
 } // namespace sgi
