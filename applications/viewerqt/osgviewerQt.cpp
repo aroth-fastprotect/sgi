@@ -850,8 +850,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
         {
             HWND hwnd = gwin32->getHWND();
             QWindow * wnd = QWindow::fromWinId((WId)hwnd);
-            wnd->setFlag(Qt::ForeignWindow);
-            wnd->setFlag(Qt::MSWindowsOwnDC);
+            wnd->setFlags(Qt::ForeignWindow| Qt::MSWindowsOwnDC);
             wnd->installEventFilter(new EventFilter(this));
             _viewWidget = QWidget::createWindowContainer(wnd, this);
             _viewWidget->setAttribute(Qt::WA_NativeWindow);
@@ -865,7 +864,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
         {
             Window xwnd = gwx11->getWindow();
             QWindow * wnd = QWindow::fromWinId((WId)xwnd);
-            wnd->setFlag(Qt::ForeignWindow);
+            wnd->setFlags(Qt::ForeignWindow);
             _viewWidget = QWidget::createWindowContainer(wnd, this);
             _viewWidget->setAttribute(Qt::WA_NativeWindow);
             _viewWidget->setFocusPolicy(Qt::StrongFocus);
