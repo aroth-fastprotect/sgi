@@ -58,6 +58,11 @@
 #undef KeyPress
 #endif
 
+#define GL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
+#define GL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+#define GL_CONTEXT_DEBUG_BIT_ARB               0x0001
+#define GL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB  0x0002
+
 namespace std {
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::NotifySeverity & t)
@@ -831,12 +836,20 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     if (arguments.read("--use-main-thread"))
         useMainThread = true;
 
+    GLContextProfile glprofile = GLContextProfileNone;
+    std::string glver;
+    arguments.read("--glver", glver);
+    if (arguments.read("--core"))
+        glprofile = GLContextProfileCore;
+    if (arguments.read("--compat"))
+        glprofile = GLContextProfileCompatibility;
+
     _viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::DrawThreadPerContext);
 
     // disable the default setting of viewer.done() by pressing Escape.
     _viewer->setKeyEventSetsDone(0);
 
-    _mainGW = createGraphicsWindow(0, 0, QMainWindow::width(), QMainWindow::height(), nullptr);
+    _mainGW = createGraphicsWindow(0, 0, QMainWindow::width(), QMainWindow::height(), nullptr, glver, glprofile);
 #ifdef SGI_USE_OSGQT
     osgQt::GraphicsWindowQt* gwq = dynamic_cast<osgQt::GraphicsWindowQt*>(_mainGW.get());
     if (gwq)
@@ -872,7 +885,8 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
 #endif
     }
     setCentralWidget(_viewWidget);
-    _viewWidget->setProperty("sgi_skip_object", true);
+    if(_viewWidget)
+        _viewWidget->setProperty("sgi_skip_object", true);
 
     _view = new osgViewer::View;
 
@@ -945,7 +959,12 @@ void ViewerWidget::setData(osg::Node * node)
     _view->setSceneData(node);
 }
 
-osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int w, int h, osg::GraphicsContext * sharedContext, const std::string& name, bool windowDecoration)
+osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int w, int h,
+                                                               osg::GraphicsContext * sharedContext,
+                                                               const std::string& glver,
+                                                               GLContextProfile profile,
+                                                               const std::string& name,
+                                                               bool windowDecoration)
 {
     osg::DisplaySettings* ds = osg::DisplaySettings::instance().get();
     osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
@@ -961,6 +980,27 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
     traits->sampleBuffers = ds->getMultiSamples();
     traits->samples = ds->getNumMultiSamples();
     traits->sharedContext = sharedContext;
+
+    switch(profile)
+    {
+    default:
+    case GLContextProfileNone:
+        traits->glContextProfileMask = 0;
+        break;
+    case GLContextProfileCore:
+        traits->glContextVersion = "3.3";
+        traits->glContextProfileMask = GL_CONTEXT_CORE_PROFILE_BIT_ARB;
+        traits->sampleBuffers = 1;
+        break;
+    case GLContextProfileCompatibility:
+        traits->glContextVersion = "3.3";
+        traits->glContextProfileMask = GL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+        traits->sampleBuffers = 1;
+        break;
+    }
+    if(!glver.empty())
+        traits->glContextVersion = glver;
+
 #ifdef SGI_USE_OSGQT
     return new osgQt::GraphicsWindowQt(traits.get());
 #else
