@@ -433,6 +433,16 @@ namespace std {
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QRegion & r)
     {
+#if (QT_VERSION < QT_VERSION_CHECK(5, 8, 0))
+        QVector<QRect> rv = r.rects();
+        for(QVector<QRect>::const_iterator it = rv.begin(); it != rv.end();)
+        {
+            os << *it;
+            it++;
+            if(it != r.end())
+                os << ';';
+        }
+#else
         for(QRegion::const_iterator it = r.begin(); it != r.end();)
         {
             os << *it;
@@ -440,6 +450,7 @@ namespace std {
             if(it != r.end())
                 os << ';';
         }
+#endif
         return os;
     }
 
