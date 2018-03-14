@@ -582,10 +582,16 @@ osgViewerQtMapNodeHelper::load(osg::ArgumentParser& args,
                         osgDB::ReaderWriter::Features supportedFeatures = readerWriter->supportedFeatures();
                         if(!rr.success() && (supportedFeatures & osgDB::ReaderWriter::FEATURE_READ_NODE))
                             rr = osgDB::readRefNodeFile(arg,registry->getOptions());
+                        if (rr.success() && !rr.validObject())
+                            rr = osgDB::ReaderWriter::ReadResult();
                         if(!rr.success() && (supportedFeatures & osgDB::ReaderWriter::FEATURE_READ_IMAGE))
                             rr = osgDB::readRefImageFile(arg,registry->getOptions());
+                        if (rr.success() && !rr.validObject())
+                            rr = osgDB::ReaderWriter::ReadResult();
                         if(!rr.success() && (supportedFeatures & osgDB::ReaderWriter::FEATURE_READ_HEIGHT_FIELD))
                             rr = osgDB::readRefHeightFieldFile(arg,registry->getOptions());
+                        if (rr.success() && !rr.validObject())
+                            rr = osgDB::ReaderWriter::ReadResult();
                         if(rr.validObject())
                         {
                             if (rr.validNode())
