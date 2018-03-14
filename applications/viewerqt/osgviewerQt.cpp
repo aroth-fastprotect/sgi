@@ -10,6 +10,7 @@
 #include <QWindow>
 #include <QKeyEvent>
 #include <QWidget>
+#include <QDebug>
 
 #include <osg/ValueObject>
 #include <osgViewer/ViewerEventHandlers>
@@ -881,12 +882,16 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
         osgViewer::GraphicsWindowX11* gwx11 = dynamic_cast<osgViewer::GraphicsWindowX11*>(_mainGW.get());
         if (gwx11)
         {
-            Window xwnd = gwx11->getWindow();
+            const Window & xwnd = gwx11->getWindow();
+            const Window & xparent = gwx11->getParent();
             QWindow * wnd = QWindow::fromWinId((WId)xwnd);
+            QWindow * parent = QWindow::fromWinId((WId)xparent);
             wnd->setFlags(Qt::ForeignWindow);
+            wnd->setParent(parent);
             _viewWidget = QWidget::createWindowContainer(wnd, this);
             _viewWidget->setAttribute(Qt::WA_NativeWindow);
             _viewWidget->setFocusPolicy(Qt::StrongFocus);
+            qWarning() << "create for xwnd " << xwnd << wnd << _viewWidget;
         }
 #endif
     }
@@ -1007,8 +1012,9 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
     if(!glver.empty())
         traits->glContextVersion = glver;
 
+    osgViewer::GraphicsWindow* ret = nullptr;
 #ifdef SGI_USE_OSGQT
-    return new osgQt::GraphicsWindowQt(traits.get());
+    ret = new osgQt::GraphicsWindowQt(traits.get());
 #else
     osg::GraphicsContext::WindowingSystemInterface* wsi = osg::GraphicsContext::getWindowingSystemInterface();
     if (!wsi)
@@ -1017,10 +1023,26 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
         return nullptr;
     }
     osg::GraphicsContext * gc = osg::GraphicsContext::createGraphicsContext(traits.get());
-    osgViewer::GraphicsWindow* gw = dynamic_cast<osgViewer::GraphicsWindow*>(gc);
-
-    return gw;
+    ret = dynamic_cast<osgViewer::GraphicsWindow*>(gc);
 #endif
+    if(ret)
+    {
+        switch(profile)
+        {
+        default:
+        case GLContextProfileNone:
+            break;
+        case GLContextProfileCore:
+        case GLContextProfileCompatibility:
+
+            // for non GL3/GL4 and non GLES2 platforms we need enable the osg_ uniforms that the shaders will use,
+            // you don't need thse two lines on GL3/GL4 and GLES2 specific builds as these will be enable by default.
+            ret->getState()->setUseModelViewAndProjectionUniforms(true);
+            ret->getState()->setUseVertexAttributeAliasing(true);
+            break;
+        }
+    }
+    return ret;
 }
 
 void ViewerWidget::paintEvent( QPaintEvent* event )
