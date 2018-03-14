@@ -324,6 +324,10 @@ ImagePreviewDialog::ImagePreviewDialogImpl::~ImagePreviewDialogImpl()
 
 void ImagePreviewDialog::ImagePreviewDialogImpl::refresh()
 {
+    // release any previous converted images and get a new copy from the original item
+    _dialog->_image = nullptr;
+    _dialog->_workImage = nullptr;
+
 	_dialog->refreshImpl();
 }
 
