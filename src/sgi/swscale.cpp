@@ -499,7 +499,7 @@ bool SWScale::convert(const sgi::Image& src, sgi::Image& dest)
 bool SWScale::convert(const sgi::Image& src, Image::ImageFormat destFormat, sgi::Image& dest)
 {
     bool ret;
-    if(destFormat == src.format() || destFormat == Image::ImageFormatAutomatic)
+    if(destFormat == src.format() || destFormat == Image::ImageFormatAutomatic || destFormat == Image::ImageFormatOriginal)
     {
         dest = src;
         ret = true;

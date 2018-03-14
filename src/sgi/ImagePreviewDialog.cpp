@@ -23,6 +23,9 @@
 #include "swscale.h"
 #include "colorconversion.h"
 
+#include <osgDB/ReadFile>
+#include <osgDB/WriteFile>
+
 #include <iostream>
 
 #ifdef _DEBUG
@@ -266,6 +269,7 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
 {
     if(ImageFormatDisplayText.empty())
     {
+        ImageFormatDisplayText[Image::ImageFormatOriginal] = tr("Original");
         ImageFormatDisplayText[Image::ImageFormatAutomatic] = tr("Automatic");
         ImageFormatDisplayText[Image::ImageFormatRGB24] = tr("RGB 24-bit");
         ImageFormatDisplayText[Image::ImageFormatRGB32] = tr("RGB 32-bit");
@@ -425,13 +429,24 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
     for(const auto & it : ImageFormatDisplayText)
     {
         QAction * saveAction = new QAction(it.second, saveMenu);
-        if(it.first == Image::ImageFormatAutomatic)
+        switch (it.first)
         {
-            saveAction->setShortcut(tr("Ctrl+S"));
-            saveAction->setToolTip(tr("Save image..."));
-        }
-        else
+        case Image::ImageFormatAutomatic:
+            {
+                saveAction->setShortcut(tr("Ctrl+Shift+S"));
+                saveAction->setToolTip(tr("Save image..."));
+            }
+            break;
+        case Image::ImageFormatOriginal:
+            {
+                saveAction->setShortcut(tr("Ctrl+S"));
+                saveAction->setToolTip(tr("Save original image..."));
+            }
+            break;
+        default:
             saveAction->setToolTip(tr("Save image as %1...").arg(it.second));
+            break;
+        }
         saveAction->setIcon(QIcon::fromTheme("document-save"));
         saveAction->setData(QVariant::fromValue((int)it.first));
         connect(saveAction, &QAction::triggered, this, &ImagePreviewDialogImpl::saveImageAs);
@@ -443,14 +458,21 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
     QMenu * openMenu = new QMenu(_dialog);
     for(const auto & it : ImageFormatDisplayText)
     {
+        if (it.first == Image::ImageFormatOriginal)
+            continue;
         QAction * openAction = new QAction(it.second, openMenu);
-        if(it.first == Image::ImageFormatAutomatic)
+        switch (it.first)
         {
-            openAction->setShortcut(tr("Ctrl+O"));
-            openAction->setToolTip(tr("Open image..."));
-        }
-        else
+        case Image::ImageFormatAutomatic:
+            {
+                openAction->setShortcut(tr("Ctrl+O"));
+                openAction->setToolTip(tr("Open image..."));
+            }
+            break;
+        default:
             openAction->setToolTip(tr("Open image as %1...").arg(it.second));
+            break;
+        }
         openAction->setToolTip(tr("Open image as %1").arg(it.second));
         openAction->setIcon(QIcon::fromTheme("document-open"));
         openAction->setData(QVariant::fromValue((int)it.first));
@@ -610,6 +632,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::openImageAs()
         lastDir = fileName;
         switch(targetFormat)
         {
+        case Image::ImageFormatOriginal:
         case Image::ImageFormatAutomatic:
         case Image::ImageFormatRGB24:
         case Image::ImageFormatRGB32:
@@ -619,16 +642,25 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::openImageAs()
         case Image::ImageFormatBGR32:
         case Image::ImageFormatABGR32:
             {
-                QImageReader reader(fileName);
-                QImage image = reader.read();
-                result = !image.isNull();
-                if(result)
+                QByteArray format = QImageReader::imageFormat(fileName);
+                if (!format.isEmpty())
                 {
-                    originalImage = image;
-                    _dialog->_workImage = new Image(&image);
-                    _dialog->_workImage->reinterpretFormat(targetFormat);
-                    _dialog->_image = _dialog->_workImage;
-                    _dialog->_itemImage = nullptr;
+                    QImageReader reader(fileName);
+                    QImage image = reader.read();
+                    result = !image.isNull();
+                    if (result)
+                    {
+                        originalImage = image;
+                        _dialog->_workImage = new Image(&image);
+                        _dialog->_workImage->reinterpretFormat(targetFormat);
+                        _dialog->_image = _dialog->_workImage;
+                        _dialog->_itemImage = nullptr;
+                    }
+                }
+                else
+                {
+                    //_dialog->_hostInterface->readObjectFile(result, _dialog->_item.get(), fileName.toStdString(), nullptr);
+
                 }
             }
             break;
@@ -691,7 +723,11 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::saveImageAs()
     {
         Image tempImage;
         bool result = true;
-        if(targetFormat != Image::ImageFormatAutomatic)
+        if (targetFormat == Image::ImageFormatOriginal)
+        {
+            // no conversion needed
+        }
+        else  if(targetFormat != Image::ImageFormatAutomatic)
         {
 #if defined(SGI_USE_FFMPEG)
             result = SWScale::convert(*_dialog->_image.get(), targetFormat, tempImage);
@@ -702,6 +738,9 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::saveImageAs()
         lastDir = fileName;
         switch(targetFormat)
         {
+        case Image::ImageFormatOriginal:
+            _dialog->_hostInterface->writeObjectFile(result, _dialog->_item.get(), fileName.toStdString(), nullptr);
+            break;
         case Image::ImageFormatAutomatic:
             if(pixmap)
             {
