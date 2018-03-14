@@ -623,6 +623,7 @@ bool contextMenuPopulateImpl<osg::StateSet>::populate(IContextMenuItem * menuIte
             {
                 addUniformMenu->addModeAction("Bool", osg::Uniform::BOOL);
                 addUniformMenu->addModeAction("Integer", osg::Uniform::INT);
+                addUniformMenu->addModeAction("Unsigned", osg::Uniform::UNSIGNED_INT);
                 addUniformMenu->addModeAction("Float", osg::Uniform::FLOAT);
                 addUniformMenu->addModeAction("Double", osg::Uniform::DOUBLE);
                 addUniformMenu->addModeAction("Vec2f", osg::Uniform::FLOAT_VEC2);
@@ -631,6 +632,8 @@ bool contextMenuPopulateImpl<osg::StateSet>::populate(IContextMenuItem * menuIte
                 addUniformMenu->addModeAction("Vec2d", osg::Uniform::DOUBLE_VEC2);
                 addUniformMenu->addModeAction("Vec3d", osg::Uniform::DOUBLE_VEC3);
                 addUniformMenu->addModeAction("Vec4d", osg::Uniform::DOUBLE_VEC4);
+                addUniformMenu->addModeAction("Integer 64-bit", osg::Uniform::INT64);
+                addUniformMenu->addModeAction("Unsigned 64-bit", osg::Uniform::UNSIGNED_INT64);
             }
 
             unsigned childNo = 0;
