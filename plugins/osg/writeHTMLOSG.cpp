@@ -4364,6 +4364,12 @@ bool writePrettyHTMLImpl<osg::GraphicsThread>::process(std::basic_ostream<char>&
 #ifndef GL_CONTEXT_FLAGS
 #define GL_CONTEXT_FLAGS                  0x821E
 #endif
+#ifndef GL_MAJOR_VERSION
+#define GL_MAJOR_VERSION                  0x821B
+#endif
+#ifndef GL_MINOR_VERSION
+#define GL_MINOR_VERSION                  0x821C
+#endif
 
 struct PerContextInfo {
     std::string glversion;
