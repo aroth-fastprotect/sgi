@@ -76,6 +76,7 @@ enum SGIItemType_osg
     SGIItemTypeDrawElementsIndicies,
     SGIItemTypeCullingInfoBefore,
     SGIItemTypeCullingInfoAfter,
+    SGIItemTypeBuildInfo,
 };
 
 class SGIItemOsg : public SGIItemBase

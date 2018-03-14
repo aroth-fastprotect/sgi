@@ -4,6 +4,8 @@
 #include "SGIItemOsg"
 
 #include <osg/Version>
+#include <osg/Config>
+#include <osg/GL>
 #include <osgDB/Registry>
 #include <osgDB/ImagePager>
 #define protected public
@@ -52,10 +54,6 @@ bool writePrettyHTMLImpl<osgDB::Registry>::process(std::basic_ostream<char>& os)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
             callNextHandler(os);
-
-            os << "<tr><td>OSG version</td><td>" << osgGetVersion() << "</td></tr>" << std::endl;
-            os << "<tr><td>OSG SO version</td><td>" << osgGetSOVersion() << "</td></tr>" << std::endl;
-            os << "<tr><td>OSG library name</td><td>" << osgGetLibraryName() << "</td></tr>" << std::endl;
 
             // add Registry properties
             os << "<tr><td>mime-type map</td><td><table border=\'1\' align=\'left\' width=\'100%\'>";
@@ -108,6 +106,211 @@ bool writePrettyHTMLImpl<osgDB::Registry>::process(std::basic_ostream<char>& os)
             os << "</ul></td></tr>" << std::endl;
 
             if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeBuildInfo:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            os << "<tr><td>OSG version</td><td>" << osgGetVersion() << "</td></tr>" << std::endl;
+            os << "<tr><td>OSG SO version</td><td>" << osgGetSOVersion() << "</td></tr>" << std::endl;
+            os << "<tr><td>OSG library name</td><td>" << osgGetLibraryName() << "</td></tr>" << std::endl;
+            os << "<tr><td>Notify disabled</td><td>";
+#ifdef OSG_NOTIFY_DISABLED
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+
+            os << "<tr><td>Use float matrix</td><td>";
+#ifdef OSG_USE_FLOAT_MATRIX
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>Use float plane</td><td>";
+#ifdef OSG_USE_FLOAT_PLANE
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>Use float bounding sphere</td><td>";
+#ifdef OSG_USE_FLOAT_BOUNDINGSPHERE
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>Use float bounding box</td><td>";
+#ifdef OSG_USE_FLOAT_BOUNDINGBOX
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+
+            os << "<tr><td>Use ref_ptr implicit output conversion</td><td>";
+#ifdef OSG_USE_REF_PTR_IMPLICIT_OUTPUT_CONVERSION
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>Use ref_ptr safe dereference</td><td>";
+#ifdef OSG_USE_REF_PTR_SAFE_DEREFERENCE
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+
+            os << "<tr><td>Use UTF8 filename</td><td>";
+#ifdef OSG_USE_UTF8_FILENAME
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+
+            os << "<tr><td>Disable MSVC warnings</td><td>";
+#ifdef OSG_DISABLE_MSVC_WARNINGS
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+
+            os << "<tr><td>Profile ReadFile</td><td>";
+#ifdef OSG_PROVIDE_READFILE
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+
+            os << "<tr><td>Use deprecated API</td><td>";
+#ifdef OSG_USE_DEPRECATED_API
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+
+            os << "<tr><td>Environment variable support</td><td>";
+#ifdef OSG_ENVVAR_SUPPORTED
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+
+            os << "<tr><td>OSG_GL1_AVAILABLE</td><td>";
+#ifdef OSG_GL1_AVAILABLE
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>OSG_GL2_AVAILABLE</td><td>";
+#ifdef OSG_GL2_AVAILABLE
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>OSG_GL3_AVAILABLE</td><td>";
+#ifdef OSG_GL3_AVAILABLE
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+
+            os << "<tr><td>OSG_GLES1_AVAILABLE</td><td>";
+#ifdef OSG_GLES1_AVAILABLE
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>OSG_GLES2_AVAILABLE</td><td>";
+#ifdef OSG_GLES2_AVAILABLE
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>OSG_GLES3_AVAILABLE</td><td>";
+#ifdef OSG_GLES3_AVAILABLE
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+
+            os << "<tr><td>OSG_GL_LIBRARY_STATIC</td><td>";
+#ifdef OSG_GL_LIBRARY_STATIC
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>OSG_GL_DISPLAYLISTS_AVAILABLE</td><td>";
+#ifdef OSG_GL_DISPLAYLISTS_AVAILABLE
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>OSG_GL_MATRICES_AVAILABLE</td><td>";
+#ifdef OSG_GL_MATRICES_AVAILABLE
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>OSG_GL_VERTEX_FUNCS_AVAILABLE</td><td>";
+#ifdef OSG_GL_VERTEX_FUNCS_AVAILABLE
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>OSG_GL_VERTEX_ARRAY_FUNCS_AVAILABLE</td><td>";
+#ifdef OSG_GL_VERTEX_ARRAY_FUNCS_AVAILABLE
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>OSG_GL_FIXED_FUNCTION_AVAILABLE</td><td>";
+#ifdef OSG_GL_FIXED_FUNCTION_AVAILABLE
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>GL_HEADER_HAS_GLINT64</td><td>";
+#ifdef GL_HEADER_HAS_GLINT64
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>GL_HEADER_HAS_GLUINT64</td><td>";
+#ifdef GL_HEADER_HAS_GLUINT64
+            os << "true";
+#else
+            os << "false";
+#endif
+            os << "</td></tr>" << std::endl;
+            if (_table)
                 os << "</table>" << std::endl;
             ret = true;
         }

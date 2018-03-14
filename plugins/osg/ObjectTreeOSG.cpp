@@ -2639,7 +2639,9 @@ bool objectTreeBuildImpl<osgDB::Registry>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            if(object->getReadFileCallback() || 
+            treeItem->addChild("Build info", cloneItem<SGIItemOsg>(SGIItemTypeBuildInfo));
+
+            if(object->getReadFileCallback() ||
                 object->getWriteFileCallback() ||
                 object->getFileLocationCallback() ||
                 object->getFindFileCallback()
