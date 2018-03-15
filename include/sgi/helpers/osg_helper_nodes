@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include <sgi/Export>
 #include <osg/Geometry>
+#include <osg/Version>
 #if OSG_VERSION_LESS_THAN(3,4,0)
 #include <osg/Geode>
 #endif
