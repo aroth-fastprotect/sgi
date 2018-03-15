@@ -455,19 +455,6 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
                 }
 
                 QWidget * parent = nullptr;
-                osg::GraphicsContext * ctx = camera->getGraphicsContext();
-                if(osgViewer::GraphicsWindowX11 * gwx11 = dynamic_cast<osgViewer::GraphicsWindowX11*>(ctx))
-                {
-                    const Window & xwnd = gwx11->getWindow();
-                    const Window & xparent = gwx11->getParent();
-                    QWindow * wnd = QWindow::fromWinId((WId)xwnd);
-                    QWindow * wndparent = QWindow::fromWinId((WId)xparent);
-                    parent = QWidget::find(xwnd);
-
-                    qWarning() << "ctxmenu xwnd " << xwnd << wnd << wndparent << parent << QWidget::find(xparent);
-                }
-
-
                 SGIHostItemBasePtr hostItem = _options.getHostItem();
                 if (!hostItem.valid())
                 {
@@ -611,10 +598,9 @@ public:
 #else
                 else if(osgViewer::GraphicsWindowX11 * gwx11 = dynamic_cast<osgViewer::GraphicsWindowX11*>(ctx))
                 {
-                    Window xwnd = gwx11->getWindow();
-                    QWindow * wnd = QWindow::fromWinId(xwnd);
-                    qWarning() << "DefaultSGIProxy xwnd " << xwnd << wnd;
-                    _parent = QWidget::find(xwnd);
+                    double sgi_ctx_widget;
+                    if(gwx11->getUserValue("sgi_ctx_widget", sgi_ctx_widget) && sgi_ctx_widget)
+                        _parent = (QWidget*)(void*)(qulonglong)sgi_ctx_widget;
                 }
 #endif
             }

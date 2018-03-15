@@ -47,6 +47,7 @@
 
 #include <sgi/helpers/osg_helper_nodes>
 #include <sgi/plugins/SGIItemBase.h>
+#include <sgi/helpers/osg>
 
 #ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
@@ -876,6 +877,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
             _viewWidget->setAttribute(Qt::WA_NativeWindow);
             _viewWidget->setFocusPolicy(Qt::StrongFocus);
 
+            gwin32->setUserValue("sgi_ctx_widget", (double)(qulonglong)(void*)_viewWidget);
             QCoreApplication::instance()->installEventFilter(new EventFilter(_viewWidget));
         }
 #elif defined(__linux__)
@@ -891,7 +893,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
             _viewWidget = QWidget::createWindowContainer(wnd, this);
             _viewWidget->setAttribute(Qt::WA_NativeWindow);
             _viewWidget->setFocusPolicy(Qt::StrongFocus);
-            qWarning() << "create for xwnd " << xwnd << wnd << _viewWidget;
+            gwx11->setUserValue("sgi_ctx_widget", (double)(qulonglong)(void*)_viewWidget);
         }
 #endif
     }
