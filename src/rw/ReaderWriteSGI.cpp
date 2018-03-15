@@ -582,9 +582,9 @@ public:
 #if defined(_WIN32)
                 else if(osgViewer::GraphicsWindowWin32 * gwwin = dynamic_cast<osgViewer::GraphicsWindowWin32*>(ctx))
                 {
-#if QT_VERSION < 0x050000
-                    _parent = QWidget::find(gwwin->getHWND());
-#endif // QT_VERSION < 0x050000
+                    double sgi_ctx_widget;
+                    if (gwwin->getUserValue("sgi_ctx_widget", sgi_ctx_widget) && sgi_ctx_widget)
+                        _parent = (QWidget*)(void*)(qulonglong)sgi_ctx_widget;
                 }
 #elif defined(__APPLE__)
 #if !__LP64__
