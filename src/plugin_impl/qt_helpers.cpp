@@ -439,7 +439,7 @@ namespace std {
         {
             os << *it;
             it++;
-            if(it != r.end())
+            if(it != rv.end())
                 os << ';';
         }
 #else
