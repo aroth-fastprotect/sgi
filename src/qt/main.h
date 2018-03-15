@@ -30,6 +30,7 @@ protected:
 
     bool contextMenu(QWidget * widget, QObject * item, float x, float y);
     bool imagePreviewDialog(QWidget * parent, QImage * image);
+    bool sceneGraphDialog(QWidget * parent, QObject * obj);
 
     bool handleEvent(SGIEvent * ev);
 

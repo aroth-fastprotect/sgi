@@ -58,6 +58,7 @@ int main(int argc, char **argv)
     qDebug(helloWorldQt) << "addLibraryPath " << path;
     QCoreApplication::addLibraryPath(path);
 
+    QList<QByteArray> rawCommands;
     QList<ImageFile> imageFiles;
     bool first = true;
     for(const QString & arg : app.arguments())
@@ -68,11 +69,42 @@ int main(int argc, char **argv)
             first = false;
             continue;
         }
-        QFileInfo fi(arg);
-        QString filename = fi.absoluteFilePath();
-        QByteArray format = QImageReader::imageFormat(filename);
-        if(!format.isNull())
-            imageFiles.append(ImageFile(filename, format));
+        if(arg.at(0) == '-')
+        {
+            bool isLongArg = (arg.length() > 1 && arg.at(1) == '-');
+            if(isLongArg)
+            {
+                QString longarg = arg.mid(2);
+                if(longarg == "list-plugins")
+                {
+                    QByteArray cmd;
+                    cmd = "{\n\"list-plugins\": {}\n}";
+                    rawCommands.append(cmd);
+                }
+                else if(longarg == "app")
+                {
+                    QByteArray cmd;
+                    cmd = "{\n\"object\": { \"name\":\"app\" }\n}";
+                    rawCommands.append(cmd);
+                }
+                else
+                {
+                    qCritical() << "invalid argument" << arg;
+                }
+            }
+            else
+            {
+                qCritical() << "invalid argument" << arg;
+            }
+        }
+        else
+        {
+            QFileInfo fi(arg);
+            QString filename = fi.absoluteFilePath();
+            QByteArray format = QImageReader::imageFormat(filename);
+            if(!format.isNull())
+                imageFiles.append(ImageFile(filename, format));
+        }
     }
 
 
@@ -90,6 +122,15 @@ int main(int argc, char **argv)
 
     if(!load_sgi.isNull())
     {
+        for(const QByteArray & cmd : rawCommands)
+        {
+            QBuffer dummyMem;
+            QImage load_file_with_sgi;
+            dummyMem.setData(cmd);
+            if(!load_file_with_sgi.load(&dummyMem, "sgi_loader"))
+                qWarning(helloWorldQt) << "Command" << cmd << "failed";
+        }
+
         for(const ImageFile & imgf : imageFiles)
         {
             QBuffer dummyMem;
