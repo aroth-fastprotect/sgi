@@ -1,21 +1,6 @@
-/* -*-c++-*- */
-/* osgEarth - Dynamic map generation toolkit for OpenSceneGraph
- * Copyright 2008-2014 Pelican Mapping
- * http://osgearth.org
- *
- * osgEarth is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
+
 #include <osg/Notify>
 #include <osgDB/FileNameUtils>
 #include <osgDB/FileUtils>
@@ -25,6 +10,9 @@
 #include <osg/ValueObject>
 
 #include <QApplication>
+#include <QWidget>
+#include <QWindow>
+#include <QDebug>
 
 #ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
@@ -316,9 +304,9 @@ public:
     void shutdown();
 
 protected:
-	bool                showSceneGraphDialog(const SGIHostItemBase * item);
-	bool                showObjectLoggerDialog(const SGIHostItemBase * item);
-	bool                contextMenu(const SGIHostItemBase * item, float x, float y);
+    bool                showSceneGraphDialog(const SGIHostItemBase * item, QWidget * parent=nullptr);
+    bool                showObjectLoggerDialog(const SGIHostItemBase * item, QWidget * parent=nullptr);
+    bool                contextMenu(const SGIHostItemBase * item, float x, float y, QWidget * parent=nullptr);
 
 protected:
 	IHostCallbackPtr    _hostCallback;
@@ -367,24 +355,24 @@ void SceneGraphInspectorHandler::shutdown()
     _picker = NULL;
 }
 
-bool SceneGraphInspectorHandler::showSceneGraphDialog(const SGIHostItemBase * item)
+bool SceneGraphInspectorHandler::showSceneGraphDialog(const SGIHostItemBase * item, QWidget * parent)
 {
-    ISceneGraphDialogPtr dialog = _hostCallback->showSceneGraphDialog(NULL, item);
+    ISceneGraphDialogPtr dialog = _hostCallback->showSceneGraphDialog(parent, item);
     if(dialog.valid())
         dialog->show();
     return dialog.valid();
 }
 
-bool SceneGraphInspectorHandler::showObjectLoggerDialog(const SGIHostItemBase * item)
+bool SceneGraphInspectorHandler::showObjectLoggerDialog(const SGIHostItemBase * item, QWidget * parent)
 {
-	return _hostCallback->showObjectLoggerDialog(NULL, item) != NULL;
+    return _hostCallback->showObjectLoggerDialog(parent, item) != NULL;
 }
 
-bool SceneGraphInspectorHandler::contextMenu(const SGIHostItemBase * item, float x, float y)
+bool SceneGraphInspectorHandler::contextMenu(const SGIHostItemBase * item, float x, float y, QWidget * parent)
 {
-	IContextMenuPtr contextMenu = _hostCallback->contextMenu(NULL, item);
+    IContextMenuPtr contextMenu = _hostCallback->contextMenu(parent, item);
 	if (contextMenu.valid())
-		contextMenu->popup(_hostCallback->getFallbackParentWidget(), x, y);
+        contextMenu->popup(!parent ? _hostCallback->getFallbackParentWidget() : parent, x, y);
 	return contextMenu.valid();
 }
 
@@ -466,6 +454,7 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
                         y = viewport->height() - y;
                 }
 
+                QWidget * parent = nullptr;
                 SGIHostItemBasePtr hostItem = _options.getHostItem();
                 if (!hostItem.valid())
                 {
@@ -474,7 +463,7 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
                     else
                         hostItem = new SGIHostItemOsg(&ea);
                 }
-                ret = contextMenu(hostItem, x, y);
+                ret = contextMenu(hostItem, x, y, parent);
             }
 
         }
@@ -593,9 +582,9 @@ public:
 #if defined(_WIN32)
                 else if(osgViewer::GraphicsWindowWin32 * gwwin = dynamic_cast<osgViewer::GraphicsWindowWin32*>(ctx))
                 {
-#if QT_VERSION < 0x050000
-                    _parent = QWidget::find(gwwin->getHWND());
-#endif // QT_VERSION < 0x050000
+                    double sgi_ctx_widget;
+                    if (gwwin->getUserValue("sgi_ctx_widget", sgi_ctx_widget) && sgi_ctx_widget)
+                        _parent = (QWidget*)(void*)(qulonglong)sgi_ctx_widget;
                 }
 #elif defined(__APPLE__)
 #if !__LP64__
@@ -609,11 +598,13 @@ public:
 #else
                 else if(osgViewer::GraphicsWindowX11 * gwx11 = dynamic_cast<osgViewer::GraphicsWindowX11*>(ctx))
                 {
-                    //_parent = QWidget::find(gwx11->getWindow());
+                    double sgi_ctx_widget;
+                    if(gwx11->getUserValue("sgi_ctx_widget", sgi_ctx_widget) && sgi_ctx_widget)
+                        _parent = (QWidget*)(void*)(qulonglong)sgi_ctx_widget;
                 }
 #endif
             }
-            OSG_NOTICE << LC << "DefaultSGIProxy parent " << _parent << std::endl;
+            qWarning() << "DefaultSGIProxy parent " << _parent;
         }
         if(_parent)
         {

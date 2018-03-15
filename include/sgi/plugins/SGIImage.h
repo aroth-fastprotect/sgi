@@ -15,6 +15,7 @@ class SGI_IMPL_EXPORT Image : public osg::Referenced
 {
 public:
     enum ImageFormat {
+        ImageFormatOriginal = -3,
         ImageFormatAutomatic = -2,
         ImageFormatInvalid = -1,
         ImageFormatRGB24 = 0,

@@ -23,6 +23,9 @@
 #include "swscale.h"
 #include "colorconversion.h"
 
+#include <osgDB/ReadFile>
+#include <osgDB/WriteFile>
+
 #include <iostream>
 
 #ifdef _DEBUG
@@ -167,137 +170,7 @@ void ImagePreviewDialog::Histogram::calculate(const QImage & image)
 	}
 }
 
-bool applyColorFilterQImage(QImage & src, QImage & dest, ImagePreviewDialog::ColorFilter filter)
-{
-    if(src.isNull())
-        return false;
 
-    if(filter == ImagePreviewDialog::ColorFilterAll)
-        dest = src;
-    else
-    {
-        dest = QImage(src.width(), src.height(), QImage::Format_ARGB32);
-        for (int y = 0; y < src.height(); y++) {
-            for (int x = 0; x < src.width(); x++) {
-                QRgb src_pixel = src.pixel(x, y);
-                QRgb dest_pixel = 0;
-                switch(filter)
-                {
-                case ImagePreviewDialog::ColorFilterAll:
-                    dest_pixel = src_pixel;
-                    break;
-                case ImagePreviewDialog::ColorFilterGrayscale:
-                    {
-                        int v = qGray(src_pixel) & 0xff;
-                        dest_pixel = qRgb(v, v, v);
-                    }
-                    break;
-                case ImagePreviewDialog::ColorFilterRed:
-                    {
-                        int v = qRed(src_pixel) & 0xff;
-                        dest_pixel = qRgb(v, 0, 0);
-                    }
-                    break;
-                case ImagePreviewDialog::ColorFilterGreen:
-                    {
-                        int v = qGreen(src_pixel) & 0xff;
-                        dest_pixel = qRgb(0, v, 0);
-                    }
-                    break;
-                case ImagePreviewDialog::ColorFilterBlue:
-                    {
-                        int v = qBlue(src_pixel) & 0xff;
-                        dest_pixel = qRgb(0, 0, v);
-                    }
-                    break;
-                case ImagePreviewDialog::ColorFilterAlpha:
-                    {
-                        int v = qAlpha(src_pixel) & 0xff;
-                        // display the alpha channel as grayscale image
-                        dest_pixel = qRgb(v, v, v);
-                    }
-                    break;
-                case ImagePreviewDialog::ColorFilterLuminance:
-                    {
-                        int v = QColor(src_pixel).lightness();
-                        // display the luminance channel as grayscale image
-                        dest_pixel = qRgb(v, v, v);
-                    }
-                    break;
-                case ImagePreviewDialog::ColorFilterHue:
-                    {
-                        int v = QColor(src_pixel).hslHue();
-                        // display the hue channel as grayscale image
-                        dest_pixel = qRgb(v, v, v);
-                    }
-                    break;
-                case ImagePreviewDialog::ColorFilterSaturation:
-                    {
-                        int v = QColor(src_pixel).hslSaturation();
-                        // display the saturation channel as grayscale image
-                        dest_pixel = qRgb(v, v, v);
-                    }
-                    break;
-                default:
-                    dest_pixel = src_pixel;
-                    break;
-                }
-                dest.setPixel(x, y, dest_pixel);
-            }
-        }
-    }
-    return true;
-}
-
-/// @note a lot of GLSL shader code for color filters can be found at
-/// @see https://github.com/AnalyticalGraphicsInc/cesium/blob/master/Source/Shaders/Builtin/Functions/
-/// e.g. RGBToHSL.glsl
-bool getColorFilterShaderCode(ImagePreviewDialog::ColorFilter filter, QString & fragment, QString & vertex)
-{
-    /// @see http://cs.uns.edu.ar/cg/clasespdf/GraphicShaders.pdf, Chapter 11, page 241ff
-    ///
-    bool ret = true;
-    switch(filter)
-    {
-    case ImagePreviewDialog::ColorFilterAll:
-        fragment.clear();
-        vertex.clear();
-        break;
-    case ImagePreviewDialog::ColorFilterGrayscale:
-        fragment = "float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));\r\ncolor = vec4(vec3(gray), color.a);";
-        vertex.clear();
-        break;
-    case ImagePreviewDialog::ColorFilterRed:
-        fragment = "color = vec4(color.r, 0.0, 0.0, color.a);";
-        vertex.clear();
-        break;
-    case ImagePreviewDialog::ColorFilterGreen:
-        fragment = "color = vec4(0.0, color.g, 0.0, color.a);";
-        vertex.clear();
-        break;
-    case ImagePreviewDialog::ColorFilterBlue:
-        fragment = "color = vec4(0.0, 0.0, color.b, color.a);";
-        vertex.clear();
-        break;
-    case ImagePreviewDialog::ColorFilterAlpha:
-        fragment = "color = vec4(color.a, color.a, color.a, 1.0);";
-        vertex.clear();
-        break;
-    case ImagePreviewDialog::ColorFilterLuminance:
-        fragment = "float lum = dot(color.rgb, vec3(0.2125, 0.7154, 0.0721));\r\ncolor = vec4(vec3(lum), 1.0);";
-        vertex.clear();
-        break;
-    case ImagePreviewDialog::ColorFilterHue:
-        // http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl
-        break;
-    case ImagePreviewDialog::ColorFilterSaturation:
-        // http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl
-        break;
-    default:
-        break;
-    }
-    return ret;
-}
 
 
 class ImagePreviewDialog::ImagePreviewDialogImpl : public QObject, public IImagePreviewDialog
@@ -311,7 +184,7 @@ public:
     void scaleImage(double factor);
 
     Image::ImageFormat currentImageFormat() const;
-    ColorFilter currentColorFilter() const;
+    ColorFilter::FilterType currentColorFilter() const;
 
     // Actions
     void zoomIn();
@@ -396,6 +269,7 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
 {
     if(ImageFormatDisplayText.empty())
     {
+        ImageFormatDisplayText[Image::ImageFormatOriginal] = tr("Original");
         ImageFormatDisplayText[Image::ImageFormatAutomatic] = tr("Automatic");
         ImageFormatDisplayText[Image::ImageFormatRGB24] = tr("RGB 24-bit");
         ImageFormatDisplayText[Image::ImageFormatRGB32] = tr("RGB 32-bit");
@@ -424,14 +298,10 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
     connect(ui->imageLabel, &ImageQtWidget::mouseMoved, _dialog, &ImagePreviewDialog::onMouseMoved);
     connect(ui->imageGL, &ImageGLWidget::mouseMoved, _dialog, &ImagePreviewDialog::onMouseMoved);
 
-    QPalette pal = ui->imageLabel->palette();
     const QColor default_osg_view_clear_color = QColor::fromRgbF(0.2f, 0.2f, 0.4f, 1.0f);
-    pal.setColor(QPalette::Base, default_osg_view_clear_color);
-    ui->imageLabel->setPalette(pal);
-    ui->scrollAreaImageQt->setPalette(pal);
-    ui->imageLabel->setBackgroundRole(QPalette::Base);
-    ui->scrollAreaImageQt->setBackgroundRole(QPalette::Base);
     ui->imageGL->setBackgroundColor(default_osg_view_clear_color);
+    ui->scrollAreaImageQt->setBackgroundColor(default_osg_view_clear_color);
+    ui->scrollAreaImageGL->setBackgroundColor(default_osg_view_clear_color);
 
 	createToolbar();
 
@@ -454,6 +324,10 @@ ImagePreviewDialog::ImagePreviewDialogImpl::~ImagePreviewDialogImpl()
 
 void ImagePreviewDialog::ImagePreviewDialogImpl::refresh()
 {
+    // release any previous converted images and get a new copy from the original item
+    _dialog->_image = nullptr;
+    _dialog->_workImage = nullptr;
+
 	_dialog->refreshImpl();
 }
 
@@ -559,13 +433,24 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
     for(const auto & it : ImageFormatDisplayText)
     {
         QAction * saveAction = new QAction(it.second, saveMenu);
-        if(it.first == Image::ImageFormatAutomatic)
+        switch (it.first)
         {
-            saveAction->setShortcut(tr("Ctrl+S"));
-            saveAction->setToolTip(tr("Save image..."));
-        }
-        else
+        case Image::ImageFormatAutomatic:
+            {
+                saveAction->setShortcut(tr("Ctrl+Shift+S"));
+                saveAction->setToolTip(tr("Save image..."));
+            }
+            break;
+        case Image::ImageFormatOriginal:
+            {
+                saveAction->setShortcut(tr("Ctrl+S"));
+                saveAction->setToolTip(tr("Save original image..."));
+            }
+            break;
+        default:
             saveAction->setToolTip(tr("Save image as %1...").arg(it.second));
+            break;
+        }
         saveAction->setIcon(QIcon::fromTheme("document-save"));
         saveAction->setData(QVariant::fromValue((int)it.first));
         connect(saveAction, &QAction::triggered, this, &ImagePreviewDialogImpl::saveImageAs);
@@ -577,14 +462,21 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
     QMenu * openMenu = new QMenu(_dialog);
     for(const auto & it : ImageFormatDisplayText)
     {
+        if (it.first == Image::ImageFormatOriginal)
+            continue;
         QAction * openAction = new QAction(it.second, openMenu);
-        if(it.first == Image::ImageFormatAutomatic)
+        switch (it.first)
         {
-            openAction->setShortcut(tr("Ctrl+O"));
-            openAction->setToolTip(tr("Open image..."));
-        }
-        else
+        case Image::ImageFormatAutomatic:
+            {
+                openAction->setShortcut(tr("Ctrl+O"));
+                openAction->setToolTip(tr("Open image..."));
+            }
+            break;
+        default:
             openAction->setToolTip(tr("Open image as %1...").arg(it.second));
+            break;
+        }
         openAction->setToolTip(tr("Open image as %1").arg(it.second));
         openAction->setIcon(QIcon::fromTheme("document-open"));
         openAction->setData(QVariant::fromValue((int)it.first));
@@ -613,15 +505,11 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 
     colorFilterComboBox = new QComboBox(toolBar);
     colorFilterComboBox->setToolTip(tr("Select color filter"));
-    colorFilterComboBox->addItem(tr("All"), QVariant::fromValue((int)ColorFilterAll));
-    colorFilterComboBox->addItem(tr("Grayscale"), QVariant::fromValue((int)ColorFilterGrayscale));
-    colorFilterComboBox->addItem(tr("Red"), QVariant::fromValue((int)ColorFilterRed));
-    colorFilterComboBox->addItem(tr("Green"), QVariant::fromValue((int)ColorFilterGreen));
-    colorFilterComboBox->addItem(tr("Blue"), QVariant::fromValue((int)ColorFilterBlue));
-    colorFilterComboBox->addItem(tr("Alpha"), QVariant::fromValue((int)ColorFilterAlpha));
-    colorFilterComboBox->addItem(tr("Luminance"), QVariant::fromValue((int)ColorFilterLuminance));
-    colorFilterComboBox->addItem(tr("Hue"), QVariant::fromValue((int)ColorFilterHue));
-    colorFilterComboBox->addItem(tr("Saturation"), QVariant::fromValue((int)ColorFilterSaturation));
+    for (unsigned i = 0; i < ColorFilter::numberOfFilters(); ++i)
+    {
+        const ColorFilter & f = ColorFilter::getFilter((ColorFilter::FilterType)i);
+        colorFilterComboBox->addItem(f.name(), QVariant::fromValue((int)f.type()));
+    }
 
     toolBar->addWidget(imageWidth);
     toolBar->addWidget(imageHeight);
@@ -692,13 +580,12 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::flipVertical()
 
 void ImagePreviewDialog::ImagePreviewDialogImpl::selectBackgroundColor()
 {
-    QPalette pal = ui->imageLabel->palette();
-    QColor color = QColorDialog::getColor(pal.color(QPalette::Base), _dialog, tr("Select background color"));
+    QColor oldColor = ui->scrollAreaImageQt->backgroundColor();
+    QColor color = QColorDialog::getColor(oldColor, _dialog, tr("Select background color"));
     if(color.isValid())
     {
-        pal.setColor(QPalette::Base, color);
-        ui->imageLabel->setPalette(pal);
-        ui->scrollAreaImageQt->setPalette(pal);
+        ui->scrollAreaImageQt->setBackgroundColor(color);
+        ui->scrollAreaImageGL->setBackgroundColor(color);
     }
 }
 
@@ -749,6 +636,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::openImageAs()
         lastDir = fileName;
         switch(targetFormat)
         {
+        case Image::ImageFormatOriginal:
         case Image::ImageFormatAutomatic:
         case Image::ImageFormatRGB24:
         case Image::ImageFormatRGB32:
@@ -758,16 +646,25 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::openImageAs()
         case Image::ImageFormatBGR32:
         case Image::ImageFormatABGR32:
             {
-                QImageReader reader(fileName);
-                QImage image = reader.read();
-                result = !image.isNull();
-                if(result)
+                QByteArray format = QImageReader::imageFormat(fileName);
+                if (!format.isEmpty())
                 {
-                    originalImage = image;
-                    _dialog->_workImage = new Image(&image);
-                    _dialog->_workImage->reinterpretFormat(targetFormat);
-                    _dialog->_image = _dialog->_workImage;
-                    _dialog->_itemImage = nullptr;
+                    QImageReader reader(fileName);
+                    QImage image = reader.read();
+                    result = !image.isNull();
+                    if (result)
+                    {
+                        originalImage = image;
+                        _dialog->_workImage = new Image(&image);
+                        _dialog->_workImage->reinterpretFormat(targetFormat);
+                        _dialog->_image = _dialog->_workImage;
+                        _dialog->_itemImage = nullptr;
+                    }
+                }
+                else
+                {
+                    //_dialog->_hostInterface->readObjectFile(result, _dialog->_item.get(), fileName.toStdString(), nullptr);
+
                 }
             }
             break;
@@ -830,7 +727,11 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::saveImageAs()
     {
         Image tempImage;
         bool result = true;
-        if(targetFormat != Image::ImageFormatAutomatic)
+        if (targetFormat == Image::ImageFormatOriginal)
+        {
+            // no conversion needed
+        }
+        else  if(targetFormat != Image::ImageFormatAutomatic)
         {
 #if defined(SGI_USE_FFMPEG)
             result = SWScale::convert(*_dialog->_image.get(), targetFormat, tempImage);
@@ -841,6 +742,9 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::saveImageAs()
         lastDir = fileName;
         switch(targetFormat)
         {
+        case Image::ImageFormatOriginal:
+            _dialog->_hostInterface->writeObjectFile(result, _dialog->_item.get(), fileName.toStdString(), nullptr);
+            break;
         case Image::ImageFormatAutomatic:
             if(pixmap)
             {
@@ -1033,10 +937,10 @@ Image::ImageFormat ImagePreviewDialog::ImagePreviewDialogImpl::currentImageForma
     return ret;
 }
 
-ImagePreviewDialog::ColorFilter ImagePreviewDialog::ImagePreviewDialogImpl::currentColorFilter() const
+ColorFilter::FilterType ImagePreviewDialog::ImagePreviewDialogImpl::currentColorFilter() const
 {
     int index = colorFilterComboBox->currentIndex();
-    ColorFilter ret = (ColorFilter)colorFilterComboBox->itemData(index, Qt::UserRole).toInt();
+    ColorFilter::FilterType ret = (ColorFilter::FilterType)colorFilterComboBox->itemData(index, Qt::UserRole).toInt();
     return ret;
 }
 
@@ -1139,19 +1043,18 @@ void ImagePreviewDialog::refreshImpl()
     if(!qimg.isNull())
     {
         QImage qimgDisplay;
-        ColorFilter filter = _priv->currentColorFilter();
-        applyColorFilterQImage(qimg, qimgDisplay, filter);
-        QString fragment, vertex;
-        if(getColorFilterShaderCode(filter, fragment, vertex))
-        {
-            _priv->ui->colorFilterFragment->blockSignals(true);
-            _priv->ui->colorFilterVertex->blockSignals(true);
-            _priv->ui->colorFilterFragment->setPlainText(fragment);
-            _priv->ui->colorFilterVertex->setPlainText(vertex);
-            _priv->ui->colorFilterFragment->blockSignals(false);
-            _priv->ui->colorFilterVertex->blockSignals(false);
-            _priv->ui->imageGL->setColorFilter(fragment, vertex);
-        }
+        ColorFilter::FilterType filterType = _priv->currentColorFilter();
+        const ColorFilter & filter = ColorFilter::getFilter(filterType);
+        if (!filter.apply(qimg, qimgDisplay))
+            qimgDisplay = qimg;
+
+        _priv->ui->colorFilterFragment->blockSignals(true);
+        _priv->ui->colorFilterVertex->blockSignals(true);
+        _priv->ui->colorFilterFragment->setPlainText(filter.fragmentShader());
+        _priv->ui->colorFilterVertex->setPlainText(filter.vertexShader());
+        _priv->ui->colorFilterFragment->blockSignals(false);
+        _priv->ui->colorFilterVertex->blockSignals(false);
+        _priv->ui->imageGL->setColorFilter(filter.fragmentShader(), filter.vertexShader());
 
         QImage actualImage;
         if(_priv->flipHorizontalAction->isChecked() || _priv->flipVerticalAction->isChecked())

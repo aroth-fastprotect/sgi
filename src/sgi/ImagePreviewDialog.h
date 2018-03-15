@@ -44,21 +44,6 @@ public:
 
     SGIItemBase *           item() const;
 
-    enum ColorFilter {
-        ColorFilterAll = 0,
-        ColorFilterGrayscale,
-        ColorFilterRed,
-        ColorFilterGreen,
-        ColorFilterBlue,
-        ColorFilterAlpha,
-        ColorFilterLuminance,
-        ColorFilterHue,
-        ColorFilterSaturation,
-        ColorFilterCustom1,
-        ColorFilterCustom2,
-        ColorFilterCustom3,
-    };
-
 public slots:
     void setLabel(const QString & label);
     void showBesideParent();

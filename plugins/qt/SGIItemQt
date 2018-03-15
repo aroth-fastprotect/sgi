@@ -31,6 +31,7 @@ enum SGIItemType_qt
     SGIItemTypeShaderProgramShaders,
     SGIItemTypeShaderSourceCode,
     SGIItemTypeShaderLog,
+    SGIItemTypePalette,
 };
 
 class SGIItemQt : public SGIItemBase

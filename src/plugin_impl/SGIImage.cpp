@@ -297,6 +297,9 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
     case ImageFormatInvalid:
         assert(false); // "invalid frame format"
         break;
+    case ImageFormatOriginal:
+        assert(false); // "invalid frame format, original"
+        break;
     case ImageFormatAutomatic:
         assert(false); // "invalid frame format, automatic"
         break;

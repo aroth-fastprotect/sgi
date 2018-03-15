@@ -704,6 +704,7 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeDrawElementsIndicies);
         SGIITEMTYPE_NAME(SGIItemTypeCullingInfoBefore);
         SGIITEMTYPE_NAME(SGIItemTypeCullingInfoAfter);
+        SGIITEMTYPE_NAME(SGIItemTypeBuildInfo);
     }
     SGIPlugin_osg_Implementation(const SGIPlugin_osg_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
         : osg_plugin::SGIPluginImpl(rhs, copyop)

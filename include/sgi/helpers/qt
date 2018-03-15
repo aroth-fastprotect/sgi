@@ -42,6 +42,16 @@ class QChar;
 class QUrl;
 class QPaintDevice;
 class QImage;
+class QPalette;
+class QFont;
+class QPixmap;
+class QBrush;
+class QPolygon;
+class QBitmap;
+class QRegion;
+class QCursor;
+class QKeySequence;
+class QPen;
 
 namespace sgi {
 
@@ -204,6 +214,18 @@ namespace std {
 #ifdef QIMAGE_H
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, QImage::Format t);
 #endif // QIMAGE_H
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QFont & f);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPixmap & p);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QBrush & b);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QImage & i);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPolygon & p);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPalette & p);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QBitmap & b);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QRegion & r);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QCursor & c);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QKeySequence & k);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPen & p);
+
     template<typename T>
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QList<T> & list)
     {

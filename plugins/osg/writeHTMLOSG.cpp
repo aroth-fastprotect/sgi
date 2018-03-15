@@ -600,9 +600,8 @@ bool writePrettyHTMLImpl<osg::NodeVisitor>::process(std::basic_ostream<char>& os
             os << "<tr><td>visitorType</td><td>" << object->getVisitorType() << "</td></tr>" << std::endl;
             os << "<tr><td>traversalMode</td><td>" << object->getTraversalMode() << "</td></tr>" << std::endl;
             os << "<tr><td>traversalNumber</td><td>" << object->getTraversalNumber() << "</td></tr>" << std::endl;
-            os << "<tr><td>traversalMask</td><td>0x" << std::hex << object->getTraversalMask() << std::dec << "</td></tr>" << std::endl;
+            os << "<tr><td>traversalMask</td><td>" << castToEnumValueString<osgNodeMask>(object->getTraversalMask()) << "</td></tr>" << std::endl;
             os << "<tr><td>nodeMaskOverride</td><td>0x" << std::hex << object->getNodeMaskOverride() << std::dec << "</td></tr>" << std::endl;
-            
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -4359,6 +4358,49 @@ bool writePrettyHTMLImpl<osg::GraphicsThread>::process(std::basic_ostream<char>&
     return ret;
 }
 
+#ifndef GL_CONTEXT_PROFILE_MASK
+#define GL_CONTEXT_PROFILE_MASK           0x9126
+#endif
+#ifndef GL_CONTEXT_FLAGS
+#define GL_CONTEXT_FLAGS                  0x821E
+#endif
+#ifndef GL_MAJOR_VERSION
+#define GL_MAJOR_VERSION                  0x821B
+#endif
+#ifndef GL_MINOR_VERSION
+#define GL_MINOR_VERSION                  0x821C
+#endif
+
+struct PerContextInfo {
+    std::string glversion;
+    std::string glvendor;
+    std::string glrenderer;
+    int majorVersion;
+    int minorVersion;
+    unsigned contextProfileMask;
+    unsigned contextFlags;
+};
+static std::map<unsigned, PerContextInfo> s_contextInfo;
+struct CollectPerContextInfo : public osg::Operation {
+
+    /** Do the actual task of this operation.*/
+    void operator () (osg::Object* object) override
+    {
+        GraphicsContextAccess* ctx = static_cast<GraphicsContextAccess*>(object);
+        unsigned ctxId = ctx->getContextID();
+        PerContextInfo & info = s_contextInfo[ctxId];
+        info.glvendor = std::string(reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
+        info.glrenderer = std::string(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+        info.glversion = std::string(reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+
+        glGetIntegerv(GL_MAJOR_VERSION, &info.majorVersion);
+        glGetIntegerv(GL_MINOR_VERSION, &info.minorVersion);
+        glGetIntegerv(GL_CONTEXT_PROFILE_MASK, (GLint*)&info.contextProfileMask);
+        glGetIntegerv(GL_CONTEXT_FLAGS, (GLint*)&info.contextProfileMask);
+    }
+
+};
+
 bool writePrettyHTMLImpl<osg::GraphicsContext>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -4377,7 +4419,25 @@ bool writePrettyHTMLImpl<osg::GraphicsContext>::process(std::basic_ostream<char>
             os << "<tr><td>valid</td><td>" << (object->valid()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>isRealized</td><td>" << (object->isRealized()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>isCurrent</td><td>" << (object->isCurrent()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>contextId</td><td>" << object->getContextID() << "</td></tr>" << std::endl;
+            os << "<tr><td>contextId</td><td>" << object->getContextID();
+            auto itContextInfo = s_contextInfo.find(object->getContextID());
+            if (itContextInfo == s_contextInfo.end())
+            {
+                os << "<i>(additional info pending)</i></td></tr>" << std::endl;
+                object->add(new CollectPerContextInfo());
+            }
+            else
+            {
+                os << "<i>(info available)</i></td></tr>" << std::endl;
+                const PerContextInfo & info = itContextInfo->second;
+                os << "<tr><td>GL vendor</td><td>" << info.glvendor << "</td></tr>" << std::endl;
+                os << "<tr><td>GL renderer</td><td>" << info.glrenderer << "</td></tr>" << std::endl;
+                os << "<tr><td>GL version string</td><td>" << info.glversion << "</td></tr>" << std::endl;
+                os << "<tr><td>GL version number</td><td>" << info.majorVersion << "." << info.minorVersion << "</td></tr>" << std::endl;
+                os << "<tr><td>GL profile mask</td><td>0x" << std::hex << info.contextProfileMask << "</td></tr>" << std::endl;
+                os << "<tr><td>GL context flags</td><td>0x" << std::hex << info.contextFlags << "</td></tr>" << std::endl;
+                os << std::dec;
+            }
 
             os << "<tr><td>clear color</td><td>"
                 << vec4fToHtmlColor(object->getClearColor())
@@ -4395,6 +4455,8 @@ bool writePrettyHTMLImpl<osg::GraphicsContext>::process(std::basic_ostream<char>
             os << "<ul></td></tr>" << std::endl;
             os << "<tr><td>traits</td><td>" << osg_helpers::getObjectNameAndType(object->getTraits()) << "</td></tr>" << std::endl;
             os << "<tr><td>thread</td><td>" << osg_helpers::getObjectNameAndType(object->getGraphicsThread()) << "</td></tr>" << std::endl;
+
+            
 
             if(_table)
                 os << "</table>" << std::endl;

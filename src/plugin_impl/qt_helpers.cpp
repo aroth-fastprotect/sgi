@@ -22,6 +22,18 @@
 #include <QSizePolicy>
 #include <QPaintDevice>
 #include <QImage>
+#include <QPixmap>
+#include <QBitmap>
+#include <QCursor>
+#include <QKeySequence>
+#include <QPalette>
+#include <QBrush>
+#include <QPen>
+#include <QMetaEnum>
+#include <QUuid>
+#include <QFont>
+#include <QModelIndex>
+#include <QPersistentModelIndex>
 #include <sgi/helpers/rtti>
 
 namespace std {
@@ -173,6 +185,22 @@ namespace std {
         case QVariant::RegExp: os << v.toRegExp(); break;
         case QVariant::Hash: os << v.toHash(); break;
         case QVariant::EasingCurve: os << v.toEasingCurve(); break;
+        case QVariant::Uuid: os << v.toUuid(); break;
+        case QVariant::ModelIndex: os << v.toModelIndex(); break;
+        case QVariant::PersistentModelIndex: os << v.toPersistentModelIndex(); break;
+        case QVariant::Font: os << v.value<QFont>(); break;
+        case QVariant::Pixmap: os << v.value<QPixmap>(); break;
+        case QVariant::Brush: os << v.value<QBrush>(); break;
+        case QVariant::Color: os << v.value<QColor>(); break;
+        case QVariant::Palette: os << v.value<QPalette>(); break;
+        case QVariant::Image: os << v.value<QImage>(); break;
+        case QVariant::Polygon: os << v.value<QPolygon>(); break;
+        case QVariant::Region: os << v.value<QRegion>(); break;
+        case QVariant::Bitmap: os << v.value<QBitmap>(); break;
+        case QVariant::Cursor: os << v.value<QCursor>(); break;
+        case QVariant::KeySequence: os << v.value<QKeySequence>(); break;
+        case QVariant::Pen: os << v.value<QPen>(); break;
+
         default: os << v.toString(); break;
         }
         return os;
@@ -348,4 +376,96 @@ namespace std {
         return os;
     }
 
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPalette & palette)
+    {
+        os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+        os << "<tr><td>cacheKey</td><td>" << palette.cacheKey() << "</td></tr>" << std::endl;
+
+        QMetaEnum colorGroupEnum = QMetaEnum::fromType<QPalette::ColorGroup>();
+        QMetaEnum colorRoleEnum = QMetaEnum::fromType<QPalette::ColorRole>();
+        for(int cg = 0; cg < QPalette::NColorGroups; ++cg)
+        {
+            for(int cr = 0; cr < QPalette::NColorRoles; ++cr)
+            {
+                QColor c = palette.color((QPalette::ColorGroup)cg, (QPalette::ColorRole)cr);
+                os << "<tr><td>"
+                   << colorGroupEnum.key(cg)
+                   << '/' << colorRoleEnum.key(cr)
+                   << "</td><td>"
+                   << c
+                   << "</td></tr>"
+                   << std::endl;
+            }
+        }
+        os << "</table>" << std::endl;
+        return os;
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QFont & f)
+    {
+        return os << f.family() << ',' << f.pixelSize();
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPixmap & p)
+    {
+        return os << '(' << p.size() << ',' << p.devType() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QBrush & b)
+    {
+        return os << '(' << b.color() << ',' << b.style() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QImage & i)
+    {
+        return os << '(' << i.size() << ',' << i.format() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPolygon & p)
+    {
+        return os << '(' << p.size() << " points)";
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QBitmap & b)
+    {
+        return os << '(' << b.size() << ',' << b.devType() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QRegion & r)
+    {
+#if (QT_VERSION < QT_VERSION_CHECK(5, 8, 0))
+        QVector<QRect> rv = r.rects();
+        for(QVector<QRect>::const_iterator it = rv.begin(); it != rv.end();)
+        {
+            os << *it;
+            it++;
+            if(it != rv.end())
+                os << ';';
+        }
+#else
+        for(QRegion::const_iterator it = r.begin(); it != r.end();)
+        {
+            os << *it;
+            it++;
+            if(it != r.end())
+                os << ';';
+        }
+#endif
+        return os;
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QCursor & c)
+    {
+        return os << '(' << c.shape() << ',' << c.hotSpot() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QKeySequence & k)
+    {
+        return os << k.toString();
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPen & p)
+    {
+        return os << '(' << p.color() << ',' << p.style() << ')';
+    }
 }

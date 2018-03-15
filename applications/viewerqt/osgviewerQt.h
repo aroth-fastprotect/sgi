@@ -123,7 +123,17 @@ public:
 protected:
     virtual void paintEvent( QPaintEvent* event );
 
-    osgViewer::GraphicsWindow* createGraphicsWindow( int x, int y, int w, int h, osg::GraphicsContext * sharedContext, const std::string& name=std::string(), bool windowDecoration=false );
+    enum GLContextProfile {
+        GLContextProfileNone,
+        GLContextProfileCore,
+        GLContextProfileCompatibility,
+    };
+    osgViewer::GraphicsWindow* createGraphicsWindow( int x, int y, int w, int h,
+                                                     osg::GraphicsContext * sharedContext,
+                                                     const std::string& glver=std::string(),
+                                                     GLContextProfile profile=GLContextProfileNone,
+                                                     const std::string& name=std::string(),
+                                                     bool windowDecoration=false );
 
 private:
     void init();

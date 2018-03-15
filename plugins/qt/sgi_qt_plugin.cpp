@@ -158,6 +158,7 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeShaderProgramShaders);
         SGIITEMTYPE_NAME(SGIItemTypeShaderSourceCode);
         SGIITEMTYPE_NAME(SGIItemTypeShaderLog);
+        SGIITEMTYPE_NAME(SGIItemTypePalette);
     }
     SGIPlugin_qt_Implementation(const SGIPlugin_qt_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
         : qt_plugin::SGIPluginImpl(rhs, copyop)

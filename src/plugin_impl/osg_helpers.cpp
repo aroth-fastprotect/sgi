@@ -893,6 +893,5 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg
     return output << std::setprecision(12) << '[' << b._center << ",r=" << b._radius << ']';
 }
 
-
-} // namespace osg_helpers
+    } // namespace osg_helpers
 } // namespace sgi
