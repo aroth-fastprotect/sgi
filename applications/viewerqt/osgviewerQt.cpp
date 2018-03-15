@@ -803,29 +803,179 @@ ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared)
     _viewer->addView(_view);
 }
 
-class EventFilter : public QObject
+#ifdef _WIN32
+class QtKeyboardMap
 {
-    QWidget * _widget;
+
 public:
-    EventFilter(QWidget * parent)
+    QtKeyboardMap()
+    {
+        mKeyMap[Qt::Key_Escape] = osgGA::GUIEventAdapter::KEY_Escape;
+        mKeyMap[Qt::Key_Delete] = osgGA::GUIEventAdapter::KEY_Delete;
+        mKeyMap[Qt::Key_Home] = osgGA::GUIEventAdapter::KEY_Home;
+        mKeyMap[Qt::Key_Enter] = osgGA::GUIEventAdapter::KEY_KP_Enter;
+        mKeyMap[Qt::Key_End] = osgGA::GUIEventAdapter::KEY_End;
+        mKeyMap[Qt::Key_Return] = osgGA::GUIEventAdapter::KEY_Return;
+        mKeyMap[Qt::Key_PageUp] = osgGA::GUIEventAdapter::KEY_Page_Up;
+        mKeyMap[Qt::Key_PageDown] = osgGA::GUIEventAdapter::KEY_Page_Down;
+        mKeyMap[Qt::Key_Left] = osgGA::GUIEventAdapter::KEY_Left;
+        mKeyMap[Qt::Key_Right] = osgGA::GUIEventAdapter::KEY_Right;
+        mKeyMap[Qt::Key_Up] = osgGA::GUIEventAdapter::KEY_Up;
+        mKeyMap[Qt::Key_Down] = osgGA::GUIEventAdapter::KEY_Down;
+        mKeyMap[Qt::Key_Backspace] = osgGA::GUIEventAdapter::KEY_BackSpace;
+        mKeyMap[Qt::Key_Tab] = osgGA::GUIEventAdapter::KEY_Tab;
+        mKeyMap[Qt::Key_Space] = osgGA::GUIEventAdapter::KEY_Space;
+        mKeyMap[Qt::Key_Delete] = osgGA::GUIEventAdapter::KEY_Delete;
+        mKeyMap[Qt::Key_Period] = osgGA::GUIEventAdapter::KEY_Period;
+        mKeyMap[Qt::Key_Alt] = osgGA::GUIEventAdapter::KEY_Alt_L;
+        mKeyMap[Qt::Key_Shift] = osgGA::GUIEventAdapter::KEY_Shift_L;
+        mKeyMap[Qt::Key_Control] = osgGA::GUIEventAdapter::KEY_Control_L;
+        mKeyMap[Qt::Key_Meta] = osgGA::GUIEventAdapter::KEY_Meta_L;
+
+        mKeyMap[Qt::Key_Super_L] = osgGA::GUIEventAdapter::KEY_Super_L;
+        mKeyMap[Qt::Key_Super_R] = osgGA::GUIEventAdapter::KEY_Super_R;
+        mKeyMap[Qt::Key_Hyper_L] = osgGA::GUIEventAdapter::KEY_Hyper_L;
+        mKeyMap[Qt::Key_Hyper_R] = osgGA::GUIEventAdapter::KEY_Hyper_R;
+
+        mKeyMap[Qt::Key_CapsLock] = osgGA::GUIEventAdapter::KEY_Caps_Lock;
+        mKeyMap[Qt::Key_NumLock] = osgGA::GUIEventAdapter::KEY_Num_Lock;
+        mKeyMap[Qt::Key_ScrollLock] = osgGA::GUIEventAdapter::KEY_Scroll_Lock;
+
+        mKeyMap[Qt::Key_hyphen] = '-';
+        mKeyMap[Qt::Key_Equal] = '=';
+
+        mKeyMap[Qt::Key_division] = osgGA::GUIEventAdapter::KEY_KP_Divide;
+        mKeyMap[Qt::Key_multiply] = osgGA::GUIEventAdapter::KEY_KP_Multiply;
+        mKeyMap[Qt::Key_Minus] = '-';
+        mKeyMap[Qt::Key_Plus] = '+';
+        mKeyMap[Qt::Key_Insert] = osgGA::GUIEventAdapter::KEY_Insert;
+
+        mKeyMapKeypad[Qt::Key_Slash] = osgGA::GUIEventAdapter::KEY_KP_Divide;
+        mKeyMapKeypad[Qt::Key_Asterisk] = osgGA::GUIEventAdapter::KEY_KP_Multiply;
+        mKeyMapKeypad[Qt::Key_Minus] = osgGA::GUIEventAdapter::KEY_KP_Subtract;
+        mKeyMapKeypad[Qt::Key_Plus] = osgGA::GUIEventAdapter::KEY_KP_Add;
+        mKeyMapKeypad[Qt::Key_Period] = osgGA::GUIEventAdapter::KEY_Period;
+
+
+        mKeyMapKeypad[Qt::Key_Home] = osgGA::GUIEventAdapter::KEY_KP_Home;
+        mKeyMapKeypad[Qt::Key_Enter] = osgGA::GUIEventAdapter::KEY_KP_Enter;
+        mKeyMapKeypad[Qt::Key_End] = osgGA::GUIEventAdapter::KEY_KP_End;
+        mKeyMapKeypad[Qt::Key_PageUp] = osgGA::GUIEventAdapter::KEY_KP_Page_Up;
+        mKeyMapKeypad[Qt::Key_PageDown] = osgGA::GUIEventAdapter::KEY_KP_Page_Down;
+        mKeyMapKeypad[Qt::Key_Left] = osgGA::GUIEventAdapter::KEY_KP_Left;
+        mKeyMapKeypad[Qt::Key_Right] = osgGA::GUIEventAdapter::KEY_KP_Right;
+        mKeyMapKeypad[Qt::Key_Up] = osgGA::GUIEventAdapter::KEY_KP_Up;
+        mKeyMapKeypad[Qt::Key_Down] = osgGA::GUIEventAdapter::KEY_KP_Down;
+        mKeyMapKeypad[Qt::Key_Tab] = osgGA::GUIEventAdapter::KEY_KP_Tab;
+        mKeyMapKeypad[Qt::Key_Delete] = osgGA::GUIEventAdapter::KEY_KP_Delete;
+        mKeyMapKeypad[Qt::Key_Insert] = osgGA::GUIEventAdapter::KEY_KP_Insert;
+        mKeyMapKeypad[Qt::Key_Clear] = osgGA::GUIEventAdapter::KEY_KP_Space;
+
+    }
+
+    ~QtKeyboardMap()
+    {
+    }
+
+    int remapKey(QKeyEvent* event)
+    {
+        const int key = event->key();
+        bool isKeypad = (event->modifiers() & Qt::KeypadModifier);
+
+        const KeyMap & map = (isKeypad) ? mKeyMapKeypad : mKeyMap;
+        KeyMap::const_iterator itr = map.find(key);
+        if (itr == map.end())
+        {
+            if (key >= Qt::Key_0 && key <= Qt::Key_9)
+            {
+                if (isKeypad)
+                    return osgGA::GUIEventAdapter::KEY_KP_0 + (key - Qt::Key_0);
+                else
+                    return osgGA::GUIEventAdapter::KEY_0 + (key - Qt::Key_0);
+            }
+            else if (key >= Qt::Key_A && key <= Qt::Key_Z)
+            {
+                return osgGA::GUIEventAdapter::KEY_A + (key - Qt::Key_A);
+            }
+            else if (key >= Qt::Key_F1 && key <= Qt::Key_F35)
+            {
+                if (isKeypad)
+                    return osgGA::GUIEventAdapter::KEY_KP_F1 + (key - Qt::Key_F1);
+                else
+                    return osgGA::GUIEventAdapter::KEY_F1 + (key - Qt::Key_F1);
+            }
+            else
+            {
+                if (isKeypad)
+                    return key;
+                else
+                    return int(*(event->text().toLocal8Bit().data()));
+            }
+        }
+        else
+            return itr->second;
+    }
+
+private:
+    typedef std::map<unsigned int, int> KeyMap;
+    KeyMap mKeyMap;
+    KeyMap mKeyMapKeypad;
+};
+
+static QtKeyboardMap s_QtKeyboardMap;
+
+class EventFilterWin32 : public QObject
+{
+    osgViewer::GraphicsWindow * _gw;
+    QWidget * _widget;
+
+
+    void setKeyboardModifiers(QInputEvent* event)
+    {
+        int modkey = event->modifiers() & (Qt::ShiftModifier | Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier);
+        unsigned int mask = 0;
+        if (modkey & Qt::ShiftModifier) mask |= osgGA::GUIEventAdapter::MODKEY_SHIFT;
+        if (modkey & Qt::ControlModifier) mask |= osgGA::GUIEventAdapter::MODKEY_CTRL;
+        if (modkey & Qt::AltModifier) mask |= osgGA::GUIEventAdapter::MODKEY_ALT;
+        if (modkey & Qt::MetaModifier) mask |= osgGA::GUIEventAdapter::MODKEY_META;
+        _gw->getEventQueue()->getCurrentEventState()->setModKeyMask(mask);
+    }
+
+public:
+    EventFilterWin32(osgViewer::GraphicsWindow * gw, QWidget * parent)
         : QObject(parent)
+        , _gw(gw)
         , _widget(parent)
     {
     }
     bool eventFilter(QObject *obj, QEvent *event)
     {
-        if (event->type() == QEvent::KeyPress) {
-            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
-            //_widget->event(keyEvent);
-            qDebug("Ate key press %d", keyEvent->key());
-            return true;
+        switch(event->type())
+        {
+        case QEvent::KeyPress:
+            {
+                QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+                //_widget->event(keyEvent);
+                setKeyboardModifiers(keyEvent);
+                int value = s_QtKeyboardMap.remapKey(keyEvent);
+                _gw->getEventQueue()->keyPress(value);
+            }
+            break;
+        case QEvent::KeyRelease:
+            {
+                QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+                //_widget->event(keyEvent);
+                setKeyboardModifiers(keyEvent);
+                int value = s_QtKeyboardMap.remapKey(keyEvent);
+                _gw->getEventQueue()->keyRelease(value);
+            }
+            break;
         }
-        else {
-            // standard event processing
-            return QObject::eventFilter(obj, event);
-        }
+        // standard event processing
+        return QObject::eventFilter(obj, event);
     }
 };
+#endif // _WIN32
 
 ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     : QMainWindow(parent)
@@ -872,13 +1022,12 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
             HWND hwnd = gwin32->getHWND();
             QWindow * wnd = QWindow::fromWinId((WId)hwnd);
             wnd->setFlags(Qt::ForeignWindow| Qt::MSWindowsOwnDC);
-            wnd->installEventFilter(new EventFilter(this));
             _viewWidget = QWidget::createWindowContainer(wnd, this);
             _viewWidget->setAttribute(Qt::WA_NativeWindow);
-            _viewWidget->setFocusPolicy(Qt::StrongFocus);
+            _viewWidget->setFocusPolicy(Qt::WheelFocus);
 
             gwin32->setUserValue("sgi_ctx_widget", (double)(qulonglong)(void*)_viewWidget);
-            QCoreApplication::instance()->installEventFilter(new EventFilter(_viewWidget));
+            QCoreApplication::instance()->installEventFilter(new EventFilterWin32(gwin32, _viewWidget));
         }
 #elif defined(__linux__)
         osgViewer::GraphicsWindowX11* gwx11 = dynamic_cast<osgViewer::GraphicsWindowX11*>(_mainGW.get());
