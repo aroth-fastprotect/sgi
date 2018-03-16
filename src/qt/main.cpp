@@ -12,6 +12,7 @@
 #include <sgi/Shutdown>
 #include <sgi/AutoLoadQt>
 #include <sgi/ImagePreviewDialog>
+#include <sgi/SceneGraphDialog>
 #include <sgi/helpers/qt_widgetwindow>
 #include <sgi/plugins/SGIHostItemQt.h>
 
@@ -47,8 +48,10 @@ public:
     enum Command {
         CommandNone = 0,
         CommandImage,
+        CommandObject,
+        CommandListPlugins,
     };
-    SGIEvent(Command command, const QString & filename, const QString & format)
+    SGIEvent(Command command, const QString & filename=QString(), const QString & format=QString())
         : QEvent((QEvent::Type)SGIEvent_type)
         , _command(command), _filename(filename), _format(format)
     {
@@ -135,6 +138,15 @@ bool ApplicationEventFilter::imagePreviewDialog(QWidget * parent, QImage * image
     return true;
 }
 
+bool ApplicationEventFilter::sceneGraphDialog(QWidget * parent, QObject * obj)
+{
+    sgi::SGIHostItemQt item(obj);
+    ISceneGraphDialog * dialog = sgi::showSceneGraphDialog<sgi::autoload::Qt>(parent, static_cast<const SGIHostItemBase *>(&item));
+    if (dialog)
+        dialog->show();
+    return true;
+}
+
 bool ApplicationEventFilter::handleEvent(SGIEvent * ev)
 {
     bool ret = false;
@@ -154,6 +166,24 @@ bool ApplicationEventFilter::handleEvent(SGIEvent * ev)
             imagePreviewDialog(widget, image);
             ret = true;
         }
+        break;
+    case SGIEvent::CommandListPlugins:
+        {
+            qWarning() << "List plugins";
+        }
+        break;
+    case SGIEvent::CommandObject:
+        {
+            qWarning() << "Show dialog for object" << ev->filename();
+            QWidget * widget = QApplication::activeWindow();
+            QObject * obj = nullptr;
+            if(ev->filename() == "app")
+                obj = qApp;
+            sceneGraphDialog(widget, obj);
+        }
+        break;
+    default:
+        qCritical() << "Command" << ev->command() << "is not implemented.";
         break;
     }
     return ret;
@@ -344,11 +374,24 @@ bool sgiImageIOHandler::read(QImage *image)
         QJsonObject obj = doc.object();
         if (obj.contains("image"))
         {
-            QJsonObject image = obj.value("image").toObject();
-            QString filename = image.value("filename").toString();
-            QString format = image.value("format").toString();
+            QJsonObject param = obj.value("image").toObject();
+            QString filename = param.value("filename").toString();
+            QString format = param.value("format").toString();
             if(!filename.isEmpty())
                 ApplicationEventFilter::postEvent(new SGIEvent(SGIEvent::CommandImage, filename, format));
+            bSuccess = sendLogoImage = true;
+        }
+        else if(obj.contains("list-plugins"))
+        {
+            QJsonObject param = obj.value("list-plugins").toObject();
+            ApplicationEventFilter::postEvent(new SGIEvent(SGIEvent::CommandListPlugins));
+            bSuccess = sendLogoImage = true;
+        }
+        else if(obj.contains("object"))
+        {
+            QJsonObject param = obj.value("object").toObject();
+            QString name = param.value("name").toString();
+            ApplicationEventFilter::postEvent(new SGIEvent(SGIEvent::CommandObject, name));
             bSuccess = sendLogoImage = true;
         }
     }

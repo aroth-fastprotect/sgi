@@ -8,9 +8,9 @@
 
 #if !defined(_WIN32)
 #include <QtCore/QCoreApplication>
-#include <QtCore/QDebug>
 #endif
 #include <QtCore/QLibrary>
+#include <QtCore/QDebug>
 
 namespace sgi {
     namespace autoload {
@@ -30,11 +30,13 @@ namespace sgi {
             // is started from the bin directory. So a little trick is required to find
             // the library.
             QString libfile = QCoreApplication::applicationDirPath() + QString::fromLatin1("/../lib/" SGI_LIBRARY_NAME);
-            qWarning() << "Load SGI" << libfile;
             _library = new QLibrary(libfile);
 #endif
             if(!_library->load())
+            {
+                qWarning() << "Failed to load SGI from" << libfile << _library->errorString();
                 _error = _library->errorString().toStdString();
+            }
         }
         ~Qt()
         {
@@ -52,7 +54,10 @@ namespace sgi {
             {
                 ret = (PROC_ADDRESS)_library->resolve(procName);
                 if(!ret)
+                {
+                    qWarning() << "Failed to resolve SGI function" << procName << _library->errorString();
                     _error = _library->errorString().toStdString();
+                }
             }
             return ret;
         }

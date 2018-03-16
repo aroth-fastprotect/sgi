@@ -88,9 +88,17 @@ protected:
     void destruct();
 
 public:
+    enum PluginType {
+        PluginTypeModel = 0,
+    };
+
     typedef SGIPluginInfo PluginInfo;
     typedef std::list<PluginInfo> PluginInfoList;
+    typedef std::pair<std::string, std::string> PluginFileName;
+    typedef std::list<PluginFileName> PluginFileNameList;
+
     bool getPlugins(PluginInfoList & pluginList);
+    PluginFileNameList listAllAvailablePlugins(PluginType pluginType=PluginTypeModel);
 
 public:
     SGIPluginHostInterface * hostInterface();

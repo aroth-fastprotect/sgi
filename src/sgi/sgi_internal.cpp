@@ -25,6 +25,8 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLTexture>
 
+#include <osgDB/PluginQuery>
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -139,7 +141,29 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
             HAS_SUPPORT(FFMPEG);
             HAS_SUPPORT(GAMMARAY);
 
-            os << "<tr><td>plugins</td><td>";
+            os << "<tr><td>plugins</td><td><ul>";
+            SGIPlugins::PluginInfoList plugins;
+            if(object->getPlugins(plugins))
+            {
+                for(SGIPlugins::PluginInfoList::const_iterator it = plugins.begin(); it != plugins.end(); it++)
+                {
+                    const SGIPlugins::PluginInfo & info = *it;
+                    os << "<li>" << info.pluginName;
+                    if(info.pluginFilename.empty())
+                        os << " <i>(internal)</i>";
+                    else
+                        os << " from " << info.pluginFilename;
+                    os << "</li>";
+                }
+            }
+            os << "</ul></td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+        }
+        break;
+    case SGIItemTypePlugins:
+        {
             SGIPlugins::PluginInfoList plugins;
             if(object->getPlugins(plugins))
             {
@@ -157,13 +181,30 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
                     os << "<tr><td>ContextMenu</td><td>" << (void*)info.contextMenuInterface << "</td></tr>";
                     os << "<tr><td>SettingsDialog</td><td>" << (void*)info.settingsDialogInterface << "</td></tr>";
                     os << "<tr><td>GUIAdapter</td><td>" << (void*)info.guiAdapterInterface << "</td></tr>";
+                    os << "<tr><td>ConvertToImage</td><td>" << (void*)info.convertToImage << "</td></tr>";
                     os << "</table>";
                 }
             }
-            os << "</td></tr>" << std::endl;
-
-            if(_table)
-                os << "</table>" << std::endl;
+        }
+        break;
+    case SGIItemTypeBackendPlugins:
+        {
+            os << "<ul>";
+            osgDB::FileNameList plugins = osgDB::listAllAvailablePlugins();
+            for(osgDB::FileNameList::const_iterator it = plugins.begin(); it != plugins.end(); it++)
+            {
+                os << "<li>" << *it << "</li>";
+            }
+#if 0
+            SGIPlugins::PluginFileNameList plugins = object->listAllAvailablePlugins();
+            for(SGIPlugins::PluginFileNameList::const_iterator it = plugins.begin(); it != plugins.end(); it++)
+            {
+                os << "<li>" << it->first;
+                os << " from " << it->second;
+                os << "</li>";
+            }
+#endif
+            os << "</ul>";
         }
         break;
     default:
@@ -585,6 +626,7 @@ OBJECT_TREE_BUILD_IMPL_TEMPLATE()
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(SGIPlugins)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ImageGLWidget)
 
@@ -637,6 +679,33 @@ bool objectTreeBuildImpl<ReferencedInternalInfoData>::build(IObjectTreeItem * tr
         }
         break;
     default:
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<SGIPlugins>::build(IObjectTreeItem * treeItem)
+{
+    SGIPlugins * object = getObject<SGIPlugins,SGIItemInternal>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        {
+            ret = true;
+            treeItem->addChild("Plugins", cloneItem<SGIItemQt>(SGIItemTypePlugins, ~0u));
+            treeItem->addChild("Backend plugins", cloneItem<SGIItemQt>(SGIItemTypeBackendPlugins, ~0u));
+        }
+        break;
+    case SGIItemTypePlugins:
+        ret = true;
+        break;
+    case SGIItemTypeBackendPlugins:
+        ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
         break;
     }
     return ret;

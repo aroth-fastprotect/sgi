@@ -1,0 +1,15 @@
+os: linux
+dist: artful
+sudo: required
+language: cpp
+compiler:
+- gcc
+before_install:
+- sudo apt-get update -qq
+- sudo apt-get install -y cmake
+- sudo apt-get install -y libosgearth-dev
+# Debug print out osgversion
+- osgversion
+- osgearth_version
+script:
+- if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then cmake -DCMAKE_BUILD_TYPE=Release . && make -j3 && sudo make install && sudo ldconfig; fi
