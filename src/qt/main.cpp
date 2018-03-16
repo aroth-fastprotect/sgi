@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QMouseEvent>
 #include <QWidget>
+#include <QMainWindow>
 #include <QJsonDocument>
 
 #define SGI_NO_HOSTITEM_GENERATOR
@@ -177,8 +178,19 @@ bool ApplicationEventFilter::handleEvent(SGIEvent * ev)
             qWarning() << "Show dialog for object" << ev->filename();
             QWidget * widget = QApplication::activeWindow();
             QObject * obj = nullptr;
-            if(ev->filename() == "app")
+            if (ev->filename() == "app")
                 obj = qApp;
+            else if (ev->filename() == "mainwindow")
+            {
+                obj = widget;
+                for (QWidget *widget : qApp->topLevelWidgets())
+                {
+                    if (QMainWindow *mainWindow = qobject_cast<QMainWindow*>(widget))
+                        obj = mainWindow;
+                }
+            }
+            else if (ev->filename() == "activewindow")
+                obj = widget;
             sceneGraphDialog(widget, obj);
         }
         break;
@@ -391,7 +403,8 @@ bool sgiImageIOHandler::read(QImage *image)
         {
             QJsonObject param = obj.value("object").toObject();
             QString name = param.value("name").toString();
-            ApplicationEventFilter::postEvent(new SGIEvent(SGIEvent::CommandObject, name));
+            if (!name.isEmpty())
+                ApplicationEventFilter::postEvent(new SGIEvent(SGIEvent::CommandObject, name));
             bSuccess = sendLogoImage = true;
         }
     }

@@ -87,6 +87,12 @@ int main(int argc, char **argv)
                     cmd = "{\n\"object\": { \"name\":\"app\" }\n}";
                     rawCommands.append(cmd);
                 }
+                else if (longarg == "mainwindow")
+                {
+                    QByteArray cmd;
+                    cmd = "{\n\"object\": { \"name\":\"mainwindow\" }\n}";
+                    rawCommands.append(cmd);
+                }
                 else
                 {
                     qCritical() << "invalid argument" << arg;

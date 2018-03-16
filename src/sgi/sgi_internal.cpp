@@ -164,14 +164,15 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
         break;
     case SGIItemTypePlugins:
         {
+            os << "<ul>";
             SGIPlugins::PluginInfoList plugins;
             if(object->getPlugins(plugins))
             {
                 for(SGIPlugins::PluginInfoList::const_iterator it = plugins.begin(); it != plugins.end(); it++)
                 {
                     const SGIPlugins::PluginInfo & info = *it;
+                    os << "<li>" << info.pluginName << "<br/>";
                     os << "<table border=\'1\' align=\'left\' width='100%'>";
-                    os << "<tr><td>name</td><td>" << info.pluginName << "</td></tr>";
                     os << "<tr><td>filename</td><td>" << info.pluginFilename << "</td></tr>";
                     os << "<tr><td>score</td><td>" << info.pluginScore() << "</td></tr>";
                     os << "<tr><td>WritePrettyHTML</td><td>" << (void*)info.writePrettyHTMLInterface << "</td></tr>";
@@ -182,9 +183,10 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
                     os << "<tr><td>SettingsDialog</td><td>" << (void*)info.settingsDialogInterface << "</td></tr>";
                     os << "<tr><td>GUIAdapter</td><td>" << (void*)info.guiAdapterInterface << "</td></tr>";
                     os << "<tr><td>ConvertToImage</td><td>" << (void*)info.convertToImage << "</td></tr>";
-                    os << "</table>";
+                    os << "</table></li>";
                 }
             }
+            os << "</ul>";
         }
         break;
     case SGIItemTypeBackendPlugins:
