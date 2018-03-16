@@ -34,7 +34,7 @@ namespace sgi {
 #endif
             if(!_library->load())
             {
-                qWarning() << "Failed to load SGI from" << libfile << _library->errorString();
+                qWarning() << "Failed to load SGI from" << _library->fileName() << _library->errorString();
                 _error = _library->errorString().toStdString();
             }
         }
@@ -55,7 +55,7 @@ namespace sgi {
                 ret = (PROC_ADDRESS)_library->resolve(procName);
                 if(!ret)
                 {
-                    qWarning() << "Failed to resolve SGI function" << procName << _library->errorString();
+                    qWarning() << "Failed to resolve SGI function" << procName << "in" << _library->fileName() << _library->errorString();
                     _error = _library->errorString().toStdString();
                 }
             }
