@@ -66,13 +66,6 @@ namespace {
 class SGIPlugins::SGIPluginsImpl
 {
 public:
-    typedef std::pair<std::string, std::string> PluginFileName;
-    typedef std::list<PluginFileName> PluginFileNameList;
-
-    enum PluginType {
-        PluginTypeModel = 0,
-    };
-
     SGIPluginsImpl()
         : _pluginsLoaded(false)
         , _hostInterface(this)
@@ -746,7 +739,7 @@ public:
             case PluginMatchStartsWith:
                 {
                     unsigned name_len = strlen(name);
-                    PluginFileNameList pluginFiles = impl->listAllAvailablePlugins(SGIPlugins::SGIPluginsImpl::PluginTypeModel);
+                    PluginFileNameList pluginFiles = impl->listAllAvailablePlugins(SGIPlugins::PluginTypeModel);
                     for(PluginFileNameList::const_iterator it = pluginFiles.begin(); it != pluginFiles.end(); it++)
                     {
                         const PluginFileName & plugin = *it;
@@ -764,7 +757,7 @@ public:
                 break;
             case PluginMatchAll:
                 {
-                    PluginFileNameList pluginFiles = impl->listAllAvailablePlugins(SGIPlugins::SGIPluginsImpl::PluginTypeModel);
+                    PluginFileNameList pluginFiles = impl->listAllAvailablePlugins(SGIPlugins::PluginTypeModel);
                     for(PluginFileNameList::const_iterator it = pluginFiles.begin(); it != pluginFiles.end(); it++)
                     {
                         const PluginFileName & plugin = *it;
@@ -2159,6 +2152,11 @@ bool SGIPlugins::writeObjectFile(bool & result, SGIItemBase * item, const std::s
 bool SGIPlugins::getPlugins(PluginInfoList & pluginList)
 {
     return _impl->getPlugins(pluginList);
+}
+
+SGIPlugins::PluginFileNameList SGIPlugins::listAllAvailablePlugins(PluginType pluginType)
+{
+    return _impl->listAllAvailablePlugins(pluginType);
 }
 
 bool SGIPlugins::parentWidget(QWidgetPtr & widget, const SGIHostItemBase * item)
