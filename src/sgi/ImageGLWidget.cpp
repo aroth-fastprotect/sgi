@@ -50,13 +50,14 @@ ImageGLWidget::ImageGLWidget(QWidget * parent)
     , _image(nullptr)
     , _locationIdPosition(-1)
     , _locationIdTexCoord(-1)
-    , _useOpenGl3(true)
-    , _useOpenGles(false)
+    , _mirrorHorizontal(false)
+    , _mirrorVertical(false)
     , _backgroundColor(Qt::black)
 {
     // Set OpenGL Version information
     // Note: This format must be set before show() is called.
     QSurfaceFormat format;
+#if 0
     if(_useOpenGles)
         format.setRenderableType(QSurfaceFormat::OpenGLES);
     else
@@ -71,6 +72,11 @@ ImageGLWidget::ImageGLWidget(QWidget * parent)
         format.setProfile(QSurfaceFormat::CoreProfile);
         format.setVersion(2, 1);
     }
+#else
+    format.setRenderableType(QSurfaceFormat::OpenGL);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    format.setVersion(3, 0);
+#endif
     format.setOption(QSurfaceFormat::DeprecatedFunctions, false);
     format.setDepthBufferSize(0);
     setFormat(format);
@@ -97,7 +103,7 @@ void ImageGLWidget::initializeGL()
         return;
 
     connect(ctx, &QOpenGLContext::aboutToBeDestroyed, this, &ImageGLWidget::teardownGL, Qt::DirectConnection);
-    _useOpenGles = (ctx->isOpenGLES() && ctx->format().majorVersion() < 3);
+    //_useOpenGles = (ctx->isOpenGLES() && ctx->format().majorVersion() < 3);
 
     // Set global information
     glClearColor(_backgroundColor.redF(), _backgroundColor.greenF(), _backgroundColor.blueF(), _backgroundColor.alphaF());
@@ -119,20 +125,38 @@ void ImageGLWidget::initializeGL()
     _texture->setBorderColor(0, 0, 0, 255);
     //_texture->setBorderWidth(0);
 
+    bool actualMirrorVertical = _image.valid() && _image->origin() != sgi::Image::OriginBottomLeft ? _mirrorVertical : !_mirrorVertical;
+
     // Create Buffer (Do not release until VAO is created)
     _vertex = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
     _vertex->create();
     _vertex->setUsagePattern(QOpenGLBuffer::DynamicDraw);
     _vertex->bind();
-    _vertex->allocate(window_rect_vertexes, sizeof(window_rect_vertexes));
-
-    if (_useOpenGl3)
     {
-        // Create Vertex Array Object
-        _object = new QOpenGLVertexArrayObject;
-        _object->create();
-        _object->bind();
+        GLfloat v[30];
+        Q_ASSERT(sizeof(v) == sizeof(window_rect_vertexes));
+        memcpy(v, window_rect_vertexes, sizeof(v));
+        for (int i = 0; i < 6; ++i)
+        {
+            int j = i * 5;
+            GLfloat & t_x = v[j + 3];
+            GLfloat & t_y = v[j + 4];
+            //t_x = window_rect_vertexes[j + 3];
+            //t_y = window_rect_vertexes[j + 4];
+            if (_mirrorHorizontal)
+                t_x = 1.0f - t_x;
+            if (actualMirrorVertical)
+                t_y = 1.0f - t_y;
+        }
+        _vertex->allocate(v, sizeof(v));
     }
+    
+
+    // Create Vertex Array Object
+    _object = new QOpenGLVertexArrayObject;
+    _object->create();
+    _object->bind();
+
     _program->enableAttributeArray(_locationIdPosition);
     _program->enableAttributeArray(_locationIdTexCoord);
     _program->setAttributeBuffer(_locationIdPosition, GL_FLOAT /*type*/, 0                   /*offset*/, 3 /*tupleSize*/, 5 * sizeof(GLfloat) /*stride*/);
@@ -350,6 +374,7 @@ void ImageGLWidget::setImage(const sgi::Image * image)
 
     // now release the old frame data pointer and hold the new one
     _image = image;
+    reloadVertexData();
 
     doneCurrent();
     // trigger a repaint because we changed the widgets content outside repaintGL
@@ -574,31 +599,49 @@ const QColor & ImageGLWidget::backgroundColor() const
     return _backgroundColor;
 }
 
-void ImageGLWidget::setMirrored(bool horizontal, bool vertical)
+void ImageGLWidget::reloadVertexData()
 {
-    if (!_object)
-        return;
+    bool actualMirrorVertical = _image.valid() && _image->origin() != sgi::Image::OriginBottomLeft ? _mirrorVertical : !_mirrorVertical;
 
     _object->bind();
     _vertex->bind();
     GLfloat v[30];
     memcpy(v, window_rect_vertexes, sizeof(v));
-    for(int i = 0; i < 6; ++i)
+    for (int i = 0; i < 6; ++i)
     {
         int j = i * 5;
         GLfloat & t_x = v[j + 3];
         GLfloat & t_y = v[j + 4];
         //t_x = window_rect_vertexes[j + 3];
         //t_y = window_rect_vertexes[j + 4];
-        if(horizontal)
+        if (_mirrorHorizontal)
             t_x = 1.0f - t_x;
-        if(vertical)
+        if (actualMirrorVertical)
             t_y = 1.0f - t_y;
     }
     _vertex->write(0, v, sizeof(v));
 
     _vertex->release();
     _object->release();
+}
+
+void ImageGLWidget::setMirrored(bool horizontal, bool vertical)
+{
+    if (_mirrorHorizontal == horizontal && _mirrorVertical == vertical)
+        return;
+
+    _mirrorHorizontal = horizontal;
+    _mirrorVertical = vertical;
+
+    if (!_object)
+        return;
+
+    makeCurrent();
+    reloadVertexData();
+
+    doneCurrent();
+    // trigger a repaint because we changed the widgets content outside repaintGL
+    update();
 }
 
 void ImageGLWidget::mouseMoveEvent(QMouseEvent *ev)
