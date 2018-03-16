@@ -13,6 +13,8 @@
 #include <QDebug>
 
 #include <osg/ValueObject>
+#include <osg/ImageSequence>
+#include <osg/TextureRectangle>
 #include <osgViewer/ViewerEventHandlers>
 
 #include <osgGA/TrackballManipulator>
@@ -401,6 +403,272 @@ public:
         return osgGA::GUIEventHandler::handle(ea, aa, obj, nv);
     }
 };
+
+class MovieEventHandler : public osgGA::GUIEventHandler
+{
+public:
+    static osg::ImageStream* s_imageStream;
+    MovieEventHandler() :_playToggle(true), _trackMouse(false) {}
+
+    void setMouseTracking(bool track) { _trackMouse = track; }
+    bool getMouseTracking() const { return _trackMouse; }
+
+    void set(osg::Node* node);
+
+    void setTrackMouse(bool tm)
+    {
+        if (tm == _trackMouse) return;
+
+        _trackMouse = tm;
+
+        std::cout << "tracking mouse: " << (_trackMouse ? "ON" : "OFF") << std::endl;
+
+        for (ImageStreamList::iterator itr = _imageStreamList.begin();
+            itr != _imageStreamList.end();
+            ++itr)
+        {
+            if ((*itr)->getStatus() == osg::ImageStream::PLAYING)
+            {
+                (*itr)->pause();
+            }
+            else
+            {
+                (*itr)->play();
+            }
+        }
+
+    }
+
+    bool getTrackMouse() const { return _trackMouse; }
+
+    virtual bool handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa, osg::Object*, osg::NodeVisitor* nv);
+
+    virtual void getUsage(osg::ApplicationUsage& usage) const;
+
+    typedef std::vector< osg::observer_ptr<osg::ImageStream> > ImageStreamList;
+
+    struct ImageStreamPlaybackSpeedData {
+        double fps;
+        unsigned char* lastData;
+        double timeStamp, lastOutput;
+
+        ImageStreamPlaybackSpeedData() : fps(0), lastData(NULL), timeStamp(0), lastOutput(0) {}
+
+    };
+
+    typedef std::vector< ImageStreamPlaybackSpeedData > ImageStreamPlayBackSpeedList;
+
+protected:
+
+    virtual ~MovieEventHandler() {}
+
+    class FindImageStreamsVisitor : public osg::NodeVisitor
+    {
+    public:
+        FindImageStreamsVisitor(ImageStreamList& imageStreamList, TraversalMode mode= TRAVERSE_ALL_CHILDREN)
+            : osg::NodeVisitor(mode)
+            , _imageStreamList(imageStreamList) {}
+
+        virtual void apply(osg::Geode& geode)
+        {
+            apply(geode.getStateSet());
+
+            for (unsigned int i = 0; i < geode.getNumDrawables(); ++i)
+            {
+                apply(geode.getDrawable(i)->getStateSet());
+            }
+
+            traverse(geode);
+        }
+
+        virtual void apply(osg::Node& node)
+        {
+            apply(node.getStateSet());
+            traverse(node);
+        }
+
+        inline void apply(osg::StateSet* stateset)
+        {
+            if (!stateset) return;
+
+            osg::StateAttribute* attr = stateset->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
+            if (attr)
+            {
+                osg::Texture2D* texture2D = dynamic_cast<osg::Texture2D*>(attr);
+                if (texture2D) apply(dynamic_cast<osg::ImageStream*>(texture2D->getImage()));
+
+                osg::TextureRectangle* textureRec = dynamic_cast<osg::TextureRectangle*>(attr);
+                if (textureRec) apply(dynamic_cast<osg::ImageStream*>(textureRec->getImage()));
+            }
+        }
+
+        inline void apply(osg::ImageStream* imagestream)
+        {
+            if (imagestream)
+            {
+                _imageStreamList.push_back(imagestream);
+                s_imageStream = imagestream;
+            }
+        }
+
+        ImageStreamList& _imageStreamList;
+
+    protected:
+
+        FindImageStreamsVisitor & operator = (const FindImageStreamsVisitor&) { return *this; }
+    };
+
+
+    bool            _playToggle;
+    bool            _trackMouse;
+    ImageStreamList _imageStreamList;
+    ImageStreamPlayBackSpeedList _imageStreamPlayBackSpeedList;
+
+};
+
+osg::ImageStream* MovieEventHandler::s_imageStream = nullptr;
+
+void MovieEventHandler::set(osg::Node* node)
+{
+    _imageStreamList.clear();
+    if (node)
+    {
+        FindImageStreamsVisitor fisv(_imageStreamList);
+        node->accept(fisv);
+    }
+    _imageStreamPlayBackSpeedList.resize(_imageStreamList.size());
+}
+
+
+bool MovieEventHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter&, osg::Object*, osg::NodeVisitor*)
+{
+    switch (ea.getEventType())
+    {
+    case(osgGA::GUIEventAdapter::FRAME):
+    {
+        double t = ea.getTime();
+        bool printed(false);
+
+        ImageStreamPlayBackSpeedList::iterator fps_itr = _imageStreamPlayBackSpeedList.begin();
+        for (ImageStreamList::iterator itr = _imageStreamList.begin();
+            itr != _imageStreamList.end();
+            ++itr, ++fps_itr)
+        {
+            if (((*itr)->getStatus() == osg::ImageStream::PLAYING) && ((*itr)->data() != (*fps_itr).lastData))
+            {
+                ImageStreamPlaybackSpeedData& data(*fps_itr);
+                double dt = (data.timeStamp > 0) ? t - data.timeStamp : 1 / 60.0;
+                data.lastData = (*itr)->data();
+                data.fps = (*fps_itr).fps * 0.8 + 0.2 * (1 / dt);
+                data.timeStamp = t;
+
+                if (t - data.lastOutput > 1)
+                {
+                    std::cout << data.fps << " ";
+                    data.lastOutput = t;
+                    printed = true;
+                }
+
+            }
+        }
+        if (printed)
+            std::cout << std::endl;
+    }
+    break;
+    case(osgGA::GUIEventAdapter::MOVE):
+    {
+        if (_trackMouse)
+        {
+            for (ImageStreamList::iterator itr = _imageStreamList.begin();
+                itr != _imageStreamList.end();
+                ++itr)
+            {
+                double dt = (*itr)->getLength() * ((1.0 + ea.getXnormalized()) / 2.0);
+                (*itr)->seek(dt);
+                std::cout << "seeking to " << dt << " length: " << (*itr)->getLength() << std::endl;
+            }
+        }
+        return false;
+    }
+
+    case(osgGA::GUIEventAdapter::KEYDOWN):
+    {
+        if (ea.getKey() == 'p')
+        {
+            for (ImageStreamList::iterator itr = _imageStreamList.begin();
+                itr != _imageStreamList.end();
+                ++itr)
+            {
+                if ((*itr)->getStatus() == osg::ImageStream::PLAYING)
+                {
+                    // playing, so pause
+                    std::cout << "Pause" << std::endl;
+                    (*itr)->pause();
+                }
+                else
+                {
+                    // playing, so pause
+                    std::cout << "Play" << std::endl;
+                    (*itr)->play();
+                }
+            }
+            return true;
+        }
+        else if (ea.getKey() == 'r')
+        {
+            for (ImageStreamList::iterator itr = _imageStreamList.begin();
+                itr != _imageStreamList.end();
+                ++itr)
+            {
+                std::cout << "Restart" << std::endl;
+                (*itr)->rewind();
+            }
+            return true;
+        }
+        else if (ea.getKey() == 'L')
+        {
+            for (ImageStreamList::iterator itr = _imageStreamList.begin();
+                itr != _imageStreamList.end();
+                ++itr)
+            {
+                if ((*itr)->getLoopingMode() == osg::ImageStream::LOOPING)
+                {
+                    std::cout << "Toggle Looping Off" << std::endl;
+                    (*itr)->setLoopingMode(osg::ImageStream::NO_LOOPING);
+                }
+                else
+                {
+                    std::cout << "Toggle Looping On" << std::endl;
+                    (*itr)->setLoopingMode(osg::ImageStream::LOOPING);
+                }
+            }
+            return true;
+        }
+        else if (ea.getKey() == 'i')
+        {
+            setTrackMouse(!_trackMouse);
+
+
+        }
+        return false;
+    }
+
+    default:
+        return false;
+    }
+
+    return false;
+}
+
+void MovieEventHandler::getUsage(osg::ApplicationUsage& usage) const
+{
+    usage.addKeyboardMouseBinding("i", "toggle interactive mode, scrub via mouse-move");
+    usage.addKeyboardMouseBinding("p", "Play/Pause movie");
+    usage.addKeyboardMouseBinding("r", "Restart movie");
+    usage.addKeyboardMouseBinding("l", "Toggle looping of movie");
+}
+
+
 
 bool iequals(const std::string& a, const std::string& b)
 {
@@ -1446,6 +1714,15 @@ main(int argc, char** argv)
             view->addEventHandler(new KeyboardDumpHandler);
         if(addMouseDumper)
             view->addEventHandler(new MouseDumpHandler);
+
+
+        // pass the model to the MovieEventHandler so it can pick out ImageStream's to manipulate.
+        MovieEventHandler* meh = new MovieEventHandler();
+        meh->set(root);
+
+        if (arguments.read("--track-mouse")) meh->setTrackMouse(true);
+
+        view->addEventHandler(meh);
 
         view->addEventHandler(new CreateViewHandler);
 

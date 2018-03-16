@@ -64,6 +64,7 @@
 #include <osg/TexEnvFilter>
 #include <osg/Shape>
 #include <osg/ClusterCullingCallback>
+#include <osg/ImageSequence>
 
 // osgDB headers
 #include <osgDB/Registry>
@@ -397,7 +398,10 @@ SGI_OBJECT_INFO_BEGIN(osg::BufferData)
     osg::PrimitiveSet, osg::Image, osg::Array
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osg::Image)
-    osgText::Glyph
+    osgText::Glyph, osg::ImageStream
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::ImageStream)
+    osg::ImageSequence
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osg::BufferObject)
     osg::VertexBufferObject, osg::ElementBufferObject,
