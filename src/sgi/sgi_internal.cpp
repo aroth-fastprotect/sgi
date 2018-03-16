@@ -199,7 +199,7 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
                 os << "<li>" << *it << "</li>";
             }
 
-            os << "Available plugins<ul>";
+            os << "</ul>Available plugins<ul>";
             osgDB::FileNameList plugins = osgDB::listAllAvailablePlugins();
             for(osgDB::FileNameList::const_iterator it = plugins.begin(); it != plugins.end(); it++)
             {
