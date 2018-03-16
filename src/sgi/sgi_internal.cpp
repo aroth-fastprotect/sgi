@@ -25,6 +25,7 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLTexture>
 
+#include <osgDB/Registry>
 #include <osgDB/PluginQuery>
 
 #ifdef _DEBUG
@@ -191,7 +192,14 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
         break;
     case SGIItemTypeBackendPlugins:
         {
-            os << "<ul>";
+            os << "Library directories:<ul>";
+            osgDB::FilePathList filepath = osgDB::Registry::instance()->getLibraryFilePathList();
+            for (osgDB::FilePathList::const_iterator it = filepath.begin(); it != filepath.end(); it++)
+            {
+                os << "<li>" << *it << "</li>";
+            }
+
+            os << "Available plugins<ul>";
             osgDB::FileNameList plugins = osgDB::listAllAvailablePlugins();
             for(osgDB::FileNameList::const_iterator it = plugins.begin(); it != plugins.end(); it++)
             {

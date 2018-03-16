@@ -64,6 +64,7 @@ protected:
 protected:
     void setImageImpl(const sgi::Image * image, bool reset=false);
     bool reloadShaders();
+    void reloadVertexData();
 
 private:
     // OpenGL State Information
@@ -74,8 +75,8 @@ private:
     ConstImagePtr _image;
     int _locationIdPosition;
     int _locationIdTexCoord;
-    bool _useOpenGl3;
-    bool _useOpenGles;
+    bool _mirrorHorizontal;
+    bool _mirrorVertical;
     QString _errorMessage;
     QString _colorFilterVertex;
     QString _colorFilterFragment;

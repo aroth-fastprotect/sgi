@@ -50,6 +50,7 @@
 #include <osg/Drawable>
 #include <osg/ShapeDrawable>
 #include <osg/Geometry>
+#include <osg/ImageSequence>
 
 #include <osg/Texture1D>
 #include <osg/Texture2D>
@@ -151,6 +152,8 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::State)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::StateAttribute)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Image)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ImageStream)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ImageSequence)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Texture::TextureObject)
 #if OSG_MIN_VERSION_REQUIRED(3,5,0)
@@ -2453,7 +2456,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Im
 bool writePrettyHTMLImpl<osg::Image>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Image * object = static_cast<osg::Image*>(item<SGIItemOsg>()->object());
+    osg::Image * object = getObject<osg::Image,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -2544,6 +2547,130 @@ bool writePrettyHTMLImpl<osg::Image>::process(std::basic_ostream<char>& os)
     }
     return ret;
 }
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::ImageStream::StreamStatus  & t)
+{
+    switch (t)
+    {
+    case osg::ImageStream::INVALID: os << "INVALID"; break;
+    case osg::ImageStream::PLAYING: os << "PLAYING"; break;
+    case osg::ImageStream::PAUSED: os << "PAUSED"; break;
+    case osg::ImageStream::REWINDING: os << "REWINDING"; break;
+    default: os << (int)t; break;
+    }
+    return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::ImageStream::LoopingMode  & t)
+{
+    switch (t)
+    {
+    case osg::ImageStream::NO_LOOPING: os << "NO_LOOPING"; break;
+    case osg::ImageStream::LOOPING: os << "LOOPING"; break;
+    default: os << (int)t; break;
+    }
+    return os;
+}
+
+bool writePrettyHTMLImpl<osg::ImageStream>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    osg::ImageStream * object = getObject<osg::ImageStream, SGIItemOsg>();
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add state attribute properties first
+            callNextHandler(os);
+
+            os << "<tr><td>status</td><td>" << object->getStatus() << "</td></tr>" << std::endl;
+            os << "<tr><td>loopingMode</td><td>" << object->getLoopingMode() << "</td></tr>" << std::endl;
+
+            os << "<tr><td>creationTime</td><td>" << object->getCreationTime() << "</td></tr>" << std::endl;
+            os << "<tr><td>length</td><td>" << object->getLength() << "</td></tr>" << std::endl;
+            os << "<tr><td>frameRate</td><td>" << object->getFrameRate() << "</td></tr>" << std::endl;
+            os << "<tr><td>currentTime</td><td>" << object->getCurrentTime() << "</td></tr>" << std::endl;
+            os << "<tr><td>referenceTime</td><td>" << object->getReferenceTime() << "</td></tr>" << std::endl;
+            os << "<tr><td>timeMultiplier</td><td>" << object->getTimeMultiplier() << "</td></tr>" << std::endl;
+            os << "<tr><td>volume</td><td>" << object->getVolume() << "</td></tr>" << std::endl;
+            os << "<tr><td>audioBalance</td><td>" << object->getAudioBalance() << "</td></tr>" << std::endl;
+
+            os << "<tr><td>audioStreams</td><td><ol>";
+            for (auto s : object->getAudioStreams())
+                os << "<li>" << osg_helpers::getObjectNameAndType(s.get()) << "</li>";
+            os << "<ol></td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::ImageSequence::Mode  & t)
+{
+    switch (t)
+    {
+    case osg::ImageSequence::PRE_LOAD_ALL_IMAGES: os << "PRE_LOAD_ALL_IMAGES"; break;
+    case osg::ImageSequence::PAGE_AND_RETAIN_IMAGES: os << "PAGE_AND_RETAIN_IMAGES"; break;
+    case osg::ImageSequence::PAGE_AND_DISCARD_USED_IMAGES: os << "PAGE_AND_DISCARD_USED_IMAGES"; break;
+    case osg::ImageSequence::LOAD_AND_RETAIN_IN_UPDATE_TRAVERSAL: os << "LOAD_AND_RETAIN_IN_UPDATE_TRAVERSAL"; break;
+    case osg::ImageSequence::LOAD_AND_DISCARD_IN_UPDATE_TRAVERSAL: os << "LOAD_AND_DISCARD_IN_UPDATE_TRAVERSAL"; break;
+    default: os << (int)t; break;
+    }
+    return os;
+}
+
+
+bool writePrettyHTMLImpl<osg::ImageSequence>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    osg::ImageSequence* object = getObject<osg::ImageSequence, SGIItemOsg>();
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add state attribute properties first
+            callNextHandler(os);
+
+            os << "<tr><td>mode</td><td>" << object->getMode() << "</td></tr>" << std::endl;
+            os << "<tr><td>readOptions</td><td>" << osg_helpers::getObjectNameAndType(object->getReadOptions()) << "</td></tr>" << std::endl;
+
+            os << "<tr><td>imageData</td><td><ol>";
+            for (const auto & imgdata : object->getImageDataList())
+            {
+                os << "<li>" 
+                    << imgdata._filename 
+                    << " img=" << osg_helpers::getObjectNameAndType(imgdata._image.get()) 
+                    << " req=" << osg_helpers::getObjectNameAndType(imgdata._imageRequest.get())
+                    << "</li>";
+            }
+            os << "<ol></td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
 
 #if 0
 void writePrettyStateAttributeHTML(std::basic_ostream<char>& os, const osg::StateAttribute * object, bool table, bool brief)
