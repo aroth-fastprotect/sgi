@@ -896,7 +896,14 @@ void SceneGraphDialog::refreshTimeChanged ( int n )
         _refreshTimer = new QTimer(this);
         connect(_refreshTimer, &QTimer::timeout, this, &SceneGraphDialog::refreshTimerExpired);
     }
-    if (n >= 100)
+    const int minimumTimerInterval = 100; // ms
+    const int initialTimerInterval = 2500; // ms
+    if (_refreshTimer->interval() == 0 && n >= minimumTimerInterval && n < initialTimerInterval)
+    {
+        ui->spinBoxRefreshTime->setValue(initialTimerInterval);
+        n = initialTimerInterval;
+    }
+    if (n >= minimumTimerInterval)
         _refreshTimer->start(n);
     else
         _refreshTimer->stop();

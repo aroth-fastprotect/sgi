@@ -198,8 +198,6 @@ namespace {
         }
         return true;
     }
-
-    
 } // namespace
 
 ColorFilter ColorFilter::s_filters[] = {
@@ -213,7 +211,7 @@ ColorFilter ColorFilter::s_filters[] = {
     /* FilterLuminance */ ColorFilter("Luminance ", QString(), "float lum = dot(color.rgb, vec3(0.2125, 0.7154, 0.0721));\r\ncolor = vec4(vec3(lum), 1.0);", filterTranslateLuminance),
     /* FilterHue */ ColorFilter("Hue", QString(), "", filterTranslateHue),
     /* FilterSaturation */ ColorFilter("Saturation", QString(), "", filterTranslateSaturation),
-    /* FilterSwap */ ColorFilter("Swap", QString(), "color.rgba = color==vec4(0)? vec4(1) : vec4(vec3((color.r+color.g+color.b+color.a)/4.0),1); }", filterTranslateSwap),
+    /* FilterSwap */ ColorFilter("Swap", QString(), "color.rgba = color==vec4(0)? vec4(1) : vec4(vec3((color.r+color.g+color.b+color.a)/4.0),1);", filterTranslateSwap),
     /* FilterCustom1 */ ColorFilter("Custom 1"),
     /* FilterCustom2 */ ColorFilter("Custom 2"),
     /* FilterCustom3 */ ColorFilter("Custom 3"),
