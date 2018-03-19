@@ -1812,7 +1812,7 @@ bool objectTreeBuildImpl<osg::BufferData>::build(IObjectTreeItem * treeItem)
                 treeItem->addChildIfNotExists("Callbacks", cloneItem<SGIItemOsg>(SGIItemTypeCallbacks));
 
             if(object->getDataPointer())
-                treeItem->addChild("Data", cloneItem<SGIItemOsg>(SGIItemTypeArrayData));
+                treeItem->addChild(helpers::str_plus_number("Data", object->getTotalDataSize()), cloneItem<SGIItemOsg>(SGIItemTypeArrayData));
 
             SGIHostItemOsg bufObj(object->getBufferObject());
             if(bufObj.hasObject())
@@ -1851,7 +1851,9 @@ bool objectTreeBuildImpl<osg::HeightField>::build(IObjectTreeItem * treeItem)
 		ret = callNextHandler(treeItem);
 		if (ret)
 		{
-			treeItem->addChild("Data", cloneItem<SGIItemOsg>(SGIItemTypeArrayData));
+            SGIHostItemOsg array(object->getFloatArray());
+            if (array.hasObject())
+                treeItem->addChild("FloatArray", &array);
 		}
 		break;
 	default:
