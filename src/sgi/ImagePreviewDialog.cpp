@@ -846,7 +846,14 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::refreshTimeChanged(int n)
         refreshTimer = new QTimer(this);
         connect(refreshTimer, &QTimer::timeout, this, &ImagePreviewDialogImpl::refreshTimerExpired);
     }
-    if (n >= 100)
+    const int minimumTimerInterval = 100; // ms
+    const int initialTimerInterval = 2500; // ms
+    if (refreshTimer->interval() == 0 && n >= minimumTimerInterval && n < initialTimerInterval)
+    {
+        spinBoxRefreshTime->setValue(initialTimerInterval);
+        n = initialTimerInterval;
+    }
+    if (n >= minimumTimerInterval)
         refreshTimer->start(n);
     else
         refreshTimer->stop();
