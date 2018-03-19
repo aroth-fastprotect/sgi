@@ -6,10 +6,12 @@
 #include <QToolBar>
 #include <QScrollBar>
 #include <QComboBox>
+#include <QSpinBox>
 #include <QDesktopWidget>
 #include <QImageWriter>
 #include <QImageReader>
 #include <QMouseEvent>
+#include <QTimer>
 
 #include "ImagePreviewDialog.h"
 #include "ui_ImagePreviewDialog.h"
@@ -201,6 +203,8 @@ public:
     void imageHeightChanged(int index);
     void imageFormatChanged(int index);
     void selectedColorFilterChanged(int index);
+    void refreshTimeChanged(int n);
+    void refreshTimerExpired();
 
 	void setNodeInfo(const SGIItemBase * item);
     void setImageInfo(const Image * image);
@@ -232,10 +236,12 @@ public:
     QAction *                       flipHorizontalAction;
     QAction *                       flipVerticalAction;
     QAction *                       selectBackgroundColorAction;
+    QSpinBox *                      spinBoxRefreshTime;
     QComboBox *                     imageWidth;
     QComboBox *                     imageHeight;
     QComboBox *                     imageFormat;
     QComboBox *                     colorFilterComboBox;
+    QTimer *                        refreshTimer;
     QString                         labelText;
     double                          scaleFactor;
     bool                            initialRefresh;
@@ -266,6 +272,7 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
 	, initialRefresh(true)
 	, histogram()
 	, histogramReady(false)
+    , refreshTimer(NULL)
 {
     if(ImageFormatDisplayText.empty())
     {
@@ -511,6 +518,15 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
         colorFilterComboBox->addItem(f.name(), QVariant::fromValue((int)f.type()));
     }
 
+    spinBoxRefreshTime = new QSpinBox(toolBar);
+    spinBoxRefreshTime->setToolTip(tr("Automatically reloads the information every X milliseconds."));
+    spinBoxRefreshTime->setMinimum(0);
+    spinBoxRefreshTime->setMaximum(60000);
+    spinBoxRefreshTime->setSingleStep(100);
+    spinBoxRefreshTime->setPrefix("Refresh ");
+    spinBoxRefreshTime->setSuffix("ms");
+    connect(spinBoxRefreshTime, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &ImagePreviewDialogImpl::refreshTimeChanged);
+
     toolBar->addWidget(imageWidth);
     toolBar->addWidget(imageHeight);
     toolBar->addSeparator();
@@ -527,6 +543,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 	toolBar->addAction(flipVerticalAction);
     toolBar->addSeparator();
     toolBar->addAction(selectBackgroundColorAction);
+    toolBar->addWidget(spinBoxRefreshTime);
 
     // do the connects at the end to avoid trouble when new items are added and signals fired
     connect(imageWidth, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ImagePreviewDialogImpl::imageWidthChanged);
@@ -820,6 +837,24 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::setImageInfo(const Image * imag
     ui->textEditImage->blockSignals(true);
     ui->textEditImage->setHtml(QString::fromStdString(os.str()));
     ui->textEditImage->blockSignals(false);
+}
+
+void ImagePreviewDialog::ImagePreviewDialogImpl::refreshTimeChanged(int n)
+{
+    if (!refreshTimer)
+    {
+        refreshTimer = new QTimer(this);
+        connect(refreshTimer, &QTimer::timeout, this, &ImagePreviewDialogImpl::refreshTimerExpired);
+    }
+    if (n >= 100)
+        refreshTimer->start(n);
+    else
+        refreshTimer->stop();
+}
+
+void ImagePreviewDialog::ImagePreviewDialogImpl::refreshTimerExpired()
+{
+    refresh();
 }
 
 class ImagePreviewDialog::HostCallback : public HostCallbackFilterT<IImagePreviewDialog>
