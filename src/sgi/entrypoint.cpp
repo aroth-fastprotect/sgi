@@ -78,7 +78,11 @@ const char * sgiGetLibraryModuleFilename()
         const char * (* addr) () = sgiGetLibraryName;
         if(dladdr((const void*)addr, &info) != 0)
         {
-            s_cachedFilename = info.dli_fname;
+            char buf[512];
+            if(realpath(info.dli_fname, buf))
+                s_cachedFilename = buf;
+            else
+                s_cachedFilename = info.dli_fname;
         }
 #endif // _WIN32
     }
