@@ -4,24 +4,6 @@ Copyright 2012-2018 FAST Protect GmbH, Andreas Roth
 SGI is primarily designed as tool to investigate and manipulate an OSG scene graph or Qt object structure. It can be used to investigate other
 object hierarchies as well.
 
-## Design
-- core part is located in osgSGI which includes
-  - plugin management
-  - implementation of SceneGraphDialog
-  - implementation of ImagePreviewDialog
-  - implementation of ContextMenu
-  - implementation of ObjectLoggerDialog
-- SGI reader/writer; loads the SGI using a filename (*.sgi_loader*)
-- plugins; it ships with the following plugins
-  - OSG
-  - OsgEarth
-  - Qt5
-  - log4cplus
-- applications;
-  - helloWorldQt: sample application to use SGI in a Qt5 application
-  - sgi_osgviewer: adapted version of osgviewer to use SGI
-  - sgi_osgviewerQt: adapted version of osgviewer using Qt5 and loading SGI
-
 ## Using within an OSG application
 - Within the application code load the SGI by
 ```
@@ -60,6 +42,29 @@ selecting *"Object info..."*. This opens the SceneGraphDialog which shows the se
 a textual representation of the object on the right. The tree also contain several *"global"* objects, like the
 global application object or some useful singleton objects (like *osgDB::Registry*).
 
+## Design
+- core part is located in osgSGI which includes
+  - plugin management
+  - implementation of SceneGraphDialog
+  - implementation of ImagePreviewDialog
+  - implementation of ContextMenu
+  - implementation of ObjectLoggerDialog
+- SGI reader/writer; loads the SGI using a filename (*.sgi_loader*)
+- plugins; it ships with the following plugins
+  - OSG
+  - OsgEarth
+  - Qt5
+  - log4cplus
+- applications;
+  - helloWorldQt: sample application to use SGI in a Qt5 application
+  - sgi_osgviewer: adapted version of osgviewer to use SGI
+  - sgi_osgviewerQt: adapted version of osgviewer using Qt5 and loading SGI
+
+## Compilers
+The following compilers have been tested so far:
+- Visual Studio 2015 and 2017
+- GCC 5.x, 6.x, 7.x
+- Clang 4.x, 5.x, 6.x
 
 ## Notes
 SGI is indented as debugging tool. Using SGI to manipulate any data during the runtime of an
