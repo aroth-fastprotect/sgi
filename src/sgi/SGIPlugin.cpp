@@ -61,13 +61,27 @@ namespace {
 		unsigned _oldErrorMode;
 #endif
 	};
+
+    std::string sgiGetLibraryModuleDirectory()
+    {
+        std::string ret = sgiGetLibraryModuleFilename();
+#ifdef _WIN32
+        std::string::size_type last_slash = ret.rfind('\\');
+#else
+        std::string::size_type last_slash = ret.rfind('/');
+#endif
+        if(last_slash != std::string::npos)
+            ret.resize(last_slash);
+        return ret;
+    }
 }
 
 class SGIPlugins::SGIPluginsImpl
 {
 public:
     SGIPluginsImpl()
-        : _pluginsLoaded(false)
+        : _libraryDirectoryAdded(false)
+        , _pluginsLoaded(false)
         , _hostInterface(this)
         , _hostInterfaceVersion(0)
         , _defaultHostCallback(new DefaultHostCallback(this))
@@ -76,6 +90,27 @@ public:
         {
             const std::string& value_type = details::StaticTypeName<sgi::SGIItemType>::name();
             registerNamedEnum(value_type, "SGIItemType", false);
+        }
+
+        {
+            osgDB::Registry * registry = osgDB::Registry::instance();
+            osgDB::FilePathList libraryPath = registry->getLibraryFilePathList();
+            std::string sgi_library_directory = sgiGetLibraryModuleDirectory();
+            bool libraryDirFound = false;
+            for(const auto & path : libraryPath )
+            {
+                if(path == sgi_library_directory)
+                {
+                    libraryDirFound = true;
+                    break;
+                }
+            }
+            if(!libraryDirFound)
+            {
+                libraryPath.push_back(sgi_library_directory);
+                registry->setLibraryFilePathList(libraryPath);
+                _libraryDirectoryAdded = true;
+            }
         }
 
         loadInternalPlugin();
@@ -604,9 +639,10 @@ public:
                 OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
                 if (!_pluginLoadOpts.valid())
                 {
-                    osg::ref_ptr<osgDB::Options> defaultOpts = osgDB::Registry::instance()->getOptions();
+                    osgDB::Registry * registry = osgDB::Registry::instance();
+                    osg::ref_ptr<osgDB::Options> defaultOpts = registry->getOptions();
                     if (defaultOpts.valid())
-                        _pluginLoadOpts = static_cast<osgDB::Options*>(osgDB::Registry::instance()->getOptions()->clone(osg::CopyOp::SHALLOW_COPY));
+                        _pluginLoadOpts = static_cast<osgDB::Options*>(registry->getOptions()->clone(osg::CopyOp::SHALLOW_COPY));
                     else
                         _pluginLoadOpts = new osgDB::Options();
                     _pluginLoadOpts->setPluginData("hostInterface", &_hostInterface);
@@ -1858,6 +1894,7 @@ public:
     typedef std::map<std::string, EnumType> NamedEnumType;
 
 private:
+    bool _libraryDirectoryAdded;
     bool _pluginsLoaded;
     PluginMap   _plugins;
     OpenThreads::Mutex _mutex;
