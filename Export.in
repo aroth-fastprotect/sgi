@@ -92,4 +92,6 @@ extern SGI_EXPORT const char* sgiGetSOVersion();
 /** The sgiGetLibraryName() method returns the library name in human-friendly form. */
 extern SGI_EXPORT const char* sgiGetLibraryName();
 
+/** The sgiGetLibraryModuleFilename() method returns the full path to the SGI library. */
+extern SGI_EXPORT const char * sgiGetLibraryModuleFilename();
 }

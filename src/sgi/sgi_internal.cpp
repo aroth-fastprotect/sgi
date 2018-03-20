@@ -134,6 +134,7 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
                 os << "<table border=\'1\' align=\'left\'' width='100%'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
             os << "<tr><td>libraryName</td><td>" << sgiGetLibraryName() << "</td></tr>" << std::endl;
+            os << "<tr><td>moduleFilename</td><td>" << sgiGetLibraryModuleFilename() << "</td></tr>" << std::endl;
             os << "<tr><td>version</td><td>" << sgiGetVersion() << "</td></tr>" << std::endl;
             os << "<tr><td>.so version</td><td>" << sgiGetSOVersion() << "</td></tr>" << std::endl;
             HAS_SUPPORT(LOG4CPLUS);

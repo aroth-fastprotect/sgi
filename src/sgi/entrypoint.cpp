@@ -2,6 +2,10 @@
 #include "entrypoint.h"
 #include "SGIPlugin.h"
 
+#if !defined(_WIN32)
+#include <dlfcn.h>
+#endif
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -9,6 +13,38 @@
 extern "C" {
 
 static unsigned g_sgiModuleInitCount = 0;
+#ifdef _WIN32
+static HMODULE g_sgiModuleHandle = NULL;
+#endif // _WIN32
+
+#ifdef _WIN32
+/// @brief DLL main entry point
+/// @remarks leave this function outside the terra3d namespace
+/// @note Welcome to the land of darkness!
+///       Within this function, Win32 cannot execute ANY thread related
+///       functions (e.g. WaitForSingleObject, CreateThread, etc). This
+///       is caused by a dubious implementation by M$. Some people might
+///       think about this as a BUG and kindly it IS one (a very famous
+///       one).
+/// this function simply calls @a initializeCommonCore on load and
+/// @a deinitializeCommonCore at unload.
+BOOL WINAPI DllMain(__in  HMODULE hModule,
+                    __in  DWORD fdwReason,
+                    __in  LPVOID lpvReserved
+                    )
+{
+    switch(fdwReason)
+    {
+    case DLL_PROCESS_ATTACH:
+        g_sgiModuleHandle = hModule;
+        break;
+    case DLL_PROCESS_DETACH:
+        g_sgiModuleHandle = NULL;
+        break;
+    }
+    return TRUE;
+}
+#endif // _WIN32
 
 const char* sgiGetVersion()
 {
@@ -23,6 +59,30 @@ const char* sgiGetSOVersion()
 const char* sgiGetLibraryName()
 {
     return "SGI Library";
+}
+
+/// @brief returns the full path of the terra3d-common-core library
+/// @remarks on Linux it returns the filename of the current process
+/// @return full path
+const char * sgiGetLibraryModuleFilename()
+{
+    static std::string s_cachedFilename;
+    if (s_cachedFilename.empty())
+    {
+#ifdef _WIN32
+        char buf[512];
+        DWORD len = ::GetModuleFileNameA(g_sgiModuleHandle, buf, _countof(buf));
+        s_cachedFilename.assign(buf, len);
+#else // _WIN32
+        Dl_info info;
+        const char * (* addr) () = sgiGetLibraryName;
+        if(dladdr((const void*)addr, &info) != 0)
+        {
+            s_cachedFilename = info.dli_fname;
+        }
+#endif // _WIN32
+    }
+    return s_cachedFilename.c_str();
 }
 
 sgi::IHostCallback * sgi_defaultHostCallback()
