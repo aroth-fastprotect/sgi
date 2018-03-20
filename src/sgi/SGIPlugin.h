@@ -45,6 +45,7 @@ public:
         , guiAdapterInterface(NULL)
         , convertToImage(NULL)
         , _pluginScore(0)
+        , errorMessage()
     {
     }
     SGIPluginInfo(const SGIPluginInfo & rhs)
@@ -60,9 +61,11 @@ public:
         , guiAdapterInterface(rhs.guiAdapterInterface)
         , convertToImage(rhs.convertToImage)
         , _pluginScore(rhs._pluginScore)
+        , errorMessage(rhs.errorMessage)
     {
     }
     virtual unsigned pluginScore() const { return _pluginScore; }
+    bool isInternalPlugin() const;
 public:
     std::string                             pluginName;
     std::string                             pluginFilename;
@@ -76,6 +79,7 @@ public:
     SGIPluginInterface::GUIAdapter*         guiAdapterInterface;
     SGIPluginInterface::ConvertToImage*     convertToImage;
     unsigned                                _pluginScore;
+    std::string                             errorMessage;
 };
 
 
