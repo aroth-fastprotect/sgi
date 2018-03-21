@@ -76,6 +76,11 @@ namespace {
     }
 }
 
+bool SGIPluginInfo::isInternalPlugin() const
+{
+    return pluginName == SGIPlugin_internal::PluginName;
+}
+
 class SGIPlugins::SGIPluginsImpl
 {
 public:
@@ -655,6 +660,8 @@ public:
 				DisableLibraryLoadErrors disable_load_errors;
 				osgDB::ReaderWriter::ReadResult result = osgDB::Registry::instance()->readObject(pluginFilename, _pluginLoadOpts.get(), false);
 				info.pluginInterface = (SGIPluginInterface*)result.getObject();
+                if(result.error())
+                    info.errorMessage = result.message();
 			}
             if (info.pluginInterface)
             {

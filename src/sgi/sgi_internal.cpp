@@ -151,9 +151,9 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
                 {
                     const SGIPlugins::PluginInfo & info = *it;
                     os << "<li>" << info.pluginName;
-                    if(info.pluginFilename.empty())
+                    if(info.isInternalPlugin())
                         os << " <i>(internal)</i>";
-                    else
+                    else if(!info.pluginFilename.empty())
                         os << " from " << info.pluginFilename;
                     os << "</li>";
                 }
@@ -177,6 +177,7 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
                     os << "<table border=\'1\' align=\'left\' width='100%'>";
                     os << "<tr><td>filename</td><td>" << info.pluginFilename << "</td></tr>";
                     os << "<tr><td>score</td><td>" << info.pluginScore() << "</td></tr>";
+                    os << "<tr><td>error</td><td>" << info.errorMessage << "</td></tr>";
                     os << "<tr><td>WritePrettyHTML</td><td>" << (void*)info.writePrettyHTMLInterface << "</td></tr>";
                     os << "<tr><td>ObjectInfo</td><td>" << (void*)info.objectInfoInterface << "</td></tr>";
                     os << "<tr><td>ObjectTree</td><td>" << (void*)info.objectTreeInterface << "</td></tr>";
