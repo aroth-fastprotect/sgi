@@ -1290,6 +1290,7 @@ bool contextMenuPopulateImpl<osg::Camera>::populate(IContextMenuItem * menuItem)
             IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
             if (manipulateMenu)
             {
+                manipulateMenu->addSimpleAction(MenuActionCameraCullMask, helpers::str_plus_hex("Cull mask", object->getCullMask()), _item);
                 manipulateMenu->addSimpleAction(MenuActionCameraViewMatrix, "View matrix", _item);
                 manipulateMenu->addSimpleAction(MenuActionCameraProjectionMatrix, "Projection matrix", _item);
 

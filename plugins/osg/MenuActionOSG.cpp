@@ -125,6 +125,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraCullSettings)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraClearColor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraComputeNearFarMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraProjectionResizePolicy)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraCullMask)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraViewMatrix)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraProjectionMatrix)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraLiveView)
@@ -1306,6 +1307,21 @@ bool actionHandlerImpl<MenuActionCameraProjectionResizePolicy>::execute()
 {
     osg::Camera * object = getObject<osg::Camera, SGIItemOsg>();
     object->setProjectionResizePolicy((osg::Camera::ProjectionResizePolicy)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionCameraCullMask>::execute()
+{
+    osg::Camera * object = getObject<osg::Camera, SGIItemOsg>();
+    unsigned cullMask = object->getCullMask();
+    bool ret;
+    ret = _hostInterface->inputDialogBitmask(menu()->parentWidget(),
+        cullMask,
+        "Cull mask:", "Set cull mask",
+        _item
+    );
+    if (ret)
+        object->setCullMask(cullMask);
     return true;
 }
 
