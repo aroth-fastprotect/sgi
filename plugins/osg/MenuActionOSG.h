@@ -103,6 +103,7 @@ enum MenuAction {
     MenuActionCameraCullSettings,
     MenuActionCameraComputeNearFarMode,
     MenuActionCameraProjectionResizePolicy,
+    MenuActionCameraCullMask,
     MenuActionCameraViewMatrix, 
     MenuActionCameraProjectionMatrix,
     MenuActionCameraLiveView,
