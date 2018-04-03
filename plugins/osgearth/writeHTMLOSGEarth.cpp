@@ -962,8 +962,10 @@ bool writePrettyHTMLImpl<osgEarth::ModelLayer>::process(std::basic_ostream<char>
             os << "<tr><td>visible</td><td>" << (object->getVisible()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>enabled</td><td>" << (object->getEnabled()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>lightingEnabled</td><td>" << (object->isLightingEnabled()?"true":"false") << "</td></tr>" << std::endl;
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0) && OSGEARTH_VERSION_LESS_THAN(2,10,0)
             os << "<tr><td>isTerrainPatch</td><td>" << (object->isTerrainPatch()?"true":"false") << "</td></tr>" << std::endl;
+#endif
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             os << "<tr><td>maskMinLevel</td><td>" << object->getMaskMinLevel() << "</td></tr>" << std::endl;
 #endif
             os << "<tr><td>opacity</td><td>" << object->getOpacity() << "</td></tr>" << std::endl;
