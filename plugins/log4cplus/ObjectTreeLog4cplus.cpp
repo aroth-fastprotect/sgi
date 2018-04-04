@@ -7,7 +7,15 @@
 #include <sgi/plugins/SGIProxyItem.h>
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/helpers/string>
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 #include <log4cplus/hierarchy.h>
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 namespace sgi {
 namespace log4cplus_plugin {

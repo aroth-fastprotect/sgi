@@ -1,6 +1,13 @@
 #include "stdafx.h"
 #include <ostream>
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 #include <log4cplus/hierarchy.h>
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 #include "writeHTMLLog4cplus.h"
 #include "SGIItemLog4cplus"
 #include <sgi/plugins/SGIHostItemLog4cplus.h>
