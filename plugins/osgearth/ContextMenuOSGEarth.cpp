@@ -369,6 +369,8 @@ bool contextMenuPopulateImpl<osgEarth::TerrainLayer>::populate(IContextMenuItem 
                 menuItem->addMenu("Tile source", &tilesource);
 
             menuItem->addSimpleAction(MenuActionTileInspector, "Tile inspector...", _item);
+            if(object->getCacheSettings() && object->getCacheSettings()->getCacheBin())
+                menuItem->addSimpleAction(MenuActionTerrainLayerClearCacheTiles, "Clear tiles from cache...", _item);
         }
         break;
 	default:

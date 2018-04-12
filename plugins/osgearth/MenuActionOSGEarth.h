@@ -28,6 +28,7 @@ enum MenuAction {
 	MenuActionAddExtension,
 	MenuActionTerrainProfile,
     MenuActionTerrainLayerSetURL,
+    MenuActionTerrainLayerClearCacheTiles,
     MenuActionModelLayerSetURL,
     MenuActionModelLayerEnable,
     MenuActionModelLayerVisible,

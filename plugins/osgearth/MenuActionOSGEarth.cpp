@@ -61,6 +61,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAddExtension)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTerrainProfile)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTerrainLayerCacheUsage)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTerrainLayerSetURL)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTerrainLayerClearCacheTiles)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionImageLayerOpacity)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionImageLayerMinVisibleRange)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionImageLayerMaxVisibleRange)
@@ -436,6 +437,39 @@ bool actionHandlerImpl<MenuActionTerrainLayerSetURL>::execute()
     {
         //const_cast<LayerNode*>(layerNode)->setFilename(newFilename);
         //triggerRepaint();
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTerrainLayerClearCacheTiles>::execute()
+{
+    osgEarth::TerrainLayer * object = static_cast<osgEarth::TerrainLayer*>(item<SGIItemOsg>()->object());
+    std::string key = "8/12/2";
+
+    bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), key, "Tile key:", "Enter tile key to delete from cache", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+    if (gotInput)
+    {
+        osgEarth::CacheSettings * cs = object->getCacheSettings();
+        osgEarth::CacheBin * bin = nullptr;
+        if (cs)
+            bin = cs->getCacheBin();
+
+        if (bin)
+        {
+            osgEarth::StringTokenizer st("/");
+            osgEarth::StringVector elems;
+            st.tokenize(key, elems);
+            if (elems.size() == 3)
+            {
+                int l = osgEarth::as<int>(elems[0], -1);
+                int x = osgEarth::as<int>(elems[1], -1);
+                int y = osgEarth::as<int>(elems[2], -1);
+                osgEarth::TileKey tilekey = osgEarth::TileKey(l, x, y, object->getProfile());
+
+                std::string cacheKey = osgEarth::Stringify() << tilekey.str() << "_" << tilekey.getProfile()->getHorizSignature();
+                bin->remove(cacheKey);
+            }
+        }
     }
     return true;
 }
