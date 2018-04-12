@@ -297,7 +297,7 @@ bool contextMenuPopulateImpl<osgEarth::MapNode>::populate(IContextMenuItem * men
 
 bool contextMenuPopulateImpl<osgEarth::Layer>::populate(IContextMenuItem * menuItem)
 {
-    osgEarth::Layer * object = static_cast<osgEarth::Layer*>(item<SGIItemOsg>()->object());
+    LayerAccessor * object = static_cast<LayerAccessor*>(getObject<osgEarth::Layer, SGIItemOsg>());
     bool ret = false;
     switch(itemType())
     {
@@ -305,6 +305,12 @@ bool contextMenuPopulateImpl<osgEarth::Layer>::populate(IContextMenuItem * menuI
         ret = callNextHandler(menuItem);
         if(ret)
         {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            SGIHostItemOsg cacheSettings(object->getCacheSettings());
+            if (cacheSettings.hasObject())
+                menuItem->addMenu("Cache settings", &cacheSettings);
+#endif
+
             /*
             SGIHostItemOsg sequencecontrol(object->getSequenceControl());
             if(sequencecontrol.hasObject())

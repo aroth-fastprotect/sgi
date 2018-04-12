@@ -136,7 +136,7 @@ namespace osgearth_plugin {
     public:
         typedef std::vector<osg::ref_ptr<osgEarth::LayerCallback> > LayerCallbackList;
         void getLayerCallbacks(LayerCallbackList & callbacks) const;
-        osgEarth::CacheSettings * getCacheSettings() const { return _cacheSettings.get(); }
+        osgEarth::CacheSettings * getCacheSettings() const;
     };
 #endif
 
@@ -160,10 +160,12 @@ namespace osgearth_plugin {
                 url = layerConf.value("url");
             return url;
         }
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
         inline void setEnabled(bool /*enable*/)
         {
             (void)(0);
         }
+#endif
 
 #if OSGEARTH_VERSION_LESS_THAN(2,7,0)
         inline osgEarth::TileSource * tileSourceNoInit() { return _tileSource.get(); }

@@ -702,6 +702,7 @@ bool writePrettyHTMLImpl<osgEarth::Layer>::process(std::basic_ostream<char>& os)
             os << "<tr><td>typeName</td><td>" << object->getTypeName() << "</td></tr>" << std::endl;
             os << "<tr><td>status</td><td>" << object->getStatus() << "</td></tr>" << std::endl;
             os << "<tr><td>readOptions</td><td>" << getObjectNameAndType(object->getReadOptions()) << "</td></tr>" << std::endl;
+            os << "<tr><td>cacheSettings</td><td>" << getObjectNameAndType(object->getCacheSettings()) << "</td></tr>" << std::endl;
             os << "<tr><td>sequenceControl</td><td>" << object->getSequenceControl() << "</td></tr>" << std::endl;
             os << "<tr><td>extent</td><td>" << object->getExtent() << "</td></tr>" << std::endl;
             os << "<tr><td>cacheId</td><td>" << object->getCacheID() << "</td></tr>" << std::endl;

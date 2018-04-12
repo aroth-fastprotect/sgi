@@ -176,6 +176,17 @@ void VirtualProgramAccessor::getGLSLExtensions(ExtensionsSet & extensions)
     _dataModelMutex.unlock();
 }
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+osgEarth::CacheSettings * LayerAccessor::getCacheSettings() const 
+{
+    const osgEarth::TerrainLayer* tl = dynamic_cast<const osgEarth::TerrainLayer*>(static_cast<const osgEarth::Layer*>(this));
+    if (tl)
+        return tl->getCacheSettings();
+    else
+        return _cacheSettings.get();
+}
+#endif
+
 
 } // namespace osgearth_plugin
 } // namespace sgi
