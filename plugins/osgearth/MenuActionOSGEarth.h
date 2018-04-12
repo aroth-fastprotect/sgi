@@ -74,6 +74,11 @@ enum MenuAction {
 
     MenuActionRTTPickerView,
     MenuActionRTTPickerTexture,
+
+    MenuActionCacheClear,
+    MenuActionCacheCompact,
+    MenuActionCacheBinClear,
+    MenuActionCacheBinCompact,
 };
 
 enum MapDebugImageLayer {

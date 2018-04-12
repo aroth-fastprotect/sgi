@@ -111,6 +111,11 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLODScaleOverrideNodeLODScale)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionRTTPickerView)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionRTTPickerTexture)
 
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCacheClear)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCacheCompact)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCacheBinClear)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCacheBinCompact)
+
 using namespace sgi::osg_helpers;
 
 namespace {
@@ -984,6 +989,34 @@ bool actionHandlerImpl<MenuActionRTTPickerView>::execute()
             dialog->show();
         }
     }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionCacheClear>::execute()
+{
+    osgEarth::Cache * object = getObject<osgEarth::Cache, SGIItemOsg>();
+    object->clear();
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionCacheCompact>::execute()
+{
+    osgEarth::Cache * object = getObject<osgEarth::Cache, SGIItemOsg>();
+    object->compact();
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionCacheBinClear>::execute()
+{
+    osgEarth::CacheBin * object = getObject<osgEarth::CacheBin, SGIItemOsg>();
+    object->clear();
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionCacheBinCompact>::execute()
+{
+    osgEarth::CacheBin * object = getObject<osgEarth::CacheBin, SGIItemOsg>();
+    object->compact();
     return true;
 }
 

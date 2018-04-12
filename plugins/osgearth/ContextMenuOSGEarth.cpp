@@ -61,6 +61,8 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::VirtualProgram)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LevelDBDatabase)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LODScaleOverrideNode)
 #endif
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Cache)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheBin)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(ElevationQueryReferenced)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(TileKeyReferenced)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
@@ -505,7 +507,7 @@ bool contextMenuPopulateImpl<osgEarth::LevelDBDatabase>::populate(IContextMenuIt
 
 bool contextMenuPopulateImpl<osgEarth::LODScaleOverrideNode>::populate(IContextMenuItem * menuItem)
 {
-    osgEarth::LODScaleOverrideNode * object = static_cast<osgEarth::LODScaleOverrideNode*>(item<SGIItemOsg>()->object());
+    osgEarth::LODScaleOverrideNode * object = getObject<osgEarth::LODScaleOverrideNode,SGIItemOsg>();
     bool ret = false;
     switch (itemType())
     {
@@ -524,9 +526,51 @@ bool contextMenuPopulateImpl<osgEarth::LODScaleOverrideNode>::populate(IContextM
 }
 #endif
 
+bool contextMenuPopulateImpl<osgEarth::Cache>::populate(IContextMenuItem * menuItem)
+{
+    osgEarth::Cache * object = getObject<osgEarth::Cache, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            menuItem->addSimpleAction(MenuActionCacheClear, "Clear", _item);
+            menuItem->addSimpleAction(MenuActionCacheCompact, "Compact", _item);
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osgEarth::CacheBin>::populate(IContextMenuItem * menuItem)
+{
+    osgEarth::CacheBin * object = getObject<osgEarth::CacheBin, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            menuItem->addSimpleAction(MenuActionCacheBinClear, "Clear", _item);
+            menuItem->addSimpleAction(MenuActionCacheBinCompact, "Compact", _item);
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
 bool contextMenuPopulateImpl<osgEarth::Util::SkyNode>::populate(IContextMenuItem * menuItem)
 {
-    osgEarth::Util::SkyNode * object = static_cast<osgEarth::Util::SkyNode*>(item<SGIItemOsg>()->object());
+    osgEarth::Util::SkyNode * object = getObject<osgEarth::Util::SkyNode,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
