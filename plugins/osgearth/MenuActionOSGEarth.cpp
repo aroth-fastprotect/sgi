@@ -36,6 +36,7 @@
 #include "osgearth_accessor.h"
 #include "SettingsDialogOSGEarth.h"
 #include "ElevationQueryReferenced"
+#include "geo_helpers.h"
 
 #include "TileInspectorDialog.h"
 
@@ -444,9 +445,9 @@ bool actionHandlerImpl<MenuActionTerrainLayerSetURL>::execute()
 bool actionHandlerImpl<MenuActionTerrainLayerClearCacheTiles>::execute()
 {
     osgEarth::TerrainLayer * object = static_cast<osgEarth::TerrainLayer*>(item<SGIItemOsg>()->object());
-    std::string key = "8/12/2";
+    std::string keys = "8/12/2\r\n8/12/3";
 
-    bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), key, "Tile key:", "Enter tile key to delete from cache", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+    bool gotInput = _hostInterface->inputDialogText(menuAction()->menu()->parentWidget(), keys, "Tile keys:", "Enter tile keys to delete from cache", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
     if (gotInput)
     {
         osgEarth::CacheSettings * cs = object->getCacheSettings();
@@ -456,18 +457,14 @@ bool actionHandlerImpl<MenuActionTerrainLayerClearCacheTiles>::execute()
 
         if (bin)
         {
-            osgEarth::StringTokenizer st("/");
-            osgEarth::StringVector elems;
-            st.tokenize(key, elems);
-            if (elems.size() == 3)
+            TileKeyList tilekeylist;
+            if(tilekeylist.fromText(keys, object->getProfile()))
             {
-                int l = osgEarth::as<int>(elems[0], -1);
-                int x = osgEarth::as<int>(elems[1], -1);
-                int y = osgEarth::as<int>(elems[2], -1);
-                osgEarth::TileKey tilekey = osgEarth::TileKey(l, x, y, object->getProfile());
-
-                std::string cacheKey = osgEarth::Stringify() << tilekey.str() << "_" << tilekey.getProfile()->getHorizSignature();
-                bin->remove(cacheKey);
+                for (const osgEarth::TileKey & tilekey : tilekeylist)
+                {
+                    std::string cacheKey = osgEarth::Stringify() << tilekey.str() << "_" << tilekey.getProfile()->getHorizSignature();
+                    bin->remove(cacheKey);
+                }
             }
         }
     }

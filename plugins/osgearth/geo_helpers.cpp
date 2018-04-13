@@ -4,6 +4,7 @@
 #include "string_helpers.h"
 #include <osgEarth/TileSource>
 #include <osgEarth/URI>
+#include <osgEarth/Registry>
 
 namespace sgi {
 namespace osgearth_plugin {
@@ -32,6 +33,194 @@ namespace {
         return ssStr;
     }
 
+}
+
+TileKeySet::TileKeySet()
+{
+}
+
+void TileKeySet::addTileKeyChilds(const osgEarth::TileKey & tilekey)
+{
+    if (tilekey.getLevelOfDetail() >= 24 || size() > 200)
+        return;
+    for (unsigned q = 0; q < 4; ++q)
+    {
+        osgEarth::TileKey qchild = tilekey.createChildKey(q);
+        this->insert(qchild);
+        this->addTileKeyChilds(qchild);
+    }
+}
+
+TileKeyList::TileKeyList()
+{
+}
+
+void TileKeyList::addTileKeyAndNeighbors(const osgEarth::TileKey & tilekey, NUM_NEIGHBORS numNeighbors)
+{
+    TileKeySet set;
+    switch (numNeighbors)
+    {
+    case NUM_NEIGHBORS_NONE:
+        set.insert(tilekey);
+        break;
+    case NUM_NEIGHBORS_CROSS:
+        set.insert(tilekey);
+        set.insert(tilekey.createNeighborKey(-1, 0));
+        set.insert(tilekey.createNeighborKey(0, -1));
+        set.insert(tilekey.createNeighborKey(1, 0));
+        set.insert(tilekey.createNeighborKey(0, 1));
+        break;
+    case NUM_NEIGHBORS_IMMEDIATE:
+        set.insert(tilekey);
+        set.insert(tilekey.createNeighborKey(-1, 0));
+        set.insert(tilekey.createNeighborKey(-1, -1));
+        set.insert(tilekey.createNeighborKey(0, -1));
+        set.insert(tilekey.createNeighborKey(1, -1));
+        set.insert(tilekey.createNeighborKey(1, 0));
+        set.insert(tilekey.createNeighborKey(1, 1));
+        set.insert(tilekey.createNeighborKey(0, 1));
+        set.insert(tilekey.createNeighborKey(-1, 1));
+        break;
+    case NUM_NEIGHBORS_PARENTAL:
+    {
+        set.insert(tilekey);
+        osgEarth::TileKey t = tilekey.createParentKey();
+        while (t.valid())
+        {
+            set.insert(t);
+            t = t.createParentKey();
+        }
+    }
+    break;
+    case NUM_NEIGHBORS_PARENTAL_AND_CHILDS:
+    {
+        set.insert(tilekey);
+        osgEarth::TileKey t = tilekey.createParentKey();
+        while (t.valid())
+        {
+            set.insert(t);
+            t = t.createParentKey();
+        }
+        set.addTileKeyChilds(tilekey);
+    }
+    break;
+    case NUM_NEIGHBORS_CHILDS:
+    {
+        set.insert(tilekey);
+        osgEarth::TileKey t = tilekey.createParentKey();
+        while (t.valid())
+        {
+            set.insert(t);
+            t = t.createParentKey();
+        }
+        set.addTileKeyChilds(tilekey);
+    }
+    break;
+    }
+    for (TileKeySet::const_iterator it = set.begin(); it != set.end(); it++)
+        this->push_back(*it);
+}
+
+void TileKeyList::addTileForGeoPoint(const osgEarth::GeoPoint & pt, const osgEarth::Profile * profile, int selected_lod, NUM_NEIGHBORS numNeighbors)
+{
+    Q_ASSERT(profile != nullptr);
+    osgEarth::TileKey tilekey = profile->createTileKey(pt.x(), pt.y(), selected_lod);
+    addTileKeyAndNeighbors(tilekey, (numNeighbors == NUM_NEIGHBORS_PARENTAL || numNeighbors == NUM_NEIGHBORS_PARENTAL_AND_CHILDS) ? NUM_NEIGHBORS_NONE : numNeighbors);
+}
+
+void TileKeyList::addTilesForGeoExtent(const osgEarth::GeoExtent & ext, const osgEarth::Profile * profile, int selected_lod, NUM_NEIGHBORS numNeighbors)
+{
+    osgEarth::GeoPoint nw(profile->getSRS(), ext.xMin(), ext.yMin());
+    osgEarth::GeoPoint ne(profile->getSRS(), ext.xMin(), ext.yMax());
+    osgEarth::GeoPoint sw(profile->getSRS(), ext.xMax(), ext.yMin());
+    osgEarth::GeoPoint se(profile->getSRS(), ext.xMax(), ext.yMax());
+
+    osgEarth::GeoPoint center;
+    ext.getCentroid(center);
+
+    if (selected_lod < 0)
+    {
+        for (unsigned lod = 0; lod < 21; lod++)
+        {
+            addTileForGeoPoint(center, profile, lod, numNeighbors);
+            addTileForGeoPoint(nw, profile, lod, numNeighbors);
+            addTileForGeoPoint(ne, profile, lod, numNeighbors);
+            addTileForGeoPoint(sw, profile, lod, numNeighbors);
+            addTileForGeoPoint(se, profile, lod, numNeighbors);
+        }
+    }
+    else
+    {
+        addTileForGeoPoint(center, profile, selected_lod, numNeighbors);
+        addTileForGeoPoint(nw, profile, selected_lod, numNeighbors);
+        addTileForGeoPoint(ne, profile, selected_lod, numNeighbors);
+        addTileForGeoPoint(sw, profile, selected_lod, numNeighbors);
+        addTileForGeoPoint(se, profile, selected_lod, numNeighbors);
+    }
+}
+
+
+bool TileKeyList::fromLineEdit(QLineEdit * le, const osgEarth::Profile * profile, int selectedLod, NUM_NEIGHBORS numNeighbors)
+{
+    bool ret = false;
+    CoordinateResult coordResult = coordinateFromString(le, profile, selectedLod, &ret);
+    if (ret)
+        ret = fromCoordinateResult(coordResult, profile, selectedLod, numNeighbors);
+    return ret;
+}
+
+bool TileKeyList::fromString(const std::string & s, const osgEarth::Profile * profile, int selectedLod, NUM_NEIGHBORS numNeighbors)
+{
+    bool ret = false;
+    CoordinateResult coordResult = coordinateFromString(s, profile, selectedLod, &ret);
+    if (ret)
+        ret = fromCoordinateResult(coordResult, profile, selectedLod, numNeighbors);
+    return ret;
+}
+
+bool TileKeyList::fromCoordinateResult(const CoordinateResult & result, const osgEarth::Profile * profile, int selectedLod, NUM_NEIGHBORS numNeighbors)
+{
+    bool ret = false;
+    const osgEarth::Profile * used_profile = profile ? profile : osgEarth::Registry::instance()->getGlobalGeodeticProfile();
+    const unsigned maximum_lod = 21;
+    if (result.geoPoint.isValid())
+    {
+        osgEarth::GeoPoint geoptProfile = result.geoPoint.transform(used_profile->getSRS());
+
+        if (selectedLod == -1)
+        {
+            for (unsigned lod = 0; lod < maximum_lod; lod++)
+            {
+                osgEarth::TileKey tilekey = used_profile->createTileKey(geoptProfile.x(), geoptProfile.y(), lod);
+                addTileKeyAndNeighbors(tilekey, (numNeighbors == NUM_NEIGHBORS_PARENTAL || numNeighbors == NUM_NEIGHBORS_PARENTAL_AND_CHILDS) ? NUM_NEIGHBORS_NONE : numNeighbors);
+            }
+        }
+        else
+        {
+            osgEarth::TileKey tilekey = used_profile->createTileKey(geoptProfile.x(), geoptProfile.y(), selectedLod);
+            addTileKeyAndNeighbors(tilekey, numNeighbors);
+        }
+        ret = true;
+    }
+    else if (result.tileKey.valid())
+    {
+        addTileKeyAndNeighbors(result.tileKey, numNeighbors);
+        ret = true;
+    }
+    return ret;
+}
+
+bool TileKeyList::fromText(const std::string & s, const osgEarth::Profile * profile, int selectedLod, NUM_NEIGHBORS numNeighbors)
+{
+    bool ret = false;
+    osgEarth::StringVector lines;
+    osgEarth::StringTokenizer(s, lines);
+    for (const std::string & line : lines)
+    {
+        if (fromString(line, profile, selectedLod, numNeighbors))
+            ret = true;
+    }
+    return ret;
 }
 
 class MapDownload::MapDownloadPrivate

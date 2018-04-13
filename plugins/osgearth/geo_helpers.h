@@ -8,8 +8,50 @@ namespace osgEarth {
     class DateTime;
 }
 
+class QLineEdit;
+
 namespace sgi {
 namespace osgearth_plugin {
+
+struct CoordinateResult;
+
+class TileKeySet : public std::set<osgEarth::TileKey>
+{
+public:
+    TileKeySet();
+
+    void addTileKeyChilds(const osgEarth::TileKey & tilekey);
+};
+
+class TileKeyList : public std::list<osgEarth::TileKey>
+{
+public:
+    TileKeyList();
+
+public:
+    enum NUM_NEIGHBORS
+    {
+        NUM_NEIGHBORS_NONE = 0,
+        NUM_NEIGHBORS_CROSS,
+        NUM_NEIGHBORS_IMMEDIATE,
+        NUM_NEIGHBORS_PARENTAL,
+        NUM_NEIGHBORS_PARENTAL_AND_CHILDS,
+        NUM_NEIGHBORS_CHILDS,
+    };
+
+    void addTileKeyAndNeighbors(const osgEarth::TileKey & tilekey, NUM_NEIGHBORS numNeighbors);
+    void addTileForGeoPoint(const osgEarth::GeoPoint & pt, const osgEarth::Profile * profile, int selected_lod = -1, NUM_NEIGHBORS numNeighbors = NUM_NEIGHBORS_NONE);
+    void addTilesForGeoExtent(const osgEarth::GeoExtent & ext, const osgEarth::Profile * profile, int selected_lod = -1, NUM_NEIGHBORS numNeighbors = NUM_NEIGHBORS_NONE);
+
+    bool fromLineEdit(QLineEdit * le, const osgEarth::Profile * profile, int selectedLod = -1, NUM_NEIGHBORS numNeighbors = NUM_NEIGHBORS_NONE);
+    bool fromString(const std::string & s, const osgEarth::Profile * profile, int selectedLod = -1, NUM_NEIGHBORS numNeighbors = NUM_NEIGHBORS_NONE);
+    bool fromCoordinateResult(const CoordinateResult & result, const osgEarth::Profile * profile, int selectedLod = -1, NUM_NEIGHBORS numNeighbors = NUM_NEIGHBORS_NONE);
+    bool fromText(const std::string & s, const osgEarth::Profile * profile, int selectedLod = -1, NUM_NEIGHBORS numNeighbors = NUM_NEIGHBORS_NONE);
+
+protected:
+
+
+};
 
 class MapDownload
 {
