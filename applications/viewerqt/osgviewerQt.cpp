@@ -561,75 +561,74 @@ void ViewerWidget::paintEvent( QPaintEvent* event )
     _viewer->frame();
 }
 
-class CreateViewHandler : public osgGA::GUIEventHandler {
-public:
-
-    CreateViewHandler() {}
-    ~CreateViewHandler() {}
-
-    bool handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa)
-    {
-        osgViewer::View* view = dynamic_cast<osgViewer::View*>(&aa);
-        if (!view) return false;
-        switch (ea.getEventType())
-        {
-        case(osgGA::GUIEventAdapter::KEYUP):
-            if (ea.getKey() == 'v' && ea.getModKeyMask() == 0)
-            {
-                viewCloneImpl(view, false);
-            }
-            else if (ea.getKey() == 'V' || (ea.getKey() == 'v' && (ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_SHIFT)))
-            {
-                viewCloneImpl(view, true);
-            }
-            break;
-        default:
-            break;
-        }
-        return false;
+CreateViewHandler::CreateViewHandler(QObject * parent) 
+    : QObject(parent) 
+{
+    connect(this, &CreateViewHandler::triggerClone, this, &CreateViewHandler::viewCloneImpl);
+}
+CreateViewHandler::~CreateViewHandler()
+{
 }
 
-    void viewCloneImpl(osgViewer::View * source, bool shared)
+bool CreateViewHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa)
+{
+    osgViewer::View* view = dynamic_cast<osgViewer::View*>(&aa);
+    if (!view) return false;
+    switch (ea.getEventType())
     {
-        osg::Camera * sourceCamera = source->getCamera();
-        ViewerWidget * sourceWidget = nullptr;
+    case(osgGA::GUIEventAdapter::KEYUP):
+        if (ea.getKey() == 'v' && ea.getModKeyMask() == 0)
+        {
+            emit triggerClone(view, false);
+        }
+        else if (ea.getKey() == 'V' || (ea.getKey() == 'v' && (ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_SHIFT)))
+        {
+            emit triggerClone(view, true);
+        }
+        break;
+    default:
+        break;
+    }
+    return false;
+}
+
+void CreateViewHandler::viewCloneImpl(osgViewer::View * source, bool shared)
+{
+    osg::Camera * sourceCamera = source->getCamera();
+    ViewerWidget * sourceWidget = nullptr;
 
 
 #ifdef SGI_USE_OSGQT
-        osgQt::GraphicsWindowQt* ctx = dynamic_cast<osgQt::GraphicsWindowQt*>(sourceCamera->getGraphicsContext());
-        if (ctx)
-        {
-            QWidget * w = ctx->getGLWidget();
-            if (w)
-                sourceWidget = dynamic_cast<ViewerWidget*>(w->parentWidget());
-        }
+    osgQt::GraphicsWindowQt* ctx = dynamic_cast<osgQt::GraphicsWindowQt*>(sourceCamera->getGraphicsContext());
+    if (ctx)
+    {
+        QWidget * w = ctx->getGLWidget();
+        if (w)
+            sourceWidget = dynamic_cast<ViewerWidget*>(w->parentWidget());
+    }
 #endif
 
-        ViewerWidget * nextwidget = new ViewerWidget(sourceWidget, shared);
-        nextwidget->createCamera();
-        osgViewer::View* nextview = nextwidget->view();
+    ViewerWidget * nextwidget = new ViewerWidget(sourceWidget, shared);
+    nextwidget->createCamera();
+    osgViewer::View* nextview = nextwidget->view();
 
-        // configure the near/far so we don't clip things that are up close
-        osg::Camera * camera = nextview->getCamera();
-        camera->setNearFarRatio(sourceCamera->getNearFarRatio());
-        camera->setClearColor(sourceCamera->getClearColor());
-        camera->setClearMask(sourceCamera->getClearMask());
+    // configure the near/far so we don't clip things that are up close
+    osg::Camera * camera = nextview->getCamera();
+    camera->setNearFarRatio(sourceCamera->getNearFarRatio());
+    camera->setClearColor(sourceCamera->getClearColor());
+    camera->setClearMask(sourceCamera->getClearMask());
 
-        nextview->setSceneData(source->getSceneData());
+    nextview->setSceneData(source->getSceneData());
 
-        nextview->setCameraManipulator(source->getCameraManipulator());
-        for (auto evh : source->getEventHandlers())
-            nextview->addEventHandler(evh);
+    nextview->setCameraManipulator(source->getCameraManipulator());
+    for (auto evh : source->getEventHandlers())
+        nextview->addEventHandler(evh);
 
-        if (sourceWidget)
-            nextwidget->setGeometry(sourceWidget->geometry());
+    if (sourceWidget)
+        nextwidget->setGeometry(sourceWidget->geometry());
 
-        nextwidget->show();
-    }
-
-};
-
-
+    nextwidget->show();
+}
 
 int
 main(int argc, char** argv)
@@ -815,7 +814,7 @@ main(int argc, char** argv)
 
         view->addEventHandler(meh);
 
-        view->addEventHandler(new CreateViewHandler);
+        view->addEventHandler(new CreateViewHandler(myMainWindow));
 
         QString filelist;
         for (const auto & f : helper.files())

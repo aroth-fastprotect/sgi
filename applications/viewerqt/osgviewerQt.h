@@ -7,6 +7,23 @@ class QTimer;
 class QPaintEvent;
 class CompositeViewerThread;
 
+class CreateViewHandler : public QObject, public osgGA::GUIEventHandler
+{
+    Q_OBJECT
+public:
+
+    CreateViewHandler(QObject * parent);
+    ~CreateViewHandler();
+
+    bool handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa) override;
+
+signals:
+    void triggerClone(osgViewer::View * source, bool shared);
+
+protected:
+    void viewCloneImpl(osgViewer::View * source, bool shared);
+};
+
 class ViewerWidget : public QMainWindow
 {
     Q_OBJECT
