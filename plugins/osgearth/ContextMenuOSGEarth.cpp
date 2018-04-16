@@ -882,6 +882,22 @@ bool contextMenuPopulateImpl<TileSourceTileKey>::populate(IContextMenuItem * men
         if(ret)
         {
             contextMenuPopulate_TileKey(menuItem, _item.get(), object.tileKey);
+
+            SGIHostItemOsg tileSource(object.tileSource.get());
+            if (tileSource.hasObject())
+                menuItem->addMenu("TileSource", &tileSource);
+
+            SGIHostItemOsg terrainLayer(object.terrainLayer.get());
+            if (terrainLayer.hasObject())
+                menuItem->addMenu("TerrainLayer", &terrainLayer);
+
+            SGIHostItemOsg cacheBin(object.cacheBin.get());
+            if (cacheBin.hasObject())
+                menuItem->addMenu("CacheBin", &cacheBin);
+
+            SGIHostItemOsg tileData(object.tileData.get());
+            if (tileData.hasObject())
+                menuItem->addMenu("TileData", &tileData);
         }
         break;
     default:
