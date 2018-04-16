@@ -14,6 +14,18 @@
 #include <osgGA/TerrainManipulator>
 #include <osgGA/SphericalManipulator>
 
+#include <osgViewer/ViewerEventHandlers>
+
+#include <osgGA/TrackballManipulator>
+#include <osgGA/FlightManipulator>
+#include <osgGA/DriveManipulator>
+#include <osgGA/KeySwitchMatrixManipulator>
+#include <osgGA/StateSetManipulator>
+#include <osgGA/AnimationPathManipulator>
+#include <osgGA/TerrainManipulator>
+#include <osgGA/SphericalManipulator>
+
+
 #ifdef SGI_USE_OSGEARTH
 #include <osgEarth/Notify>
 #include <osgEarth/MapNode>
@@ -326,6 +338,38 @@ osg::NotifySeverity severityFromString(const std::string & input)
     return ret;
 }
 
+void initializeNotifyLevels(osg::ArgumentParser & arguments)
+{
+    std::string osgnotifylevel;
+    std::string osgearthnotifylevel;
+    if (arguments.read("--debug"))
+    {
+        osgnotifylevel = "debug";
+        osgearthnotifylevel = "debug";
+    }
+    else
+    {
+        if (!arguments.read("--osgdebug", osgnotifylevel))
+            osgnotifylevel.clear();
+        if (!arguments.read("--earthdebug", osgearthnotifylevel))
+            osgearthnotifylevel.clear();
+    }
+    if (!osgnotifylevel.empty())
+    {
+        osg::NotifySeverity level = severityFromString(osgnotifylevel);
+        if (level >= 0)
+            osg::setNotifyLevel(level);
+    }
+
+    if (!osgearthnotifylevel.empty())
+    {
+        osg::NotifySeverity level = severityFromString(osgearthnotifylevel);
+#ifdef SGI_USE_OSGEARTH
+        if (level >= 0)
+            osgEarth::setNotifyLevel(level);
+#endif
+    }
+}
 
 bool KeyboardDumpHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa, osg::Object* obj, osg::NodeVisitor* nv)
 {
@@ -601,6 +645,12 @@ sgi_MapNodeHelper::sgi_MapNodeHelper()
     , _mapNodeHelper(new osgEarth::Util::MapNodeHelper)
 #endif
     , _onlyImages(false)
+    , _addKeyDumper(false)
+    , _addMouseDumper(false)
+    , _movieTrackMouse(false)
+    , _usageMessage(nullptr)
+    , _viewpointNum(-1)
+    , _viewpointName()
 {
 }
 
@@ -612,7 +662,7 @@ sgi_MapNodeHelper::~sgi_MapNodeHelper()
 }
 
 
-void sgi_MapNodeHelper::setupInitialPosition(osgViewer::View* view, int viewpointNum, const std::string & viewpointName) const
+void sgi_MapNodeHelper::setupInitialPosition(osgViewer::View* view) const
 {
     osgGA::CameraManipulator * manip = view->getCameraManipulator();
 
@@ -646,7 +696,7 @@ void sgi_MapNodeHelper::setupInitialPosition(osgViewer::View* view, int viewpoin
                 for (osgEarth::ConfigSet::const_iterator i = children.begin(); i != children.end(); ++i, ++currentViewpointNum)
                 {
                     osgEarth::Viewpoint curvp(*i);
-                    if (currentViewpointNum == viewpointNum || (!viewpointName.empty() && iequals(curvp.name().value(), viewpointName)))
+                    if (currentViewpointNum == _viewpointNum || (!_viewpointName.empty() && iequals(curvp.name().value(), _viewpointName)))
                     {
                         gotViewpoint = true;
                         selectedViewpoint = curvp;
@@ -661,7 +711,7 @@ void sgi_MapNodeHelper::setupInitialPosition(osgViewer::View* view, int viewpoin
 #endif // SGI_USE_OSGEARTH
         if (trackball_manip)
         {
-            // set clear color to OSG default (violett-blue)
+            // set clear color to OSG default (violet-blue)
             view->getCamera()->setClearColor(osg::Vec4f(0.2f, 0.2f, 0.4f, 1.0f));
 
             osg::ref_ptr<osg::Node> root = view->getSceneData();
@@ -718,6 +768,9 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
 #endif
 )
 {
+
+    _usageMessage = args.getApplicationUsage();
+
     osgDB::Registry * registry = osgDB::Registry::instance();
     bool hasAtLeastOneNode = false;
     bool hasAtLeastOneObject = false;
@@ -866,9 +919,59 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
         osgGA::TrackballManipulator* manipulator = dynamic_cast<osgGA::TrackballManipulator*>(view->getCameraManipulator());
         if (!manipulator)
         {
-            // install our default manipulator (do this before calling load)
-            manipulator = new osgGA::TrackballManipulator();
-            view->setCameraManipulator(manipulator);
+            osg::ref_ptr<osgGA::KeySwitchMatrixManipulator> keyswitchManipulator = new osgGA::KeySwitchMatrixManipulator;
+
+            keyswitchManipulator->addMatrixManipulator('1', "Trackball", new osgGA::TrackballManipulator());
+            keyswitchManipulator->addMatrixManipulator('2', "Flight", new osgGA::FlightManipulator());
+            keyswitchManipulator->addMatrixManipulator('3', "Drive", new osgGA::DriveManipulator());
+            keyswitchManipulator->addMatrixManipulator('4', "Terrain", new osgGA::TerrainManipulator());
+            keyswitchManipulator->addMatrixManipulator('5', "Orbit", new osgGA::OrbitManipulator());
+            keyswitchManipulator->addMatrixManipulator('6', "FirstPerson", new osgGA::FirstPersonManipulator());
+            keyswitchManipulator->addMatrixManipulator('7', "Spherical", new osgGA::SphericalManipulator());
+
+            std::string pathfile;
+            double animationSpeed = 1.0;
+            while (args.read("--speed", animationSpeed)) {}
+            char keyForAnimationPath = '8';
+            while (args.read("-p", pathfile))
+            {
+                osgGA::AnimationPathManipulator* apm = new osgGA::AnimationPathManipulator(pathfile);
+                if (apm || !apm->valid())
+                {
+                    apm->setTimeScale(animationSpeed);
+
+                    unsigned int num = keyswitchManipulator->getNumMatrixManipulators();
+                    keyswitchManipulator->addMatrixManipulator(keyForAnimationPath, "Path", apm);
+                    keyswitchManipulator->selectMatrixManipulator(num);
+                    ++keyForAnimationPath;
+                }
+            }
+
+            view->setCameraManipulator(keyswitchManipulator.get());
+        }
+    }
+
+    if (args.read("--keys"))
+        _addKeyDumper = true;
+    if (args.read("--mouse"))
+        _addMouseDumper = true;
+    if (args.read("--track-mouse"))
+        _movieTrackMouse = true;
+
+    if (!args.read("--viewpoint", _viewpointNum))
+    {
+        _viewpointNum = -1;
+        if (!args.read("--viewpoint", _viewpointName))
+            _viewpointName.clear();
+    }
+
+    std::string device;
+    while (args.read("--device", device))
+    {
+        osg::ref_ptr<osgGA::Device> dev = osgDB::readRefFile<osgGA::Device>(device);
+        if (dev.valid())
+        {
+            view->addDevice(dev);
         }
     }
 
@@ -882,6 +985,8 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
     _mapNodeHelper->configureView(view);
 #endif // SGI_USE_OSGEARTH
 
+    setupEventHandlers(view, root);
+
     return root;
 }
 
@@ -891,4 +996,46 @@ osg::Group * sgi_MapNodeHelper::setupRootGroup(osg::Group * root)
 
     ret = root;
     return ret;
+}
+
+void sgi_MapNodeHelper::setupEventHandlers(osgViewer::View* view, osg::Group * root)
+{
+
+    // add the state manipulator
+    view->addEventHandler(new osgGA::StateSetManipulator(view->getCamera()->getOrCreateStateSet()));
+
+    // add the thread model handler
+    view->addEventHandler(new osgViewer::ThreadingHandler);
+
+    // add the window size toggle handler
+    view->addEventHandler(new osgViewer::WindowSizeHandler);
+
+    // add the stats handler
+    view->addEventHandler(new osgViewer::StatsHandler);
+
+    // add the help handler
+    view->addEventHandler(new osgViewer::HelpHandler(_usageMessage));
+
+    // add the record camera path handler
+    view->addEventHandler(new osgViewer::RecordCameraPathHandler);
+
+    // add the LOD Scale handler
+    view->addEventHandler(new osgViewer::LODScaleHandler);
+
+    // add the screen capture handler
+    view->addEventHandler(new osgViewer::ScreenCaptureHandler);
+
+    if (_addKeyDumper)
+        view->addEventHandler(new KeyboardDumpHandler);
+    if (_addMouseDumper)
+        view->addEventHandler(new MouseDumpHandler);
+
+    // pass the model to the MovieEventHandler so it can pick out ImageStream's to manipulate.
+    MovieEventHandler* meh = new MovieEventHandler();
+    meh->set(root);
+
+    if (_movieTrackMouse) 
+        meh->setTrackMouse(true);
+
+    view->addEventHandler(meh);
 }

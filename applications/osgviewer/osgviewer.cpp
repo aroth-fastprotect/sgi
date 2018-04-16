@@ -296,6 +296,7 @@ int main(int argc, char** argv)
     arguments.getApplicationUsage()->addCommandLineOption("--device <device-name>","add named device to the viewer");
     arguments.getApplicationUsage()->addCommandLineOption("--window <x y w h>", "Set the position (x,y) and size (w,h) of the viewer window.");
 
+    initializeNotifyLevels(arguments);
     // construct the viewer.
     osgViewer::CompositeViewer viewer(arguments);
 
@@ -346,16 +347,6 @@ int main(int argc, char** argv)
     osgViewer::View* firstview = new osgViewer::View;
     firstview->setName("First view");
 
-    std::string device;
-    while(arguments.read("--device", device))
-    {
-        osg::ref_ptr<osgGA::Device> dev = osgDB::readRefFile<osgGA::Device>(device);
-        if (dev.valid())
-        {
-            firstview->addDevice(dev);
-        }
-    }
-
     if (width > 0 && height > 0)
     {
         if (screenNum >= 0) firstview->setUpViewInWindow(x, y, width, height, screenNum);
@@ -367,76 +358,16 @@ int main(int argc, char** argv)
         firstview->setUpViewOnSingleScreen(screenNum);
     }
 
-    // set up the camera manipulators.
-    {
-        osg::ref_ptr<osgGA::KeySwitchMatrixManipulator> keyswitchManipulator = new osgGA::KeySwitchMatrixManipulator;
-
-        keyswitchManipulator->addMatrixManipulator( '1', "Trackball", new osgGA::TrackballManipulator() );
-        keyswitchManipulator->addMatrixManipulator( '2', "Flight", new osgGA::FlightManipulator() );
-        keyswitchManipulator->addMatrixManipulator( '3', "Drive", new osgGA::DriveManipulator() );
-        keyswitchManipulator->addMatrixManipulator( '4', "Terrain", new osgGA::TerrainManipulator() );
-        keyswitchManipulator->addMatrixManipulator( '5', "Orbit", new osgGA::OrbitManipulator() );
-        keyswitchManipulator->addMatrixManipulator( '6', "FirstPerson", new osgGA::FirstPersonManipulator() );
-        keyswitchManipulator->addMatrixManipulator( '7', "Spherical", new osgGA::SphericalManipulator() );
-
-        std::string pathfile;
-        double animationSpeed = 1.0;
-        while(arguments.read("--speed",animationSpeed) ) {}
-        char keyForAnimationPath = '8';
-        while (arguments.read("-p",pathfile))
-        {
-            osgGA::AnimationPathManipulator* apm = new osgGA::AnimationPathManipulator(pathfile);
-            if (apm || !apm->valid())
-            {
-                apm->setTimeScale(animationSpeed);
-
-                unsigned int num = keyswitchManipulator->getNumMatrixManipulators();
-                keyswitchManipulator->addMatrixManipulator( keyForAnimationPath, "Path", apm );
-                keyswitchManipulator->selectMatrixManipulator(num);
-                ++keyForAnimationPath;
-            }
-        }
-
-        firstview->setCameraManipulator( keyswitchManipulator.get() );
-    }
     bool addSceneGraphInspector = true;
     bool showSceneGraphInspector = true;
     bool showImagePreviewDialog = false;
-    bool addKeyDumper = false;
-    bool addMouseDumper = false;
+    int viewpointNum = -1;
+    std::string viewpointName;
 
     if (arguments.read("--nosgi"))
         addSceneGraphInspector = false;
     if (arguments.read("--hidesgi"))
         showSceneGraphInspector = false;
-    if (arguments.read("--keys"))
-        addKeyDumper = true;
-    if (arguments.read("--mouse"))
-        addMouseDumper = true;
-
-    // add the state manipulator
-    firstview->addEventHandler( new osgGA::StateSetManipulator(firstview->getCamera()->getOrCreateStateSet()) );
-
-    // add the thread model handler
-    firstview->addEventHandler(new osgViewer::ThreadingHandler);
-
-    // add the window size toggle handler
-    firstview->addEventHandler(new osgViewer::WindowSizeHandler);
-
-    // add the stats handler
-    firstview->addEventHandler(new osgViewer::StatsHandler);
-
-    // add the help handler
-    firstview->addEventHandler(new osgViewer::HelpHandler(arguments.getApplicationUsage()));
-
-    // add the record camera path handler
-    firstview->addEventHandler(new osgViewer::RecordCameraPathHandler);
-
-    // add the LOD Scale handler
-    firstview->addEventHandler(new osgViewer::LODScaleHandler);
-
-    // add the screen capture handler
-    firstview->addEventHandler(new osgViewer::ScreenCaptureHandler);
 
     firstview->addEventHandler(new CreateViewHandler);
 
@@ -470,11 +401,7 @@ int main(int argc, char** argv)
             }
         }
 
-        if (addKeyDumper)
-            firstview->addEventHandler(new KeyboardDumpHandler);
-        if (addMouseDumper)
-            firstview->addEventHandler(new MouseDumpHandler);
-
+        helper.setupInitialPosition(firstview);
 
         // pass the model to the MovieEventHandler so it can pick out ImageStream's to manipulate.
         MovieEventHandler* meh = new MovieEventHandler();

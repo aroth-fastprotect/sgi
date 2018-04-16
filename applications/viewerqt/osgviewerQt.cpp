@@ -670,50 +670,14 @@ main(int argc, char** argv)
 #endif // _WIN32
     }
 
-    std::string osgnotifylevel;
-    std::string osgearthnotifylevel;
-    if (arguments.read("--debug") )
-    {
-        osgnotifylevel = "debug";
-        osgearthnotifylevel = "debug";
-    }
-    else
-    {
-        if(!arguments.read("--osgdebug", osgnotifylevel))
-            osgnotifylevel.clear();
-        if ( !arguments.read("--earthdebug", osgearthnotifylevel) )
-            osgearthnotifylevel.clear();
-    }
-    if ( !osgnotifylevel.empty() )
-    {
-        osg::NotifySeverity level = severityFromString(osgnotifylevel);
-        if(level >= 0)
-            osg::setNotifyLevel(level);
-    }
-
-    if ( !osgearthnotifylevel.empty() )
-    {
-        osg::NotifySeverity level = severityFromString(osgearthnotifylevel);
-#ifdef SGI_USE_OSGEARTH
-        if(level >= 0)
-            osgEarth::setNotifyLevel(level);
-#endif
-    }
-
+    initializeNotifyLevels(arguments);
     ViewerWidget * myMainWindow = new ViewerWidget(arguments);
 
     bool addSceneGraphInspector = true;
     bool showSceneGraphInspector = true;
-    bool addKeyDumper = false;
-    bool addMouseDumper = false;
     bool fullscreen = false;
     bool orderIndependantTransparency = false;
     int autoCloseTime = -1;
-    int viewpointNum = -1;
-    std::string viewpointName;
-    std::string effectName;
-    int numThreads = -1;
-    int numHttpThreads = -1;
 
     if ( arguments.read("--nosgi") )
         addSceneGraphInspector = false;
@@ -722,33 +686,8 @@ main(int argc, char** argv)
     if (arguments.read("--oit"))
         orderIndependantTransparency = true;
 
-    if ( arguments.read("--keys") )
-        addKeyDumper = true;
-    if ( arguments.read("--mouse") )
-        addMouseDumper = true;
     if ( !arguments.read("--autoclose", autoCloseTime) )
         autoCloseTime = -1;
-    if ( !arguments.read("--viewpoint", viewpointNum) )
-    {
-        viewpointNum = -1;
-        if ( !arguments.read("--viewpoint", viewpointName) )
-            viewpointName.clear();
-    }
-    if ( !arguments.read("--effect", effectName) )
-        effectName.clear();
-    if ( !arguments.read("--numThreads", numThreads) )
-        numThreads = -1;
-    if ( !arguments.read("--numHttpThreads", numHttpThreads) )
-        numHttpThreads = -1;
-
-    /*
-    std::cout << "showSceneGraphInspector=" << showSceneGraphInspector << std::endl;
-    std::cout << "addKeyDumper=" << addKeyDumper << std::endl;
-    std::cout << "addMouseDumper=" << addMouseDumper << std::endl;
-    std::cout << "autoclose=" << autoCloseTime << std::endl;
-    std::cout << "viewpointNum=" << viewpointNum << std::endl;
-    std::cout << "viewpointName=" << viewpointName << std::endl;
-    */
 
     osgViewer::View * view = myMainWindow->view();
 
@@ -798,21 +737,7 @@ main(int argc, char** argv)
         }
         if(autoCloseTime >= 0)
             setupWidgetAutoCloseTimer(myMainWindow, autoCloseTime);
-        helper.setupInitialPosition(view, viewpointNum, viewpointName);
-
-        if(addKeyDumper)
-            view->addEventHandler(new KeyboardDumpHandler);
-        if(addMouseDumper)
-            view->addEventHandler(new MouseDumpHandler);
-
-
-        // pass the model to the MovieEventHandler so it can pick out ImageStream's to manipulate.
-        MovieEventHandler* meh = new MovieEventHandler();
-        meh->set(root);
-
-        if (arguments.read("--track-mouse")) meh->setTrackMouse(true);
-
-        view->addEventHandler(meh);
+        helper.setupInitialPosition(view);
 
         view->addEventHandler(new CreateViewHandler(myMainWindow));
 

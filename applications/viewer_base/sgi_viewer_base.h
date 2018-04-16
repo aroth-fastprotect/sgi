@@ -40,6 +40,7 @@ namespace std {
 } // namespace std
 
 osg::NotifySeverity severityFromString(const std::string & input);
+void initializeNotifyLevels(osg::ArgumentParser & arguments);
 
 class KeyboardDumpHandler : public osgGA::GUIEventHandler
 {
@@ -155,7 +156,7 @@ public:
     */
     void configureView(osgViewer::View* view) const;
 
-    void setupInitialPosition(osgViewer::View* view, int viewpointNum = -1, const std::string & viewpointName = std::string()) const;
+    void setupInitialPosition(osgViewer::View* view) const;
 
     osg::Group * setupRootGroup(osg::Group * root);
 
@@ -172,10 +173,20 @@ public:
     bool onlyImages() const { return _onlyImages; }
 
 private:
+    void setupEventHandlers(osgViewer::View* view, osg::Group * root);
+
+private:
     std::stringstream m_errorMessages;
     std::vector<std::string> m_files;
 #ifdef SGI_USE_OSGEARTH
     osgEarth::Util::MapNodeHelper * _mapNodeHelper;
 #endif
+    osg::ApplicationUsage * _usageMessage;
     bool _onlyImages;
+    bool _addKeyDumper;
+    bool _addMouseDumper;
+    bool _movieTrackMouse;
+    int _viewpointNum;
+    std::string _viewpointName;
+
 };
