@@ -723,7 +723,8 @@ void sgi_MapNodeHelper::setupInitialPosition(osgViewer::View* view) const
             }
 
         }
-        earth_manip->setViewpoint(selectedViewpoint);
+        if(gotViewpoint)
+            earth_manip->setViewpoint(selectedViewpoint);
     }
     else
 #endif // SGI_USE_OSGEARTH
