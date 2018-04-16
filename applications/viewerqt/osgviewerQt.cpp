@@ -209,6 +209,10 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     camera->setClearColor(osg::Vec4(0.2, 0.2, 0.6, 1.0));
     camera->setViewport(new osg::Viewport(0, 0, widget_width, widget_height));
     camera->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(widget_width) / static_cast<double>(widget_height), 1.0f, 10000.0f);
+    GLenum buffer = traits->doubleBuffer ? GL_BACK : GL_FRONT;
+    camera->setDrawBuffer(buffer);
+    camera->setReadBuffer(buffer);
+
 
     if (x >= 0 && y >= 0 && width >= 0 && height >= 0)
     {
