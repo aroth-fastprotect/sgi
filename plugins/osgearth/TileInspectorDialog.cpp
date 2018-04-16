@@ -1118,7 +1118,8 @@ void TileInspectorDialog::loadData()
                 }
                 else if (cacheBin)
                 {
-                    osgEarth::ReadResult res = cacheBin->readObject(data.tileKey.str(), nullptr);
+                    std::string cacheKey = osgEarth::Stringify() << data.tileKey.str() << "_" << data.tileKey.getProfile()->getHorizSignature();
+                    osgEarth::ReadResult res = cacheBin->readObject(cacheKey, nullptr);
                     if(res.succeeded())
                         data.tileData = res.getObject();
                     data.status = data.tileData.valid() ? TileSourceTileKeyData::StatusLoaded : TileSourceTileKeyData::StatusLoadFailure;
