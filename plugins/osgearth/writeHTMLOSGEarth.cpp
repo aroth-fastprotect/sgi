@@ -463,8 +463,14 @@ bool writePrettyHTMLImpl<osgEarth::CacheBin>::process(std::basic_ostream<char>& 
             os << "<tr><td>id</td><td>" << object->getID() << "</td></tr>" << std::endl;
             os << "<tr><td>metadata</td><td>";
             osgEarth::Config config = object->readMetadata();
-            os << "<pre>" << config.toJSON(true) << "</pre>";
+            if (config.empty())
+                os << "<i>empty</i>";
+            else
+                os << "<pre>" << config.toJSON(true) << "</pre>";
             os << "</td></tr>" << std::endl;
+
+            os << "<tr><td>hashKeys</td><td>" << (object->getHashKeys() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>storageSize</td><td>" << object->getStorageSize() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -527,6 +533,21 @@ bool writePrettyHTMLImpl<osgEarth::Cache>::process(std::basic_ostream<char>& os)
 
             if(_table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeChilds:
+        {
+            os << "<ul>";
+            const ThreadSafeCacheBinMapAccessor::MAP & cacheBinMap = ((const ThreadSafeCacheBinMapAccessor&)((CacheAccess*)object)->getCacheBinMap())._data;
+            for(ThreadSafeCacheBinMapAccessor::MAP::const_iterator it = cacheBinMap.begin(); it != cacheBinMap.end(); it++)
+            {
+                const std::string & name = it->first;
+                const osg::ref_ptr<osgEarth::CacheBin> & cachebin = it->second;
+
+                os << "<li>" << name << "=" << osg_helpers::getObjectNameAndType(cachebin.get(), true) << "</li>";
+            }
+            os << "</ul>";
             ret = true;
         }
         break;
@@ -3520,8 +3541,13 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
     os << "<tr><td>name</td><td>" << style.getName() << "</td></tr>" << std::endl;
     os << "<tr><td>empty</td><td>" << (style.empty()?"true":"false") << "</td></tr>" << std::endl;
-    os << "<tr><td>config</td><td><pre>" << style.getConfig().toJSON(true) << "</pre></td></tr>" << std::endl;
-    os << "</table>" << std::endl;
+    os << "<tr><td>config</td><td>";
+    osgEarth::Config cfg = style.getConfig();
+    if (cfg.empty())
+        os << "<i>empty</i>";
+    else
+        os << "<pre>" << style.getConfig().toJSON(true) << "</pre>";
+    os << "</td></tr></table>" << std::endl;
     return os;
 }
 
