@@ -350,38 +350,13 @@ void ViewerWidget::paintEvent( QPaintEvent* event )
     _viewer->frame();
 }
 
-CreateViewHandler::CreateViewHandler(QObject * parent) 
-    : QObject(parent) 
+CreateViewHandlerProxy::CreateViewHandlerProxy(CreateViewHandler * handler, QObject * parent)
+    : QObject(parent)
 {
-    connect(this, &CreateViewHandler::triggerClone, this, &CreateViewHandler::viewCloneImpl);
-}
-CreateViewHandler::~CreateViewHandler()
-{
+    connect(this, &CreateViewHandlerProxy::triggerClone, this, &CreateViewHandlerProxy::viewCloneImpl);
 }
 
-bool CreateViewHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa)
-{
-    osgViewer::View* view = dynamic_cast<osgViewer::View*>(&aa);
-    if (!view) return false;
-    switch (ea.getEventType())
-    {
-    case(osgGA::GUIEventAdapter::KEYUP):
-        if (ea.getKey() == 'v' && ea.getModKeyMask() == 0)
-        {
-            emit triggerClone(view, false);
-        }
-        else if (ea.getKey() == 'V' || (ea.getKey() == 'v' && (ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_SHIFT)))
-        {
-            emit triggerClone(view, true);
-        }
-        break;
-    default:
-        break;
-    }
-    return false;
-}
-
-void CreateViewHandler::viewCloneImpl(osgViewer::View * source, bool shared)
+void CreateViewHandlerProxy::viewCloneImpl(osgViewer::View * source, bool shared)
 {
     osg::Camera * sourceCamera = source->getCamera();
     ViewerWidget * sourceWidget = nullptr;
@@ -417,6 +392,37 @@ void CreateViewHandler::viewCloneImpl(osgViewer::View * source, bool shared)
         nextwidget->setGeometry(sourceWidget->geometry());
 
     nextwidget->show();
+}
+
+CreateViewHandler::CreateViewHandler(QObject * parent)
+    : _proxy(new CreateViewHandlerProxy(this, parent))
+{
+}
+
+CreateViewHandler::~CreateViewHandler()
+{
+}
+
+bool CreateViewHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa)
+{
+    osgViewer::View* view = dynamic_cast<osgViewer::View*>(&aa);
+    if (!view) return false;
+    switch (ea.getEventType())
+    {
+    case(osgGA::GUIEventAdapter::KEYUP):
+        if (ea.getKey() == 'v' && ea.getModKeyMask() == 0)
+        {
+            emit _proxy->triggerClone(view, false);
+        }
+        else if (ea.getKey() == 'V' || (ea.getKey() == 'v' && (ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_SHIFT)))
+        {
+            emit _proxy->triggerClone(view, true);
+        }
+        break;
+    default:
+        break;
+    }
+    return false;
 }
 
 int
