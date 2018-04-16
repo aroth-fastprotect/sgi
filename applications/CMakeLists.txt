@@ -1,4 +1,5 @@
 
+add_subdirectory(viewer_base)
 add_subdirectory(viewerqt)
 add_subdirectory(osgviewer)
 add_subdirectory(helloWorldQt)

@@ -14,6 +14,7 @@
 
 #include <sgi/plugins/Matrix>
 #include <sgi/plugins/Quat>
+#include <sgi/plugins/SGIItemBase.h>
 
 namespace osg {
     class Referenced;

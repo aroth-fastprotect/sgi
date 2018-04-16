@@ -1,3 +1,5 @@
+include_directories(../viewer_base)
+
 SET( TARGET_SRC
     osgviewerQt.cpp
 )
@@ -15,6 +17,7 @@ SET(TARGET_LIBRARIES_VARS
     OSGUTIL_LIBRARY
     OSGGA_LIBRARY
     OSGVIEWER_LIBRARY
+    sgi_viewer_base
 )
 if(OSGQT_FOUND)
     include_directories(${OSGQT_INCLUDE_DIR})

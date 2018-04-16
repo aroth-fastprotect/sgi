@@ -38,6 +38,8 @@
 #include <QApplication>
 #include <QTimer>
 
+#include <sgi_viewer_base.h>
+
 /** single camera on a single window.*/
 class SingleWindowShared : public osgViewer::ViewConfig
 {
@@ -321,6 +323,7 @@ int main(int argc, char** argv)
     while (arguments.read("-g")) { viewer.setThreadingModel(osgViewer::CompositeViewer::CullDrawThreadPerContext); }
     while (arguments.read("-c")) { viewer.setThreadingModel(osgViewer::CompositeViewer::CullThreadPerCameraDrawThreadPerContext); }
 
+    int ret = 0;
     int screenNum = -1;
     while (arguments.read("--screen", screenNum)) {}
 
@@ -399,11 +402,17 @@ int main(int argc, char** argv)
     bool addSceneGraphInspector = true;
     bool showSceneGraphInspector = true;
     bool showImagePreviewDialog = false;
+    bool addKeyDumper = false;
+    bool addMouseDumper = false;
 
     if (arguments.read("--nosgi"))
         addSceneGraphInspector = false;
     if (arguments.read("--hidesgi"))
         showSceneGraphInspector = false;
+    if (arguments.read("--keys"))
+        addKeyDumper = true;
+    if (arguments.read("--mouse"))
+        addMouseDumper = true;
 
     // add the state manipulator
     firstview->addEventHandler( new osgGA::StateSetManipulator(firstview->getCamera()->getOrCreateStateSet()) );
@@ -432,61 +441,66 @@ int main(int argc, char** argv)
     firstview->addEventHandler(new CreateViewHandler);
 
     // load the data
-    osg::ref_ptr<osg::Node> loadedModel = osgDB::readRefNodeFiles(arguments);
-    if (!loadedModel)
+    sgi_MapNodeHelper helper;
+    // load an earth file, and support all or our example command-line options
+    // and earth file <external> tags
+    osg::Node* node = helper.load(arguments, firstview);
+    if (node)
     {
-        std::cout << arguments.getApplicationName() <<": No data loaded" << std::endl;
-        return 1;
-    }
+        bool showImagePreviewDialog = helper.onlyImages() ? true : false;
+        osg::ref_ptr<osg::Group> root = new osg::Group;
+        root->addChild(node);
 
-    osg::ref_ptr<osg::Group> root = new osg::Group;
-    root->addChild(loadedModel);
-
-    if (addSceneGraphInspector)
-    {
-        osg::ref_ptr<osgDB::Options> opts = osgDB::Registry::instance()->getOptions();
-        if (opts)
-            opts = opts->cloneOptions();
-        else
-            opts = new osgDB::Options;
-        opts->setPluginStringData("showSceneGraphDialog", showSceneGraphInspector ? "1" : "0");
-        opts->setPluginStringData("showImagePreviewDialog", showImagePreviewDialog ? "1" : "0");
-        osg::ref_ptr<osg::Node> sgi_loader = osgDB::readRefNodeFile(".sgi_loader", opts);
-        if (sgi_loader.valid())
-            root->addChild(sgi_loader);
-        else
+        if (addSceneGraphInspector)
         {
-            std::cout << arguments.getApplicationName() << ": Failed to load SGI" << std::endl;
-            return 1;
+            osg::ref_ptr<osgDB::Options> opts = osgDB::Registry::instance()->getOptions();
+            if (opts)
+                opts = opts->cloneOptions();
+            else
+                opts = new osgDB::Options;
+            opts->setPluginStringData("showSceneGraphDialog", showSceneGraphInspector ? "1" : "0");
+            opts->setPluginStringData("showImagePreviewDialog", showImagePreviewDialog ? "1" : "0");
+            osg::ref_ptr<osg::Node> sgi_loader = osgDB::readRefNodeFile(".sgi_loader", opts);
+            if (sgi_loader.valid())
+                root->addChild(sgi_loader);
+            else
+            {
+                std::cout << arguments.getApplicationName() << ": Failed to load SGI" << std::endl;
+                return 1;
+            }
         }
+
+        if (addKeyDumper)
+            firstview->addEventHandler(new KeyboardDumpHandler);
+        if (addMouseDumper)
+            firstview->addEventHandler(new MouseDumpHandler);
+
+
+        // pass the model to the MovieEventHandler so it can pick out ImageStream's to manipulate.
+        MovieEventHandler* meh = new MovieEventHandler();
+        meh->set(root);
+
+        firstview->addEventHandler(meh);
+
+        // optimize the scene graph, remove redundant nodes and state etc.
+        osgUtil::Optimizer optimizer;
+        optimizer.optimize(root);
+
+        firstview->setSceneData(root);
+
+        viewer.addView(firstview);
+
+
+        viewer.realize();
+        auto run = new RunCompositeViewer(&viewer);
+        ret = app.exec();
+
+        delete run;
     }
-
-
-    // any option left unread are converted into errors to write out later.
-    arguments.reportRemainingOptionsAsUnrecognized();
-
-    // report any errors if they have occurred when parsing the program arguments.
-    if (arguments.errors())
+    else
     {
-        arguments.writeErrorMessages(std::cout);
-        return 1;
+        std::cerr << helper.errorMessages() << std::endl;
+        ret = 1;
     }
-
-
-    // optimize the scene graph, remove redundant nodes and state etc.
-    osgUtil::Optimizer optimizer;
-    optimizer.optimize(loadedModel);
-
-    firstview->setSceneData(root);
-
-    viewer.addView(firstview);
-
-
-    viewer.realize();
-    auto run = new RunCompositeViewer(&viewer);
-    int ret = app.exec();
-
-    delete run;
-
     return ret;
 }
