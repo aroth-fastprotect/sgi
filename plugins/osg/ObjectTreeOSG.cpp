@@ -2205,6 +2205,10 @@ bool objectTreeBuildImpl<osgViewer::View>::build(IObjectTreeItem * treeItem)
             if(!devices.empty())
                 treeItem->addChild(helpers::str_plus_count("Devices", devices.size()), cloneItem<SGIItemOsg>(SGIItemTypeDevices));
 
+            SGIHostItemOsg eventQueue(object->getEventQueue());
+            if (eventQueue.hasObject())
+                treeItem->addChild("Event Queue", &eventQueue);
+
             const osgViewer::View::EventHandlers& eventHandlers = object->getEventHandlers();
             if(!eventHandlers.empty())
                 treeItem->addChild(helpers::str_plus_count("Event handlers", eventHandlers.size()), cloneItem<SGIItemOsg>(SGIItemTypeEventHandlers));
