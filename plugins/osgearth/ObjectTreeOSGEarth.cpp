@@ -2112,8 +2112,14 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
 			osgEarth::MapNode * mapNode = osg_helpers::findRelativeNodeOfType<osgEarth::MapNode>(node);
 			if (mapNode)
 			{
-				SGIHostItemOsg hostItem(mapNode);
-				treeItem->addChild(std::string(), &hostItem);
+                // DO NOT add the same MapNode instance twice if it's marked as 'sgi_tree_item'
+                bool sgi_tree_item = false;
+                mapNode->getUserValue<bool>("sgi_tree_item", sgi_tree_item);
+                if (!sgi_tree_item)
+                {
+                    SGIHostItemOsg hostItem(mapNode);
+                    treeItem->addChild(std::string(), &hostItem);
+                }
 			}
 
 			if(!view)
