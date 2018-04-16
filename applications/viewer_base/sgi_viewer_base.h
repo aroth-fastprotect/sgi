@@ -9,6 +9,7 @@ namespace osg {
 
 namespace osgViewer {
     class View;
+    class GraphicsWindow;
 }
 
 #ifdef SGI_USE_OSGEARTH
@@ -24,6 +25,9 @@ namespace osgEarth {
     }
 }
 #endif // WITH_OSGEARTH
+
+class QObject;
+class QWidget;
 
 namespace std {
 
@@ -41,6 +45,8 @@ namespace std {
 
 osg::NotifySeverity severityFromString(const std::string & input);
 void initializeNotifyLevels(osg::ArgumentParser & arguments);
+QWidget * getWidgetForGraphicsWindow(osgViewer::GraphicsWindow * gw, QWidget * parent=nullptr);
+bool createWidgetForGraphicsWindow(osg::GraphicsContext * ctx, QObject * parent = nullptr);
 
 class KeyboardDumpHandler : public osgGA::GUIEventHandler
 {

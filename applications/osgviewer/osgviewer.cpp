@@ -389,6 +389,8 @@ int main(int argc, char** argv)
                 opts = opts->cloneOptions();
             else
                 opts = new osgDB::Options;
+
+            createWidgetForGraphicsWindow(firstview->getCamera()->getGraphicsContext(), qApp);
             opts->setPluginStringData("showSceneGraphDialog", showSceneGraphInspector ? "1" : "0");
             opts->setPluginStringData("showImagePreviewDialog", showImagePreviewDialog ? "1" : "0");
             osg::ref_ptr<osg::Node> sgi_loader = osgDB::readRefNodeFile(".sgi_loader", opts);
