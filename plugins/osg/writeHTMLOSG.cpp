@@ -4532,13 +4532,13 @@ bool writePrettyHTMLImpl<osg::GraphicsContext>::process(std::basic_ostream<char>
 {
     bool ret = false;
     GraphicsContextAccess * object = static_cast<GraphicsContextAccess*>(getObject<osg::GraphicsContext, SGIItemOsg>());
-    if(_table)
-        os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
     switch(itemType())
     {
     case SGIItemTypeObject:
         {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
             // add object properties first
             callNextHandler(os);
 
