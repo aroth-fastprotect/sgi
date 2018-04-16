@@ -391,10 +391,6 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
 	ui->numNeighbors->addItem(tr("Parental"), QVariant(TileKeyList::NUM_NEIGHBORS_PARENTAL));
 	ui->numNeighbors->addItem(tr("Parental&Childs"), QVariant(TileKeyList::NUM_NEIGHBORS_PARENTAL_AND_CHILDS));
 
-    ui->layerSource->addItem(tr("Layer"), QVariant(LayerDataSourceLayer));
-    ui->layerSource->addItem(tr("Tile source"), QVariant(LayerDataSourceTileSource));
-    ui->layerSource->addItem(tr("Cache"), QVariant(LayerDataSourceCache));
-
     ui->layer->setCurrentIndex(0);
 
 	takePositionFromCamera();
@@ -473,8 +469,23 @@ void TileInspectorDialog::layerChanged(int index)
     QtSGIItem qitem = data.value<QtSGIItem>();
     SGIItemOsg * item = (SGIItemOsg *)qitem.item();
 
-    ui->levelOfDetail->clear();
+
     osgEarth::TileSource * tileSource = getTileSource(item);
+    osgEarth::TerrainLayer * terrainLayer = getTerrainLayer(item);
+    osgEarth::CacheBin * cachebin = getCacheBin(item);
+
+
+    ui->layerSource->clear();
+    if (terrainLayer)
+        ui->layerSource->addItem(tr("Layer"), QVariant(LayerDataSourceLayer));
+    if (tileSource)
+        ui->layerSource->addItem(tr("Tile source"), QVariant(LayerDataSourceTileSource));
+    if (cachebin)
+        ui->layerSource->addItem(tr("Cache"), QVariant(LayerDataSourceCache));
+    if (!ui->layerSource->count())
+        ui->layerSource->addItem(tr("None"), QVariant(LayerDataSourceNone));
+
+    ui->levelOfDetail->clear();
     ui->levelOfDetail->addItem(tr("All"), QVariant(-1));
     for(unsigned lod = 0; lod < 23; lod++)
     {
@@ -496,19 +507,20 @@ void TileInspectorDialog::layerSourceChanged(int index)
     QtSGIItem qitem = data.value<QtSGIItem>();
     SGIItemOsg * item = (SGIItemOsg *)qitem.item();
 
+
     ui->levelOfDetail->clear();
-    osgEarth::TileSource * tileSource = getTileSource(item);
     ui->levelOfDetail->addItem(tr("All"), QVariant(-1));
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
+    osgEarth::TileSource * tileSource = getTileSource(item);
     for (unsigned lod = 0; lod < 23; lod++)
     {
-#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
         if (tileSource && tileSource->hasDataAtLOD(lod))
         {
             QString text(tr("LOD%1").arg(lod));
             ui->levelOfDetail->addItem(text, QVariant(lod));
         }
-#endif
     }
+#endif
 
     refresh();
 }
@@ -791,9 +803,12 @@ void TileInspectorDialog::refresh()
             }
             else if (terrainLayer)
             {
-                TileSourceTileKeyData data(terrainLayer, tilekey);
-                SGIHostItemOsg tskey(new TileSourceTileKey(data));
-                _treeRoot->addChild(std::string(), &tskey);
+                if (terrainLayer->mayHaveData(tilekey))
+                {
+                    TileSourceTileKeyData data(terrainLayer, tilekey);
+                    SGIHostItemOsg tskey(new TileSourceTileKey(data));
+                    _treeRoot->addChild(std::string(), &tskey);
+                }
             }
             else if (cachebin)
             {

@@ -59,6 +59,7 @@ public slots:
 public:
     enum LAYER_DATA_SOURCE
     {
+        LayerDataSourceNone = -1,
         LayerDataSourceLayer,
         LayerDataSourceTileSource,
         LayerDataSourceCache,
