@@ -5,7 +5,8 @@
 #include <osgGA/EventQueue>
 #include <osgViewer/View>
 
-#if OSGEARTH_VERSION_LESS_THAN(2,9,0) && defined(SGI_USE_OSGEARTH)
+#ifdef SGI_USE_OSGEARTH
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 osgEarth::PrimitiveIntersector::Intersection::Intersection(const Intersection &rhs)
     : ratio(rhs.ratio)
     , nodePath(rhs.nodePath)
@@ -19,6 +20,7 @@ osgEarth::PrimitiveIntersector::Intersection::Intersection(const Intersection &r
 {
 }
 #endif // OSGEARTH_VERSION_LESS_THAN(2,9,0) && defined(SGI_USE_OSGEARTH)
+#endif // SGI_USE_OSGEARTH
 
 namespace sgi {
 

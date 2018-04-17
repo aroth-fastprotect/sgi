@@ -556,6 +556,8 @@ main(int argc, char** argv)
     }
     else
     {
+        delete myMainWindow;
+
         QString msg;
         msg = QString::fromStdString(helper.errorMessages());
         msg += "\r\nCmdline: ";
