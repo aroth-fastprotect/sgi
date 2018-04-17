@@ -314,6 +314,7 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
 #endif
     ui->coordinateStatus->setText(tr("No coordinate or tile key"));
 
+    ui->treeWidget->setHeaderHidden(true);
     _treeRoot = new ObjectTreeItem(ui->treeWidget, _treeImpl.get(), _hostInterface);
 
     osgEarth::Map * map = getMap(_item.get());
@@ -545,7 +546,7 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
 			else if (hf)
 			{
 				std::stringstream os;
-				osg_helpers::heightFieldDumpHTML(os, hf);
+				//osg_helpers::heightFieldDumpHTML(os, hf);
 				previewText = os.str();
 			}
             else

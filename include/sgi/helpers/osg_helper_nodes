@@ -9,6 +9,7 @@
 #if OSG_VERSION_LESS_THAN(3,4,0)
 #include <osg/Geode>
 #endif
+#include <osg/Texture2D>
 
 namespace sgi {
 namespace osg_helpers {
@@ -97,6 +98,34 @@ inline osg::Node * createNodeForImage(osg::Image* image)
 {
     return createNodeForImage(image,image->s(),image->t());
 }
+
+
+class SGI_OSG_HELPER_EXPORT FindTreeItemNodeVisitor : public osg::NodeVisitor
+{
+public:
+    FindTreeItemNodeVisitor(TraversalMode tm = TRAVERSE_ALL_CHILDREN)
+        : osg::NodeVisitor(tm) {}
+    struct SGI_OSG_HELPER_EXPORT NodeItem
+    {
+        osg::ref_ptr<osg::Node> node;
+        std::string name;
+        bool imageGeode;
+        bool heightField;
+
+        osg::Texture * getImageGeodeTexture() const;
+        osg::HeightField * getHeightField() const;
+    };
+    typedef std::vector<NodeItem> NodeList;
+    const NodeList &   results() const
+    {
+        return _nodes;
+    }
+
+    void apply(osg::Node& node) override;
+protected:
+    NodeList _nodes;
+};
+
 
     } // namespace osg_helpers
 } // namespace sgi

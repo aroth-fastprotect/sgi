@@ -48,6 +48,7 @@
 #include <sgi/plugins/SGIHostItemQt.h>
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/SGIItemInternal>
+#include <sgi/helpers/osg_helper_nodes>
 
 #if defined(_DEBUG)
 #if defined(_MSC_VER)
@@ -494,44 +495,6 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
 	return ret;
 }
 
-
-class FindTreeItemNodeVisitor : public osg::NodeVisitor
-{
-public:
-    FindTreeItemNodeVisitor(TraversalMode tm=TRAVERSE_ALL_CHILDREN)
-        : osg::NodeVisitor(tm) {}
-    struct NodeItem
-    {
-        osg::ref_ptr<osg::Node> node;
-        std::string name;
-        bool imageGeode;
-    };
-    typedef std::vector<NodeItem> NodeList;
-    const NodeList &   results() const
-        { return _nodes; }
-
-    virtual void apply(osg::Node& node)
-    {
-        bool sgi_tree_item = false;
-        if(node.getUserValue<bool>("sgi_tree_item", sgi_tree_item))
-        {
-            if (sgi_tree_item)
-            {
-                NodeItem item;
-                item.node = &node;
-                item.imageGeode = false;
-                node.getUserValue<std::string>("sgi_tree_itemname", item.name);
-                if(!node.getUserValue<bool>("sgi_tree_imagegeode", item.imageGeode))
-                    item.imageGeode = false;
-                _nodes.push_back(item);
-            }
-        }
-        traverse(node);
-    }
-protected:
-    NodeList _nodes;
-};
-
 class DefaultSGIProxy : public osg::Referenced
 {
 public:
@@ -612,28 +575,28 @@ public:
             if(_options.showImagePreviewDialog)
             {
                 IImagePreviewDialogPtr dialog;
-                FindTreeItemNodeVisitor ftinv;
+                osg_helpers::FindTreeItemNodeVisitor ftinv;
                 camera->accept(ftinv);
-                for(FindTreeItemNodeVisitor::NodeList::const_iterator it = ftinv.results().begin(); !gotImage && it != ftinv.results().end(); ++it)
+                for(osg_helpers::FindTreeItemNodeVisitor::NodeList::const_iterator it = ftinv.results().begin(); !gotImage && it != ftinv.results().end(); ++it)
                 {
-                    const FindTreeItemNodeVisitor::NodeItem & item = *it;
+                    const osg_helpers::FindTreeItemNodeVisitor::NodeItem & item = *it;
                     if(item.imageGeode)
                     {
                         // ... and if it is a image geode try to add the image to the tree as well
-                        osg::StateSet* stateSet = item.node->getStateSet();
-                        if(stateSet)
+                        SGIHostItemOsg image(item.getImageGeodeTexture());
+                        if(image.hasObject())
                         {
-                            osg::StateAttribute * sa = stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
-                            osg::Texture * texture = sa ? sa->asTexture() : NULL;
-                            if(texture)
-                            {
-                                SGIHostItemOsg image(texture->getImage(0));
-                                if(image.hasObject())
-                                {
-                                    dialog = _hostCallback->showImagePreviewDialog(_parent, &image);
-                                    gotImage = true;
-                                }
-                            }
+                            dialog = _hostCallback->showImagePreviewDialog(_parent, &image);
+                            gotImage = true;
+                        }
+                    }
+                    else if (item.heightField)
+                    {
+                        SGIHostItemOsg image(item.getHeightField());
+                        if (image.hasObject())
+                        {
+                            dialog = _hostCallback->showImagePreviewDialog(_parent, &image);
+                            gotImage = true;
                         }
                     }
                 }

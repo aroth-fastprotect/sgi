@@ -4,6 +4,7 @@
 #include <osg/Geode>
 #include <osg/Texture2D>
 #include <osg/TextureRectangle>
+#include <osg/ShapeDrawable>
 
 #ifdef _WIN32
 #include <osgViewer/api/Win32/GraphicsWindowWin32>
@@ -857,6 +858,10 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
                             rr = osgDB::readRefHeightFieldFile(arg, registry->getOptions());
                         if (rr.success() && !rr.validObject())
                             rr = osgDB::ReaderWriter::ReadResult();
+                        if (!rr.success() && (supportedFeatures & osgDB::ReaderWriter::FEATURE_READ_OBJECT))
+                            rr = osgDB::readRefObjectFile(arg, registry->getOptions());
+                        if (rr.success() && !rr.validObject())
+                            rr = osgDB::ReaderWriter::ReadResult();
                         if (rr.validObject())
                         {
                             if (rr.validNode())
@@ -871,6 +876,19 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
                                 hasAtLeastOneImage = true;
                                 osg::ref_ptr<osg::Image> image = rr.takeImage();
                                 osg::Node * node = sgi::osg_helpers::createNodeForImage(image.get());
+                                sgi::osg_helpers::tagNodeForObjectTree(node, arg);
+                                root->addChild(node);
+                            }
+                            else if (rr.validHeightField())
+                            {
+                                hasAtLeastOneImage = true;
+                                osg::ref_ptr<osg::HeightField> hf = rr.takeHeightField();
+                                osg::Node * node = new osg::ShapeDrawable(hf.get());
+
+                                osg::UserDataContainer * container = node->getOrCreateUserDataContainer();
+                                osg::ref_ptr<osg::Object> obj = rr.takeObject();
+                                container->addUserObject(hf.get());
+
                                 sgi::osg_helpers::tagNodeForObjectTree(node, arg);
                                 root->addChild(node);
                             }

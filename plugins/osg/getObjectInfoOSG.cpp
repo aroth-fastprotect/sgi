@@ -9,6 +9,7 @@
 #include <osg/PagedLOD>
 #include <osg/Image>
 #include <osg/Camera>
+#include <osg/Shape>
 #include <osg/GraphicsContext>
 #include <osg/OperationThread>
 #include <osgViewer/View>
@@ -66,8 +67,10 @@ HAS_CALLBACK_IMPL_REGISTER(osgGA::CameraManipulator)
 WRITE_OBJECT_FILE_IMPL_REGISTER(osg::Object)
 WRITE_OBJECT_FILE_IMPL_REGISTER(osg::Node)
 WRITE_OBJECT_FILE_IMPL_REGISTER(osg::Image)
+WRITE_OBJECT_FILE_IMPL_REGISTER(osg::HeightField)
 
 CONVERT_TO_IMAGE_CONVERT_IMPL_DECLARE_AND_REGISTER(osg::Image)
+CONVERT_TO_IMAGE_CONVERT_IMPL_DECLARE_AND_REGISTER(osg::HeightField)
 
 using namespace sgi::osg_helpers;
 
@@ -333,7 +336,7 @@ std::string getObjectSuggestedFilenameExtensionImpl<osg::Object>::process()
 
 std::string getObjectSuggestedFilenameExtensionImpl<osg::Image>::process()
 {
-    osg::Image * object = static_cast<osg::Image*>(item<SGIItemOsg>()->object());
+    osg::Image * object = getObject<osg::Image,SGIItemOsg>();
     std::string ret;
 
     const std::string & filename = object->getFileName();
@@ -350,7 +353,8 @@ std::string getObjectSuggestedFilenameExtensionImpl<osg::Image>::process()
 
 std::string getObjectSuggestedFilenameExtensionImpl<osg::HeightField>::process()
 {
-    return "tiff";
+//    return "tiff";
+    return "osgb";
 }
 
 //--------------------------------------------------------------------------------
@@ -374,6 +378,7 @@ std::vector<std::string> getObjectFilenameFiltersImpl<osg::Image>::process()
 std::vector<std::string> getObjectFilenameFiltersImpl<osg::HeightField>::process()
 {
     std::vector<std::string> ret;
+    ret.push_back("OSG Files (*.osgb *.osgx *.osgt *.osg *.ive)");
     ret.push_back("Height Field Files (*.tif *.tiff)");
     return ret;
 }
@@ -545,12 +550,44 @@ bool writeObjectFileImpl<osg::Image>::process(const std::string& filename, const
     return ret;
 }
 
+bool writeObjectFileImpl<osg::HeightField>::process(const std::string& filename, const SGIItemBase* options)
+{
+    osg::HeightField* object = getObject<osg::HeightField, SGIItemOsg>();
+    bool ret = false;
+    const bool noOptimizer = true;
+    osg::ref_ptr<osgDB::Options> cloned_opts =
+        options ? static_cast<osgDB::Options*>(options->clone(osg::CopyOp::SHALLOW_COPY)) :
+        osgDB::Registry::instance()->getOptions();
+
+    if (!cloned_opts.valid())
+        cloned_opts = new osgDB::Options;
+
+    cloned_opts->setPluginStringData("noOptimizer", (noOptimizer == true) ? "true" : "false");
+
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = osgDB::writeHeightFieldFile(*object, filename, cloned_opts);
+        if(!ret)
+            ret = osgDB::writeObjectFile(*object, filename, cloned_opts);
+        break;
+    }
+    return ret;
+}
 //--------------------------------------------------------------------------------
 // convertToImageConvertImpl
 //--------------------------------------------------------------------------------
 bool convertToImageConvertImpl<osg::Image>::convert()
 {
     osg::Image* object = getObject<osg::Image,SGIItemOsg>();
+
+    *_image = const_cast<sgi::Image*>(osg_helpers::convertImage(object));
+    return true;
+}
+
+bool convertToImageConvertImpl<osg::HeightField>::convert()
+{
+    osg::HeightField* object = getObject<osg::HeightField, SGIItemOsg>();
 
     *_image = const_cast<sgi::Image*>(osg_helpers::convertImage(object));
     return true;

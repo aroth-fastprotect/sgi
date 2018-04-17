@@ -10,6 +10,7 @@
 #include <sgi/plugins/SGIHostItemQt.h>
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/helpers/string>
+#include <sgi/helpers/osg_helper_nodes>
 
 #include <osg/UserDataContainer>
 #include <osg/ProxyNode>
@@ -4355,44 +4356,6 @@ struct CullingInfoSingleton
     }
 };
 
-
-class FindTreeItemNodeVisitor : public osg::NodeVisitor
-{
-public:
-    FindTreeItemNodeVisitor(TraversalMode tm=TRAVERSE_ALL_CHILDREN)
-        : osg::NodeVisitor(tm) {}
-    struct NodeItem
-    {
-        osg::ref_ptr<osg::Node> node;
-        std::string name;
-        bool imageGeode;
-    };
-    typedef std::vector<NodeItem> NodeList;
-    const NodeList &   results() const
-        { return _nodes; }
-
-    virtual void apply(osg::Node& node)
-    {
-        bool sgi_tree_item = false;
-        if(node.getUserValue<bool>("sgi_tree_item", sgi_tree_item))
-        {
-            if (sgi_tree_item)
-            {
-                NodeItem item;
-                item.node = &node;
-                item.imageGeode = false;
-                node.getUserValue<std::string>("sgi_tree_itemname", item.name);
-                if(!node.getUserValue<bool>("sgi_tree_imagegeode", item.imageGeode))
-                    item.imageGeode = false;
-                _nodes.push_back(item);
-            }
-        }
-        traverse(node);
-    }
-protected:
-    NodeList _nodes;
-};
-
 bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeItem)
 {
     ISceneGraphDialog * object = static_cast<ISceneGraphDialog*>(item<SGIItemInternal>()->object());
@@ -4417,11 +4380,11 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
             node = dynamic_cast<osg::Node*>(osgitem->object());
         if (node)
         {
-            FindTreeItemNodeVisitor ftinv;
+            osg_helpers::FindTreeItemNodeVisitor ftinv;
             node->accept(ftinv);
-            for(FindTreeItemNodeVisitor::NodeList::const_iterator it = ftinv.results().begin(); it != ftinv.results().end(); ++it)
+            for(osg_helpers::FindTreeItemNodeVisitor::NodeList::const_iterator it = ftinv.results().begin(); it != ftinv.results().end(); ++it)
             {
-                const FindTreeItemNodeVisitor::NodeItem & item = *it;
+                const osg_helpers::FindTreeItemNodeVisitor::NodeItem & item = *it;
                 osg::Node * node = item.node.get();
                 SGIHostItemOsg hostItem(node);
                 if(hostItem.hasObject())
@@ -4432,18 +4395,15 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
                     if(item.imageGeode)
                     {
                         // ... and if it is a image geode try to add the image to the tree as well
-                        osg::StateSet* stateSet = node->getStateSet();
-                        if(stateSet)
-                        {
-                            osg::StateAttribute * sa = stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
-                            osg::Texture * texture = sa ? sa->asTexture() : NULL;
-                            if(texture)
-                            {
-                                SGIHostItemOsg image(texture->getImage(0));
-                                if(image.hasObject())
-                                    treeItem->addChild(item.name, &image);
-                            }
-                        }
+                        SGIHostItemOsg image(item.getImageGeodeTexture());
+                        if(image.hasObject())
+                            treeItem->addChild(item.name, &image);
+                    }
+                    else if (item.heightField)
+                    {
+                        SGIHostItemOsg image(item.getHeightField());
+                        if (image.hasObject())
+                            treeItem->addChild(item.name, &image);
                     }
                 }
             }
