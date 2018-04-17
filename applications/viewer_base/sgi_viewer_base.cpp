@@ -6,6 +6,8 @@
 #include <osg/TextureRectangle>
 #include <osg/ShapeDrawable>
 #include <osgDB/FileNameUtils>
+#include <osgDB/Registry>
+#include <osgDB/ReadFile>
 
 #ifdef _WIN32
 #include <osgViewer/api/Win32/GraphicsWindowWin32>

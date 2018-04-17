@@ -1,3 +1,9 @@
+IF ( Qt5Widgets_FOUND )
+    # Add the include directories for the Qt 5 Widgets module to
+    # the compile lines.
+    include_directories(${Qt5Widgets_INCLUDE_DIRS})
+ENDIF()
+
 IF(OSGEARTH_FOUND)
     include_directories(${OSGEARTH_INCLUDE_DIR})
 ENDIF()
