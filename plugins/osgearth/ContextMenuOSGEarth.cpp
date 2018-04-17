@@ -67,6 +67,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(ElevationQueryReferenced)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(TileKeyReferenced)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::RTTPicker)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::EarthManipulator)
 
 bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
 {
@@ -974,5 +975,25 @@ bool contextMenuPopulateImpl<osgEarth::Util::RTTPicker>::populate(IContextMenuIt
     }
     return ret;
 }
+
+bool contextMenuPopulateImpl<osgEarth::Util::EarthManipulator>::populate(IContextMenuItem * menuItem)
+{
+    osgEarth::Util::EarthManipulator * object = getObject<osgEarth::Util::EarthManipulator, SGIItemOsg, DynamicCaster>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
 } // namespace osgearth_plugin
 } // namespace sgi

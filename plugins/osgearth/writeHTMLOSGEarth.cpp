@@ -148,6 +148,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::ControlNod
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::LabelControl)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::ImageControl)
 
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::EarthManipulator)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::SkyNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::AutoClipPlaneCullCallback)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Picker)
@@ -3264,10 +3265,40 @@ bool writePrettyHTMLImpl<osgEarth::Util::Controls::ControlNode>::process(std::ba
     }
     return ret;
 }
+bool writePrettyHTMLImpl<osgEarth::Util::EarthManipulator>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Util::EarthManipulator * object = getObject<osgEarth::Util::EarthManipulator, SGIItemOsg, DynamicCaster>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        // add group properties first
+        callNextHandler(os);
+
+        os << "<tr><td>isTethering</td><td>" << (object->isTethering() ? "true" : "false") << "</td></tr>" << std::endl;
+        os << "<tr><td>isSettingViewpoint</td><td>" << (object->isSettingViewpoint() ? "true" : "false") << "</td></tr>" << std::endl;
+        os << "<tr><td>findNodeTraversalMask</td><td>" << castToEnumValueString<osgNodeMask>(object->getFindNodeTraversalMask()) << "</td></tr>" << std::endl;
+        os << "<tr><td>lastKnownVFOV</td><td>" << object->getLastKnownVFOV() << "</td></tr>" << std::endl;
+
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
 
 bool writePrettyHTMLImpl<osgEarth::Util::SkyNode>::process(std::basic_ostream<char>& os)
 {
-    osgEarth::Util::SkyNode * object = static_cast<osgEarth::Util::SkyNode*>(item<SGIItemOsg>()->object());
+    osgEarth::Util::SkyNode * object = getObject<osgEarth::Util::SkyNode,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
