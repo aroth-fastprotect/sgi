@@ -5,6 +5,27 @@
 #include <osg/Texture2D>
 #include <osg/TextureRectangle>
 
+#ifdef _WIN32
+#include <osgViewer/api/Win32/GraphicsWindowWin32>
+#elif defined(__linux__)
+#include <osgViewer/api/X11/GraphicsWindowX11>
+// undefine Status from X11/ICELIB
+#undef Bool
+#undef CursorShape
+#undef None
+#undef Status
+#undef KeyPress
+#undef KeyRelease
+#undef FocusIn
+#undef FocusOut
+#undef FontChange
+#undef Expose
+#endif
+
+#ifdef SGI_USE_OSGQT
+#include <osgQt/GraphicsWindowQt>
+#endif
+
 #include <osgGA/TrackballManipulator>
 #include <osgGA/FlightManipulator>
 #include <osgGA/DriveManipulator>
@@ -36,17 +57,6 @@
 #include <osgEarthUtil/ExampleResources>
 #include <osgEarthUtil/EarthManipulator>
 #endif // SGI_USE_OSGEARTH
-
-#ifdef SGI_USE_OSGQT
-#include <osgQt/GraphicsWindowQt>
-#endif
-
-#ifdef _WIN32
-#include <osgViewer/api/Win32/GraphicsWindowWin32>
-#elif defined(__linux__)
-#include <osgViewer/api/X11/GraphicsWindowX11>
-#undef KeyPress
-#endif
 
 #include <sgi/helpers/osg_helper_nodes>
 
@@ -1264,9 +1274,9 @@ QWidget * getWidgetForGraphicsWindow(osgViewer::GraphicsWindow * gw, QWidget * p
             const Window & xwnd = gwx11->getWindow();
             const Window & xparent = gwx11->getParent();
             QWindow * wnd = QWindow::fromWinId((WId)xwnd);
-            QWindow * parent = QWindow::fromWinId((WId)xparent);
+            QWindow * wnd_parent = QWindow::fromWinId((WId)xparent);
             wnd->setFlags(Qt::ForeignWindow);
-            wnd->setParent(parent);
+            wnd->setParent(wnd_parent);
             ret = QWidget::createWindowContainer(wnd, parent);
             ret->setAttribute(Qt::WA_NativeWindow);
             ret->setFocusPolicy(Qt::StrongFocus);
