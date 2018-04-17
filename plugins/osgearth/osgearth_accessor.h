@@ -130,15 +130,15 @@ namespace osgearth_plugin {
             os << "</table>" << std::endl;
         }
     };
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
     class LayerAccessor : public osgEarth::Layer
     {
     public:
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
         typedef std::vector<osg::ref_ptr<osgEarth::LayerCallback> > LayerCallbackList;
         void getLayerCallbacks(LayerCallbackList & callbacks) const;
-        osgEarth::CacheSettings * getCacheSettings() const { return _cacheSettings.get(); }
-    };
+        osgEarth::CacheSettings * getCacheSettings() const;
 #endif
+    };
 
     class TerrainLayerAccessor : public osgEarth::TerrainLayer
     {
@@ -160,10 +160,12 @@ namespace osgearth_plugin {
                 url = layerConf.value("url");
             return url;
         }
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
         inline void setEnabled(bool /*enable*/)
         {
             (void)(0);
         }
+#endif
 
 #if OSGEARTH_VERSION_LESS_THAN(2,7,0)
         inline osgEarth::TileSource * tileSourceNoInit() { return _tileSource.get(); }
@@ -212,7 +214,7 @@ namespace osgearth_plugin {
         typedef osgEarth::VirtualProgram::ProgramMap ProgramMap;
 
         void getProgramCache(ProgramMap & programCache);
-#if OSGEARTH_VERSION_LESS_THAN(2,7,0)
+#if OSGEARTH_VERSION_LESS_OR_EQUAL(2,7,0)
         void getShaderMap( ShaderMap& out ) const { osgEarth::VirtualProgram::getShaderMap(out); }
         void getFunctions( osgEarth::ShaderComp::FunctionLocationMap& out ) const { osgEarth::VirtualProgram::getFunctions(out); }
 #endif
@@ -227,7 +229,9 @@ namespace osgearth_plugin {
         bool                         getShaderLogging() const { return _logShaders; }
         const std::string &          getShaderLogFile() const { return _logPath; }
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
         void                         getGLSLExtensions(ExtensionsSet & extensions);
+#endif
         
         
         void                         setInheritShadersToUnspecified()
@@ -303,7 +307,7 @@ namespace osgearth_plugin {
     public:
         typedef std::set<osgEarth::TileKey> TileKeySet;
 
-#if OSGEARTH_VERSION_LESS_THAN(2,7,0) && defined(OSGEARTH_WITH_FAST_MODIFICATIONS)
+#if OSGEARTH_VERSION_LESS_OR_EQUAL(2,7,0) && defined(OSGEARTH_WITH_FAST_MODIFICATIONS)
         void getTileKeySet(TileKeySet & ts)
         {
             osgEarth::Threading::ScopedReadLock lock(_mutex);
@@ -352,7 +356,11 @@ namespace osgearth_plugin {
 
         Callback *              getDefaultCallback() const { return _defaultCallback.get(); }
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
+        typedef std::vector<PickContext> PickContexts;
+#else
         typedef std::list<PickContext> PickContexts;
+#endif
         void getPickContexts( PickContexts & contexts) const;
 
         osg::Group *            getGroup() const { return _group.get(); }

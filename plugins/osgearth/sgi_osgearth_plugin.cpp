@@ -40,6 +40,7 @@
 #include <osgEarthUtil/MultiElevationLayer>
 #include <osgEarthUtil/SimpleOceanLayer>
 #endif
+#include <osgEarthUtil/EarthManipulator>
 #include <osgEarth/Registry>
 #include <osgEarth/Capabilities>
 #include <osgEarth/OverlayDecorator>
@@ -198,7 +199,12 @@ SGI_OBJECT_INFO_BEGIN(osgGA::EventHandler)
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgGA::GUIEventHandler)
+    osgGA::CameraManipulator, 
     osgEarth::Picker
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgGA::CameraManipulator)
+    osgEarth::Util::EarthManipulator
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::Picker)
@@ -412,6 +418,7 @@ GENERATE_IMPL_NO_ACCEPT(osg::Callback)
 GENERATE_IMPL_NO_ACCEPT(osg::NodeCallback)
 GENERATE_IMPL_NO_ACCEPT(osgGA::EventHandler)
 GENERATE_IMPL_NO_ACCEPT(osgGA::GUIEventHandler)
+GENERATE_IMPL_NO_ACCEPT(osgGA::CameraManipulator)
 //GENERATE_IMPL_NO_ACCEPT(osg::Node)
 GENERATE_IMPL_NO_ACCEPT(osg::StateAttribute)
 GENERATE_IMPL_NO_ACCEPT(osg::Group)

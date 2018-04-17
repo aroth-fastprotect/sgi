@@ -118,6 +118,7 @@ WRITE_OBJECT_FILE_IMPL_TEMPLATE()
 WRITE_OBJECT_FILE_IMPL_DECLARE(osg::Object)
 WRITE_OBJECT_FILE_IMPL_DECLARE(osg::Node)
 WRITE_OBJECT_FILE_IMPL_DECLARE(osg::Image)
+WRITE_OBJECT_FILE_IMPL_DECLARE(osg::HeightField)
 
 //--------------------------------------------------------------------------------
 // convertToImageConvertImpl

@@ -21,10 +21,6 @@
 #include <osgEarth/LevelDBFactory>
 #endif
 
-#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
-#include <osgEarthQt/TerrainProfileWidget>
-#endif
-
 //#include <osgEarth/TimeControl>
 #include "SGIItemOsgEarth"
 
@@ -61,10 +57,13 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::VirtualProgram)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LevelDBDatabase)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LODScaleOverrideNode)
 #endif
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Cache)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheBin)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(ElevationQueryReferenced)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(TileKeyReferenced)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::RTTPicker)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::EarthManipulator)
 
 bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
 {
@@ -295,7 +294,7 @@ bool contextMenuPopulateImpl<osgEarth::MapNode>::populate(IContextMenuItem * men
 
 bool contextMenuPopulateImpl<osgEarth::Layer>::populate(IContextMenuItem * menuItem)
 {
-    osgEarth::Layer * object = static_cast<osgEarth::Layer*>(item<SGIItemOsg>()->object());
+    LayerAccessor * object = static_cast<LayerAccessor*>(getObject<osgEarth::Layer, SGIItemOsg>());
     bool ret = false;
     switch(itemType())
     {
@@ -303,6 +302,12 @@ bool contextMenuPopulateImpl<osgEarth::Layer>::populate(IContextMenuItem * menuI
         ret = callNextHandler(menuItem);
         if(ret)
         {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            SGIHostItemOsg cacheSettings(object->getCacheSettings());
+            if (cacheSettings.hasObject())
+                menuItem->addMenu("Cache settings", &cacheSettings);
+#endif
+
             /*
             SGIHostItemOsg sequencecontrol(object->getSequenceControl());
             if(sequencecontrol.hasObject())
@@ -361,6 +366,13 @@ bool contextMenuPopulateImpl<osgEarth::TerrainLayer>::populate(IContextMenuItem 
                 menuItem->addMenu("Tile source", &tilesource);
 
             menuItem->addSimpleAction(MenuActionTileInspector, "Tile inspector...", _item);
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            if(object->getCacheSettings() && object->getCacheSettings()->getCacheBin())
+                menuItem->addSimpleAction(MenuActionTerrainLayerClearCacheTiles, "Clear tiles from cache...", _item);
+#else
+            if (object->getCache() && object->getCacheBin(object->getProfile()))
+                menuItem->addSimpleAction(MenuActionTerrainLayerClearCacheTiles, "Clear tiles from cache...", _item);
+#endif
         }
         break;
 	default:
@@ -505,7 +517,7 @@ bool contextMenuPopulateImpl<osgEarth::LevelDBDatabase>::populate(IContextMenuIt
 
 bool contextMenuPopulateImpl<osgEarth::LODScaleOverrideNode>::populate(IContextMenuItem * menuItem)
 {
-    osgEarth::LODScaleOverrideNode * object = static_cast<osgEarth::LODScaleOverrideNode*>(item<SGIItemOsg>()->object());
+    osgEarth::LODScaleOverrideNode * object = getObject<osgEarth::LODScaleOverrideNode,SGIItemOsg>();
     bool ret = false;
     switch (itemType())
     {
@@ -524,9 +536,51 @@ bool contextMenuPopulateImpl<osgEarth::LODScaleOverrideNode>::populate(IContextM
 }
 #endif
 
+bool contextMenuPopulateImpl<osgEarth::Cache>::populate(IContextMenuItem * menuItem)
+{
+    osgEarth::Cache * object = getObject<osgEarth::Cache, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            menuItem->addSimpleAction(MenuActionCacheClear, "Clear", _item);
+            menuItem->addSimpleAction(MenuActionCacheCompact, "Compact", _item);
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osgEarth::CacheBin>::populate(IContextMenuItem * menuItem)
+{
+    osgEarth::CacheBin * object = getObject<osgEarth::CacheBin, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            menuItem->addSimpleAction(MenuActionCacheBinClear, "Clear", _item);
+            menuItem->addSimpleAction(MenuActionCacheBinCompact, "Compact", _item);
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
 bool contextMenuPopulateImpl<osgEarth::Util::SkyNode>::populate(IContextMenuItem * menuItem)
 {
-    osgEarth::Util::SkyNode * object = static_cast<osgEarth::Util::SkyNode*>(item<SGIItemOsg>()->object());
+    osgEarth::Util::SkyNode * object = getObject<osgEarth::Util::SkyNode,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -789,6 +843,8 @@ namespace {
         {
             keyMenu->addModeAction("Parent", TileKeyAddModeParent);
             keyMenu->addModeAction("Children", TileKeyAddModeChildren);
+            keyMenu->addModeAction("Adjacent Neighbors", TileKeyAddModeNeighborsAdjacent);
+            keyMenu->addModeAction("All Neighbors", TileKeyAddModeNeighborsAll);
             keyMenu->addModeAction("Neighbor North", TileKeyAddModeNeighborNorth);
             keyMenu->addModeAction("Neighbor South", TileKeyAddModeNeighborSouth);
             keyMenu->addModeAction("Neighbor West", TileKeyAddModeNeighborWest);
@@ -830,6 +886,40 @@ bool contextMenuPopulateImpl<TileSourceTileKey>::populate(IContextMenuItem * men
         if(ret)
         {
             contextMenuPopulate_TileKey(menuItem, _item.get(), object.tileKey);
+
+            bool addCacheActions = false;
+            SGIHostItemOsg tileSource(object.tileSource.get());
+            if (tileSource.hasObject())
+                menuItem->addMenu("TileSource", &tileSource);
+
+            SGIHostItemOsg terrainLayer(object.terrainLayer.get());
+            if (terrainLayer.hasObject())
+            {
+                menuItem->addMenu("TerrainLayer", &terrainLayer);
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+                if (!object.terrainLayer->getCacheID().empty())
+                    addCacheActions = true;
+#else
+                if (object.terrainLayer->getCache())
+                    addCacheActions = true;
+#endif
+            }
+
+            SGIHostItemOsg cacheBin(object.cacheBin.get());
+            if (cacheBin.hasObject())
+            {
+                menuItem->addMenu("CacheBin", &cacheBin);
+                addCacheActions = true;
+            }
+            if(addCacheActions)
+            {
+                menuItem->addSimpleAction(MenuActionTileSourceTileKeyRemoveFromCache, "Remove from CacheBin", _item);
+                menuItem->addSimpleAction(MenuActionTerrainLayerClearCacheTiles, "Clear tiles from CacheBin...", _item);
+            }
+
+            SGIHostItemOsg tileData(object.tileData.get());
+            if (tileData.hasObject())
+                menuItem->addMenu("TileData", &tileData);
         }
         break;
     default:
@@ -906,5 +996,25 @@ bool contextMenuPopulateImpl<osgEarth::Util::RTTPicker>::populate(IContextMenuIt
     }
     return ret;
 }
+
+bool contextMenuPopulateImpl<osgEarth::Util::EarthManipulator>::populate(IContextMenuItem * menuItem)
+{
+    osgEarth::Util::EarthManipulator * object = getObject<osgEarth::Util::EarthManipulator, SGIItemOsg, DynamicCaster>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
 } // namespace osgearth_plugin
 } // namespace sgi

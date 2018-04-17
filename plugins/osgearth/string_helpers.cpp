@@ -390,6 +390,11 @@ osgEarth::TileKey tileKeyFromString(const QString & input, const osgEarth::Profi
 	return ret;
 }
 
+CoordinateResult coordinateFromString(const std::string & input, const osgEarth::Profile * profile, int inputLod, bool * ok)
+{
+    return coordinateFromString(QString::fromStdString(input), profile, inputLod, ok);
+}
+
 CoordinateResult coordinateFromString(const QString & input, const osgEarth::Profile * profile, int inputLod, bool * ret_ok)
 {
 	CoordinateResult ret;

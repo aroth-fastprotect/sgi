@@ -10,10 +10,6 @@
 #include <osgEarth/MapNodeOptions>
 #include <osgEarth/Extension>
 
-#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
-#include <osgEarthQt/TerrainProfileWidget>
-#endif
-
 namespace sgi {
 
 class SGIItemOsg;
@@ -69,7 +65,7 @@ bool MapNodeAccess::isTerrainProfileActive() const
         {
             for (const osg::ref_ptr<osgGA::EventHandler> & handler : view->getEventHandlers())
             {
-#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0) && 0
                 const osgEarth::QtGui::TerrainProfileMouseHandler * mousehandler = dynamic_cast<const osgEarth::QtGui::TerrainProfileMouseHandler*>(handler.get());
                 if (mousehandler)
                 {
@@ -94,7 +90,7 @@ void MapNodeAccess::toggleTerrainProfile(QWidget * parent)
         {
             for (osg::ref_ptr<osgGA::EventHandler> & handler : view->getEventHandlers())
             {
-#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0) && 0
                 osgEarth::QtGui::TerrainProfileMouseHandler * mousehandler = dynamic_cast<osgEarth::QtGui::TerrainProfileMouseHandler*>(handler.get());
                 if (mousehandler)
                 {
@@ -118,7 +114,7 @@ void MapNodeAccess::toggleTerrainProfile(QWidget * parent)
             }
             if (!active)
             {
-#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
+#if OSGEARTH_VERSION_LESS_THAN(2,8,0) && 0
                 osgEarth::QtGui::TerrainProfileWidget * profileWidget = new osgEarth::QtGui::TerrainProfileWidget(camera, this, parent);
                 profileWidget->setActiveView(view);
                 profileWidget->setWindowTitle(QObject::tr("Terrain profile"));
@@ -169,12 +165,25 @@ void VirtualProgramAccessor::getProgramCache(ProgramMap & programCache)
     programCache = _programCache;
 }
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 void VirtualProgramAccessor::getGLSLExtensions(ExtensionsSet & extensions)
 {
     _dataModelMutex.lock();
     extensions = _globalExtensions;
     _dataModelMutex.unlock();
 }
+#endif
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+osgEarth::CacheSettings * LayerAccessor::getCacheSettings() const 
+{
+    const osgEarth::TerrainLayer* tl = dynamic_cast<const osgEarth::TerrainLayer*>(static_cast<const osgEarth::Layer*>(this));
+    if (tl)
+        return tl->getCacheSettings();
+    else
+        return _cacheSettings.get();
+}
+#endif
 
 
 } // namespace osgearth_plugin

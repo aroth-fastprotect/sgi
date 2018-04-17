@@ -15,6 +15,7 @@
 #include <sgi/helpers/string>
 #include <sgi/helpers/rtti>
 #include <sgi/helpers/osg>
+#include <sgi/helpers/osg_helper_nodes>
 
 #include <algorithm>
 
@@ -743,6 +744,25 @@ const sgi::Image * convertImage(const osg::Image * image)
     }
     return ret;
 }
+const sgi::Image * convertImage(const osg::HeightField * hf)
+{
+    if (!hf)
+        return NULL;
+    sgi::Image * ret = NULL;
+    sgi::Image::ImageFormat imageFormat = sgi::Image::ImageFormatFloat;
+    sgi::Image::DataType dataType = sgi::Image::DataTypeFloat32;
+    sgi::Image::Origin origin = sgi::Image::OriginBottomLeft;
+
+    const osg::FloatArray* data = hf->getFloatArray();
+
+    unsigned bytesPerLine = hf->getNumColumns() * sizeof(float);
+    ret = new sgi::Image(imageFormat, dataType, origin,
+        const_cast<unsigned char*>((const unsigned char*)data->getDataPointer()), data->getDataSize(),
+        hf->getNumColumns(), hf->getNumRows(), 1, bytesPerLine,
+        hf);
+    return ret;
+}
+
 
 void heightFieldDumpHTML(std::basic_ostream<char>& os, const osg::HeightField * hf)
 {
@@ -892,6 +912,48 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg
 {
     return output << std::setprecision(12) << '[' << b._center << ",r=" << b._radius << ']';
 }
+
+osg::Texture * FindTreeItemNodeVisitor::NodeItem::getImageGeodeTexture() const
+{
+    osg::Texture * ret = nullptr;
+    // ... and if it is a image geode try to add the image to the tree as well
+    osg::StateSet* stateSet = node ? node->getStateSet() : nullptr;
+    if (stateSet)
+    {
+        osg::StateAttribute * sa = stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
+        ret = sa ? sa->asTexture() : nullptr;
+    }
+    return ret;
+}
+
+osg::HeightField * FindTreeItemNodeVisitor::NodeItem::getHeightField() const
+{
+    osg::UserDataContainer * container = node ? node->getUserDataContainer() : nullptr;
+    return container ? (osg::HeightField *)container->getUserObject(0) : nullptr;
+}
+
+void FindTreeItemNodeVisitor::apply(osg::Node& node)
+{
+    bool sgi_tree_item = false;
+    if (node.getUserValue<bool>("sgi_tree_item", sgi_tree_item))
+    {
+        if (sgi_tree_item)
+        {
+            NodeItem item;
+            item.node = &node;
+            item.imageGeode = false;
+            item.heightField = false;
+            node.getUserValue<std::string>("sgi_tree_itemname", item.name);
+            if (!node.getUserValue<bool>("sgi_tree_imagegeode", item.imageGeode))
+                item.imageGeode = false;
+            if (!node.getUserValue<bool>("sgi_tree_heightfield", item.heightField))
+                item.heightField = false;
+            _nodes.push_back(item);
+        }
+    }
+    traverse(node);
+}
+
 
     } // namespace osg_helpers
 } // namespace sgi

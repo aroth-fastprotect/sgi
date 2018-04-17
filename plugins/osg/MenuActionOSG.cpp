@@ -2106,12 +2106,15 @@ bool actionHandlerImpl<MenuActionImagePreview>::execute()
     else
     {
         osg::Image * image = getObject<osg::Image, SGIItemOsg, DynamicCaster>();
+        osg::HeightField * hf = getObject<osg::HeightField, SGIItemOsg, DynamicCaster>();
         IImagePreviewDialogPtr dialog = hostCallback()->showImagePreviewDialog(menu()->parentWidget(), _item.get());
 
         if (dialog.valid())
         {
             if (image)
                 dialog->setObject(_item.get(), osg_helpers::convertImage(image), std::string(), hostCallback());
+            else if (hf)
+                dialog->setObject(_item.get(), osg_helpers::convertImage(hf), std::string(), hostCallback());
             else if (texture)
             {
 

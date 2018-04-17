@@ -78,7 +78,7 @@ const char * sgiGetLibraryModuleFilename()
         const char * (* addr) () = sgiGetLibraryName;
         if(dladdr((const void*)addr, &info) != 0)
         {
-            char buf[512];
+            char buf[PATH_MAX];
             if(realpath(info.dli_fname, buf))
                 s_cachedFilename = buf;
             else

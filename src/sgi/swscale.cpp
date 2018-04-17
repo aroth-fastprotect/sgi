@@ -353,6 +353,8 @@ bool SWScale::to_qimage_argb32_dxt(const sgi::Image& src, QImage& dest, bool hor
                 *dest_pixel = compute_pixel<ELEM_TYPE>(colorGradient, *src_pixel, elem_min, elem_max, elem_range);
             }
         }
+        if (horizontalFlip)
+            dest = dest.mirrored(false, true);
         return true;
     }
 
@@ -489,6 +491,12 @@ bool SWScale::convert(const sgi::Image& src, sgi::Image& dest)
                 dest = dest.mirrored(false, true);
             break;
 #endif
+        case Image::ImageFormatFloat:
+            ret = to_qimage_argb32_single_channel_impl<float>(src, dest, s_defaultColorGradient, horizontalFlip);
+            break;
+        case Image::ImageFormatFloat64:
+            ret = to_qimage_argb32_single_channel_impl<double>(src, dest, s_defaultColorGradient, horizontalFlip);
+            break;
         default:
             ret = to_qimage_argb32_with_avcodec(src, dest, horizontalFlip);
             break;

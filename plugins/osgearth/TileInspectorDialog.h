@@ -28,8 +28,8 @@ typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
 
 namespace osgearth_plugin {
 
-typedef std::list<osgEarth::TileKey> TileKeyList;
-typedef std::set<osgEarth::TileKey> TileKeySet;
+class TileKeyList;
+class TileKeySet;
 
 class TileInspectorDialog : public QDialog
 {
@@ -59,18 +59,10 @@ public slots:
 public:
     enum LAYER_DATA_SOURCE
     {
+        LayerDataSourceNone = -1,
         LayerDataSourceLayer,
         LayerDataSourceTileSource,
         LayerDataSourceCache,
-    };
-    enum NUM_NEIGHBORS
-    {
-        NUM_NEIGHBORS_NONE = 0,
-        NUM_NEIGHBORS_CROSS,
-        NUM_NEIGHBORS_IMMEDIATE,
-		NUM_NEIGHBORS_PARENTAL,
-		NUM_NEIGHBORS_PARENTAL_AND_CHILDS,
-        NUM_NEIGHBORS_CHILDS,
     };
     void                    addTileKey(const osgEarth::TileKey & key);
     void                    addTileKeys(osgEarth::TileSource * tileSource, const TileKeyList & tiles, bool append=false);

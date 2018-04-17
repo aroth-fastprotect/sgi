@@ -202,6 +202,7 @@ bool writePrettyHTMLImpl<osgViewer::View>::process(std::basic_ostream<char>& os)
 
             // add remaining osgViewer::View properties
             os << "<tr><td>start tick</td><td>" << object->getStartTick() << "</td></tr>" << std::endl;
+            os << "<tr><td>scene</td><td>" << getObjectNameAndType(object->getScene(), true) << "</td></tr>" << std::endl;
             os << "<tr><td>scene data</td><td>" << getObjectNameAndType(object->getSceneData(), true) << "</td></tr>" << std::endl;
             os << "<tr><td>database pager</td><td>" << getObjectNameAndType(object->getDatabasePager(), true) << "</td></tr>" << std::endl;
             os << "<tr><td>image pager</td><td>" << getObjectNameAndType(object->getImagePager(), true) << "</td></tr>" << std::endl;

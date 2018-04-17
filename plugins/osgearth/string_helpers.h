@@ -135,6 +135,7 @@ double parseLongitude(const QString & txt, bool * ok);
 double parseElevation(const QString & txt, bool * ok);
 osgEarth::GeoPoint geoPointFromString(const QString & str, bool * ok);
 osgEarth::TileKey tileKeyFromString(const QString & input, const osgEarth::Profile * profile, int inputLod, bool * ok);
+CoordinateResult coordinateFromString(const std::string & input, const osgEarth::Profile * profile, int inputLod, bool * ok);
 CoordinateResult coordinateFromString(const QString & input, const osgEarth::Profile * profile, int inputLod, bool * ok);
 CoordinateResult coordinateFromString(QLineEdit * lineEdit, const osgEarth::Profile * profile, int inputLod, bool * ok);
 

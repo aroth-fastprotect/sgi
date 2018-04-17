@@ -28,6 +28,7 @@ enum MenuAction {
 	MenuActionAddExtension,
 	MenuActionTerrainProfile,
     MenuActionTerrainLayerSetURL,
+    MenuActionTerrainLayerClearCacheTiles,
     MenuActionModelLayerSetURL,
     MenuActionModelLayerEnable,
     MenuActionModelLayerVisible,
@@ -74,6 +75,12 @@ enum MenuAction {
 
     MenuActionRTTPickerView,
     MenuActionRTTPickerTexture,
+
+    MenuActionCacheClear,
+    MenuActionCacheCompact,
+    MenuActionCacheBinClear,
+    MenuActionCacheBinCompact,
+    MenuActionTileSourceTileKeyRemoveFromCache,
 };
 
 enum MapDebugImageLayer {
@@ -97,6 +104,8 @@ enum TileKeyAddMode {
     TileKeyAddModeNeighborSouth,
     TileKeyAddModeNeighborWest,
     TileKeyAddModeNeighborEast,
+    TileKeyAddModeNeighborsAdjacent,
+    TileKeyAddModeNeighborsAll,
 };
 
 MapDebugImageLayer getDebugImageLayer(const osgEarth::Map * object, osg::ref_ptr<osgEarth::ImageLayer> & imageLayer );
