@@ -5,6 +5,21 @@
 #include <osgGA/EventQueue>
 #include <osgViewer/View>
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0) && defined(SGI_USE_OSGEARTH)
+osgEarth::PrimitiveIntersector::Intersection::Intersection(const Intersection &rhs)
+    : ratio(rhs.ratio)
+    , nodePath(rhs.nodePath)
+    , drawable(rhs.drawable)
+    , matrix(rhs.matrix)
+    , localIntersectionPoint(rhs.localIntersectionPoint)
+    ,  localIntersectionNormal(rhs.localIntersectionNormal)
+    , indexList(rhs.indexList)
+    , ratioList(rhs.ratioList)
+    , primitiveIndex(rhs.primitiveIndex)
+{
+}
+#endif // OSGEARTH_VERSION_LESS_THAN(2,9,0) && defined(SGI_USE_OSGEARTH)
+
 namespace sgi {
 
 ReferencedPickerBase::ReferencedPickerBase(const osg::Vec2f & pos, osgViewer::View * view, osg::Node * root, unsigned traversalMask)

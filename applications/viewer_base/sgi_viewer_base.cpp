@@ -5,6 +5,7 @@
 #include <osg/Texture2D>
 #include <osg/TextureRectangle>
 #include <osg/ShapeDrawable>
+#include <osgDB/FileNameUtils>
 
 #ifdef _WIN32
 #include <osgViewer/api/Win32/GraphicsWindowWin32>

@@ -21,10 +21,6 @@
 #include <osgEarth/LevelDBFactory>
 #endif
 
-#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
-#include <osgEarthQt/TerrainProfileWidget>
-#endif
-
 //#include <osgEarth/TimeControl>
 #include "SGIItemOsgEarth"
 
@@ -370,8 +366,13 @@ bool contextMenuPopulateImpl<osgEarth::TerrainLayer>::populate(IContextMenuItem 
                 menuItem->addMenu("Tile source", &tilesource);
 
             menuItem->addSimpleAction(MenuActionTileInspector, "Tile inspector...", _item);
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
             if(object->getCacheSettings() && object->getCacheSettings()->getCacheBin())
                 menuItem->addSimpleAction(MenuActionTerrainLayerClearCacheTiles, "Clear tiles from cache...", _item);
+#else
+            if (object->getCache() && object->getCacheBin(object->getProfile()))
+                menuItem->addSimpleAction(MenuActionTerrainLayerClearCacheTiles, "Clear tiles from cache...", _item);
+#endif
         }
         break;
 	default:
@@ -895,8 +896,13 @@ bool contextMenuPopulateImpl<TileSourceTileKey>::populate(IContextMenuItem * men
             if (terrainLayer.hasObject())
             {
                 menuItem->addMenu("TerrainLayer", &terrainLayer);
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
                 if (!object.terrainLayer->getCacheID().empty())
                     addCacheActions = true;
+#else
+                if (object.terrainLayer->getCache())
+                    addCacheActions = true;
+#endif
             }
 
             SGIHostItemOsg cacheBin(object.cacheBin.get());

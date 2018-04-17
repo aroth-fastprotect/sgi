@@ -60,8 +60,8 @@ public:
     typedef PickerType::Intersections Hits;
 #else
 	typedef osgEarth::IntersectionPicker PickerType;
-    typedef PickerType::Hit Hit;
-    typedef PickerType::Hits Hits;
+    typedef osgEarth::PrimitiveIntersector::Intersection Hit;
+    typedef osgEarth::PrimitiveIntersector::Intersections Hits;
 #endif
     ReferencedPicker(const osg::Vec2f & pos, osgViewer::View * view, osg::Node * root=NULL, unsigned traversalMask=~0u, float hitBufferSize=1.0f, PickerType::Limit limit=PickerType::NO_LIMIT);
     ReferencedPicker(osgViewer::GraphicsWindow * gw, osg::Node * root=NULL, unsigned traversalMask=~0u, float hitBufferSize=1.0f, PickerType::Limit limit= PickerType::NO_LIMIT);

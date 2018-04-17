@@ -29,9 +29,6 @@
 #else
 #include <osgEarthUtil/SkyNode>
 #endif
-#if OSGEARTH_VERSION_LESS_THAN(2,8,0)
-#include <osgEarthQt/TerrainProfileWidget>
-#endif
 
 #include "osgearth_accessor.h"
 #include "SettingsDialogOSGEarth.h"
@@ -1046,9 +1043,13 @@ bool actionHandlerImpl<MenuActionTerrainLayerClearCacheTiles>::execute()
 {
     TileSourceTileKey * data_ref = getObject<TileSourceTileKey, SGIItemOsg, DynamicCaster>();
     osgEarth::TerrainLayer * terrainLayer = getObject<osgEarth::TerrainLayer,SGIItemOsg, DynamicCaster>();
+    const osgEarth::Profile * profile = terrainLayer ? terrainLayer->getProfile() : nullptr;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
     osgEarth::CacheSettings * cs = terrainLayer ? terrainLayer->getCacheSettings() : nullptr;
     osgEarth::CacheBin * bin = cs ? cs->getCacheBin() : nullptr;
-    const osgEarth::Profile * profile = terrainLayer ? terrainLayer->getProfile() : nullptr;
+#else
+    osgEarth::CacheBin * bin = terrainLayer ? terrainLayer->getCacheBin(profile) : nullptr;
+#endif
 
     std::string keys;
     if(terrainLayer)
@@ -1063,8 +1064,12 @@ bool actionHandlerImpl<MenuActionTerrainLayerClearCacheTiles>::execute()
             bin = object.cacheBin.get();
         else if (object.terrainLayer.valid())
         {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
             cs = object.terrainLayer->getCacheSettings();
             bin = cs ? cs->getCacheBin() : nullptr;
+#else
+            bin = terrainLayer ? terrainLayer->getCacheBin(profile) : nullptr;
+#endif
         }
     }
 

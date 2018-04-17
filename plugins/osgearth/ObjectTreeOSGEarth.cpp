@@ -418,8 +418,10 @@ bool objectTreeBuildImpl<osgEarth::Extension>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
             SGIHostItemOsgEarthConfigOptions configOptions(object->getConfigOptions());
             treeItem->addChild("Config Options", &configOptions);
+#endif
         }
         break;
     default:

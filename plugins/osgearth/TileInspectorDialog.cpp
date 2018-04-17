@@ -720,8 +720,13 @@ void TileInspectorDialog::refresh()
             osgEarth::DataExtentList dataExtents;
 
             osgEarth::Drivers::TMSOptions tmsopts(tileSourceOptions);
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
             osg::ref_ptr<osgEarth::Util::TMS::TileMap> tilemap = osgEarth::Util::TMS::TileMap::create(baseurl, profile,
                 dataExtents, tmsopts.format().value(), 256, 256);
+#else
+            osg::ref_ptr<osgEarth::Util::TMS::TileMap> tilemap = osgEarth::Util::TMS::TileMap::create(baseurl, profile,
+                tmsopts.format().value(), 256, 256);
+#endif
 
             os << "Base URL: <a href=\"" << baseurl << "\">"  << baseurl << "</a><br/>";
             os << "TMS type: " << tmsopts.tmsType().value() << "<br/>";
@@ -836,7 +841,11 @@ void TileInspectorDialog::refresh()
             }
             else if (terrainLayer)
             {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
                 if (terrainLayer->mayHaveData(tilekey))
+#else
+                if (terrainLayer->isKeyInRange(tilekey))
+#endif
                 {
                     TileSourceTileKeyData data(terrainLayer, tilekey);
                     SGIHostItemOsg tskey(new TileSourceTileKey(data));
@@ -965,8 +974,13 @@ void TileInspectorDialog::proxySaveScript()
 
                 std::string tms_type;
                 osgEarth::Drivers::TMSOptions tmsopts(options);
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
                 osg::ref_ptr<osgEarth::Util::TMS::TileMap> tilemap = osgEarth::Util::TMS::TileMap::create(baseurl, profile,
                     dataExtents, tmsopts.format().value(), 256, 256);
+#else
+                osg::ref_ptr<osgEarth::Util::TMS::TileMap> tilemap = osgEarth::Util::TMS::TileMap::create(baseurl, profile,
+                    tmsopts.format().value(), 256, 256);
+#endif
 
                 invertY = tmsopts.tmsType().value() == "google";
 
@@ -1152,7 +1166,11 @@ void TileInspectorDialog::loadData()
                 else if (cacheBin)
                 {
                     std::string cacheKey = osgEarth::Stringify() << data.tileKey.str() << "_" << data.tileKey.getProfile()->getHorizSignature();
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
                     osgEarth::ReadResult res = cacheBin->readObject(cacheKey, nullptr);
+#else
+                    osgEarth::ReadResult res = cacheBin->readObject(cacheKey);
+#endif
                     if(res.succeeded())
                         data.tileData = res.getObject();
                     data.status = data.tileData.valid() ? TileSourceTileKeyData::StatusLoaded : TileSourceTileKeyData::StatusLoadFailure;
