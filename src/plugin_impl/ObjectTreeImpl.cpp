@@ -82,6 +82,25 @@ IObjectTreeItem * ObjectTreeItem::addChild(const std::string & name, const SGIHo
     else
         return NULL;
 }
+
+IObjectTreeItem * ObjectTreeItem::insertChild(IObjectTreeItem * sibling, const std::string & name, SGIItemBase * item)
+{
+    int index = sibling ? _item->indexOfChild(static_cast<ObjectTreeItem*>(sibling)->_item) : -1;
+    return insertChildImpl(index, name, item);
+}
+
+IObjectTreeItem * ObjectTreeItem::insertChild(IObjectTreeItem * sibling, const std::string & name, const SGIHostItemBase * hostitem)
+{
+    osg::ref_ptr<SGIItemBase> item;
+    if (_hostInterface->generateItem(item, hostitem))
+    {
+        int index = sibling ? _item->indexOfChild(static_cast<ObjectTreeItem*>(sibling)->_item) : -1;
+        return insertChildImpl(index, name, item.get());
+    }
+    else
+        return NULL;
+}
+
 IObjectTreeItem * ObjectTreeItem::findChild(const std::string & name)
 {
     QString qname = fromUtf8(name);
@@ -143,6 +162,11 @@ const QTreeWidgetItem * ObjectTreeItem::treeItem() const { return _item; }
 
 IObjectTreeItem * ObjectTreeItem::addChildImpl(const std::string & name, SGIItemBase * item)
 {
+    return insertChildImpl(-1, name, item);
+}
+
+IObjectTreeItem * ObjectTreeItem::insertChildImpl(int index, const std::string & name, SGIItemBase * item)
+{
     QTreeWidgetItem * newItem = new QTreeWidgetItem;
     QtSGIItem itemData(item);
     QString itemText;
@@ -178,7 +202,10 @@ IObjectTreeItem * ObjectTreeItem::addChildImpl(const std::string & name, SGIItem
         }
     }
     // ... and finally add the new item to the tree
-    _item->addChild(newItem);
+    if (index < 0)
+        _item->addChild(newItem);
+    else
+        _item->insertChild(index, newItem);
     return new ObjectTreeItem(newItem, _hostInterface);
 }
 

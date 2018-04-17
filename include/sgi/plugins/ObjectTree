@@ -20,6 +20,8 @@ public:
     virtual IObjectTreeItem * findChild(const std::string & name) = 0;
     virtual IObjectTreeItem * addChildIfNotExists(const std::string & name, SGIItemBase * item) = 0;
     virtual IObjectTreeItem * addChildIfNotExists(const std::string & name, const SGIHostItemBase * hostitem) = 0;
+    virtual IObjectTreeItem * insertChild(IObjectTreeItem * sibling, const std::string & name, SGIItemBase * item) = 0;
+    virtual IObjectTreeItem * insertChild(IObjectTreeItem * sibling, const std::string & name, const SGIHostItemBase * item) = 0;
     virtual void setSelected(bool select) = 0;
     virtual bool isSelected() const = 0;
     virtual SGIItemBase * item() = 0;

@@ -200,6 +200,10 @@ public:
     IObjectTreeItem * addChildIfNotExists(const std::string & name, SGIItemBase * item) override;
     IObjectTreeItem * addChildIfNotExists(const std::string & name, const SGIHostItemBase * hostitem) override;
 
+    IObjectTreeItem * insertChild(IObjectTreeItem * sibling, const std::string & name, SGIItemBase * item) override;
+    IObjectTreeItem * insertChild(IObjectTreeItem * sibling, const std::string & name, const SGIHostItemBase * item) override;
+
+
     void setSelected(bool select) override;
     bool isSelected() const override;
 
@@ -221,6 +225,7 @@ public:
 
 protected:
     IObjectTreeItem * addChildImpl(const std::string & name, SGIItemBase * item);
+    IObjectTreeItem * insertChildImpl(int index, const std::string & name, SGIItemBase * item);
     static void addDummyChild(QTreeWidgetItem * itemParent);
 
 private:
