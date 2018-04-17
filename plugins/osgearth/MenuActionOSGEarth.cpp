@@ -117,6 +117,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCacheClear)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCacheCompact)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCacheBinClear)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCacheBinCompact)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTileSourceTileKeyRemoveFromCache)
 
 using namespace sgi::osg_helpers;
 
@@ -438,35 +439,6 @@ bool actionHandlerImpl<MenuActionTerrainLayerSetURL>::execute()
     {
         //const_cast<LayerNode*>(layerNode)->setFilename(newFilename);
         //triggerRepaint();
-    }
-    return true;
-}
-
-bool actionHandlerImpl<MenuActionTerrainLayerClearCacheTiles>::execute()
-{
-    osgEarth::TerrainLayer * object = static_cast<osgEarth::TerrainLayer*>(item<SGIItemOsg>()->object());
-    std::string keys = "8/12/2\r\n8/12/3";
-
-    bool gotInput = _hostInterface->inputDialogText(menuAction()->menu()->parentWidget(), keys, "Tile keys:", "Enter tile keys to delete from cache", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
-    if (gotInput)
-    {
-        osgEarth::CacheSettings * cs = object->getCacheSettings();
-        osgEarth::CacheBin * bin = nullptr;
-        if (cs)
-            bin = cs->getCacheBin();
-
-        if (bin)
-        {
-            TileKeyList tilekeylist;
-            if(tilekeylist.fromText(keys, object->getProfile()))
-            {
-                for (const osgEarth::TileKey & tilekey : tilekeylist)
-                {
-                    std::string cacheKey = osgEarth::Stringify() << tilekey.str() << "_" << tilekey.getProfile()->getHorizSignature();
-                    bin->remove(cacheKey);
-                }
-            }
-        }
     }
     return true;
 }
@@ -1069,6 +1041,66 @@ bool actionHandlerImpl<MenuActionCacheBinCompact>::execute()
     object->compact();
     return true;
 }
+
+bool actionHandlerImpl<MenuActionTerrainLayerClearCacheTiles>::execute()
+{
+    TileSourceTileKey * data_ref = getObject<TileSourceTileKey, SGIItemOsg, DynamicCaster>();
+    osgEarth::TerrainLayer * terrainLayer = getObject<osgEarth::TerrainLayer,SGIItemOsg, DynamicCaster>();
+    osgEarth::CacheSettings * cs = terrainLayer ? terrainLayer->getCacheSettings() : nullptr;
+    osgEarth::CacheBin * bin = cs ? cs->getCacheBin() : nullptr;
+    const osgEarth::Profile * profile = terrainLayer ? terrainLayer->getProfile() : nullptr;
+
+    std::string keys;
+    if(terrainLayer)
+        keys = "8/12/2\r\n8/12/3";
+    else if (data_ref)
+    {
+        const TileSourceTileKeyData & object = data_ref->data();
+        keys = object.tileKey.str();
+        profile = object.tileKey.getProfile();
+
+        if (object.cacheBin.valid())
+            bin = object.cacheBin.get();
+        else if (object.terrainLayer.valid())
+        {
+            cs = object.terrainLayer->getCacheSettings();
+            bin = cs ? cs->getCacheBin() : nullptr;
+        }
+    }
+
+    bool gotInput = _hostInterface->inputDialogText(menuAction()->menu()->parentWidget(), keys, "Tile keys:", "Enter tile keys to delete from cache", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+    if (gotInput)
+    {
+        if (bin && profile)
+        {
+            TileKeyList tilekeylist;
+            if (tilekeylist.fromText(keys, profile))
+            {
+                for (const osgEarth::TileKey & tilekey : tilekeylist)
+                {
+                    std::string cacheKey = osgEarth::Stringify() << tilekey.str() << "_" << tilekey.getProfile()->getHorizSignature();
+                    bin->remove(cacheKey);
+                }
+            }
+        }
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTileSourceTileKeyRemoveFromCache>::execute()
+{
+    TileSourceTileKey * data_ref = getObject<TileSourceTileKey, SGIItemOsg>();
+    const TileSourceTileKeyData & object = data_ref->data();
+    if (object.cacheBin.valid())
+    {
+        const osgEarth::TileKey & tilekey = object.tileKey;
+        std::string cacheKey = osgEarth::Stringify() << tilekey.str() << "_" << tilekey.getProfile()->getHorizSignature();
+        object.cacheBin->remove(cacheKey);
+    }
+    return true;
+}
+
+
 
 } // namespace osgearth_plugin
 } // namespace sgi

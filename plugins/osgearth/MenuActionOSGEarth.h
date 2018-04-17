@@ -80,6 +80,7 @@ enum MenuAction {
     MenuActionCacheCompact,
     MenuActionCacheBinClear,
     MenuActionCacheBinCompact,
+    MenuActionTileSourceTileKeyRemoveFromCache,
 };
 
 enum MapDebugImageLayer {

@@ -886,17 +886,30 @@ bool contextMenuPopulateImpl<TileSourceTileKey>::populate(IContextMenuItem * men
         {
             contextMenuPopulate_TileKey(menuItem, _item.get(), object.tileKey);
 
+            bool addCacheActions = false;
             SGIHostItemOsg tileSource(object.tileSource.get());
             if (tileSource.hasObject())
                 menuItem->addMenu("TileSource", &tileSource);
 
             SGIHostItemOsg terrainLayer(object.terrainLayer.get());
             if (terrainLayer.hasObject())
+            {
                 menuItem->addMenu("TerrainLayer", &terrainLayer);
+                if (!object.terrainLayer->getCacheID().empty())
+                    addCacheActions = true;
+            }
 
             SGIHostItemOsg cacheBin(object.cacheBin.get());
             if (cacheBin.hasObject())
+            {
                 menuItem->addMenu("CacheBin", &cacheBin);
+                addCacheActions = true;
+            }
+            if(addCacheActions)
+            {
+                menuItem->addSimpleAction(MenuActionTileSourceTileKeyRemoveFromCache, "Remove from CacheBin", _item);
+                menuItem->addSimpleAction(MenuActionTerrainLayerClearCacheTiles, "Clear tiles from CacheBin...", _item);
+            }
 
             SGIHostItemOsg tileData(object.tileData.get());
             if (tileData.hasObject())
