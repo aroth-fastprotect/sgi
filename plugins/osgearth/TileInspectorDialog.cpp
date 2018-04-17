@@ -533,6 +533,7 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
     {
         QImage qimage;
 		std::string previewText;
+        std::string previewTextPlain;
         _hostInterface->writePrettyHTML(os, item);
         const SGIItemOsg * osgitem = dynamic_cast<const SGIItemOsg *>(item);
         if(osgitem)
@@ -546,8 +547,8 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
 			else if (hf)
 			{
 				std::stringstream os;
-				//osg_helpers::heightFieldDumpHTML(os, hf);
-				previewText = os.str();
+				osg_helpers::heightFieldDumpPlainText(os, hf);
+                previewTextPlain = os.str();
 			}
             else
             {
@@ -564,8 +565,8 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
 					else if (hf)
 					{
 						std::stringstream os;
-						osg_helpers::heightFieldDumpHTML(os, hf);
-						previewText = os.str();
+						osg_helpers::heightFieldDumpPlainText(os, hf);
+                        previewTextPlain = os.str();
 					}
                 }
             }
@@ -578,17 +579,26 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
 		else if (!previewText.empty())
 		{
 			ui->previewImage->setPixmap(QPixmap());
+            ui->previewImage->setTextFormat(Qt::RichText);
 			ui->previewImage->setText(fromUtf8(previewText));
 		}
+        else if (!previewTextPlain.empty())
+        {
+            ui->previewImage->setPixmap(QPixmap());
+            ui->previewImage->setTextFormat(Qt::PlainText);
+            ui->previewImage->setText(fromUtf8(previewTextPlain));
+        }
         else
         {
             ui->previewImage->setPixmap(QPixmap());
+            ui->previewImage->setTextFormat(Qt::PlainText);
             ui->previewImage->setText(tr("No image/heightfield"));
         }
     }
     else
     {
         ui->previewImage->setPixmap(QPixmap());
+        ui->previewImage->setTextFormat(Qt::PlainText);
         ui->previewImage->setText(tr("No image"));
         os << "<b>item is <i>NULL</i></b>";
     }
