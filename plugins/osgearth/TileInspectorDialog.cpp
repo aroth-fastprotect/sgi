@@ -392,7 +392,29 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
 	ui->numNeighbors->addItem(tr("Parental"), QVariant(TileKeyList::NUM_NEIGHBORS_PARENTAL));
 	ui->numNeighbors->addItem(tr("Parental&Childs"), QVariant(TileKeyList::NUM_NEIGHBORS_PARENTAL_AND_CHILDS));
 
-    ui->layer->setCurrentIndex(0);
+    int currentLayerIndex = -1;
+    for (int i = 0; i < ui->layer->count() && currentLayerIndex < 0; ++i)
+    {
+        QtSGIItem qitem = ui->layer->itemData(i).value<QtSGIItem>();
+        SGIItemOsg * item = (SGIItemOsg *)qitem.item();
+
+        if (item)
+        {
+            osgEarth::TerrainLayer * terrainLayer = getTerrainLayer(item);
+            if (terrainLayer)
+            {
+                if (dynamic_cast<osgEarth::ImageLayer*>(terrainLayer))
+                    currentLayerIndex = i;
+            }
+//             else
+//             {
+//                 osgEarth::TileSource * tileSource = getTileSource(item);
+//                 osgEarth::CacheBin * cachebin = getCacheBin(item);
+//             }
+        }
+    }
+
+    ui->layer->setCurrentIndex(currentLayerIndex >= 0 ? currentLayerIndex : 0);
 
 	takePositionFromCamera();
 }
@@ -1278,9 +1300,13 @@ void TileInspectorDialog::addTileKey(const osgEarth::TileKey& key)
     if(!tileSource)
         return;
 
+    IObjectTreeItem * selitem = _treeRoot->selectedItem();
     TileSourceTileKeyData data(tileSource, key);
     SGIHostItemOsg tskey(new TileSourceTileKey(data));
-    _treeRoot->addChild(std::string(), &tskey);
+    if(selitem)
+        _treeRoot->insertChild(selitem, std::string(), &tskey);
+    else
+        _treeRoot->addChild(std::string(), &tskey);
 }
 
 void TileInspectorDialog::loadFromFile()
