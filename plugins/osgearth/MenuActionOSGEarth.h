@@ -103,6 +103,8 @@ enum TileKeyAddMode {
     TileKeyAddModeNeighborSouth,
     TileKeyAddModeNeighborWest,
     TileKeyAddModeNeighborEast,
+    TileKeyAddModeNeighborsAdjacent,
+    TileKeyAddModeNeighborsAll,
 };
 
 MapDebugImageLayer getDebugImageLayer(const osgEarth::Map * object, osg::ref_ptr<osgEarth::ImageLayer> & imageLayer );

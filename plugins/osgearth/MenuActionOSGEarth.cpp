@@ -883,6 +883,25 @@ bool actionHandlerImpl<MenuActionTileKeyAdd>::execute()
     case TileKeyAddModeNeighborEast:
         tilekeylist.push_back(tilekey.createNeighborKey(+1, 0));
         break;
+    case TileKeyAddModeNeighborsAll:
+        tilekeylist.push_back(tilekey.createNeighborKey(-1, -1));
+        tilekeylist.push_back(tilekey.createNeighborKey( 0, -1));
+        tilekeylist.push_back(tilekey.createNeighborKey(+1, -1));
+
+        tilekeylist.push_back(tilekey.createNeighborKey(-1,  0));
+        //tilekeylist.push_back(tilekey.createNeighborKey( 0,  0));
+        tilekeylist.push_back(tilekey.createNeighborKey(+1,  0));
+
+        tilekeylist.push_back(tilekey.createNeighborKey(-1, +1));
+        tilekeylist.push_back(tilekey.createNeighborKey( 0, +1));
+        tilekeylist.push_back(tilekey.createNeighborKey(+1, +1));
+        break;
+    case TileKeyAddModeNeighborsAdjacent:
+        tilekeylist.push_back(tilekey.createNeighborKey(0, -1));
+        tilekeylist.push_back(tilekey.createNeighborKey(0, +1));
+        tilekeylist.push_back(tilekey.createNeighborKey(-1, 0));
+        tilekeylist.push_back(tilekey.createNeighborKey(+1, 0));
+        break;
     }
     TileInspectorDialog* tileInspector = dynamic_cast<TileInspectorDialog*>(menu()->parentWidget());
     if(tileInspector)

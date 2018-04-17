@@ -842,6 +842,8 @@ namespace {
         {
             keyMenu->addModeAction("Parent", TileKeyAddModeParent);
             keyMenu->addModeAction("Children", TileKeyAddModeChildren);
+            keyMenu->addModeAction("Adjacent Neighbors", TileKeyAddModeNeighborsAdjacent);
+            keyMenu->addModeAction("All Neighbors", TileKeyAddModeNeighborsAll);
             keyMenu->addModeAction("Neighbor North", TileKeyAddModeNeighborNorth);
             keyMenu->addModeAction("Neighbor South", TileKeyAddModeNeighborSouth);
             keyMenu->addModeAction("Neighbor West", TileKeyAddModeNeighborWest);
