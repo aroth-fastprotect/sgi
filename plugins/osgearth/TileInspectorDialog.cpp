@@ -1170,7 +1170,10 @@ void TileInspectorDialog::loadData()
 #endif
 
                     if (0 /*!tileSource->hasData(data.tileKey)*/)
+                    {
                         data.status = TileSourceTileKeyData::StatusNoData;
+                        data.tileData = nullptr;
+                    }
                     else
                     {
                         if (isImageTileSource)
@@ -1235,11 +1238,17 @@ void TileInspectorDialog::loadData()
                         break;
                     }
 
-                    if(res.succeeded())
+                    if (res.succeeded())
                         data.tileData = res.getObject();
+                    else
+                        data.tileData = nullptr;
                     data.status = data.tileData.valid() ? TileSourceTileKeyData::StatusLoaded : TileSourceTileKeyData::StatusLoadFailure;
                 }
-
+                else
+                {
+                    data.status = TileSourceTileKeyData::StatusNotLoaded;
+                    data.tileData = nullptr;
+                }
             }
         }
         child->updateName();
