@@ -1504,6 +1504,12 @@ bool objectTreeBuildImpl<TileSourceTileKey>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg tileSource(object.tileSource.get());
             if(tileSource.hasObject())
                 treeItem->addChild("TileSource", &tileSource);
+            SGIHostItemOsg terrainLayer(object.terrainLayer.get());
+            if (terrainLayer.hasObject())
+                treeItem->addChild("TerrainLayer", &terrainLayer);
+            SGIHostItemOsg cacheBin(object.cacheBin.get());
+            if (cacheBin.hasObject())
+                treeItem->addChild("CacheBin", &cacheBin);
             SGIHostItemOsg tileData(object.tileData.get());
             if(tileData.hasObject())
                 treeItem->addChild("TileData", &tileData);
