@@ -100,7 +100,11 @@ std::string getObjectNameImpl<TileKeyReferenced>::process()
 {
     TileKeyReferenced * object_ptr = static_cast<TileKeyReferenced*>(item<SGIItemOsg>()->object());
     const osgEarth::TileKey object = object_ptr->data();
-    return object.str();
+    std::stringstream ss;
+    ss << object.str();
+    if (object.getProfile())
+        ss << '_' << object.getProfile()->getHorizSignature();
+    return ss.str();
 }
 
 extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const TileSourceTileKeyData::Status & t);
@@ -110,15 +114,18 @@ std::string getObjectNameImpl<TileSourceTileKey>::process()
     TileSourceTileKey * object_ptr = static_cast<TileSourceTileKey*>(item<SGIItemOsg>()->object());
     const TileSourceTileKeyData object = object_ptr->data();
     std::stringstream ss;
-    std::string tilesourceName;
+    std::string name;
 	if (object.tileSource.valid())
-		tilesourceName = object.tileSource->getName();
-//	SGIHostItemOsg ts(object.tileSource.get());
-//	_hostInterface->getObjectName(tilesourceName, &ts);
-	if(tilesourceName.empty())
-		ss << object.tileKey.str();
-	else
-        ss << tilesourceName << '/' << object.tileKey.str();
+        name = object.tileSource->getName();
+    else if(object.terrainLayer.valid())
+        name = object.terrainLayer->getName();
+    else if (object.cacheBin.valid())
+        name = object.cacheBin->getID();
+    if (!name.empty())
+        ss << name << '/';
+    ss << object.tileKey.str();
+    if(object.tileKey.getProfile())
+        ss << '_' << object.tileKey.getProfile()->getHorizSignature();
     ss << '(' << object.status << ')';
 
     return ss.str();

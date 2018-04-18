@@ -520,7 +520,8 @@ void TileInspectorDialog::layerChanged(int index)
         }
 #endif
     }
-
+    
+    updateLayerContextMenu();
     refresh();
 }
 
@@ -545,6 +546,7 @@ void TileInspectorDialog::layerSourceChanged(int index)
     }
 #endif
 
+    updateLayerContextMenu();
     refresh();
 }
 
@@ -1430,6 +1432,42 @@ void TileInspectorDialog::takeFromDataExtentsUnion()
     tilekeylist.addTilesForGeoExtent(osgEarth::GeoExtent(), profile, lod, numNeighbors);
 
     addTileKeys(tileSource, tilekeylist);
+}
+
+void TileInspectorDialog::updateLayerContextMenu()
+{
+    int index = ui->layer->currentIndex();
+    QVariant data = ui->layer->itemData(index);
+    QtSGIItem qitem = data.value<QtSGIItem>();
+    SGIItemOsg * item = (SGIItemOsg *)qitem.item();
+    if (!item)
+        return;
+
+    LAYER_DATA_SOURCE layerDataSource = (LAYER_DATA_SOURCE)ui->layerSource->itemData(ui->layerSource->currentIndex()).toInt();
+    osgEarth::TileSource * tileSource = (layerDataSource == LayerDataSourceTileSource) ? getTileSource(item) : NULL;
+    osgEarth::TerrainLayer * terrainLayer = (layerDataSource == LayerDataSourceLayer) ? getTerrainLayer(item) : NULL;
+    osgEarth::CacheBin * cachebin = (layerDataSource == LayerDataSourceCache) ? getCacheBin(item) : NULL;
+
+    SGIHostItemOsg hostitem((osg::Referenced*)nullptr);
+    if (tileSource)
+        hostitem = SGIHostItemOsg(tileSource);
+    if (terrainLayer)
+        hostitem = SGIHostItemOsg(terrainLayer);
+    if (cachebin)
+        hostitem = SGIHostItemOsg(cachebin);
+
+    if (_layerContextMenu)
+    {
+        _layerContextMenu->setObject(&hostitem, _info);
+    }
+    else
+    {
+        _layerContextMenu = _hostInterface->createContextMenu(this, &hostitem, _info);
+    }
+
+    QMenu * contextMenu = _layerContextMenu->getMenu();
+
+    ui->objectInfoButton->setMenu(contextMenu);
 }
 
 } // namespace osgearth_plugin

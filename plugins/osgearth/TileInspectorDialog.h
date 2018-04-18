@@ -77,6 +77,8 @@ protected:
 
     void                    itemContextMenu(IObjectTreeItem * treeItem, IContextMenuPtr & contextMenu);
 
+    void                    updateLayerContextMenu();
+
 protected:
     class ObjectTreeImpl;
 
@@ -88,6 +90,7 @@ private:
     IObjectTreeItemPtr              _treeRoot;
     IObjectTreeImplPtr              _treeImpl;
     IContextMenuPtr                 _contextMenu;
+    IContextMenuPtr                 _layerContextMenu;
     osg::ref_ptr<SGIItemOsg>        _item;
     SGIItemBasePtrVector            _tiles;
 };
