@@ -2820,6 +2820,20 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const TileSou
     return os;
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const TileSourceTileKeyData::ObjectType & t)
+{
+    switch (t)
+    {
+    case TileSourceTileKeyData::ObjectTypeGeneric: os << "generic"; break;
+    case TileSourceTileKeyData::ObjectTypeImage: os << "image"; break;
+    case TileSourceTileKeyData::ObjectTypeHeightField: os << "heightfield"; break;
+    case TileSourceTileKeyData::ObjectTypeNode: os << "node"; break;
+    case TileSourceTileKeyData::ObjectTypeString: os << "string"; break;
+    default: os << (int)t; break;
+    }
+    return os;
+}
+
 namespace {
 
     osgEarth::DataExtentList findTileSourceDataExtents(const osgEarth::TileSource * tileSource, const osgEarth::TileKey & key)
@@ -2864,6 +2878,7 @@ bool writePrettyHTMLImpl<TileSourceTileKey>::process(std::basic_ostream<char>& o
             os << "<tr><td>tileKey</td><td>" << object.tileKey << "</td></tr>" << std::endl;
 			os << "<tr><td>tileKey extents</td><td>" << object.tileKey.getExtent() << "</td></tr>" << std::endl;
             os << "<tr><td>status</td><td>" << object.status << "</td></tr>" << std::endl;
+            os << "<tr><td>objectType</td><td>" << object.objectType << "</td></tr>" << std::endl;
             os << "<tr><td>tileSource</td><td>" << getObjectNameAndType(object.tileSource.get(), true) << "</td></tr>" << std::endl;
             os << "<tr><td>terrainLayer</td><td>" << getObjectNameAndType(object.terrainLayer.get()) << "</td></tr>" << std::endl;
             os << "<tr><td>cacheBin</td><td>" << getObjectNameAndType(object.cacheBin.get()) << "</td></tr>" << std::endl;

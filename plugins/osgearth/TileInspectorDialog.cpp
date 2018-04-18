@@ -203,6 +203,38 @@ namespace {
 	}
 } // namespace
 
+
+TileSourceTileKeyData::ObjectType TileSourceTileKeyData::getObjectType(osgEarth::TileSource * ts)
+{
+    return TileSourceTileKeyData::ObjectTypeGeneric;
+}
+TileSourceTileKeyData::ObjectType TileSourceTileKeyData::getObjectType(osgEarth::CacheBin * cb)
+{
+    return TileSourceTileKeyData::ObjectTypeGeneric;
+}
+TileSourceTileKeyData::ObjectType TileSourceTileKeyData::getObjectType(osgEarth::TerrainLayer * tl)
+{
+    if (dynamic_cast<osgEarth::ImageLayer*>(tl))
+        return TileSourceTileKeyData::ObjectTypeImage;
+    else if (dynamic_cast<osgEarth::ElevationLayer*>(tl))
+        return TileSourceTileKeyData::ObjectTypeHeightField;
+    else
+        return TileSourceTileKeyData::ObjectTypeGeneric;
+}
+
+TileSourceTileKeyData::TileSourceTileKeyData(osgEarth::TileSource * ts, const osgEarth::TileKey & tk, osg::Referenced * td)
+    : tileSource(ts), tileKey(tk), tileData(td), status(StatusNotLoaded), objectType(getObjectType(ts))
+{}
+
+TileSourceTileKeyData::TileSourceTileKeyData(osgEarth::TerrainLayer * tl, const osgEarth::TileKey & tk, osg::Referenced * td)
+    : terrainLayer(tl), tileKey(tk), tileData(td), status(StatusNotLoaded), objectType(getObjectType(tl))
+{}
+TileSourceTileKeyData::TileSourceTileKeyData(osgEarth::CacheBin * cb, ObjectType type, const osgEarth::TileKey & tk, osg::Referenced * td)
+    : cacheBin(cb), tileKey(tk), tileData(td), status(StatusNotLoaded), objectType(type)
+{}
+
+
+
 class TileInspectorDialog::ObjectTreeImpl : public IObjectTreeImpl
 {
 public:
@@ -640,7 +672,9 @@ void TileInspectorDialog::refresh()
     SGIItemOsg * item = (SGIItemOsg *)qitem.item();
     osgEarth::TileSource * tileSource = (layerDataSource == LayerDataSourceTileSource) ? getTileSource(item) : NULL;
     osgEarth::TerrainLayer * terrainLayer = (layerDataSource == LayerDataSourceLayer) ? getTerrainLayer(item) : NULL;
+    osgEarth::TerrainLayer * cacheBinTerrainLayer = nullptr;
     osgEarth::CacheBin * cachebin = (layerDataSource == LayerDataSourceCache) ? getCacheBin(item) : NULL;
+    TileSourceTileKeyData::ObjectType objectType = TileSourceTileKeyData::ObjectTypeGeneric;
     const osgEarth::Profile * profile = NULL;
     if (tileSource)
         profile = tileSource->getProfile();
@@ -648,9 +682,12 @@ void TileInspectorDialog::refresh()
         profile = terrainLayer->getProfile();
     else if (cachebin)
     {
-        osgEarth::TerrainLayer * terrainLayer = getTerrainLayer(item);
-        if(terrainLayer)
-            profile = terrainLayer->getProfile();
+        cacheBinTerrainLayer = getTerrainLayer(item);
+        if (cacheBinTerrainLayer)
+        {
+            profile = cacheBinTerrainLayer->getProfile();
+            objectType = TileSourceTileKeyData::getObjectType(cacheBinTerrainLayer);
+        }
     }
 
     int lod = -1;
@@ -856,7 +893,7 @@ void TileInspectorDialog::refresh()
             }
             else if (cachebin)
             {
-                TileSourceTileKeyData data(cachebin, tilekey);
+                TileSourceTileKeyData data(cachebin, objectType, tilekey);
                 SGIHostItemOsg tskey(new TileSourceTileKey(data));
                 _treeRoot->addChild(std::string(), &tskey);
             }
@@ -1168,11 +1205,36 @@ void TileInspectorDialog::loadData()
                 else if (cacheBin)
                 {
                     std::string cacheKey = osgEarth::Stringify() << data.tileKey.str() << "_" << data.tileKey.getProfile()->getHorizSignature();
+
+                    osgEarth::ReadResult res;
+                    switch (data.objectType)
+                    {
+                    default:
+                    case TileSourceTileKeyData::ObjectTypeNode:
+                    case TileSourceTileKeyData::ObjectTypeHeightField:
+                    case TileSourceTileKeyData::ObjectTypeGeneric:
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
-                    osgEarth::ReadResult res = cacheBin->readObject(cacheKey, nullptr);
+                        res = cacheBin->readObject(cacheKey, nullptr);
 #else
-                    osgEarth::ReadResult res = cacheBin->readObject(cacheKey);
+                        osgEarth::ReadResult res = cacheBin->readObject(cacheKey);
 #endif
+                        break;
+                    case TileSourceTileKeyData::ObjectTypeImage:
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+                        res = cacheBin->readImage(cacheKey, nullptr);
+#else
+                        osgEarth::ReadResult res = cacheBin->readImage(cacheKey);
+#endif
+                        break;
+                    case TileSourceTileKeyData::ObjectTypeString:
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+                        res = cacheBin->readString(cacheKey, nullptr);
+#else
+                        osgEarth::ReadResult res = cacheBin->readString(cacheKey);
+#endif
+                        break;
+                    }
+
                     if(res.succeeded())
                         data.tileData = res.getObject();
                     data.status = data.tileData.valid() ? TileSourceTileKeyData::StatusLoaded : TileSourceTileKeyData::StatusLoadFailure;
