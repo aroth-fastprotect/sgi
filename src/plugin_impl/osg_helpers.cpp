@@ -926,6 +926,12 @@ osg::Texture * FindTreeItemNodeVisitor::NodeItem::getImageGeodeTexture() const
     return ret;
 }
 
+osg::Image * FindTreeItemNodeVisitor::NodeItem::getImage() const
+{
+    osg::Texture * texture = getImageGeodeTexture();
+    return (texture) ? texture->getImage(0) : nullptr;
+}
+
 osg::HeightField * FindTreeItemNodeVisitor::NodeItem::getHeightField() const
 {
     osg::UserDataContainer * container = node ? node->getUserDataContainer() : nullptr;

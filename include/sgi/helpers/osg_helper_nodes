@@ -113,6 +113,7 @@ public:
         bool heightField;
 
         osg::Texture * getImageGeodeTexture() const;
+        osg::Image * getImage() const;
         osg::HeightField * getHeightField() const;
     };
     typedef std::vector<NodeItem> NodeList;

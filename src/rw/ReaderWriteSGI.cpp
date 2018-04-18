@@ -583,7 +583,9 @@ public:
                     if(item.imageGeode)
                     {
                         // ... and if it is a image geode try to add the image to the tree as well
-                        SGIHostItemOsg image(item.getImageGeodeTexture());
+                        SGIHostItemOsg image(item.getImage());
+                        if (!image.hasObject())
+                            image = SGIHostItemOsg(item.getImageGeodeTexture());
                         if(image.hasObject())
                         {
                             dialog = _hostCallback->showImagePreviewDialog(_parent, &image);
