@@ -675,11 +675,17 @@ void TileInspectorDialog::refresh()
     osgEarth::TerrainLayer * cacheBinTerrainLayer = nullptr;
     osgEarth::CacheBin * cachebin = (layerDataSource == LayerDataSourceCache) ? getCacheBin(item) : NULL;
     TileSourceTileKeyData::ObjectType objectType = TileSourceTileKeyData::ObjectTypeGeneric;
+    osgEarth::ImageLayer* imageLayer = dynamic_cast<osgEarth::ImageLayer*>(terrainLayer);
+    osgEarth::ElevationLayer * elevLayer = dynamic_cast<osgEarth::ElevationLayer*>(terrainLayer);
     const osgEarth::Profile * profile = NULL;
     if (tileSource)
         profile = tileSource->getProfile();
     else if (terrainLayer)
+    {
         profile = terrainLayer->getProfile();
+        imageLayer = dynamic_cast<osgEarth::ImageLayer*>(terrainLayer);
+        elevLayer = dynamic_cast<osgEarth::ElevationLayer*>(terrainLayer);
+    }
     else if (cachebin)
     {
         cacheBinTerrainLayer = getTerrainLayer(item);
@@ -687,6 +693,8 @@ void TileInspectorDialog::refresh()
         {
             profile = cacheBinTerrainLayer->getProfile();
             objectType = TileSourceTileKeyData::getObjectType(cacheBinTerrainLayer);
+            imageLayer = dynamic_cast<osgEarth::ImageLayer*>(cacheBinTerrainLayer);
+            elevLayer = dynamic_cast<osgEarth::ElevationLayer*>(cacheBinTerrainLayer);
         }
     }
 
@@ -709,12 +717,14 @@ void TileInspectorDialog::refresh()
     bool invertY = false;
     osgEarth::Config layerConf;
     osgEarth::TileSourceOptions tileSourceOptions;
+    int tileSize = -1;
     if (tileSource)
     {
         const osgEarth::TileSourceOptions & options = tileSource->getOptions();
         tileSourceOptions = options;
         layerConf = options.getConfig();
         driver = tileSourceOptions.getDriver();
+        tileSize = tileSource->getPixelsPerTile();
     }
     else if (terrainLayer)
     {
@@ -726,6 +736,12 @@ void TileInspectorDialog::refresh()
         layerConf = terrainLayer->getConfig();
         driver = layerConf.value("driver");
 #endif
+        tileSourceOptions = osgEarth::TileSourceOptions(layerConf);
+        if (terrainLayer->getTileSource())
+            tileSize = terrainLayer->getTileSource()->getPixelsPerTile();
+        osgEarth::ImageLayer* imageLayer = dynamic_cast<osgEarth::ImageLayer*>(terrainLayer);
+        osgEarth::ElevationLayer * elevLayer = dynamic_cast<osgEarth::ElevationLayer*>(terrainLayer);
+
     }
     if (driver == "tms")
     {
@@ -749,7 +765,6 @@ void TileInspectorDialog::refresh()
     if(tilekeylist.fromLineEdit(ui->coordinate, profile, lod, numNeighbors) && !tilekeylist.empty())
     {
         std::ostringstream os;
-        std::string baseurl;
 
         os << "<b>Result for " << input.toStdString() << "</b><br/>";
         os << "Driver: " << driver << "<br/>";
@@ -759,24 +774,37 @@ void TileInspectorDialog::refresh()
             osgEarth::DataExtentList dataExtents;
 
             osgEarth::Drivers::TMSOptions tmsopts(tileSourceOptions);
+            std::string format = tmsopts.format().value();
+            if (format.empty())
+                format = "png";
+            const int tileWidth = tileSize > 0 ? tileSize : (elevLayer ? 16 : 256);
+            const int tileHeight = tileWidth;
+            
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
             osg::ref_ptr<osgEarth::Util::TMS::TileMap> tilemap = osgEarth::Util::TMS::TileMap::create(baseurl, profile,
-                dataExtents, tmsopts.format().value(), 256, 256);
+                dataExtents, format, tileWidth, tileHeight);
 #else
             osg::ref_ptr<osgEarth::Util::TMS::TileMap> tilemap = osgEarth::Util::TMS::TileMap::create(baseurl, profile,
-                tmsopts.format().value(), 256, 256);
+                format, tileWidth, tileHeight);
 #endif
 
             os << "Base URL: <a href=\"" << baseurl << "\">"  << baseurl << "</a><br/>";
             os << "TMS type: " << tmsopts.tmsType().value() << "<br/>";
             os << "Format: " << tmsopts.format().value() << "<br/>";
             os << "InvertY: " << (invertY?"true":"false") << "<br/>";
+            os << "Tile size: " << tileWidth << ',' << tileHeight << "<br/>";
             os << "<ul>";
             for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
             {
                 const osgEarth::TileKey & tilekey = *it;
-                if(0 /*!tileSource->hasData(tilekey)*/ )
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+                if (terrainLayer && !terrainLayer->mayHaveData(tilekey))
+#else
+                if (tileSource && !tileSource->hasData(tilekey))
+#endif
+                {
                     os << "<li>" << tilekey.str() << ": no data</li>" << std::endl;
+                }
                 else
                 {
                     std::string image_url = tilemap->getURL( tilekey, invertY );
@@ -810,8 +838,14 @@ void TileInspectorDialog::refresh()
             for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
             {
                 const osgEarth::TileKey & tilekey = *it;
-                if(0 /*!tileSource->hasData(tilekey)*/ )
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+                if (terrainLayer && !terrainLayer->mayHaveData(tilekey))
+#else
+                if (tileSource && !tileSource->hasData(tilekey))
+#endif
+                {
                     os << "<li>" << tilekey.str() << ": no data</li>" << std::endl;
+                }
                 else
                 {
                     std::string image_url = getVPBTerrainTile(tilekey, vpbopts);
@@ -844,8 +878,14 @@ void TileInspectorDialog::refresh()
             for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
             {
                 const osgEarth::TileKey & tilekey = *it;
-                if(0 /*!tileSource->hasData(tilekey)*/ )
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+                if (terrainLayer && !terrainLayer->mayHaveData(tilekey))
+#else
+                if (tileSource && !tileSource->hasData(tilekey))
+#endif
+                {
                     os << "<li>" << tilekey.str() << ": no data</li>" << std::endl;
+                }
                 else
                 {
                     std::string image_url = getArcGISTerrainTile(tilekey, arcgisopts);
