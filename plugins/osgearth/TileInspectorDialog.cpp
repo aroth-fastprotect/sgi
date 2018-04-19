@@ -714,6 +714,7 @@ void TileInspectorDialog::refresh()
         const osgEarth::TileSourceOptions & options = tileSource->getOptions();
         tileSourceOptions = options;
         layerConf = options.getConfig();
+        driver = tileSourceOptions.getDriver();
     }
     else if (terrainLayer)
     {
@@ -726,7 +727,6 @@ void TileInspectorDialog::refresh()
         driver = layerConf.value("driver");
 #endif
     }
-    driver = tileSourceOptions.getDriver();
     if (driver == "tms")
     {
         osgEarth::Drivers::TMSOptions tmsopts(tileSourceOptions);
@@ -865,7 +865,10 @@ void TileInspectorDialog::refresh()
         }
         else
         {
-            os << "<i>Driver " << driver << " not yet implemented.</i>" << std::endl;
+            if(driver.empty())
+                os << "<i>Unable to determine driver.</i>" << std::endl;
+            else
+                os << "<i>Driver &quot;" << driver << "&quot; not yet implemented.</i>" << std::endl;
         }
         ui->urlList->setText(QString::fromStdString(os.str()));
 

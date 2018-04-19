@@ -760,6 +760,13 @@ bool writePrettyHTMLImpl<osgEarth::Layer>::process(std::basic_ostream<char>& os)
             os << "<tr><td>enabled</td><td>" << (object->getEnabled()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>typeName</td><td>" << object->getTypeName() << "</td></tr>" << std::endl;
             os << "<tr><td>status</td><td>" << object->getStatus() << "</td></tr>" << std::endl;
+            os << "<tr><td>config</td><td>";
+            osgEarth::Config cfg = object->getConfig();
+            if (cfg.empty())
+                os << "<i>empty</i>";
+            else
+                os << "<pre>" << cfg.toJSON(true) << "</pre>";
+            os << "</td></tr>" << std::endl;
             os << "<tr><td>readOptions</td><td>" << getObjectNameAndType(object->getReadOptions()) << "</td></tr>" << std::endl;
             os << "<tr><td>cacheSettings</td><td>" << getObjectNameAndType(object->getCacheSettings()) << "</td></tr>" << std::endl;
             os << "<tr><td>sequenceControl</td><td>" << object->getSequenceControl() << "</td></tr>" << std::endl;
@@ -796,6 +803,16 @@ bool writePrettyHTMLImpl<osgEarth::Layer>::process(std::basic_ostream<char>& os)
 
             if(_table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeConfig:
+        {
+            osgEarth::Config cfg = object->getConfig();
+            if (cfg.empty())
+                os << "<i>empty</i>";
+            else
+                os << "<pre>" << cfg.toJSON(true) << "</pre>";
             ret = true;
         }
         break;
@@ -3648,7 +3665,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     if (cfg.empty())
         os << "<i>empty</i>";
     else
-        os << "<pre>" << style.getConfig().toJSON(true) << "</pre>";
+        os << "<pre>" << cfg.toJSON(true) << "</pre>";
     os << "</td></tr></table>" << std::endl;
     return os;
 }

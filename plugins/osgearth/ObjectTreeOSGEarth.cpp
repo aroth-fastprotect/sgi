@@ -875,6 +875,8 @@ bool objectTreeBuildImpl<osgEarth::Layer>::build(IObjectTreeItem * treeItem)
                 treeItem->addChild("Read options", &readOptions);
 #endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            treeItem->addChild("Config", cloneItem<SGIItemOsg>(SGIItemTypeConfig));
+
             SGIHostItemOsg cacheSettings(object->getCacheSettings());
             if (cacheSettings.hasObject())
                 treeItem->addChild("Cache Settings", &cacheSettings);
@@ -885,6 +887,11 @@ bool objectTreeBuildImpl<osgEarth::Layer>::build(IObjectTreeItem * treeItem)
             if (!callbacks.empty())
                 treeItem->addChildIfNotExists("Callbacks", cloneItem<SGIItemOsg>(SGIItemTypeCallbacks));
 #endif
+        }
+        break;
+    case SGIItemTypeConfig:
+        {
+            ret = true;
         }
         break;
     case SGIItemTypeCallbacks:
