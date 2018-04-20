@@ -12,6 +12,8 @@
 #ifdef _WIN32
 #include <osgViewer/api/Win32/GraphicsWindowWin32>
 #elif defined(__linux__)
+#include <dlfcn.h>
+#include <osgDB/Version>
 #include <osgViewer/api/X11/GraphicsWindowX11>
 // undefine Status from X11/ICELIB
 #undef Bool
@@ -66,8 +68,8 @@
 
 #include <QKeyEvent>
 #include <QWindow>
-#ifdef _WIN32
 #include <QWidget>
+#ifdef _WIN32
 #include <QCoreApplication>
 #endif
 
@@ -670,6 +672,28 @@ bool iequals(const std::string& a, const std::string& b)
     return true;
 }
 
+#ifdef __linux__
+namespace {
+    std::string getOSGDBModuleFilename()
+    {
+        std::string ret;
+        Dl_info info;
+        const char* (* addr) () = osgDBGetVersion;
+        if(dladdr((const void*)addr, &info) != 0)
+        {
+            ret = info.dli_fname;
+        }
+        return ret;
+    }
+    std::string getOSGDBModuleDirectory()
+    {
+        std::string modulefilename = getOSGDBModuleFilename();
+        return std::string(modulefilename, 0, modulefilename.find_last_of('/'));
+    }
+}
+
+#endif
+
 sgi_MapNodeHelper::sgi_MapNodeHelper()
     : m_errorMessages()
     , m_files()
@@ -684,6 +708,13 @@ sgi_MapNodeHelper::sgi_MapNodeHelper()
     , _viewpointNum(-1)
     , _viewpointName()
 {
+#ifdef __linux__
+    osgDB::Registry * registry = osgDB::Registry::instance();
+    registry->initLibraryFilePathList();
+    osgDB::FilePathList libdirs = registry->getLibraryFilePathList();
+    libdirs.push_back(getOSGDBModuleDirectory());
+    registry->setLibraryFilePathList(libdirs);
+#endif
 }
 
 sgi_MapNodeHelper::~sgi_MapNodeHelper()
