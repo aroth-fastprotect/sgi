@@ -25,19 +25,29 @@ namespace osgearth_plugin {
             StatusLoadFailure,
             StatusNoData
         };
+        enum ObjectType {
+            ObjectTypeGeneric = 0,
+            ObjectTypeImage,
+            ObjectTypeHeightField,
+            ObjectTypeNode,
+            ObjectTypeString
+        };
 
-        TileSourceTileKeyData(osgEarth::TileSource * ts, const osgEarth::TileKey & tk, osg::Referenced * td=NULL)
-            : tileSource(ts), tileKey(tk), tileData(td), status(StatusNotLoaded) {}
-        TileSourceTileKeyData(osgEarth::TerrainLayer * tl, const osgEarth::TileKey & tk, osg::Referenced * td = NULL)
-            : terrainLayer(tl), tileKey(tk), tileData(td), status(StatusNotLoaded) {}
-        TileSourceTileKeyData(osgEarth::CacheBin * cb, const osgEarth::TileKey & tk, osg::Referenced * td = NULL)
-            : cacheBin(cb), tileKey(tk), tileData(td), status(StatusNotLoaded) {}
+        static ObjectType getObjectType(osgEarth::CacheBin * cb);
+        static ObjectType getObjectType(osgEarth::TileSource * ts);
+        static ObjectType getObjectType(osgEarth::TerrainLayer * tl);
+
+        TileSourceTileKeyData(osgEarth::TileSource * ts, const osgEarth::TileKey & tk, osg::Referenced * td = NULL);
+        TileSourceTileKeyData(osgEarth::TerrainLayer * tl, const osgEarth::TileKey & tk, osg::Referenced * td = NULL);
+        TileSourceTileKeyData(osgEarth::CacheBin * cb, ObjectType type, const osgEarth::TileKey & tk, osg::Referenced * td = NULL);
+
         osg::ref_ptr<osgEarth::TileSource> tileSource;
         osg::ref_ptr<osgEarth::TerrainLayer> terrainLayer;
         osg::ref_ptr<osgEarth::CacheBin> cacheBin;
         osgEarth::TileKey tileKey;
         osg::ref_ptr<osg::Referenced> tileData;
         Status status;
+        ObjectType objectType;
     };
     typedef ReferencedDataT<TileSourceTileKeyData> TileSourceTileKey;
 

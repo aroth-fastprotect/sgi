@@ -79,6 +79,7 @@ namespace osgearth_plugin {
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Registry)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Capabilities)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::StateSetCache)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheSettings)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Cache)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheBin)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Layer)
@@ -451,6 +452,36 @@ bool writePrettyHTMLImpl<osgEarth::StateSetCache>::process(std::basic_ostream<ch
     return ret;
 }
 
+bool writePrettyHTMLImpl<osgEarth::CacheSettings>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::CacheSettings * object = static_cast<osgEarth::CacheSettings*>(item<SGIItemOsg>()->object());
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>enabled</td><td>" << (object->isCacheEnabled() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>cachePolicy</td><td>" << object->cachePolicy() << "</td></tr>" << std::endl;
+            os << "<tr><td>cache</td><td>" << getObjectNameAndType(object->getCache()) << "</td></tr>" << std::endl;
+            os << "<tr><td>cacheBin</td><td>" << getObjectNameAndType(object->getCacheBin()) << "</td></tr>" << std::endl;
+            os << "<tr><td>string</td><td><pre>" << object->toString() << "</pre></td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
 bool writePrettyHTMLImpl<osgEarth::CacheBin>::process(std::basic_ostream<char>& os)
 {
     osgEarth::CacheBin * object = static_cast<osgEarth::CacheBin*>(item<SGIItemOsg>()->object());
@@ -483,7 +514,10 @@ bool writePrettyHTMLImpl<osgEarth::CacheBin>::process(std::basic_ostream<char>& 
     case SGIItemTypeConfig:
         {
             osgEarth::Config config = object->readMetadata();
-            os << "<pre>" << config.toJSON(true) << "</pre>";
+            if (config.empty())
+                os << "<i>empty</i>";
+            else
+                os << "<pre>" << config.toJSON(true) << "</pre>";
             ret = true;
         }
         break;
@@ -527,7 +561,8 @@ bool writePrettyHTMLImpl<osgEarth::Cache>::process(std::basic_ostream<char>& os)
             {
                 const std::string & name = it->first;
                 const osg::ref_ptr<osgEarth::CacheBin> & cachebin = it->second;
-                os << "<li>" << getObjectNameAndType(cachebin.get()) << "</li>" << std::endl;
+                
+                os << "<li>" << cachebin->getID() << "=" << getObjectNameAndType(cachebin.get()) << "</li>" << std::endl;
             }
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             os << "<tr><td>approx. size</td><td>" << object->getApproximateSize() << "</td></tr>" << std::endl;
@@ -725,6 +760,13 @@ bool writePrettyHTMLImpl<osgEarth::Layer>::process(std::basic_ostream<char>& os)
             os << "<tr><td>enabled</td><td>" << (object->getEnabled()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>typeName</td><td>" << object->getTypeName() << "</td></tr>" << std::endl;
             os << "<tr><td>status</td><td>" << object->getStatus() << "</td></tr>" << std::endl;
+            os << "<tr><td>config</td><td>";
+            osgEarth::Config cfg = object->getConfig();
+            if (cfg.empty())
+                os << "<i>empty</i>";
+            else
+                os << "<pre>" << cfg.toJSON(true) << "</pre>";
+            os << "</td></tr>" << std::endl;
             os << "<tr><td>readOptions</td><td>" << getObjectNameAndType(object->getReadOptions()) << "</td></tr>" << std::endl;
             os << "<tr><td>cacheSettings</td><td>" << getObjectNameAndType(object->getCacheSettings()) << "</td></tr>" << std::endl;
             os << "<tr><td>sequenceControl</td><td>" << object->getSequenceControl() << "</td></tr>" << std::endl;
@@ -761,6 +803,16 @@ bool writePrettyHTMLImpl<osgEarth::Layer>::process(std::basic_ostream<char>& os)
 
             if(_table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeConfig:
+        {
+            osgEarth::Config cfg = object->getConfig();
+            if (cfg.empty())
+                os << "<i>empty</i>";
+            else
+                os << "<pre>" << cfg.toJSON(true) << "</pre>";
             ret = true;
         }
         break;
@@ -2785,6 +2837,20 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const TileSou
     return os;
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const TileSourceTileKeyData::ObjectType & t)
+{
+    switch (t)
+    {
+    case TileSourceTileKeyData::ObjectTypeGeneric: os << "generic"; break;
+    case TileSourceTileKeyData::ObjectTypeImage: os << "image"; break;
+    case TileSourceTileKeyData::ObjectTypeHeightField: os << "heightfield"; break;
+    case TileSourceTileKeyData::ObjectTypeNode: os << "node"; break;
+    case TileSourceTileKeyData::ObjectTypeString: os << "string"; break;
+    default: os << (int)t; break;
+    }
+    return os;
+}
+
 namespace {
 
     osgEarth::DataExtentList findTileSourceDataExtents(const osgEarth::TileSource * tileSource, const osgEarth::TileKey & key)
@@ -2829,6 +2895,7 @@ bool writePrettyHTMLImpl<TileSourceTileKey>::process(std::basic_ostream<char>& o
             os << "<tr><td>tileKey</td><td>" << object.tileKey << "</td></tr>" << std::endl;
 			os << "<tr><td>tileKey extents</td><td>" << object.tileKey.getExtent() << "</td></tr>" << std::endl;
             os << "<tr><td>status</td><td>" << object.status << "</td></tr>" << std::endl;
+            os << "<tr><td>objectType</td><td>" << object.objectType << "</td></tr>" << std::endl;
             os << "<tr><td>tileSource</td><td>" << getObjectNameAndType(object.tileSource.get(), true) << "</td></tr>" << std::endl;
             os << "<tr><td>terrainLayer</td><td>" << getObjectNameAndType(object.terrainLayer.get()) << "</td></tr>" << std::endl;
             os << "<tr><td>cacheBin</td><td>" << getObjectNameAndType(object.cacheBin.get()) << "</td></tr>" << std::endl;
@@ -3598,7 +3665,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     if (cfg.empty())
         os << "<i>empty</i>";
     else
-        os << "<pre>" << style.getConfig().toJSON(true) << "</pre>";
+        os << "<pre>" << cfg.toJSON(true) << "</pre>";
     os << "</td></tr></table>" << std::endl;
     return os;
 }

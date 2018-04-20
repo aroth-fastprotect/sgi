@@ -68,25 +68,6 @@
 
 namespace sgi {
 
-#if QT_VERSION < 0x050000
-class NativeWidget : public QWidget
-{
-public:
-#ifdef _WIN32
-    typedef HWND WinHandle;
-#elif defined(__APPLE__)
-    typedef Window WinHandle;
-#else
-    typedef Window WinHandle;
-#endif
-    NativeWidget(WinHandle handle)
-        : QWidget()
-    {
-        QWidget::create(handle, false, false);
-    }
-};
-#endif // QT_VERSION < 0x050000
-
 namespace {
 #ifdef _WIN32
     static void __stdcall win32_app_timer(HWND, UINT, UINT_PTR, DWORD)
@@ -114,7 +95,7 @@ namespace {
 #if defined(_WIN32)
             if (osgViewer::GraphicsWindowWin32 * gwwin = dynamic_cast<osgViewer::GraphicsWindowWin32*>(ctx))
             {
-                SetTimer(gwwin->getHWND(), 100232u, application_timer_interval_in_ms, win32_app_timer);
+                SetTimer(gwwin->getHWND(), /* magic timer id */100232u, application_timer_interval_in_ms, win32_app_timer);
             }
 #elif defined(__APPLE__)
 #if !__LP64__
@@ -512,7 +493,7 @@ public:
             _view->addEventHandler(_inspectorHandler.get());
         }
     }
-    virtual ~DefaultSGIProxy() override
+    ~DefaultSGIProxy() override
     {
         _inspectorHandler = NULL;
         _parent = NULL;
@@ -583,7 +564,9 @@ public:
                     if(item.imageGeode)
                     {
                         // ... and if it is a image geode try to add the image to the tree as well
-                        SGIHostItemOsg image(item.getImageGeodeTexture());
+                        SGIHostItemOsg image(item.getImage());
+                        if (!image.hasObject())
+                            image = SGIHostItemOsg(item.getImageGeodeTexture());
                         if(image.hasObject())
                         {
                             dialog = _hostCallback->showImagePreviewDialog(_parent, &image);
@@ -670,7 +653,7 @@ public:
         {
             OSG_WARN << "~HostCallbackImpl: " << this << " org:" << _original.get() << std::endl;
         }
-        virtual ReferencedPickerBase * createPicker(PickerType type, float x, float y)
+        ReferencedPickerBase * createPicker(PickerType type, float x, float y) override
         {
             if(!_parent.get() || !_parent->_view)
                 return NULL;
@@ -696,26 +679,26 @@ public:
             }
             return ret;
         }
-        virtual SGIItemBase * getView() override
+        SGIItemBase * getView() override
         {
             if (_parent.get())
                 return _parent->getView();
             else
                 return nullptr;
         }
-        virtual void triggerRepaint() override
+        void triggerRepaint() override
         {
 			if(_parent.get() && _parent->_view)
 				_parent->_view->requestRedraw();
         }
-        virtual QWidget * getFallbackParentWidget() override
+        QWidget * getFallbackParentWidget() override
         {
             if (_parent.get())
                 return _parent->_parent;
             else
                 return nullptr;
         }
-        virtual void shutdown() override
+        void shutdown() override
         {
             if(_parent.get())
                 _parent->shutdown();
@@ -774,7 +757,7 @@ public:
         setDataVariance(osg::Object::STATIC);
 		++numInstances;
     }
-	~SGIInstallNode()
+	~SGIInstallNode() override
 	{
 		--numInstances;
         if (_installed)
@@ -793,12 +776,12 @@ public:
 			sgi::shutdown<sgi::autoload::Osg>();
 	}
 
-    virtual osg::Object* cloneType() const { return new SGIInstallNode (); }
-    virtual osg::Object* clone(const osg::CopyOp& copyop) const { return new SGIInstallNode (*this,copyop); }
-    virtual bool isSameKindAs(const osg::Object* obj) const { return dynamic_cast<const SGIInstallNode *>(obj)!=NULL; }
-    virtual const char* className() const { return "SGIInstallNode"; }
-    virtual const char* libraryName() const { return "osgdb_sgi"; }
-    virtual void accept(osg::NodeVisitor& nv)
+    osg::Object* cloneType() const override { return new SGIInstallNode (); }
+    osg::Object* clone(const osg::CopyOp& copyop) const override { return new SGIInstallNode (*this,copyop); }
+    bool isSameKindAs(const osg::Object* obj) const override { return dynamic_cast<const SGIInstallNode *>(obj)!=NULL; }
+    const char* className() const override { return "SGIInstallNode"; }
+    const char* libraryName() const override { return "osgdb_sgi"; }
+    void accept(osg::NodeVisitor& nv) override
     {
         if (nv.validNodeMask(*this))
         {
@@ -853,21 +836,21 @@ public:
 	{
 	}
 
-    virtual const char* className()
+    const char* className() const override
     {
         return "SGI ReaderWriter";
     }
 
-    virtual bool acceptsExtension(const std::string& extension) const
+    bool acceptsExtension(const std::string& extension) const override
     {
         return osgDB::equalCaseInsensitive( extension, "sgi_loader" );
     }
 
-    virtual ReadResult readObject(const std::string& fileName, const osgDB::Options* options) const
+    ReadResult readObject(const std::string& fileName, const osgDB::Options* options) const override
     {
         return readNode( fileName, options );
     }
-    virtual ReadResult readNode(const std::string& fileName, const osgDB::Options* options) const
+    ReadResult readNode(const std::string& fileName, const osgDB::Options* options) const override
     {
         std::string ext = osgDB::getFileExtension( fileName );
         if ( !acceptsExtension( ext ) )

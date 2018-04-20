@@ -43,7 +43,17 @@
       <widget class="QComboBox" name="layerSource"/>
      </item>
      <item>
-      <widget class="QPushButton" name="updateMetaDataButton">
+      <widget class="QToolButton" name="objectInfoButton">
+       <property name="text">
+        <string>Object info...</string>
+       </property>
+       <property name="popupMode">
+        <enum>QToolButton::InstantPopup</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="updateMetaDataButton">
        <property name="text">
         <string>Update meta data</string>
        </property>
@@ -179,18 +189,17 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="loadButton">
+      <widget class="QToolButton" name="loadButton">
        <property name="text">
         <string>Load</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="reloadButton">
+      <widget class="QToolButton" name="reloadButton">
        <property name="icon">
         <iconset theme="view-refresh">
-         <normaloff/>
-        </iconset>
+         <normaloff>.</normaloff>.</iconset>
        </property>
       </widget>
      </item>
@@ -317,8 +326,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>317</width>
-             <height>389</height>
+             <width>315</width>
+             <height>392</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -400,8 +409,7 @@
   <action name="actionCoordinateLoadFromFile">
    <property name="icon">
     <iconset theme="document-open">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Load from file...</string>
@@ -504,54 +512,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>updateMetaDataButton</sender>
-   <signal>clicked()</signal>
-   <receiver>TileInspectorDialog</receiver>
-   <slot>updateMetaData()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>177</x>
-     <y>16</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>344</x>
-     <y>275</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>loadButton</sender>
-   <signal>clicked()</signal>
-   <receiver>TileInspectorDialog</receiver>
-   <slot>loadData()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>324</x>
-     <y>80</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>344</x>
-     <y>275</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>reloadButton</sender>
-   <signal>clicked()</signal>
-   <receiver>TileInspectorDialog</receiver>
-   <slot>reloadSelectedItem()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>405</x>
-     <y>80</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>344</x>
-     <y>275</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>actionCoordinateFromCamera</sender>
    <signal>triggered()</signal>
    <receiver>TileInspectorDialog</receiver>
@@ -631,6 +591,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>updateMetaDataButton</sender>
+   <signal>clicked()</signal>
+   <receiver>TileInspectorDialog</receiver>
+   <slot>updateMetaData()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>338</x>
+     <y>19</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>344</x>
+     <y>275</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>loadButton</sender>
+   <signal>clicked()</signal>
+   <receiver>TileInspectorDialog</receiver>
+   <slot>loadData()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>304</x>
+     <y>78</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>344</x>
+     <y>275</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>refresh()</slot>
@@ -644,5 +636,6 @@
   <slot>takeFromDataExtents()</slot>
   <slot>takeFromDataExtentsUnion()</slot>
   <slot>layerSourceChanged(int)</slot>
+  <slot>objectInfo()</slot>
  </slots>
 </ui>
