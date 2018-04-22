@@ -468,7 +468,7 @@ public:
         : osg::NodeVisitor(mode)
         , _imageStreamList(imageStreamList) {}
 
-    virtual void apply(osg::Geode& geode)
+    virtual void apply(osg::Geode& geode) override
     {
         apply(geode.getStateSet());
 
@@ -480,7 +480,7 @@ public:
         traverse(geode);
     }
 
-    virtual void apply(osg::Node& node)
+    virtual void apply(osg::Node& node) override
     {
         apply(node.getStateSet());
         traverse(node);
@@ -663,10 +663,10 @@ void MovieEventHandler::getUsage(osg::ApplicationUsage& usage) const
 
 bool iequals(const std::string& a, const std::string& b)
 {
-    unsigned int sz = a.size();
+    size_t sz = a.size();
     if (b.size() != sz)
         return false;
-    for (unsigned int i = 0; i < sz; ++i)
+    for (size_t i = 0; i < sz; ++i)
         if (tolower(a[i]) != tolower(b[i]))
             return false;
     return true;
@@ -700,11 +700,11 @@ sgi_MapNodeHelper::sgi_MapNodeHelper()
 #ifdef SGI_USE_OSGEARTH
     , _mapNodeHelper(new osgEarth::Util::MapNodeHelper)
 #endif
+    , _usageMessage(nullptr)
     , _onlyImages(false)
     , _addKeyDumper(false)
     , _addMouseDumper(false)
     , _movieTrackMouse(false)
-    , _usageMessage(nullptr)
     , _viewpointNum(-1)
     , _viewpointName()
 {
