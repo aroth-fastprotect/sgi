@@ -105,12 +105,12 @@ void ImagePreviewDialog::Histogram::calculate(const QImage & image)
 	_blue = ColorChannel(256);
 	_gray = ColorChannel(256);
 
-	unsigned totalAlpha = 0;
-	unsigned totalRed = 0;
-	unsigned totalGreen = 0;
-	unsigned totalBlue = 0;
-	unsigned totalGray = 0;
-	unsigned totalPixels = image.width() * image.height();
+    int totalAlpha = 0;
+    int totalRed = 0;
+    int totalGreen = 0;
+    int totalBlue = 0;
+    int totalGray = 0;
+    int totalPixels = image.width() * image.height();
     numTransparentPixels = 0;
 	double totalLuma = 0;
 	for (int y = 0; y < image.height(); y++) {
@@ -135,11 +135,11 @@ void ImagePreviewDialog::Histogram::calculate(const QImage & image)
             if(totalAlpha < 255)
                 ++numTransparentPixels;
 
-			++_alpha[valueAlpha];
-			++_red[valueRed];
-			++_green[valueGreen];
-			++_blue[valueBlue];
-			++_gray[valueGray];
+            ++_alpha[(unsigned)valueAlpha];
+            ++_red[(unsigned)valueRed];
+            ++_green[(unsigned)valueGreen];
+            ++_blue[(unsigned)valueBlue];
+            ++_gray[(unsigned)valueGray];
 		}
 	}
 
@@ -211,9 +211,9 @@ public:
 
     virtual QDialog *       getDialog() { return _dialog; }
     virtual IHostCallback * getHostCallback() { return _dialog->_hostCallback; }
-    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=NULL) { _dialog->setObject(item, callback); }
-    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=NULL) { _dialog->setObject(item, callback); }
-    virtual void            setObject(SGIItemBase * item, const sgi::Image * image, const std::string & description, IHostCallback * callback=NULL)
+    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=nullptr) { _dialog->setObject(item, callback); }
+    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=nullptr) { _dialog->setObject(item, callback); }
+    virtual void            setObject(SGIItemBase * item, const sgi::Image * image, const std::string & description, IHostCallback * callback=nullptr)
         { _dialog->setObject(item, image, description, callback); }
     virtual void            setImage(const sgi::Image * image) { _dialog->setImage(image); }
     virtual void            setDescription(const std::string & description) { _dialog->setDescription(description); }
@@ -254,25 +254,25 @@ std::map<Image::ImageFormat, QString> ImagePreviewDialog::ImagePreviewDialogImpl
 
 ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewDialog * dialog_)
     : _dialog(dialog_)
-    , ui(NULL)
-    , toolBar(NULL)
-    , refreshAction(NULL)
-    , zoomInAction(NULL)
-    , zoomOutAction(NULL)
-    , normalSizeAction(NULL)
-    , fitToWindowAction(NULL)
-    , flipHorizontalAction(NULL)
-    , flipVerticalAction(NULL)
-    , selectBackgroundColorAction(NULL)
-    , imageWidth(NULL)
-    , imageHeight(NULL)
-    , imageFormat(NULL)
-	, labelText()
+    , ui(nullptr)
+    , toolBar(nullptr)
+    , refreshAction(nullptr)
+    , zoomInAction(nullptr)
+    , zoomOutAction(nullptr)
+    , normalSizeAction(nullptr)
+    , fitToWindowAction(nullptr)
+    , flipHorizontalAction(nullptr)
+    , flipVerticalAction(nullptr)
+    , selectBackgroundColorAction(nullptr)
+    , imageWidth(nullptr)
+    , imageHeight(nullptr)
+    , imageFormat(nullptr)
+    , refreshTimer(nullptr)
+    , labelText()
 	, scaleFactor(1.0)
-	, initialRefresh(true)
-	, histogram()
+    , initialRefresh(true)
+    , histogram()
 	, histogramReady(false)
-    , refreshTimer(NULL)
 {
     if(ImageFormatDisplayText.empty())
     {
@@ -305,7 +305,7 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
     connect(ui->imageLabel, &ImageQtWidget::mouseMoved, _dialog, &ImagePreviewDialog::onMouseMoved);
     connect(ui->imageGL, &ImageGLWidget::mouseMoved, _dialog, &ImagePreviewDialog::onMouseMoved);
 
-    const QColor default_osg_view_clear_color = QColor::fromRgbF(0.2f, 0.2f, 0.4f, 1.0f);
+    const QColor default_osg_view_clear_color = QColor::fromRgbF(0.2, 0.2, 0.4, 1.0);
     ui->imageGL->setBackgroundColor(default_osg_view_clear_color);
     ui->scrollAreaImageQt->setBackgroundColor(default_osg_view_clear_color);
     ui->scrollAreaImageGL->setBackgroundColor(default_osg_view_clear_color);

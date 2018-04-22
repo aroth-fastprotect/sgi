@@ -44,8 +44,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>169</width>
-             <height>484</height>
+             <width>103</width>
+             <height>492</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -104,11 +104,14 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>169</width>
-             <height>484</height>
+             <width>103</width>
+             <height>492</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <property name="spacing">
+             <number>0</number>
+            </property>
             <property name="leftMargin">
              <number>0</number>
             </property>

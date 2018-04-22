@@ -30,10 +30,13 @@ void ImageQtWidget::mouseMoveEvent(QMouseEvent *ev)
 
 void ImageQtWidget::resizeEvent(QResizeEvent *event)
 {
+    int pheight = parentWidget()->height();
     QSize s = _imageSize;
     s.scale(event->size(), Qt::KeepAspectRatio);
     s = QLayout::closestAcceptableSize(this, s);
     QRect imageRect = QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, s, rect());
+    int top = (pheight / 2) - (imageRect.height() / 2);
+    imageRect.moveTop(top);
     setGeometry(imageRect);
 
     QLabel::resizeEvent(event);
