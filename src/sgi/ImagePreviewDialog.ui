@@ -146,7 +146,7 @@
      </widget>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="tabImage">
        <attribute name="title">
@@ -420,8 +420,25 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>tabWidget</sender>
+   <signal>currentChanged(int)</signal>
+   <receiver>ImagePreviewDialog</receiver>
+   <slot>tabWidgetCurrentChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>362</x>
+     <y>278</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>298</x>
+     <y>293</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>colorFilterChanged()</slot>
+  <slot>tabWidgetCurrentChanged(int)</slot>
  </slots>
 </ui>

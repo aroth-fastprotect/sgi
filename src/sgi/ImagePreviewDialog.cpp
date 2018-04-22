@@ -12,6 +12,7 @@
 #include <QImageReader>
 #include <QMouseEvent>
 #include <QTimer>
+#include <QThread>
 
 #include "ImagePreviewDialog.h"
 #include "ui_ImagePreviewDialog.h"
@@ -41,6 +42,7 @@ class ImagePreviewDialog::Histogram
 public:
 	typedef std::vector<int> ColorChannel;
 	Histogram()
+        : _callback(nullptr)
 	{
 		minAlpha = INT_MAX; maxAlpha = INT_MIN;
 		minRed = INT_MAX; maxRed = INT_MIN;
@@ -55,15 +57,25 @@ public:
         numTransparentPixels = 0;
 	}
 
-	void calculate(const QImage & image);
+    class HistogramCallback {
+    public:
+        virtual void histogramComplete() = 0;
+    };
+
+    void calculate(const Image * image, HistogramCallback * cb);
+private:
+    void calculateImpl();
 
 private:
+    class Thread;
 	ColorChannel _alpha;
 	ColorChannel _red;
 	ColorChannel _green;
 	ColorChannel _blue;
 	ColorChannel _gray;
 
+    ConstImagePtr _image;
+    HistogramCallback * _callback;
 public:
 	int minAlpha, maxAlpha;
 	int minRed, maxRed;
@@ -79,6 +91,26 @@ public:
 	float avgLuma;
 };
 
+class ImagePreviewDialog::Histogram::Thread : public QThread
+{
+    Histogram * _owner;
+public:
+    Thread(Histogram * h)
+        : _owner(h)
+    {
+        start();
+    }
+
+    void run() override
+    {
+        std::cout << __FUNCTION__ << std::endl;
+        _owner->calculateImpl();
+        _owner->_callback->histogramComplete();
+        std::cout << __FUNCTION__ << " complete" << std::endl;
+        deleteLater();
+    }
+};
+
 namespace {
 	inline void calcMinMax(int & minIdx, int & maxIdx, int & minVal, int & maxVal, unsigned index, const std::vector<int> & data)
 	{
@@ -86,18 +118,27 @@ namespace {
 		if (v < minVal)
 		{
 			minVal = v;
-			minIdx = index;
+            minIdx = static_cast<int>(index);
 		}
 		if (v > maxVal)
 		{
 			maxVal = v;
-			maxIdx = index;
+            maxIdx = static_cast<int>(index);
 		}
 	}
 }
-void ImagePreviewDialog::Histogram::calculate(const QImage & image)
+
+void ImagePreviewDialog::Histogram::calculate(const Image * image, HistogramCallback * cb)
 {
-    if(image.isNull())
+    _image = image;
+    _callback = cb;
+    Thread * t = new Thread(this);
+    t->start();
+}
+
+void ImagePreviewDialog::Histogram::calculateImpl()
+{
+    if(!_image.valid())
         return;
 	_alpha = ColorChannel(256);
 	_red = ColorChannel(256);
@@ -110,12 +151,15 @@ void ImagePreviewDialog::Histogram::calculate(const QImage & image)
     int totalGreen = 0;
     int totalBlue = 0;
     int totalGray = 0;
-    int totalPixels = image.width() * image.height();
+    int totalPixels = _image->width() * _image->height();
     numTransparentPixels = 0;
 	double totalLuma = 0;
-	for (int y = 0; y < image.height(); y++) {
-		for (int x = 0; x < image.width(); x++) {
-			QRgb value = image.pixel(x, y);
+    for (unsigned y = 0; y < _image->height(); y++) {
+        for (unsigned x = 0; x < _image->width(); x++) {
+            const void * p = _image->pixelPtr(x, y);
+
+            QRgb value;
+
 			
 			int valueAlpha = qAlpha(value) & 0xff;
 			int valueRed = qRed(value) & 0xff;
@@ -129,17 +173,17 @@ void ImagePreviewDialog::Histogram::calculate(const QImage & image)
 			totalBlue += valueBlue;
 			totalGray += valueGray;
 
-			double luma = 0.2126f * valueRed + 0.7152 * valueGreen + 0.0722 * valueBlue;
+            double luma = 0.2126 * valueRed + 0.7152 * valueGreen + 0.0722 * valueBlue;
 			totalLuma += luma;
 
             if(totalAlpha < 255)
                 ++numTransparentPixels;
 
-            ++_alpha[(unsigned)valueAlpha];
-            ++_red[(unsigned)valueRed];
-            ++_green[(unsigned)valueGreen];
-            ++_blue[(unsigned)valueBlue];
-            ++_gray[(unsigned)valueGray];
+            ++_alpha[static_cast<unsigned>(valueAlpha)];
+            ++_red[static_cast<unsigned>(valueRed)];
+            ++_green[static_cast<unsigned>(valueGreen)];
+            ++_blue[static_cast<unsigned>(valueBlue)];
+            ++_gray[static_cast<unsigned>(valueGray)];
 		}
 	}
 
@@ -175,7 +219,9 @@ void ImagePreviewDialog::Histogram::calculate(const QImage & image)
 
 
 
-class ImagePreviewDialog::ImagePreviewDialogImpl : public QObject, public IImagePreviewDialog
+class ImagePreviewDialog::ImagePreviewDialogImpl : public QObject
+        , public IImagePreviewDialog
+        , public Histogram::HistogramCallback
 {
 public:
     static std::map<Image::ImageFormat, QString> ImageFormatDisplayText;
@@ -223,6 +269,10 @@ public:
     virtual int             showModal() { return _dialog->exec(); }
     virtual SGIItemBase *   item() const { return _dialog->item(); }
 
+    void histogramComplete() override {
+        emit _dialog->triggerReloadStatistics();
+    }
+
     ImagePreviewDialog *        _dialog;
     Ui_ImagePreviewDialog *     ui;
     Image                           reinterpretedImage;
@@ -247,6 +297,7 @@ public:
     bool                            initialRefresh;
 	Histogram						histogram;
 	bool							histogramReady;
+    bool                            ready;
 };
 
 std::map<Image::ImageFormat, QString> ImagePreviewDialog::ImagePreviewDialogImpl::ImageFormatDisplayText;
@@ -273,7 +324,9 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
     , initialRefresh(true)
     , histogram()
 	, histogramReady(false)
+    , ready(false)
 {
+    _dialog->_priv = this;
     if(ImageFormatDisplayText.empty())
     {
         ImageFormatDisplayText[Image::ImageFormatOriginal] = tr("Original");
@@ -321,6 +374,8 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
 
 	ui->tabWidget->setCurrentIndex(0);
     ui->tabWidgetImageView->setCurrentIndex(0);
+
+    ready = true;
 }
 
 ImagePreviewDialog::ImagePreviewDialogImpl::~ImagePreviewDialogImpl()
@@ -905,6 +960,7 @@ void ImagePreviewDialog::init()
     connect(this, &ImagePreviewDialog::triggerOnObjectChanged, this, &ImagePreviewDialog::onObjectChanged, Qt::QueuedConnection);
     connect(this, &ImagePreviewDialog::triggerShow, this, &ImagePreviewDialog::showBesideParent, Qt::QueuedConnection);
     connect(this, &ImagePreviewDialog::triggerHide, this, &ImagePreviewDialog::hide, Qt::QueuedConnection);
+    connect(this, &ImagePreviewDialog::triggerReloadStatistics, this, &ImagePreviewDialog::reloadStatistics, Qt::QueuedConnection);
 }
 
 ImagePreviewDialog::~ImagePreviewDialog()
@@ -1009,31 +1065,39 @@ namespace {
 	}
 }
 
-void ImagePreviewDialog::refreshStatistics(const QImage & image)
+void ImagePreviewDialog::refreshStatistics(const sgi::Image * image)
 {
-	_priv->histogram.calculate(image);
+    std::cout << __FUNCTION__ << std::endl;
+    _priv->histogram.calculate(image, _priv);
+    reloadStatistics();
+}
 
-	_priv->ui->statistics->clear();
-	_priv->ui->statistics->setHeaderLabels(QStringList() << tr("Name") << tr("Value"));
+void ImagePreviewDialog::reloadStatistics()
+{
+    std::cout << __FUNCTION__ << std::endl;
+    _priv->ui->statistics->clear();
+    _priv->ui->statistics->setHeaderLabels(QStringList() << tr("Name") << tr("Value"));
 
-	QTreeWidgetItem * root = _priv->ui->statistics->invisibleRootItem();
-    addStatisticsValue(root, tr("Width"), image.width());
-    addStatisticsValue(root, tr("Height"), image.height());
-    addStatisticsValue(root, tr("Depth"), image.depth());
-    addStatisticsValue(root, tr("Device pixel ratio"), image.devicePixelRatio());
-    addStatisticsValue(root, tr("Color count"), image.colorCount());
-    addStatisticsValue(root, tr("Bit plance count"), image.bitPlaneCount());
-    if(image.hasAlphaChannel())
-        addStatisticsValue(root, tr("Alpha"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minAlpha).arg(_priv->histogram.maxAlpha).arg(_priv->histogram.avgAlpha));
-	addStatisticsValue(root, tr("Red"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minRed).arg(_priv->histogram.maxRed).arg(_priv->histogram.avgRed));
-	addStatisticsValue(root, tr("Green"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minGreen).arg(_priv->histogram.maxGreen).arg(_priv->histogram.avgGreen));
-	addStatisticsValue(root, tr("Blue"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minBlue).arg(_priv->histogram.maxBlue).arg(_priv->histogram.avgBlue));
-	addStatisticsValue(root, tr("Gray"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minGray).arg(_priv->histogram.maxGray).arg(_priv->histogram.avgGray));
-	addStatisticsValue(root, tr("Luma"), QString("avg %1").arg(_priv->histogram.avgLuma));
-    if(image.hasAlphaChannel())
+    QTreeWidgetItem * root = _priv->ui->statistics->invisibleRootItem();
+    addStatisticsValue(root, tr("Width"), _workImage->width());
+    addStatisticsValue(root, tr("Height"), _workImage->height());
+    addStatisticsValue(root, tr("Depth"), _workImage->depth());
+    //addStatisticsValue(root, tr("Device pixel ratio"), _workImage->devicePixelRatio());
+    //addStatisticsValue(root, tr("Color count"), _workImage->colorCount());
+    addStatisticsValue(root, tr("Bit per pixel"), _workImage->bitsPerPixel());
+//    if(image->hasAlphaChannel())
+//        addStatisticsValue(root, tr("Alpha"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minAlpha).arg(_priv->histogram.maxAlpha).arg(_priv->histogram.avgAlpha));
+    addStatisticsValue(root, tr("Red"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minRed).arg(_priv->histogram.maxRed).arg(_priv->histogram.avgRed));
+    addStatisticsValue(root, tr("Green"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minGreen).arg(_priv->histogram.maxGreen).arg(_priv->histogram.avgGreen));
+    addStatisticsValue(root, tr("Blue"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minBlue).arg(_priv->histogram.maxBlue).arg(_priv->histogram.avgBlue));
+    addStatisticsValue(root, tr("Gray"), QString("min %1, max %2, avg %3").arg(_priv->histogram.minGray).arg(_priv->histogram.maxGray).arg(_priv->histogram.avgGray));
+    addStatisticsValue(root, tr("Luma"), QString("avg %1").arg(_priv->histogram.avgLuma));
+#if 0
+    if(image->hasAlphaChannel())
         addStatisticsValue(root, tr("Transparency"), QString("%1 pixels").arg(_priv->histogram.numTransparentPixels));
     else
         addStatisticsValue(root, tr("Transparency"), tr("N/A"));
+#endif
 }
 
 void ImagePreviewDialog::refreshImpl()
@@ -1078,7 +1142,9 @@ void ImagePreviewDialog::refreshImpl()
 
     _priv->ui->imageGL->setImage(_workImage.get());
 
-	refreshStatistics(qimg);
+    // trigger the statistic update if the page is selected
+    tabWidgetCurrentChanged(0);
+
 
     _priv->ui->imageLabel->setText(QString());
     _priv->originalImage = qimg;
@@ -1368,6 +1434,17 @@ void ImagePreviewDialog::colorFilterChanged()
     QString fragment = _priv->ui->colorFilterFragment->toPlainText();
     QString vertex = _priv->ui->colorFilterVertex->toPlainText();
     _priv->ui->imageGL->setColorFilter(fragment, vertex);
+}
+
+void ImagePreviewDialog::tabWidgetCurrentChanged(int)
+{
+    if(!_priv->ready)
+        return;
+
+    if(_priv->ui->tabWidget->currentWidget() == _priv->ui->tabStatistics)
+    {
+        refreshStatistics(_workImage.get());
+    }
 }
 
 } // namespace sgi

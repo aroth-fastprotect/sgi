@@ -49,6 +49,7 @@ public slots:
     void showBesideParent();
     void onObjectChanged();
     void colorFilterChanged();
+    void tabWidgetCurrentChanged(int);
 
 protected slots:
     void onMouseMoved(float x, float y);
@@ -57,10 +58,12 @@ signals:
     void                    triggerOnObjectChanged();
     void                    triggerShow();
     void                    triggerHide();
+    void                    triggerReloadStatistics();
 
 protected:
     void refreshImpl();
-	void refreshStatistics(const QImage & image);
+    void refreshStatistics(const sgi::Image * image);
+    void reloadStatistics();
 
     void                    triggerRepaint();
     SGIItemBase *           getView();
