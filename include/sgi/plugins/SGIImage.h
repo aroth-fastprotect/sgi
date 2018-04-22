@@ -72,6 +72,7 @@ public:
         DataTypeFloat32,
         DataTypeFloat64,
         DataTypeDouble = DataTypeFloat64,
+        DataTypeARGB,
     };
     static std::string dataTypeToString(DataType type);
     static unsigned bitsForDataElement(DataType type);
@@ -83,7 +84,8 @@ public:
     };
     static std::string originToString(Origin o);
 
-    struct ImageSize {
+    struct SGI_IMPL_EXPORT ImageSize
+    {
         ImageSize(Image::ImageFormat f, unsigned w, unsigned h, unsigned d=1)
             : format(f), width(w), height(h), depth(d) {}
         Image::ImageFormat format;
@@ -92,6 +94,46 @@ public:
         unsigned depth;
     };
     typedef std::vector<ImageSize> ImageSizeList;
+
+    struct SGI_IMPL_EXPORT ARGB
+    {
+        unsigned char a;
+        unsigned char r;
+        unsigned char g;
+        unsigned char b;
+    };
+    struct SGI_IMPL_EXPORT RGB
+    {
+        unsigned char r;
+        unsigned char g;
+        unsigned char b;
+    };
+    class SGI_IMPL_EXPORT Pixel
+    {
+    public:
+        union PixelData {
+            unsigned char unsigned_byte;
+            signed char signed_byte;
+            unsigned short unsigned_short;
+            signed short signed_short;
+            unsigned int unsigned_int;
+            signed int signed_int;
+            float float32;
+            double float64;
+            ARGB argb;
+        };
+
+        Pixel();
+        Pixel(DataType t, const PixelData & d);
+        bool valid() const { return type != DataTypeInvalid; }
+        void clear();
+        void setARGB(const ARGB & rhs);
+        void setARGB(unsigned char a, unsigned char r, unsigned char g, unsigned char b);
+        void setFloat32(float f);
+        void setFloat64(double f);
+        DataType type;
+        PixelData data;
+    };
 
     Image(ImageFormat format=ImageFormatInvalid, DataType type=DataTypeInvalid);
     explicit Image(ImageFormat format, DataType type, void * data, size_t length, bool copyData=true);
@@ -133,12 +175,13 @@ public:
     bool reinterpret(ImageFormat format, unsigned width, unsigned height, unsigned depth = 1);
     unsigned bitsPerPixel() const;
 
-    const void * pixelPtr(unsigned x, unsigned y, unsigned z = 0, unsigned plane=0) const;
+    const void * pixelDataPtr(unsigned x, unsigned y, unsigned z = 0, unsigned plane=0) const;
     template<typename PXTYPE>
-    const PXTYPE * pixel(unsigned x, unsigned y, unsigned z = 0, unsigned plane = 0) const
+    const PXTYPE * pixelData(unsigned x, unsigned y, unsigned z = 0, unsigned plane = 0) const
     {
-        return reinterpret_cast<const PXTYPE*>(pixelPtr(x, y, z, plane));
+        return reinterpret_cast<const PXTYPE*>(pixelDataPtr(x, y, z, plane));
     }
+    Pixel pixel(unsigned x, unsigned y, unsigned z = 0, unsigned plane = 0) const;
 
     float hscale() const;
     float vscale() const;

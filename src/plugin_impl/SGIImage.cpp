@@ -16,6 +16,51 @@
 
 namespace sgi {
 
+Image::Pixel::Pixel()
+    : type(DataTypeInvalid)
+{
+}
+
+Image::Pixel::Pixel(DataType t, const PixelData & d)
+    : type(t), data(d)
+{
+}
+
+void Image::Pixel::clear()
+{
+    type = DataTypeInvalid;
+}
+
+void Image::Pixel::setARGB(const ARGB & rhs)
+{
+    type = DataTypeARGB;
+    data.argb = rhs;
+}
+
+void Image::Pixel::setARGB(unsigned char a, unsigned char r, unsigned char g, unsigned char b)
+{
+    type = DataTypeARGB;
+    data.argb.a = a;
+    data.argb.r = r;
+    data.argb.g = g;
+    data.argb.b = b;
+}
+
+void Image::Pixel::setFloat32(float f)
+{
+    type = DataTypeFloat32;
+    data.float32 = f;
+}
+
+void Image::Pixel::setFloat64(double f)
+{
+    type = DataTypeFloat64;
+    data.float64 = f;
+}
+
+
+
+
 Image::Image(ImageFormat format, DataType type)
     : _format(format), _dataType(type), _origin(OriginDefault), _data(NULL), _length(0)
     , _width(0), _height(0), _depth(0)
@@ -368,16 +413,16 @@ bool Image::reinterpretFormat(ImageFormat targetFormat)
     bool ret = false;
     switch(_format)
     {
-    case Image::ImageFormatRed:
-    case Image::ImageFormatGreen:
-    case Image::ImageFormatBlue:
-    case Image::ImageFormatAlpha:
-    case Image::ImageFormatGray:
+    case ImageFormatRed:
+    case ImageFormatGreen:
+    case ImageFormatBlue:
+    case ImageFormatAlpha:
+    case ImageFormatGray:
         {
             // reinterpret a single channel image as a full color image
             switch(targetFormat)
             {
-            case Image::ImageFormatYUV444:
+            case ImageFormatYUV444:
                 ret = (_height % 3) == 0;
                 if(ret)
                 {
@@ -395,7 +440,7 @@ bool Image::reinterpretFormat(ImageFormat targetFormat)
                     _height = planeHeight;
                 }
                 break;
-            case Image::ImageFormatYUV422:
+            case ImageFormatYUV422:
                 ret = (_height % 2) == 0;
                 if(ret)
                 {
@@ -415,7 +460,7 @@ bool Image::reinterpretFormat(ImageFormat targetFormat)
                     _height = luma_planeHeight;
                 }
                 break;
-            case Image::ImageFormatYUV420:
+            case ImageFormatYUV420:
                 ret = ((_height+_height) % 3) == 0;
                 if(ret)
                 {
@@ -435,8 +480,8 @@ bool Image::reinterpretFormat(ImageFormat targetFormat)
                     _height = luma_planeHeight;
                 }
                 break;
-            case Image::ImageFormatYUYV:
-            case Image::ImageFormatUYVY:
+            case ImageFormatYUYV:
+            case ImageFormatUYVY:
                 {
                     // it's a YUV422 color format all in one plane
                     ret = (_height % 2) == 0;
@@ -518,37 +563,37 @@ bool Image::guessImageSizes(ImageSizeList & possibleSizes) const
     size_t totalNumberOfPixels = 0;
     switch(_format)
     {
-    case Image::ImageFormatARGB32:
-    case Image::ImageFormatRGBA32:
-    case Image::ImageFormatRGB32:
-    case Image::ImageFormatABGR32:
-    case Image::ImageFormatBGRA32:
-    case Image::ImageFormatBGR32:
-    case Image::ImageFormatFloat:
+    case ImageFormatARGB32:
+    case ImageFormatRGBA32:
+    case ImageFormatRGB32:
+    case ImageFormatABGR32:
+    case ImageFormatBGRA32:
+    case ImageFormatBGR32:
+    case ImageFormatFloat:
         ret = (_length % 4 == 0);
         if(ret)
             totalNumberOfPixels = _length / 4;
         break;
-    case Image::ImageFormatFloat64:
+    case ImageFormatFloat64:
         ret = (_length % 8 == 0);
         if(ret)
             totalNumberOfPixels = _length / 8;
         break;
-    case Image::ImageFormatRGB24:
-    case Image::ImageFormatBGR24:
-    case Image::ImageFormatYUV444:
+    case ImageFormatRGB24:
+    case ImageFormatBGR24:
+    case ImageFormatYUV444:
         ret = (_length % 3 == 0);
         if(ret)
             totalNumberOfPixels = _length / 3;
         break;
-    case Image::ImageFormatYUV422:
-    case Image::ImageFormatYUYV:
-    case Image::ImageFormatUYVY:
+    case ImageFormatYUV422:
+    case ImageFormatYUYV:
+    case ImageFormatUYVY:
         ret = (_length % 2 == 0);
         if(ret)
             totalNumberOfPixels = _length / 2;
         break;
-    case Image::ImageFormatYUV420:
+    case ImageFormatYUV420:
         ret = ((_length*2) % 3 == 0);
         if(ret)
             totalNumberOfPixels = (_length*2) / 3;
@@ -756,6 +801,7 @@ std::string Image::dataTypeToString(DataType type)
     case DataTypeSignedInt: ret = "i32"; break;
     case DataTypeFloat32: ret = "f32"; break;
     case DataTypeFloat64: ret = "f64"; break;
+    case DataTypeARGB: ret = "argb"; break;
     default:
     {
         std::stringstream ss;
@@ -785,6 +831,8 @@ unsigned Image::bitsForDataElement(DataType type)
         ret = 32; break;
     case DataTypeFloat64:
         ret = 64; break;
+    case DataTypeARGB:
+        ret = 32; break;
     default: ret = 0; break;
     }
     return ret;
@@ -817,7 +865,7 @@ unsigned Image::planeEndOffset(unsigned index) const
     return ret;
 }
 
-const void * Image::pixelPtr(unsigned x, unsigned y, unsigned z, unsigned plane) const
+const void * Image::pixelDataPtr(unsigned x, unsigned y, unsigned z, unsigned plane) const
 {
     const void * ret = nullptr;
     SGI_UNUSED(z);
@@ -837,6 +885,122 @@ const void * Image::pixelPtr(unsigned x, unsigned y, unsigned z, unsigned plane)
             break;
         }
         ret = src_data + src_offset;
+    }
+    return ret;
+}
+
+Image::Pixel Image::pixel(unsigned x, unsigned y, unsigned z, unsigned plane) const
+{
+    Pixel ret;
+    switch (_format)
+    {
+    case ImageFormatABGR32:
+        {
+            const ARGB * px = pixelData<ARGB>(x, y);
+            ret.setARGB(px->a, px->b, px->g, px->r);
+        }
+        break;
+    case ImageFormatARGB32:
+        {
+            const ARGB * px = pixelData<ARGB>(x, y);
+            ret.setARGB(px->a, px->r, px->g, px->b);
+        }
+        break;
+    case ImageFormatBGRA32:
+        {
+            const ARGB * px = pixelData<ARGB>(x, y);
+            ret.setARGB(px->b, px->a, px->r, px->g);
+        }
+        break;
+    case ImageFormatRGBA32:
+        {
+            const ARGB * px = pixelData<ARGB>(x, y);
+            ret.setARGB(px->b, px->g, px->r, px->a);
+        }
+        break;
+    case ImageFormatBGR32:
+        {
+            const ARGB * px = pixelData<ARGB>(x, y);
+            ret.setARGB(0, px->b, px->g, px->r);
+        }
+        break;
+    case ImageFormatRGB32:
+        {
+            const ARGB * px = pixelData<ARGB>(x, y);
+            ret.setARGB(0, px->r, px->g, px->b);
+        }
+        break;
+
+    case ImageFormatBGR24:
+        {
+            const RGB * px = pixelData<RGB>(x, y);
+            ret.setARGB(0, px->b, px->g, px->r);
+        }
+        break;
+    case ImageFormatRGB24:
+        {
+            const RGB * px = pixelData<RGB>(x, y);
+            ret.setARGB(0, px->r, px->g, px->b);
+        }
+        break;
+    case ImageFormatDepth:
+    case ImageFormatFloat:
+        {
+            const float * px = pixelData<float>(x, y);
+            ret.setFloat32(*px);
+        }
+        break;
+    case ImageFormatRed:
+    case ImageFormatGreen:
+    case ImageFormatBlue:
+    case ImageFormatAlpha:
+    case ImageFormatGray:
+    case ImageFormatLuminance:
+    case ImageFormatLuminanceAlpha:
+        {
+            switch (_dataType)
+            {
+            case Image::DataTypeUnsignedByte:
+            case Image::DataTypeSignedByte:
+                {
+                    const unsigned char * px = pixelData<unsigned char>(x, y);
+                    ret.type = _dataType;
+                    ret.data.unsigned_byte = *px;
+                }
+                break;
+            case Image::DataTypeUnsignedShort:
+            case Image::DataTypeSignedShort:
+                {
+                    const unsigned short * px = pixelData<unsigned short>(x, y);
+                    ret.type = _dataType;
+                    ret.data.unsigned_short = *px;
+                }
+                break;
+            case Image::DataTypeUnsignedInt:
+            case Image::DataTypeSignedInt:
+                {
+                    const unsigned int * px = pixelData<unsigned int>(x, y);
+                    ret.type = _dataType;
+                    ret.data.unsigned_int = *px;
+                }
+                break;
+            case Image::DataTypeFloat32:
+                {
+                    const float * px = pixelData<float>(x, y);
+                    ret.type = _dataType;
+                    ret.data.float32 = *px;
+                }
+                break;
+            case Image::DataTypeFloat64:
+                {
+                    const double * px = pixelData<double>(x, y);
+                    ret.type = _dataType;
+                    ret.data.float64 = *px;
+                }
+                break;
+            }
+        }
+        break;
     }
     return ret;
 }

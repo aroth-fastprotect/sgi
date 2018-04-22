@@ -156,7 +156,7 @@ void ImagePreviewDialog::Histogram::calculateImpl()
 	double totalLuma = 0;
     for (unsigned y = 0; y < _image->height(); y++) {
         for (unsigned x = 0; x < _image->width(); x++) {
-            const void * p = _image->pixelPtr(x, y);
+            const void * p = _image->pixelDataPtr(x, y);
 
             QRgb value;
 
@@ -1293,7 +1293,7 @@ void ImagePreviewDialog::onMouseMoved(float x, float y)
         case Image::ImageFormatBGR32:
         case Image::ImageFormatRGB32:
             {
-                const quint32 * px = _workImage->pixel<quint32>(px_x, px_y);
+                const quint32 * px = _workImage->pixelData<quint32>(px_x, px_y);
                 if (px)
                 {
                     const quint8 * pxe = (const quint8 *)px;
@@ -1349,7 +1349,7 @@ void ImagePreviewDialog::onMouseMoved(float x, float y)
         case Image::ImageFormatBGR24:
         case Image::ImageFormatRGB24:
             {
-                const quint8 * pxe = _workImage->pixel<quint8>(px_x, px_y);
+                const quint8 * pxe = _workImage->pixelData<quint8>(px_x, px_y);
                 if (pxe)
                 {
                     QColor color;
@@ -1368,7 +1368,7 @@ void ImagePreviewDialog::onMouseMoved(float x, float y)
         case Image::ImageFormatDepth:
         case Image::ImageFormatFloat:
             {
-                const float * px = _workImage->pixel<float>(px_x, px_y);
+                const float * px = _workImage->pixelData<float>(px_x, px_y);
                 px_value = px ? QString::number(*px) : tr("N/A");
             }
             break;
@@ -1385,33 +1385,33 @@ void ImagePreviewDialog::onMouseMoved(float x, float y)
                 case Image::DataTypeUnsignedByte:
                 case Image::DataTypeSignedByte:
                     {
-                        const unsigned char * px = _workImage->pixel<unsigned char>(px_x, px_y);
+                        const unsigned char * px = _workImage->pixelData<unsigned char>(px_x, px_y);
                         px_value = px ? QString::number(*px) : tr("N/A");
                     }
                     break;
                 case Image::DataTypeUnsignedShort:
                 case Image::DataTypeSignedShort:
                     {
-                        const unsigned short * px = _workImage->pixel<unsigned short>(px_x, px_y);
+                        const unsigned short * px = _workImage->pixelData<unsigned short>(px_x, px_y);
                         px_value = px ? QString::number(*px) : tr("N/A");
                     }
                     break;
                 case Image::DataTypeUnsignedInt:
                 case Image::DataTypeSignedInt:
                     {
-                        const unsigned int * px = _workImage->pixel<unsigned int>(px_x, px_y);
+                        const unsigned int * px = _workImage->pixelData<unsigned int>(px_x, px_y);
                         px_value = px ? QString::number(*px) : tr("N/A");
                     }
                     break;
                 case Image::DataTypeFloat32:
                     {
-                        const float * px = _workImage->pixel<float>(px_x, px_y);
+                        const float * px = _workImage->pixelData<float>(px_x, px_y);
                         px_value = px ? QString::number(*px) : tr("N/A");
                     }
                     break;
                 case Image::DataTypeFloat64:
                     {
-                        const double * px = _workImage->pixel<double>(px_x, px_y);
+                        const double * px = _workImage->pixelData<double>(px_x, px_y);
                         px_value = px ? QString::number(*px) : tr("N/A");
                     }
                     break;
