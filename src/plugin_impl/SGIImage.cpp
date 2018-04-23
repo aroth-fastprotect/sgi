@@ -58,6 +58,45 @@ void Image::Pixel::setFloat64(double f)
     data.float64 = f;
 }
 
+Image::Pixel & Image::Pixel::operator *= (const double f)
+{
+    switch(type)
+    {
+    case DataTypeInvalid:
+        break;
+    case DataTypeARGB:
+        data.argb.a *= f;
+        data.argb.r *= f;
+        data.argb.g *= f;
+        data.argb.b *= f;
+        break;
+    }
+    return *this;
+}
+
+Image::Pixel Image::Pixel::operator * (const double f) const
+{
+    Pixel ret = *this;
+    ret *= f;
+    return ret;
+}
+
+Image::Pixel Image::Pixel::operator+(const Pixel & rhs) const
+{
+    Pixel ret;
+    switch(type)
+    {
+    case DataTypeInvalid:
+        break;
+    case DataTypeARGB:
+        ret.data.argb.a = data.argb.a + rhs.data.argb.a;
+        ret.data.argb.r = data.argb.r + rhs.data.argb.r;
+        ret.data.argb.g = data.argb.g + rhs.data.argb.g;
+        ret.data.argb.b = data.argb.b + rhs.data.argb.b;
+        break;
+    }
+    return ret;
+}
 
 
 
@@ -1024,5 +1063,128 @@ float Image::verticalPixelSize() const
 {
     return (_allocatedHeight > 0) ? (1.0f / (float)_allocatedHeight) : 0.0f;
 }
+
+
+
+namespace {
+    inline PixelReader::ReaderFunc
+    getReader( Image::ImageFormat imageFormat, Image::DataType dataType)
+    {
+        switch( imageFormat )
+        {
+        default:
+            return nullptr;
+            break;
+        }
+    }
+}
+
+
+PixelReader::PixelReader(const Image* image) :
+_bilinear  (false)
+{
+    setImage(image);
+}
+
+void
+PixelReader::setImage(const Image* image)
+{
+    _image = image;
+    if (image)
+    {
+        _colMult = _image->bitsPerPixel() / 8;
+        _rowMult = _image->pitch();
+        _imageSize = _image->length();
+        Image::DataType dataType = _image->dataType();
+        _reader = getReader( _image->format(), dataType );
+    }
+}
+
+Image::Pixel
+PixelReader::operator()(float u, float v, int r, int m) const
+{
+    return operator()((double)u, (double)v, r, m);
+}
+
+Image::Pixel
+PixelReader::operator()(double u, double v, int r, int m) const
+ {
+     if ( _bilinear )
+     {
+         double sizeS = (double)(_image->width()-1);
+         double sizeT = (double)(_image->height()-1);
+
+         // u, v => [0..1]
+         double s = u * sizeS;
+         double t = v * sizeT;
+
+         double s0 = std::max(floorf(s), 0.0f);
+         double s1 = std::min(s0+1.0f, sizeS);
+         double smix = s0 < s1 ? (s-s0)/(s1-s0) : 0.0f;
+
+         double t0 = std::max(floorf(t), 0.0f);
+         double t1 = std::min(t0+1.0f, sizeT);
+         double tmix = t0 < t1 ? (t-t0)/(t1-t0) : 0.0f;
+
+         Image::Pixel UL = (*_reader)(this, (int)s0, (int)t0, r, m); // upper left
+         Image::Pixel UR = (*_reader)(this, (int)s1, (int)t0, r, m); // upper right
+         Image::Pixel LL = (*_reader)(this, (int)s0, (int)t1, r, m); // lower left
+         Image::Pixel LR = (*_reader)(this, (int)s1, (int)t1, r, m); // lower right
+
+         Image::Pixel TOP = UL*(1.0f-smix) + UR*smix;
+         Image::Pixel BOT = LL*(1.0f-smix) + LR*smix;
+
+         return TOP*(1.0f-tmix) + BOT*tmix;
+     }
+     else
+     {
+         return (*_reader)(this,
+             (int)(u * (double)(_image->width()-1)),
+             (int)(v * (double)(_image->height()-1)),
+             r, m);
+     }
+}
+
+bool
+PixelReader::supports(Image::ImageFormat imageFormat, Image::DataType dataType)
+{
+    return getReader(imageFormat, dataType) != nullptr;
+}
+
+
+
+namespace
+{
+    inline PixelWriter::WriterFunc getWriter(Image::ImageFormat format, Image::DataType dataType)
+    {
+        switch( format )
+        {
+        default:
+            return nullptr;
+            break;
+        }
+    }
+}
+
+PixelWriter::PixelWriter(sgi::Image* image) :
+_image(image)
+{
+    if (image)
+    {
+        //_normalized = ImageUtils::isNormalized(image);
+        _colMult = _image->bitsPerPixel() / 8;
+        _rowMult = _image->pitch();
+        _imageSize = _image->length();
+        Image::DataType dataType = _image->dataType();
+        _writer = getWriter( _image->format(), dataType );
+    }
+}
+
+bool
+PixelWriter::supports(Image::ImageFormat format, Image::DataType dataType)
+{
+    return getWriter(format, dataType) != nullptr;
+}
+
 
 } // namespace sgi

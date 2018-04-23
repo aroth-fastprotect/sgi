@@ -133,6 +133,10 @@ public:
         void setFloat64(double f);
         DataType type;
         PixelData data;
+
+        Pixel & operator *= (const double f);
+        Pixel operator*(const double f) const;
+        Pixel operator+(const Pixel & rhs) const;
     };
 
     Image(ImageFormat format=ImageFormatInvalid, DataType type=DataTypeInvalid);
@@ -216,6 +220,109 @@ protected:
     pfnCopyImageQt _copyQt;
     bool _allocated;
 };
+
+/**
+ * Reads color data out of an image, regardles of its internal pixel format.
+ */
+class SGI_IMPL_EXPORT PixelReader
+{
+public:
+    /**
+     * Constructs a pixel reader. "Normalized" means that the values in the source
+     * image have been scaled to [0..1] and should be denormalized upon reading.
+     */
+    PixelReader(const sgi::Image* image);
+
+    /** Sets an image to read. */
+    void setImage(const sgi::Image* image);
+
+    /** Whether to use bilinear interpolation when reading with u,v coords (default=true) */
+    void setBilinear(bool value) { _bilinear = value; }
+
+    /** Whether PixelReader supports a given format/datatype combiniation. */
+    static bool supports( Image::ImageFormat imageFormat, Image::DataType dataType );
+
+    /** Whether PixelReader can read from the specified image. */
+    static bool supports( const sgi::Image* image ) {
+        return image && supports(image->format(), image->dataType() );
+    }
+
+    /** Reads a color from the image */
+    Image::Pixel operator()(int s, int t, int r=0, int m=0) const {
+        return (*_reader)(this, s, t, r, m);
+    }
+
+    /** Reads a color from the image */
+    Image::Pixel operator()(unsigned s, unsigned t, unsigned r=0, int m=0) const {
+        return (*_reader)(this, s, t, r, m);
+    }
+
+    /** Reads a color from the image by unit coords [0..1] */
+    Image::Pixel operator()(float u, float v, int r=0, int m=0) const;
+    Image::Pixel operator()(double u, double v, int r=0, int m=0) const;
+
+    // internals:
+    const unsigned char* data(int s=0, int t=0, int r=0, int m=0) const {
+        return static_cast<const unsigned char*>(_image->data()) + s*_colMult + t*_rowMult + r*_imageSize;
+    }
+
+    typedef Image::Pixel (*ReaderFunc)(const PixelReader* ia, int s, int t, int r, int m);
+    ReaderFunc _reader;
+    const sgi::Image* _image;
+    unsigned _colMult;
+    unsigned _rowMult;
+    unsigned _imageSize;
+    bool     _normalized;
+    bool     _bilinear;
+};
+
+/**
+ * Writes color data to an image, regardles of its internal pixel format.
+ */
+class SGI_IMPL_EXPORT PixelWriter
+{
+public:
+    /**
+     * Constructs a pixel writer. "Normalized" means the values are scaled to [0..1]
+     * before writing.
+     */
+    PixelWriter(sgi::Image* image);
+
+    /** Whether PixelWriter can write to an image with the given format/datatype combo. */
+    static bool supports( Image::ImageFormat imageFormat, Image::DataType dataType );
+
+    /** Whether PixelWriter can write to non-const version of an image. */
+    static bool supports( const sgi::Image* image ) {
+        return image && supports(image->format(), image->dataType() );
+    }
+
+    /** Writes a color to a pixel. */
+    void operator()(const Image::Pixel& c, int s, int t, int r=0, int m=0) {
+        (*_writer)(this, c, s, t, r, m );
+    }
+
+    void f(const Image::Pixel& c, float s, float t, int r=0, int m=0) {
+        this->operator()( c,
+            (int)(s * (float)(_image->width()-1)),
+            (int)(t * (float)(_image->height()-1)),
+            r, m);
+    }
+
+    // internals:
+    sgi::Image* _image;
+    unsigned _colMult;
+    unsigned _rowMult;
+    unsigned _imageSize;
+    bool     _normalized;
+
+    unsigned char* data(int s=0, int t=0, int r=0, int m=0) const {
+        return static_cast<unsigned char*>(_image->data()) + s*_colMult + t*_rowMult + r*_imageSize;
+    }
+
+    typedef void (*WriterFunc)(const PixelWriter* iw, const Image::Pixel& c, int s, int t, int r, int m);
+    WriterFunc _writer;
+};
+
 
 } // namespace sgi
 
