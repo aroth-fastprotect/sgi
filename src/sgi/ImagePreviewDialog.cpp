@@ -152,38 +152,29 @@ void ImagePreviewDialog::Histogram::calculateImpl()
     int totalBlue = 0;
     int totalGray = 0;
     int totalPixels = _image->width() * _image->height();
+
     numTransparentPixels = 0;
-	double totalLuma = 0;
+    double totalLuma = 0;
+    PixelReader reader(_image);
     for (unsigned y = 0; y < _image->height(); y++) {
         for (unsigned x = 0; x < _image->width(); x++) {
-            const void * p = _image->pixelDataPtr(x, y);
+            Image::Pixel pixel = reader(x, y);
 
-            QRgb value;
-
-			
-			int valueAlpha = qAlpha(value) & 0xff;
-			int valueRed = qRed(value) & 0xff;
-			int valueGreen = qGreen(value) & 0xff;
-			int valueBlue = qBlue(value) & 0xff;
-			int valueGray = qGray(value) & 0xff;
-
-			totalAlpha += valueAlpha;
-			totalRed += valueRed;
-			totalGreen += valueGreen;
-			totalBlue += valueBlue;
-			totalGray += valueGray;
-
-            double luma = 0.2126 * valueRed + 0.7152 * valueGreen + 0.0722 * valueBlue;
-			totalLuma += luma;
+            totalAlpha += pixel.alpha();
+            totalRed += pixel.red();
+            totalGreen += pixel.green();
+            totalBlue += pixel.blue();
+            totalGray += pixel.gray();
+            totalLuma += pixel.lumaF();
 
             if(totalAlpha < 255)
                 ++numTransparentPixels;
 
-            ++_alpha[static_cast<unsigned>(valueAlpha)];
-            ++_red[static_cast<unsigned>(valueRed)];
-            ++_green[static_cast<unsigned>(valueGreen)];
-            ++_blue[static_cast<unsigned>(valueBlue)];
-            ++_gray[static_cast<unsigned>(valueGray)];
+            ++_alpha[static_cast<unsigned>(pixel.alpha())];
+            ++_red[static_cast<unsigned>(pixel.red())];
+            ++_green[static_cast<unsigned>(pixel.green())];
+            ++_blue[static_cast<unsigned>(pixel.blue())];
+            ++_gray[static_cast<unsigned>(pixel.gray())];
 		}
 	}
 

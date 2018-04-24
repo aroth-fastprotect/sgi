@@ -104,6 +104,8 @@ public:
     };
     struct SGI_IMPL_EXPORT RGB
     {
+        RGB(unsigned char r_, unsigned char g_, unsigned char b_)
+            : r(r_), g(g_), b(b_) {}
         unsigned char r;
         unsigned char g;
         unsigned char b;
@@ -112,27 +114,52 @@ public:
     {
     public:
         union PixelData {
-            unsigned char unsigned_byte;
-            signed char signed_byte;
-            unsigned short unsigned_short;
-            signed short signed_short;
-            unsigned int unsigned_int;
-            signed int signed_int;
-            float float32;
-            double float64;
+            unsigned char u8;
+            signed char s8;
+            unsigned short u16;
+            signed short s16;
+            unsigned int u32;
+            signed int s32;
+            float f32[4];
+            double f64[2];
             ARGB argb;
         };
 
         Pixel();
         Pixel(DataType t, const PixelData & d);
+        Pixel(DataType t, float a, float r, float g, float b);
+        Pixel(DataType t, float f);
+        Pixel(DataType t, double f);
+        Pixel(DataType t, unsigned char f);
+        Pixel(DataType t, unsigned char a_, unsigned char r_, unsigned char g_, unsigned char b_);
+        Pixel(DataType t, signed char f);
+        Pixel(DataType t, unsigned short f);
+        Pixel(DataType t, signed short f);
+        Pixel(DataType t, unsigned int f);
+        Pixel(DataType t, signed int f);
+        Pixel(DataType t, const RGB & rgb);
+        Pixel(DataType t, const ARGB & argb);
         bool valid() const { return type != DataTypeInvalid; }
         void clear();
         void setARGB(const ARGB & rhs);
         void setARGB(unsigned char a, unsigned char r, unsigned char g, unsigned char b);
-        void setFloat32(float f);
-        void setFloat64(double f);
+        void setFloat32(float a=0.0f, float r=0.0f, float g=0.0f, float b=0.0f);
+        void setFloat64(double f, double f2=0);
         DataType type;
         PixelData data;
+
+        float a() const;
+        float r() const;
+        float g() const;
+        float b() const;
+
+        float lumaF() const;
+
+        int alpha() const;
+        int red() const;
+        int green() const;
+        int blue() const;
+        int gray() const;
 
         Pixel & operator *= (const double f);
         Pixel operator*(const double f) const;
@@ -321,6 +348,71 @@ public:
 
     typedef void (*WriterFunc)(const PixelWriter* iw, const Image::Pixel& c, int s, int t, int r, int m);
     WriterFunc _writer;
+};
+
+/**
+ * Functor that visits every pixel in an image
+ */
+template<typename T>
+struct PixelVisitor : public T
+{
+    /**
+     * Traverse an image, and call this method on the superclass:
+     *
+     *   bool operator(osg::Vec4& pixel);
+     *
+     * If that method returns true, write the value back at the same location.
+     */
+    void accept( Image* image ) {
+        PixelReader _reader( image );
+        PixelWriter _writer( image );
+        for( int r=0; r<image->depth(); ++r ) {
+            for( int t=0; t<image->height(); ++t ) {
+                for( int s=0; s<image->width(); ++s ) {
+                    Image::Pixel pixel = _reader(s,t,r);
+                    if ( (*this)(pixel) )
+                        _writer(pixel,s,t,r);
+                }
+            }
+        }
+    }
+
+    /**
+     * Traverse an image, and call this method on the superclass:
+     *
+     *   bool operator(const osg::Vec4& srcPixel, osg::Vec4& destPixel);
+     *
+     * If that method returns true, write destPixel back at the same location
+     * in the destination image.
+     */
+    void accept( const Image* src, Image* dest ) {
+        PixelReader _readerSrc( src );
+        PixelReader _readerDest( dest );
+        PixelWriter _writerDest( dest );
+        for( int r=0; r<src->depth(); ++r ) {
+            for( int t=0; t<src->height(); ++t ) {
+                for( int s=0; s<src->width(); ++s ) {
+                    const Image::Pixel pixelSrc = _readerSrc(s,t,r);
+                    Image::Pixel pixelDest = _readerDest(s,t,r);
+                    if ( (*this)(pixelSrc, pixelDest) )
+                        _writerDest(pixelDest,s,t,r);
+                }
+            }
+        }
+    }
+};
+
+/**
+ * Simple functor to copy pixels from one image to another.
+ *
+ * Usage:
+ *    PixelVisitor<CopyImage>().accept( fromImage, toImage );
+ */
+struct CopyImage {
+    bool operator()( const Image::Pixel& src, Image::Pixel& dest ) {
+        dest = src;
+        return true;
+    }
 };
 
 
