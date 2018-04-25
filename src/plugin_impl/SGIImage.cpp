@@ -419,6 +419,44 @@ Image::Pixel Image::Pixel::operator+(const Pixel & rhs) const
     return ret;
 }
 
+std::string Image::Pixel::toString() const
+{
+    std::stringstream ss;
+    switch(type)
+    {
+    case DataTypeInvalid:
+        ss << "invalid";
+        break;
+    case DataTypeUnsignedByte:
+        ss << (unsigned)data.u8;
+        break;
+    case DataTypeSignedByte:
+        ss << (int)data.s8;
+        break;
+    case DataTypeUnsignedShort:
+        ss << (unsigned)data.u16;
+        break;
+    case DataTypeSignedShort:
+        ss << (int)data.s16;
+        break;
+    case DataTypeUnsignedInt:
+        ss << (unsigned)data.u32;
+        break;
+    case DataTypeSignedInt:
+        ss << (int)data.s32;
+        break;
+    case DataTypeARGB:
+        ss << '#' << std::hex << data.argb.a << data.argb.r << data.argb.g << data.argb.b;
+        break;
+    case DataTypeFloat32:
+        ss << data.f32[0] << ',' << data.f32[1] << ',' << data.f32[2] << ',' << data.f32[3];
+        break;
+    default:
+        ss << "type=" << type;
+        break;
+    }
+    return ss.str();
+}
 
 
 Image::Image(ImageFormat format, DataType type)
