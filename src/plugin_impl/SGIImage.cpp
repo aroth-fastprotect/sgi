@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cassert>
 #include <algorithm>
+#include <iomanip>
 #include <memory.h>
 
 #define ALIGN_SIZE(x,n)       ((size_t)((~(n-1))&((x)+(n-1))))
@@ -461,7 +462,12 @@ std::string Image::Pixel::toString(bool includeDataType) const
     case DataTypeARGB:
         if(includeDataType)
             ss << "argb:";
-        ss << '#' << std::hex << data.argb.a << data.argb.r << data.argb.g << data.argb.b;
+        ss << "#";
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)data.argb.r;
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)data.argb.g;
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)data.argb.b;
+        if (data.argb.a < 255)
+            ss << std::hex << std::setw(2) << std::setfill('0') << (int)data.argb.a;
         break;
     case DataTypeFloat32:
         if(includeDataType)
