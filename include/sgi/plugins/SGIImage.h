@@ -7,6 +7,10 @@
 #include <osg/observer_ptr>
 #include <sgi/Export>
 
+#ifdef _WIN32
+#undef RGB
+#endif
+
 class QImage;
 
 namespace sgi {

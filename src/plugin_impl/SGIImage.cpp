@@ -5,6 +5,7 @@
 #include <sstream>
 #include <cmath>
 #include <cassert>
+#include <algorithm>
 #include <memory.h>
 
 #define ALIGN_SIZE(x,n)       ((size_t)((~(n-1))&((x)+(n-1))))
