@@ -1571,8 +1571,7 @@ namespace {
         static Image::Pixel read(const PixelReader* ia, int s, int t, int r, int m)
         {
             const T* ptr = (const T*)ia->data(s, t, r, m);
-            float l = float(*ptr) * GLTypeTraits<T>::scale(ia->_normalized);
-            return Image::Pixel(Image::DataTypeFloat32, l);
+            return Image::Pixel(GLTypeTraits<T>::dataType, *ptr);
         }
     };
 
