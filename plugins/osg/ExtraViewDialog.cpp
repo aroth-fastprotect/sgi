@@ -14,10 +14,6 @@
 #include <osgViewer/CompositeViewer>
 #include "SGIItemOsg"
 
-#ifdef SGI_USE_OSGQT
-#include <osgQt/GraphicsWindowQt>
-#endif // SGI_USE_OSGQT
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -27,6 +23,7 @@ namespace osg_plugin {
 
 ViewOSG::ViewOSG(QWidget * parent)
     : QWidget(parent)
+    , _widget(nullptr)
 {
 }
 
@@ -40,25 +37,24 @@ void ViewOSG::setCamera(osgViewer::CompositeViewer * viewer, osg::Camera * camer
     osg::GraphicsContext * existingContext = camera->getGraphicsContext();
     _gfx = createGraphicsWindow(0, 0, QWidget::width(), QWidget::height(), existingContext);
 
-#ifdef SGI_USE_OSGQT
-    osgQt::GraphicsWindowQt* gwq = dynamic_cast<osgQt::GraphicsWindowQt*>(_gfx.get());
-    if(gwq)
-        _widget = gwq->getGLWidget();
-#endif
+    _widget = osg_helpers::getWidgetForGraphicsWindow(_gfx.get());
+    if (_widget)
+    {
 
-    QHBoxLayout * l = new QHBoxLayout;
-    l->addWidget(_widget);
-    setLayout(l);
+        QHBoxLayout * l = new QHBoxLayout;
+        l->addWidget(_widget);
+        setLayout(l);
 
-    _viewCamera = new osg::Camera;
-    _viewCamera->setGraphicsContext(_gfx.get());
-    _camera = camera;
+        _viewCamera = new osg::Camera;
+        _viewCamera->setGraphicsContext(_gfx.get());
+        _camera = camera;
 
-    _view = new osgViewer::View;
-    _view->setCamera(_viewCamera.get());
-    _viewer->addView(_view);
+        _view = new osgViewer::View;
+        _view->setCamera(_viewCamera.get());
+        _viewer->addView(_view);
 
-    updateCamera();
+        updateCamera();
+    }
 }
 
 namespace {
@@ -121,26 +117,25 @@ void ViewOSG::setRTTCamera(osgViewer::CompositeViewer * viewer, osg::Texture * t
     osg::GraphicsContext * existingContext = camera ? camera->getGraphicsContext() : nullptr;
     _gfx = createGraphicsWindow(0, 0, QWidget::width(), QWidget::height(), existingContext);
 
-#ifdef SGI_USE_OSGQT
-    osgQt::GraphicsWindowQt* gwq = dynamic_cast<osgQt::GraphicsWindowQt*>(_gfx.get());
-    if (gwq)
-        _widget = gwq->getGLWidget();
-#endif
+    _widget = osg_helpers::getWidgetForGraphicsWindow(_gfx.get());
 
-    QHBoxLayout * l = new QHBoxLayout;
-    l->addWidget(_widget);
-    setLayout(l);
+    if (_widget)
+    {
+        QHBoxLayout * l = new QHBoxLayout;
+        l->addWidget(_widget);
+        setLayout(l);
 
-    _viewCamera = new osg::Camera;
-    _viewCamera->setGraphicsContext(_gfx.get());
-    _camera = _viewCamera;
+        _viewCamera = new osg::Camera;
+        _viewCamera->setGraphicsContext(_gfx.get());
+        _camera = _viewCamera;
 
-    _view = new osgViewer::View;
-    _view->setCamera(_viewCamera.get());
-    setupRTTView(_view.get(), texture);
-    _viewer->addView(_view);
+        _view = new osgViewer::View;
+        _view->setCamera(_viewCamera.get());
+        setupRTTView(_view.get(), texture);
+        _viewer->addView(_view);
 
-    updateCamera();
+        updateCamera();
+    }
 }
 
 void ViewOSG::updateCamera()
@@ -210,7 +205,8 @@ void ViewOSG::paintEvent(QPaintEvent* event)
 void ViewOSG::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
-    _widget->setGeometry(0, 0, event->size().width(), event->size().height());
+    if(_widget)
+        _widget->setGeometry(0, 0, event->size().width(), event->size().height());
 }
 
 

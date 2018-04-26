@@ -16,6 +16,7 @@
 #include <sgi/plugins/Quat>
 #include <sgi/plugins/SGIItemBase.h>
 
+
 namespace osg {
     class Referenced;
     class Object;
@@ -34,6 +35,7 @@ namespace osg {
     class StateSet;
     class StateAttribute;
     class Image;
+    class GraphicsContext;
 
     typedef std::vector< Node* > NodePath;
 
@@ -61,7 +63,12 @@ namespace osg {
     typedef BoundingSphered BoundingSphere;
 #endif
 }
+namespace osgViewer {
+    class GraphicsWindow;
+}
 
+class QObject;
+class QWidget;
 class QImage;
 
 namespace sgi {
@@ -403,6 +410,16 @@ SGI_OSG_HELPER_EXPORT void heightFieldDumpPlainText(std::basic_ostream<char>& os
     SGI_OSG_HELPER_EXPORT unsigned findContextID(const osg::Node * node);
     SGI_OSG_HELPER_EXPORT unsigned findContextID(const osg::StateSet * stateset);
     SGI_OSG_HELPER_EXPORT unsigned findContextID(const osg::StateAttribute * sa);
+
+#if !defined(BUILD_SGI_VIEWER_BASE)
+    SGI_OSG_HELPER_EXPORT 
+#endif
+    QWidget * getWidgetForGraphicsWindow(osgViewer::GraphicsWindow * gw, QWidget * parent = nullptr);
+
+#if !defined(BUILD_SGI_VIEWER_BASE)
+    SGI_OSG_HELPER_EXPORT
+#endif
+    bool createWidgetForGraphicsWindow(osg::GraphicsContext * ctx, QObject * parent = nullptr);
 
     } // namespace osg_helpers
 } // namespace sgi
