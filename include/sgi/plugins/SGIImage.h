@@ -149,7 +149,8 @@ public:
         void setARGB(unsigned char a, unsigned char r, unsigned char g, unsigned char b);
         void setFloat32(float a=0.0f, float r=0.0f, float g=0.0f, float b=0.0f);
         void setFloat64(double f, double f2=0);
-        DataType type;
+        DataType type : 24;
+        unsigned elements : 8;
         PixelData data;
 
         float a() const;

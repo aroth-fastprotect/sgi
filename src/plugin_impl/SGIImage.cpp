@@ -19,17 +19,17 @@
 namespace sgi {
 
 Image::Pixel::Pixel()
-    : type(DataTypeInvalid)
+    : type(DataTypeInvalid), elements(0)
 {
 }
 
 Image::Pixel::Pixel(DataType t, const PixelData & d)
-    : type(t), data(d)
+    : type(t), data(d), elements(0)
 {
 }
 
 Image::Pixel::Pixel(DataType t, float a, float r, float g, float b)
-    : type(t)
+    : type(t), elements(0)
 {
     switch(type)
     {
@@ -38,117 +38,128 @@ Image::Pixel::Pixel(DataType t, float a, float r, float g, float b)
         data.f32[1] = r;
         data.f32[2] = g;
         data.f32[3] = b;
+        elements = 4;
         break;
     }
 }
 
 Image::Pixel::Pixel(DataType t, float f)
-    : type(t)
+    : type(t), elements(0)
 {
     switch(type)
     {
     case Image::DataTypeFloat32:
         data.f32[0] = f;
+        elements = 1;
         break;
     }
 }
 
 Image::Pixel::Pixel(DataType t, double f)
-    : type(t)
+    : type(t), elements(0)
 {
     switch(type)
     {
     case Image::DataTypeFloat64:
         data.f64[0] = f;
+        elements = 1;
         break;
     }
 }
 
 Image::Pixel::Pixel(DataType t, unsigned char f)
-    : type(t)
+    : type(t), elements(0)
 {
     switch(type)
     {
     case Image::DataTypeUnsignedByte:
         data.u8 = f;
+        elements = 1;
         break;
     }
 }
 
 Image::Pixel::Pixel(DataType t, unsigned char a_, unsigned char r_, unsigned char g_, unsigned char b_)
-    : type(t)
+    : type(t), elements(0)
 {
     switch(type)
     {
     case Image::DataTypeUnsignedByte:
         data.u8 = a_;
+        elements = 1;
         break;
     case Image::DataTypeARGB:
         data.argb.a = a_;
         data.argb.r = r_;
         data.argb.g = g_;
         data.argb.b = b_;
+        elements = 4;
         break;
     }
 }
 
 Image::Pixel::Pixel(DataType t, signed char f)
-    : type(t)
+    : type(t), elements(0)
 {
     switch(type)
     {
     case Image::DataTypeSignedByte:
         data.s8 = f;
+        elements = 1;
         break;
     }
 }
 
 Image::Pixel::Pixel(DataType t, unsigned short f)
-    : type(t)
+    : type(t), elements(0)
 {
     switch(type)
     {
     case Image::DataTypeUnsignedShort:
         data.u16 = f;
+        elements = 1;
         break;
     }
 }
 
 Image::Pixel::Pixel(DataType t, signed short f)
-    : type(t)
+    : type(t), elements(0)
 {
     switch(type)
     {
     case Image::DataTypeSignedShort:
         data.s16 = f;
+        elements = 1;
         break;
     }
 }
 
 Image::Pixel::Pixel(DataType t, unsigned int f)
-    : type(t)
+    : type(t), elements(0)
 {
     switch(type)
     {
     case Image::DataTypeUnsignedInt:
         data.u32 = f;
+        elements = 1;
         break;
     }
 }
 
 Image::Pixel::Pixel(DataType t, signed int f)
-    : type(t)
+    : type(t), elements(0)
 {
     switch(type)
     {
     case Image::DataTypeSignedInt:
         data.s32 = f;
+        elements = 1;
         break;
     }
 }
 
 Image::Pixel::Pixel(DataType t, const RGB & rgb)
-    : type(t)
+    : type(t), elements(0)
 {
     switch(type)
     {
@@ -157,12 +168,13 @@ Image::Pixel::Pixel(DataType t, const RGB & rgb)
         data.argb.r = rgb.r;
         data.argb.g = rgb.g;
         data.argb.b = rgb.b;
+        elements = 3;
         break;
     }
 }
 
 Image::Pixel::Pixel(DataType t, const ARGB & argb)
-    : type(t)
+    : type(t), elements(0)
 {
     switch(type)
     {
@@ -182,6 +194,7 @@ void Image::Pixel::setARGB(const ARGB & rhs)
 {
     type = DataTypeARGB;
     data.argb = rhs;
+    elements = 4;
 }
 
 void Image::Pixel::setARGB(unsigned char a, unsigned char r, unsigned char g, unsigned char b)
@@ -191,6 +204,7 @@ void Image::Pixel::setARGB(unsigned char a, unsigned char r, unsigned char g, un
     data.argb.r = r;
     data.argb.g = g;
     data.argb.b = b;
+    elements = 4;
 }
 
 void Image::Pixel::setFloat32(float a, float r, float g, float b)
@@ -200,6 +214,7 @@ void Image::Pixel::setFloat32(float a, float r, float g, float b)
     data.f32[1] = r;
     data.f32[2] = g;
     data.f32[3] = b;
+    elements = 4;
 }
 
 void Image::Pixel::setFloat64(double f, double f2)
@@ -207,6 +222,7 @@ void Image::Pixel::setFloat64(double f, double f2)
     type = DataTypeFloat64;
     data.f64[0] = f;
     data.f64[1] = f2;
+    elements = 2;
 }
 
 float Image::Pixel::a() const
@@ -466,18 +482,26 @@ std::string Image::Pixel::toString(bool includeDataType) const
         ss << std::hex << std::setw(2) << std::setfill('0') << (int)data.argb.r;
         ss << std::hex << std::setw(2) << std::setfill('0') << (int)data.argb.g;
         ss << std::hex << std::setw(2) << std::setfill('0') << (int)data.argb.b;
-        if (data.argb.a < 255)
+        if (data.argb.a < 255 && elements >= 4)
             ss << std::hex << std::setw(2) << std::setfill('0') << (int)data.argb.a;
         break;
     case DataTypeFloat32:
         if(includeDataType)
             ss << "f32:";
-        ss << data.f32[0] << ',' << data.f32[1] << ',' << data.f32[2] << ',' << data.f32[3];
+        ss << data.f32[0];
+        if(elements > 1)
+            ss << ',' << data.f32[1];
+        if(elements > 2)
+            ss << ',' << data.f32[2];
+        if(elements > 3)
+            ss << ',' << data.f32[3];
         break;
     case DataTypeFloat64:
         if(includeDataType)
             ss << "f64:";
-        ss << data.f64[0] << ',' << data.f64[1];
+        ss << data.f64[0];
+        if(elements > 1)
+            ss << ',' << data.f64[1];
         break;
     default:
         ss << "type=" << type;
