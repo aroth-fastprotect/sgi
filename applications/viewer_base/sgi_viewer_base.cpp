@@ -655,7 +655,7 @@ namespace {
         std::string ret;
         Dl_info info;
         const char* (* addr) () = osgDBGetVersion;
-        if(dladdr((const void*)addr, &info) != 0)
+        if(dladdr(reinterpret_cast<const void*>(addr), &info) != 0)
         {
             ret = info.dli_fname;
         }
@@ -777,22 +777,21 @@ void sgi_MapNodeHelper::setupInitialPosition(osgViewer::View* view) const
 std::string
 sgi_MapNodeHelper::usage() const
 {
+    std::stringstream ss;
 #ifdef SGI_USE_OSGEARTH
-    std::string msg = osgEarth::Stringify()
-        << "    --nosgi              : do not add SceneGraphInspector\n"
-        << "    --hidesgi            : do not show SceneGraphInspector\n"
-        << "    --nokeys             : do not add keyboard dump handler\n"
-        << "    --nomouse            : do not add mouse dump handler\n"
-        << "    --osgdebug <level>   : set OSG_NOTIFY_LEVEL to specified level\n"
+    ss << _mapNodeHelper->usage();
         << "    --earthdebug <level> : set OSGEARTG_NOTIFY_LEVEL to specified level\n"
         << "    --debug              : set OSG_NOTIFY_LEVEL and OSGEARTG_NOTIFY_LEVEL to debug\n"
         << "    --autoclose <ms>     : set up timer to close the main window after the given time in milliseconds\n"
         << "    --viewpoint <name|num>  : jump to the given viewpoint\n"
         ;
-    return _mapNodeHelper->usage() + msg;
-#else
-    return std::string();
 #endif
+    ss << "    --nosgi              : do not add SceneGraphInspector\n"
+        << "    --hidesgi            : do not show SceneGraphInspector\n"
+        << "    --nokeys             : do not add keyboard dump handler\n"
+        << "    --nomouse            : do not add mouse dump handler\n"
+        << "    --osgdebug <level>   : set OSG_NOTIFY_LEVEL to specified level\n";
+    return ss.str();
 }
 
 std::string sgi_MapNodeHelper::errorMessages() const
