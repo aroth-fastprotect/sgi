@@ -419,7 +419,7 @@ Image::Pixel Image::Pixel::operator+(const Pixel & rhs) const
     return ret;
 }
 
-std::string Image::Pixel::toString() const
+std::string Image::Pixel::toString(bool includeDataType) const
 {
     std::stringstream ss;
     switch(type)
@@ -428,28 +428,49 @@ std::string Image::Pixel::toString() const
         ss << "invalid";
         break;
     case DataTypeUnsignedByte:
+        if(includeDataType)
+            ss << "u8:";
         ss << (unsigned)data.u8;
         break;
     case DataTypeSignedByte:
+        if(includeDataType)
+            ss << "s8:";
         ss << (int)data.s8;
         break;
     case DataTypeUnsignedShort:
+        if(includeDataType)
+            ss << "u16:";
         ss << (unsigned)data.u16;
         break;
     case DataTypeSignedShort:
+        if(includeDataType)
+            ss << "s16:";
         ss << (int)data.s16;
         break;
     case DataTypeUnsignedInt:
+        if(includeDataType)
+            ss << "u32:";
         ss << (unsigned)data.u32;
         break;
     case DataTypeSignedInt:
+        if(includeDataType)
+            ss << "s32:";
         ss << (int)data.s32;
         break;
     case DataTypeARGB:
+        if(includeDataType)
+            ss << "argb:";
         ss << '#' << std::hex << data.argb.a << data.argb.r << data.argb.g << data.argb.b;
         break;
     case DataTypeFloat32:
+        if(includeDataType)
+            ss << "f32:";
         ss << data.f32[0] << ',' << data.f32[1] << ',' << data.f32[2] << ',' << data.f32[3];
+        break;
+    case DataTypeFloat64:
+        if(includeDataType)
+            ss << "f64:";
+        ss << data.f64[0] << ',' << data.f64[1];
         break;
     default:
         ss << "type=" << type;

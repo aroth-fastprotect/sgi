@@ -1264,8 +1264,12 @@ void ImagePreviewDialog::onMouseMoved(float x, float y)
     QString str;
     if (_workImage.valid())
     {
-        int px_x = std::max(0, qRound(x * _workImage->width()));
-        int px_y = std::max(0, qRound(y * _workImage->height()));
+        unsigned px_x = 0;
+        if(x >= 0.0f && x < 1.0f)
+            px_x = static_cast<unsigned>(x * _workImage->width());
+        unsigned px_y = 0;
+        if(y >= 0.0f && y < 1.0f)
+            px_y = static_cast<unsigned>(y * _workImage->height());
 
         if(_priv->flipHorizontalAction->isChecked())
             px_x = _workImage->width() - px_x;
@@ -1274,7 +1278,7 @@ void ImagePreviewDialog::onMouseMoved(float x, float y)
 
         Image::Pixel px = _workImage->pixel(px_x, px_y);
 
-        QString px_value = QString::fromStdString(px.toString());
+        QString px_value = QString::fromStdString(px.toString(true));
 
         str = tr("X=%1, Y=%2, value=%3").arg(px_x).arg(px_y).arg(px_value);
     }

@@ -165,7 +165,7 @@ public:
         Pixel operator*(const double f) const;
         Pixel operator+(const Pixel & rhs) const;
 
-        std::string toString() const;
+        std::string toString(bool includeDataType=false) const;
     };
 
     Image(ImageFormat format=ImageFormatInvalid, DataType type=DataTypeInvalid);
