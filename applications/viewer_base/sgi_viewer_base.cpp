@@ -48,6 +48,11 @@
 #include <iostream>
 #include <algorithm>
 
+#if defined(__linux__)
+#include <dlfcn.h>
+#include <osgDB/Version>
+#endif
+
 namespace std {
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::NotifySeverity & t)

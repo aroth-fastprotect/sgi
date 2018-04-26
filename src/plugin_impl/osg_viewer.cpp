@@ -2,8 +2,6 @@
 #ifdef _WIN32
 #include <osgViewer/api/Win32/GraphicsWindowWin32>
 #elif defined(__linux__)
-#include <dlfcn.h>
-#include <osgDB/Version>
 #include <osgViewer/api/X11/GraphicsWindowX11>
 // undefine Status from X11/ICELIB
 #undef Bool
