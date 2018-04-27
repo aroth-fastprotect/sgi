@@ -604,7 +604,6 @@ Image & Image::operator=(const Image & rhs)
     _originalImage = rhs._originalImage;
     if (rhs._originalImageQt && rhs._copyQt)
     {
-        const Image * prhs = &rhs;
         // copy/clone the QImage instance using the rhs object with the copyQt function ptr from rhs object
         _originalImageQt = (rhs.*rhs._copyQt)();
     }
@@ -617,6 +616,7 @@ Image & Image::operator=(const Image & rhs)
 
 void Image::loadPitchAndPlaneOffsets()
 {
+    unsigned bytesPerDataElement = bitsForDataElement(_dataType) / 8;
     switch (_format)
     {
     default:
@@ -632,7 +632,7 @@ void Image::loadPitchAndPlaneOffsets()
     case ImageFormatRGB24:
     case ImageFormatBGR24:
     {
-        _pitch[0] = _width * 3;
+        _pitch[0] = _width * 3 * bytesPerDataElement;
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
         _lines[0] = _height;
         _lines[1] = _lines[2] = _lines[3] = 0;
@@ -645,19 +645,19 @@ void Image::loadPitchAndPlaneOffsets()
     case ImageFormatBGR32:
     case ImageFormatBGRA32:
     case ImageFormatABGR32:
-    case ImageFormatFloat:
-    case ImageFormatDepth:
     {
-        _pitch[0] = _width * 4;
+        _pitch[0] = _width * 4 * bytesPerDataElement;
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
         _lines[0] = _height;
         _lines[1] = _lines[2] = _lines[3] = 0;
         _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
     }
     break;
+    case ImageFormatFloat:
+    case ImageFormatDepth:
     case ImageFormatFloat64:
     {
-        _pitch[0] = _width * 8;
+        _pitch[0] = _width * bytesPerDataElement;
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
         _lines[0] = _height;
         _lines[1] = _lines[2] = _lines[3] = 0;
@@ -666,7 +666,7 @@ void Image::loadPitchAndPlaneOffsets()
     break;
     case ImageFormatYUV444:
     {
-        _pitch[0] = _pitch[1] = _pitch[2] = _width * 3;
+        _pitch[0] = _pitch[1] = _pitch[2] = _width * bytesPerDataElement;
         _pitch[3] = 0;
         _lines[0] = _lines[1] = _lines[2] = _height;
         _lines[3] = 0;
@@ -678,7 +678,7 @@ void Image::loadPitchAndPlaneOffsets()
     break;
     case ImageFormatYUV422:
     {
-        _pitch[0] = _width;
+        _pitch[0] = _width * bytesPerDataElement;
         _pitch[1] = _pitch[2] = _width / 2;
         _pitch[3] = 0;
         _lines[0] = _lines[1] = _lines[2] = _height;
@@ -691,7 +691,7 @@ void Image::loadPitchAndPlaneOffsets()
     break;
     case ImageFormatYUV420:
     {
-        _pitch[0] = _width;
+        _pitch[0] = _width * bytesPerDataElement;
         _pitch[1] = _pitch[2] = _width / 2;
         _pitch[3] = 0;
         _lines[0] = _height;
@@ -707,7 +707,7 @@ void Image::loadPitchAndPlaneOffsets()
     case ImageFormatYUYV:
     case ImageFormatUYVY:
     {
-        _pitch[0] = _width + _width;
+        _pitch[0] = (_width + _width) * bytesPerDataElement;
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
         _lines[0] = _height;
         _lines[1] = _lines[2] = _lines[3] = 0;
@@ -723,7 +723,7 @@ void Image::loadPitchAndPlaneOffsets()
     case ImageFormatLuminanceAlpha:
     {
         // only one channel with 8-bit color data
-        _pitch[0] = (_width * bitsForDataElement(_dataType)) / 8;
+        _pitch[0] = _width * bytesPerDataElement;
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
         _lines[0] = _height;
         _lines[1] = _lines[2] = _lines[3] = 0;
@@ -774,18 +774,19 @@ void Image::free()
     if(_allocated && _data)
     {
         ::free(_data);
-        _data = NULL;
+        _data = nullptr;
     }
 }
 
 
-bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin origin)
+bool Image::allocate(unsigned width, unsigned height, ImageFormat format, DataType dataType, Origin origin)
 {
     bool ret = false;
     unsigned allocated_width = ALIGN_BY_16(width);
     unsigned allocated_height = ALIGN_BY_16(height);
     free();
     _length = 0;
+    unsigned bytesPerDataElement = bitsForDataElement(dataType) / 8;
     switch (format)
     {
     default:
@@ -803,7 +804,7 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
         break;
     case ImageFormatRGB24:
     case ImageFormatBGR24:
-        _length = allocated_width * allocated_height * 3;
+        _length = allocated_width * allocated_height * 3 * bytesPerDataElement;
         break;
     case ImageFormatRGB32:
     case ImageFormatRGBA32:
@@ -812,16 +813,14 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
     case ImageFormatBGRA32:
     case ImageFormatABGR32:
     case ImageFormatFloat:
-        _length = allocated_width * allocated_height * 4;
-        break;
     case ImageFormatFloat64:
-        _length = allocated_width * allocated_height * 8;
+        _length = allocated_width * allocated_height * bytesPerDataElement;
         break;
     case ImageFormatYUV444:
-        _length = allocated_width * allocated_height * 3;
+        _length = allocated_width * allocated_height * 3 * bytesPerDataElement;
         break;
     case ImageFormatYUV422:
-        _length = allocated_width * allocated_height * 2;
+        _length = allocated_width * allocated_height * 2 * bytesPerDataElement;
         break;
     case ImageFormatYUV420:
         _length = allocated_width * allocated_height + (allocated_width / 2 * allocated_height/2);
@@ -829,7 +828,7 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
 
     case ImageFormatYUYV:
     case ImageFormatUYVY:
-        _length = (allocated_width + allocated_width) * allocated_height;
+        _length = (allocated_width + allocated_width) * allocated_height * bytesPerDataElement;
         break;
     case ImageFormatGray:
     case ImageFormatRed:
@@ -837,7 +836,7 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
     case ImageFormatBlue:
     case ImageFormatAlpha:
         // only one channel with 8-bit color data
-        _length = allocated_width * allocated_height;
+        _length = allocated_width * allocated_height * bytesPerDataElement;
         break;
     }
     if(_length)
@@ -849,10 +848,10 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
         _allocatedWidth = allocated_width;
         _allocatedHeight = allocated_height;
         _format = format;
-        _dataType = DataTypeUnsignedByte;
+        _dataType = dataType;
         _origin = origin;
         loadPitchAndPlaneOffsets();
-        ret = _data != NULL;
+        ret = _data != nullptr;
         _allocated = ret;
     }
     return ret;
@@ -1114,14 +1113,15 @@ unsigned Image::bitsPerPixel() const
         ret = 0; break;
     case ImageFormatRGB24: 
     case ImageFormatBGR24:
-        ret = 24; break;
+        ret = bitsForDataElement(_dataType) * 3;
+        break;
     case ImageFormatARGB32:
     case ImageFormatRGB32: 
     case ImageFormatBGR32:
     case ImageFormatABGR32:
     case ImageFormatRGBA32:
     case ImageFormatBGRA32:
-        ret = 32; break;
+        ret = bitsForDataElement(_dataType) * 4; break;
     case ImageFormatYUV420:
     case ImageFormatYUV422:
     case ImageFormatYUV444:
@@ -1136,8 +1136,9 @@ unsigned Image::bitsPerPixel() const
     case ImageFormatIndexed8: 
         ret = 8;
         break;
-    case ImageFormatFloat: 
-        ret = 32; 
+    case ImageFormatFloat64:
+    case ImageFormatFloat:
+        ret = bitsForDataElement(_dataType);
         break;
     case ImageFormatGray:
     case ImageFormatRed:
@@ -1158,9 +1159,6 @@ unsigned Image::bitsPerPixel() const
     case ImageFormatDXT5:
         // 4x4 pixels go into 16 bytes
         ret = 8;
-        break;
-    case ImageFormatFloat64:
-        ret = 64;
         break;
     }
     return ret;

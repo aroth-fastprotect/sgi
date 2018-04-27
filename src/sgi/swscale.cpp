@@ -241,7 +241,7 @@ bool SWScale::convert_dxt(const sgi::Image& src, sgi::Image& dest)
 {
     bool ret;
     sgi::Image tmp;
-    ret = tmp.allocate(src.width(), src.height(), Image::ImageFormatBGRA32, src.origin());
+    ret = tmp.allocate(src.width(), src.height(), Image::ImageFormatBGRA32, src.dataType(), src.origin());
     if (ret)
     {
         int format = ImageFormatToDDS(src.format());
@@ -262,7 +262,7 @@ bool SWScale::to_qimage_argb32_dxt(const sgi::Image& src, QImage& dest, bool hor
 {
     bool ret;
     sgi::Image tmp;
-    ret = tmp.allocate(src.width(), src.height(), Image::ImageFormatBGRA32, src.origin());
+    ret = tmp.allocate(src.width(), src.height(), Image::ImageFormatBGRA32, src.dataType(), src.origin());
     if (ret)
     {
         int format = ImageFormatToDDS(src.format());

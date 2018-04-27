@@ -205,7 +205,7 @@ public:
     const osg::Referenced * originalImage() const { return _originalImage.get(); }
     QImage * originalImageQt() const { return _originalImageQt; }
     Origin origin() const { return _origin; }
-    bool allocate(unsigned width, unsigned height, ImageFormat format, Origin origin=OriginDefault);
+    bool allocate(unsigned width, unsigned height, ImageFormat format, DataType dataType=DataTypeUnsignedByte, Origin origin=OriginDefault);
     void free();
     bool reinterpretFormat(ImageFormat targetFormat);
     bool guessImageSizes(ImageSizeList & possibleSizes) const;
