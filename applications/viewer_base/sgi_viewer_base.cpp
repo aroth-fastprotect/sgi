@@ -779,7 +779,7 @@ sgi_MapNodeHelper::usage() const
 {
     std::stringstream ss;
 #ifdef SGI_USE_OSGEARTH
-    ss << _mapNodeHelper->usage();
+    ss << _mapNodeHelper->usage()
         << "    --earthdebug <level> : set OSGEARTG_NOTIFY_LEVEL to specified level\n"
         << "    --debug              : set OSG_NOTIFY_LEVEL and OSGEARTG_NOTIFY_LEVEL to debug\n"
         << "    --autoclose <ms>     : set up timer to close the main window after the given time in milliseconds\n"
