@@ -19,15 +19,13 @@
 #include "SGIPlugin.h"
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/plugins/SGIImage.h>
+#include <sgi/plugins/SceneGraphDialog>
 #include <sgi/helpers/qt>
 #include <sgi/helpers/osg>
 
 #include "dxt.h"
 #include "swscale.h"
 #include "colorconversion.h"
-
-#include <osgDB/ReadFile>
-#include <osgDB/WriteFile>
 
 #include <iostream>
 
@@ -217,7 +215,7 @@ class ImagePreviewDialog::ImagePreviewDialogImpl : public QObject
 public:
     static std::map<Image::ImageFormat, QString> ImageFormatDisplayText;
 	ImagePreviewDialogImpl(ImagePreviewDialog * dialog_);
-	~ImagePreviewDialogImpl();
+    ~ImagePreviewDialogImpl() override;
     void createToolbar();
     void updateToolbar();
     void scaleImage(double factor);
@@ -246,19 +244,18 @@ public:
 	void setNodeInfo(const SGIItemBase * item);
     void setImageInfo(const Image * image);
 
-    virtual QDialog *       getDialog() { return _dialog; }
-    virtual IHostCallback * getHostCallback() { return _dialog->_hostCallback; }
-    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=nullptr) { _dialog->setObject(item, callback); }
-    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=nullptr) { _dialog->setObject(item, callback); }
-    virtual void            setObject(SGIItemBase * item, const sgi::Image * image, const std::string & description, IHostCallback * callback=nullptr)
+    virtual QDialog *       getDialog() override { return _dialog; }
+    virtual IHostCallback * getHostCallback() override { return _dialog->_hostCallback; }
+    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=nullptr) override { _dialog->setObject(item, callback); }
+    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=nullptr) override { _dialog->setObject(item, callback); }
+    virtual void            setObject(SGIItemBase * item, const sgi::Image * image, const std::string & description, IHostCallback * callback=nullptr) override
         { _dialog->setObject(item, image, description, callback); }
-    virtual void            setImage(const sgi::Image * image) { _dialog->setImage(image); }
-    virtual void            setDescription(const std::string & description) { _dialog->setDescription(description); }
-    virtual void            show() { emit _dialog->triggerShow(); }
-    virtual void            hide() { emit _dialog->triggerHide(); }
-    virtual bool            isVisible() { return _dialog->isVisible(); }
-    virtual int             showModal() { return _dialog->exec(); }
-    virtual SGIItemBase *   item() const { return _dialog->item(); }
+    virtual void            setImage(const sgi::Image * image) override { _dialog->setImage(image); }
+    virtual void            setDescription(const std::string & description) override { _dialog->setDescription(description); }
+    virtual void            show() override { emit _dialog->triggerShow(); }
+    virtual void            hide() override { emit _dialog->triggerHide(); }
+    virtual bool            isVisible() override { return _dialog->isVisible(); }
+    virtual SGIItemBase *   item() const override { return _dialog->item(); }
 
     void histogramComplete() override {
         emit _dialog->triggerReloadStatistics();
@@ -919,10 +916,11 @@ public:
 
 ImagePreviewDialog::ImagePreviewDialog(QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
-    , _item(NULL)
+    , _item(nullptr)
     , _hostInterface(SGIPlugins::instance()->hostInterface())
     , _priv(new ImagePreviewDialogImpl(this))
     , _interface()
+    , _hostCallback(nullptr)
     , _firstShow(true)
 {
     init();
@@ -934,6 +932,7 @@ ImagePreviewDialog::ImagePreviewDialog(SGIItemBase * item, IHostCallback * callb
 	, _hostInterface(SGIPlugins::instance()->hostInterface())
     , _priv(new ImagePreviewDialogImpl(this))
     , _interface()
+    , _hostCallback(callback)
     , _firstShow(true)
 {
     init();
@@ -956,7 +955,7 @@ void ImagePreviewDialog::init()
 
 ImagePreviewDialog::~ImagePreviewDialog()
 {
-    _priv->_dialog = NULL;
+    _priv->_dialog = nullptr;
 }
 
 void ImagePreviewDialog::showEvent(QShowEvent * event)
@@ -1189,6 +1188,9 @@ void ImagePreviewDialog::refreshImpl()
     else
         ss << "<b>No image</b>";
     _priv->ui->labelImage->setText(qt_helpers::fromUtf8(ss.str()));
+    std::string itemName;
+    _hostInterface->getObjectDisplayName(itemName, _item.get(), true);
+    _priv->ui->openItem->setText(qt_helpers::fromUtf8(itemName));
     _priv->ui->mouseinfo->setText(QString());
     _priv->setImageInfo(_workImage.get());
     _priv->setNodeInfo(_item.get());
@@ -1200,7 +1202,7 @@ SGIItemBase * ImagePreviewDialog::getView()
     if(_hostCallback)
         return _hostCallback->getView();
     else
-        return NULL;
+        return nullptr;
 }
 
 void ImagePreviewDialog::triggerRepaint()
@@ -1229,7 +1231,7 @@ void ImagePreviewDialog::setObject(SGIItemBase * item, const sgi::Image * image,
     _item = item;
     _image = image;
     if (!_image.valid())
-        _workImage = NULL;
+        _workImage = nullptr;
     else
         _workImage = new Image(*image);
     _priv->labelText = qt_helpers::fromUtf8(description);
@@ -1242,7 +1244,7 @@ void ImagePreviewDialog::setImage(const sgi::Image * image)
 {
     _image = image;
     if (!_image.valid())
-        _workImage = NULL;
+        _workImage = nullptr;
     else
         _workImage = new Image(*image);
     emit triggerOnObjectChanged();
@@ -1257,6 +1259,22 @@ void ImagePreviewDialog::setDescription(const std::string & description)
 SGIItemBase * ImagePreviewDialog::item() const
 {
     return _item.get();
+}
+
+void ImagePreviewDialog::openItem()
+{
+    if(_item.valid())
+    {
+        ISceneGraphDialogPtr dialog;
+        if(_hostCallback.valid())
+            dialog = _hostCallback->showSceneGraphDialog(this, _item.get());
+        else
+            dialog = _hostInterface->showSceneGraphDialog(this, _item, _hostCallback);
+        if(dialog)
+        {
+            dialog->show();
+        }
+    }
 }
 
 void ImagePreviewDialog::onMouseMoved(float x, float y)

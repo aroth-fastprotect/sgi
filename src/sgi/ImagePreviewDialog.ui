@@ -146,7 +146,7 @@
      </widget>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>3</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tabImage">
        <attribute name="title">
@@ -210,6 +210,13 @@
         <property name="bottomMargin">
          <number>3</number>
         </property>
+        <item>
+         <widget class="QPushButton" name="openItem">
+          <property name="text">
+           <string>PushButton</string>
+          </property>
+         </widget>
+        </item>
         <item>
          <widget class="QTextBrowser" name="textEditItem">
           <property name="readOnly">
@@ -436,9 +443,26 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>openItem</sender>
+   <signal>clicked()</signal>
+   <receiver>ImagePreviewDialog</receiver>
+   <slot>openItem()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>362</x>
+     <y>51</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>298</x>
+     <y>293</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>colorFilterChanged()</slot>
   <slot>tabWidgetCurrentChanged(int)</slot>
+  <slot>openItem()</slot>
  </slots>
 </ui>
