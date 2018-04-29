@@ -19,15 +19,13 @@
 #include "SGIPlugin.h"
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/plugins/SGIImage.h>
+#include <sgi/plugins/SceneGraphDialog>
 #include <sgi/helpers/qt>
 #include <sgi/helpers/osg>
 
 #include "dxt.h"
 #include "swscale.h"
 #include "colorconversion.h"
-
-#include <osgDB/ReadFile>
-#include <osgDB/WriteFile>
 
 #include <iostream>
 
@@ -152,38 +150,29 @@ void ImagePreviewDialog::Histogram::calculateImpl()
     int totalBlue = 0;
     int totalGray = 0;
     int totalPixels = _image->width() * _image->height();
+
     numTransparentPixels = 0;
-	double totalLuma = 0;
+    double totalLuma = 0;
+    PixelReader reader(_image);
     for (unsigned y = 0; y < _image->height(); y++) {
         for (unsigned x = 0; x < _image->width(); x++) {
-            const void * p = _image->pixelDataPtr(x, y);
+            Image::Pixel pixel = reader(x, y);
 
-            QRgb value;
-
-			
-			int valueAlpha = qAlpha(value) & 0xff;
-			int valueRed = qRed(value) & 0xff;
-			int valueGreen = qGreen(value) & 0xff;
-			int valueBlue = qBlue(value) & 0xff;
-			int valueGray = qGray(value) & 0xff;
-
-			totalAlpha += valueAlpha;
-			totalRed += valueRed;
-			totalGreen += valueGreen;
-			totalBlue += valueBlue;
-			totalGray += valueGray;
-
-            double luma = 0.2126 * valueRed + 0.7152 * valueGreen + 0.0722 * valueBlue;
-			totalLuma += luma;
+            totalAlpha += pixel.alpha();
+            totalRed += pixel.red();
+            totalGreen += pixel.green();
+            totalBlue += pixel.blue();
+            totalGray += pixel.gray();
+            totalLuma += pixel.lumaF();
 
             if(totalAlpha < 255)
                 ++numTransparentPixels;
 
-            ++_alpha[static_cast<unsigned>(valueAlpha)];
-            ++_red[static_cast<unsigned>(valueRed)];
-            ++_green[static_cast<unsigned>(valueGreen)];
-            ++_blue[static_cast<unsigned>(valueBlue)];
-            ++_gray[static_cast<unsigned>(valueGray)];
+            ++_alpha[static_cast<unsigned>(pixel.alpha())];
+            ++_red[static_cast<unsigned>(pixel.red())];
+            ++_green[static_cast<unsigned>(pixel.green())];
+            ++_blue[static_cast<unsigned>(pixel.blue())];
+            ++_gray[static_cast<unsigned>(pixel.gray())];
 		}
 	}
 
@@ -226,7 +215,7 @@ class ImagePreviewDialog::ImagePreviewDialogImpl : public QObject
 public:
     static std::map<Image::ImageFormat, QString> ImageFormatDisplayText;
 	ImagePreviewDialogImpl(ImagePreviewDialog * dialog_);
-	~ImagePreviewDialogImpl();
+    ~ImagePreviewDialogImpl() override;
     void createToolbar();
     void updateToolbar();
     void scaleImage(double factor);
@@ -255,19 +244,18 @@ public:
 	void setNodeInfo(const SGIItemBase * item);
     void setImageInfo(const Image * image);
 
-    virtual QDialog *       getDialog() { return _dialog; }
-    virtual IHostCallback * getHostCallback() { return _dialog->_hostCallback; }
-    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=nullptr) { _dialog->setObject(item, callback); }
-    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=nullptr) { _dialog->setObject(item, callback); }
-    virtual void            setObject(SGIItemBase * item, const sgi::Image * image, const std::string & description, IHostCallback * callback=nullptr)
+    virtual QDialog *       getDialog() override { return _dialog; }
+    virtual IHostCallback * getHostCallback() override { return _dialog->_hostCallback; }
+    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=nullptr) override { _dialog->setObject(item, callback); }
+    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=nullptr) override { _dialog->setObject(item, callback); }
+    virtual void            setObject(SGIItemBase * item, const sgi::Image * image, const std::string & description, IHostCallback * callback=nullptr) override
         { _dialog->setObject(item, image, description, callback); }
-    virtual void            setImage(const sgi::Image * image) { _dialog->setImage(image); }
-    virtual void            setDescription(const std::string & description) { _dialog->setDescription(description); }
-    virtual void            show() { emit _dialog->triggerShow(); }
-    virtual void            hide() { emit _dialog->triggerHide(); }
-    virtual bool            isVisible() { return _dialog->isVisible(); }
-    virtual int             showModal() { return _dialog->exec(); }
-    virtual SGIItemBase *   item() const { return _dialog->item(); }
+    virtual void            setImage(const sgi::Image * image) override { _dialog->setImage(image); }
+    virtual void            setDescription(const std::string & description) override { _dialog->setDescription(description); }
+    virtual void            show() override { emit _dialog->triggerShow(); }
+    virtual void            hide() override { emit _dialog->triggerHide(); }
+    virtual bool            isVisible() override { return _dialog->isVisible(); }
+    virtual SGIItemBase *   item() const override { return _dialog->item(); }
 
     void histogramComplete() override {
         emit _dialog->triggerReloadStatistics();
@@ -928,10 +916,11 @@ public:
 
 ImagePreviewDialog::ImagePreviewDialog(QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
-    , _item(NULL)
+    , _item(nullptr)
     , _hostInterface(SGIPlugins::instance()->hostInterface())
     , _priv(new ImagePreviewDialogImpl(this))
     , _interface()
+    , _hostCallback(nullptr)
     , _firstShow(true)
 {
     init();
@@ -943,6 +932,7 @@ ImagePreviewDialog::ImagePreviewDialog(SGIItemBase * item, IHostCallback * callb
 	, _hostInterface(SGIPlugins::instance()->hostInterface())
     , _priv(new ImagePreviewDialogImpl(this))
     , _interface()
+    , _hostCallback(callback)
     , _firstShow(true)
 {
     init();
@@ -965,7 +955,7 @@ void ImagePreviewDialog::init()
 
 ImagePreviewDialog::~ImagePreviewDialog()
 {
-    _priv->_dialog = NULL;
+    _priv->_dialog = nullptr;
 }
 
 void ImagePreviewDialog::showEvent(QShowEvent * event)
@@ -1198,6 +1188,9 @@ void ImagePreviewDialog::refreshImpl()
     else
         ss << "<b>No image</b>";
     _priv->ui->labelImage->setText(qt_helpers::fromUtf8(ss.str()));
+    std::string itemName;
+    _hostInterface->getObjectDisplayName(itemName, _item.get(), true);
+    _priv->ui->openItem->setText(qt_helpers::fromUtf8(itemName));
     _priv->ui->mouseinfo->setText(QString());
     _priv->setImageInfo(_workImage.get());
     _priv->setNodeInfo(_item.get());
@@ -1209,7 +1202,7 @@ SGIItemBase * ImagePreviewDialog::getView()
     if(_hostCallback)
         return _hostCallback->getView();
     else
-        return NULL;
+        return nullptr;
 }
 
 void ImagePreviewDialog::triggerRepaint()
@@ -1238,7 +1231,7 @@ void ImagePreviewDialog::setObject(SGIItemBase * item, const sgi::Image * image,
     _item = item;
     _image = image;
     if (!_image.valid())
-        _workImage = NULL;
+        _workImage = nullptr;
     else
         _workImage = new Image(*image);
     _priv->labelText = qt_helpers::fromUtf8(description);
@@ -1251,7 +1244,7 @@ void ImagePreviewDialog::setImage(const sgi::Image * image)
 {
     _image = image;
     if (!_image.valid())
-        _workImage = NULL;
+        _workImage = nullptr;
     else
         _workImage = new Image(*image);
     emit triggerOnObjectChanged();
@@ -1268,161 +1261,44 @@ SGIItemBase * ImagePreviewDialog::item() const
     return _item.get();
 }
 
+void ImagePreviewDialog::openItem()
+{
+    if(_item.valid())
+    {
+        ISceneGraphDialogPtr dialog;
+        if(_hostCallback.valid())
+            dialog = _hostCallback->showSceneGraphDialog(this, _item.get());
+        else
+            dialog = _hostInterface->showSceneGraphDialog(this, _item, _hostCallback);
+        if(dialog)
+        {
+            dialog->show();
+        }
+    }
+}
+
 void ImagePreviewDialog::onMouseMoved(float x, float y)
 {
     QString str;
     if (_workImage.valid())
     {
-        int px_x = std::max(0, qRound(x * _workImage->width()));
-        int px_y = std::max(0, qRound(y * _workImage->height()));
+        unsigned px_x = 0;
+        if(x >= 0.0f && x < 1.0f)
+            px_x = static_cast<unsigned>(x * _workImage->width());
+        unsigned px_y = 0;
+        if(y >= 0.0f && y < 1.0f)
+            px_y = static_cast<unsigned>(y * _workImage->height());
 
         if(_priv->flipHorizontalAction->isChecked())
             px_x = _workImage->width() - px_x;
         if(_priv->flipVerticalAction->isChecked())
             px_y = _workImage->height() - px_y;
 
-        QString px_value;
-        QString px_value_second;
+        Image::Pixel px = _workImage->pixel(px_x, px_y);
 
-        switch (_workImage->format())
-        {
-        case Image::ImageFormatABGR32:
-        case Image::ImageFormatARGB32:
-        case Image::ImageFormatBGRA32:
-        case Image::ImageFormatRGBA32:
-        case Image::ImageFormatBGR32:
-        case Image::ImageFormatRGB32:
-            {
-                const quint32 * px = _workImage->pixelData<quint32>(px_x, px_y);
-                if (px)
-                {
-                    const quint8 * pxe = (const quint8 *)px;
-                    QColor color;
-                    switch (_workImage->format())
-                    {
-                    case Image::ImageFormatBGR32:
-                    case Image::ImageFormatABGR32: color.setRgb(pxe[3], pxe[2], pxe[1], pxe[0]); break;
-                    case Image::ImageFormatRGB32:
-                    case Image::ImageFormatARGB32: color.setRgb(pxe[1], pxe[2], pxe[3], pxe[0]); break;
-                    case Image::ImageFormatBGRA32: color.setRgb(pxe[2], pxe[1], pxe[1], pxe[3]); break;
-                    case Image::ImageFormatRGBA32: color.setRgb(pxe[0], pxe[1], pxe[2], pxe[3]); break;
-                    default: Q_ASSERT(false); break;
-                    }
-                    px_value = QColor(color).name();
-
-                    switch (_workImage->dataType())
-                    {
-                    case Image::DataTypeUnsignedByte:
-                    case Image::DataTypeSignedByte:
-                        for(unsigned i = 0; i < 4; ++i)
-                        {
-                            if(i>0)
-                                px_value_second += QChar(',');
-                            px_value_second += QString::number(pxe[i]);
-                        }
-                        break;
-                    case Image::DataTypeUnsignedShort:
-                    case Image::DataTypeSignedShort:
-                        for(unsigned i = 0; i < 2; ++i)
-                        {
-                            if(i>0)
-                                px_value_second += QChar(',');
-                            px_value_second += QString::number(((const quint16 *)px)[i]);
-                        }
-                        break;
-                    case Image::DataTypeUnsignedInt:
-                    case Image::DataTypeSignedInt:
-                        px_value_second += QString::number(*px);
-                        break;
-                    case Image::DataTypeFloat32:
-                        px_value_second += QString::number(*(const float*)px);
-                        break;
-                    case Image::DataTypeFloat64:
-                        px_value_second += QString::number(*(const double*)px);
-                        break;
-                    }
-                }
-                else
-                    px_value = tr("N/A");
-            }
-            break;
-        case Image::ImageFormatBGR24:
-        case Image::ImageFormatRGB24:
-            {
-                const quint8 * pxe = _workImage->pixelData<quint8>(px_x, px_y);
-                if (pxe)
-                {
-                    QColor color;
-                    switch (_workImage->format())
-                    {
-                    case Image::ImageFormatBGR24:color.setRgb(pxe[2], pxe[1], pxe[0], 255); break;
-                    case Image::ImageFormatRGB24: color.setRgb(pxe[0], pxe[1], pxe[2], 255); break;
-                    default: Q_ASSERT(false); break;
-                    }
-                    px_value = QColor(color).name();
-                }
-                else
-                    px_value = tr("N/A");
-            }
-            break;
-        case Image::ImageFormatDepth:
-        case Image::ImageFormatFloat:
-            {
-                const float * px = _workImage->pixelData<float>(px_x, px_y);
-                px_value = px ? QString::number(*px) : tr("N/A");
-            }
-            break;
-        case Image::ImageFormatRed:
-        case Image::ImageFormatGreen:
-        case Image::ImageFormatBlue:
-        case Image::ImageFormatAlpha:
-        case Image::ImageFormatGray:
-        case Image::ImageFormatLuminance:
-        case Image::ImageFormatLuminanceAlpha:
-            {
-                switch (_workImage->dataType())
-                {
-                case Image::DataTypeUnsignedByte:
-                case Image::DataTypeSignedByte:
-                    {
-                        const unsigned char * px = _workImage->pixelData<unsigned char>(px_x, px_y);
-                        px_value = px ? QString::number(*px) : tr("N/A");
-                    }
-                    break;
-                case Image::DataTypeUnsignedShort:
-                case Image::DataTypeSignedShort:
-                    {
-                        const unsigned short * px = _workImage->pixelData<unsigned short>(px_x, px_y);
-                        px_value = px ? QString::number(*px) : tr("N/A");
-                    }
-                    break;
-                case Image::DataTypeUnsignedInt:
-                case Image::DataTypeSignedInt:
-                    {
-                        const unsigned int * px = _workImage->pixelData<unsigned int>(px_x, px_y);
-                        px_value = px ? QString::number(*px) : tr("N/A");
-                    }
-                    break;
-                case Image::DataTypeFloat32:
-                    {
-                        const float * px = _workImage->pixelData<float>(px_x, px_y);
-                        px_value = px ? QString::number(*px) : tr("N/A");
-                    }
-                    break;
-                case Image::DataTypeFloat64:
-                    {
-                        const double * px = _workImage->pixelData<double>(px_x, px_y);
-                        px_value = px ? QString::number(*px) : tr("N/A");
-                    }
-                    break;
-                }
-            }
-            break;
-        }
+        QString px_value = QString::fromStdString(px.toString(true));
 
         str = tr("X=%1, Y=%2, value=%3").arg(px_x).arg(px_y).arg(px_value);
-        if(!px_value_second.isEmpty())
-            str += QChar(',') + px_value_second;
     }
     else
         str = tr("X=%1, Y=%2").arg(x).arg(y);

@@ -8,6 +8,9 @@
 #ifdef MAPNODE_ACCESS_HACK
 #undef private
 #endif
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+#include <osgEarth/MapFrame>
+#endif
 
 #include <osgEarthUtil/Controls>
 #include <osgEarthUtil/EarthManipulator>

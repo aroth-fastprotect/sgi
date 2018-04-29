@@ -585,6 +585,8 @@ bool convertImageToQImage(const sgi::Image * image, sgi::Image::ImageFormat dest
     bool ret = false;
     if(!image)
         return false;
+    if (destFormat == Image::ImageFormatOriginal)
+        destFormat = image->format();
     switch (destFormat)
     {
     case Image::ImageFormatInvalid:
@@ -593,15 +595,23 @@ bool convertImageToQImage(const sgi::Image * image, sgi::Image::ImageFormat dest
         break;
     case Image::ImageFormatRGB24:
         ret = convertImageToQImage_RGB24(image, qimage);
+        if (image->origin() == Image::OriginBottomLeft)
+            qimage = qimage.mirrored(false, true);
         break;
     case Image::ImageFormatBGR24:
         ret = convertImageToQImage_BGR24(image, qimage);
+        if (image->origin() == Image::OriginBottomLeft)
+            qimage = qimage.mirrored(false, true);
         break;
     case Image::ImageFormatRGB32:
         ret = convertImageToQImage_RGB32(image, qimage);
+        if (image->origin() == Image::OriginBottomLeft)
+            qimage = qimage.mirrored(false, true);
         break;
     case Image::ImageFormatBGR32:
         ret = convertImageToQImage_BGR32(image, qimage);
+        if (image->origin() == Image::OriginBottomLeft)
+            qimage = qimage.mirrored(false, true);
         break;
     case Image::ImageFormatAutomatic:
         if (image->originalImageQt())
@@ -628,7 +638,7 @@ bool convertImageToQImage(const sgi::Image * image, sgi::Image::ImageFormat dest
             {
                 qimage = QImage((uchar*)image->data(), (int)image->width(), (int)image->height(), (int)image->pitch(0), qt_format);
                 if (image->origin() == Image::OriginBottomLeft)
-                    qimage.mirrored(false, true);
+                    qimage = qimage.mirrored(false, true);
                 ret = true;
             }
             else
