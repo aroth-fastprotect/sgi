@@ -11,40 +11,40 @@
 namespace sgi {
 
 template<typename AUTOLOADCLASS>
-inline IContextMenu * createContextMenuImpl(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=NULL)
+inline IContextMenu * createContextMenuImpl(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=nullptr)
 {
     IContextMenu * ret;
     typedef IContextMenu * (*pfn)(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback);
-    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_createContextMenu");
+    pfn func = reinterpret_cast<pfn>(AUTOLOADCLASS::sgiLibraryProcAddress("sgi_createContextMenu"));
     if(func)
         ret = func(parent, object, callback);
     else
-        ret = NULL;
+        ret = nullptr;
     return ret;
 }
 
 template<typename AUTOLOADCLASS>
-inline IContextMenu * createContextMenuImpl(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL)
+inline IContextMenu * createContextMenuImpl(QWidget *parent, SGIItemBase * item, IHostCallback * callback=nullptr)
 {
     IContextMenu * ret;
     typedef IContextMenu * (*pfn)(QWidget *parent, SGIItemBase * item, IHostCallback * callback);
-    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_createContextMenuItem");
+    pfn func = reinterpret_cast<pfn>(AUTOLOADCLASS::sgiLibraryProcAddress("sgi_createContextMenuItem"));
     if(func)
         ret = func(parent, item, callback);
     else
-        ret = NULL;
+        ret = nullptr;
     return ret;
 }
 
 template<typename AUTOLOADCLASS>
-inline IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * item, IHostCallback * callback=NULL)
+inline IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * item, IHostCallback * callback=nullptr)
 {
     IContextMenu * ret = createContextMenuImpl<AUTOLOADCLASS>(parent, item, callback);
     return ret;
 }
 
 template<typename AUTOLOADCLASS>
-inline IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL)
+inline IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback=nullptr)
 {
     IContextMenu * ret = createContextMenuImpl<AUTOLOADCLASS>(parent, item, callback);
     return ret;
@@ -52,7 +52,7 @@ inline IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHo
 
 #if !defined(SGI_NO_HOSTITEM_GENERATOR)
 template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
-inline IContextMenu * createContextMenu(QWidget *parent, OBJECT_TYPE * object, IHostCallback * callback=NULL)
+inline IContextMenu * createContextMenu(QWidget *parent, OBJECT_TYPE * object, IHostCallback * callback=nullptr)
 {
     osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
     IContextMenu * ret = createContextMenuImpl<AUTOLOADCLASS>(parent, hostitem.get(), callback);

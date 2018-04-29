@@ -69,11 +69,11 @@ class SGI_IMPL_EXPORT SGIItemBase : public osg::Object
 public:
     static unsigned getTotalItemCount();
 public:
-    SGIItemBase(SGIItemType type=SGIItemTypeInvalid, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL);
+    SGIItemBase(SGIItemType type=SGIItemTypeInvalid, unsigned flags=0, unsigned score=0, osg::Referenced * userData=nullptr);
     SGIItemBase(const SGIItemBase & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
     virtual ~SGIItemBase();
 
-    META_Object(sgi, SGIItemBase);
+    META_Object(sgi, SGIItemBase)
 
     SGIItemBase & operator = (const SGIItemBase & rhs);
     bool operator == (const SGIItemBase & rhs) const
@@ -195,12 +195,12 @@ private:
 namespace internal {
     class ReferencedAccess : public osg::Referenced {
     public:
-        int getRefCount() const { return _refCount; }
+        unsigned getRefCount() const { return _refCount; }
     };
 }
 
 template<typename T>
-int getRefCount(const T * ref) {
+unsigned getRefCount(const T * ref) {
     return static_cast<const internal::ReferencedAccess*>(static_cast<const osg::Referenced*>(ref))->getRefCount();
 }
 
@@ -240,7 +240,7 @@ class ReferencedRawPtrT : public osg::Referenced
 public:
     ReferencedRawPtrT()
         : osg::Referenced()
-        , _ptr(NULL)
+        , _ptr(nullptr)
         {}
     ReferencedRawPtrT(T * ptr)
         : osg::Referenced()
@@ -255,8 +255,8 @@ public:
     T* operator->() const { return _ptr; }
     T* get() const { return _ptr; }
 
-    bool operator!() const   { return _ptr==0; } // not required
-    bool valid() const       { return _ptr!=0; }
+    bool operator!() const   { return _ptr==nullptr; } // not required
+    bool valid() const       { return _ptr!=nullptr; }
 
 private:
     T* _ptr;

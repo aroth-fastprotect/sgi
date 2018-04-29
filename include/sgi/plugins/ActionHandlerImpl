@@ -24,7 +24,7 @@ public:
         typedef bool ResultType;
     };
 
-    actionHandlerImplBaseT(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL, IContextMenuAction * menuAction=NULL)
+    actionHandlerImplBaseT(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr, IContextMenuAction * menuAction=nullptr)
         : functionImplBase(hostInterface, item)
         , _menuAction(menuAction)
         {}
@@ -39,7 +39,7 @@ public:
     typedef typename TypePolicy::ResultType ResultType;
 
     template<unsigned Id>
-    static bool callImpl(const details::UintWrap<Id> & id, const CallParamType & param, ResultType & result)
+    static bool callImpl(const details::UintWrap<Id> & /*id*/, const CallParamType & param, ResultType & result)
     {
         ImplT<Id> f(param.hostInterface, param.item, param.menuAction);
         result = f.execute();
@@ -80,7 +80,7 @@ public:
     template<typename ACTION_ID_TYPE>
     ACTION_ID_TYPE actionId() const
     {
-        return (ACTION_ID_TYPE)_menuAction->actionId();
+        return static_cast<ACTION_ID_TYPE>(_menuAction->actionId());
     }
 
     template<typename USER_DATA_TYPE>
@@ -113,7 +113,7 @@ protected:
     class actionHandlerImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        actionHandlerImpl(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL, IContextMenuAction * menuAction=NULL) {}\
+        actionHandlerImpl(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr, IContextMenuAction * menuAction=nullptr) {}\
         bool execute() { return false; } \
     }; \
     typedef actionHandlerImplBaseT<actionHandlerImpl> actionHandlerImplBase;
@@ -127,7 +127,7 @@ protected:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        actionHandlerImpl<__id>(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL, IContextMenuAction * menuAction=NULL) \
+        actionHandlerImpl<__id>(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr, IContextMenuAction * menuAction=nullptr) \
             : actionHandlerImplBase(hostInterface, item, menuAction) {} \
         bool execute(); \
     };

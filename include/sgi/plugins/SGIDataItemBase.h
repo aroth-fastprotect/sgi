@@ -30,7 +30,7 @@ public:
         : SGIDataFieldBase(), _value(value) {}
     SGIDataFieldT(const SGIDataFieldT & rhs)
         : SGIDataFieldBase(rhs), _value(rhs._value) {}
-    virtual ~SGIDataFieldT() {}
+    ~SGIDataFieldT() override {}
 
     const DATATYPE & value() const { return _value; }
     DATATYPE & value() { return _value; }
@@ -41,7 +41,7 @@ public:
     bool operator==(const DATATYPE & rhs) const { return _value == rhs; }
     bool operator!=(const DATATYPE & rhs) const { return _value != rhs; }
 
-    virtual std::string toString(SGIPluginHostInterface * hostInterface) const;
+    virtual std::string toString(SGIPluginHostInterface * hostInterface) const override;
 
 protected:
     DATATYPE _value;
@@ -54,13 +54,13 @@ typedef SGIDataFieldT<bool> SGIDataFieldBool;
 typedef SGIDataFieldT<SGIItemBasePtr> SGIDataFieldItemBasePtr;
 
 template<>
-inline std::string SGIDataFieldT<std::string>::toString(SGIPluginHostInterface * hostInterface) const
+inline std::string SGIDataFieldT<std::string>::toString(SGIPluginHostInterface * /*hostInterface*/) const
 {
     return _value;
 }
 
 template<>
-inline std::string SGIDataFieldT<int>::toString(SGIPluginHostInterface * hostInterface) const
+inline std::string SGIDataFieldT<int>::toString(SGIPluginHostInterface * /*hostInterface*/) const
 {
     std::stringstream ss;
     ss << _value;
@@ -68,7 +68,7 @@ inline std::string SGIDataFieldT<int>::toString(SGIPluginHostInterface * hostInt
 }
 
 template<>
-inline std::string SGIDataFieldT<unsigned>::toString(SGIPluginHostInterface * hostInterface) const
+inline std::string SGIDataFieldT<unsigned>::toString(SGIPluginHostInterface * /*hostInterface*/) const
 {
     std::stringstream ss;
     ss << _value;
@@ -76,7 +76,7 @@ inline std::string SGIDataFieldT<unsigned>::toString(SGIPluginHostInterface * ho
 }
 
 template<>
-inline std::string SGIDataFieldT<bool>::toString(SGIPluginHostInterface * hostInterface) const
+inline std::string SGIDataFieldT<bool>::toString(SGIPluginHostInterface * /*hostInterface*/) const
 {
     std::stringstream ss;
     ss << ((_value)?"true":"false");
@@ -95,7 +95,7 @@ inline std::string SGIDataFieldT<SGIItemBasePtr>::toString(SGIPluginHostInterfac
 class SGI_IMPL_EXPORT SGIDataItemBase : public osg::Referenced
 {
 public:
-    SGIDataItemBase(SGIItemBase * item=NULL, size_t numFields=0);
+    SGIDataItemBase(SGIItemBase * item=nullptr, size_t numFields=0);
     SGIDataItemBase(const SGIDataItemBase & rhs);
     virtual ~SGIDataItemBase();
 
