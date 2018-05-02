@@ -1433,7 +1433,7 @@ bool objectTreeBuildImpl<osgEarth::MaskSource>::build(IObjectTreeItem * treeItem
 bool objectTreeBuildImpl<ElevationQueryReferenced>::build(IObjectTreeItem * treeItem)
 {
     ElevationQueryReferenced * query_ref = getObject<ElevationQueryReferenced, SGIItemOsg>();
-    osgEarth::ElevationQuery* object = query_ref->get();
+    ElevationQueryAccess* object = static_cast<ElevationQueryAccess*>(query_ref->get());
     bool ret = false;
     switch(itemType())
     {
@@ -1441,9 +1441,12 @@ bool objectTreeBuildImpl<ElevationQueryReferenced>::build(IObjectTreeItem * tree
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            ElevationQueryAccess * access = (ElevationQueryAccess*)object;
-
             treeItem->addChild("TileCache", cloneItem<SGIItemOsg>(SGIItemTypeTileCache));
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+            SGIHostItemOsg map(object->getMap());
+            if (map.hasObject())
+                treeItem->addChild("Map", &map);
+#endif
         }
         break;
     case SGIItemTypeTileCache:
@@ -1455,8 +1458,7 @@ bool objectTreeBuildImpl<ElevationQueryReferenced>::build(IObjectTreeItem * tree
         break;
     case SGIItemTypeTileCacheMap:
         {
-            ElevationQueryAccess * access = (ElevationQueryAccess*)object;
-            const ElevationQueryAccess::TileCache & tileCache = access->tileCache();
+            const ElevationQueryAccess::TileCache & tileCache = object->tileCache();
 
             for(ElevationQueryAccess::TileCache::map_const_iter it = tileCache.map().begin(); it != tileCache.map().end(); it++)
             {

@@ -5,6 +5,7 @@
 #define _ALLOW_KEYWORD_MACROS
 #endif
 #define MAPNODE_ACCESS_HACK
+#define ELEVATIONQUERY_ACCESS_HACK
 #include "osgearth_accessor.h"
 
 #include <osgEarth/MapNodeOptions>
@@ -145,6 +146,24 @@ const osgEarth::MapNodeCullData * MapNodeAccess::getCullDataForCamera(osg::Camer
         return NULL;
 }
 #endif
+
+#if OSGEARTH_VERSION_LESS_THAN(2,10,0)
+const osgEarth::MapInfo& ElevationQueryAccess::getMapInfo() const 
+{ 
+    return ((DataAccess*)this)->_mapf.getMapInfo();
+}
+
+const osgEarth::Profile* ElevationQueryAccess::getProfile() const 
+{ 
+    return ((DataAccess*)this)->_mapf.getProfile();
+}
+#else
+const osgEarth::Map* ElevationQueryAccess::getMap() const
+{
+    return _map.get();
+}
+#endif
+
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 void LayerAccessor::getLayerCallbacks(LayerCallbackList & callbacks) const
