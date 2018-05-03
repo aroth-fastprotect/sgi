@@ -127,11 +127,17 @@ bool RetrieveElevationDialog::getQueryPoint(osgEarth::GeoPoint & point)
     ElevationQueryAccess * query = queryRef?(ElevationQueryAccess *)queryRef->get():NULL;
     if(query)
     {
+        const osgEarth::Profile * profile;
+#if OSGEARTH_VERSION_LESS_THAN(2,10,0)
         const osgEarth::MapInfo& mapInfo = query->getMapInfo();
-        if(mapInfo.getProfile())
+        profile = mapInfo.getProfile();
+#else
+        profile = query->getMap()->getProfile();
+#endif
+        if(profile)
         {
             bool ok = false;
-			CoordinateResult coordResult = coordinateFromString(ui->coordinate, mapInfo.getProfile(), 0, &ok);
+			CoordinateResult coordResult = coordinateFromString(ui->coordinate, profile, 0, &ok);
             if(ok)
             {
 				if (coordResult.geoPoint.isValid())

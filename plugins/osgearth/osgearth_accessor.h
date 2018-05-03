@@ -19,7 +19,13 @@
 #include <osgEarth/TerrainEngineNode>
 #include <osgEarth/Registry>
 #include <osgEarth/VirtualProgram>
+#ifdef ELEVATIONQUERY_ACCESS_HACK
+#define private protected
+#endif
 #include <osgEarth/ElevationQuery>
+#ifdef ELEVATIONQUERY_ACCESS_HACK
+#undef private
+#endif
 #include <osgEarthFeatures/FeatureModelSource>
 #include <osg/io_utils>
 
@@ -285,9 +291,15 @@ namespace osgearth_plugin {
         private:
             DataAccess(const DataAccess & rhs);
         public:
-            DataAccess() : _mapf(NULL) {}
+            DataAccess() 
+#if OSGEARTH_VERSION_LESS_THAN(2,10,0)
+                : _mapf(NULL)
+#endif
+            {}
             virtual ~DataAccess() { }
+#if OSGEARTH_VERSION_LESS_THAN(2,10,0)
             osgEarth::MapFrame  _mapf;
+#endif
             unsigned  _maxCacheSize;
             int       _tileSize;
             int       _maxLevelOverride;
@@ -299,10 +311,14 @@ namespace osgearth_plugin {
         };
     public:
         const TileCache & tileCache() { return ((DataAccess*)this)->_tileCache; }
+#if OSGEARTH_VERSION_LESS_THAN(2,10,0)
         /** Accesses the profile/rendering info about the source map. */
-        const osgEarth::MapInfo& getMapInfo() const { return ((DataAccess*)this)->_mapf.getMapInfo(); }
+        const osgEarth::MapInfo& getMapInfo() const;
         /** Convenience method to access the map's profile */
-        const osgEarth::Profile* getProfile() const { return ((DataAccess*)this)->_mapf.getProfile(); }
+        const osgEarth::Profile* getProfile() const;
+#else
+        const osgEarth::Map* getMap() const;
+#endif
     };
 
     class TileBlacklistAccess : public osgEarth::TileBlacklist

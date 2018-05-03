@@ -545,8 +545,8 @@ bool actionHandlerImpl<MenuActionTileBlacklistClear>::execute()
         if(!map && mapnode)
             map = mapnode->getMap();
         Q_ASSERT(map != NULL);
-        osgEarth::MapFrame frame(map);
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
+        osgEarth::MapFrame frame(map);
         for (osgEarth::ElevationLayer * elevationLayer : frame.elevationLayers())
         {
             tilesource = elevationLayer->getTileSource();
@@ -564,6 +564,20 @@ bool actionHandlerImpl<MenuActionTileBlacklistClear>::execute()
                 tileblacklist->clear();
         }
 #else
+        osgEarth::LayerVector layers;
+        map->getLayers(layers);
+        for (osgEarth::Layer * layer : layers)
+        {
+            osgEarth::TerrainLayer* terrainLayer = dynamic_cast<osgEarth::TerrainLayer*>(layer);
+            if (terrainLayer)
+            {
+                tilesource = terrainLayer->getTileSource();
+                if (tilesource)
+                    tileblacklist = tilesource->getBlacklist();
+                if (tileblacklist)
+                    tileblacklist->clear();
+            }
+        }
 #endif
     }
     return true;
