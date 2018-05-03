@@ -34,6 +34,7 @@
 #include <osg/BlendColor>
 #include <osg/BlendFunc>
 #include <osg/PolygonMode>
+#include <osg/Point>
 #include <osg/io_utils>
 
 #include <osgDB/Registry>
