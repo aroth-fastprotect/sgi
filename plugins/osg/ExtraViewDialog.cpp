@@ -14,6 +14,10 @@
 #include <osgViewer/CompositeViewer>
 #include "SGIItemOsg"
 
+#ifdef SGI_USE_OSGQT
+#include <osgQt/GraphicsWindowQt>
+#endif
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif

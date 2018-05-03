@@ -60,6 +60,12 @@ if(UNIX)
         OSGANIMATION_LIBRARY
         )
 endif()
+if(OSGQT_FOUND)
+    include_directories(${OSGQT_INCLUDE_DIR})
+    LIST(APPEND TARGET_LIBRARIES_VARS
+        OSGQT_LIBRARY
+    )
+endif()
 if(OSGEARTH_FOUND)
 	include_directories(${OSGEARTH_INCLUDE_DIR})
     LIST(APPEND TARGET_LIBRARIES_VARS
