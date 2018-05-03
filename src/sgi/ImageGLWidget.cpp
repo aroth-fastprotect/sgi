@@ -295,10 +295,10 @@ void ImageGLWidget::teardownGL()
     delete _object;
     delete _vertex;
     delete _program;
-    _texture = NULL;
-    _object = NULL;
-    _vertex = NULL;
-    _program = NULL;
+    _texture = nullptr;
+    _object = nullptr;
+    _vertex = nullptr;
+    _program = nullptr;
 }
 
 void ImageGLWidget::paintEvent(QPaintEvent *event)
@@ -335,7 +335,7 @@ QSize ImageGLWidget::sizeHint() const
     if (!_image.valid() || _image->empty())
         return QOpenGLWidget::sizeHint();
 
-    return QSize(_image->width(), _image->height());
+    return QSize((int)_image->width(), (int)_image->height());
 }
 
 const sgi::Image * ImageGLWidget::image() const
@@ -383,7 +383,7 @@ void ImageGLWidget::setImage(const sgi::Image * image)
 
 void ImageGLWidget::setImageImpl(const sgi::Image * image, bool reset)
 {
-    Q_ASSERT(_texture != NULL);
+    Q_ASSERT(_texture != nullptr);
     if(image)
         qWarning() << "setImageImpl" << image->format() << image->dataType() << image->width() << image->height() << image->data() << image->length();
     else
@@ -656,11 +656,13 @@ void ImageGLWidget::mouseMoveEvent(QMouseEvent *ev)
 
 void ImageGLWidget::resizeEvent(QResizeEvent *event)
 {
-
-    QSize s(_image ? _image->width() : 0, _image ? _image->height() : 0);
+    int pheight = parentWidget()->height();
+    QSize s(_image ? static_cast<int>(_image->width()) : 0, _image ? static_cast<int>(_image->height()) : 0);
     s.scale(event->size(), Qt::KeepAspectRatio);
     s = QLayout::closestAcceptableSize(this, s);
     QRect imageRect = QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, s, rect());
+    int top = (pheight / 2) - (imageRect.height() / 2);
+    imageRect.moveTop(top);
     setGeometry(imageRect);
 
     QOpenGLWidget::resizeEvent(event);

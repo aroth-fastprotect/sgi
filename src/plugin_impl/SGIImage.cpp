@@ -5,6 +5,8 @@
 #include <sstream>
 #include <cmath>
 #include <cassert>
+#include <algorithm>
+#include <iomanip>
 #include <memory.h>
 
 #define ALIGN_SIZE(x,n)       ((size_t)((~(n-1))&((x)+(n-1))))
@@ -15,6 +17,499 @@
 #define SGI_UNUSED(x) (void)x;
 
 namespace sgi {
+
+Image::Pixel::Pixel()
+    : type(DataTypeInvalid), elements(0)
+{
+}
+
+Image::Pixel::Pixel(DataType t, const PixelData & d)
+    : type(t), data(d), elements(0)
+{
+}
+
+Image::Pixel::Pixel(DataType t, float a, float r, float g, float b)
+    : type(t), elements(0)
+{
+    switch(type)
+    {
+    case Image::DataTypeFloat32:
+        data.f32[0] = a;
+        data.f32[1] = r;
+        data.f32[2] = g;
+        data.f32[3] = b;
+        elements = 4;
+        break;
+    }
+}
+
+Image::Pixel::Pixel(DataType t, float f)
+    : type(t), elements(0)
+{
+    switch(type)
+    {
+    case Image::DataTypeFloat32:
+        data.f32[0] = f;
+        elements = 1;
+        break;
+    }
+}
+
+Image::Pixel::Pixel(DataType t, double f)
+    : type(t), elements(0)
+{
+    switch(type)
+    {
+    case Image::DataTypeFloat64:
+        data.f64[0] = f;
+        elements = 1;
+        break;
+    }
+}
+
+Image::Pixel::Pixel(DataType t, unsigned char f)
+    : type(t), elements(0)
+{
+    switch(type)
+    {
+    case Image::DataTypeUnsignedByte:
+        data.u8 = f;
+        elements = 1;
+        break;
+    }
+}
+
+Image::Pixel::Pixel(DataType t, unsigned char a_, unsigned char r_, unsigned char g_, unsigned char b_)
+    : type(t), elements(0)
+{
+    switch(type)
+    {
+    case Image::DataTypeUnsignedByte:
+        data.u8 = a_;
+        elements = 1;
+        break;
+    case Image::DataTypeARGB:
+        data.argb.a = a_;
+        data.argb.r = r_;
+        data.argb.g = g_;
+        data.argb.b = b_;
+        elements = 4;
+        break;
+    }
+}
+
+Image::Pixel::Pixel(DataType t, signed char f)
+    : type(t), elements(0)
+{
+    switch(type)
+    {
+    case Image::DataTypeSignedByte:
+        data.s8 = f;
+        elements = 1;
+        break;
+    }
+}
+
+Image::Pixel::Pixel(DataType t, unsigned short f)
+    : type(t), elements(0)
+{
+    switch(type)
+    {
+    case Image::DataTypeUnsignedShort:
+        data.u16 = f;
+        elements = 1;
+        break;
+    }
+}
+
+Image::Pixel::Pixel(DataType t, signed short f)
+    : type(t), elements(0)
+{
+    switch(type)
+    {
+    case Image::DataTypeSignedShort:
+        data.s16 = f;
+        elements = 1;
+        break;
+    }
+}
+
+Image::Pixel::Pixel(DataType t, unsigned int f)
+    : type(t), elements(0)
+{
+    switch(type)
+    {
+    case Image::DataTypeUnsignedInt:
+        data.u32 = f;
+        elements = 1;
+        break;
+    }
+}
+
+Image::Pixel::Pixel(DataType t, signed int f)
+    : type(t), elements(0)
+{
+    switch(type)
+    {
+    case Image::DataTypeSignedInt:
+        data.s32 = f;
+        elements = 1;
+        break;
+    }
+}
+
+Image::Pixel::Pixel(DataType t, const RGB & rgb)
+    : type(t), elements(0)
+{
+    switch(type)
+    {
+    case Image::DataTypeARGB:
+        data.argb.a = 255;
+        data.argb.r = rgb.r;
+        data.argb.g = rgb.g;
+        data.argb.b = rgb.b;
+        elements = 3;
+        break;
+    }
+}
+
+Image::Pixel::Pixel(DataType t, const ARGB & argb)
+    : type(t), elements(0)
+{
+    switch(type)
+    {
+    case Image::DataTypeARGB:
+        data.argb = argb;
+        break;
+    }
+}
+
+
+void Image::Pixel::clear()
+{
+    type = DataTypeInvalid;
+}
+
+void Image::Pixel::setARGB(const ARGB & rhs)
+{
+    type = DataTypeARGB;
+    data.argb = rhs;
+    elements = 4;
+}
+
+void Image::Pixel::setARGB(unsigned char a, unsigned char r, unsigned char g, unsigned char b)
+{
+    type = DataTypeARGB;
+    data.argb.a = a;
+    data.argb.r = r;
+    data.argb.g = g;
+    data.argb.b = b;
+    elements = 4;
+}
+
+void Image::Pixel::setFloat32(float a, float r, float g, float b)
+{
+    type = DataTypeFloat32;
+    data.f32[0] = a;
+    data.f32[1] = r;
+    data.f32[2] = g;
+    data.f32[3] = b;
+    elements = 4;
+}
+
+void Image::Pixel::setFloat64(double f, double f2)
+{
+    type = DataTypeFloat64;
+    data.f64[0] = f;
+    data.f64[1] = f2;
+    elements = 2;
+}
+
+float Image::Pixel::a() const
+{
+    float ret = 0;
+    switch(type)
+    {
+    case DataTypeARGB:
+        ret = (float)data.argb.a / 255.0f;
+        break;
+    case DataTypeFloat32:
+        ret = data.f32[0];
+        break;
+    }
+    return ret;
+}
+
+float Image::Pixel::r() const
+{
+    float ret = 0;
+    switch(type)
+    {
+    case DataTypeARGB:
+        ret = (float)data.argb.r / 255.0f;
+        break;
+    case DataTypeFloat32:
+        ret = data.f32[1];
+        break;
+    }
+    return ret;
+}
+
+float Image::Pixel::g() const
+{
+    float ret = 0;
+    switch(type)
+    {
+    case DataTypeARGB:
+        ret = (float)data.argb.g / 255.0f;
+        break;
+    case DataTypeFloat32:
+        ret = data.f32[2];
+        break;
+    }
+    return ret;
+}
+
+float Image::Pixel::b() const
+{
+    float ret = 0;
+    switch(type)
+    {
+    case DataTypeARGB:
+        ret = (float)data.argb.b / 255.0f;
+        break;
+    case DataTypeFloat32:
+        ret = data.f32[3];
+        break;
+    }
+    return ret;
+}
+
+
+int Image::Pixel::alpha() const
+{
+    int ret = 0;
+    switch(type)
+    {
+    case DataTypeARGB:
+        ret = static_cast<int>(data.argb.a);
+        break;
+    case DataTypeFloat32:
+        ret = data.f32[0] * 255.0f;
+        break;
+    }
+    return ret;
+}
+
+int Image::Pixel::red() const
+{
+    float ret = 0;
+    switch(type)
+    {
+    case DataTypeARGB:
+        ret = static_cast<int>(data.argb.r);
+        break;
+    case DataTypeFloat32:
+        ret = data.f32[1] * 255.0f;
+        break;
+    }
+    return ret;
+}
+
+int Image::Pixel::green() const
+{
+    int ret = 0;
+    switch(type)
+    {
+    case DataTypeARGB:
+        ret = static_cast<int>(data.argb.g);
+        break;
+    case DataTypeFloat32:
+        ret = data.f32[2] * 255.0f;
+        break;
+    }
+    return ret;
+}
+
+int Image::Pixel::blue() const
+{
+    int ret = 0;
+    switch(type)
+    {
+    case DataTypeARGB:
+        ret = static_cast<int>(data.argb.b);
+        break;
+    case DataTypeFloat32:
+        ret = data.f32[3] * 255.0f;
+        break;
+    }
+    return ret;
+}
+
+int Image::Pixel::gray() const
+{
+    int ret = 0;
+    switch(type)
+    {
+    case DataTypeARGB:
+        // See qGray()
+        ret = (11 * data.argb.r + 16 * data.argb.g + 5 * data.argb.b) / 32;
+        break;
+    case DataTypeFloat32:
+        ret = 0.2126f * data.f32[1] + 0.7152f * data.f32[2] + 0.0722f * data.f32[3];
+        break;
+    }
+    return ret;
+}
+
+float Image::Pixel::lumaF() const
+{
+    float ret = 0;
+    switch(type)
+    {
+    case DataTypeARGB:
+        ret = 0.2126f * data.argb.r + 0.7152f * data.argb.g + 0.0722f * data.argb.b;
+        break;
+    case DataTypeFloat32:
+        ret = 0.2126f * data.f32[1] + 0.7152f * data.f32[2] + 0.0722f * data.f32[3];
+        break;
+    }
+    return ret;
+}
+
+
+Image::Pixel & Image::Pixel::operator *= (const double f)
+{
+    switch(type)
+    {
+    case DataTypeInvalid:
+        break;
+    case DataTypeARGB:
+        data.argb.a *= f;
+        data.argb.r *= f;
+        data.argb.g *= f;
+        data.argb.b *= f;
+        break;
+    case DataTypeFloat32:
+        data.f32[0] *= f;
+        data.f32[1] *= f;
+        data.f32[2] *= f;
+        data.f32[3] *= f;
+        break;
+    case DataTypeFloat64:
+        data.f64[0] *= f;
+        data.f64[1] *= f;
+        break;
+    }
+    return *this;
+}
+
+Image::Pixel Image::Pixel::operator * (const double f) const
+{
+    Pixel ret = *this;
+    ret *= f;
+    return ret;
+}
+
+Image::Pixel Image::Pixel::operator+(const Pixel & rhs) const
+{
+    Pixel ret;
+    switch(type)
+    {
+    case DataTypeInvalid:
+        break;
+    case DataTypeARGB:
+        ret.data.argb.a = data.argb.a + rhs.data.argb.a;
+        ret.data.argb.r = data.argb.r + rhs.data.argb.r;
+        ret.data.argb.g = data.argb.g + rhs.data.argb.g;
+        ret.data.argb.b = data.argb.b + rhs.data.argb.b;
+        break;
+    case DataTypeFloat32:
+        ret.data.f32[0] = data.f32[0] + rhs.data.f32[0];
+        ret.data.f32[1] = data.f32[1] + rhs.data.f32[1];
+        ret.data.f32[2] = data.f32[2] + rhs.data.f32[2];
+        ret.data.f32[3] = data.f32[3] + rhs.data.f32[3];
+        break;
+    case DataTypeFloat64:
+        ret.data.f64[0] = data.f64[0] + rhs.data.f64[0];
+        ret.data.f64[1] = data.f64[1] + rhs.data.f64[1];
+    }
+    return ret;
+}
+
+std::string Image::Pixel::toString(bool includeDataType) const
+{
+    std::stringstream ss;
+    switch(type)
+    {
+    case DataTypeInvalid:
+        ss << "invalid";
+        break;
+    case DataTypeUnsignedByte:
+        if(includeDataType)
+            ss << "u8:";
+        ss << (unsigned)data.u8;
+        break;
+    case DataTypeSignedByte:
+        if(includeDataType)
+            ss << "s8:";
+        ss << (int)data.s8;
+        break;
+    case DataTypeUnsignedShort:
+        if(includeDataType)
+            ss << "u16:";
+        ss << (unsigned)data.u16;
+        break;
+    case DataTypeSignedShort:
+        if(includeDataType)
+            ss << "s16:";
+        ss << (int)data.s16;
+        break;
+    case DataTypeUnsignedInt:
+        if(includeDataType)
+            ss << "u32:";
+        ss << (unsigned)data.u32;
+        break;
+    case DataTypeSignedInt:
+        if(includeDataType)
+            ss << "s32:";
+        ss << (int)data.s32;
+        break;
+    case DataTypeARGB:
+        if(includeDataType)
+            ss << "argb:";
+        ss << "#";
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)data.argb.r;
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)data.argb.g;
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)data.argb.b;
+        if (data.argb.a < 255 && elements >= 4)
+            ss << std::hex << std::setw(2) << std::setfill('0') << (int)data.argb.a;
+        break;
+    case DataTypeFloat32:
+        if(includeDataType)
+            ss << "f32:";
+        ss << data.f32[0];
+        if(elements > 1)
+            ss << ',' << data.f32[1];
+        if(elements > 2)
+            ss << ',' << data.f32[2];
+        if(elements > 3)
+            ss << ',' << data.f32[3];
+        break;
+    case DataTypeFloat64:
+        if(includeDataType)
+            ss << "f64:";
+        ss << data.f64[0];
+        if(elements > 1)
+            ss << ',' << data.f64[1];
+        break;
+    default:
+        ss << "type=" << type;
+        break;
+    }
+    return ss.str();
+}
+
 
 Image::Image(ImageFormat format, DataType type)
     : _format(format), _dataType(type), _origin(OriginDefault), _data(NULL), _length(0)
@@ -109,7 +604,6 @@ Image & Image::operator=(const Image & rhs)
     _originalImage = rhs._originalImage;
     if (rhs._originalImageQt && rhs._copyQt)
     {
-        const Image * prhs = &rhs;
         // copy/clone the QImage instance using the rhs object with the copyQt function ptr from rhs object
         _originalImageQt = (rhs.*rhs._copyQt)();
     }
@@ -122,6 +616,7 @@ Image & Image::operator=(const Image & rhs)
 
 void Image::loadPitchAndPlaneOffsets()
 {
+    unsigned bytesPerDataElement = bitsForDataElement(_dataType) / 8;
     switch (_format)
     {
     default:
@@ -137,7 +632,7 @@ void Image::loadPitchAndPlaneOffsets()
     case ImageFormatRGB24:
     case ImageFormatBGR24:
     {
-        _pitch[0] = _width * 3;
+        _pitch[0] = _width * 3 * bytesPerDataElement;
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
         _lines[0] = _height;
         _lines[1] = _lines[2] = _lines[3] = 0;
@@ -150,19 +645,19 @@ void Image::loadPitchAndPlaneOffsets()
     case ImageFormatBGR32:
     case ImageFormatBGRA32:
     case ImageFormatABGR32:
-    case ImageFormatFloat:
-    case ImageFormatDepth:
     {
-        _pitch[0] = _width * 4;
+        _pitch[0] = _width * 4 * bytesPerDataElement;
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
         _lines[0] = _height;
         _lines[1] = _lines[2] = _lines[3] = 0;
         _planeOffset[0] = _planeOffset[1] = _planeOffset[2] = _planeOffset[3] = 0;
     }
     break;
+    case ImageFormatFloat:
+    case ImageFormatDepth:
     case ImageFormatFloat64:
     {
-        _pitch[0] = _width * 8;
+        _pitch[0] = _width * bytesPerDataElement;
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
         _lines[0] = _height;
         _lines[1] = _lines[2] = _lines[3] = 0;
@@ -171,7 +666,7 @@ void Image::loadPitchAndPlaneOffsets()
     break;
     case ImageFormatYUV444:
     {
-        _pitch[0] = _pitch[1] = _pitch[2] = _width * 3;
+        _pitch[0] = _pitch[1] = _pitch[2] = _width * bytesPerDataElement;
         _pitch[3] = 0;
         _lines[0] = _lines[1] = _lines[2] = _height;
         _lines[3] = 0;
@@ -183,7 +678,7 @@ void Image::loadPitchAndPlaneOffsets()
     break;
     case ImageFormatYUV422:
     {
-        _pitch[0] = _width;
+        _pitch[0] = _width * bytesPerDataElement;
         _pitch[1] = _pitch[2] = _width / 2;
         _pitch[3] = 0;
         _lines[0] = _lines[1] = _lines[2] = _height;
@@ -196,7 +691,7 @@ void Image::loadPitchAndPlaneOffsets()
     break;
     case ImageFormatYUV420:
     {
-        _pitch[0] = _width;
+        _pitch[0] = _width * bytesPerDataElement;
         _pitch[1] = _pitch[2] = _width / 2;
         _pitch[3] = 0;
         _lines[0] = _height;
@@ -212,7 +707,7 @@ void Image::loadPitchAndPlaneOffsets()
     case ImageFormatYUYV:
     case ImageFormatUYVY:
     {
-        _pitch[0] = _width + _width;
+        _pitch[0] = (_width + _width) * bytesPerDataElement;
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
         _lines[0] = _height;
         _lines[1] = _lines[2] = _lines[3] = 0;
@@ -228,7 +723,7 @@ void Image::loadPitchAndPlaneOffsets()
     case ImageFormatLuminanceAlpha:
     {
         // only one channel with 8-bit color data
-        _pitch[0] = (_width * bitsForDataElement(_dataType)) / 8;
+        _pitch[0] = _width * bytesPerDataElement;
         _pitch[1] = _pitch[2] = _pitch[3] = 0;
         _lines[0] = _height;
         _lines[1] = _lines[2] = _lines[3] = 0;
@@ -279,18 +774,19 @@ void Image::free()
     if(_allocated && _data)
     {
         ::free(_data);
-        _data = NULL;
+        _data = nullptr;
     }
 }
 
 
-bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin origin)
+bool Image::allocate(unsigned width, unsigned height, ImageFormat format, DataType dataType, Origin origin)
 {
     bool ret = false;
     unsigned allocated_width = ALIGN_BY_16(width);
     unsigned allocated_height = ALIGN_BY_16(height);
     free();
     _length = 0;
+    unsigned bytesPerDataElement = bitsForDataElement(dataType) / 8;
     switch (format)
     {
     default:
@@ -308,7 +804,7 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
         break;
     case ImageFormatRGB24:
     case ImageFormatBGR24:
-        _length = allocated_width * allocated_height * 3;
+        _length = allocated_width * allocated_height * 3 * bytesPerDataElement;
         break;
     case ImageFormatRGB32:
     case ImageFormatRGBA32:
@@ -317,16 +813,14 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
     case ImageFormatBGRA32:
     case ImageFormatABGR32:
     case ImageFormatFloat:
-        _length = allocated_width * allocated_height * 4;
-        break;
     case ImageFormatFloat64:
-        _length = allocated_width * allocated_height * 8;
+        _length = allocated_width * allocated_height * bytesPerDataElement;
         break;
     case ImageFormatYUV444:
-        _length = allocated_width * allocated_height * 3;
+        _length = allocated_width * allocated_height * 3 * bytesPerDataElement;
         break;
     case ImageFormatYUV422:
-        _length = allocated_width * allocated_height * 2;
+        _length = allocated_width * allocated_height * 2 * bytesPerDataElement;
         break;
     case ImageFormatYUV420:
         _length = allocated_width * allocated_height + (allocated_width / 2 * allocated_height/2);
@@ -334,7 +828,7 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
 
     case ImageFormatYUYV:
     case ImageFormatUYVY:
-        _length = (allocated_width + allocated_width) * allocated_height;
+        _length = (allocated_width + allocated_width) * allocated_height * bytesPerDataElement;
         break;
     case ImageFormatGray:
     case ImageFormatRed:
@@ -342,7 +836,7 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
     case ImageFormatBlue:
     case ImageFormatAlpha:
         // only one channel with 8-bit color data
-        _length = allocated_width * allocated_height;
+        _length = allocated_width * allocated_height * bytesPerDataElement;
         break;
     }
     if(_length)
@@ -354,10 +848,10 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, Origin
         _allocatedWidth = allocated_width;
         _allocatedHeight = allocated_height;
         _format = format;
-        _dataType = DataTypeUnsignedByte;
+        _dataType = dataType;
         _origin = origin;
         loadPitchAndPlaneOffsets();
-        ret = _data != NULL;
+        ret = _data != nullptr;
         _allocated = ret;
     }
     return ret;
@@ -368,16 +862,16 @@ bool Image::reinterpretFormat(ImageFormat targetFormat)
     bool ret = false;
     switch(_format)
     {
-    case Image::ImageFormatRed:
-    case Image::ImageFormatGreen:
-    case Image::ImageFormatBlue:
-    case Image::ImageFormatAlpha:
-    case Image::ImageFormatGray:
+    case ImageFormatRed:
+    case ImageFormatGreen:
+    case ImageFormatBlue:
+    case ImageFormatAlpha:
+    case ImageFormatGray:
         {
             // reinterpret a single channel image as a full color image
             switch(targetFormat)
             {
-            case Image::ImageFormatYUV444:
+            case ImageFormatYUV444:
                 ret = (_height % 3) == 0;
                 if(ret)
                 {
@@ -395,7 +889,7 @@ bool Image::reinterpretFormat(ImageFormat targetFormat)
                     _height = planeHeight;
                 }
                 break;
-            case Image::ImageFormatYUV422:
+            case ImageFormatYUV422:
                 ret = (_height % 2) == 0;
                 if(ret)
                 {
@@ -415,7 +909,7 @@ bool Image::reinterpretFormat(ImageFormat targetFormat)
                     _height = luma_planeHeight;
                 }
                 break;
-            case Image::ImageFormatYUV420:
+            case ImageFormatYUV420:
                 ret = ((_height+_height) % 3) == 0;
                 if(ret)
                 {
@@ -435,8 +929,8 @@ bool Image::reinterpretFormat(ImageFormat targetFormat)
                     _height = luma_planeHeight;
                 }
                 break;
-            case Image::ImageFormatYUYV:
-            case Image::ImageFormatUYVY:
+            case ImageFormatYUYV:
+            case ImageFormatUYVY:
                 {
                     // it's a YUV422 color format all in one plane
                     ret = (_height % 2) == 0;
@@ -518,37 +1012,37 @@ bool Image::guessImageSizes(ImageSizeList & possibleSizes) const
     size_t totalNumberOfPixels = 0;
     switch(_format)
     {
-    case Image::ImageFormatARGB32:
-    case Image::ImageFormatRGBA32:
-    case Image::ImageFormatRGB32:
-    case Image::ImageFormatABGR32:
-    case Image::ImageFormatBGRA32:
-    case Image::ImageFormatBGR32:
-    case Image::ImageFormatFloat:
+    case ImageFormatARGB32:
+    case ImageFormatRGBA32:
+    case ImageFormatRGB32:
+    case ImageFormatABGR32:
+    case ImageFormatBGRA32:
+    case ImageFormatBGR32:
+    case ImageFormatFloat:
         ret = (_length % 4 == 0);
         if(ret)
             totalNumberOfPixels = _length / 4;
         break;
-    case Image::ImageFormatFloat64:
+    case ImageFormatFloat64:
         ret = (_length % 8 == 0);
         if(ret)
             totalNumberOfPixels = _length / 8;
         break;
-    case Image::ImageFormatRGB24:
-    case Image::ImageFormatBGR24:
-    case Image::ImageFormatYUV444:
+    case ImageFormatRGB24:
+    case ImageFormatBGR24:
+    case ImageFormatYUV444:
         ret = (_length % 3 == 0);
         if(ret)
             totalNumberOfPixels = _length / 3;
         break;
-    case Image::ImageFormatYUV422:
-    case Image::ImageFormatYUYV:
-    case Image::ImageFormatUYVY:
+    case ImageFormatYUV422:
+    case ImageFormatYUYV:
+    case ImageFormatUYVY:
         ret = (_length % 2 == 0);
         if(ret)
             totalNumberOfPixels = _length / 2;
         break;
-    case Image::ImageFormatYUV420:
+    case ImageFormatYUV420:
         ret = ((_length*2) % 3 == 0);
         if(ret)
             totalNumberOfPixels = (_length*2) / 3;
@@ -619,14 +1113,15 @@ unsigned Image::bitsPerPixel() const
         ret = 0; break;
     case ImageFormatRGB24: 
     case ImageFormatBGR24:
-        ret = 24; break;
+        ret = bitsForDataElement(_dataType) * 3;
+        break;
     case ImageFormatARGB32:
     case ImageFormatRGB32: 
     case ImageFormatBGR32:
     case ImageFormatABGR32:
     case ImageFormatRGBA32:
     case ImageFormatBGRA32:
-        ret = 32; break;
+        ret = bitsForDataElement(_dataType) * 4; break;
     case ImageFormatYUV420:
     case ImageFormatYUV422:
     case ImageFormatYUV444:
@@ -641,8 +1136,9 @@ unsigned Image::bitsPerPixel() const
     case ImageFormatIndexed8: 
         ret = 8;
         break;
-    case ImageFormatFloat: 
-        ret = 32; 
+    case ImageFormatFloat64:
+    case ImageFormatFloat:
+        ret = bitsForDataElement(_dataType);
         break;
     case ImageFormatGray:
     case ImageFormatRed:
@@ -663,9 +1159,6 @@ unsigned Image::bitsPerPixel() const
     case ImageFormatDXT5:
         // 4x4 pixels go into 16 bytes
         ret = 8;
-        break;
-    case ImageFormatFloat64:
-        ret = 64;
         break;
     }
     return ret;
@@ -756,6 +1249,7 @@ std::string Image::dataTypeToString(DataType type)
     case DataTypeSignedInt: ret = "i32"; break;
     case DataTypeFloat32: ret = "f32"; break;
     case DataTypeFloat64: ret = "f64"; break;
+    case DataTypeARGB: ret = "argb"; break;
     default:
     {
         std::stringstream ss;
@@ -785,6 +1279,8 @@ unsigned Image::bitsForDataElement(DataType type)
         ret = 32; break;
     case DataTypeFloat64:
         ret = 64; break;
+    case DataTypeARGB:
+        ret = 32; break;
     default: ret = 0; break;
     }
     return ret;
@@ -817,7 +1313,7 @@ unsigned Image::planeEndOffset(unsigned index) const
     return ret;
 }
 
-const void * Image::pixelPtr(unsigned x, unsigned y, unsigned z, unsigned plane) const
+const void * Image::pixelDataPtr(unsigned x, unsigned y, unsigned z, unsigned plane) const
 {
     const void * ret = nullptr;
     SGI_UNUSED(z);
@@ -841,6 +1337,122 @@ const void * Image::pixelPtr(unsigned x, unsigned y, unsigned z, unsigned plane)
     return ret;
 }
 
+Image::Pixel Image::pixel(unsigned x, unsigned y, unsigned z, unsigned plane) const
+{
+    Pixel ret;
+    switch (_format)
+    {
+    case ImageFormatABGR32:
+        {
+            const ARGB * px = pixelData<ARGB>(x, y);
+            ret.setARGB(px->a, px->b, px->g, px->r);
+        }
+        break;
+    case ImageFormatARGB32:
+        {
+            const ARGB * px = pixelData<ARGB>(x, y);
+            ret.setARGB(px->a, px->r, px->g, px->b);
+        }
+        break;
+    case ImageFormatBGRA32:
+        {
+            const ARGB * px = pixelData<ARGB>(x, y);
+            ret.setARGB(px->b, px->a, px->r, px->g);
+        }
+        break;
+    case ImageFormatRGBA32:
+        {
+            const ARGB * px = pixelData<ARGB>(x, y);
+            ret.setARGB(px->b, px->g, px->r, px->a);
+        }
+        break;
+    case ImageFormatBGR32:
+        {
+            const ARGB * px = pixelData<ARGB>(x, y);
+            ret.setARGB(0, px->b, px->g, px->r);
+        }
+        break;
+    case ImageFormatRGB32:
+        {
+            const ARGB * px = pixelData<ARGB>(x, y);
+            ret.setARGB(0, px->r, px->g, px->b);
+        }
+        break;
+
+    case ImageFormatBGR24:
+        {
+            const RGB * px = pixelData<RGB>(x, y);
+            ret.setARGB(0, px->b, px->g, px->r);
+        }
+        break;
+    case ImageFormatRGB24:
+        {
+            const RGB * px = pixelData<RGB>(x, y);
+            ret.setARGB(0, px->r, px->g, px->b);
+        }
+        break;
+    case ImageFormatDepth:
+    case ImageFormatFloat:
+        {
+            const float * px = pixelData<float>(x, y);
+            ret.setFloat32(*px);
+        }
+        break;
+    case ImageFormatRed:
+    case ImageFormatGreen:
+    case ImageFormatBlue:
+    case ImageFormatAlpha:
+    case ImageFormatGray:
+    case ImageFormatLuminance:
+    case ImageFormatLuminanceAlpha:
+        {
+            switch (_dataType)
+            {
+            case Image::DataTypeUnsignedByte:
+            case Image::DataTypeSignedByte:
+                {
+                    const unsigned char * px = pixelData<unsigned char>(x, y);
+                    ret.type = _dataType;
+                    ret.data.u8 = *px;
+                }
+                break;
+            case Image::DataTypeUnsignedShort:
+            case Image::DataTypeSignedShort:
+                {
+                    const unsigned short * px = pixelData<unsigned short>(x, y);
+                    ret.type = _dataType;
+                    ret.data.u16 = *px;
+                }
+                break;
+            case Image::DataTypeUnsignedInt:
+            case Image::DataTypeSignedInt:
+                {
+                    const unsigned int * px = pixelData<unsigned int>(x, y);
+                    ret.type = _dataType;
+                    ret.data.u32 = *px;
+                }
+                break;
+            case Image::DataTypeFloat32:
+                {
+                    const float * px = pixelData<float>(x, y);
+                    ret.type = _dataType;
+                    ret.data.f32[0] = *px;
+                }
+                break;
+            case Image::DataTypeFloat64:
+                {
+                    const double * px = pixelData<double>(x, y);
+                    ret.type = _dataType;
+                    ret.data.f64[0] = *px;
+                }
+                break;
+            }
+        }
+        break;
+    }
+    return ret;
+}
+
 float Image::hscale() const
 {
     return (_allocatedWidth > 0) ? ((float)_width / (float)_allocatedWidth) : 1.0f;
@@ -860,5 +1472,462 @@ float Image::verticalPixelSize() const
 {
     return (_allocatedHeight > 0) ? (1.0f / (float)_allocatedHeight) : 0.0f;
 }
+
+
+
+namespace {
+    //static const double r10= 1.0/1023.0;
+    //static const double r8 = 1.0/255.0;
+    //static const double r6 = 1.0/63.0;
+    static const double r5 = 1.0/31.0;
+    //static const double r4 = 1.0/15.0;
+    static const double r3 = 1.0/7.0;
+    static const double r2 = 1.0/3.0;
+
+    // The scale factors to convert from an image data type to a
+    // float. This is copied from OSG; I think the factors for the signed
+    // types are wrong, but need to investigate further.
+
+    template<typename T> struct GLTypeTraits;
+
+    template<> struct GLTypeTraits<int8_t>
+    {
+        static double scale(bool norm) { return norm? 1.0/128.0 : 1.0; } // XXX
+        static constexpr Image::DataType dataType = Image::DataTypeSignedByte;
+    };
+
+    template<> struct GLTypeTraits<uint8_t>
+    {
+        static double scale(bool norm) { return norm? 1.0/255.0 : 1.0; }
+        static constexpr Image::DataType dataType = Image::DataTypeUnsignedByte;
+    };
+
+    template<> struct GLTypeTraits<int16_t>
+    {
+        static double scale(bool norm) { return norm? 1.0/32768.0 : 1.0; } // XXX
+        static constexpr Image::DataType dataType = Image::DataTypeSignedShort;
+    };
+
+    template<> struct GLTypeTraits<uint16_t>
+    {
+        static double scale(bool norm) { return norm? 1.0/65535.0 : 1.0; }
+        static constexpr Image::DataType dataType = Image::DataTypeUnsignedShort;
+    };
+
+    template<> struct GLTypeTraits<int32_t>
+    {
+        static double scale(bool norm) { return norm? 1.0/2147483648.0 : 1.0; } // XXX
+        static constexpr Image::DataType dataType = Image::DataTypeSignedInt;
+    };
+
+    template<> struct GLTypeTraits<uint32_t>
+    {
+        static double scale(bool norm) { return norm? 1.0/4294967295.0 : 1.0; }
+        static constexpr Image::DataType dataType = Image::DataTypeUnsignedInt;
+    };
+
+    template<> struct GLTypeTraits<float>
+    {
+        static double scale(bool /*norm*/) { return 1.0; }
+        static constexpr Image::DataType dataType = Image::DataTypeFloat32;
+    };
+    template<> struct GLTypeTraits<double>
+    {
+        static double scale(bool /*norm*/) { return 1.0; }
+        static constexpr Image::DataType dataType = Image::DataTypeFloat64;
+    };
+
+    // The Reader function that performs the read.
+    template<int Format, typename T> struct ColorReader;
+    template<int Format, typename T> struct ColorWriter;
+
+
+    template<typename T>
+    struct ColorReader<Image::ImageFormatDepth, T>
+    {
+        static Image::Pixel read(const PixelReader* ia, int s, int t, int r, int m)
+        {
+            const T* ptr = (const T*)ia->data(s, t, r, m);
+            float l = float(*ptr) * GLTypeTraits<T>::scale(ia->_normalized);
+            return Image::Pixel(Image::DataTypeFloat32, l);
+        }
+    };
+
+    template<typename T>
+    struct ColorWriter<Image::ImageFormatDepth, T>
+    {
+        static void write(const PixelWriter* iw, const Image::Pixel& c, int s, int t, int r, int m)
+        {
+            T* ptr = (T*)iw->data(s, t, r, m);
+            (*ptr) = (T)(c.r() / GLTypeTraits<T>::scale(iw->_normalized));
+        }
+    };
+
+    template<typename T>
+    struct ColorReader<Image::ImageFormatLuminance, T>
+    {
+        static Image::Pixel read(const PixelReader* ia, int s, int t, int r, int m)
+        {
+            const T* ptr = (const T*)ia->data(s, t, r, m);
+            return Image::Pixel(GLTypeTraits<T>::dataType, *ptr);
+        }
+    };
+
+    template<typename T>
+    struct ColorWriter<Image::ImageFormatLuminance, T>
+    {
+        static void write(const PixelWriter* iw, const Image::Pixel& c, int s, int t, int r, int m)
+        {
+            T* ptr = (T*)iw->data(s, t, r, m);
+            (*ptr) = (T)(c.r() / GLTypeTraits<T>::scale(iw->_normalized));
+        }
+    };
+
+    template<typename T>
+    struct ColorReader<Image::ImageFormatRed, T>
+    {
+        static Image::Pixel read(const PixelReader* ia, int s, int t, int r, int m)
+        {
+            const T* ptr = (const T*)ia->data(s, t, r, m);
+            return Image::Pixel(GLTypeTraits<T>::dataType, *ptr);
+        }
+    };
+
+    template<typename T>
+    struct ColorWriter<Image::ImageFormatRed, T>
+    {
+        static void write(const PixelWriter* iw, const Image::Pixel& c, int s, int t, int r, int m)
+        {
+            T* ptr = (T*)iw->data(s, t, r, m);
+            (*ptr) = (T)(c.r() / GLTypeTraits<T>::scale(iw->_normalized));
+        }
+    };
+
+    template<typename T>
+    struct ColorReader<Image::ImageFormatAlpha, T>
+    {
+        static Image::Pixel read(const PixelReader* ia, int s, int t, int r, int m)
+        {
+            const T* ptr = (const T*)ia->data(s, t, r, m);
+            return Image::Pixel(Image::DataTypeFloat32, *ptr);
+        }
+    };
+
+    template<typename T>
+    struct ColorWriter<Image::ImageFormatAlpha, T>
+    {
+        static void write(const PixelWriter* iw, const Image::Pixel& c, int s, int t, int r, int m)
+        {
+            T* ptr = (T*)iw->data(s, t, r, m);
+            (*ptr) = (T)(c.a() / GLTypeTraits<T>::scale(iw->_normalized));
+        }
+    };
+
+    template<typename T>
+    struct ColorReader<Image::ImageFormatLuminanceAlpha, T>
+    {
+        static Image::Pixel read(const PixelReader* ia, int s, int t, int r, int m)
+        {
+            const T* ptr = (const T*)ia->data(s, t, r, m);
+            float l = float(*ptr++) * GLTypeTraits<T>::scale(ia->_normalized);
+            float a = float(*ptr) * GLTypeTraits<T>::scale(ia->_normalized);
+            return Image::Pixel(Image::DataTypeFloat32, a, l, l, l);
+        }
+    };
+
+    template<typename T>
+    struct ColorWriter<Image::ImageFormatLuminanceAlpha, T>
+    {
+        static void write(const PixelWriter* iw, const Image::Pixel& c, int s, int t, int r, int m )
+        {
+            T* ptr = (T*)iw->data(s, t, r, m);
+            *ptr++ = (T)( c.r() / GLTypeTraits<T>::scale(iw->_normalized) );
+            *ptr   = (T)( c.a() / GLTypeTraits<T>::scale(iw->_normalized) );
+        }
+    };
+
+    template<typename T>
+    struct ColorReader<Image::ImageFormatRGB24, T>
+    {
+        static Image::Pixel read(const PixelReader* ia, int s, int t, int r, int m)
+        {
+            const T* ptr = (const T*)ia->data(s, t, r, m);
+            return Image::Pixel(Image::DataTypeARGB, static_cast<unsigned char>(255), static_cast<unsigned char>(*(ptr+0)), static_cast<unsigned char>(*(ptr+1)), static_cast<unsigned char>(*(ptr+2)));
+        }
+    };
+
+    template<typename T>
+    struct ColorWriter<Image::ImageFormatRGB24, T>
+    {
+        static void write(const PixelWriter* iw, const Image::Pixel& c, int s, int t, int r, int m )
+        {
+            T* ptr = (T*)iw->data(s, t, r, m);
+            *ptr++ = (T)( c.r() / GLTypeTraits<T>::scale(iw->_normalized) );
+            *ptr++ = (T)( c.g() / GLTypeTraits<T>::scale(iw->_normalized) );
+            *ptr++ = (T)( c.b() / GLTypeTraits<T>::scale(iw->_normalized) );
+        }
+    };
+
+    template<typename T>
+    struct ColorReader<Image::ImageFormatRGBA32, T>
+    {
+        static Image::Pixel read(const PixelReader* ia, int s, int t, int r, int m)
+        {
+            const T* ptr = (const T*)ia->data(s, t, r, m);
+            return Image::Pixel(Image::DataTypeARGB, static_cast<unsigned char>(*(ptr+0)), static_cast<unsigned char>(*(ptr+1)), static_cast<unsigned char>(*(ptr+2)), static_cast<unsigned char>(*(ptr+3)));
+        }
+    };
+
+    template<typename T>
+    struct ColorWriter<Image::ImageFormatRGBA32, T>
+    {
+        static void write(const PixelWriter* iw, const Image::Pixel& c, int s, int t, int r, int m)
+        {
+            T* ptr = (T*)iw->data(s, t, r, m);
+            *ptr++ = (T)( c.r() / GLTypeTraits<T>::scale(iw->_normalized) );
+            *ptr++ = (T)( c.g() / GLTypeTraits<T>::scale(iw->_normalized) );
+            *ptr++ = (T)( c.b() / GLTypeTraits<T>::scale(iw->_normalized) );
+            *ptr++ = (T)( c.a() / GLTypeTraits<T>::scale(iw->_normalized) );
+        }
+    };
+
+    template<typename T>
+    struct ColorReader<Image::ImageFormatBGR24, T>
+    {
+        static Image::Pixel read(const PixelReader* ia, int s, int t, int r, int m)
+        {
+            const T* ptr = (const T*)ia->data(s, t, r, m);
+            return Image::Pixel(Image::DataTypeARGB, static_cast<unsigned char>(255), static_cast<unsigned char>(*(ptr+2)), static_cast<unsigned char>(*(ptr+1)), static_cast<unsigned char>(*(ptr+0)));
+        }
+    };
+
+    template<typename T>
+    struct ColorWriter<Image::ImageFormatBGR24, T>
+    {
+        static void write(const PixelWriter* iw, const Image::Pixel& c, int s, int t, int r, int m )
+        {
+            T* ptr = (T*)iw->data(s, t, r, m);
+            *ptr++ = (T)( c.b() / GLTypeTraits<T>::scale(iw->_normalized) );
+            *ptr++ = (T)( c.g() / GLTypeTraits<T>::scale(iw->_normalized) );
+            *ptr++ = (T)( c.r() / GLTypeTraits<T>::scale(iw->_normalized) );
+        }
+    };
+
+    template<typename T>
+    struct ColorReader<Image::ImageFormatBGRA32, T>
+    {
+        static Image::Pixel read(const PixelReader* ia, int s, int t, int r, int m)
+        {
+            const T* ptr = (const T*)ia->data(s, t, r, m);
+            return Image::Pixel(Image::DataTypeARGB, static_cast<unsigned char>(*(ptr+0)), static_cast<unsigned char>(*(ptr+3)), static_cast<unsigned char>(*(ptr+2)), static_cast<unsigned char>(*(ptr+1)));
+        }
+    };
+
+    template<typename T>
+    struct ColorWriter<Image::ImageFormatBGRA32, T>
+    {
+        static void write(const PixelWriter* iw, const Image::Pixel& c, int s, int t, int r, int m )
+        {
+            T* ptr = (T*)iw->data(s, t, r, m);
+            *ptr++ = (T)( c.b() / GLTypeTraits<T>::scale(iw->_normalized) );
+            *ptr++ = (T)( c.g() / GLTypeTraits<T>::scale(iw->_normalized) );
+            *ptr++ = (T)( c.r() / GLTypeTraits<T>::scale(iw->_normalized) );
+            *ptr++ = (T)( c.a() / GLTypeTraits<T>::scale(iw->_normalized) );
+        }
+    };
+
+    template<typename T>
+    struct ColorReader<Image::ImageFormatInvalid, T>
+    {
+        static Image::Pixel read(const PixelReader* ia, int s, int t, int r, int m)
+        {
+            return Image::Pixel();
+        }
+    };
+
+    template<typename T>
+    struct ColorWriter<Image::ImageFormatInvalid, T>
+    {
+        static void write(const PixelWriter* iw, const Image::Pixel& c, int s, int t, int r, int m )
+        {
+            //nop
+        }
+    };
+
+
+    template<Image::ImageFormat GLFormat>
+    inline PixelReader::ReaderFunc
+    chooseReader(Image::DataType dataType)
+    {
+        switch (dataType)
+        {
+        case Image::DataTypeSignedByte:
+            return &ColorReader<GLFormat, int8_t>::read;
+        case Image::DataTypeUnsignedByte:
+            return &ColorReader<GLFormat, uint8_t>::read;
+        case Image::DataTypeSignedShort:
+            return &ColorReader<GLFormat, int16_t>::read;
+        case Image::DataTypeUnsignedShort:
+            return &ColorReader<GLFormat, uint16_t>::read;
+        case Image::DataTypeSignedInt:
+            return &ColorReader<GLFormat, int32_t>::read;
+        case Image::DataTypeUnsignedInt:
+            return &ColorReader<GLFormat, uint32_t>::read;
+        case Image::DataTypeFloat32:
+            return &ColorReader<GLFormat, float>::read;
+        default:
+            return &ColorReader<Image::ImageFormatInvalid, uint8_t>::read;
+        }
+    }
+
+    inline PixelReader::ReaderFunc
+    getReader( Image::ImageFormat imageFormat, Image::DataType dataType)
+    {
+        switch( imageFormat )
+        {
+        case Image::ImageFormatDepth:
+            return chooseReader<Image::ImageFormatDepth>(dataType);
+            break;
+        case Image::ImageFormatLuminance:
+            return chooseReader<Image::ImageFormatLuminance>(dataType);
+            break;
+        case Image::ImageFormatRed:
+            return chooseReader<Image::ImageFormatRed>(dataType);
+            break;
+        case Image::ImageFormatAlpha:
+            return chooseReader<Image::ImageFormatRed>(dataType);
+            break;
+        case Image::ImageFormatLuminanceAlpha:
+            return chooseReader<Image::ImageFormatLuminanceAlpha>(dataType);
+            break;
+        case Image::ImageFormatRGB24:
+            return chooseReader<Image::ImageFormatRGB24>(dataType);
+            break;
+        case Image::ImageFormatRGBA32:
+            return chooseReader<Image::ImageFormatRGBA32>(dataType);
+            break;
+        case Image::ImageFormatBGR24:
+            return chooseReader<Image::ImageFormatBGR24>(dataType);
+            break;
+        case Image::ImageFormatBGRA32:
+            return chooseReader<Image::ImageFormatBGRA32>(dataType);
+            break;
+//        case Image::ImageFormatDXT1:
+//            return &ColorReader<Image::ImageFormatDXT1, uint8_t>::read;
+//            break;
+        default:
+            return nullptr;
+            break;
+        }
+    }
+}
+
+
+PixelReader::PixelReader(const Image* image) :
+_bilinear  (false)
+{
+    setImage(image);
+}
+
+void
+PixelReader::setImage(const Image* image)
+{
+    _image = image;
+    if (image)
+    {
+        _colMult = _image->bitsPerPixel() / 8;
+        _rowMult = _image->pitch();
+        _imageSize = _image->length();
+        Image::DataType dataType = _image->dataType();
+        _reader = getReader( _image->format(), dataType );
+    }
+}
+
+Image::Pixel
+PixelReader::operator()(float u, float v, int r, int m) const
+{
+    return operator()((double)u, (double)v, r, m);
+}
+
+Image::Pixel
+PixelReader::operator()(double u, double v, int r, int m) const
+ {
+     if ( _bilinear )
+     {
+         double sizeS = (double)(_image->width()-1);
+         double sizeT = (double)(_image->height()-1);
+
+         // u, v => [0..1]
+         double s = u * sizeS;
+         double t = v * sizeT;
+
+         double s0 = std::max(floorf(s), 0.0f);
+         double s1 = std::min(s0+1.0f, sizeS);
+         double smix = s0 < s1 ? (s-s0)/(s1-s0) : 0.0f;
+
+         double t0 = std::max(floorf(t), 0.0f);
+         double t1 = std::min(t0+1.0f, sizeT);
+         double tmix = t0 < t1 ? (t-t0)/(t1-t0) : 0.0f;
+
+         Image::Pixel UL = (*_reader)(this, (int)s0, (int)t0, r, m); // upper left
+         Image::Pixel UR = (*_reader)(this, (int)s1, (int)t0, r, m); // upper right
+         Image::Pixel LL = (*_reader)(this, (int)s0, (int)t1, r, m); // lower left
+         Image::Pixel LR = (*_reader)(this, (int)s1, (int)t1, r, m); // lower right
+
+         Image::Pixel TOP = UL*(1.0f-smix) + UR*smix;
+         Image::Pixel BOT = LL*(1.0f-smix) + LR*smix;
+
+         return TOP*(1.0f-tmix) + BOT*tmix;
+     }
+     else
+     {
+         return (*_reader)(this,
+             (int)(u * (double)(_image->width()-1)),
+             (int)(v * (double)(_image->height()-1)),
+             r, m);
+     }
+}
+
+bool
+PixelReader::supports(Image::ImageFormat imageFormat, Image::DataType dataType)
+{
+    return getReader(imageFormat, dataType) != nullptr;
+}
+
+
+
+namespace
+{
+    inline PixelWriter::WriterFunc getWriter(Image::ImageFormat format, Image::DataType dataType)
+    {
+        switch( format )
+        {
+        default:
+            return nullptr;
+            break;
+        }
+    }
+}
+
+PixelWriter::PixelWriter(sgi::Image* image) :
+_image(image)
+{
+    if (image)
+    {
+        //_normalized = ImageUtils::isNormalized(image);
+        _colMult = _image->bitsPerPixel() / 8;
+        _rowMult = _image->pitch();
+        _imageSize = _image->length();
+        Image::DataType dataType = _image->dataType();
+        _writer = getWriter( _image->format(), dataType );
+    }
+}
+
+bool
+PixelWriter::supports(Image::ImageFormat format, Image::DataType dataType)
+{
+    return getWriter(format, dataType) != nullptr;
+}
+
 
 } // namespace sgi

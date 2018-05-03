@@ -22,14 +22,15 @@ class IImagePreviewDialog : public osg::Referenced
 public:
     virtual QDialog *       getDialog() = 0;
     virtual IHostCallback * getHostCallback() = 0;
-    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=NULL) = 0;
-    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=NULL) = 0;
-    virtual void            setObject(SGIItemBase * item, const sgi::Image * image, const std::string & description, IHostCallback * callback=NULL) = 0;
+    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=nullptr) = 0;
+    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=nullptr) = 0;
+    virtual void            setObject(SGIItemBase * item, const sgi::Image * image, const std::string & description, IHostCallback * callback=nullptr) = 0;
     virtual void            setImage(const sgi::Image * image) = 0;
     virtual void            setDescription(const std::string & description) = 0;
     virtual void            show() = 0;
     virtual void            hide() = 0;
     virtual bool            isVisible() = 0;
+    virtual SGIItemBase *   item() const = 0;
 };
 
 typedef osg::ref_ptr<IImagePreviewDialog> IImagePreviewDialogPtr;

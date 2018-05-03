@@ -12,6 +12,10 @@
 #include <sgi/plugins/SettingsDialog>
 #include "SGIItemQt"
 
+#if defined(_WIN32) && defined(OSG_GL3_AVAILABLE)
+#define __GL_H__
+#endif
+
 #include <QtCore/QThread>
 #include <QCoreApplication>
 #include <QGuiApplication>

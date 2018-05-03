@@ -113,7 +113,7 @@ namespace {
             sa.sa_flags = SA_SIGINFO;
             sa.sa_sigaction = x11_app_timer_signal;
             sigemptyset(&sa.sa_mask);
-            err = sigaction(SIGRTMIN, &sa, NULL);
+            err = sigaction(SIGRTMIN, &sa, nullptr);
 
             struct sigevent sevp;
             timer_t timerid;
@@ -134,7 +134,7 @@ namespace {
 #endif
 
             static int argc = 1;
-            static char * argv[] = { (char*)"/dev/null", NULL };
+            static char * argv[] = { (char*)"/dev/null", nullptr };
             new QApplication(argc, argv);
         }
     }
@@ -153,7 +153,7 @@ struct SGIOptions
             return defaultValue;
     }
     template<typename T>
-    static T * getObjectOption(const osgDB::Options * options, const std::string & key, T * defaultValue=NULL, bool * gotOption=NULL)
+    static T * getObjectOption(const osgDB::Options * options, const std::string & key, T * defaultValue=nullptr, bool * gotOption=nullptr)
     {
         if (!options)
         {
@@ -173,7 +173,7 @@ struct SGIOptions
         return static_cast<T*>(const_cast<void*>(data));
     }
     template<typename T>
-    static T getOption(const osgDB::Options * options, const std::string & key, const T & defaultValue=T(), bool * gotOption = NULL)
+    static T getOption(const osgDB::Options * options, const std::string & key, const T & defaultValue=T(), bool * gotOption = nullptr)
     {
         if (!options)
         {
@@ -192,21 +192,21 @@ struct SGIOptions
             *gotOption = true;
         return *static_cast<const T*>(data);
     }
-    SGIOptions(const std::string & filename_=std::string(), const osgDB::Options * options=NULL);
+    SGIOptions(const std::string & filename_=std::string(), const osgDB::Options * options=nullptr);
     SGIHostItemBase * getHostItem() const;
 
     void clear()
     {
-        hostCallback = NULL;
+        hostCallback = nullptr;
         showSceneGraphDialog = false;
         showImagePreviewDialog = false;
-        qtObject = NULL;
-        parentWidget = NULL;
-        osgReferenced = NULL;
+        qtObject = nullptr;
+        parentWidget = nullptr;
+        osgReferenced = nullptr;
         filename.clear();
         usePicketNodeMask = false;
         pickerNodeMask = 0;
-        pickerRoot = NULL;
+        pickerRoot = nullptr;
     }
 
     osg::ref_ptr<sgi::IHostCallback> hostCallback;
@@ -243,7 +243,7 @@ bool SGIOptions::getOption<bool>(const osgDB::Options * options, const std::stri
 }
 
 SGIOptions::SGIOptions(const std::string & filename_, const osgDB::Options * options)
-        : qtObject(NULL), filename(filename_), usePicketNodeMask(false), pickerNodeMask(~0u)
+        : qtObject(nullptr), filename(filename_), usePicketNodeMask(false), pickerNodeMask(~0u)
 {
     hostCallback = getObjectOption<sgi::IHostCallback>(options, "sgi_host_callback");
     showSceneGraphDialog = getOption<bool>(options, "showSceneGraphDialog");
@@ -257,7 +257,7 @@ SGIOptions::SGIOptions(const std::string & filename_, const osgDB::Options * opt
 
 SGIHostItemBase * SGIOptions::getHostItem() const
 {
-    SGIHostItemBase * ret = NULL;
+    SGIHostItemBase * ret = nullptr;
     if(!filename.empty())
     {
         if(filename == "qapp")
@@ -333,8 +333,8 @@ SceneGraphInspectorHandler::~SceneGraphInspectorHandler()
 
 void SceneGraphInspectorHandler::shutdown()
 {
-    _hostCallback = NULL;
-    _picker = NULL;
+    _hostCallback = nullptr;
+    _picker = nullptr;
 }
 
 bool SceneGraphInspectorHandler::showSceneGraphDialog(const SGIHostItemBase * item, QWidget * parent)
@@ -347,7 +347,7 @@ bool SceneGraphInspectorHandler::showSceneGraphDialog(const SGIHostItemBase * it
 
 bool SceneGraphInspectorHandler::showObjectLoggerDialog(const SGIHostItemBase * item, QWidget * parent)
 {
-    return _hostCallback->showObjectLoggerDialog(parent, item) != NULL;
+    return _hostCallback->showObjectLoggerDialog(parent, item) != nullptr;
 }
 
 bool SceneGraphInspectorHandler::contextMenu(const SGIHostItemBase * item, float x, float y, QWidget * parent)
@@ -384,7 +384,7 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
                 }
                 else
                 {
-                    ret = showSceneGraphDialog(NULL);
+                    ret = showSceneGraphDialog(nullptr);
                 }
             }
             else if (_inspectorInfoKey != 0 && ea.getKey() == _inspectorInfoKey &&
@@ -427,7 +427,7 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
                 float x = ea.getX();
                 float y = ea.getY();
                 osg::View * view = aa.asView();
-                osg::Camera * camera = view ? view->getCamera() : NULL;
+                osg::Camera * camera = view ? view->getCamera() : nullptr;
                 //OSG_FATAL << "RELEASE " << x << ',' << y << " view=" << view << " cam=" << camera << std::endl;
                 if (camera)
                 {
@@ -480,8 +480,8 @@ class DefaultSGIProxy : public osg::Referenced
 {
 public:
     DefaultSGIProxy(osg::Camera * camera, const SGIOptions & options)
-        : _parent(NULL)
-        , _view(NULL)
+        : _parent(nullptr)
+        , _view(nullptr)
         , _hostCallback(new HostCallbackImpl(this, options.hostCallback.valid()?options.hostCallback.get():sgi::defaultHostCallback<sgi::autoload::Osg>()))
         , _options(options)
         , _inspectorHandler()
@@ -495,12 +495,12 @@ public:
     }
     ~DefaultSGIProxy() override
     {
-        _inspectorHandler = NULL;
-        _parent = NULL;
-        _view = NULL;
+        _inspectorHandler = nullptr;
+        _parent = nullptr;
+        _view = nullptr;
         _options.clear();
-        _viewPtr = NULL;
-        _hostCallback = NULL;
+        _viewPtr = nullptr;
+        _hostCallback = nullptr;
     }
     void runOperations()
     {
@@ -630,12 +630,12 @@ public:
         osg::ref_ptr<SceneGraphInspectorHandler> handler;
         if (_inspectorHandler.lock(handler))
             handler->shutdown();
-        _inspectorHandler = NULL;
-        _parent = NULL;
-        _view = NULL;
+        _inspectorHandler = nullptr;
+        _parent = nullptr;
+        _view = nullptr;
         _options.clear();
-        _viewPtr = NULL;
-        _hostCallback = NULL;
+        _viewPtr = nullptr;
+        _hostCallback = nullptr;
     }
 
     class HostCallbackImpl : public HostCallbackBase
@@ -656,9 +656,9 @@ public:
         ReferencedPickerBase * createPicker(PickerType type, float x, float y) override
         {
             if(!_parent.get() || !_parent->_view)
-                return NULL;
+                return nullptr;
 
-            ReferencedPickerBase * ret = NULL;
+            ReferencedPickerBase * ret = nullptr;
             osg::Node * root = _parent->_options.pickerRoot.get();
             float buffer = 1.0f;
             unsigned traversalMask = _parent->_options.usePicketNodeMask ? _parent->_options.pickerNodeMask : (unsigned)_parent->_view->getCamera()->getCullMask();
@@ -715,7 +715,7 @@ public:
                     //OSG_WARN << "~HostCallbackImpl::release: " << this << " restore:" << _previousInstalled.get() << std::endl;
                     // restore the previously used callback
                     sgi::setHostCallback<autoload::Osg>(_previousInstalled.get());
-                    _previousInstalled = NULL;
+                    _previousInstalled = nullptr;
                 }
             }
         }
@@ -738,7 +738,7 @@ class SGIInstallNode : public osg::Node
 {
 public:
 	static unsigned numInstances;
-    SGIInstallNode(const std::string & filename=std::string(), const osgDB::Options * options=NULL)
+    SGIInstallNode(const std::string & filename=std::string(), const osgDB::Options * options=nullptr)
         : osg::Node()
         , _options(filename, options)
         , _installed(false)
@@ -768,7 +768,7 @@ public:
                 if (_proxy.valid())
                 {
                     _proxy->release();
-                    _proxy = NULL;
+                    _proxy = nullptr;
                 }
             }
         }
@@ -778,7 +778,7 @@ public:
 
     osg::Object* cloneType() const override { return new SGIInstallNode (); }
     osg::Object* clone(const osg::CopyOp& copyop) const override { return new SGIInstallNode (*this,copyop); }
-    bool isSameKindAs(const osg::Object* obj) const override { return dynamic_cast<const SGIInstallNode *>(obj)!=NULL; }
+    bool isSameKindAs(const osg::Object* obj) const override { return dynamic_cast<const SGIInstallNode *>(obj)!=nullptr; }
     const char* className() const override { return "SGIInstallNode"; }
     const char* libraryName() const override { return "osgdb_sgi"; }
     void accept(osg::NodeVisitor& nv) override

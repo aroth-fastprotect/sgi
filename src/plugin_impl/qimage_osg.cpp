@@ -1,8 +1,12 @@
 // kate: syntax C++11;
 // SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
 
+
 #include <osg/Image>
 
+#if defined(_WIN32) && defined(OSG_GL3_AVAILABLE)
+#define __GL_H__
+#endif
 #include <QImage>
 #include <QGLWidget>
 

@@ -30,6 +30,7 @@ FAST_SHARED_LIBRARY(sgi-plugin-impl NO_MOC_INCLUDE)
 SET(TARGET_SRC
     osg_helpers.cpp
 	osg_statistics.cpp
+    osg_viewer.cpp
 	ReferencePicker.cpp
     )
 
@@ -44,6 +45,7 @@ SET(TARGET_NO_AUTO_VERSION_HEADER 1)
 LIST(APPEND TARGET_LIBRARIES_VARS
     QT_QTCORE_LIBRARY
     QT_QTGUI_LIBRARY
+    QT_QTWIDGETS_LIBRARY
 
     SGI_PLUGIN_IMPL_LIBRARY
     OPENTHREADS_LIBRARY

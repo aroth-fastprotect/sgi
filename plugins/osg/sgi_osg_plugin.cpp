@@ -244,6 +244,25 @@
     #define GL_RG32UI                         0x823C
 #endif
 
+#ifndef GL_2_BYTES
+#define GL_2_BYTES                        0x1407
+#define GL_3_BYTES                        0x1408
+#define GL_4_BYTES                        0x1409
+#endif
+
+#ifndef GL_AUTO_NORMAL
+#define GL_AUTO_NORMAL                    0x0D80
+#endif
+#define GL_EDGE_FLAG                      0x0B43
+#define GL_FOG                            0x0B60
+#define GL_LINE_STIPPLE_PATTERN           0x0B25
+#define GL_LINE_STIPPLE_REPEAT            0x0B26
+#define GL_AUX0                           0x0409
+#define GL_AUX1                           0x040A
+#define GL_AUX2                           0x040B
+#define GL_AUX3                           0x040C
+
+
 using namespace sgi::osg_plugin;
 
 SGI_OBJECT_INFO_BEGIN(osg::Referenced)
@@ -934,7 +953,9 @@ public:
 #ifdef GL_PROGRAM_POINT_SIZE
         REGISTER_GLENUM(GL_PROGRAM_POINT_SIZE);
 #endif
+#ifdef GL_POINT_SPRITE
         REGISTER_GLENUM(GL_POINT_SPRITE);
+#endif
 
         REGISTER_GLENUM(GL_ARRAY_BUFFER_ARB);
         REGISTER_GLENUM(GL_ELEMENT_ARRAY_BUFFER_ARB);

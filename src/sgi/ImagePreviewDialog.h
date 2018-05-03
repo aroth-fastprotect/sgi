@@ -30,8 +30,8 @@ class ImagePreviewDialog : public QDialog
     Q_OBJECT
 
 public:
-                            ImagePreviewDialog(QWidget *parent = 0, Qt::WindowFlags f = 0);
-                            ImagePreviewDialog(SGIItemBase * item, IHostCallback * callback=NULL, QWidget *parent = 0, Qt::WindowFlags f = 0);
+                            ImagePreviewDialog(QWidget *parent = nullptr, Qt::WindowFlags f = 0);
+                            ImagePreviewDialog(SGIItemBase * item, IHostCallback * callback=nullptr, QWidget *parent = nullptr, Qt::WindowFlags f = 0);
     virtual                 ~ImagePreviewDialog();
 
 public:
@@ -49,6 +49,8 @@ public slots:
     void showBesideParent();
     void onObjectChanged();
     void colorFilterChanged();
+    void tabWidgetCurrentChanged(int);
+    void openItem();
 
 protected slots:
     void onMouseMoved(float x, float y);
@@ -57,10 +59,12 @@ signals:
     void                    triggerOnObjectChanged();
     void                    triggerShow();
     void                    triggerHide();
+    void                    triggerReloadStatistics();
 
 protected:
     void refreshImpl();
-	void refreshStatistics(const QImage & image);
+    void refreshStatistics(const sgi::Image * image);
+    void reloadStatistics();
 
     void                    triggerRepaint();
     SGIItemBase *           getView();

@@ -58,70 +58,70 @@ public:
 		if(_original.valid())
 			return _original->contextMenu(parent, item);
 		else
-			return NULL;
+            return nullptr;
 	}
 	IContextMenu *          contextMenu(QWidget * parent, const SGIHostItemBase * item) override
 	{
 		if (_original.valid())
 			return _original->contextMenu(parent, item);
 		else
-			return NULL;
+            return nullptr;
 	}
 	ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, SGIItemBase * item) override
 	{
 		if (_original.valid())
 			return _original->showSceneGraphDialog(parent, item);
 		else
-			return NULL;
+            return nullptr;
 	}
 	ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, const SGIHostItemBase * item) override
 	{
 		if (_original.valid())
 			return _original->showSceneGraphDialog(parent, item);
 		else
-			return NULL;
+            return nullptr;
 	}
 	IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, SGIItemBase * item) override
 	{
 		if (_original.valid())
 			return _original->showObjectLoggerDialog(parent, item);
 		else
-			return NULL;
+            return nullptr;
 	}
 	IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, const SGIHostItemBase * item) override
 	{
 		if (_original.valid())
 			return _original->showObjectLoggerDialog(parent, item);
 		else
-			return NULL;
+            return nullptr;
 	}
     IObjectLoggerDialog *   showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger) override
     {
         if (_original.valid())
             return _original->showObjectLoggerDialog(parent, logger);
         else
-            return NULL;
+            return nullptr;
     }
 	IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, SGIItemBase * item) override
 	{
 		if (_original.valid())
 			return _original->showImagePreviewDialog(parent, item);
 		else
-			return NULL;
+            return nullptr;
 	}
 	IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, const SGIHostItemBase * item) override
 	{
 		if (_original.valid())
 			return _original->showImagePreviewDialog(parent, item);
 		else
-			return NULL;
+            return nullptr;
 	}
 	virtual ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
 	{
 		if (_original.valid())
 			return _original->createPicker(type, x, y);
 		else
-			return NULL;
+            return nullptr;
 	}
 	void triggerRepaint() override
 	{
@@ -133,14 +133,14 @@ public:
 		if (_original.valid())
 			return _original->getView();
 		else
-			return NULL;
+            return nullptr;
 	}
     virtual QWidget * getFallbackParentWidget() override
     {
         if (_original.valid())
             return _original->getFallbackParentWidget();
         else
-            return NULL;
+            return nullptr;
     }
 	virtual void shutdown() override
 	{
@@ -162,90 +162,90 @@ public:
     IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) override
     {
         if(std::is_same<T, IContextMenu>::value)
-            return (IContextMenu*)_impl;
+            return reinterpret_cast<IContextMenu*>(_impl);
         else if(_original.valid())
             return _original->contextMenu(parent, item);
 		else
-			return NULL;
+            return nullptr;
 	}
     IContextMenu *          contextMenu(QWidget * parent, const SGIHostItemBase * item) override
     {
         if(std::is_same<T, IContextMenu>::value)
-            return (IContextMenu*)_impl;
+            return reinterpret_cast<IContextMenu*>(_impl);
 		else if (_original.valid())
 			return _original->contextMenu(parent, item);
 		else
-			return NULL;
+            return nullptr;
 	}
     ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, SGIItemBase * item) override
     {
         if(std::is_same<T, ISceneGraphDialog>::value)
-            return (ISceneGraphDialog*)_impl;
+            return reinterpret_cast<ISceneGraphDialog*>(_impl);
 		else if (_original.valid())
 			return _original->showSceneGraphDialog(parent, item);
 		else
-			return NULL;
+            return nullptr;
 	}
     ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, const SGIHostItemBase * item) override
     {
         if(std::is_same<T, ISceneGraphDialog>::value)
-            return (ISceneGraphDialog*)_impl;
+            return reinterpret_cast<ISceneGraphDialog*>(_impl);
 		else if (_original.valid())
 			return _original->showSceneGraphDialog(parent, item);
 		else
-			return NULL;
+            return nullptr;
 	}
     IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, SGIItemBase * item) override
     {
         if(std::is_same<T, IObjectLoggerDialog>::value)
-            return (IObjectLoggerDialog*)_impl;
+            return reinterpret_cast<IObjectLoggerDialog*>(_impl);
 		else if (_original.valid())
 			return _original->showObjectLoggerDialog(parent, item);
 		else
-			return NULL;
+            return nullptr;
 	}
     IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, const SGIHostItemBase * item) override
     {
         if(std::is_same<T, IObjectLoggerDialog>::value)
-            return (IObjectLoggerDialog*)_impl;
+            return reinterpret_cast<IObjectLoggerDialog*>(_impl);
 		else if (_original.valid())
 			return _original->showObjectLoggerDialog(parent, item);
 		else
-			return NULL;
+            return nullptr;
 	}
 	IObjectLoggerDialog *   showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger) override
 	{
         if(std::is_same<T, IObjectLoggerDialog>::value)
-            return (IObjectLoggerDialog*)_impl;
+            return reinterpret_cast<IObjectLoggerDialog*>(_impl);
         else if (_original.valid())
             return _original->showObjectLoggerDialog(parent, logger);
         else
-            return NULL;
+            return nullptr;
     }
     IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, SGIItemBase * item) override
     {
         if(std::is_same<T, IImagePreviewDialog>::value)
-            return (IImagePreviewDialog*)_impl;
+            return reinterpret_cast<IImagePreviewDialog*>(_impl);
 		else if (_original.valid())
 			return _original->showImagePreviewDialog(parent, item);
 		else
-			return NULL;
+            return nullptr;
 	}
     IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, const SGIHostItemBase * item) override
     {
         if(std::is_same<T, IImagePreviewDialog>::value)
-            return (IImagePreviewDialog*)_impl;
+            return reinterpret_cast<IImagePreviewDialog*>(_impl);
 		else if (_original.valid())
 			return _original->showImagePreviewDialog(parent, item);
 		else
-			return NULL;
+            return nullptr;
 	}
     virtual ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
     {
 		if (_original.valid())
 			return _original->createPicker(type, x, y);
 		else
-			return NULL;
+            return nullptr;
 	}
     void triggerRepaint() override
     {
@@ -257,14 +257,14 @@ public:
 		if (_original.valid())
 			return _original->getView();
 		else
-			return NULL;
+            return nullptr;
     }
     virtual QWidget * getFallbackParentWidget() override
     {
         if (_original.valid())
             return _original->getFallbackParentWidget();
         else
-            return NULL;
+            return nullptr;
     }
 	virtual void shutdown() override
 	{
@@ -282,11 +282,11 @@ inline IHostCallback * defaultHostCallback()
 {
 	IHostCallback * ret;
 	typedef IHostCallback * (*pfn)();
-	pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_defaultHostCallback");
+    pfn func = reinterpret_cast<pfn>(AUTOLOADCLASS::sgiLibraryProcAddress("sgi_defaultHostCallback"));
 	if (func)
 		ret = func();
 	else
-		ret = NULL;
+        ret = nullptr;
 	return ret;
 }
 
@@ -295,7 +295,7 @@ inline bool setHostCallback(IHostCallback * callback)
 {
 	bool ret = false;
 	typedef void (*pfn)(IHostCallback * callback);
-	pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_setHostCallback");
+    pfn func = reinterpret_cast<pfn>(AUTOLOADCLASS::sgiLibraryProcAddress("sgi_setHostCallback"));
 	if (func)
 	{
 		func(callback);
@@ -309,7 +309,7 @@ inline bool getHostCallback(IHostCallbackPtr & callback)
 {
     bool ret = false;
     typedef IHostCallback * (*pfn)();
-    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_hostCallback");
+    pfn func = reinterpret_cast<pfn>(AUTOLOADCLASS::sgiLibraryProcAddress("sgi_hostCallback"));
     if (func)
     {
         callback = func();

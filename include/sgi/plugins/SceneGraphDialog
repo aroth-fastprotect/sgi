@@ -23,12 +23,12 @@ class SGIHostItemBase;
 class ISceneGraphDialog : public osg::Referenced
 {
 public:
-    virtual                 ~ISceneGraphDialog() {}
+    virtual                 ~ISceneGraphDialog() override {}
     virtual QDialog *       getDialog() = 0;
     virtual IHostCallback * getHostCallback() = 0;
     virtual IContextMenu *  toolsMenu() = 0;
-    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=NULL) = 0;
-    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=NULL) = 0;
+    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=nullptr) = 0;
+    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=nullptr) = 0;
     virtual void            show() = 0;
     virtual void            hide() = 0;
     virtual bool            isVisible() = 0;
@@ -44,7 +44,7 @@ typedef osg::ref_ptr<ISceneGraphDialog> ISceneGraphDialogPtr;
 class ISceneGraphDialogToolsMenu : public osg::Referenced
 {
 public:
-    virtual                     ~ISceneGraphDialogToolsMenu() {}
+    virtual                     ~ISceneGraphDialogToolsMenu() override {}
     virtual ISceneGraphDialog * getDialog() = 0;
     virtual IContextMenu *      toolsMenu() = 0;
 };
