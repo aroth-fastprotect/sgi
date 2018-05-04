@@ -16,6 +16,10 @@
 #undef Expose
 #endif
 
+#if defined(_WIN32) && defined(OSG_GL3_AVAILABLE)
+#define __GL_H__
+#endif
+
 #ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
 #endif

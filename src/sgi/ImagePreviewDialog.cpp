@@ -1,4 +1,10 @@
 #include "stdafx.h"
+
+#include <osg/GL>
+#if defined(_WIN32) && defined(OSG_GL3_AVAILABLE)
+#define __GL_H__
+#endif
+
 #include <QMessageBox>
 #include <QPushButton>
 #include <QFileDialog>
