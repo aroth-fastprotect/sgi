@@ -254,6 +254,14 @@ bool writePrettyHTMLImpl<osgDB::Registry>::process(std::basic_ostream<char>& os)
 #endif
             os << "</td></tr>" << std::endl;
 
+            os << "<tr><td>OSG_GL_CONTEXT_VERSION</td><td>";
+#ifdef OSG_GL_CONTEXT_VERSION
+            os << OSG_GL_CONTEXT_VERSION;
+#else
+            os << "N/A";
+#endif
+            os << "</td></tr>" << std::endl;
+
             os << "<tr><td>OSG_GL_LIBRARY_STATIC</td><td>";
 #ifdef OSG_GL_LIBRARY_STATIC
             os << "true";
