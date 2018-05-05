@@ -573,6 +573,16 @@ SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(QObject)
     QWidget
 SGI_OBJECT_INFO_END()
+
+#ifdef OSGQT_USE_QOPENGLWIDGET
+SGI_OBJECT_INFO_BEGIN(QWidget)
+    QOpenGLWidget
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(QOpenGLWidget)
+    osgQt::GLWidget
+SGI_OBJECT_INFO_END()
+#else
 SGI_OBJECT_INFO_BEGIN(QWidget)
     QGLWidget
 SGI_OBJECT_INFO_END()
@@ -580,6 +590,7 @@ SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(QGLWidget)
     osgQt::GLWidget
 SGI_OBJECT_INFO_END()
+#endif
 #endif
 
 SGI_OBJECT_INFO_BEGIN(sgi::ReferencedPickerBase)
@@ -609,7 +620,11 @@ bool objectInfo_hasCallback(SGIPluginHostInterface * hostInterface, bool & resul
 #ifdef SGI_USE_OSGQT
 GENERATE_IMPL_NO_ACCEPT(QObject);
 GENERATE_IMPL_NO_ACCEPT(QWidget);
+#ifdef OSGQT_USE_QOPENGLWIDGET
+GENERATE_IMPL_NO_ACCEPT(QOpenGLWidget);
+#else
 GENERATE_IMPL_NO_ACCEPT(QGLWidget);
+#endif
 
 typedef generateItemImplT<generateItemAcceptImpl, SGIItemOsg, SGIItemQt, SGIItemInternal> generateItemImpl;
 #else
