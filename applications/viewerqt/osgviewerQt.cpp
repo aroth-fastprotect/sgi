@@ -1,3 +1,8 @@
+#include <osg/GL>
+#if defined(_WIN32) && defined(OSG_GL3_AVAILABLE)
+#define __GL_H__
+#endif
+
 #include "osgviewerQt.h"
 #include <QTimer>
 #include <QFileInfo>
