@@ -381,7 +381,6 @@ ImagePreviewDialog::ImagePreviewDialogImpl::~ImagePreviewDialogImpl()
 void ImagePreviewDialog::ImagePreviewDialogImpl::refresh()
 {
     // release any previous converted images and get a new copy from the original item
-    _dialog->_image = nullptr;
     _dialog->_workImage = nullptr;
 
 	_dialog->refreshImpl();
@@ -1118,6 +1117,9 @@ void ImagePreviewDialog::refreshImpl()
             _workImage = _itemImage;
         }
     }
+
+    if (!_workImage.valid())
+        _workImage = const_cast<sgi::Image*>(_image.get());
 
     Image::ImageFormat format = _priv->currentImageFormat();
     if (_workImage.valid())

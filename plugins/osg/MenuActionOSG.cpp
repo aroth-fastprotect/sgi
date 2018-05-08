@@ -4041,7 +4041,7 @@ bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
 	}
 	
     osg::ref_ptr<osg::Image> image;
-    if (camera)
+    if (camera && (!view || !viewerbase))
     {
         captureCameraImage(camera, image, masterCamera);
     }
