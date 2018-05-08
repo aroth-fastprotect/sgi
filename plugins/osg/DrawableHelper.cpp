@@ -564,9 +564,440 @@ void CameraCaptureCallback::operator () (osg::RenderInfo& renderInfo) const
     }
 }
 
+WindowCaptureCallback::ContextData::ContextData(osg::GraphicsContext* gc, Mode mode, GLenum readBuffer)
+    : _gc(gc),
+    _index(_gc->getState()->getContextID()),
+    _mode(mode),
+    _readBuffer(readBuffer),
+    _pixelFormat(GL_RGBA),
+    _type(GL_UNSIGNED_BYTE),
+    _width(0),
+    _height(0),
+    _currentImageIndex(0),
+    _currentPboIndex(0),
+    _reportTimingFrequency(100),
+    _numTimeValuesRecorded(0),
+    _timeForReadPixels(0.0),
+    _timeForMemCpy(0.0),
+    _timeForCaptureOperation(0.0),
+    _timeForFullCopy(0.0),
+    _timeForFullCopyAndOperation(0.0),
+    _previousFrameTick(0)
+{
+    _previousFrameTick = osg::Timer::instance()->tick();
+
+    osg::NotifySeverity level = osg::INFO;
+
+    if (gc->getTraits())
+    {
+        if (gc->getTraits()->alpha)
+        {
+            OSG_NOTIFY(level) << "ScreenCaptureHandler: Selected GL_RGBA read back format" << std::endl;
+            _pixelFormat = GL_RGBA;
+        }
+        else
+        {
+            OSG_NOTIFY(level) << "ScreenCaptureHandler: Selected GL_RGB read back format" << std::endl;
+            _pixelFormat = GL_RGB;
+        }
+    }
+
+    getSize(gc, _width, _height);
+
+    //OSG_NOTICE<<"Window size "<<_width<<", "<<_height<<std::endl;
+
+    // single buffered image
+    _imageBuffer.push_back(new osg::Image);
+
+    // double buffer PBO.
+    switch (_mode)
+    {
+    case(READ_PIXELS):
+        OSG_NOTIFY(level) << "ScreenCaptureHandler: Reading window using glReadPixels, without PixelBufferObject." << std::endl;
+        break;
+    case(SINGLE_PBO):
+        OSG_NOTIFY(level) << "ScreenCaptureHandler: Reading window using glReadPixels, with a single PixelBufferObject." << std::endl;
+        _pboBuffer.push_back(0);
+        break;
+    case(DOUBLE_PBO):
+        OSG_NOTIFY(level) << "ScreenCaptureHandler: Reading window using glReadPixels, with a double buffer PixelBufferObject." << std::endl;
+        _pboBuffer.push_back(0);
+        _pboBuffer.push_back(0);
+        break;
+    case(TRIPLE_PBO):
+        OSG_NOTIFY(level) << "ScreenCaptureHandler: Reading window using glReadPixels, with a triple buffer PixelBufferObject." << std::endl;
+        _pboBuffer.push_back(0);
+        _pboBuffer.push_back(0);
+        _pboBuffer.push_back(0);
+        break;
+    default:
+        break;
+    }
+}
+
+void WindowCaptureCallback::ContextData::getSize(osg::GraphicsContext* gc, int& width, int& height)
+{
+    if (gc->getTraits())
+    {
+        width = gc->getTraits()->width;
+        height = gc->getTraits()->height;
+    }
+}
+
+void WindowCaptureCallback::ContextData::updateTimings(osg::Timer_t tick_start,
+    osg::Timer_t tick_afterReadPixels,
+    osg::Timer_t tick_afterMemCpy,
+    osg::Timer_t tick_afterCaptureOperation,
+    unsigned int /*dataSize*/)
+{
+    _timeForReadPixels = osg::Timer::instance()->delta_s(tick_start, tick_afterReadPixels);
+    _timeForMemCpy = osg::Timer::instance()->delta_s(tick_afterReadPixels, tick_afterMemCpy);
+    _timeForCaptureOperation = osg::Timer::instance()->delta_s(tick_afterMemCpy, tick_afterCaptureOperation);
+
+    _timeForFullCopy = osg::Timer::instance()->delta_s(tick_start, tick_afterMemCpy);
+    _timeForFullCopyAndOperation = osg::Timer::instance()->delta_s(tick_start, tick_afterCaptureOperation);
+}
+
+void WindowCaptureCallback::ContextData::read()
+{
+    osg::GLExtensions* ext = osg::GLExtensions::Get(_gc->getState()->getContextID(), true);
+
+    if (ext->isPBOSupported && !_pboBuffer.empty())
+    {
+        if (_pboBuffer.size() == 1)
+        {
+            singlePBO(ext);
+        }
+        else
+        {
+            multiPBO(ext);
+        }
+    }
+    else
+    {
+        readPixels();
+    }
+}
+
+
+void WindowCaptureCallback::ContextData::readPixels()
+{
+    unsigned int nextImageIndex = (_currentImageIndex + 1) % _imageBuffer.size();
+    unsigned int nextPboIndex = _pboBuffer.empty() ? 0 : (_currentPboIndex + 1) % _pboBuffer.size();
+
+    int width = 0, height = 0;
+    getSize(_gc, width, height);
+    if (width != _width || _height != height)
+    {
+        //OSG_NOTICE<<"   Window resized "<<width<<", "<<height<<std::endl;
+        _width = width;
+        _height = height;
+    }
+
+    osg::Image* image = _imageBuffer[_currentImageIndex].get();
+
+    osg::Timer_t tick_start = osg::Timer::instance()->tick();
+
+#if 1
+    image->readPixels(0, 0, _width, _height,
+        _pixelFormat, _type);
+#endif
+
+    osg::Timer_t tick_afterReadPixels = osg::Timer::instance()->tick();
+
+    if (_captureOperation.valid())
+    {
+        (*_captureOperation)(*image, _index);
+    }
+
+    osg::Timer_t tick_afterCaptureOperation = osg::Timer::instance()->tick();
+    updateTimings(tick_start, tick_afterReadPixels, tick_afterReadPixels, tick_afterCaptureOperation, image->getTotalSizeInBytes());
+
+    _currentImageIndex = nextImageIndex;
+    _currentPboIndex = nextPboIndex;
+}
+
+void WindowCaptureCallback::ContextData::singlePBO(osg::GLExtensions* ext)
+{
+    unsigned int nextImageIndex = (_currentImageIndex + 1) % _imageBuffer.size();
+
+    int width = 0, height = 0;
+    getSize(_gc, width, height);
+    if (width != _width || _height != height)
+    {
+        //OSG_NOTICE<<"   Window resized "<<width<<", "<<height<<std::endl;
+        _width = width;
+        _height = height;
+    }
+
+    GLuint& pbo = _pboBuffer[0];
+
+    osg::Image* image = _imageBuffer[_currentImageIndex].get();
+    if (image->s() != _width ||
+        image->t() != _height)
+    {
+        //OSG_NOTICE<<"ScreenCaptureHandler: Allocating image "<<std::endl;
+        image->allocateImage(_width, _height, 1, _pixelFormat, _type);
+
+        if (pbo != 0)
+        {
+            //OSG_NOTICE<<"ScreenCaptureHandler: deleting pbo "<<pbo<<std::endl;
+            ext->glDeleteBuffers(1, &pbo);
+            pbo = 0;
+        }
+    }
+
+
+    if (pbo == 0)
+    {
+        ext->glGenBuffers(1, &pbo);
+        ext->glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, pbo);
+        ext->glBufferData(GL_PIXEL_PACK_BUFFER_ARB, image->getTotalSizeInBytes(), 0, GL_STREAM_READ);
+
+        //OSG_NOTICE<<"ScreenCaptureHandler: Generating pbo "<<pbo<<std::endl;
+    }
+    else
+    {
+        ext->glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, pbo);
+    }
+
+    osg::Timer_t tick_start = osg::Timer::instance()->tick();
+
+#if 1
+    glReadPixels(0, 0, _width, _height, _pixelFormat, _type, 0);
+#endif
+
+    osg::Timer_t tick_afterReadPixels = osg::Timer::instance()->tick();
+
+    GLubyte* src = (GLubyte*)ext->glMapBuffer(GL_PIXEL_PACK_BUFFER_ARB,
+        GL_READ_ONLY_ARB);
+    if (src)
+    {
+        memcpy(image->data(), src, image->getTotalSizeInBytes());
+        ext->glUnmapBuffer(GL_PIXEL_PACK_BUFFER_ARB);
+    }
+
+    ext->glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, 0);
+
+    osg::Timer_t tick_afterMemCpy = osg::Timer::instance()->tick();
+
+    if (_captureOperation.valid())
+    {
+        (*_captureOperation)(*image, _index);
+    }
+
+    osg::Timer_t tick_afterCaptureOperation = osg::Timer::instance()->tick();
+    updateTimings(tick_start, tick_afterReadPixels, tick_afterMemCpy, tick_afterCaptureOperation, image->getTotalSizeInBytes());
+
+    _currentImageIndex = nextImageIndex;
+}
+
+void WindowCaptureCallback::ContextData::multiPBO(osg::GLExtensions* ext)
+{
+    unsigned int nextImageIndex = (_currentImageIndex + 1) % _imageBuffer.size();
+    unsigned int nextPboIndex = (_currentPboIndex + 1) % _pboBuffer.size();
+
+    int width = 0, height = 0;
+    getSize(_gc, width, height);
+    if (width != _width || _height != height)
+    {
+        //OSG_NOTICE<<"   Window resized "<<width<<", "<<height<<std::endl;
+        _width = width;
+        _height = height;
+    }
+
+    GLuint& copy_pbo = _pboBuffer[_currentPboIndex];
+    GLuint& read_pbo = _pboBuffer[nextPboIndex];
+
+    osg::Image* image = _imageBuffer[_currentImageIndex].get();
+    if (image->s() != _width ||
+        image->t() != _height)
+    {
+        //OSG_NOTICE<<"ScreenCaptureHandler: Allocating image "<<std::endl;
+        image->allocateImage(_width, _height, 1, _pixelFormat, _type);
+
+        if (read_pbo != 0)
+        {
+            //OSG_NOTICE<<"ScreenCaptureHandler: deleting pbo "<<read_pbo<<std::endl;
+            ext->glDeleteBuffers(1, &read_pbo);
+            read_pbo = 0;
+        }
+
+        if (copy_pbo != 0)
+        {
+            //OSG_NOTICE<<"ScreenCaptureHandler: deleting pbo "<<copy_pbo<<std::endl;
+            ext->glDeleteBuffers(1, &copy_pbo);
+            copy_pbo = 0;
+        }
+    }
+
+
+    bool doCopy = copy_pbo != 0;
+    if (copy_pbo == 0)
+    {
+        ext->glGenBuffers(1, &copy_pbo);
+        ext->glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, copy_pbo);
+        ext->glBufferData(GL_PIXEL_PACK_BUFFER_ARB, image->getTotalSizeInBytes(), 0, GL_STREAM_READ);
+
+        //OSG_NOTICE<<"ScreenCaptureHandler: Generating pbo "<<read_pbo<<std::endl;
+    }
+
+    if (read_pbo == 0)
+    {
+        ext->glGenBuffers(1, &read_pbo);
+        ext->glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, read_pbo);
+        ext->glBufferData(GL_PIXEL_PACK_BUFFER_ARB, image->getTotalSizeInBytes(), 0, GL_STREAM_READ);
+
+        //OSG_NOTICE<<"ScreenCaptureHandler: Generating pbo "<<read_pbo<<std::endl;
+    }
+    else
+    {
+        ext->glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, read_pbo);
+    }
+
+    osg::Timer_t tick_start = osg::Timer::instance()->tick();
+
+#if 1
+    glReadPixels(0, 0, _width, _height, _pixelFormat, _type, 0);
+#endif
+
+    osg::Timer_t tick_afterReadPixels = osg::Timer::instance()->tick();
+
+    if (doCopy)
+    {
+
+        ext->glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, copy_pbo);
+
+        GLubyte* src = (GLubyte*)ext->glMapBuffer(GL_PIXEL_PACK_BUFFER_ARB,
+            GL_READ_ONLY_ARB);
+        if (src)
+        {
+            memcpy(image->data(), src, image->getTotalSizeInBytes());
+            ext->glUnmapBuffer(GL_PIXEL_PACK_BUFFER_ARB);
+        }
+
+        if (_captureOperation.valid())
+        {
+            (*_captureOperation)(*image, _index);
+        }
+    }
+
+    ext->glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, 0);
+
+    osg::Timer_t tick_afterMemCpy = osg::Timer::instance()->tick();
+
+    updateTimings(tick_start, tick_afterReadPixels, tick_afterMemCpy, tick_afterMemCpy, image->getTotalSizeInBytes());
+
+    _currentImageIndex = nextImageIndex;
+    _currentPboIndex = nextPboIndex;
+}
+
+WindowCaptureCallback::WindowCaptureCallback(int numFrames, Mode mode, FramePosition position, GLenum readBuffer)
+    : _mode(mode),
+    _position(position),
+    _readBuffer(readBuffer),
+    _numFrames(numFrames)
+{
+}
+
+WindowCaptureCallback::ContextData* WindowCaptureCallback::createContextData(osg::GraphicsContext* gc) const
+{
+    WindowCaptureCallback::ContextData* cd = new WindowCaptureCallback::ContextData(gc, _mode, _readBuffer);
+    cd->_captureOperation = _defaultCaptureOperation;
+    return cd;
+}
+
+WindowCaptureCallback::ContextData* WindowCaptureCallback::getContextData(osg::GraphicsContext* gc) const
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+    osg::ref_ptr<ContextData>& data = _contextDataMap[gc];
+    if (!data) data = createContextData(gc);
+
+    return data.get();
+}
+
+void WindowCaptureCallback::setCaptureOperation(CaptureOperation* operation)
+{
+    _defaultCaptureOperation = operation;
+
+    // Set the capture operation for each ContextData.
+    for (ContextDataMap::iterator it = _contextDataMap.begin(); it != _contextDataMap.end(); ++it)
+    {
+        it->second->_captureOperation = operation;
+    }
+}
+
+
+void WindowCaptureCallback::operator () (osg::RenderInfo& renderInfo) const
+{
+#if !defined(OSG_GLES1_AVAILABLE) && !defined(OSG_GLES2_AVAILABLE)
+    glReadBuffer(_readBuffer);
+#endif
+
+    osg::GraphicsContext* gc = renderInfo.getState()->getGraphicsContext();
+    osg::ref_ptr<ContextData> cd = getContextData(gc);
+    cd->read();
+
+    // If _numFrames is > 0 it means capture that number of frames.
+    if (_numFrames > 0)
+    {
+        --_numFrames;
+        if (_numFrames == 0)
+        {
+            // the callback must remove itself when it's done.
+            if (_position == START_FRAME)
+                renderInfo.getCurrentCamera()->setInitialDrawCallback(0);
+            if (_position == END_FRAME)
+                renderInfo.getCurrentCamera()->setFinalDrawCallback(0);
+        }
+    }
+
+    int prec = osg::notify(osg::INFO).precision(5);
+    OSG_INFO << "ScreenCaptureHandler: "
+        << "copy=" << (cd->_timeForFullCopy*1000.0f) << "ms, "
+        << "operation=" << (cd->_timeForCaptureOperation*1000.0f) << "ms, "
+        << "total=" << (cd->_timeForFullCopyAndOperation*1000.0f) << std::endl;
+    osg::notify(osg::INFO).precision(prec);
+
+    cd->_timeForFullCopy = 0;
+}
+
+
+class CaptureImage : public WindowCaptureCallback::CaptureOperation
+{
+public:
+    CaptureImage()
+        : _image()
+    {
+        _mutex.lock();
+    }
+    ~CaptureImage()
+    {
+        // avoid Qt warning
+        _mutex.unlock();
+    }
+    osg::Image * takeImage() { return _image.release(); }
+public:
+    virtual void operator()(const osg::Image& image, const unsigned int context_id) override
+    {
+        _image = static_cast<osg::Image*>(image.clone(osg::CopyOp::DEEP_COPY_ALL));
+        _mutex.unlock();
+    }
+    void wait()
+    {
+        _mutex.lock();
+    }
+protected:
+    osg::ref_ptr<osg::Image> _image;
+    OpenThreads::Mutex _mutex;
+};
+
 bool captureCameraImage(osg::Camera * camera, osg::ref_ptr<osg::Image> & image, osg::Camera * masterCamera)
 {
-    image = new osg::Image;
+    bool ret = false;
+    image = nullptr;
+
+    Q_ASSERT(camera != nullptr);
 
     GLenum buffer = GL_FRONT;
     bool modifiedGraphicsContext = false;
@@ -581,43 +1012,113 @@ bool captureCameraImage(osg::Camera * camera, osg::ref_ptr<osg::Image> & image, 
     }
 
     osg::ref_ptr<osg::Camera::DrawCallback> cb = camera->getFinalDrawCallback();
-    camera->setFinalDrawCallback(new CameraCaptureCallback(buffer, image, false));
+    WindowCaptureCallback * wndcap = new WindowCaptureCallback();
+    wndcap->setReadBuffer(buffer);
+    osg::ref_ptr<CaptureImage> handler = new CaptureImage;
+    wndcap->setCaptureOperation(handler);
+    camera->setFinalDrawCallback(wndcap);
 
-    osgViewer::View* view = dynamic_cast<osgViewer::View*>(camera->getView());
-    if (!view && masterCamera)
+    osgViewer::View* view2 = dynamic_cast<osgViewer::View*>(camera->getView());
+    if (!view2 && masterCamera)
     {
-        view = dynamic_cast<osgViewer::View*>(masterCamera->getView());
+        view2 = dynamic_cast<osgViewer::View*>(masterCamera->getView());
         useMasterCamera = true;
     }
-    osgViewer::ViewerBase * viewer = view ? view->getViewerBase() : nullptr;
+    osgViewer::ViewerBase * viewerbase = view2 ? view2->getViewerBase() : nullptr;
 
-    if (viewer)
+    if (viewerbase)
     {
         if (useMasterCamera)
         {
             // Do rendering with capture callback
-            view->addSlave(camera, false);
-            viewer->renderingTraversals();
-            unsigned idx = view->findSlaveIndexForCamera(camera);
-            view->removeSlave(idx);
+            view2->addSlave(camera, false);
+            viewerbase->renderingTraversals();
+            unsigned idx = view2->findSlaveIndexForCamera(camera);
+            view2->removeSlave(idx);
         }
         else
         {
-            // Do rendering with capture callback
-            viewer->renderingTraversals();
+            if (view2)
+            {
+                bool stopThreads = false;
+                if (!viewerbase->areThreadsRunning())
+                {
+                    viewerbase->startThreading();
+                    stopThreads = true;
+                }
+                if (viewerbase->getThreadingModel() != osgViewer::ViewerBase::SingleThreaded)
+                {
+                    view2->requestRedraw();
+                    handler->wait();
+                }
+                else
+                    viewerbase->renderingTraversals();
+                if (stopThreads)
+                    viewerbase->stopThreading();
+                image = handler->takeImage();
+                ret = image.valid();
+            }
         }
     }
-//     if (modifiedGraphicsContext)
-//         camera->setGraphicsContext(nullptr);
+
     camera->setFinalDrawCallback(cb.get());
-    return true;
+    return ret;
 }
 
-osg::Geometry* createImageGeometry(float s,float t, osg::Image::Origin origin, osg::Texture * texture)
+bool captureViewImage(osg::View * view, osg::ref_ptr<osg::Image> & image)
+{
+    bool ret = false;
+    image = nullptr;
+
+    osg::Camera * camera = view->getCamera();
+    if (camera)
+    {
+        GLenum buffer = GL_FRONT;
+        if (camera->getGraphicsContext())
+            buffer = camera->getGraphicsContext()->getTraits()->doubleBuffer ? GL_BACK : GL_FRONT;
+
+        osg::ref_ptr<osg::Camera::DrawCallback> cb = camera->getFinalDrawCallback();
+        osg::ref_ptr<WindowCaptureCallback> wndcap = new WindowCaptureCallback();
+        wndcap->setMode(WindowCaptureCallback::SINGLE_PBO);
+        wndcap->setReadBuffer(buffer);
+        osg::ref_ptr<CaptureImage> handler = new CaptureImage;
+        wndcap->setCaptureOperation(handler);
+        camera->setFinalDrawCallback(wndcap);
+
+        osgViewer::View* view2 = dynamic_cast<osgViewer::View*>(view);
+        osgViewer::ViewerBase * viewerbase = view2 ? view2->getViewerBase() : nullptr;
+
+        if (view2)
+        {
+            bool stopThreads = false;
+            if (!viewerbase->areThreadsRunning())
+            {
+                viewerbase->startThreading();
+                stopThreads = true;
+            }
+            if (viewerbase->getThreadingModel() != osgViewer::ViewerBase::SingleThreaded)
+            {
+                view2->requestRedraw();
+                handler->wait();
+            }
+            else
+                viewerbase->renderingTraversals();
+            if (stopThreads)
+                viewerbase->stopThreading();
+            image = handler->takeImage();
+            ret = image.valid();
+        }
+
+        camera->setFinalDrawCallback(cb.get());
+    }
+    return ret;
+}
+
+osg::Geometry* createImageGeometry(float s, float t, osg::Image::Origin origin, osg::Texture * texture)
 {
     osg::Geometry* geom = NULL;
     float y = 1.0;
-    float x = y*(s/t);
+    float x = y * (s / t);
 
     float texcoord_y_b = (origin == osg::Image::BOTTOM_LEFT) ? 0.0f : 1.0f;
     float texcoord_y_t = (origin == osg::Image::BOTTOM_LEFT) ? 1.0f : 0.0f;
@@ -625,44 +1126,44 @@ osg::Geometry* createImageGeometry(float s,float t, osg::Image::Origin origin, o
 
     // set up the drawstate.
     osg::StateSet* dstate = new osg::StateSet;
-    dstate->setMode(GL_CULL_FACE,osg::StateAttribute::OFF);
-    dstate->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
+    dstate->setMode(GL_CULL_FACE, osg::StateAttribute::OFF);
+    dstate->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
     dstate->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
 
     geom = new osg::Geometry;
     geom->setStateSet(dstate);
 
     osg::Vec3Array* coords = new osg::Vec3Array(4);
-    (*coords)[0].set(-x,0.0f,y);
-    (*coords)[1].set(-x,0.0f,-y);
-    (*coords)[2].set(x,0.0f,-y);
-    (*coords)[3].set(x,0.0f,y);
+    (*coords)[0].set(-x, 0.0f, y);
+    (*coords)[1].set(-x, 0.0f, -y);
+    (*coords)[2].set(x, 0.0f, -y);
+    (*coords)[3].set(x, 0.0f, y);
     geom->setVertexArray(coords);
 
     osg::Vec2Array* tcoords = new osg::Vec2Array(4);
-    (*tcoords)[0].set(0.0f*texcoord_x,texcoord_y_t);
-    (*tcoords)[1].set(0.0f*texcoord_x,texcoord_y_b);
-    (*tcoords)[2].set(1.0f*texcoord_x,texcoord_y_b);
-    (*tcoords)[3].set(1.0f*texcoord_x,texcoord_y_t);
-    geom->setTexCoordArray(0,tcoords);
+    (*tcoords)[0].set(0.0f*texcoord_x, texcoord_y_t);
+    (*tcoords)[1].set(0.0f*texcoord_x, texcoord_y_b);
+    (*tcoords)[2].set(1.0f*texcoord_x, texcoord_y_b);
+    (*tcoords)[3].set(1.0f*texcoord_x, texcoord_y_t);
+    geom->setTexCoordArray(0, tcoords);
 
     osg::Vec4Array* colours = new osg::Vec4Array(1);
-    (*colours)[0].set(1.0f,1.0f,1.0,1.0f);
+    (*colours)[0].set(1.0f, 1.0f, 1.0, 1.0f);
     geom->setColorArray(colours, osg::Array::BIND_OVERALL);
 
-    geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS,0,4));
+    geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS, 0, 4));
 
     return geom;
 }
 
-osg::Geometry* createGeometryForImage(osg::Image* image,float s,float t)
+osg::Geometry* createGeometryForImage(osg::Image* image, float s, float t)
 {
     osg::Geometry* geom = NULL;
-    if (image && s>0 && t>0)
+    if (image && s > 0 && t > 0)
     {
         osg::Texture2D* texture = new osg::Texture2D;
-        texture->setFilter(osg::Texture::MIN_FILTER,osg::Texture::LINEAR);
-        texture->setFilter(osg::Texture::MAG_FILTER,osg::Texture::LINEAR);
+        texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR);
+        texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
         texture->setResizeNonPowerOfTwoHint(false);
         geom = createImageGeometry(s, t, image->getOrigin(), texture);
     }
@@ -670,7 +1171,7 @@ osg::Geometry* createGeometryForImage(osg::Image* image,float s,float t)
 }
 osg::Geometry * createGeometryForImage(osg::Image* image)
 {
-    return createGeometryForImage(image,image->s(),image->t());
+    return createGeometryForImage(image, image->s(), image->t());
 }
 
 osg::Geometry * createGeometryForTexture(osg::Texture* texture)
@@ -699,11 +1200,11 @@ bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, o
     //slaveCamera->setProjectionMatrixAsOrtho2D(-1.0, 1.0, -1.0, 1.0);
     osg::ref_ptr<osg::Geometry> geom = createGeometryForTexture(texture);
 
-     osg::ComputeBoundsVisitor v;
-     geom->accept(v);
-     osg::BoundingBox bb = v.getBoundingBox();
+    osg::ComputeBoundsVisitor v;
+    geom->accept(v);
+    osg::BoundingBox bb = v.getBoundingBox();
 
-     slaveCamera->setProjectionMatrixAsOrtho2D(bb.xMin(), bb.xMax(), bb.zMin(), bb.zMax());
+    slaveCamera->setProjectionMatrixAsOrtho2D(bb.xMin(), bb.xMax(), bb.zMin(), bb.zMax());
 
 
     osg::Vec3d center(0, 0, 0.0);
@@ -732,7 +1233,7 @@ bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, o
     osgViewer::View* view = dynamic_cast<osgViewer::View*>(masterCamera->getView());
     osgViewer::ViewerBase * viewer = view ? view->getViewerBase() : nullptr;
 
-    if(viewer)
+    if (viewer)
     {
         std::cout << "convertTextureToImage viewer=" << viewer << std::endl;
 
