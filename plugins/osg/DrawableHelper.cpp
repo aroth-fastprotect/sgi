@@ -974,6 +974,7 @@ public:
     ~CaptureImage()
     {
         // avoid Qt warning
+        _mutex.trylock();
         _mutex.unlock();
     }
     osg::Image * takeImage() { return _image.release(); }
@@ -983,9 +984,9 @@ public:
         _image = static_cast<osg::Image*>(image.clone(osg::CopyOp::DEEP_COPY_ALL));
         _mutex.unlock();
     }
-    void wait()
+    bool wait()
     {
-        _mutex.lock();
+        return (_mutex.lock() == 0);
     }
 protected:
     osg::ref_ptr<osg::Image> _image;
@@ -1047,12 +1048,10 @@ bool captureCameraImage(osg::Camera * camera, osg::ref_ptr<osg::Image> & image, 
                     stopThreads = true;
                 }
                 if (viewerbase->getThreadingModel() != osgViewer::ViewerBase::SingleThreaded)
-                {
                     view2->requestRedraw();
-                    handler->wait();
-                }
                 else
                     viewerbase->renderingTraversals();
+                handler->wait();
                 if (stopThreads)
                     viewerbase->stopThreading();
                 image = handler->takeImage();
