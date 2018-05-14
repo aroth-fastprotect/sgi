@@ -4,6 +4,7 @@
 #include <iomanip>
 #include "writeHTMLOSG.h"
 
+#include <osg/Version>
 #include <osgUtil/RenderStage>
 #include <osgUtil/RenderLeaf>
 #include <osgUtil/IncrementalCompileOperation>
@@ -121,7 +122,11 @@ bool writePrettyHTMLImpl<osgUtil::RenderLeaf>::process(std::basic_ostream<char>&
             // add remaining osgUtil::RenderLeaf properties
             os << "<tr><td>depth</td><td>" << object->_depth << "</td></tr>" << std::endl;
             os << "<tr><td>dynamic</td><td>" << (object->_dynamic?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>traversalNumber</td><td>" << object->_traversalNumber << "</td></tr>" << std::endl;
+#if OSG_VERSION_GREATER_OR_EQUAL(3,6,1)
+            os << "<tr><td>traversalOrderNumber</td><td>" << object->_traversalOrderNumber << "</td></tr>" << std::endl;
+#else
+            os << "<tr><td>traversalNumber</td><td>" << object->_traversalOrderNumber << "</td></tr>" << std::endl;
+#endif
 
             os << "<tr><td>projection</td><td>";
             if(object->_projection.valid())
