@@ -1967,13 +1967,7 @@ bool objectTreeBuildImpl<osg::DrawElements>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            unsigned numIndices = object->getNumIndices();
-            if(numIndices)
-                treeItem->addChild(helpers::str_plus_count("Indices", numIndices), cloneItem<SGIItemOsg>(SGIItemTypeDrawElementsIndicies));
         }
-        break;
-    case SGIItemTypeDrawElementsIndicies:
-        ret = true;
         break;
     default:
         ret = callNextHandler(treeItem);
