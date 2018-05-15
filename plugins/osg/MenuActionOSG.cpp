@@ -198,6 +198,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeDrawableBuild)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableUseDisplayList)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableSupportsDisplayList)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableDirtyGLObjects)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableUseVAO)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableUseVBO)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableRenderInfoDrawCallback)
 
@@ -2045,6 +2046,14 @@ bool actionHandlerImpl<MenuActionDrawableDirtyGLObjects>::execute()
 	object->dirtyGLObjects();
 	triggerRepaint();
 	return true;
+}
+
+bool actionHandlerImpl<MenuActionDrawableUseVAO>::execute()
+{
+    osg::Drawable * object = getObject<osg::Drawable, SGIItemOsg>();
+    object->setUseVertexArrayObject(menuAction()->state());
+    triggerRepaint();
+    return true;
 }
 
 bool actionHandlerImpl<MenuActionDrawableUseVBO>::execute()

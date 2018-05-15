@@ -1554,7 +1554,7 @@ bool contextMenuPopulateImpl<osg::PagedLOD>::populate(IContextMenuItem * menuIte
 
 bool contextMenuPopulateImpl<osg::Drawable>::populate(IContextMenuItem * menuItem)
 {
-    osg::Drawable * object = static_cast<osg::Drawable*>(item<SGIItemOsg>()->object());
+    osg::Drawable * object = getObject<osg::Drawable,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -1575,7 +1575,8 @@ bool contextMenuPopulateImpl<osg::Drawable>::populate(IContextMenuItem * menuIte
 				manipulateMenu->addBoolAction(MenuActionDrawableUseDisplayList, "Use display list", _item, object->getUseDisplayList());
 				manipulateMenu->addBoolAction(MenuActionDrawableSupportsDisplayList, "Supports display list", _item, object->getSupportsDisplayList());
 				manipulateMenu->addSimpleAction(MenuActionDrawableDirtyGLObjects, "Dirty display list", _item);
-				manipulateMenu->addBoolAction(MenuActionDrawableUseVBO, "Use VBO", _item, object->getUseVertexBufferObjects());
+                manipulateMenu->addBoolAction(MenuActionDrawableUseVAO, "Use VAO", _item, object->getUseVertexArrayObject());
+                manipulateMenu->addBoolAction(MenuActionDrawableUseVBO, "Use VBO", _item, object->getUseVertexBufferObjects());
                 manipulateMenu->addBoolAction(MenuActionDrawableRenderInfoDrawCallback, "Render info draw callback", _item, RenderInfo::hasDrawCallback(object));
 			}
 
@@ -1593,7 +1594,7 @@ bool contextMenuPopulateImpl<osg::Drawable>::populate(IContextMenuItem * menuIte
 
 bool contextMenuPopulateImpl<osg::ShapeDrawable>::populate(IContextMenuItem * menuItem)
 {
-    osg::ShapeDrawable * object = static_cast<osg::ShapeDrawable*>(item<SGIItemOsg>()->object());
+    osg::ShapeDrawable * object = getObject<osg::ShapeDrawable,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -1621,7 +1622,7 @@ bool contextMenuPopulateImpl<osg::ShapeDrawable>::populate(IContextMenuItem * me
 
 bool contextMenuPopulateImpl<osg::Geometry>::populate(IContextMenuItem * menuItem)
 {
-    osg::Geometry * object = static_cast<osg::Geometry*>(item<SGIItemOsg>()->object());
+    osg::Geometry * object = getObject<osg::Geometry,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
