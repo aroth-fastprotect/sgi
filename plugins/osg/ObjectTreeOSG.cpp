@@ -33,6 +33,10 @@
 #include <osgViewer/Renderer>
 #include <osgViewer/ViewerEventHandlers>
 
+#if defined(_WIN32) && defined(OSG_GL3_AVAILABLE)
+#define __GL_H__
+#endif
+
 #ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
 #include <osgQt/QObjectWrapper>
@@ -1963,13 +1967,7 @@ bool objectTreeBuildImpl<osg::DrawElements>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            unsigned numIndices = object->getNumIndices();
-            if(numIndices)
-                treeItem->addChild(helpers::str_plus_count("Indices", numIndices), cloneItem<SGIItemOsg>(SGIItemTypeDrawElementsIndicies));
         }
-        break;
-    case SGIItemTypeDrawElementsIndicies:
-        ret = true;
         break;
     default:
         ret = callNextHandler(treeItem);

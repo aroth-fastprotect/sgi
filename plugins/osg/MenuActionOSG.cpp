@@ -198,6 +198,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeDrawableBuild)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableUseDisplayList)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableSupportsDisplayList)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableDirtyGLObjects)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableUseVAO)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableUseVBO)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableRenderInfoDrawCallback)
 
@@ -2045,6 +2046,14 @@ bool actionHandlerImpl<MenuActionDrawableDirtyGLObjects>::execute()
 	object->dirtyGLObjects();
 	triggerRepaint();
 	return true;
+}
+
+bool actionHandlerImpl<MenuActionDrawableUseVAO>::execute()
+{
+    osg::Drawable * object = getObject<osg::Drawable, SGIItemOsg>();
+    object->setUseVertexArrayObject(menuAction()->state());
+    triggerRepaint();
+    return true;
 }
 
 bool actionHandlerImpl<MenuActionDrawableUseVBO>::execute()
@@ -3969,37 +3978,6 @@ bool actionHandlerImpl<MenuActionViewLightingMode>::execute()
     return true;
 }
 
-
-
-class CaptureImage : public osgViewer::ScreenCaptureHandler::CaptureOperation
-{
-public:
-	CaptureImage()
-		: _image()
-	{
-		_mutex.lock();
-	}
-    ~CaptureImage()
-    {
-        // avoid Qt warning
-        _mutex.unlock();
-    }
-	osg::Image * takeImage() { return _image.release(); }
-public:
-	virtual void operator()(const osg::Image& image, const unsigned int context_id) override
-	{
-		_image = static_cast<osg::Image*>(image.clone(osg::CopyOp::DEEP_COPY_ALL));
-		_mutex.unlock();
-	}
-	void wait()
-	{
-		_mutex.lock();
-	}
-protected:
-	osg::ref_ptr<osg::Image> _image;
-	QMutex _mutex;
-};
-
 bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
 {
 	SGIItemOsg * osgitem = static_cast<SGIItemOsg*>(_item.get());
@@ -4025,7 +4003,7 @@ bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
                 for (auto * parent : camera->getParents())
                 {
                     osg::Camera * nextCamera = findFirstParentOfType<osg::Camera>(parent);
-                    if (nextCamera)
+                    if (nextCamera && nextCamera->getNodeMask() != 0x0)
                     {
                         view = dynamic_cast<osgViewer::View*>(nextCamera->getView());
                         if (view)
@@ -4041,42 +4019,20 @@ bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
 	}
 	
     osg::ref_ptr<osg::Image> image;
-    if (camera)
+    if (camera && (!view || !viewerbase))
     {
         captureCameraImage(camera, image, masterCamera);
     }
     else if(viewerbase)
 	{
-		osg::ref_ptr<osgViewer::ScreenCaptureHandler> capture = new osgViewer::ScreenCaptureHandler;
-		capture->setFramesToCapture(1);
-		osg::ref_ptr<CaptureImage> handler = new CaptureImage;
-		capture->setCaptureOperation(handler);
-		capture->captureNextFrame(*viewerbase);
-
-		osgViewer::ViewerBase::Views views;
-		viewerbase->getViews(views);
-		if (!views.empty() || view)
-		{
-			bool stopThreads = false;
-			if(!viewerbase->areThreadsRunning())
-			{
-				viewerbase->startThreading();
-				stopThreads = true;
-			}
-            if (viewerbase->getThreadingModel() != osgViewer::ViewerBase::SingleThreaded)
-            {
-                if (!view)
-                    views.front()->requestRedraw();
-                else
-                    view->requestRedraw();
-                handler->wait();
-            }
-            else
-                viewerbase->renderingTraversals();
-			if (stopThreads)
-				viewerbase->stopThreading();
-			image = handler->takeImage();
-		}
+        if (!view)
+        {
+            osgViewer::ViewerBase::Views views;
+            viewerbase->getViews(views);
+            if (!views.empty())
+                view = views.front();
+        }
+        captureViewImage(view, image);
 	}
     if (image.valid())
     {

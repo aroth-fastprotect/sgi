@@ -9,6 +9,10 @@
 #include <osgViewer/View>
 #include <osg/ValueObject>
 
+#if defined(_WIN32) && defined(OSG_GL3_AVAILABLE)
+#define __GL_H__
+#endif
+
 #include <QApplication>
 #include <QWidget>
 #include <QWindow>

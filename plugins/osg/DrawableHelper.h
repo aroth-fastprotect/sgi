@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <osg/Geometry>
@@ -214,11 +215,131 @@ protected:
     osg::ref_ptr<osg::Image> _image;
 };
 
+
+// From osgscreencapture example
+/** Callback which will be added to a viewer's camera to do the actual screen capture. */
+class WindowCaptureCallback : public osg::Camera::DrawCallback
+{
+public:
+
+    enum Mode
+    {
+        READ_PIXELS,
+        SINGLE_PBO,
+        DOUBLE_PBO,
+        TRIPLE_PBO
+    };
+
+    enum FramePosition
+    {
+        START_FRAME,
+        END_FRAME
+    };
+
+    /** Abstract base class for what to do when a screen capture happens. */
+    class CaptureOperation : public osg::Referenced
+    {
+    public:
+        virtual void operator()(const osg::Image& image, const unsigned int context_id) = 0;
+    };
+
+    WindowCaptureCallback(int numFrames=1, Mode mode=READ_PIXELS, FramePosition position=END_FRAME, GLenum readBuffer=GL_BACK);
+
+    FramePosition getFramePosition() const { return _position; }
+    void setFramePosition(FramePosition pos) {
+        _position = pos;
+    }
+
+    Mode getMode() const {
+        return _mode;
+    }
+    void setMode(Mode m) {
+        _mode = m;
+    }
+    GLenum getReadBuffer() const {
+        return _readBuffer;
+    }
+    void setReadBuffer(GLenum buffer) {
+        _readBuffer = buffer;
+    }
+
+    void setCaptureOperation(CaptureOperation* operation);
+    CaptureOperation* getCaptureOperation() { return _contextDataMap.begin()->second->_captureOperation.get(); }
+
+    void setFramesToCapture(int numFrames) { _numFrames = numFrames; }
+    int getFramesToCapture() const { return _numFrames; }
+
+    virtual void operator () (osg::RenderInfo& renderInfo) const;
+
+    struct ContextData : public osg::Referenced
+    {
+        ContextData(osg::GraphicsContext* gc, Mode mode, GLenum readBuffer);
+
+        void getSize(osg::GraphicsContext* gc, int& width, int& height);
+
+        void updateTimings(osg::Timer_t tick_start,
+            osg::Timer_t tick_afterReadPixels,
+            osg::Timer_t tick_afterMemCpy,
+            osg::Timer_t tick_afterCaptureOperation,
+            unsigned int dataSize);
+
+        void read();
+        void readPixels();
+        void singlePBO(osg::GLExtensions* ext);
+        void multiPBO(osg::GLExtensions* ext);
+
+        typedef std::vector< osg::ref_ptr<osg::Image> >             ImageBuffer;
+        typedef std::vector< GLuint > PBOBuffer;
+
+        osg::GraphicsContext*   _gc;
+        unsigned int            _index;
+        Mode                    _mode;
+        GLenum                  _readBuffer;
+
+        GLenum                  _pixelFormat;
+        GLenum                  _type;
+        int                     _width;
+        int                     _height;
+
+        unsigned int            _currentImageIndex;
+        ImageBuffer             _imageBuffer;
+
+        unsigned int            _currentPboIndex;
+        PBOBuffer               _pboBuffer;
+
+        unsigned int            _reportTimingFrequency;
+        unsigned int            _numTimeValuesRecorded;
+        double                  _timeForReadPixels;
+        double                  _timeForMemCpy;
+        double                  _timeForCaptureOperation;
+        double                  _timeForFullCopy;
+        double                  _timeForFullCopyAndOperation;
+        osg::Timer_t            _previousFrameTick;
+
+        osg::ref_ptr<CaptureOperation> _captureOperation;
+    };
+
+    typedef std::map<osg::GraphicsContext*, osg::ref_ptr<ContextData> > ContextDataMap;
+
+    ContextData* createContextData(osg::GraphicsContext* gc) const;
+    ContextData* getContextData(osg::GraphicsContext* gc) const;
+
+    Mode                        _mode;
+    FramePosition               _position;
+    GLenum                      _readBuffer;
+    mutable OpenThreads::Mutex  _mutex;
+    mutable ContextDataMap      _contextDataMap;
+    mutable int                 _numFrames;
+
+    osg::ref_ptr<CaptureOperation> _defaultCaptureOperation;
+};
+
 osg::Geometry* createGeometryForImage(osg::Image* image,float s,float t);
 osg::Geometry * createGeometryForImage(osg::Image* image);
 osg::Geometry * createGeometryForTexture(osg::Texture* texture);
 bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, osg::ref_ptr<osg::Image> & image);
-bool captureCameraImage(osg::Camera * camera, osg::ref_ptr<osg::Image> & image, osg::Camera * masterCamera=NULL);
+bool captureCameraImage(osg::Camera * camera, osg::ref_ptr<osg::Image> & image, osg::Camera * masterCamera=nullptr);
+bool captureViewImage(osg::View * view, osg::ref_ptr<osg::Image> & image);
 
 } // namespace osg_plugin
 } // namespace sgi
