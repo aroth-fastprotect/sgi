@@ -2309,7 +2309,7 @@ bool writePrettyHTMLImpl<osg::Shader>::process(std::basic_ostream<char>& os)
                 {
                     const float & position = it->first;
                     const std::string & code = it->second;
-                    os << "<li>" << position << "<br/><pre>" << code << "</pre></li>" << std::endl;
+                    os << "<li>" << position << "<br/><pre>" << helpers::html_encode(code) << "</pre></li>" << std::endl;
                 }
                 os << "</ul>";
             }
@@ -2336,7 +2336,7 @@ bool writePrettyHTMLImpl<osg::Shader>::process(std::basic_ostream<char>& os)
             {
                 float position = it->first;
                 const std::string & code = it->second;
-                os << "<li>" << position << "<br/><pre>" << code << "</pre></li>"; 
+                os << "<li>" << position << "<br/><pre>" << helpers::html_encode(code) << "</pre></li>";
             }
             os << "</ul>";
             ret = true;
@@ -3870,7 +3870,7 @@ bool writePrettyHTMLImpl<osg::Program::PerContextProgram>::process(std::basic_os
             os << "<tr><td>infoLog</td><td><pre>";
             std::string infoLog;
             object->getInfoLog(infoLog);
-            os << infoLog << "</pre></td></tr>" << std::endl;
+            os << helpers::html_encode(infoLog) << "</pre></td></tr>" << std::endl;
 
             os << "<tr><td>loadedBinary</td><td>" << (object->loadedBinary()?"true":"false") << "</td></tr>" << std::endl;
 
