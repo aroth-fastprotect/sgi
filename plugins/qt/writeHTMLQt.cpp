@@ -879,13 +879,13 @@ bool writePrettyHTMLImpl<QOpenGLShader>::process(std::basic_ostream<char>& os)
         break;
     case SGIItemTypeShaderLog:
         {
-            os << "<pre>" << helpers::html_encode(object->log()) << "</pre>";
+            os << "<pre>" << helpers::html_encode(object->log().toStdString()) << "</pre>";
             ret = true;
         }
         break;
     case SGIItemTypeShaderSourceCode:
         {
-            os << "<pre>" << helpers::html_encode(object->sourceCode()) << "</pre>";
+            os << "<pre>" << helpers::html_encode(object->sourceCode().toStdString()) << "</pre>";
             ret = true;
         }
         break;
