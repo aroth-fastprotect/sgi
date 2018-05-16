@@ -500,7 +500,7 @@ bool writePrettyHTMLImpl<osgEarth::CacheBin>::process(std::basic_ostream<char>& 
             if (config.empty())
                 os << "<i>empty</i>";
             else
-                os << "<pre>" << config.toJSON(true) << "</pre>";
+                os << "<pre>" << helpers::html_encode(config.toJSON(true)) << "</pre>";
             os << "</td></tr>" << std::endl;
 
             os << "<tr><td>hashKeys</td><td>" << (object->getHashKeys() ? "true" : "false") << "</td></tr>" << std::endl;
@@ -517,7 +517,7 @@ bool writePrettyHTMLImpl<osgEarth::CacheBin>::process(std::basic_ostream<char>& 
             if (config.empty())
                 os << "<i>empty</i>";
             else
-                os << "<pre>" << config.toJSON(true) << "</pre>";
+                os << "<pre>" << helpers::html_encode(config.toJSON(true)) << "</pre>";
             ret = true;
         }
         break;
@@ -765,7 +765,7 @@ bool writePrettyHTMLImpl<osgEarth::Layer>::process(std::basic_ostream<char>& os)
             if (cfg.empty())
                 os << "<i>empty</i>";
             else
-                os << "<pre>" << cfg.toJSON(true) << "</pre>";
+                os << "<pre>" << helpers::html_encode(cfg.toJSON(true)) << "</pre>";
             os << "</td></tr>" << std::endl;
             os << "<tr><td>readOptions</td><td>" << getObjectNameAndType(object->getReadOptions()) << "</td></tr>" << std::endl;
             os << "<tr><td>cacheSettings</td><td>" << getObjectNameAndType(object->getCacheSettings()) << "</td></tr>" << std::endl;
@@ -812,7 +812,7 @@ bool writePrettyHTMLImpl<osgEarth::Layer>::process(std::basic_ostream<char>& os)
             if (cfg.empty())
                 os << "<i>empty</i>";
             else
-                os << "<pre>" << cfg.toJSON(true) << "</pre>";
+                os << "<pre>" << helpers::html_encode(cfg.toJSON(true)) << "</pre>";
             ret = true;
         }
         break;
@@ -1831,7 +1831,7 @@ bool writePrettyHTMLImpl<osgEarth::PolyShader>::process(std::basic_ostream<char>
 
             os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
             os << "<tr><td>location</td><td>" << object->getLocation() << "</td></tr>" << std::endl;
-            os << "<tr><td>source</td><td><pre>" << object->getShaderSource() << "</pre></td></tr>" << std::endl;
+            os << "<tr><td>source</td><td><pre>" << helpers::html_encode(object->getShaderSource()) << "</pre></td></tr>" << std::endl;
 
             if (_table)
                 os << "</table>" << std::endl;
@@ -2178,7 +2178,7 @@ bool writePrettyHTMLImpl<TileSourceInfo>::process(std::basic_ostream<char>& os)
             if(object->rawData().empty())
                 os << "<i>empty</i>";
             else
-                os << "<pre>" << object->rawData().toJSON(true) << "</pre>";
+                os << "<pre>" << helpers::html_encode(object->rawData().toJSON(true)) << "</pre>";
             ret = true;
         }
         break;
@@ -2194,7 +2194,7 @@ bool writePrettyHTMLImpl<TileSourceInfo>::process(std::basic_ostream<char>& os)
                 {
                     const osgEarth::Config & cfg = *it;
                     std::string name = (cfg.key().empty())?helpers::str_plus_count("Changeset", num):cfg.key();
-                    os << "<tr><td>" << name << "</td><td><pre>" << cfg.toJSON(true) << "</pre></td></tr>";
+                    os << "<tr><td>" << name << "</td><td><pre>" << helpers::html_encode(cfg.toJSON(true)) << "</pre></td></tr>";
                 }
                 os << "</table>" << std::endl;
             }
@@ -2207,7 +2207,7 @@ bool writePrettyHTMLImpl<TileSourceInfo>::process(std::basic_ostream<char>& os)
                     if(num == _item->number())
                     {
                         std::string name = (cfg.key().empty())?helpers::str_plus_count("Changeset", num):cfg.key();
-                        os << "<b>" << name << "</b><br/><pre>" << cfg.toJSON(true) << "</pre>";
+                        os << "<b>" << name << "</b><br/><pre>" << helpers::html_encode(cfg.toJSON(true)) << "</pre>";
                         break;
                     }
                 }
@@ -3665,7 +3665,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     if (cfg.empty())
         os << "<i>empty</i>";
     else
-        os << "<pre>" << cfg.toJSON(true) << "</pre>";
+        os << "<pre>" << helpers::html_encode(cfg.toJSON(true)) << "</pre>";
     os << "</td></tr></table>" << std::endl;
     return os;
 }

@@ -165,9 +165,9 @@ bool writePrettyHTMLImpl<osgEarth::Config>::process(std::basic_ostream<char>& os
 
             os << "</ul><hr/>" << std::endl;
             if(object->key().empty())
-                os << "<pre>" << object->toJSON(true) << "</pre>" << std::endl;
+                os << "<pre>" << helpers::html_encode(object->toJSON(true)) << "</pre>" << std::endl;
             else
-                os << "<pre>&quot;" << object->key() << "&quot; = " << object->toJSON(true) << "</pre>" << std::endl;
+                os << "<pre>&quot;" << object->key() << "&quot; = " << helpers::html_encode(object->toJSON(true)) << "</pre>" << std::endl;
             ret = true;
         }
         break;
