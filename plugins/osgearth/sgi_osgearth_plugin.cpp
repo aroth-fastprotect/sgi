@@ -31,6 +31,9 @@
 #include <osgEarth/LandCoverLayer>
 #include <osgEarth/PatchLayer>
 #include <osgEarth/VideoLayer>
+#include <osgEarthFeatures/FeatureModelLayer>
+#include <osgEarthFeatures/FeatureMaskLayer>
+#include <osgEarthFeatures/ImageToFeatureLayer>
 //#include <osgEarthUtil/FlatteningLayer>
 #include <osgEarthUtil/FractalElevationLayer>
 #include <osgEarthUtil/GeodeticGraticule>
@@ -303,6 +306,7 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::Layer)
     osgEarth::TerrainLayer, osgEarth::ModelLayer,
 #else
     osgEarth::VisibleLayer,
+    osgEarth::Features::FeatureSourceLayer,
 #endif
     osgEarth::MaskLayer
 SGI_OBJECT_INFO_END()
@@ -310,12 +314,22 @@ SGI_OBJECT_INFO_END()
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 SGI_OBJECT_INFO_BEGIN(osgEarth::VisibleLayer)
     osgEarth::TerrainLayer, osgEarth::ModelLayer, osgEarth::PatchLayer,
+    osgEarth::Features::FeatureModelLayer,
     osgEarth::Util::SimpleOceanLayer,
     osgEarth::Util::GeodeticGraticule,
     osgEarth::Util::GARSGraticule,
     osgEarth::Util::MGRSGraticule,
     osgEarth::Util::UTMGraticule
 SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::MaskLayer)
+    osgEarth::Features::FeatureMaskLayer
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::Features::FeatureSourceLayer)
+    osgEarth::Features::ImageToFeatureLayer
+SGI_OBJECT_INFO_END()
+
 #endif
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::TerrainLayer)
