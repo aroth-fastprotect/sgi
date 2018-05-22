@@ -207,7 +207,8 @@ void ViewOSG::paintEvent(QPaintEvent* event)
 {
     QWidget::paintEvent(event);
     updateCamera();
-    _viewer->frame();
+    if(_viewer.valid())
+        _viewer->frame();
 }
 
 void ViewOSG::resizeEvent(QResizeEvent *event)
@@ -231,8 +232,8 @@ ExtraViewDialog::ExtraViewDialog(QWidget * parent, SGIItemBase * item, SGIPlugin
 	ui->setupUi( this );
 
 	//connect(ui->buttonBox->button(QDialogButtonBox::Save), SIGNAL(clicked()), this, SLOT(save()));
-	connect(ui->buttonBox->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(reject()));
-	connect(ui->buttonBox->button(QDialogButtonBox::RestoreDefaults), SIGNAL(clicked()), this, SLOT(restoreDefaults()));
+	connect(ui->buttonBox->button(QDialogButtonBox::Close), &QPushButton::clicked, this, &ExtraViewDialog::reject);
+	connect(ui->buttonBox->button(QDialogButtonBox::RestoreDefaults), &QPushButton::clicked, this, &ExtraViewDialog::restoreDefaults);
 
     connect(_timer, &QTimer::timeout, this, &ExtraViewDialog::load);
 
