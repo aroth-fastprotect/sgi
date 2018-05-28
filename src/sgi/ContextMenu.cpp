@@ -339,7 +339,7 @@ public:
             if(_menu)
             {
                 _menu->_interface = NULL;
-                delete _menu;
+                _menu->deleteLater();
             }
         }
 

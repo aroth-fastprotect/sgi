@@ -20,6 +20,9 @@
 #ifdef SGI_USE_OSGEARTH_FAST
 #include <osgEarth/LevelDBFactory>
 #endif
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+#include <osgEarth/LineDrawable>
+#endif
 
 //#include <osgEarth/TimeControl>
 #include "SGIItemOsgEarth"
@@ -45,6 +48,10 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::ImageLayer)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationLayer)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelLayer)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskLayer)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LineDrawable)
+#endif
+
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::SkyNode)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::AutoClipPlaneCullCallback)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::Control)
@@ -461,7 +468,7 @@ bool contextMenuPopulateImpl<osgEarth::ModelLayer>::populate(IContextMenuItem * 
 
 bool contextMenuPopulateImpl<osgEarth::MaskLayer>::populate(IContextMenuItem * menuItem)
 {
-    osgEarth::MaskLayer * object = static_cast<osgEarth::MaskLayer*>(item<SGIItemOsg>()->object());
+    osgEarth::MaskLayer * object = getObject<osgEarth::MaskLayer,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -492,6 +499,33 @@ bool contextMenuPopulateImpl<osgEarth::MaskLayer>::populate(IContextMenuItem * m
 	}
 	return ret;
 }
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+
+bool contextMenuPopulateImpl<osgEarth::LineDrawable>::populate(IContextMenuItem * menuItem)
+{
+    osgEarth::LineDrawable * object = getObject<osgEarth::LineDrawable,SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if(ret)
+        {
+            menuItem->addSimpleAction(MenuActionLineDrawableSetLineWidth, helpers::str_plus_number("Line Width", object->getLineWidth()), _item);
+            menuItem->addSimpleAction(MenuActionLineDrawableSetStipplePattern, helpers::str_plus_number("Stipple Pattern", object->getStipplePattern()), _item);
+            menuItem->addSimpleAction(MenuActionLineDrawableSetStippleFactor, helpers::str_plus_number("Stipple Factor", object->getStippleFactor()), _item);
+            menuItem->addSimpleAction(MenuActionLineDrawableSetColor, helpers::str_plus_number("Color", osg_helpers::vec4fToHtmlColor(object->getColor())), _item);
+        }
+        break;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
+}
+#endif
+
 
 #ifdef SGI_USE_OSGEARTH_FAST
 bool contextMenuPopulateImpl<osgEarth::LevelDBDatabase>::populate(IContextMenuItem * menuItem)
