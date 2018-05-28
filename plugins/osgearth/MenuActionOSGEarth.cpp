@@ -29,6 +29,9 @@
 #else
 #include <osgEarthUtil/SkyNode>
 #endif
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+#include <osgEarth/LineDrawable>
+#endif
 
 #include "osgearth_accessor.h"
 #include "SettingsDialogOSGEarth.h"
@@ -117,6 +120,12 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCacheCompact)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCacheBinClear)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCacheBinCompact)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTileSourceTileKeyRemoveFromCache)
+
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetLineWidth)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetStipplePattern)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetStippleFactor)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetColor)
+
 
 using namespace sgi::osg_helpers;
 
@@ -1121,6 +1130,58 @@ bool actionHandlerImpl<MenuActionTileSourceTileKeyRemoveFromCache>::execute()
     return true;
 }
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+bool actionHandlerImpl<MenuActionLineDrawableSetLineWidth>::execute()
+{
+    osgEarth::LineDrawable * object = getObject<osgEarth::LineDrawable, SGIItemOsg>();
+    double value = object->getLineWidth();
+    bool gotInput = _hostInterface->inputDialogDouble(menuAction()->menu()->parentWidget(), value, "Width", "Set line width", 0.0, 10000.0, 1, _item);
+    if (gotInput)
+    {
+        object->setLineWidth(value);
+        triggerRepaint();
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionLineDrawableSetStipplePattern>::execute()
+{
+    osgEarth::LineDrawable * object = getObject<osgEarth::LineDrawable, SGIItemOsg>();
+    int value = object->getStipplePattern();
+    bool gotInput = _hostInterface->inputDialogInteger(menuAction()->menu()->parentWidget(), value, "Pattern", "Set stipple pattern", 0, 0xffff, 1, _item);
+    if (gotInput)
+    {
+        object->setStipplePattern(value);
+        triggerRepaint();
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionLineDrawableSetStippleFactor>::execute()
+{
+    osgEarth::LineDrawable * object = getObject<osgEarth::LineDrawable, SGIItemOsg>();
+    double value = object->getStippleFactor();
+    bool gotInput = _hostInterface->inputDialogDouble(menuAction()->menu()->parentWidget(), value, "Factor", "Set stipple factor", 0.0, 1000.0, 1, _item);
+    if (gotInput)
+    {
+        object->setStippleFactor(value);
+        triggerRepaint();
+    }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionLineDrawableSetColor>::execute()
+{
+    osgEarth::LineDrawable * object = getObject<osgEarth::LineDrawable, SGIItemOsg>();
+    sgi::Color color = osgColor(object->getColor());
+    if (_hostInterface->inputDialogColor(menu()->parentWidget(), color, "Color", "Set line color", _item))
+    {
+        object->setColor(osgColor(color));
+        triggerRepaint();
+    }
+    return true;
+}
+#endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
 
 
 } // namespace osgearth_plugin

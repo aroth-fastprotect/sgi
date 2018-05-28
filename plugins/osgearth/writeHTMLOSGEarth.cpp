@@ -66,6 +66,9 @@
 #include <osgEarthAnnotation/GeoPositionNode>
 #include <osgEarth/TimeControl>
 #endif
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+#include <osgEarth/LineDrawable>
+#endif
 
 #include "SGIItemOsgEarth"
 
@@ -132,6 +135,10 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TileBlacklist)
 #ifdef SGI_USE_OSGEARTH_FAST
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LevelDBDatabase)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LODScaleOverrideNode)
+#endif
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LineDrawable)
 #endif
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ElevationQueryReferenced)
@@ -1373,7 +1380,7 @@ bool writePrettyHTMLImpl<osgEarth::Util::SimpleOceanLayer>::process(std::basic_o
             // add terrain layer properties first
             callNextHandler(os);
 
-            os << "<tr><td>color</td><td>" << object->getColor() << "</td></tr>" << std::endl;
+            os << "<tr><td>color</td><td>" << osg_helpers::vec4fToHtmlColor(object->getColor()) << "</td></tr>" << std::endl;
             os << "<tr><td>maxAltitude</td><td>" << object->getMaxAltitude() << "</td></tr>" << std::endl;
 
             if (_table)
@@ -2953,7 +2960,7 @@ bool writePrettyHTMLImpl<TileSourceTileKey>::process(std::basic_ostream<char>& o
 #ifdef SGI_USE_OSGEARTH_FAST
 bool writePrettyHTMLImpl<osgEarth::LODScaleOverrideNode>::process(std::basic_ostream<char>& os)
 {
-    osgEarth::LODScaleOverrideNode * object = static_cast<osgEarth::LODScaleOverrideNode*>(item<SGIItemOsg>()->object());
+    osgEarth::LODScaleOverrideNode * object = getObject<osgEarth::LODScaleOverrideNode,SGIItemOsg>();
     bool ret = false;
     switch (itemType())
     {
@@ -2979,6 +2986,39 @@ bool writePrettyHTMLImpl<osgEarth::LODScaleOverrideNode>::process(std::basic_ost
     return ret;
 }
 #endif // SGI_USE_OSGEARTH_FAST
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+bool writePrettyHTMLImpl<osgEarth::LineDrawable>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::LineDrawable * object = getObject<osgEarth::LineDrawable, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        // add Camera properties first
+        callNextHandler(os);
+
+        os << "<tr><td>line width</td><td>" << object->getLineWidth() << "</td></tr>" << std::endl;
+        os << "<tr><td>stipple pattern</td><td>" << std::hex << object->getStipplePattern() << std::dec << "</td></tr>" << std::endl;
+        os << "<tr><td>stipple factor</td><td>" << object->getStippleFactor() << "</td></tr>" << std::endl;
+        os << "<tr><td>color</td><td>" << osg_helpers::vec4fToHtmlColor(object->getColor()) << "</td></tr>" << std::endl;
+
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+#endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Util::Controls::ControlContext & object)
 {

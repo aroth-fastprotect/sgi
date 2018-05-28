@@ -81,6 +81,11 @@ enum MenuAction {
     MenuActionCacheBinClear,
     MenuActionCacheBinCompact,
     MenuActionTileSourceTileKeyRemoveFromCache,
+
+    MenuActionLineDrawableSetLineWidth,
+    MenuActionLineDrawableSetStipplePattern,
+    MenuActionLineDrawableSetStippleFactor,
+    MenuActionLineDrawableSetColor,
 };
 
 enum MapDebugImageLayer {

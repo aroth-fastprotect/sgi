@@ -56,6 +56,9 @@
 #include <osgEarth/ElevationPool>
 #include <osgEarth/ResourceReleaser>
 #endif
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+#include <osgEarth/LineDrawable>
+#endif
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 #include <osgEarthUtil/Sky>
@@ -160,7 +163,11 @@ SGI_OBJECT_INFO_BEGIN(osg::Node)
 SGI_OBJECT_INFO_END()
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 SGI_OBJECT_INFO_BEGIN(osg::Drawable)
+    osg::Geometry,
     osgEarth::ResourceReleaser
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::Geometry)
+    osgEarth::LineDrawable
 SGI_OBJECT_INFO_END()
 #endif
 
