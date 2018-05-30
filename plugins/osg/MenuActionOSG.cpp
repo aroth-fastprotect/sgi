@@ -29,6 +29,7 @@
 #include <osg/BlendFunc>
 #include <osg/Point>
 #include <osg/PolygonMode>
+#include <osg/CullFace>
 #include <osg/TexEnv>
 #include <osg/TexEnvFilter>
 #include <osg/TexMat>
@@ -167,6 +168,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionBlendColorConstantColor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionPolygonModeFront)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionPolygonModeBack)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionPolygonModeFrontAndBack)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCullFaceMode)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMaterialColorMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMaterialAmbient)
@@ -1766,6 +1768,13 @@ bool actionHandlerImpl<MenuActionPolygonModeFrontAndBack>::execute()
 {
     osg::PolygonMode * object = getObject<osg::PolygonMode, SGIItemOsg>();
     object->setMode(osg::PolygonMode::FRONT_AND_BACK, (osg::PolygonMode::Mode)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionCullFaceMode>::execute()
+{
+    osg::CullFace * object = getObject<osg::CullFace, SGIItemOsg>();
+    object->setMode((osg::CullFace::Mode)menuAction()->mode());
     return true;
 }
 

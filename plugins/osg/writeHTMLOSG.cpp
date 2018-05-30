@@ -30,6 +30,7 @@
 #include <osg/Point>
 #include <osg/PolygonStipple>
 #include <osg/Depth>
+#include <osg/CullFace>
 #include <osg/GraphicsContext>
 #include <osg/GLExtensions>
 #include <osg/OperationThread>
@@ -116,6 +117,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::VertexBufferObject)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Shader)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ClipNode)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::CullFace)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Geometry)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Drawable)
@@ -2352,7 +2354,7 @@ bool writePrettyHTMLImpl<osg::Shader>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::ClipNode>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::ClipNode * object = static_cast<osg::ClipNode*>(item<SGIItemOsg>()->object());
+    osg::ClipNode * object = getObject<osg::ClipNode,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -2387,6 +2389,46 @@ bool writePrettyHTMLImpl<osg::ClipNode>::process(std::basic_ostream<char>& os)
     return ret;
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::CullFace::Mode & t)
+{
+    switch (t)
+    {
+    case osg::CullFace::FRONT: os << "FRONT"; break;
+    case osg::CullFace::BACK: os << "BACK"; break;
+    case osg::CullFace::FRONT_AND_BACK: os << "FRONT_AND_BACK"; break;
+    default: os << (int)t; break;
+    }
+    return os;
+}
+
+bool writePrettyHTMLImpl<osg::CullFace>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    osg::CullFace * object = getObject<osg::CullFace,SGIItemOsg>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add Group properties first
+            callNextHandler(os);
+
+            // add remaining CullFace properties
+            os << "<tr><td>mode</td><td>" << object->getMode() << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
 bool writePrettyHTMLImpl<OpenThreads::Thread>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
