@@ -41,6 +41,7 @@
 #include "TileInspectorDialog.h"
 
 #include <sgi/helpers/osg>
+#include <sgi/helpers/osg_helper_nodes>
 #include <sgi/helpers/string>
 
 #include <cassert>
@@ -347,10 +348,9 @@ bool actionHandlerImpl<MenuActionTerrainLayerCacheUsage>::execute()
 
 bool actionHandlerImpl<MenuActionMapInspector>::execute()
 {
-	osgEarth::MapNode * object = static_cast<osgEarth::MapNode*>(item<SGIItemOsg>()->object());
-	MapNodeAccess * access = static_cast<MapNodeAccess*>(object);
+    MapNodeAccess * object = static_cast<MapNodeAccess*>(getObject<osgEarth::MapNode,SGIItemOsg>());
 
-	access->toggleMapInspector();
+    runMethodInUpdateCallback(object, &MapNodeAccess::toggleMapInspector);
 	return true;
 }
 
