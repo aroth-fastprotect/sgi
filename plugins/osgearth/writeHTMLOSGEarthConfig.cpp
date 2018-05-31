@@ -22,6 +22,8 @@
 #include <osgEarth/LevelDBFactory>
 #endif
 
+#include <osgEarth/ScreenSpaceLayout>
+
 #include <osgEarth/ImageLayer>
 #include <osgEarth/ElevationLayer>
 #include <osgEarth/ModelLayer>
@@ -101,6 +103,8 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::FeatureGeomModelO
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::FeatureStencilModelOptions)
 #endif
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::OGRFeatureOptions)
+
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ScreenSpaceLayoutOptions)
 
 using namespace osg_helpers;
 
@@ -1171,6 +1175,41 @@ bool writePrettyHTMLImpl<osgEarth::Drivers::FeatureGeomModelOptions>::process(st
                 _hostInterface->writePrettyHTML(os, &compilerOptions);
             os << "</td></tr>" << std::endl;
 #endif
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::ScreenSpaceLayoutOptions>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::ScreenSpaceLayoutOptions * object = getObject<osgEarth::ScreenSpaceLayoutOptions,SGIItemEarthConfigOptions>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>minAnimationAlpha</td><td>" << object->minAnimationAlpha() << "</td></tr>" << std::endl;
+            os << "<tr><td>minAnimationScale</td><td>" << object->minAnimationScale() << "</td></tr>" << std::endl;
+            os << "<tr><td>inAnimationTime</td><td>" << object->inAnimationTime() << "</td></tr>" << std::endl;
+            os << "<tr><td>outAnimationTime</td><td>" << object->outAnimationTime() << "</td></tr>" << std::endl;
+            os << "<tr><td>sortByPriority</td><td>" << object->sortByPriority() << "</td></tr>" << std::endl;
+            os << "<tr><td>sortByDistance</td><td>" << object->sortByDistance() << "</td></tr>" << std::endl;
+            os << "<tr><td>snapToPixel</td><td>" << object->snapToPixel() << "</td></tr>" << std::endl;
+            os << "<tr><td>maxObjects</td><td>" << object->maxObjects() << "</td></tr>" << std::endl;
+            os << "<tr><td>renderOrder</td><td>" << object->renderOrder() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;

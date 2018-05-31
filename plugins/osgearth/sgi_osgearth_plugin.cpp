@@ -27,6 +27,7 @@
 #include <osgEarth/MaskSource>
 #include <osgEarth/MaskLayer>
 #include <osgEarth/ModelLayer>
+#include <osgEarth/ScreenSpaceLayout>
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 #include <osgEarth/LandCoverLayer>
 #include <osgEarth/PatchLayer>
@@ -128,6 +129,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osgEarth::ElevationPool,
     osgEarth::ElevationEnvelope,
     osgEarth::PolyShader,
+    osgEarth::ScreenSpaceLayoutData,
 #endif
     ElevationQueryReferenced,
     TileKeyReferenced,
@@ -377,6 +379,7 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::ConfigOptions)
 #endif
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     , osgEarth::Features::GeometryCompilerOptions
+    , osgEarth::ScreenSpaceLayoutOptions
 #endif
 SGI_OBJECT_INFO_END()
 

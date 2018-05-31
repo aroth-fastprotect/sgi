@@ -18,6 +18,7 @@
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
 #include <osgEarth/OverlayDecorator>
+#include <osgEarth/ScreenSpaceLayout>
 
 #include <osgEarth/ImageLayer>
 #include <osgEarth/ElevationLayer>
@@ -140,6 +141,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LODScaleOverrideNode)
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LineDrawable)
 #endif
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ScreenSpaceLayoutData)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ElevationQueryReferenced)
 
@@ -149,7 +151,6 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::ControlCanvas)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::Control)
-WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::ControlEventHandler)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::Container)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::ControlNodeBin)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::ControlNode)
@@ -3020,6 +3021,37 @@ bool writePrettyHTMLImpl<osgEarth::LineDrawable>::process(std::basic_ostream<cha
 }
 #endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
 
+bool writePrettyHTMLImpl<osgEarth::ScreenSpaceLayoutData>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::ScreenSpaceLayoutData * object = getObject<osgEarth::ScreenSpaceLayoutData,SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        // add Camera properties first
+        callNextHandler(os);
+
+        os << "<tr><td>priority</td><td>" << object->getPriority() << "</td></tr>" << std::endl;
+        os << "<tr><td>pixelOffset</td><td>" << object->getPixelOffset() << "</td></tr>" << std::endl;
+        os << "<tr><td>anchorPoint</td><td>" << object->getAnchorPoint() << "</td></tr>" << std::endl;
+        os << "<tr><td>projPoint</td><td>" << object->getProjPoint() << "</td></tr>" << std::endl;
+
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Util::Controls::ControlContext & object)
 {
     os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
@@ -3191,31 +3223,6 @@ bool writePrettyHTMLImpl<osgEarth::Util::Controls::Control>::process(std::basic_
                 os << "<li>" << getObjectNameAndType(evthandler.get()) << "</li>" << std::endl;
             }
             os << "</ul>";
-            ret = true;
-        }
-        break;
-    default:
-        ret = callNextHandler(os);
-        break;
-    }
-    return ret;
-}
-
-bool writePrettyHTMLImpl<osgEarth::Util::Controls::ControlEventHandler>::process(std::basic_ostream<char>& os)
-{
-    osgEarth::Util::Controls::ControlEventHandler * object = getObject<osgEarth::Util::Controls::ControlEventHandler,SGIItemOsg>();
-    bool ret = false;
-    switch(itemType())
-    {
-    case SGIItemTypeObject:
-        {
-            if(_table)
-                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
-
-            callNextHandler(os);
-
-            if(_table)
-                os << "</table>" << std::endl;
             ret = true;
         }
         break;
