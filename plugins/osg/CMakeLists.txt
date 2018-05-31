@@ -59,8 +59,6 @@ SET(TARGET_H
 
     DrawableHelper.h
 	NodeHelper.h
-    ManipulateObject.h
-
     )
 fast_configure_file(SGIItemOsg ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsg COPYONLY)
 
