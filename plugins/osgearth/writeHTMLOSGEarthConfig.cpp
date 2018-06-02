@@ -30,6 +30,10 @@
 #include <osgEarth/MaskLayer>
 
 #include <osgEarthFeatures/FeatureModelSource>
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+#include <osgEarthFeatures/FeatureModelLayer>
+#include <osgEarthFeatures/FeatureSourceLayer>
+#endif
 #include <osgEarthFeatures/GeometryCompiler>
 #include <osgEarthUtil/LatLongFormatter>
 
@@ -90,6 +94,9 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSour
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSourceOptions)
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::GeometryCompilerOptions)
+#else
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSourceLayerOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelLayerOptions)
 #endif
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::TMSOptions)
@@ -876,6 +883,69 @@ bool writePrettyHTMLImpl<osgEarth::Features::GeometryCompilerOptions>::process(s
             os << "<tr><td>resampleMaxLength</td><td>" << object->resampleMaxLength() << "</td></tr>" << std::endl;
             os << "<tr><td>useVertexBufferObjects</td><td>" << object->useVertexBufferObjects() << "</td></tr>" << std::endl;
             os << "<tr><td>shaderPolicy</td><td>" << object->shaderPolicy() << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+#else
+bool writePrettyHTMLImpl<osgEarth::Features::FeatureSourceLayerOptions>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Features::FeatureSourceLayerOptions * object = getObject<osgEarth::Features::FeatureSourceLayerOptions,SGIItemEarthConfigOptions>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>featureSource</td><td>";
+            const auto & f = object->featureSource();
+            if(f.isSet())
+            {
+                SGIHostItemOsgEarthConfigOptions opts(f.value());
+                _hostInterface->writePrettyHTML(os, &opts, false);
+            }
+            else
+                os << "unset";
+            os << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Features::FeatureModelLayerOptions>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Features::FeatureModelLayerOptions * object = getObject<osgEarth::Features::FeatureModelLayerOptions,SGIItemEarthConfigOptions>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>featureSourceLayer</td><td>" << object->featureSourceLayer() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;

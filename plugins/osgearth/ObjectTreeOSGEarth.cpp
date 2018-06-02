@@ -40,6 +40,11 @@
 #include <osgEarth/OverlayDecorator>
 #include <osgEarth/TraversalData>
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+#include <osgEarthFeatures/FeatureSourceLayer>
+#include <osgEarthFeatures/FeatureModelLayer>
+#endif
+
 #include <osgEarthDrivers/cache_filesystem/FileSystemCache>
 #include <osgEarthDrivers/tms/TMSOptions>
 #include <osgEarthDrivers/arcgis/ArcGISOptions>
@@ -109,6 +114,10 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::RTTPicker)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureProfile)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSource)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSource)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSourceLayer)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelLayer)
+#endif
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Config)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ConfigOptions)
@@ -1953,6 +1962,55 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureModelSource>::build(IObjectT
     }
     return ret;
 }
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+bool objectTreeBuildImpl<osgEarth::Features::FeatureSourceLayer>::build(IObjectTreeItem * treeItem)
+{
+    osgEarth::Features::FeatureSourceLayer * object = getObject<osgEarth::Features::FeatureSourceLayer,SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            SGIHostItemOsg featureSource(object->getFeatureSource());
+            if(featureSource.hasObject())
+                treeItem->addChild("FeatureSource", &featureSource);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osgEarth::Features::FeatureModelLayer>::build(IObjectTreeItem * treeItem)
+{
+    osgEarth::Features::FeatureModelLayer * object = getObject<osgEarth::Features::FeatureModelLayer,SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            SGIHostItemOsgEarthConfigOptions featureModelLayerOptions(object->getFeatureModelLayerOptions());
+            treeItem->addChild("FeatureModelLayerOptions", &featureModelLayerOptions);
+
+            SGIHostItemOsg node(object->getNode());
+            if(node.hasObject())
+                treeItem->addChild("Node", &node);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+#endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 
 #ifdef SGI_USE_OSGEARTH_FAST
 bool objectTreeBuildImpl<osgEarth::LevelDBDatabase>::build(IObjectTreeItem * treeItem)
