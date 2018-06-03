@@ -128,7 +128,7 @@ protected:
     NodeList _nodes;
 };
 
-namespace details {
+namespace run_operation_impl {
     template<typename CALLABLE, typename OBJECT_TYPE>
     class ObjectUpdateCallbackT : public osg::Callback
     {
@@ -170,7 +170,7 @@ namespace details {
 template<typename CALLABLE, class OBJECT_TYPE>
 inline void runOperationInUpdateCallback(OBJECT_TYPE * object, const CALLABLE & op)
 {
-    new details::ObjectUpdateCallbackT<CALLABLE, OBJECT_TYPE>(object, op);
+    new run_operation_impl::ObjectUpdateCallbackT<CALLABLE, OBJECT_TYPE>(object, op);
 }
 template<typename CALLABLE, class OBJECT_TYPE>
 inline void runMethodInUpdateCallback(OBJECT_TYPE * object, const CALLABLE & op)
@@ -180,7 +180,7 @@ inline void runMethodInUpdateCallback(OBJECT_TYPE * object, const CALLABLE & op)
 template<typename CALLABLE, class OBJECT_TYPE, typename ...Targs>
 inline void runOperatorInUpdateCallback(OBJECT_TYPE * object, Targs... args)
 {
-    new osg_helpers::details::ObjectUpdateCallbackT<CALLABLE, OBJECT_TYPE>(object, CALLABLE ( std::forward<Targs>(args)... ) );
+    new run_operation_impl::ObjectUpdateCallbackT<CALLABLE, OBJECT_TYPE>(object, CALLABLE ( std::forward<Targs>(args)... ) );
 }
 
 template<typename VISITOR_TYPE, class OBJECT_TYPE, typename ...Targs>
