@@ -20,7 +20,6 @@ namespace osgEarth {
     class TileKey;
     class VirtualProgram;
     class ElevationQuery;
-	class LevelDBDatabase;
 
     namespace Util {
         class SkyNode;

@@ -18,9 +18,6 @@
 #include <osgEarth/MapNode>
 #include <osgEarth/MaskLayer>
 #include <osgEarth/Registry>
-#ifdef SGI_USE_OSGEARTH_FAST
-#include <osgEarth/LevelDBFactory>
-#endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 #include <osgEarth/ShaderFactory>
 #include <osgEarth/ResourceReleaser>
@@ -93,9 +90,6 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(TileSourceInfo)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::TileBlacklist)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelSource)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskSource)
-#ifdef SGI_USE_OSGEARTH_FAST
-OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::LevelDBDatabase)
-#endif
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ElevationQueryReferenced)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(TileKeyReferenced)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
@@ -502,15 +496,6 @@ bool objectTreeBuildImpl<osgEarth::Registry>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg capabilities(&object->getCapabilities());
             if(capabilities.hasObject())
                 treeItem->addChild("Capabilities", &capabilities);
-
-#ifdef SGI_USE_OSGEARTH_FAST
-			{
-                osgEarth::LevelDBDatabasePairList databases;
-                osgEarth::LevelDBFactory::getDatabases(databases, false);
-                if (!databases.empty())
-					treeItem->addChild(helpers::str_plus_count("LevelDB", databases.size()), cloneItem<SGIItemOsg>(SGIItemTypeDatabases));
-			}
-#endif
 		}
         break;
     case SGIItemTypeCallbacks:
@@ -554,23 +539,6 @@ bool objectTreeBuildImpl<osgEarth::Registry>::build(IObjectTreeItem * treeItem)
             ret = true;
         }
         break;
-#ifdef SGI_USE_OSGEARTH_FAST
-	case SGIItemTypeDatabases:
-		{
-            osgEarth::LevelDBDatabasePairList databases;
-            osgEarth::LevelDBFactory::getDatabases(databases, false);
-            for (const osgEarth::LevelDBDatabasePair & pair : databases)
-            {
-                SGIHostItemOsg item(pair.second.get());
-                if (item.hasObject())
-                    treeItem->addChild(pair.first, &item);
-                else
-                    treeItem->addChild(pair.first, (sgi::SGIItemBase*)NULL);
-            }
-			ret = true;
-		}
-		break;
-#endif
     default:
         ret = callNextHandler(treeItem);
         break;
@@ -2011,29 +1979,6 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureModelLayer>::build(IObjectTr
     return ret;
 }
 #endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
-
-#ifdef SGI_USE_OSGEARTH_FAST
-bool objectTreeBuildImpl<osgEarth::LevelDBDatabase>::build(IObjectTreeItem * treeItem)
-{
-	osgEarth::LevelDBDatabase * object = static_cast<osgEarth::LevelDBDatabase*>(item<SGIItemOsg>()->object());
-	bool ret = false;
-	switch (itemType())
-	{
-	case SGIItemTypeObject:
-		ret = callNextHandler(treeItem);
-		if (ret)
-		{
-			SGIHostItemOsgEarthConfigOptions options(object->getOptions());
-			treeItem->addChild("Options", &options);
-		}
-		break;
-	default:
-		ret = callNextHandler(treeItem);
-		break;
-	}
-	return ret;
-}
-#endif
 
 bool objectTreeBuildImpl<osgEarth::Config>::build(IObjectTreeItem * treeItem)
 {

@@ -40,9 +40,6 @@
 
 #include <osgEarth/ElevationQuery>
 #include <osgEarth/ImageUtils>
-#ifdef SGI_USE_OSGEARTH_FAST
-#include <osgEarth/LevelDBFactory>
-#endif
 #include <osgEarth/TraversalData>
 
 #include <osgEarthUtil/LatLongFormatter>
@@ -134,7 +131,6 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::VirtualProgram)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TileBlacklist)
 #ifdef SGI_USE_OSGEARTH_FAST
-WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LevelDBDatabase)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LODScaleOverrideNode)
 #endif
 
@@ -268,14 +264,6 @@ bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& 
 			os << "<tr><td>blacklist filenames</td><td>" << access->numBlacklistFilenames() << " entries</td></tr>" << std::endl;
 			os << "<tr><td>activities</td><td>";
 
-#ifdef SGI_USE_OSGEARTH_FAST
-			{
-				std::vector<osgEarth::LevelDBDatabasePtr> databases;
-				osgEarth::LevelDBFactory::getActiveDatabases(databases);
-				os << "<tr><td>LevelDB databases</td><td>" << databases.size() << " entries</td></tr>" << std::endl;
-			}
-#endif
-			
 			std::set<std::string> activities;
 			object->getActivities(activities);
 			if (activities.empty())
@@ -312,32 +300,6 @@ bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& 
 			ret = true;
 		}
 		break;
-#ifdef SGI_USE_OSGEARTH_FAST
-    case SGIItemTypeDatabases:
-		{
-            osgEarth::LevelDBDatabasePairList databases;
-			osgEarth::LevelDBFactory::getDatabases(databases, false);
-			os << databases.size() << " databases<br/>" << std::endl;
-			os << "<ul>";
-			for (const osgEarth::LevelDBDatabasePair & pair : databases)
-			{
-                os << "<li>" << pair.first << ": ";
-                if (pair.second.valid())
-                {
-                    os << (void*)pair.second->_db << " " << pair.second->created();
-                }
-                else
-                {
-                    os << "NULL";
-                }
-                os << "</li>" << std::endl;
-			}
-			os << "</ul>" << std::endl;
-
-			ret = true;
-        }
-		break;
-#endif
     default:
         ret = callNextHandler(os);
         break;
@@ -2283,38 +2245,6 @@ bool writePrettyHTMLImpl<osgEarth::ModelSource>::process(std::basic_ostream<char
     }
     return ret;
 }
-
-#ifdef SGI_USE_OSGEARTH_FAST
-bool writePrettyHTMLImpl<osgEarth::LevelDBDatabase>::process(std::basic_ostream<char>& os)
-{
-	osgEarth::LevelDBDatabase * object = getObject<osgEarth::LevelDBDatabase, SGIItemOsg>();
-	bool ret = false;
-	switch (itemType())
-	{
-	case SGIItemTypeObject:
-		{
-			if (_table)
-				os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
-
-			// add Object properties first
-			callNextHandler(os);
-
-			os << "<tr><td>rootPath</td><td>" << object->rootPath() << "</td></tr>" << std::endl;
-			os << "<tr><td>isDynamic</td><td>" << (object->created() ? "true" : "false") << "</td></tr>" << std::endl;
-			os << "<tr><td>database ptr</td><td>" << (void*)object->getDB() << "</td></tr>" << std::endl;
-
-			if (_table)
-				os << "</table>" << std::endl;
-			ret = true;
-		}
-		break;
-	default:
-		ret = callNextHandler(os);
-		break;
-	}
-	return ret;
-}
-#endif // SGI_USE_OSGEARTH_FAST
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::FunctionLocation & t)
 {

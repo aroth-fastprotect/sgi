@@ -15,7 +15,6 @@ namespace osgEarth {
 
     class Config;
     class ConfigOptions;
-	class LevelDBDatabase;
 }
 
 namespace sgi {

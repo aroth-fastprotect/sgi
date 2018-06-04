@@ -18,9 +18,6 @@
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
 #include <osgEarth/OverlayDecorator>
-#ifdef SGI_USE_OSGEARTH_FAST
-#include <osgEarth/LevelDBFactory>
-#endif
 
 #include <osgEarth/ScreenSpaceLayout>
 
@@ -87,9 +84,6 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskLayerOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TileSourceOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelSourceOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheOptions)
-#ifdef SGI_USE_OSGEARTH_FAST
-WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LevelDBOptions)
-#endif
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSourceOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSourceOptions)
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
@@ -722,38 +716,6 @@ bool writePrettyHTMLImpl<osgEarth::CacheOptions>::process(std::basic_ostream<cha
     }
     return ret;
 }
-
-#ifdef SGI_USE_OSGEARTH_FAST
-bool writePrettyHTMLImpl<osgEarth::LevelDBOptions>::process(std::basic_ostream<char>& os)
-{
-	osgEarth::LevelDBOptions * object = getObject<osgEarth::LevelDBOptions, SGIItemEarthConfigOptions>();
-	bool ret = false;
-	switch (itemType())
-	{
-	case SGIItemTypeObject:
-	{
-		if (_table)
-			os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
-
-		callNextHandler(os);
-
-		os << "<tr><td>rootPath</td><td>" << object->rootPath() << "</td></tr>" << std::endl;
-		os << "<tr><td>blockSize</td><td>" << object->blockSize() << "</td></tr>" << std::endl;
-		os << "<tr><td>maxOpenFiles</td><td>" << object->maxOpenFiles() << "</td></tr>" << std::endl;
-		os << "<tr><td>createIfMissing</td><td>" << object->createIfMissing() << "</td></tr>" << std::endl;
-
-		if (_table)
-			os << "</table>" << std::endl;
-		ret = true;
-	}
-	break;
-	default:
-		ret = callNextHandler(os);
-		break;
-	}
-	return ret;
-}
-#endif
 
 bool writePrettyHTMLImpl<osgEarth::Features::FeatureSourceOptions>::process(std::basic_ostream<char>& os)
 {

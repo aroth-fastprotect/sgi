@@ -36,7 +36,7 @@ SET(TARGET_H
 	osgearth_accessor.h
     )
 
-if(EXISTS ${OSGEARTH_INCLUDE_DIR}/osgEarth/LevelDBFactory)
+if(EXISTS ${OSGEARTH_INCLUDE_DIR}/osgEarthDBFactory/LevelDBFactory)
     add_definitions(-DSGI_USE_OSGEARTH_FAST=1)
 endif()
 
