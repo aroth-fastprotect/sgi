@@ -14,14 +14,14 @@ class QTextDialog : public QDialog
 	Q_OBJECT
 
 public:
-	QTextDialog(QWidget *parent = 0, Qt::WindowFlags f = 0);
+    QTextDialog(QWidget *parent = nullptr, Qt::WindowFlags f = 0);
 	~QTextDialog();
 
     enum TextMode {
         TextModePlain,
         TextModeHTML
     };
-    Q_ENUMS(TextMode);
+    Q_ENUMS(TextMode)
 
 public slots:
 	void					setButtons(QDialogButtonBox::StandardButtons buttons);

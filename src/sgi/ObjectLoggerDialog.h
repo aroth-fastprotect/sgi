@@ -26,8 +26,8 @@ class ObjectLoggerDialog : public QDialog
 	Q_OBJECT
 
 public:
-                        ObjectLoggerDialog(SGIItemBase * item, IHostCallback * callback=NULL, QWidget *parent = 0, Qt::WindowFlags f = 0);
-                        ObjectLoggerDialog(IObjectLogger * logger, IHostCallback * callback=NULL, QWidget *parent = 0, Qt::WindowFlags f = 0);
+                        ObjectLoggerDialog(SGIItemBase * item, IHostCallback * callback=nullptr, QWidget *parent = 0, Qt::WindowFlags f = 0);
+                        ObjectLoggerDialog(IObjectLogger * logger, IHostCallback * callback=nullptr, QWidget *parent = 0, Qt::WindowFlags f = 0);
 	virtual				~ObjectLoggerDialog();
 
 private:

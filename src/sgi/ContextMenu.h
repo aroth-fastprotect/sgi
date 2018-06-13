@@ -23,7 +23,7 @@ class ContextMenuBase : public QMenu
 {
     Q_OBJECT
 public:
-    ContextMenuBase(QWidget *parent = 0);
+    ContextMenuBase(QWidget *parent = nullptr);
     virtual ~ContextMenuBase();
 signals:
     void hidden();
@@ -42,8 +42,8 @@ public:
 
 public:
     IContextMenu *                  menuInterface() { return _interface; }
-    void                            setObject(SGIItemBase * item, IHostCallback * callback=NULL);
-    void                            setObject(const SGIHostItemBase * item, IHostCallback * callback=NULL);
+    void                            setObject(SGIItemBase * item, IHostCallback * callback=nullptr);
+    void                            setObject(const SGIHostItemBase * item, IHostCallback * callback=nullptr);
     IHostCallback *                 getHostCallback();
 
     bool                            donotClearItem() const {
@@ -100,7 +100,7 @@ public:
 
 public:
     IContextMenuQt *                menuInterface() { return _interface; }
-    void                            setObject(QObject * item, IHostCallback * callback=NULL);
+    void                            setObject(QObject * item, IHostCallback * callback=nullptr);
     IHostCallback *                 getHostCallback();
 
     QWidget *                       parentWidget();

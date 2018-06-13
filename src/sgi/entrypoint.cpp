@@ -14,7 +14,7 @@ extern "C" {
 
 static unsigned g_sgiModuleInitCount = 0;
 #ifdef _WIN32
-static HMODULE g_sgiModuleHandle = NULL;
+static HMODULE g_sgiModuleHandle = nullptr;
 #endif // _WIN32
 
 #ifdef _WIN32
@@ -39,7 +39,7 @@ BOOL WINAPI DllMain(__in  HMODULE hModule,
         g_sgiModuleHandle = hModule;
         break;
     case DLL_PROCESS_DETACH:
-        g_sgiModuleHandle = NULL;
+        g_sgiModuleHandle = nullptr;
         break;
     }
     return TRUE;

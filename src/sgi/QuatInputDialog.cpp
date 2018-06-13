@@ -14,7 +14,7 @@ namespace sgi {
 
 QuatInputDialog::QuatInputDialog(QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
-    , ui(NULL)
+    , ui(nullptr)
     , _original_value()
     , _value()
     , _slider_factor(2)
@@ -30,7 +30,7 @@ QuatInputDialog::~QuatInputDialog()
     if (ui)
     {
         delete ui;
-        ui = NULL;
+        ui = nullptr;
     }
 }
 

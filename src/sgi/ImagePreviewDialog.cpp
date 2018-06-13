@@ -863,7 +863,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::setNodeInfo(const SGIItemBase *
 	}
 	else
 	{
-		os << "<b>item is <i>NULL</i></b>";
+        os << "<b>item is <i>nullptr</i></b>";
 	}
 	ui->textEditItem->blockSignals(true);
 	ui->textEditItem->setHtml(QString::fromStdString(os.str()));
@@ -880,7 +880,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::setImageInfo(const Image * imag
     }
     else
     {
-        os << "<b>image is <i>NULL</i></b>";
+        os << "<b>image is <i>nullptr</i></b>";
     }
     ui->textEditImage->blockSignals(true);
     ui->textEditImage->setHtml(QString::fromStdString(os.str()));

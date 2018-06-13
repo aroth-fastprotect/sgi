@@ -22,7 +22,7 @@ ObjectTreeImplProxyPrivate::ObjectTreeImplProxyPrivate(QTreeWidget * widget, IOb
     : _widget(widget)
     , _impl(impl)
     , _hostInterface(hostInterface)
-    , _selectedTreeItem(NULL)
+    , _selectedTreeItem(nullptr)
 {
 }
 
@@ -135,7 +135,7 @@ void ObjectTreeImplProxy::onItemContextMenu(const QPoint & pt)
     {
         itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
 
-        QMenu * contextMenu = NULL;
+        QMenu * contextMenu = nullptr;
         ObjectTreeItem treeItem(item, d->_hostInterface);
 
         IContextMenuPtr objectMenu;
@@ -165,14 +165,14 @@ void ObjectTreeImplProxy::onItemSelectionChanged()
         d->_selectedTreeItem = new ObjectTreeItem(item, d_ptr->_hostInterface);
     }
     else
-        d->_selectedTreeItem = NULL;
+        d->_selectedTreeItem = nullptr;
     d->_impl->itemSelected(oldItem.get(), d->_selectedTreeItem.get());
 }
 
 void ObjectTreeImplProxy::reloadSelectedItem()
 {
     Q_D(ObjectTreeImplProxy);
-    QTreeWidgetItem * item = d->_selectedTreeItem.valid()?((ObjectTreeItem*)d->_selectedTreeItem.get())->treeItem():NULL;
+    QTreeWidgetItem * item = d->_selectedTreeItem.valid()?((ObjectTreeItem*)d->_selectedTreeItem.get())->treeItem():nullptr;
     if(item)
     {
         QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();

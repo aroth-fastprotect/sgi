@@ -36,8 +36,8 @@ unsigned SGIItemBase::getTotalItemCount()
 }
 
 SGIItemBase::SGIItemBase(SGIItemType type, unsigned flags, unsigned score, osg::Referenced * userData)
-    : osg::Object(), _type(type), _flags(flags), _score(score), _type_info(NULL)
-    , _pluginInfo(NULL), _next(NULL), _prev(), _number(0), _userData(userData)
+    : osg::Object(), _type(type), _flags(flags), _score(score), _type_info(nullptr)
+    , _pluginInfo(nullptr), _next(nullptr), _prev(), _number(0), _userData(userData)
 {
     ++s_ItemCount;
 }
@@ -164,8 +164,8 @@ void SGIItemBase::insertByScore(SGIItemBase * item, SGIItemBasePtr & front)
         SGIItemBasePtr nextItemToInsert = itemToInsert->_next;
         // drop the reference to it's predecessor to avoid circles
         if(nextItemToInsert.valid())
-            nextItemToInsert->_prev = NULL;
-        itemToInsert->_next = NULL;
+            nextItemToInsert->_prev = nullptr;
+        itemToInsert->_next = nullptr;
 
         SGIItemBasePtr insertionPoint = front;
         while(insertionPoint->_score >= itemToInsert->_score)
@@ -273,8 +273,8 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, const osg::CopyOp & co
         current = current->nextBase();
     }
     // release any temp references
-    previous_cloned = NULL;
-    current = NULL;
+    previous_cloned = nullptr;
+    current = nullptr;
     return ret.release();
 }
 
@@ -305,8 +305,8 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, unsigned number, const
         current = current->nextBase();
     }
     // release any temp references
-    previous_cloned = NULL;
-    current = NULL;
+    previous_cloned = nullptr;
+    current = nullptr;
     return ret.release();
 }
 
@@ -336,8 +336,8 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, osg::Referenced * user
         current = current->nextBase();
     }
     // release any temp references
-    previous_cloned = NULL;
-    current = NULL;
+    previous_cloned = nullptr;
+    current = nullptr;
     return ret.release();
 }
 
@@ -368,8 +368,8 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, unsigned number, osg::
         current = current->nextBase();
     }
     // release any temp references
-    previous_cloned = NULL;
-    current = NULL;
+    previous_cloned = nullptr;
+    current = nullptr;
     return ret.release();
 }
 

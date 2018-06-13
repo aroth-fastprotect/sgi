@@ -35,7 +35,7 @@ class SceneGraphDialog : public QDialog
 
 public:
 							SceneGraphDialog(QWidget *parent = 0, Qt::WindowFlags f = 0);
-							SceneGraphDialog(SGIItemBase * item, IHostCallback * callback=NULL, QWidget *parent = 0, Qt::WindowFlags f = 0);
+                            SceneGraphDialog(SGIItemBase * item, IHostCallback * callback=nullptr, QWidget *parent = 0, Qt::WindowFlags f = 0);
 	virtual					~SceneGraphDialog();
 
 public:

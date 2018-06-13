@@ -8,7 +8,7 @@ class ImageScrollArea : public QScrollArea
 {
     Q_OBJECT
 public:
-    ImageScrollArea(QWidget *parent = 0);
+    ImageScrollArea(QWidget *parent = nullptr);
 
     void setImage(const QImage & image);
 

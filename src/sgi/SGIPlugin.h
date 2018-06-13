@@ -35,15 +35,15 @@ public:
     SGIPluginInfo()
         : pluginName()
         , pluginFilename()
-        , pluginInterface(NULL)
-        , writePrettyHTMLInterface(NULL)
-        , objectInfoInterface(NULL)
-        , objectTreeInterface(NULL)
-        , objectLoggerInterface(NULL)
-        , contextMenuInterface(NULL)
-        , settingsDialogInterface(NULL)
-        , guiAdapterInterface(NULL)
-        , convertToImage(NULL)
+        , pluginInterface(nullptr)
+        , writePrettyHTMLInterface(nullptr)
+        , objectInfoInterface(nullptr)
+        , objectTreeInterface(nullptr)
+        , objectLoggerInterface(nullptr)
+        , contextMenuInterface(nullptr)
+        , settingsDialogInterface(nullptr)
+        , guiAdapterInterface(nullptr)
+        , convertToImage(nullptr)
         , _pluginScore(0)
         , errorMessage()
     {
@@ -131,8 +131,8 @@ public:
     bool getObjectPath(SGIItemBasePtrPath & path, const SGIHostItemBase * object);
     bool getObjectPath(SGIItemBasePtrPath & path, const SGIItemBase * item);
 
-    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * item, IHostCallback * callback=NULL);
-    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL);
+    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * item, IHostCallback * callback=nullptr);
+    ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=nullptr);
 
     bool createObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object);
     bool createObjectLogger(IObjectLoggerPtr & logger, SGIItemBase * item);
@@ -141,13 +141,13 @@ public:
     bool getOrCreateObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object);
     bool getOrCreateObjectLogger(IObjectLoggerPtr & logger, SGIItemBase * item);
 
-    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * item, IHostCallback * callback=NULL);
-    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback=NULL);
-    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL);
+    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * item, IHostCallback * callback=nullptr);
+    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback=nullptr);
+    IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=nullptr);
 
-    IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=NULL);
-    IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL);
-    IContextMenuQt * createContextMenu(QWidget *parent, QObject * item, IHostCallback * callback=NULL);
+    IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=nullptr);
+    IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback=nullptr);
+    IContextMenuQt * createContextMenu(QWidget *parent, QObject * item, IHostCallback * callback=nullptr);
 
     IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback);
     IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback);
@@ -157,11 +157,11 @@ public:
     bool contextMenuPopulate(IContextMenuItem * menuItem, SGIItemBase * item, bool onlyRootItem);
     bool contextMenuExecute(IContextMenuAction * menuAction, SGIItemBase * item);
 
-    bool openSettingsDialog(osg::ref_ptr<ISettingsDialog> & dialog, const SGIHostItemBase * object, ISettingsDialogInfo * info=NULL);
-    bool openSettingsDialog(osg::ref_ptr<ISettingsDialog> & dialog, SGIItemBase * item, ISettingsDialogInfo * info=NULL);
+    bool openSettingsDialog(osg::ref_ptr<ISettingsDialog> & dialog, const SGIHostItemBase * object, ISettingsDialogInfo * info=nullptr);
+    bool openSettingsDialog(osg::ref_ptr<ISettingsDialog> & dialog, SGIItemBase * item, ISettingsDialogInfo * info=nullptr);
 
-    bool writeObjectFile(bool & result, const SGIHostItemBase * item, const std::string & filename, const SGIItemBase* options=NULL);
-    bool writeObjectFile(bool & result, SGIItemBase * item, const std::string & filename, const SGIItemBase* options=NULL);
+    bool writeObjectFile(bool & result, const SGIHostItemBase * item, const std::string & filename, const SGIItemBase* options=nullptr);
+    bool writeObjectFile(bool & result, SGIItemBase * item, const std::string & filename, const SGIItemBase* options=nullptr);
 
     bool parentWidget(QWidgetPtr & widget, const SGIHostItemBase * item);
     bool parentWidget(QWidgetPtr & widget, SGIItemBase * item);

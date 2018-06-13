@@ -91,17 +91,17 @@ public:
 
 ObjectLoggerDialog::ObjectLoggerDialog(SGIItemBase * item, IHostCallback * callback, QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
-    , ui(NULL)
+    , ui(nullptr)
     , _hostInterface(SGIPlugins::instance()->hostInterface())
     , _interface(new ObjectLoggerDialogImpl(this))
-    , _logger(NULL)
+    , _logger(nullptr)
     , _item(item)
     , _hostCallback(callback)
-    , _toolBar(NULL)
-    , _actionReload(NULL)
-    , _contextMenu(NULL)
-    , _spinBoxRefreshTime(NULL)
-    , _refreshTimer(NULL)
+    , _toolBar(nullptr)
+    , _actionReload(nullptr)
+    , _contextMenu(nullptr)
+    , _spinBoxRefreshTime(nullptr)
+    , _refreshTimer(nullptr)
     , _queuedOperations(new OperationQueue)
 {
     init();
@@ -109,17 +109,17 @@ ObjectLoggerDialog::ObjectLoggerDialog(SGIItemBase * item, IHostCallback * callb
 
 ObjectLoggerDialog::ObjectLoggerDialog(IObjectLogger * logger, IHostCallback * callback, QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
-    , ui(NULL)
+    , ui(nullptr)
     , _hostInterface(SGIPlugins::instance()->hostInterface())
     , _interface(new ObjectLoggerDialogImpl(this))
     , _logger(logger)
-    , _item(NULL)
+    , _item(nullptr)
     , _hostCallback(callback)
-    , _toolBar(NULL)
-    , _actionReload(NULL)
-    , _contextMenu(NULL)
-    , _spinBoxRefreshTime(NULL)
-    , _refreshTimer(NULL)
+    , _toolBar(nullptr)
+    , _actionReload(nullptr)
+    , _contextMenu(nullptr)
+    , _spinBoxRefreshTime(nullptr)
+    , _refreshTimer(nullptr)
     , _queuedOperations(new OperationQueue)
 {
     init();
@@ -130,10 +130,10 @@ ObjectLoggerDialog::~ObjectLoggerDialog()
     if (ui)
     {
         delete ui;
-        ui = NULL;
+        ui = nullptr;
     }
     delete _queuedOperations;
-    _interface = NULL;
+    _interface = nullptr;
 }
 
 void ObjectLoggerDialog::init()
@@ -220,7 +220,7 @@ void ObjectLoggerDialog::reloadTree()
 
     ObjectTreeItem objectTreeRootItem(ui->treeWidget->invisibleRootItem(), SGIPlugins::instance()->hostInterface());
 
-    ObjectTreeItem * firstTreeItem = NULL;
+    ObjectTreeItem * firstTreeItem = nullptr;
 
     if(!_logger.valid() && _item.valid())
     {
@@ -275,7 +275,7 @@ void ObjectLoggerDialog::reloadLog()
         QStringList headerItems;
         for(unsigned column = 0; column < numFields; column++)
         {
-            SGIDataFieldBase * field = fieldInfo.valid()?fieldInfo->getField(column):NULL;
+            SGIDataFieldBase * field = fieldInfo.valid()?fieldInfo->getField(column):nullptr;
             if(field)
                 headerItems << fromUtf8(field->toString(_hostInterface));
             else
@@ -369,7 +369,7 @@ void ObjectLoggerDialog::onItemContextMenu(QPoint pt)
     if(item)
         itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
 
-    QMenu * contextQMenu = NULL;
+    QMenu * contextQMenu = nullptr;
     IContextMenuPtr objectMenu = _hostCallback->contextMenu(this, itemData.item());
     if(!objectMenu)
     {
@@ -425,7 +425,7 @@ SGIItemBase * ObjectLoggerDialog::getView()
     if(_hostCallback)
         return _hostCallback->getView();
     else
-        return NULL;
+        return nullptr;
 }
 
 void ObjectLoggerDialog::triggerRepaint()
@@ -530,7 +530,7 @@ void ObjectLoggerDialog::setNodeInfo(const SGIItemBase * item)
 		SGIPlugins::instance()->writePrettyHTML(os, item);
 	else
 	{
-		os << "<b>item is <i>NULL</i></b>";
+        os << "<b>item is <i>nullptr</i></b>";
 	}
 	ui->textEdit->blockSignals(true);
 	ui->textEdit->setHtml(fromUtf8(os.str()));

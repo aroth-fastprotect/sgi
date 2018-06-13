@@ -57,8 +57,8 @@ public:
     virtual QDialog *       getDialog() { return _dialog; }
     virtual IHostCallback * getHostCallback() { return _dialog->_hostCallback; }
     virtual IContextMenu *  toolsMenu() { return _dialog->toolsMenu(); }
-    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=NULL) { _dialog->setObject(item, callback); }
-    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=NULL) { _dialog->setObject(item, callback); }
+    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=nullptr) { _dialog->setObject(item, callback); }
+    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=nullptr) { _dialog->setObject(item, callback); }
     virtual void            show() { emit _dialog->triggerShow(); }
     virtual void            hide() { emit _dialog->triggerHide(); }
     virtual bool            isVisible() { return _dialog->isVisible(); }
@@ -254,11 +254,11 @@ public:
 
 SceneGraphDialog::SceneGraphDialog(SGIItemBase * item, IHostCallback * callback, QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
-	, ui(NULL)
+    , ui(nullptr)
     , _interface(new SceneGraphDialogImpl(this))
 	, _hostCallback(new HostCallback(callback, this))
     , _contextMenu()
-    , _refreshTimer(NULL)
+    , _refreshTimer(nullptr)
     , _toolsMenu()
     , _toolsMenuInterface(new ToolsMenuImpl(this))
     , _itemToolsMenu()
@@ -298,21 +298,21 @@ SceneGraphDialog::~SceneGraphDialog()
 	if (ui)
 	{
 		delete ui;
-		ui = NULL;
+        ui = nullptr;
 	}
     if (_toolsMenuInterface)
     {
         // tell interface that this instance is already gone, so no need to
         // delete again
-        static_cast<ToolsMenuImpl*>(_toolsMenuInterface.get())->_dialog = NULL;
-        _toolsMenuInterface = NULL;
+        static_cast<ToolsMenuImpl*>(_toolsMenuInterface.get())->_dialog = nullptr;
+        _toolsMenuInterface = nullptr;
     }
     if (_interface)
     {
         // tell interface that this instance is already gone, so no need to
         // delete again
-        static_cast<SceneGraphDialogImpl*>(_interface)->_dialog = NULL;
-        _interface = NULL;
+        static_cast<SceneGraphDialogImpl*>(_interface)->_dialog = nullptr;
+        _interface = nullptr;
     }
 }
 
@@ -328,37 +328,37 @@ void SceneGraphDialog::closeEvent(QCloseEvent * event)
     {
         page->treeWidget->clear();
         page->textEdit->clear();
-        page->rootTreeItem = NULL;
-        page->selectedTreeItem = NULL;
+        page->rootTreeItem = nullptr;
+        page->selectedTreeItem = nullptr;
     }
     ui->comboBoxPath->clear();
-    _toolsMenu->setObject((SGIItemBase*)NULL);
-    _contextMenu = NULL;
-    _itemSelf = NULL;
-    _itemToolsMenu = NULL;
+    _toolsMenu->setObject((SGIItemBase*)nullptr);
+    _contextMenu = nullptr;
+    _itemSelf = nullptr;
+    _itemToolsMenu = nullptr;
     _itemPending = nullptr;
 
     /*
     delete ui->comboBoxPath;
-    ui->comboBoxPath = NULL;
+    ui->comboBoxPath = nullptr;
     delete ui->treeWidget;
-    ui->treeWidget = NULL;
+    ui->treeWidget = nullptr;
     delete ui->textEdit;
-    ui->textEdit = NULL;
+    ui->textEdit = nullptr;
 
-    _toolsMenu->setObject((SGIItemBase*)NULL);
+    _toolsMenu->setObject((SGIItemBase*)nullptr);
     delete _toolsMenu;
-    _toolsMenu = NULL;
-    _itemSelf = NULL;
-    _interface = NULL;
-    _item = NULL;
+    _toolsMenu = nullptr;
+    _itemSelf = nullptr;
+    _interface = nullptr;
+    _item = nullptr;
     _itemPath.clear();
-    _hostCallback = NULL;
-    _contextMenu = NULL;
-    _toolsMenuInterface = NULL;
-    _itemToolsMenu = NULL;
-    uiPage->rootTreeItem = NULL;
-    uiPage->selectedTreeItem = NULL;
+    _hostCallback = nullptr;
+    _contextMenu = nullptr;
+    _toolsMenuInterface = nullptr;
+    _itemToolsMenu = nullptr;
+    uiPage->rootTreeItem = nullptr;
+    uiPage->selectedTreeItem = nullptr;
     */
 
     QDialog::closeEvent(event);
@@ -523,7 +523,7 @@ void SceneGraphDialog::reload()
     if(!uiPage->rootTreeItem.valid())
     {
         QTreeWidgetItem * root = uiPage->treeWidget->invisibleRootItem();
-        QtSGIItem nodeDataRoot(SGIItemTypeTreeRoot, NULL, true);
+        QtSGIItem nodeDataRoot(SGIItemTypeTreeRoot, nullptr, true);
         // set dummy data into the second column (type)
         root->setData(0, Qt::UserRole, QVariant::fromValue(nodeDataRoot));
         uiPage->rootTreeItem = new ObjectTreeItem(root, SGIPlugins::instance()->hostInterface());
@@ -568,11 +568,11 @@ void SceneGraphDialog::reload()
     uiPage->treeWidget->setColumnWidth(0, 3 * total_width / 4);
     uiPage->treeWidget->setColumnWidth(1, total_width / 4);
 
-    ObjectTreeItem * viewNodeItem = NULL;
+    ObjectTreeItem * viewNodeItem = nullptr;
 
     buildRootTree(static_cast<ObjectTreeItem *>(uiPage->rootTreeItem.get()));
 
-	ObjectTreeItem * treeItem = NULL;
+    ObjectTreeItem * treeItem = nullptr;
     if(uiPage->item.valid())
     {
         treeItem = static_cast<ObjectTreeItem *>(uiPage->rootTreeItem->addChild(std::string(), uiPage->item.get()));
@@ -645,7 +645,7 @@ void SceneGraphDialog::itemPrevious()
 
 void SceneGraphDialog::reloadSelectedItem()
 {
-    QTreeWidgetItem * item = uiPage->selectedTreeItem.valid()?((ObjectTreeItem*)uiPage->selectedTreeItem.get())->treeItem():NULL;
+    QTreeWidgetItem * item = uiPage->selectedTreeItem.valid()?((ObjectTreeItem*)uiPage->selectedTreeItem.get())->treeItem():nullptr;
     if(item)
     {
         QtSGIItem itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
@@ -710,7 +710,7 @@ void SceneGraphDialog::onItemSelectionChanged()
         uiPage->selectedTreeItem = new ObjectTreeItem(item, SGIPlugins::instance()->hostInterface());
     }
     else
-        uiPage->selectedTreeItem = NULL;
+        uiPage->selectedTreeItem = nullptr;
     //d->_impl->itemSelected(oldItem.get(), uiPage->selectedTreeItem.get());
 }
 
@@ -749,7 +749,7 @@ void SceneGraphDialog::setNodeInfo(const SGIItemBase * item)
     if(item)
         SGIPlugins::instance()->writePrettyHTML(os, item);
     else
-        os << "<b>item is <i>NULL</i></b>";
+        os << "<b>item is <i>nullptr</i></b>";
     QScrollBar * vbar = uiPage->textEdit->verticalScrollBar();
     int vscrollPos = -1;
     if (vbar)
@@ -770,7 +770,7 @@ void SceneGraphDialog::onItemContextMenu(QPoint pt)
     {
         itemData = item->data(0, Qt::UserRole).value<QtSGIItem>();
 
-        QMenu * contextQMenu = NULL;
+        QMenu * contextQMenu = nullptr;
         IContextMenuPtr objectMenu = _hostCallback->contextMenu(this, itemData.item());
         if (!objectMenu)
         {
@@ -804,7 +804,7 @@ SGIItemBase * SceneGraphDialog::getView()
     if(_hostCallback)
         return _hostCallback->getView();
     else
-        return NULL;
+        return nullptr;
 }
 
 void SceneGraphDialog::triggerRepaint()
@@ -822,7 +822,7 @@ bool SceneGraphDialog::newInstance(SGIItemBase * item)
         ISceneGraphDialog * dlg = SGIPlugins::instance()->showSceneGraphDialog(parentWidget(), item, _hostCallback);
         if(dlg)
             dlg->show();
-        ret = (dlg != NULL);
+        ret = (dlg != nullptr);
     }
     else
     {

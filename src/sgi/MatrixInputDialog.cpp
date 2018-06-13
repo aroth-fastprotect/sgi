@@ -333,7 +333,7 @@ bool MatrixInputDialog::parseMatrixValue(Matrix & matrix, const QString & text, 
 
 MatrixInputDialog::MatrixInputDialog(QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
-    , ui(NULL)
+    , ui(nullptr)
     , _original_value()
     , _original_usage(MatrixUsageUnknown)
     , _value()
@@ -355,7 +355,7 @@ MatrixInputDialog::~MatrixInputDialog()
     if (ui)
     {
         delete ui;
-        ui = NULL;
+        ui = nullptr;
     }
 }
 

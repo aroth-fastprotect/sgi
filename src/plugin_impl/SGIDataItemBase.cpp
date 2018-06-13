@@ -35,7 +35,7 @@ size_t SGIDataItemBase::numFields() const
 
 SGIDataFieldBase * SGIDataItemBase::getField(unsigned n) const
 {
-    return  (n < _fields.size()) ? (_fields[n]) : NULL;
+    return  (n < _fields.size()) ? (_fields[n]) : nullptr;
 }
 void SGIDataItemBase::setField(unsigned n, SGIDataFieldBase * field)
 {

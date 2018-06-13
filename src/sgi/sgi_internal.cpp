@@ -43,7 +43,7 @@
 #define GET_OBJECT_TYPE_PROXYITEM_GET_INSTANCE false
 #define GET_OBJECT_DISPLAYNAME_PROXYITEM_GET_INSTANCE false
 
-sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = NULL;
+sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = nullptr;
 
 SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     sgi::SGIPlugins,
@@ -332,7 +332,7 @@ bool writePrettyHTMLImpl<SGIProxyItemBase>::process(std::basic_ostream<char>& os
             ret = _hostInterface->writePrettyHTML(os, realObject);
         else
         {
-            os <<  "<i>NULL</i>";
+            os <<  "<i>nullptr</i>";
             ret = true;
         }
     }
@@ -362,7 +362,7 @@ bool writePrettyHTMLImpl<SGIProxyItemBase>::process(std::basic_ostream<char>& os
                     ret = _hostInterface->writePrettyHTML(os, realObject);
                 else
                 {
-                    os <<  "<i>NULL</i>";
+                    os <<  "<i>nullptr</i>";
                     ret = true;
                 }
             }
@@ -905,7 +905,7 @@ class SGIPlugin_internal::Plugin : public internal_plugin::SGIPluginImpl
 {
 public:
     static Plugin * s_instance;
-    Plugin(SGIPluginHostInterface * hostInterface=NULL)
+    Plugin(SGIPluginHostInterface * hostInterface=nullptr)
         : internal_plugin::SGIPluginImpl(hostInterface)
     {
         s_instance = this;
@@ -929,7 +929,7 @@ public:
     META_Object(sgi, Plugin);
 };
 
-SGIPlugin_internal::Plugin * SGIPlugin_internal::Plugin::s_instance = NULL;
+SGIPlugin_internal::Plugin * SGIPlugin_internal::Plugin::s_instance = nullptr;
 const char * SGIPlugin_internal::PluginName = "_sgi_internal";
 
 SGIPluginInterface * SGIPlugin_internal::create(SGIPluginHostInterface * hostInterface)
