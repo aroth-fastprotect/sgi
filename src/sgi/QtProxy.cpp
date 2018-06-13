@@ -9,6 +9,7 @@
 #include "ObjectLoggerDialog.h"
 #include "ImagePreviewDialog.h"
 #include <sgi/helpers/qt>
+#include <sgi/helpers/singleton>
 
 #include <cassert>
 
@@ -131,17 +132,9 @@ QtProxy::QtProxy()
 
 QtProxy * QtProxy::instance(bool erase)
 {
-    static QtProxy * s_proxy = nullptr;
-    if(erase)
-    {
-        delete s_proxy;
-        s_proxy = nullptr;
-    }
-    else if(!s_proxy)
-    {
-        s_proxy = new QtProxy;
-    }
-    return s_proxy;
+    typedef helpers::SingletonT<QtProxy> QtProxySingleton;
+    static QtProxySingleton s_proxy;
+    return s_proxy.instance(erase ? QtProxySingleton::InstanceActionErase : QtProxySingleton::InstanceActionGetOrCreate);
 }
 
 ISceneGraphDialog * QtProxy::showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
