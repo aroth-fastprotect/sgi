@@ -14,7 +14,6 @@ private slots:
     void insertItemTwoChains();
     void insertItemSameScore();
 
-    void autoLoadOsg();
     void autoLoadQt();
 
     void writePrettyHTML();

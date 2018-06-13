@@ -12,9 +12,10 @@
 #include <sgi/ContextMenuQt>
 #include <sgi/ImagePreviewDialog>
 #include <sgi/Shutdown>
-#include <sgi/AutoLoadOsg>
 #include <sgi/AutoLoadQt>
 #include <sgi/plugins/SGIHostItemQt.h>
+
+#include <sstream>
 
 using namespace std;
 using namespace sgi;
@@ -188,19 +189,6 @@ void item_unittest::insertItemSameScore()
     newFront = nullptr;
 
     QCOMPARE(TestItem::getTotalItemCount(), 0u);
-}
-
-void item_unittest::autoLoadOsg()
-{
-    QCOMPARE(sgi::autoload::Osg::sgiLibraryLoaded(), false);
-    auto lib = sgi::autoload::Osg::instance();
-    QCOMPARE(sgi::autoload::Osg::sgiLibraryLoaded(), true);
-    QVERIFY(sgi::autoload::Osg::sgiLibrary() != nullptr);
-    QCOMPARE(sgi::autoload::Osg::sgiLibraryName(), std::string(SGI_LIBRARY_NAME));
-    QVERIFY(sgi::autoload::Osg::sgiLibraryError().empty());
-    QVERIFY(!sgi::autoload::Osg::sgiLibraryFilename().empty());
-    sgi::autoload::Osg::sgiLibraryUnload();
-    QCOMPARE(sgi::autoload::Osg::sgiLibraryLoaded(), false);
 }
 
 void item_unittest::autoLoadQt()
