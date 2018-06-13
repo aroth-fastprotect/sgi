@@ -54,16 +54,28 @@ LIST(APPEND TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/Export
     ${SGI_INCLUDE_DIR}/sgi/AutoLoadOsg
     ${SGI_INCLUDE_DIR}/sgi/AutoLoadQt
-    ${SGI_INCLUDE_DIR}/sgi/WritePrettyHTML
-    ${SGI_INCLUDE_DIR}/sgi/ObjectInfo
     ${SGI_INCLUDE_DIR}/sgi/ContextMenu
-    ${SGI_INCLUDE_DIR}/sgi/SceneGraphDialog
-    ${SGI_INCLUDE_DIR}/sgi/ObjectLoggerDialog
+    ${SGI_INCLUDE_DIR}/sgi/ContextMenuQt
+    ${SGI_INCLUDE_DIR}/sgi/GenerateItem
     ${SGI_INCLUDE_DIR}/sgi/ImagePreviewDialog
+    ${SGI_INCLUDE_DIR}/sgi/ObjectInfo
+    ${SGI_INCLUDE_DIR}/sgi/ObjectLoggerDialog
+    ${SGI_INCLUDE_DIR}/sgi/ReferencedPicker
+    ${SGI_INCLUDE_DIR}/sgi/SceneGraphDialog
+    ${SGI_INCLUDE_DIR}/sgi/SGIItemInternal
+    ${SGI_INCLUDE_DIR}/sgi/Shutdown
+    ${SGI_INCLUDE_DIR}/sgi/WritePrettyHTML
 
-	${SGI_INCLUDE_DIR}/sgi/helpers/qt
-	${SGI_INCLUDE_DIR}/sgi/helpers/qt_widgets
+    ${SGI_INCLUDE_DIR}/sgi/helpers/html
 	${SGI_INCLUDE_DIR}/sgi/helpers/osg
+    ${SGI_INCLUDE_DIR}/sgi/helpers/osg_helper_nodes
+    ${SGI_INCLUDE_DIR}/sgi/helpers/osg_statistics
+    ${SGI_INCLUDE_DIR}/sgi/helpers/qt
+    ${SGI_INCLUDE_DIR}/sgi/helpers/qt_widgets
+    ${SGI_INCLUDE_DIR}/sgi/helpers/qt_widgetwindow
+    ${SGI_INCLUDE_DIR}/sgi/helpers/rtti
+    ${SGI_INCLUDE_DIR}/sgi/helpers/singleton
+    ${SGI_INCLUDE_DIR}/sgi/helpers/string
 
 	${SGI_INCLUDE_DIR}/sgi/details/type_list
 	${SGI_INCLUDE_DIR}/sgi/details/functionImplBase
