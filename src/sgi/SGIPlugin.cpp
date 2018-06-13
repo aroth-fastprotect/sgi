@@ -1088,11 +1088,15 @@ public:
     }
     IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->createContextMenu(parent, item, true, callback?callback:_defaultHostCallback.get());
+        QtProxy * proxy = QtProxy::instance();
+        Q_ASSERT(proxy != NULL);
+        return proxy->createContextMenu(parent, item, true, callback?callback:_defaultHostCallback.get());
     }
     IContextMenuQt * createContextMenu(QWidget *parent, QObject * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->createContextMenu(parent, item, true, callback?callback:_defaultHostCallback.get());
+        QtProxy * proxy = QtProxy::instance();
+        Q_ASSERT(proxy != NULL);
+        return proxy->createContextMenu(parent, item, true, callback?callback:_defaultHostCallback.get());
     }
 
     ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
@@ -1105,7 +1109,9 @@ public:
     }
     ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->showSceneGraphDialog(parent, item, callback?callback:_defaultHostCallback.get());
+        QtProxy * proxy = QtProxy::instance();
+        Q_ASSERT(proxy != NULL);
+        return proxy->showSceneGraphDialog(parent, item, callback?callback:_defaultHostCallback.get());
     }
     IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
     {
@@ -1117,16 +1123,22 @@ public:
     }
     IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->showObjectLoggerDialog(parent, item, callback?callback:_defaultHostCallback.get());
+        QtProxy * proxy = QtProxy::instance();
+        Q_ASSERT(proxy != NULL);
+        return proxy->showObjectLoggerDialog(parent, item, callback?callback:_defaultHostCallback.get());
     }
     IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback)
     {
-        return QtProxy::instance()->showObjectLoggerDialog(parent, logger, callback?callback:_defaultHostCallback.get());
+        QtProxy * proxy = QtProxy::instance();
+        Q_ASSERT(proxy != NULL);
+        return proxy->showObjectLoggerDialog(parent, logger, callback?callback:_defaultHostCallback.get());
     }
 
     IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
-        return QtProxy::instance()->showImagePreviewDialog(parent, item, callback?callback:_defaultHostCallback.get());
+        QtProxy * proxy = QtProxy::instance();
+        Q_ASSERT(proxy != NULL);
+        return proxy->showImagePreviewDialog(parent, item, callback?callback:_defaultHostCallback.get());
     }
     IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
     {

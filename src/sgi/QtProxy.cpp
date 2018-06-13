@@ -27,7 +27,7 @@ namespace {
         if(!app)
         {
             static int argc = 0;
-            static char ** argv = NULL;
+            static char ** argv = nullptr;
 
 #ifndef _WIN32
             // Workaround to avoid re-initilaziation of glib
@@ -44,7 +44,7 @@ namespace {
 struct QtProxy::JobShowSceneGraphDialog
 {
     JobShowSceneGraphDialog(QWidget *parent_, SGIItemBase * item_, IHostCallback * callback_)
-        : retval(NULL), parent(parent_), item(item_), callback(callback_) {}
+        : retval(nullptr), parent(parent_), item(item_), callback(callback_) {}
     ISceneGraphDialogPtr retval;
     QWidget *parent;
     SGIItemBase * item;
@@ -53,7 +53,7 @@ struct QtProxy::JobShowSceneGraphDialog
 struct QtProxy::JobShowObjectLoggerDialog
 {
     JobShowObjectLoggerDialog(QWidget *parent_, SGIItemBase * item_, IHostCallback * callback_)
-        : retval(NULL), parent(parent_), item(item_), callback(callback_) {}
+        : retval(nullptr), parent(parent_), item(item_), callback(callback_) {}
     IObjectLoggerDialogPtr retval;
     QWidget *parent;
     SGIItemBase * item;
@@ -62,7 +62,7 @@ struct QtProxy::JobShowObjectLoggerDialog
 struct QtProxy::JobShowObjectLoggerDialogForLogger
 {
     JobShowObjectLoggerDialogForLogger(QWidget *parent_, IObjectLogger * logger_, IHostCallback * callback_)
-        : retval(NULL), parent(parent_), logger(logger_), callback(callback_) {}
+        : retval(nullptr), parent(parent_), logger(logger_), callback(callback_) {}
     IObjectLoggerDialogPtr retval;
     QWidget *parent;
     IObjectLogger * logger;
@@ -71,7 +71,7 @@ struct QtProxy::JobShowObjectLoggerDialogForLogger
 struct QtProxy::JobCreateContextMenu
 {
     JobCreateContextMenu(QWidget *parent_, SGIItemBase * item_, bool onlyRootItem_, IHostCallback * callback_)
-        : retval(NULL), parent(parent_), item(item_), onlyRootItem(onlyRootItem_), callback(callback_) {}
+        : retval(nullptr), parent(parent_), item(item_), onlyRootItem(onlyRootItem_), callback(callback_) {}
     IContextMenuPtr retval;
     QWidget *parent;
     SGIItemBase * item;
@@ -81,7 +81,7 @@ struct QtProxy::JobCreateContextMenu
 struct QtProxy::JobCreateContextMenuQt
 {
     JobCreateContextMenuQt(QWidget *parent_, QObject * item_, bool onlyRootItem_, IHostCallback * callback_)
-        : retval(NULL), parent(parent_), item(item_), onlyRootItem(onlyRootItem_), callback(callback_) {}
+        : retval(nullptr), parent(parent_), item(item_), onlyRootItem(onlyRootItem_), callback(callback_) {}
     IContextMenuQtPtr retval;
     QWidget *parent;
     QObject * item;
@@ -91,7 +91,7 @@ struct QtProxy::JobCreateContextMenuQt
 struct QtProxy::JobShowImagePreviewDialog
 {
     JobShowImagePreviewDialog(QWidget *parent_, SGIItemBase * item_, IHostCallback * callback_)
-        : retval(NULL), parent(parent_), item(item_), callback(callback_) {}
+        : retval(nullptr), parent(parent_), item(item_), callback(callback_) {}
     IImagePreviewDialogPtr retval;
     QWidget *parent;
     SGIItemBase * item;
@@ -131,11 +131,15 @@ QtProxy::QtProxy()
 
 QtProxy * QtProxy::instance(bool erase)
 {
-    static QtProxy * s_proxy = new QtProxy;
+    static QtProxy * s_proxy = nullptr;
     if(erase)
     {
         delete s_proxy;
-        s_proxy = NULL;
+        s_proxy = nullptr;
+    }
+    else if(!s_proxy)
+    {
+        s_proxy = new QtProxy;
     }
     return s_proxy;
 }
