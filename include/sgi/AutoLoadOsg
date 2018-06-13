@@ -19,7 +19,7 @@ namespace autoload {
             : _loadStatus(osgDB::Registry::NOT_LOADED)
         {
             // find and load the library in the OSG_LIBRARY_PATH
-            _libraryFilename = osgDB::Registry::instance()->findLibraryFile(SGI_LIBRARY_NAME, NULL, osgDB::CASE_SENSITIVE);
+            _libraryFilename = osgDB::Registry::instance()->findLibraryFile(SGI_LIBRARY_NAME, nullptr, osgDB::CASE_SENSITIVE);
             if(!_libraryFilename.empty())
             {
                 _loadStatus = osgDB::Registry::instance()->loadLibrary(_libraryFilename);
@@ -29,7 +29,7 @@ namespace autoload {
         }
         ~Osg()
         {
-            _library = NULL;
+            _library = nullptr;
         }
         osgDB::DynamicLibrary * library()
         {
@@ -37,7 +37,7 @@ namespace autoload {
         }
         PROC_ADDRESS getProcAddress(const char* procName)
         {
-            return (_library.valid())?_library->getProcAddress(std::string(procName)):NULL;
+            return (_library.valid())?_library->getProcAddress(std::string(procName)):nullptr;
         }
         const std::string & libraryFilename() const
         {
@@ -70,7 +70,7 @@ namespace autoload {
             if(inst)
                 return inst->getProcAddress(procName);
             else
-                return NULL;
+                return nullptr;
         }
         static inline std::string sgiLibraryName()
         {
@@ -88,7 +88,7 @@ namespace autoload {
         {
             Osg * inst = Osg::instance(Singleton::InstanceActionGet);
             if(inst)
-                return inst->library() != NULL;
+                return inst->library() != nullptr;
             else
                 return false;
         }

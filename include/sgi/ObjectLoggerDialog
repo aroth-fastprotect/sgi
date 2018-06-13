@@ -11,7 +11,7 @@
 namespace sgi {
 
 template<typename AUTOLOADCLASS>
-inline IObjectLoggerDialog * showObjectLoggerDialogImpl(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=NULL)
+inline IObjectLoggerDialog * showObjectLoggerDialogImpl(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=nullptr)
 {
     IObjectLoggerDialog * ret;
     typedef IObjectLoggerDialog * (*pfn)(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback);
@@ -19,12 +19,12 @@ inline IObjectLoggerDialog * showObjectLoggerDialogImpl(QWidget *parent, const S
     if(func)
         ret = func(parent, object, callback);
     else
-        ret = NULL;
+        ret = nullptr;
     return ret;
 }
 
 template<typename AUTOLOADCLASS>
-inline IObjectLoggerDialog * showObjectLoggerDialogImpl(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL)
+inline IObjectLoggerDialog * showObjectLoggerDialogImpl(QWidget *parent, SGIItemBase * item, IHostCallback * callback=nullptr)
 {
     IObjectLoggerDialog * ret;
     typedef IObjectLoggerDialog * (*pfn)(QWidget *parent, SGIItemBase * item, IHostCallback * callback);
@@ -32,19 +32,19 @@ inline IObjectLoggerDialog * showObjectLoggerDialogImpl(QWidget *parent, SGIItem
     if(func)
         ret = func(parent, item, callback);
     else
-        ret = NULL;
+        ret = nullptr;
     return ret;
 }
 
 template<typename AUTOLOADCLASS>
-inline IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * item, IHostCallback * callback=NULL)
+inline IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * item, IHostCallback * callback=nullptr)
 {
     IObjectLoggerDialog * ret = showObjectLoggerDialogImpl<AUTOLOADCLASS>(parent, item, callback);
     return ret;
 }
 
 template<typename AUTOLOADCLASS>
-inline IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL)
+inline IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=nullptr)
 {
     IObjectLoggerDialog * ret = showObjectLoggerDialogImpl<AUTOLOADCLASS>(parent, item, callback);
     return ret;
@@ -52,7 +52,7 @@ inline IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase
 
 #if !defined(SGI_NO_HOSTITEM_GENERATOR)
 template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
-inline IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, OBJECT_TYPE * object, IHostCallback * callback=NULL)
+inline IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, OBJECT_TYPE * object, IHostCallback * callback=nullptr)
 {
     osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
     IObjectLoggerDialog * ret = showObjectLoggerDialogImpl<AUTOLOADCLASS>(parent, hostitem.get(), callback);

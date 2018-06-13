@@ -17,9 +17,9 @@ public:
     typedef osg::ref_ptr<osg::Referenced> ObjectStorageType;
     typedef support::SGIHostItemInternal HostItemType;
 
-    SGIItemInternal(const HostItemType * hostItem=NULL, SGIItemType type=SGIItemTypeInvalid, osg::Referenced * ref=NULL, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
+    SGIItemInternal(const HostItemType * hostItem=nullptr, SGIItemType type=SGIItemTypeInvalid, osg::Referenced * ref=nullptr, unsigned flags=0, unsigned score=0, osg::Referenced * userData=nullptr)
         : SGIItemBase(type, flags, score, userData), _object(ref) {}
-    SGIItemInternal(SGIItemType type, const osg::Referenced * ref=NULL, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
+    SGIItemInternal(SGIItemType type, const osg::Referenced * ref=nullptr, unsigned flags=0, unsigned score=0, osg::Referenced * userData=nullptr)
         : SGIItemBase(type, flags, score, userData), _object(const_cast<osg::Referenced*>(ref)) {}
     SGIItemInternal(const SGIItemInternal & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
         : SGIItemBase(rhs, copyop), _object(rhs._object) {}

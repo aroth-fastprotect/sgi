@@ -13,7 +13,7 @@ namespace sgi {
 
 
 template<typename AUTOLOADCLASS>
-inline IContextMenuQt * createContextMenuQtImpl(QWidget *parent, QObject * item, IHostCallback * callback=NULL)
+inline IContextMenuQt * createContextMenuQtImpl(QWidget *parent, QObject * item, IHostCallback * callback=nullptr)
 {
     IContextMenuQt * ret;
     typedef IContextMenuQt * (*pfn)(QWidget *parent, QObject * item, IHostCallback * callback);
@@ -21,11 +21,11 @@ inline IContextMenuQt * createContextMenuQtImpl(QWidget *parent, QObject * item,
     if(func)
         ret = func(parent, item, callback);
     else
-        ret = NULL;
+        ret = nullptr;
     return ret;
 }
 
-inline IContextMenuQt * createContextMenuQt(QWidget *parent, QObject * item, IHostCallback * callback=NULL)
+inline IContextMenuQt * createContextMenuQt(QWidget *parent, QObject * item, IHostCallback * callback=nullptr)
 {
     IContextMenuQt * ret = createContextMenuQtImpl<autoload::Qt>(parent, item, callback);
     return ret;

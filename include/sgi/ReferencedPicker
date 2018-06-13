@@ -27,8 +27,8 @@ class SGI_OSG_HELPER_EXPORT ReferencedPickerBase : public osg::Referenced
 {
 public:
     ReferencedPickerBase(const osg::Vec2f & pos, osgViewer::View * view, osg::Node * root, unsigned traversalMask=~0u);
-    ReferencedPickerBase(osgViewer::GraphicsWindow * gw, osg::Node * root=NULL, unsigned traversalMask=~0u);
-    ReferencedPickerBase(const osgGA::GUIEventAdapter & ea, osg::Node * root=NULL, unsigned traversalMask=~0u);
+    ReferencedPickerBase(osgViewer::GraphicsWindow * gw, osg::Node * root=nullptr, unsigned traversalMask=~0u);
+    ReferencedPickerBase(const osgGA::GUIEventAdapter & ea, osg::Node * root=nullptr, unsigned traversalMask=~0u);
     /** dtor */
     virtual ~ReferencedPickerBase();
 
@@ -63,9 +63,9 @@ public:
     typedef osgEarth::PrimitiveIntersector::Intersection Hit;
     typedef osgEarth::PrimitiveIntersector::Intersections Hits;
 #endif
-    ReferencedPicker(const osg::Vec2f & pos, osgViewer::View * view, osg::Node * root=NULL, unsigned traversalMask=~0u, float hitBufferSize=1.0f, PickerType::Limit limit=PickerType::NO_LIMIT);
-    ReferencedPicker(osgViewer::GraphicsWindow * gw, osg::Node * root=NULL, unsigned traversalMask=~0u, float hitBufferSize=1.0f, PickerType::Limit limit= PickerType::NO_LIMIT);
-    ReferencedPicker(const osgGA::GUIEventAdapter & ea, osg::Node * root=NULL, unsigned traversalMask=~0u, float hitBufferSize=1.0f, PickerType::Limit limit= PickerType::NO_LIMIT);
+    ReferencedPicker(const osg::Vec2f & pos, osgViewer::View * view, osg::Node * root=nullptr, unsigned traversalMask=~0u, float hitBufferSize=1.0f, PickerType::Limit limit=PickerType::NO_LIMIT);
+    ReferencedPicker(osgViewer::GraphicsWindow * gw, osg::Node * root=nullptr, unsigned traversalMask=~0u, float hitBufferSize=1.0f, PickerType::Limit limit= PickerType::NO_LIMIT);
+    ReferencedPicker(const osgGA::GUIEventAdapter & ea, osg::Node * root=nullptr, unsigned traversalMask=~0u, float hitBufferSize=1.0f, PickerType::Limit limit= PickerType::NO_LIMIT);
 
     /** dtor */
     virtual ~ReferencedPicker();
@@ -89,9 +89,9 @@ private:
 class SGI_OSG_HELPER_EXPORT ReferencedLinePicker : public ReferencedPickerBase
 {
 public:
-    ReferencedLinePicker(const osg::Vec2f & pos, osgViewer::View * view, osg::Node * root=NULL, unsigned traversalMask=~0u);
-    ReferencedLinePicker(osgViewer::GraphicsWindow * gw, osg::Node * root=NULL, unsigned traversalMask=~0u);
-    ReferencedLinePicker(const osgGA::GUIEventAdapter & ea, osg::Node * root=NULL, unsigned traversalMask=~0u);
+    ReferencedLinePicker(const osg::Vec2f & pos, osgViewer::View * view, osg::Node * root=nullptr, unsigned traversalMask=~0u);
+    ReferencedLinePicker(osgViewer::GraphicsWindow * gw, osg::Node * root=nullptr, unsigned traversalMask=~0u);
+    ReferencedLinePicker(const osgGA::GUIEventAdapter & ea, osg::Node * root=nullptr, unsigned traversalMask=~0u);
 
     /** dtor */
     virtual ~ReferencedLinePicker();

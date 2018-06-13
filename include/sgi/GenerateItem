@@ -16,7 +16,7 @@ inline bool generateItem(SGIItemBasePtr & item, const SGIHostItemBase * object)
 {
     bool ret;
     typedef bool (*pfn)(osg::ref_ptr<sgi::SGIItemBase> & item, const sgi::SGIHostItemBase * object);
-    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_generateItem");
+    pfn func = reinterpret_cast<pfn>(AUTOLOADCLASS::sgiLibraryProcAddress("sgi_generateItem"));
     if(func)
         ret = func(item, object);
     else

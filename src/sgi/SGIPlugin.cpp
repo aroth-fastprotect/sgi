@@ -134,7 +134,7 @@ public:
 
     static SGIPluginsImpl* instance(bool erase=false)
     {
-		static SGIPluginsImpl* s_impl = NULL;
+        static SGIPluginsImpl* s_impl = nullptr;
         if (erase)
         {
             delete s_impl;
@@ -142,7 +142,7 @@ public:
         }
 		else if(!s_impl)
 			s_impl = new SGIPluginsImpl;
-        return s_impl; // will return NULL on erase
+        return s_impl; // will return nullptr on erase
     }
 
     SGIPluginHostInterface * hostInterface()
@@ -166,7 +166,7 @@ public:
 		if (callback)
 			_hostCallback = callback;
 		else
-			_hostCallback = NULL;
+            _hostCallback = nullptr;
 	}
 
     class HostInterface : public SGIPluginHostInterface
@@ -547,7 +547,7 @@ public:
 		}
 		virtual ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
 		{
-			return NULL;
+            return nullptr;
 		}
 		void triggerRepaint() override
 		{
@@ -555,18 +555,18 @@ public:
 		}
 		SGIItemBase * getView() override
 		{
-			return NULL;
+            return nullptr;
 		}
         virtual QWidget * getFallbackParentWidget() override
         {
-            return NULL;
+            return nullptr;
         }
 		virtual void shutdown() override
 		{
-			_contextMenu = NULL;
-			_dialog = NULL;
-			_loggerDialog = NULL;
-			_imagePreviewDialog = NULL;
+            _contextMenu = nullptr;
+            _dialog = nullptr;
+            _loggerDialog = nullptr;
+            _imagePreviewDialog = nullptr;
 		}
 
 	private:
@@ -670,7 +670,7 @@ public:
                     // release the plugin because version does not match
                     std::cout << "Drop plugin " << name << "(" << pluginFilename << ") because to version mismatch " <<
                         info.pluginInterface->getRequiredInterfaceVersion() << "!=" << _hostInterface.version() << std::endl;
-                    info.pluginInterface = NULL;
+                    info.pluginInterface = nullptr;
                 }
                 else
                 {
@@ -820,7 +820,7 @@ public:
         bool ret = false;
         if(!_pluginsLoaded)
         {
-            AutoPluginLoader loader(this, NULL, AutoPluginLoader::PluginMatchAll );
+            AutoPluginLoader loader(this, nullptr, AutoPluginLoader::PluginMatchAll );
             _pluginsLoaded = true;
         }
         for(PluginMap::const_iterator it = _plugins.begin(); it != _plugins.end(); it++)
@@ -886,7 +886,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && !ret);
+        while(item != nullptr && !ret);
         return ret;
     }
     bool getObjectName(std::string & name, const SGIHostItemBase * object, bool full)
@@ -909,7 +909,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && !ret);
+        while(item != nullptr && !ret);
         return ret;
     }
     bool getObjectDisplayName(std::string & name, const SGIHostItemBase * object, bool full)
@@ -932,7 +932,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && !ret);
+        while(item != nullptr && !ret);
         return ret;
     }
     bool getObjectTypename(std::string & name, const SGIHostItemBase * object, bool full=true)
@@ -955,7 +955,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && !ret);
+        while(item != nullptr && !ret);
         return ret;
     }
     bool getObjectSuggestedFilename(std::string & filename, const SGIHostItemBase * object)
@@ -978,7 +978,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && !ret);
+        while(item != nullptr && !ret);
         return ret;
     }
     bool getObjectSuggestedFilenameExtension(std::string & ext, const SGIHostItemBase * object)
@@ -1001,7 +1001,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && !ret);
+        while(item != nullptr && !ret);
         return ret;
     }
     bool getObjectFilenameFilters(std::vector<std::string> & filters, const SGIHostItemBase * object)
@@ -1024,7 +1024,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && !ret);
+        while(item != nullptr && !ret);
         return ret;
     }
 
@@ -1048,7 +1048,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && !ret);
+        while(item != nullptr && !ret);
         return ret;
     }
     bool writeObjectFile(bool & result, const SGIHostItemBase * object, const std::string & filename, const SGIItemBase* options)
@@ -1074,7 +1074,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && !ret);
+        while(item != nullptr && !ret);
         return ret;
     }
 
@@ -1084,18 +1084,18 @@ public:
         if(generateItem(item, object))
             return createContextMenu(parent, item, callback);
         else
-            return NULL;
+            return nullptr;
     }
     IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
         QtProxy * proxy = QtProxy::instance();
-        Q_ASSERT(proxy != NULL);
+        Q_ASSERT(proxy != nullptr);
         return proxy->createContextMenu(parent, item, true, callback?callback:_defaultHostCallback.get());
     }
     IContextMenuQt * createContextMenu(QWidget *parent, QObject * item, IHostCallback * callback)
     {
         QtProxy * proxy = QtProxy::instance();
-        Q_ASSERT(proxy != NULL);
+        Q_ASSERT(proxy != nullptr);
         return proxy->createContextMenu(parent, item, true, callback?callback:_defaultHostCallback.get());
     }
 
@@ -1105,12 +1105,12 @@ public:
         if(generateItem(item, object))
             return showSceneGraphDialog(parent, item, callback);
         else
-            return NULL;
+            return nullptr;
     }
     ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
         QtProxy * proxy = QtProxy::instance();
-        Q_ASSERT(proxy != NULL);
+        Q_ASSERT(proxy != nullptr);
         return proxy->showSceneGraphDialog(parent, item, callback?callback:_defaultHostCallback.get());
     }
     IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
@@ -1119,25 +1119,25 @@ public:
         if(generateItem(item, object))
             return showObjectLoggerDialog(parent, item, callback);
         else
-            return NULL;
+            return nullptr;
     }
     IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
         QtProxy * proxy = QtProxy::instance();
-        Q_ASSERT(proxy != NULL);
+        Q_ASSERT(proxy != nullptr);
         return proxy->showObjectLoggerDialog(parent, item, callback?callback:_defaultHostCallback.get());
     }
     IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback)
     {
         QtProxy * proxy = QtProxy::instance();
-        Q_ASSERT(proxy != NULL);
+        Q_ASSERT(proxy != nullptr);
         return proxy->showObjectLoggerDialog(parent, logger, callback?callback:_defaultHostCallback.get());
     }
 
     IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback)
     {
         QtProxy * proxy = QtProxy::instance();
-        Q_ASSERT(proxy != NULL);
+        Q_ASSERT(proxy != nullptr);
         return proxy->showImagePreviewDialog(parent, item, callback?callback:_defaultHostCallback.get());
     }
     IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
@@ -1146,7 +1146,7 @@ public:
         if(generateItem(item, object))
             return showImagePreviewDialog(parent, item, callback);
         else
-            return NULL;
+            return nullptr;
     }
 
 
@@ -1162,7 +1162,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && !ret);
+        while(item != nullptr && !ret);
         return ret;
     }
     bool objectTreeBuildRootTree(IObjectTreeItem * treeItem, SGIItemBase * item)
@@ -1202,7 +1202,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && ((onlyRootItem && !ret) || !onlyRootItem));
+        while(item != nullptr && ((onlyRootItem && !ret) || !onlyRootItem));
         if(!onlyRootItem)
             ret = false;
         return ret;
@@ -1220,7 +1220,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && !ret);
+        while(item != nullptr && !ret);
         return ret;
     }
     bool openSettingsDialog(osg::ref_ptr<ISettingsDialog> & dialog, const SGIHostItemBase * object, ISettingsDialogInfo * info)
@@ -1243,7 +1243,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && !ret);
+        while(item != nullptr && !ret);
         return ret;
     }
     static QString copyStringFromStdString(const std::string & text, SGIPluginHostInterface::InputDialogStringEncoding encoding)
@@ -1491,7 +1491,7 @@ public:
                     qfilters.append(QString(";;") + fromUtf8(*it));
             }
         }
-        QString * selectedFilter = NULL;
+        QString * selectedFilter = nullptr;
         QString oldFilename = fromUtf8(filename);
         QString newFilename;
         bool ok = false;
@@ -1598,7 +1598,7 @@ public:
     bool setView(SGIItemBase * view, const SGIItemBase * item, double animationTime = -1.0)
     {
         bool ret = false;
-        while(view != NULL && !ret)
+        while(view != nullptr && !ret)
         {
             const PluginInfo * pluginInfo = (const PluginInfo * )view->pluginInfo();
             if(pluginInfo)
@@ -1660,7 +1660,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && !ret);
+        while(item != nullptr && !ret);
         return ret;
     }
     bool getObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object)
@@ -1686,7 +1686,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && !ret);
+        while(item != nullptr && !ret);
         return ret;
     }
     bool getOrCreateObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object)
@@ -1712,7 +1712,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && !ret);
+        while(item != nullptr && !ret);
         return ret;
     }
     bool parentWidget(QWidgetPtr & widget, const SGIHostItemBase * object)
@@ -1739,7 +1739,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && !ret);
+        while(item != nullptr && !ret);
         return ret;
     }
 
@@ -1766,7 +1766,7 @@ public:
             }
             item = item->nextBase();
         }
-        while(item != NULL && !ret);
+        while(item != nullptr && !ret);
         return ret;
     }
 
@@ -1785,10 +1785,10 @@ public:
         _namedEnums.clear();
         if (_hostCallback.valid())
             _hostCallback->shutdown();
-        _hostCallback = NULL;
+        _hostCallback = nullptr;
 		if(_defaultHostCallback.valid())
 			_defaultHostCallback->shutdown();
-		_defaultHostCallback = NULL;
+        _defaultHostCallback = nullptr;
 	}
 
     bool registerNamedEnum(const std::string & enumname, const std::string & description, bool bitmask)
@@ -1932,7 +1932,7 @@ SGIPlugins* SGIPlugins::instance(bool erase)
 
 SGIPlugins * SGIPlugins::instanceImpl(bool erase, bool autoCreate)
 {
-	static osg::ref_ptr<SGIPlugins> s_plugins = NULL;
+    static osg::ref_ptr<SGIPlugins> s_plugins = nullptr;
 	if (erase)
 	{
 		if(s_plugins.valid())
@@ -1944,7 +1944,7 @@ SGIPlugins * SGIPlugins::instanceImpl(bool erase, bool autoCreate)
 		if (!s_plugins.valid())
 			s_plugins = new SGIPlugins;
 	}
-	return s_plugins.get(); // will return NULL on erase
+    return s_plugins.get(); // will return nullptr on erase
 }
 
 void SGIPlugins::shutdown()
@@ -1975,7 +1975,7 @@ void SGIPlugins::destruct()
     {
         // delete the SGIPluginsImpl instance
         SGIPluginsImpl::instance(true);
-        _impl = NULL;
+        _impl = nullptr;
     }
 }
 

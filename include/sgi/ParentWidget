@@ -22,20 +22,20 @@ inline QWidget * parentWidgetImpl(const SGIHostItemBase * object)
     if(func)
         ret = func(widget, object);
     else
-        ret = NULL;
+        ret = nullptr;
     return ret;
 }
 
 template<typename AUTOLOADCLASS>
 inline QWidget * parentWidgetImpl(SGIItemBase * item)
 {
-    QWidget * ret = NULL;
+    QWidget * ret = nullptr;
     typedef QWidget * (*pfn)(QWidgetPtr & widget, SGIItemBase * item);
     pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_parentWidgetItem");
     if(func)
         ret = func(widget, item);
     else
-        ret = NULL;
+        ret = nullptr;
     return ret;
 }
 
