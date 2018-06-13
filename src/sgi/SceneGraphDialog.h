@@ -52,7 +52,7 @@ public:
 public slots:
     void					itemPrevious();
     void					itemNext();
-    void					onObjectChanged(SGIItemBase * item);
+    void					onObjectChanged(int tabIndex, SGIItemBase * item);
 
 	void					onItemExpanded(QTreeWidgetItem * item);
 	void					onItemCollapsed(QTreeWidgetItem * item);
@@ -75,7 +75,7 @@ protected slots:
     void                    showBesideParent();
 
 signals:
-    void                    triggerOnObjectChanged(SGIItemBase * item);
+    void                    triggerOnObjectChanged(int tabIndex, SGIItemBase * item);
     void                    triggerShow();
     void                    triggerHide();
 

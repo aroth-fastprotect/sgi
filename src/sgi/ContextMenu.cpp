@@ -46,7 +46,7 @@ public:
     {
     }
 
-    virtual ~ContextMenuItem()
+    ~ContextMenuItem() override
     {
     }
 
@@ -55,7 +55,7 @@ public:
         _menu->clear();
         _childs.clear();
     }
-    void addSeparator()
+    void addSeparator() override
     {
         _menu->addSeparator();
     }
@@ -68,7 +68,7 @@ public:
             return false;
     }
 
-    bool addSimpleAction(unsigned actionId, const std::string & name, SGIItemBase * item, osg::Referenced * userData=nullptr)
+    bool addSimpleAction(unsigned actionId, const std::string & name, SGIItemBase * item, osg::Referenced * userData=nullptr) override
     {
         QString itemText;
         if(name.empty())
@@ -89,7 +89,7 @@ public:
         connect(action, &QAction::triggered, _contextMenu, &ContextMenu::slotSimpleItemAction);
         return action;
     }
-    bool addBoolAction(unsigned actionId, const std::string & name, SGIItemBase * item, bool state, osg::Referenced * userData=nullptr)
+    bool addBoolAction(unsigned actionId, const std::string & name, SGIItemBase * item, bool state, osg::Referenced * userData=nullptr) override
     {
         QString itemText;
         if(name.empty())
@@ -113,7 +113,7 @@ public:
         return action;
     }
 
-    bool addModeAction(const std::string & name, int mode, osg::Referenced * userData=nullptr)
+    bool addModeAction(const std::string & name, int mode, osg::Referenced * userData=nullptr) override
     {
         QString itemText = fromUtf8(name);
         QtMenuSGIItem menuItemData = _menu->menuAction()->data().value<QtMenuSGIItem>();
@@ -132,12 +132,12 @@ public:
         return action;
     }
 
-    IContextMenuItem * addMenu(const std::string & name, SGIItemBase * item, osg::Referenced * userData=nullptr)
+    IContextMenuItem * addMenu(const std::string & name, SGIItemBase * item, osg::Referenced * userData=nullptr) override
     {
         return addMenuImpl(name, item, userData);
     }
 
-    IContextMenuItem * addMenu(const std::string & name, const SGIHostItemBase * hostitem, osg::Referenced * userData=nullptr)
+    IContextMenuItem * addMenu(const std::string & name, const SGIHostItemBase * hostitem, osg::Referenced * userData=nullptr) override
     {
         osg::ref_ptr<SGIItemBase> item;
         if(SGIPlugins::instance()->generateItem(item, hostitem))
@@ -146,12 +146,12 @@ public:
             return nullptr;
     }
 
-    IContextMenuItem * addModeMenu(unsigned actionId, const std::string & name, SGIItemBase * item, int currentMode, osg::Referenced * userData=nullptr)
+    IContextMenuItem * addModeMenu(unsigned actionId, const std::string & name, SGIItemBase * item, int currentMode, osg::Referenced * userData=nullptr) override
     {
         return addModeMenuImpl(actionId, name, item, currentMode, userData);
     }
 
-    IContextMenuItem * getOrCreateMenu(const std::string & name, osg::Referenced * userData=nullptr)
+    IContextMenuItem * getOrCreateMenu(const std::string & name, osg::Referenced * userData=nullptr) override
     {
         QMenu * menu = getOrCreateNamedMenu(_menu, fromUtf8(name), userData);
         return addChild(new ContextMenuItem(_contextMenu, menu));
@@ -192,7 +192,7 @@ protected:
         return addChild(new ContextMenuItem(_contextMenu, newMenu));
     }
 
-    IContextMenuItem * addModeMenuImpl(unsigned actionId, const std::string & name, SGIItemBase * item, int currentMode, osg::Referenced * userData)
+    IContextMenuItem * addModeMenuImpl(unsigned actionId, const std::string & name, SGIItemBase * item, unsigned currentMode, osg::Referenced * userData)
     {
         QMenu * newMenu = new QMenu(_menu);
         QtMenuSGIItem itemData(item);
@@ -333,9 +333,9 @@ class ContextMenu::ContextMenuImpl : public IContextMenu
 public:
     ContextMenuImpl(ContextMenu * menu)
         : _menu(menu) {}
-    ~ContextMenuImpl()
+    ~ContextMenuImpl() override
         {
-            //qDebug() << "ContextMenuImpl dtor" << _menu;
+            //qDebug() << __FUNCTION__ << _menu;
             if(_menu)
             {
                 _menu->_interface = nullptr;
@@ -343,12 +343,12 @@ public:
             }
         }
 
-    virtual QWidget *               parentWidget() override { return _menu->parentWidget(); }
-    virtual QMenu *                 getMenu() override { return _menu; }
-    virtual void                    setObject(SGIItemBase * item, IHostCallback * callback=nullptr) override { _menu->setObject(item, callback); }
-    virtual void                    setObject(const SGIHostItemBase * item, IHostCallback * callback=nullptr) override { _menu->setObject(item, callback); }
-    virtual IHostCallback *         getHostCallback() override { return _menu->getHostCallback(); }
-    virtual void                    popup(QWidget * parent, int x, int y) { emit _menu->triggerPopup(parent, x, y); }
+    QWidget *               parentWidget() override { return _menu->parentWidget(); }
+    QMenu *                 getMenu() override { return _menu; }
+    void                    setObject(SGIItemBase * item, IHostCallback * callback=nullptr) override { _menu->setObject(item, callback); }
+    void                    setObject(const SGIHostItemBase * item, IHostCallback * callback=nullptr) override { _menu->setObject(item, callback); }
+    IHostCallback *         getHostCallback() override { return _menu->getHostCallback(); }
+    void                    popup(QWidget * parent, int x, int y) override { emit _menu->triggerPopup(parent, x, y); }
 
     ContextMenu * _menu;
 };

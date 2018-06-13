@@ -19,6 +19,7 @@ private slots:
     void writePrettyHTML();
 
     void sceneGraphDialog();
+    void contextMenuHidden();
     void contextMenu();
 	void contextMenuQt();
     void imagePreviewDialog();

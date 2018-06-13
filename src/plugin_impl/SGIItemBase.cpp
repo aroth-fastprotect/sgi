@@ -36,22 +36,27 @@ unsigned SGIItemBase::getTotalItemCount()
 }
 
 SGIItemBase::SGIItemBase(SGIItemType type, unsigned flags, unsigned score, osg::Referenced * userData)
-    : osg::Object(), _type(type), _flags(flags), _score(score), _type_info(nullptr)
-    , _pluginInfo(nullptr), _next(nullptr), _prev(), _number(0), _userData(userData)
+    : osg::Object(), _type(type), _flags(flags), _score(score)
+    , _pluginInfo(nullptr), _type_info(nullptr), _next(nullptr), _prev()
+    , _number(0), _userData(userData)
 {
+    //qDebug() << __FUNCTION__ << (void*)this;
     ++s_ItemCount;
 }
 
 SGIItemBase::SGIItemBase(const SGIItemBase & rhs, const osg::CopyOp& copyop)
-    : osg::Object(rhs, copyop), _type(rhs._type), _flags(rhs._flags), _score(rhs._score), _type_info(rhs._type_info)
-    , _pluginInfo(rhs._pluginInfo), _next(rhs._next), _prev(rhs._prev), _number(rhs._number), _userData(rhs._userData)
+    : osg::Object(rhs, copyop), _type(rhs._type), _flags(rhs._flags), _score(rhs._score)
+    , _pluginInfo(rhs._pluginInfo), _type_info(rhs._type_info), _next(rhs._next), _prev(rhs._prev)
+    , _number(rhs._number), _userData(rhs._userData)
 {
+    //qDebug() << __FUNCTION__ << (void*)this;
     ++s_ItemCount;
 }
 
 SGIItemBase::~SGIItemBase()
 {
     --s_ItemCount;
+    //qDebug() << __FUNCTION__ << (void*)this;
 }
 
 SGIItemBase & SGIItemBase::operator = (const SGIItemBase & rhs)

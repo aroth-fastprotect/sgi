@@ -53,21 +53,23 @@ class SceneGraphDialog::SceneGraphDialogImpl : public ISceneGraphDialog
 public:
     SceneGraphDialogImpl(SceneGraphDialog * dialog)
         : _dialog(dialog) {}
-    virtual                 ~SceneGraphDialogImpl() { delete _dialog; }
-    virtual QDialog *       getDialog() { return _dialog; }
-    virtual IHostCallback * getHostCallback() { return _dialog->_hostCallback; }
-    virtual IContextMenu *  toolsMenu() { return _dialog->toolsMenu(); }
-    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=nullptr) { _dialog->setObject(item, callback); }
-    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=nullptr) { _dialog->setObject(item, callback); }
-    virtual void            show() { emit _dialog->triggerShow(); }
-    virtual void            hide() { emit _dialog->triggerHide(); }
-    virtual bool            isVisible() { return _dialog->isVisible(); }
-    virtual int             showModal() { return _dialog->exec(); }
-    virtual IObjectTreeItem * selectedItem() { return _dialog->selectedItem(); }
-    virtual IObjectTreeItem * rootItem() { return _dialog->rootItem(); }
-    virtual void            setInfoText(const std::string & text) { return _dialog->setInfoText(text); }
-	virtual SGIItemBase *   item() const { return _dialog->item(); }
-	virtual const SGIItemBasePtrPath & itemPath() const { return _dialog->itemPath(); }
+    ~SceneGraphDialogImpl() override
+    {
+        delete _dialog;
+    }
+    QDialog *       getDialog() override { return _dialog; }
+    IHostCallback * getHostCallback() override { return _dialog->_hostCallback; }
+    IContextMenu *  toolsMenu() override { return _dialog->toolsMenu(); }
+    void            setObject(SGIItemBase * item, IHostCallback * callback=nullptr) override { _dialog->setObject(item, callback); }
+    void            setObject(const SGIHostItemBase * item, IHostCallback * callback=nullptr) override { _dialog->setObject(item, callback); }
+    void            show() override { emit _dialog->triggerShow(); }
+    void            hide() override { emit _dialog->triggerHide(); }
+    bool            isVisible() override { return _dialog->isVisible(); }
+    IObjectTreeItem * selectedItem() override { return _dialog->selectedItem(); }
+    IObjectTreeItem * rootItem() override { return _dialog->rootItem(); }
+    void            setInfoText(const std::string & text) override { return _dialog->setInfoText(text); }
+    SGIItemBase *   item() const override { return _dialog->item(); }
+    const SGIItemBasePtrPath & itemPath() const override { return _dialog->itemPath(); }
 
     SceneGraphDialog * _dialog;
 };
@@ -77,9 +79,9 @@ class SceneGraphDialog::ToolsMenuImpl : public ISceneGraphDialogToolsMenu
 public:
     ToolsMenuImpl(SceneGraphDialog * dialog)
         : _dialog(dialog) {}
-    virtual                     ~ToolsMenuImpl() {}
-    virtual ISceneGraphDialog * getDialog() { return _dialog->dialogInterface(); }
-    virtual IContextMenu *      toolsMenu() { return _dialog->toolsMenu(); }
+    ~ToolsMenuImpl() override {}
+    ISceneGraphDialog * getDialog() override { return _dialog->dialogInterface(); }
+    IContextMenu *      toolsMenu() override { return _dialog->toolsMenu(); }
 
     SceneGraphDialog * _dialog;
 };
@@ -145,6 +147,15 @@ public:
         tabPage->setLayout(verticalLayout);
         tabPageWidget = tabPage;
         QMetaObject::connectSlotsByName(dlg);
+    }
+    void clear()
+    {
+        treeWidget->clear();
+        textEdit->clear();
+        item = nullptr;
+        itemPath.clear();
+        rootTreeItem = nullptr;
+        selectedTreeItem = nullptr;
     }
 };
 
@@ -325,14 +336,9 @@ void SceneGraphDialog::closeEvent(QCloseEvent * event)
     }
 
     for (Ui_TabPage * page : ui->tabs)
-    {
-        page->treeWidget->clear();
-        page->textEdit->clear();
-        page->rootTreeItem = nullptr;
-        page->selectedTreeItem = nullptr;
-    }
+        page->clear();
     ui->comboBoxPath->clear();
-    _toolsMenu->setObject((SGIItemBase*)nullptr);
+    _toolsMenu->setObject(static_cast<SGIItemBase*>(nullptr));
     _contextMenu = nullptr;
     _itemSelf = nullptr;
     _itemToolsMenu = nullptr;
@@ -400,7 +406,7 @@ void SceneGraphDialog::showBesideParent()
                     QRect currentScreenRect = dw->screenGeometry(currentScreen);
                     QRect targetScreenRect = dw->screenGeometry(targetScreen);
                     QPoint currentTopLeft = parent->mapToGlobal(geom.topLeft());
-                    QPoint currentBottomRight = parent->mapToGlobal(geom.bottomRight());
+                    //QPoint currentBottomRight = parent->mapToGlobal(geom.bottomRight());
                     QPoint screenOffset = currentTopLeft - currentScreenRect.topLeft();
                     QPoint targetTopLeft = targetScreenRect.topLeft() + screenOffset;
                     QPoint targetBottomRight(targetTopLeft.x() + geom.width(), targetTopLeft.y() + geom.height());
@@ -415,12 +421,12 @@ void SceneGraphDialog::showBesideParent()
     }
 }
 
-void SceneGraphDialog::onObjectChanged(SGIItemBase * item)
+void SceneGraphDialog::onObjectChanged(int tabIndex, SGIItemBase * item)
 {
     if (uiPage->item.get() == item)
         return;
-    int existingTabIndex = -1;
-    for (int index = 0; existingTabIndex < 0 && index < (int)ui->tabs.size(); ++index)
+    int existingTabIndex = tabIndex;
+    for (int index = 0; item && existingTabIndex < 0 && index < (int)ui->tabs.size(); ++index)
     {
         Ui_TabPage * page = ui->tabs[index];
         if (page->item == item)
@@ -428,11 +434,30 @@ void SceneGraphDialog::onObjectChanged(SGIItemBase * item)
     }
     if (existingTabIndex >= 0)
         ui->tabWidget->setCurrentIndex(existingTabIndex);
-    else
+    else if(item)
     {
         addNewTab();
         uiPage->item = item;
     }
+    else
+    {
+        // got nullptr as object/item, so clear the given tab page
+        if(tabIndex >= 0 && tabIndex < static_cast<int>(ui->tabs.size()))
+        {
+            // clear out the specific tab page
+            Ui_TabPage * page = ui->tabs[tabIndex];
+            page->clear();
+        }
+        else
+        {
+            for (int index = 0; index < (int)ui->tabs.size(); ++index)
+            {
+                Ui_TabPage * page = ui->tabs[index];
+                page->clear();
+            }
+        }
+    }
+    // release any grab on pending item
     _itemPending = nullptr;
 
     updatePathComboBox();
@@ -458,7 +483,7 @@ void SceneGraphDialog::setObject(SGIItemBase * item, IHostCallback * callback)
         _hostCallback = callback;
 
     _itemPending = item;
-    emit triggerOnObjectChanged(item);
+    emit triggerOnObjectChanged(-1, item);
 }
 
 void SceneGraphDialog::updatePathComboBox()

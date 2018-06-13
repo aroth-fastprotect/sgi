@@ -253,11 +253,46 @@ void item_unittest::sceneGraphDialog()
     QDialog * dlg = dlgIface->getDialog();
     dlg->show();
     dlg->close();
+    // need to run the main event processor to clean up (deleteLater, etc)
+    QApplication::processEvents();
 
     dlgIface = nullptr;
     item = nullptr;
 
 	sgi::shutdown<sgi::autoload::Qt>();
+
+    sgi::autoload::Qt::sgiLibraryUnload();
+    QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
+    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+}
+
+void item_unittest::contextMenuHidden()
+{
+    return;
+    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
+
+    auto lib = sgi::autoload::Qt::sgiLibrary();
+    QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), true);
+
+    SGIItemBasePtr item;
+    SGIHostItemQt hostItem(lib);
+    sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
+    QVERIFY(item.valid());
+    sgi::IContextMenuPtr ctxIface = sgi::createContextMenu<sgi::autoload::Qt>(nullptr, item);
+    QVERIFY(ctxIface != nullptr);
+    // need to run the main event processor to clean up (deleteLater, etc)
+    QApplication::processEvents();
+    ctxIface->setObject(static_cast<SGIItemBase*>(nullptr));
+    // need to run the main event processor to clean up (deleteLater, etc)
+    QApplication::processEvents();
+
+    QCOMPARE(getRefCount(ctxIface.get()), 1u);
+    // release the menu
+    ctxIface = nullptr;
+    item = nullptr;
+
+    sgi::shutdown<sgi::autoload::Qt>();
 
     sgi::autoload::Qt::sgiLibraryUnload();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
