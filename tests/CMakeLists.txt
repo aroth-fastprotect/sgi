@@ -1,6 +1,6 @@
 MACRO(SGI_UNITTEST NAME)
 
-    OPTION(SGI_UNITEST_${NAME} "Build SGI unit test ${NAME}" OFF)
+    OPTION(SGI_UNITEST_${NAME} "Build SGI unit test ${NAME}" ON)
     IF(SGI_UNITEST_${NAME})
         set(TARGET_SRC ${NAME}_unittest.cpp)
         set(TARGET_MOC_H ${NAME}_unittest.h)

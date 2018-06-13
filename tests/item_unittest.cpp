@@ -1,5 +1,4 @@
 #include "item_unittest.h"
-#include "item_unittest.moc"
 
 #include <QDebug>
 #include <QDialog>
@@ -30,7 +29,7 @@ class TestItem : public SGIItemBase
 {
 public:
     TestItem(unsigned score=0)
-        : SGIItemBase(SGIItemTypeInvalid, 0, score, NULL)
+        : SGIItemBase(SGIItemTypeInvalid, 0, score, nullptr)
     {
     }
 
@@ -53,7 +52,7 @@ void item_unittest::verifyRefPtr()
     QCOMPARE(TestItem::getTotalItemCount(), 0u);
     item = new TestItem;
     QCOMPARE(TestItem::getTotalItemCount(), 1u);
-    item = NULL;
+    item = nullptr;
     QCOMPARE(TestItem::getTotalItemCount(), 0u);
 
     item = new TestItem;
@@ -62,11 +61,11 @@ void item_unittest::verifyRefPtr()
     QCOMPARE(TestItem::getTotalItemCount(), 3u);
     item->insertAfter(item2);
     item2->insertAfter(item3);
-    item2 = NULL;
-    item3 = NULL;
+    item2 = nullptr;
+    item3 = nullptr;
     QCOMPARE((int)item->listSize(), 2);
     QCOMPARE(TestItem::getTotalItemCount(), 3u);
-    item = NULL;
+    item = nullptr;
     QCOMPARE(TestItem::getTotalItemCount(), 0u);
 
 }
@@ -105,7 +104,7 @@ void item_unittest::insertItemTwoChains()
     SGIItemBasePtr secondChain;
     const unsigned numItems = 50;
     {
-        SGIItemBasePtr prev = NULL;
+        SGIItemBasePtr prev = nullptr;
         for(unsigned n = 0; n <= (numItems * 2); n+=2)
         {
             SGIItemBasePtr item = new TestItem(n);
@@ -119,7 +118,7 @@ void item_unittest::insertItemTwoChains()
     }
 
     {
-        SGIItemBasePtr prev = NULL;
+        SGIItemBasePtr prev = nullptr;
         for(unsigned n = 1; n <= (numItems * 2) + 1; n+=2)
         {
             SGIItemBasePtr item = new TestItem(n);
@@ -137,9 +136,9 @@ void item_unittest::insertItemTwoChains()
     QVERIFY(newFront->isListValid());
     QCOMPARE(newFront->listSize(), (size_t)(2*numItems) + 1);
 
-    firstChain = NULL;
-    secondChain = NULL;
-    newFront = NULL;
+    firstChain = nullptr;
+    secondChain = nullptr;
+    newFront = nullptr;
 
     QCOMPARE(TestItem::getTotalItemCount(), 0u);
 }
@@ -152,7 +151,7 @@ void item_unittest::insertItemSameScore()
     SGIItemBasePtr secondChain;
     const unsigned numItems = 5;
     {
-        SGIItemBasePtr prev = NULL;
+        SGIItemBasePtr prev = nullptr;
         for(unsigned n = 0; n <= (numItems * 2); n+=2)
         {
             SGIItemBasePtr item = new TestItem(17);
@@ -166,7 +165,7 @@ void item_unittest::insertItemSameScore()
     }
 
     {
-        SGIItemBasePtr prev = NULL;
+        SGIItemBasePtr prev = nullptr;
         for(unsigned n = 1; n <= (numItems * 2) + 1; n+=2)
         {
             SGIItemBasePtr item = new TestItem(17);
@@ -184,9 +183,9 @@ void item_unittest::insertItemSameScore()
     QVERIFY(newFront->isListValid());
     QCOMPARE(newFront->listSize(), (size_t)(2*numItems) + 1);
 
-    firstChain = NULL;
-    secondChain = NULL;
-    newFront = NULL;
+    firstChain = nullptr;
+    secondChain = nullptr;
+    newFront = nullptr;
 
     QCOMPARE(TestItem::getTotalItemCount(), 0u);
 }
@@ -196,7 +195,7 @@ void item_unittest::autoLoadOsg()
     QCOMPARE(sgi::autoload::Osg::sgiLibraryLoaded(), false);
     auto lib = sgi::autoload::Osg::instance();
     QCOMPARE(sgi::autoload::Osg::sgiLibraryLoaded(), true);
-    QVERIFY(sgi::autoload::Osg::sgiLibrary() != NULL);
+    QVERIFY(sgi::autoload::Osg::sgiLibrary() != nullptr);
     QCOMPARE(sgi::autoload::Osg::sgiLibraryName(), std::string(SGI_LIBRARY_NAME));
     QVERIFY(sgi::autoload::Osg::sgiLibraryError().empty());
     QVERIFY(!sgi::autoload::Osg::sgiLibraryFilename().empty());
@@ -209,7 +208,7 @@ void item_unittest::autoLoadQt()
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
     auto lib = sgi::autoload::Qt::instance();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), true);
-    QVERIFY(sgi::autoload::Qt::sgiLibrary() != NULL);
+    QVERIFY(sgi::autoload::Qt::sgiLibrary() != nullptr);
     QCOMPARE(sgi::autoload::Qt::sgiLibraryName(), std::string(SGI_LIBRARY_NAME));
     QVERIFY(sgi::autoload::Qt::sgiLibraryError().empty());
     QVERIFY(!sgi::autoload::Qt::sgiLibraryFilename().empty());
@@ -227,7 +226,7 @@ void item_unittest::writePrettyHTML()
     sgi::writePrettyHTML<sgi::autoload::Qt>(ss, item);
     // TestItem is unknown to SGI so the resulting string must be empty
     QVERIFY(ss.str().empty());
-    item = NULL;
+    item = nullptr;
     QCOMPARE(TestItem::getTotalItemCount(), 0u);
 
     auto lib = sgi::autoload::Qt::sgiLibrary();
@@ -240,7 +239,7 @@ void item_unittest::writePrettyHTML()
     QVERIFY(!ss.str().empty());
     //qDebug() << ss.str();
 
-    item = NULL;
+    item = nullptr;
 
 	sgi::shutdown<sgi::autoload::Qt>();
 
@@ -261,14 +260,14 @@ void item_unittest::sceneGraphDialog()
     SGIHostItemQt hostItem(lib);
     sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
     QVERIFY(item.valid());
-    sgi::ISceneGraphDialogPtr dlgIface = sgi::showSceneGraphDialog<sgi::autoload::Qt>(NULL, item);
-    QVERIFY(dlgIface != NULL);
+    sgi::ISceneGraphDialogPtr dlgIface = sgi::showSceneGraphDialog<sgi::autoload::Qt>(nullptr, item);
+    QVERIFY(dlgIface != nullptr);
     QDialog * dlg = dlgIface->getDialog();
     dlg->show();
     dlg->close();
 
-    dlgIface = NULL;
-    item = NULL;
+    dlgIface = nullptr;
+    item = nullptr;
 
 	sgi::shutdown<sgi::autoload::Qt>();
 
@@ -289,18 +288,18 @@ void item_unittest::contextMenu()
     SGIHostItemQt hostItem(lib);
     sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
     QVERIFY(item.valid());
-    sgi::IContextMenuPtr ctxIface = sgi::createContextMenu<sgi::autoload::Qt>(NULL, item);
-    QVERIFY(ctxIface != NULL);
+    sgi::IContextMenuPtr ctxIface = sgi::createContextMenu<sgi::autoload::Qt>(nullptr, item);
+    QVERIFY(ctxIface != nullptr);
     QMenu * menu = ctxIface->getMenu();
     menu->show();
     menu->hide();
     // need to run the main event processor to clean up (deleteLater, etc)
     QApplication::processEvents();
 
-    QCOMPARE(getRefCount(ctxIface.get()), 1);
+    QCOMPARE(getRefCount(ctxIface.get()), 1u);
     // release the menu
-    ctxIface = NULL;
-    item = NULL;
+    ctxIface = nullptr;
+    item = nullptr;
 
 	sgi::shutdown<sgi::autoload::Qt>();
 
@@ -321,8 +320,8 @@ void item_unittest::contextMenuQt()
 	SGIHostItemQt hostItem(lib);
 	sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
 	QVERIFY(item.valid());
-	sgi::IContextMenuQt * ctxIface = sgi::createContextMenuQt(NULL, lib);
-	QVERIFY(ctxIface != NULL);
+    sgi::IContextMenuQt * ctxIface = sgi::createContextMenuQt(nullptr, lib);
+    QVERIFY(ctxIface != nullptr);
 	QMenu * menu = ctxIface->getMenu();
 	menu->show();
 	menu->hide();
@@ -330,8 +329,8 @@ void item_unittest::contextMenuQt()
     QApplication::processEvents();
 
 	// release the menu
-	ctxIface = NULL;
-	item = NULL;
+    ctxIface = nullptr;
+    item = nullptr;
 
 	sgi::shutdown<sgi::autoload::Qt>();
 
@@ -357,15 +356,15 @@ void item_unittest::imagePreviewDialog()
     sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
 
     QVERIFY(item.valid());
-    sgi::IImagePreviewDialogPtr dlgIface = sgi::showImagePreviewDialog<sgi::autoload::Qt>(NULL, item);
-    QVERIFY(dlgIface != NULL);
+    sgi::IImagePreviewDialogPtr dlgIface = sgi::showImagePreviewDialog<sgi::autoload::Qt>(nullptr, item);
+    QVERIFY(dlgIface != nullptr);
     QDialog * dlg = dlgIface->getDialog();
     dlg->show();
     dlg->close();
     //dlg->exec();
 
-    dlgIface = NULL;
-    item = NULL;
+    dlgIface = nullptr;
+    item = nullptr;
 
 	sgi::shutdown<sgi::autoload::Qt>();
 

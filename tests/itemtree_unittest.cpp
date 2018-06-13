@@ -1,5 +1,4 @@
 #include "itemtree_unittest.h"
-#include "itemtree_unittest.moc"
 
 #include <QDebug>
 #include <QDialog>
@@ -70,7 +69,7 @@ void itemtree_unittest::test_qobject()
 
     ISceneGraphDialog * raw = dialog.get();
     // ensure that the dialog pointer has exactly one reference
-    QCOMPARE(getRefCount(raw), 1);
+    QCOMPARE(getRefCount(raw), 1u);
 
     // release dialog ptr (should be deallocated immediately)
     dialog = nullptr;

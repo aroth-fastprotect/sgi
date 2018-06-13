@@ -71,12 +71,13 @@ endmacro(FAST_IS_SYSTEM_LIBRARY)
 
 macro(fast_package_qt5)
 
-    find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL)
+    find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL Test)
 
     set(QT_QTCORE_LIBRARY Qt5::Core )
     set(QT_QTGUI_LIBRARY Qt5::Gui)
     set(QT_QTWIDGETS_LIBRARY Qt5::Widgets )
     set(QT_QTOPENGL_LIBRARY Qt5::OpenGL )
+    set(QT_QTTEST_LIBRARY Qt5::Test )
 endmacro(fast_package_qt5)
 
 macro(fast_package_osg)
