@@ -346,7 +346,7 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
             // for non GL3/GL4 and non GLES2 platforms we need enable the osg_ uniforms that the shaders will use,
             // you don't need thse two lines on GL3/GL4 and GLES2 specific builds as these will be enable by default.
             ret->getState()->setUseModelViewAndProjectionUniforms(true);
-            ret->getState()->setUseVertexAttributeAliasing(true);
+            //ret->getState()->setUseVertexAttributeAliasing(true);
             break;
         }
     }

@@ -27,7 +27,28 @@ namespace math {
 } // namespace math
 
 namespace {
-    static unsigned s_ItemCount = 0;
+    static std::atomic_uint s_ItemCount(0);
+    static std::atomic_uint s_ItemHolderCount(0);
+}
+
+unsigned SGIItemHolder::getTotalItemCount()
+{
+    return s_ItemHolderCount;
+}
+
+SGIItemHolder::~SGIItemHolder()
+{
+    --s_ItemHolderCount;
+}
+
+SGIItemHolder::SGIItemHolder()
+{
+    ++s_ItemHolderCount;
+}
+
+SGIItemHolder::SGIItemHolder(const SGIItemHolder & /*rhs*/)
+{
+    ++s_ItemHolderCount;
 }
 
 unsigned SGIItemBase::getTotalItemCount()
@@ -35,8 +56,8 @@ unsigned SGIItemBase::getTotalItemCount()
     return s_ItemCount;
 }
 
-SGIItemBase::SGIItemBase(SGIItemType type, unsigned flags, unsigned score, osg::Referenced * userData)
-    : osg::Object(), _type(type), _flags(flags), _score(score)
+SGIItemBase::SGIItemBase(SGIItemHolder * holder, SGIItemType type, unsigned flags, unsigned score, osg::Referenced * userData)
+    : osg::Object(), _holder(holder), _type(type), _flags(flags), _score(score)
     , _pluginInfo(nullptr), _type_info(nullptr), _next(nullptr), _prev()
     , _number(0), _userData(userData)
 {
@@ -45,7 +66,7 @@ SGIItemBase::SGIItemBase(SGIItemType type, unsigned flags, unsigned score, osg::
 }
 
 SGIItemBase::SGIItemBase(const SGIItemBase & rhs, const osg::CopyOp& copyop)
-    : osg::Object(rhs, copyop), _type(rhs._type), _flags(rhs._flags), _score(rhs._score)
+    : osg::Object(rhs, copyop), _holder(rhs._holder), _type(rhs._type), _flags(rhs._flags), _score(rhs._score)
     , _pluginInfo(rhs._pluginInfo), _type_info(rhs._type_info), _next(rhs._next), _prev(rhs._prev)
     , _number(rhs._number), _userData(rhs._userData)
 {
@@ -61,6 +82,7 @@ SGIItemBase::~SGIItemBase()
 
 SGIItemBase & SGIItemBase::operator = (const SGIItemBase & rhs)
 {
+    _holder = rhs._holder;
     _type = rhs._type;
     _flags = rhs._flags;
     _score = rhs._score;
@@ -76,7 +98,16 @@ SGIItemBase & SGIItemBase::operator = (const SGIItemBase & rhs)
 int SGIItemBase::compare(const SGIItemBase & rhs) const
 {
     if(rhs._type == _type)
-        return 0;
+    {
+        if(rhs._holder == _holder)
+            return 0;
+        else if(!_holder)
+            return -1;
+        else if(!rhs._holder)
+            return 1;
+        else
+            return _holder->compare(*rhs._holder);
+    }
     else if(rhs._type < _type)
         return -1;
     else

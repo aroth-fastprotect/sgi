@@ -310,7 +310,7 @@ bool writePrettyHTMLImpl_OpenThreads_Thread(std::basic_ostream<char>& os, OpenTh
 bool writePrettyHTMLImpl<osg::Transform>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Transform * object = static_cast<osg::Transform*>(item<SGIItemOsg>()->object());
+    osg::Transform * object = getObject<osg::Transform,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -354,7 +354,7 @@ bool writePrettyHTMLImpl<osg::Transform>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::MatrixTransform>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::MatrixTransform * object = static_cast<osg::MatrixTransform*>(item<SGIItemOsg>()->object());
+    osg::MatrixTransform * object = getObject<osg::MatrixTransform,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -384,7 +384,7 @@ bool writePrettyHTMLImpl<osg::MatrixTransform>::process(std::basic_ostream<char>
 bool writePrettyHTMLImpl<osg::PositionAttitudeTransform>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::PositionAttitudeTransform * object = static_cast<osg::PositionAttitudeTransform*>(item<SGIItemOsg>()->object());
+    osg::PositionAttitudeTransform * object = getObject<osg::PositionAttitudeTransform,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -437,7 +437,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Au
 bool writePrettyHTMLImpl<osg::AutoTransform>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::AutoTransform * object = static_cast<osg::AutoTransform*>(item<SGIItemOsg>()->object());
+    osg::AutoTransform * object = getObject<osg::AutoTransform,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -621,8 +621,7 @@ bool writePrettyHTMLImpl<osg::NodeVisitor>::process(std::basic_ostream<char>& os
 bool writePrettyHTMLImpl<osg::Stats>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Stats * object = getObject<osg::Stats, SGIItemOsg>();
-    StatsAccess * access = static_cast<StatsAccess*>(object);
+    StatsAccess * object = static_cast<StatsAccess*>(getObject<osg::Stats, SGIItemOsg>());
     switch (itemType())
     {
     case SGIItemTypeObject:
@@ -638,7 +637,7 @@ bool writePrettyHTMLImpl<osg::Stats>::process(std::basic_ostream<char>& os)
             os << "<tr><td>latest frame</td><td>" << object->getLatestFrameNumber() << "</td></tr>" << std::endl;
 
             osg::Stats::CollectMap stats;
-            access->getCollectStats(stats);
+            object->getCollectStats(stats);
             os << "<tr><td>collect stats</td><td><ul>";
             for (auto it = stats.begin(); it != stats.end(); ++it)
             {
@@ -735,7 +734,7 @@ bool writePrettyHTMLImpl<osg::LOD>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::PagedLOD>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::PagedLOD * object = static_cast<osg::PagedLOD*>(item<SGIItemOsg>()->object());
+    osg::PagedLOD * object = getObject<osg::PagedLOD,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -792,7 +791,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Pr
 bool writePrettyHTMLImpl<osg::ProxyNode>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::ProxyNode * object = static_cast<osg::ProxyNode*>(item<SGIItemOsg>()->object());
+    osg::ProxyNode * object = getObject<osg::ProxyNode,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -829,7 +828,7 @@ bool writePrettyHTMLImpl<osg::ProxyNode>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::EllipsoidModel>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::EllipsoidModel * object = static_cast<osg::EllipsoidModel*>(item<SGIItemOsg>()->object());
+    osg::EllipsoidModel * object = getObject<osg::EllipsoidModel,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -860,7 +859,7 @@ bool writePrettyHTMLImpl<osg::EllipsoidModel>::process(std::basic_ostream<char>&
 bool writePrettyHTMLImpl<osg::CoordinateSystemNode>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::CoordinateSystemNode * object = static_cast<osg::CoordinateSystemNode*>(item<SGIItemOsg>()->object());
+    osg::CoordinateSystemNode * object = getObject<osg::CoordinateSystemNode,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -998,7 +997,7 @@ void writePrettyHTMLImplGroupChilds(osg::Group * object, std::basic_ostream<char
 bool writePrettyHTMLImpl<osg::Group>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Group * object = static_cast<osg::Group*>(item<SGIItemOsg>()->object());
+    osg::Group * object = getObject<osg::Group,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -1041,7 +1040,7 @@ bool writePrettyHTMLImpl<osg::Group>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::Shape>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Shape * object = static_cast<osg::Shape*>(item<SGIItemOsg>()->object());
+    osg::Shape * object = getObject<osg::Shape,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -1068,7 +1067,7 @@ bool writePrettyHTMLImpl<osg::Shape>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::Sphere>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Sphere * object = static_cast<osg::Sphere*>(item<SGIItemOsg>()->object());
+    osg::Sphere * object = getObject<osg::Sphere,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -1103,7 +1102,7 @@ bool writePrettyHTMLImpl<osg::Sphere>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::Box>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Box * object = static_cast<osg::Box*>(item<SGIItemOsg>()->object());
+    osg::Box * object = getObject<osg::Box,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -1141,7 +1140,7 @@ bool writePrettyHTMLImpl<osg::Box>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::Cylinder>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Cylinder * object = static_cast<osg::Cylinder*>(item<SGIItemOsg>()->object());
+    osg::Cylinder * object = getObject<osg::Cylinder,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -1179,7 +1178,7 @@ bool writePrettyHTMLImpl<osg::Cylinder>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::Cone>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Cone * object = static_cast<osg::Cone*>(item<SGIItemOsg>()->object());
+    osg::Cone * object = getObject<osg::Cone,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -1219,7 +1218,7 @@ bool writePrettyHTMLImpl<osg::Cone>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::Capsule>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Capsule * object = static_cast<osg::Capsule*>(item<SGIItemOsg>()->object());
+    osg::Capsule * object = getObject<osg::Capsule,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -1257,7 +1256,7 @@ bool writePrettyHTMLImpl<osg::Capsule>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::InfinitePlane>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::InfinitePlane * object = static_cast<osg::InfinitePlane*>(item<SGIItemOsg>()->object());
+    osg::InfinitePlane * object = getObject<osg::InfinitePlane,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -1288,7 +1287,7 @@ bool writePrettyHTMLImpl<osg::InfinitePlane>::process(std::basic_ostream<char>& 
 bool writePrettyHTMLImpl<osg::TriangleMesh>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::TriangleMesh * object = static_cast<osg::TriangleMesh*>(item<SGIItemOsg>()->object());
+    osg::TriangleMesh * object = getObject<osg::TriangleMesh,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -1331,7 +1330,7 @@ bool writePrettyHTMLImpl<osg::TriangleMesh>::process(std::basic_ostream<char>& o
 bool writePrettyHTMLImpl<osg::HeightField>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::HeightField * object = static_cast<osg::HeightField*>(item<SGIItemOsg>()->object());
+    osg::HeightField * object = getObject<osg::HeightField,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -1379,7 +1378,7 @@ bool writePrettyHTMLImpl<osg::HeightField>::process(std::basic_ostream<char>& os
 bool writePrettyHTMLImpl<osg::CompositeShape>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::CompositeShape * object = static_cast<osg::CompositeShape*>(item<SGIItemOsg>()->object());
+    osg::CompositeShape * object = getObject<osg::CompositeShape,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -1427,7 +1426,7 @@ bool writePrettyHTMLImpl<osg::CompositeShape>::process(std::basic_ostream<char>&
 bool writePrettyHTMLImpl<osg::ConvexHull>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::ConvexHull * object = static_cast<osg::ConvexHull*>(item<SGIItemOsg>()->object());
+    osg::ConvexHull * object = getObject<osg::ConvexHull,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -1466,7 +1465,7 @@ namespace {
 bool writePrettyHTMLImpl<osg::Drawable>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Drawable * object = static_cast<osg::Drawable*>(item<SGIItemOsg>()->object());
+    osg::Drawable * object = getObject<osg::Drawable,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -1516,7 +1515,7 @@ bool writePrettyHTMLImpl<osg::Drawable>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::ShapeDrawable>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::ShapeDrawable * object = static_cast<osg::ShapeDrawable*>(item<SGIItemOsg>()->object());
+    osg::ShapeDrawable * object = getObject<osg::ShapeDrawable,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -1669,7 +1668,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Ge
 bool writePrettyHTMLImpl<osg::Geometry>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Geometry * object = static_cast<osg::Geometry*>(item<SGIItemOsg>()->object());
+    osg::Geometry * object = getObject<osg::Geometry,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -1949,7 +1948,7 @@ bool writePrettyHTMLImpl<osg::Uniform>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::BufferData>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::BufferData * object = static_cast<osg::BufferData*>(item<SGIItemOsg>()->object());
+    osg::BufferData * object = getObject<osg::BufferData,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -2040,7 +2039,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Pr
 bool writePrettyHTMLImpl<osg::PrimitiveSet>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::PrimitiveSet * object = static_cast<osg::PrimitiveSet*>(item<SGIItemOsg>()->object());
+    osg::PrimitiveSet * object = getObject<osg::PrimitiveSet,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -2089,7 +2088,7 @@ bool writePrettyHTMLImpl<osg::PrimitiveSet>::process(std::basic_ostream<char>& o
 bool writePrettyHTMLImpl<osg::DrawElements>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::DrawElements * object = static_cast<osg::DrawElements*>(item<SGIItemOsg>()->object());
+    osg::DrawElements * object = getObject<osg::DrawElements,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -2130,7 +2129,7 @@ bool writePrettyHTMLImpl<osg::DrawElements>::process(std::basic_ostream<char>& o
 bool writePrettyHTMLImpl<osg::DrawElementsUByte>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::DrawElementsUByte * object = static_cast<osg::DrawElementsUByte*>(item<SGIItemOsg>()->object());
+    osg::DrawElementsUByte * object = getObject<osg::DrawElementsUByte,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -2159,7 +2158,7 @@ bool writePrettyHTMLImpl<osg::DrawElementsUByte>::process(std::basic_ostream<cha
 bool writePrettyHTMLImpl<osg::DrawElementsUShort>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::DrawElementsUShort * object = static_cast<osg::DrawElementsUShort*>(item<SGIItemOsg>()->object());
+    osg::DrawElementsUShort * object = getObject<osg::DrawElementsUShort,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -2188,7 +2187,7 @@ bool writePrettyHTMLImpl<osg::DrawElementsUShort>::process(std::basic_ostream<ch
 bool writePrettyHTMLImpl<osg::DrawElementsUInt>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::DrawElementsUInt * object = static_cast<osg::DrawElementsUInt*>(item<SGIItemOsg>()->object());
+    osg::DrawElementsUInt * object = getObject<osg::DrawElementsUInt,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -2217,7 +2216,7 @@ bool writePrettyHTMLImpl<osg::DrawElementsUInt>::process(std::basic_ostream<char
 bool writePrettyHTMLImpl<osg::DrawArrays>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::DrawArrays * object = static_cast<osg::DrawArrays*>(item<SGIItemOsg>()->object());
+    osg::DrawArrays * object = getObject<osg::DrawArrays,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -2247,7 +2246,7 @@ bool writePrettyHTMLImpl<osg::DrawArrays>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::DrawArrayLengths>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::DrawArrayLengths * object = static_cast<osg::DrawArrayLengths*>(item<SGIItemOsg>()->object());
+    osg::DrawArrayLengths * object = getObject<osg::DrawArrayLengths,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -2277,7 +2276,7 @@ bool writePrettyHTMLImpl<osg::DrawArrayLengths>::process(std::basic_ostream<char
 bool writePrettyHTMLImpl<osg::Shader>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Shader * object = static_cast<osg::Shader*>(item<SGIItemOsg>()->object());
+    osg::Shader * object = getObject<osg::Shader,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -2352,7 +2351,7 @@ bool writePrettyHTMLImpl<osg::Shader>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::ClipNode>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::ClipNode * object = static_cast<osg::ClipNode*>(item<SGIItemOsg>()->object());
+    osg::ClipNode * object = getObject<osg::ClipNode,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -2391,7 +2390,7 @@ bool writePrettyHTMLImpl<OpenThreads::Thread>::process(std::basic_ostream<char>&
 {
     bool ret = false;
     /// @todo re-implement writePrettyHTMLImpl OpenThreads::Thread
-    OpenThreads::Thread * object = NULL; // static_cast<OpenThreads::Thread*>(item<SGIItemOsg>()->object());
+    OpenThreads::Thread * object = NULL; // static_cast<OpenThreads::Thread,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -2837,7 +2836,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::St
 bool writePrettyHTMLImpl<osg::StateAttribute>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::StateAttribute * object = static_cast<osg::StateAttribute*>(item<SGIItemOsg>()->object());
+    osg::StateAttribute * object = getObject<osg::StateAttribute,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3274,7 +3273,7 @@ bool writePrettyHTMLImpl<osg::Texture::TextureObjectManager>::process(std::basic
 bool writePrettyHTMLImpl<osg::Texture1D>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Texture1D * object = static_cast<osg::Texture1D*>(item<SGIItemOsg>()->object());
+    osg::Texture1D * object = getObject<osg::Texture1D,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3302,7 +3301,7 @@ bool writePrettyHTMLImpl<osg::Texture1D>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::Texture2D>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Texture2D * object = static_cast<osg::Texture2D*>(item<SGIItemOsg>()->object());
+    osg::Texture2D * object = getObject<osg::Texture2D,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3330,7 +3329,7 @@ bool writePrettyHTMLImpl<osg::Texture2D>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::Texture3D>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Texture3D * object = static_cast<osg::Texture3D*>(item<SGIItemOsg>()->object());
+    osg::Texture3D * object = getObject<osg::Texture3D,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3370,7 +3369,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Po
 bool writePrettyHTMLImpl<osg::PolygonMode>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::PolygonMode * object = static_cast<osg::PolygonMode*>(item<SGIItemOsg>()->object());
+    osg::PolygonMode * object = getObject<osg::PolygonMode,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3400,7 +3399,7 @@ bool writePrettyHTMLImpl<osg::PolygonMode>::process(std::basic_ostream<char>& os
 bool writePrettyHTMLImpl<osg::PolygonOffset>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::PolygonOffset * object = static_cast<osg::PolygonOffset*>(item<SGIItemOsg>()->object());
+    osg::PolygonOffset * object = getObject<osg::PolygonOffset,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3447,7 +3446,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Ma
 bool writePrettyHTMLImpl<osg::Material>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Material * object = static_cast<osg::Material*>(item<SGIItemOsg>()->object());
+    osg::Material * object = getObject<osg::Material,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3492,7 +3491,7 @@ bool writePrettyHTMLImpl<osg::Material>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::Light>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Light * object = static_cast<osg::Light*>(item<SGIItemOsg>()->object());
+    osg::Light * object = getObject<osg::Light,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3549,7 +3548,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Li
 bool writePrettyHTMLImpl<osg::LightModel>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::LightModel * object = static_cast<osg::LightModel*>(item<SGIItemOsg>()->object());
+    osg::LightModel * object = getObject<osg::LightModel,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3597,7 +3596,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Te
 bool writePrettyHTMLImpl<osg::TexEnv>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::TexEnv * object = static_cast<osg::TexEnv*>(item<SGIItemOsg>()->object());
+    osg::TexEnv * object = getObject<osg::TexEnv,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3642,7 +3641,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Te
 bool writePrettyHTMLImpl<osg::TexGen>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::TexGen * object = static_cast<osg::TexGen*>(item<SGIItemOsg>()->object());
+    osg::TexGen * object = getObject<osg::TexGen,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3709,7 +3708,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::St
 bool writePrettyHTMLImpl<osg::Stencil>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Stencil * object = static_cast<osg::Stencil*>(item<SGIItemOsg>()->object());
+    osg::Stencil * object = getObject<osg::Stencil,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3744,7 +3743,7 @@ bool writePrettyHTMLImpl<osg::Stencil>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::Viewport>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Viewport * object = static_cast<osg::Viewport*>(item<SGIItemOsg>()->object());
+    osg::Viewport * object = getObject<osg::Viewport,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3773,7 +3772,7 @@ bool writePrettyHTMLImpl<osg::Viewport>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::Program>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Program * object = static_cast<osg::Program*>(item<SGIItemOsg>()->object());
+    osg::Program * object = getObject<osg::Program,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3852,7 +3851,7 @@ bool writePrettyHTMLImpl<osg::Program>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::Program::PerContextProgram>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Program::PerContextProgram * object = static_cast<osg::Program::PerContextProgram*>(item<SGIItemOsg>()->object());
+    osg::Program::PerContextProgram * object = getObject<osg::Program::PerContextProgram,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3889,7 +3888,7 @@ bool writePrettyHTMLImpl<osg::Program::PerContextProgram>::process(std::basic_os
 bool writePrettyHTMLImpl<osg::ClipPlane>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::ClipPlane * object = static_cast<osg::ClipPlane*>(item<SGIItemOsg>()->object());
+    osg::ClipPlane * object = getObject<osg::ClipPlane,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3919,7 +3918,7 @@ bool writePrettyHTMLImpl<osg::ClipPlane>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::BlendFunc>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::BlendFunc * object = static_cast<osg::BlendFunc*>(item<SGIItemOsg>()->object());
+    osg::BlendFunc * object = getObject<osg::BlendFunc,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3953,7 +3952,7 @@ bool writePrettyHTMLImpl<osg::BlendFunc>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::BlendColor>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::BlendColor * object = static_cast<osg::BlendColor*>(item<SGIItemOsg>()->object());
+    osg::BlendColor * object = getObject<osg::BlendColor,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -3999,7 +3998,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Bl
 bool writePrettyHTMLImpl<osg::BlendEquation>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::BlendEquation * object = static_cast<osg::BlendEquation*>(item<SGIItemOsg>()->object());
+    osg::BlendEquation * object = getObject<osg::BlendEquation,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -4031,7 +4030,7 @@ bool writePrettyHTMLImpl<osg::BlendEquation>::process(std::basic_ostream<char>& 
 bool writePrettyHTMLImpl<osg::LineWidth>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::LineWidth * object = static_cast<osg::LineWidth*>(item<SGIItemOsg>()->object());
+    osg::LineWidth * object = getObject<osg::LineWidth,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -4060,7 +4059,7 @@ bool writePrettyHTMLImpl<osg::LineWidth>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::LineStipple>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::LineStipple * object = static_cast<osg::LineStipple*>(item<SGIItemOsg>()->object());
+    osg::LineStipple * object = getObject<osg::LineStipple,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -4090,7 +4089,7 @@ bool writePrettyHTMLImpl<osg::LineStipple>::process(std::basic_ostream<char>& os
 bool writePrettyHTMLImpl<osg::Point>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Point * object = static_cast<osg::Point*>(item<SGIItemOsg>()->object());
+    osg::Point * object = getObject<osg::Point,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -4123,7 +4122,7 @@ bool writePrettyHTMLImpl<osg::Point>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::PolygonStipple>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::PolygonStipple * object = static_cast<osg::PolygonStipple*>(item<SGIItemOsg>()->object());
+    osg::PolygonStipple * object = getObject<osg::PolygonStipple,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -4186,7 +4185,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::De
 bool writePrettyHTMLImpl<osg::Depth>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Depth * object = static_cast<osg::Depth*>(item<SGIItemOsg>()->object());
+    osg::Depth * object = getObject<osg::Depth,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -4222,7 +4221,7 @@ bool writePrettyHTMLImpl<osg::GraphicsContext::Traits>::process(std::basic_ostre
     {
     case SGIItemTypeObject:
         {
-            osg::GraphicsContext::Traits * object = static_cast<osg::GraphicsContext::Traits*>(item<SGIItemOsg>()->object());
+            osg::GraphicsContext::Traits * object = getObject<osg::GraphicsContext::Traits,SGIItemOsg>();
             if(_table)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
@@ -4292,7 +4291,7 @@ bool writePrettyHTMLImpl<osg::GraphicsContext::Traits>::process(std::basic_ostre
 bool writePrettyHTMLImpl<osg::Operation>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Operation * object = dynamic_cast<osg::Operation*>(item<SGIItemOsg>()->object());
+    osg::Operation * object = getObject<osg::Operation,SGIItemOsg,DynamicCaster>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -4321,7 +4320,7 @@ bool writePrettyHTMLImpl<osg::Operation>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::GraphicsOperation>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::GraphicsOperation * object = dynamic_cast<osg::GraphicsOperation*>(item<SGIItemOsg>()->object());
+    osg::GraphicsOperation * object = getObject<osg::GraphicsOperation,SGIItemOsg,DynamicCaster>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -4359,7 +4358,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Ba
 bool writePrettyHTMLImpl<osg::BarrierOperation>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::BarrierOperation * object = dynamic_cast<osg::BarrierOperation*>(item<SGIItemOsg>()->object());
+    osg::BarrierOperation * object = getObject<osg::BarrierOperation,SGIItemOsg,DynamicCaster>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -4389,7 +4388,7 @@ bool writePrettyHTMLImpl<osg::BarrierOperation>::process(std::basic_ostream<char
 bool writePrettyHTMLImpl<osg::OperationQueue>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    OperationQueueAccess * object = static_cast<OperationQueueAccess*>(static_cast<osg::OperationQueue*>(item<SGIItemOsg>()->object()));
+    OperationQueueAccess * object = static_cast<OperationQueueAccess*>(getObject<osg::OperationQueue,SGIItemOsg>());
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -4426,7 +4425,7 @@ bool writePrettyHTMLImpl<osg::OperationQueue>::process(std::basic_ostream<char>&
 bool writePrettyHTMLImpl<osg::OperationThread>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::OperationThread * object = static_cast<osg::OperationThread*>(item<SGIItemOsg>()->object());
+    osg::OperationThread * object = getObject<osg::OperationThread,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -4460,7 +4459,7 @@ bool writePrettyHTMLImpl<osg::OperationThread>::process(std::basic_ostream<char>
 bool writePrettyHTMLImpl<osg::GraphicsThread>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::GraphicsThread * object = static_cast<osg::GraphicsThread*>(item<SGIItemOsg>()->object());
+    osg::GraphicsThread * object = getObject<osg::GraphicsThread,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -4751,7 +4750,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::St
 
 void writePrettyHTMLStateSetModeList(std::basic_ostream<char>& os, const SGIItemOsg * item)
 {
-    osg::StateSet * object = static_cast<osg::StateSet*>(item->object());
+    const osg::StateSet * object = static_cast<const osg::StateSet*>(item->object());
     const osg::StateSet::ModeList & modeList = object->getModeList();
     if(!modeList.empty())
     {
@@ -5103,7 +5102,7 @@ bool writePrettyHTMLImpl<osg::State>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::Geode>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Geode * object = static_cast<osg::Geode*>(item<SGIItemOsg>()->object());
+    osg::Geode * object = getObject<osg::Geode,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -5338,7 +5337,7 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::Camera::Attachment
 bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Camera * object = static_cast<osg::Camera*>(item<SGIItemOsg>()->object());
+    osg::Camera * object = getObject<osg::Camera,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -5479,7 +5478,7 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Node * object = static_cast<osg::Node*>(item<SGIItemOsg>()->object());
+    osg::Node * object = getObject<osg::Node,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -5638,7 +5637,7 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::NodeCallback>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::NodeCallback * object = dynamic_cast<osg::NodeCallback*>(item<SGIItemOsg>()->object());
+    osg::NodeCallback * object = getObject<osg::NodeCallback,SGIItemOsg,DynamicCaster>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -5706,7 +5705,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg::View::Li
 bool writePrettyHTMLImpl<osg::View>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::View * object = dynamic_cast<osg::View*>(item<SGIItemOsg>()->object());
+    osg::View * object = getObject<osg::View,SGIItemOsg,DynamicCaster>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -5759,7 +5758,7 @@ bool writePrettyHTMLImpl<osg::View>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::FrameStamp>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::FrameStamp * object = static_cast<osg::FrameStamp*>(item<SGIItemOsg>()->object());
+    osg::FrameStamp * object = getObject<osg::FrameStamp,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -5802,7 +5801,7 @@ bool writePrettyHTMLImpl<osg::FrameStamp>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::RefMatrixd>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::RefMatrixd * object = static_cast<osg::RefMatrixd*>(item<SGIItemOsg>()->object());
+    osg::RefMatrixd * object = getObject<osg::RefMatrixd,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -5833,7 +5832,7 @@ bool writePrettyHTMLImpl<osg::RefMatrixd>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::RefMatrixf>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::RefMatrixf * object = static_cast<osg::RefMatrixf*>(item<SGIItemOsg>()->object());
+    osg::RefMatrixf * object = getObject<osg::RefMatrixf,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -5864,7 +5863,7 @@ bool writePrettyHTMLImpl<osg::RefMatrixf>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::UserDataContainer>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::UserDataContainer * object = static_cast<osg::UserDataContainer*>(item<SGIItemOsg>()->object());
+    osg::UserDataContainer * object = getObject<osg::UserDataContainer,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -5920,7 +5919,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg::Object::
 bool writePrettyHTMLImpl<osg::Object>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Object * object = static_cast<osg::Object*>(item<SGIItemOsg>()->object());
+    osg::Object * object = getObject<osg::Object,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -5954,7 +5953,7 @@ bool writePrettyHTMLImpl<osg::Object>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::Referenced>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Referenced * object = static_cast<osg::Referenced*>(item<SGIItemOsg>()->object());
+    osg::Referenced * object = getObject<osg::Referenced,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -5980,7 +5979,7 @@ bool writePrettyHTMLImpl<osg::Referenced>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::ObserverSet>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::ObserverSet * object = static_cast<osg::ObserverSet*>(item<SGIItemOsg>()->object());
+    osg::ObserverSet * object = getObject<osg::ObserverSet,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -6086,7 +6085,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg::Array::B
 bool writePrettyHTMLImpl<osg::Array>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Array * object = static_cast<osg::Array*>(item<SGIItemOsg>()->object());
+    osg::Array * object = getObject<osg::Array,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -6158,7 +6157,7 @@ bool writePrettyHTMLImpl<osg::Array>::process(std::basic_ostream<char>& os)
 bool writePrettyHTMLImpl<osg::IndexArray>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::IndexArray * object = static_cast<osg::IndexArray*>(item<SGIItemOsg>()->object());
+    osg::IndexArray * object = getObject<osg::IndexArray,SGIItemOsg>();
     switch(itemType())
     {
     case SGIItemTypeObject:

@@ -1,5 +1,5 @@
 // kate: syntax C++11;
-// SGI - Copyright (C) 2012-2017 FAST Protect, Andreas Roth
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
 #include <osg/Object>
@@ -64,13 +64,62 @@ public:
     virtual unsigned pluginScore() const = 0;
 };
 
-class SGI_IMPL_EXPORT SGIItemBase : public osg::Object
+class SGI_IMPL_EXPORT SGIItemHolder
 {
 public:
     static unsigned getTotalItemCount();
 public:
-    SGIItemBase(SGIItemType type=SGIItemTypeInvalid, unsigned flags=0, unsigned score=0, osg::Referenced * userData=nullptr);
+    virtual ~SGIItemHolder();
+
+    virtual int compare(const SGIItemHolder & rhs) const = 0;
+
+protected:
+    SGIItemHolder();
+    SGIItemHolder(const SGIItemHolder & rhs);
+};
+
+template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE>
+inline OBJECT_TYPE * objectPtrFromItemHolder(const OBJECT_STORAGE_TYPE & obj)
+{
+    return static_cast<OBJECT_TYPE*>(obj);
+}
+
+template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*>
+class SGIItemHolderT : public SGIItemHolder
+{
+public:
+    typedef OBJECT_TYPE ObjectType;
+    typedef OBJECT_STORAGE_TYPE ObjectStorageType;
+
+    SGIItemHolderT(ObjectType * object)
+        : _object(object)
+    {
+    }
+    int compare(const SGIItemHolder & rhs) const override
+    {
+        if(static_cast<const SGIItemHolderT&>(rhs)._object == _object)
+            return 0;
+        else if(static_cast<const SGIItemHolderT&>(rhs)._object < _object)
+            return -1;
+        else
+            return 1;
+    }
+
+    ObjectType * object() { return objectPtrFromItemHolder<OBJECT_TYPE, OBJECT_STORAGE_TYPE>(_object); }
+    ObjectType * object() const { return objectPtrFromItemHolder<OBJECT_TYPE, OBJECT_STORAGE_TYPE>(_object); }
+
+private:
+    ObjectStorageType _object;
+};
+
+class SGI_IMPL_EXPORT SGIItemBase : public osg::Object
+{
+public:
+    static unsigned getTotalItemCount();
+protected:
+    SGIItemBase(SGIItemHolder * holder=nullptr, SGIItemType type=SGIItemTypeInvalid, unsigned flags=0, unsigned score=0, osg::Referenced * userData=nullptr);
     SGIItemBase(const SGIItemBase & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
+public:
     virtual ~SGIItemBase();
 
     META_Object(sgi, SGIItemBase)
@@ -146,6 +195,8 @@ public:
     ITEMTYPE * next() const { return dynamic_cast<ITEMTYPE*>(_next.get()); }
     void setNext(SGIItemBase * next) { _next = next; }
 
+    SGIItemHolder * holder() const { return _holder; }
+
     template<typename ITEMTYPE>
     ITEMTYPE * as()
     {
@@ -172,7 +223,7 @@ public:
     }
 
 protected:
-    virtual int compare(const SGIItemBase & rhs) const;
+    int compare(const SGIItemBase & rhs) const;
 
     SGIItemBase * cloneImpl(SGIItemType newType, const osg::CopyOp & copyop);
     SGIItemBase * cloneImpl(SGIItemType newType, unsigned number, const osg::CopyOp & copyop);
@@ -180,6 +231,7 @@ protected:
     SGIItemBase * cloneImpl(SGIItemType newType, unsigned number, osg::Referenced * userData, const osg::CopyOp & copyop);
 
 protected:
+    SGIItemHolder *         _holder;
     SGIItemType             _type;
     unsigned                _flags;
 private:
@@ -190,6 +242,28 @@ private:
     SGIItemBaseOverserverPtr _prev;
     unsigned                _number;
     osg::ref_ptr<osg::Referenced> _userData;
+};
+
+template<typename HOST_ITEM_TYPE, typename HOLDER_TYPE>
+class SGIItemT : public SGIItemBase
+{
+public:
+    typedef typename HOLDER_TYPE::ObjectType ObjectType;
+    typedef HOST_ITEM_TYPE HostItemType;
+
+    SGIItemT(const HostItemType * hostItem=nullptr, SGIItemType type=SGIItemTypeInvalid, ObjectType * object=nullptr, unsigned flags=0, unsigned score=0, osg::Referenced * userData=nullptr)
+        : SGIItemBase(object ? new HOLDER_TYPE(object) : nullptr, type, flags, score, userData) {}
+    SGIItemT(SGIItemType type, ObjectType * object=nullptr, unsigned flags=0, unsigned score=0, osg::Referenced * userData=nullptr)
+        : SGIItemBase(object ? new HOLDER_TYPE(object) : nullptr, type, flags, score, userData) {}
+    SGIItemT(const SGIItemT & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
+        : SGIItemBase(rhs, copyop) {}
+    ~SGIItemT()
+        { }
+
+    META_Object(sgi, SGIItemT)
+
+    ObjectType * object() { return static_cast<HOLDER_TYPE*>(_holder)->object(); }
+    ObjectType * object() const { return static_cast<const HOLDER_TYPE*>(_holder)->object(); }
 };
 
 namespace internal {

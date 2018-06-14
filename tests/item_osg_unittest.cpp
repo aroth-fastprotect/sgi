@@ -22,6 +22,7 @@ inline QDebug operator<< (QDebug dbg, const std::string & s)
     return dbg << QString::fromStdString(s);
 }
 
+SGIItemOsg
 
 class TestItem : public SGIItemBase
 {

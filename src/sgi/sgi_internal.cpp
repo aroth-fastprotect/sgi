@@ -867,7 +867,7 @@ OBJECT_TREE_BUILD_ROOT_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 
 bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeItem)
 {
-    ISceneGraphDialog * object = static_cast<ISceneGraphDialog*>(item<SGIItemInternal>()->object());
+    ISceneGraphDialog * object = getObject<ISceneGraphDialog,SGIItemInternal>();
 
     // no need to use a proxy node here, because the plugin instance is already created anyway
     SGIHostItemInternal hostItem(SGIPlugins::instance());
@@ -926,7 +926,7 @@ public:
     {
     }
 
-    META_Object(sgi, Plugin);
+    META_Object(sgi, Plugin)
 };
 
 SGIPlugin_internal::Plugin * SGIPlugin_internal::Plugin::s_instance = nullptr;

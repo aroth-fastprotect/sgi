@@ -1,5 +1,5 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
 
@@ -79,53 +79,8 @@ enum SGIItemType_osg
     SGIItemTypeBuildInfo,
 };
 
-class SGIItemOsg : public SGIItemBase
-{
-public:
-    typedef osg::Referenced ObjectType;
-    typedef osg::ref_ptr<ObjectType> ObjectStorageType;
-    typedef support::SGIHostItemOsg HostItemType;
-
-    SGIItemOsg(const HostItemType * hostItem=NULL, SGIItemType type=SGIItemTypeInvalid, osg::Referenced * object=NULL, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
-        : SGIItemBase(type, flags, score, userData), _object(object) {}
-    SGIItemOsg(SGIItemType type, const osg::Referenced * object=NULL, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
-        : SGIItemBase(type, flags, score, userData), _object(const_cast<osg::Referenced*>(object)) {}
-    SGIItemOsg(const SGIItemOsg & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : SGIItemBase(rhs, copyop), _object(rhs._object) {}
-    ~SGIItemOsg()
-        { }
-
-    META_Object(sgi, SGIItemOsg);
-
-    SGIItemOsg & operator = (const SGIItemOsg & rhs)
-    {
-        SGIItemBase::operator=(rhs);
-        _object = rhs._object;
-        return *this;
-    }
-    ObjectType * object() { return _object.get(); }
-    ObjectType * object() const { return _object.get(); }
-
-protected:
-    virtual int compare(const SGIItemBase & rhs) const
-    {
-        int ret = SGIItemBase::compare(rhs);
-        if(!ret)
-        {
-            if(_object == static_cast<const SGIItemOsg&>(rhs)._object)
-                return 0;
-            else if(_object < static_cast<const SGIItemOsg&>(rhs)._object)
-                return -1;
-            else
-                return 1;
-        }
-        else
-            return ret;
-    }
-
-private:
-    ObjectStorageType _object;
-};
+typedef SGIItemHolderT<osg::Referenced, osg::observer_ptr<osg::Referenced> > SGIItemHolderOsg;
+typedef SGIItemT<support::SGIHostItemOsg, SGIItemHolderOsg> SGIItemOsg;
 
 namespace osg_plugin {
 enum NodeLookAt {

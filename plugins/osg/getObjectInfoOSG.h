@@ -35,8 +35,6 @@ namespace OpenThreads {
 
 namespace sgi {
 
-class SGIItemOsg;
-
 namespace osg_plugin {
 
 //--------------------------------------------------------------------------------
