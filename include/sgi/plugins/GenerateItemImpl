@@ -26,7 +26,7 @@ public:
     typedef typename SGIItemClassT::ObjectStorageType ObjectStorageType;
     typedef typename SGIItemClassT::HostItemType HostItemType;
     generateSGIItemT(const HostItemType * hostItem)
-        : _hostItem(hostItem), _level(0), _itemChain(NULL)
+        : _hostItem(hostItem), _level(0), _itemChain(nullptr)
     {
     }
     template<typename T>
@@ -112,7 +112,7 @@ struct generateItemImplT
             if(targetHostItem)
                 _ret = details::generateSGIItem_BaseT<SINGLE_ITEM_TYPE, generateItemAcceptImplTemplate>::generate(targetHostItem, _item);
             // continue with the search until we found a matching HostItemType
-            return (targetHostItem == NULL);
+            return (targetHostItem == nullptr);
         }
     };
     static bool generate(const SGIHostItemBase * object, SGIItemBasePtr & item)
