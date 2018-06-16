@@ -5,12 +5,11 @@
 #include <sgi/plugins/SGIItemBase.h>
 
 namespace sgi {
-namespace support {
-    class SGIHostItemLog4cplus;
-}
+
 namespace log4cplus_plugin {
     class Log4cplusObjectBase;
 }
+typedef SGIHostItemImpl<log4cplus_plugin::Log4cplusObjectBase, osg::ref_ptr<log4cplus_plugin::Log4cplusObjectBase> > SGIHostItemLog4cplus;
 
 enum SGIItemType_log4cplus
 {
@@ -20,6 +19,6 @@ enum SGIItemType_log4cplus
 
 typedef SGIItemHolderSharedPtr<log4cplus_plugin::Log4cplusObjectBase, osg::ref_ptr<log4cplus_plugin::Log4cplusObjectBase>> SGIItemHolderLog4cplusType;
 typedef SGIItemHolderT<SGIItemHolderLog4cplusType> SGIItemHolderLog4cplus;
-typedef SGIItemT<support::SGIHostItemLog4cplus, SGIItemHolderLog4cplus> SGIItemLog4cplus;
+typedef SGIItemT<SGIHostItemLog4cplus, SGIItemHolderLog4cplus> SGIItemLog4cplus;
 
 } // namespace sgi

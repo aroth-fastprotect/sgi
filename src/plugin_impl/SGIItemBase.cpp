@@ -410,7 +410,7 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, unsigned number, osg::
 }
 
 SGIProxyItemBase::SGIProxyItemBase(SGIPluginHostInterface * hostInterface, SGIItemBase * realItem)
-    : _hostInterface(hostInterface), _realItem(realItem) 
+    : _realItem(realItem), _hostInterface(hostInterface)
 {
 }
 
@@ -419,14 +419,16 @@ SGIProxyItemBase::SGIProxyItemBase(SGIPluginHostInterface * hostInterface,
                                     const std::string & typeName, 
                                     const std::string & displayName, 
                                     SGIItemBase * realItem)
-    : _hostInterface(hostInterface), _name(name), _displayName(displayName), _typeName(typeName)
+    : _name(name), _displayName(displayName), _typeName(typeName)
     , _realItem(realItem) 
+    , _hostInterface(hostInterface)
 {
 }
 
 SGIProxyItemBase::SGIProxyItemBase(const SGIProxyItemBase & rhs)
-    : _hostInterface(rhs._hostInterface), _name(rhs._name), _displayName(rhs._displayName)
+    : _name(rhs._name), _displayName(rhs._displayName)
     , _typeName(rhs._typeName), _realItem(rhs._realItem) 
+    , _hostInterface(rhs._hostInterface)
 {
 }
 

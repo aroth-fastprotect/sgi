@@ -52,6 +52,9 @@ typedef osg::observer_ptr<SGIItemBase> SGIItemBaseOverserverPtr;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrVector;
 class SGIHostItemBase;
+template<typename OBJECT_TYPE, typename OBJECT_STORE_TYPE=OBJECT_TYPE*>
+class SGIHostItemImpl;
+
 class SGIPluginInfo;
 
 class Image;

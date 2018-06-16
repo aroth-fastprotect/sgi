@@ -1,5 +1,5 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
 #include "SGIItemBase.h"
@@ -12,9 +12,10 @@ typedef osg::ref_ptr<SGIHostItemBase> SGIHostItemBasePtr;
 class SGIHostItemBase : public osg::Referenced
 {
 public:
-    SGIHostItemBase(osg::Referenced * userData=NULL, unsigned flags=0) : _userData(userData), _flags(flags) {}
+    SGIHostItemBase(osg::Referenced * userData=nullptr, unsigned flags=0)
+        : _flags(flags), _userData(userData) {}
     SGIHostItemBase(const SGIHostItemBase & rhs)
-        : osg::Referenced(rhs), _userData(rhs._userData), _flags(rhs._flags)
+        : osg::Referenced(rhs), _flags(rhs._flags), _userData(rhs._userData)
     {
     }
     virtual ~SGIHostItemBase() {}
@@ -64,27 +65,32 @@ private:
     osg::ref_ptr<osg::Referenced> _userData;
 };
 
-template<typename OBJECT_TYPE, typename OBJECT_STORE_TYPE=OBJECT_TYPE*>
+template<typename OBJECT_TYPE, typename OBJECT_STORE_TYPE>
 class SGIHostItemImpl : public SGIHostItemBase
 {
 public:
     typedef OBJECT_TYPE ObjectType;
-    SGIHostItemImpl(OBJECT_TYPE * object, osg::Referenced * userData=NULL, unsigned flags=0)
+    typedef OBJECT_STORE_TYPE ObjectStorageType;
+    SGIHostItemImpl(ObjectType * object, osg::Referenced * userData=nullptr, unsigned flags=0)
         : SGIHostItemBase(userData, flags), _object(object)
+        {
+        }
+    SGIHostItemImpl(const ObjectType * object, osg::Referenced * userData=nullptr, unsigned flags=0)
+        : SGIHostItemBase(userData, flags), _object(const_cast<ObjectType*>(object))
         {
         }
     SGIHostItemImpl(const SGIHostItemImpl & rhs)
         : SGIHostItemBase(rhs), _object(rhs._object)
     {
     }
-    virtual ~SGIHostItemImpl()
+    ~SGIHostItemImpl() override
     {
     }
-    OBJECT_TYPE * object() { return _object; }
-    OBJECT_TYPE * object() const { return _object; }
-    bool hasObject() const { return _object != NULL; }
+    ObjectType * object() { return _object; }
+    ObjectType * object() const { return _object; }
+    bool hasObject() const { return _object != nullptr; }
 protected:
-    OBJECT_STORE_TYPE _object;
+    ObjectStorageType _object;
 };
 
 } // namespace sgi

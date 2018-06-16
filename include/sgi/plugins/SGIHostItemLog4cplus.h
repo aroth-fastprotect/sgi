@@ -108,22 +108,6 @@ public:
 
 } // namespace log4cplus_plugin
 
-namespace support {
-
-class SGIHostItemLog4cplus : public SGIHostItemImpl<log4cplus_plugin::Log4cplusObjectBase, osg::ref_ptr<log4cplus_plugin::Log4cplusObjectBase> >
-{
-public:
-    SGIHostItemLog4cplus(log4cplus_plugin::Log4cplusObjectBase * object, osg::Referenced * userData=NULL, unsigned flags=0)
-        : SGIHostItemImpl<log4cplus_plugin::Log4cplusObjectBase, osg::ref_ptr<log4cplus_plugin::Log4cplusObjectBase> >(object, userData, flags)
-        {}
-    SGIHostItemLog4cplus(const log4cplus_plugin::Log4cplusObjectBase * object, osg::Referenced * userData=NULL, unsigned flags=0)
-        : SGIHostItemImpl<log4cplus_plugin::Log4cplusObjectBase, osg::ref_ptr<log4cplus_plugin::Log4cplusObjectBase> >(
-            const_cast<log4cplus_plugin::Log4cplusObjectBase *>(object), userData, flags
-        )
-        {}
-};
-} // namespace support
-
-typedef support::SGIHostItemLog4cplus SGIHostItemLog4cplus;
+typedef SGIHostItemImpl<log4cplus_plugin::Log4cplusObjectBase, osg::ref_ptr<log4cplus_plugin::Log4cplusObjectBase> > SGIHostItemLog4cplus;
 
 } // namespace sgi

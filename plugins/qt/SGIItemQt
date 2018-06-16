@@ -9,13 +9,13 @@
 #include <QtGui/QSurface>
 
 namespace sgi {
-namespace support {
-    class SGIHostItemQt;
-    class SGIHostItemQtMeta;
-    class SGIHostItemQtPaintDevice;
-    class SGIHostItemQtSurface;
-    class SGIHostItemQtIcon;
-}
+
+typedef SGIHostItemImpl<QObject> SGIHostItemQt;
+typedef SGIHostItemImpl<QMetaObject> SGIHostItemQtMeta;
+typedef SGIHostItemImpl<QPaintDevice> SGIHostItemQtPaintDevice;
+typedef SGIHostItemImpl<QSurface> SGIHostItemQtSurface;
+//typedef SGIHostItemImpl<QIcon> SGIHostItemQtIcon;
+class SGIHostItemQtIcon;
 
 enum SGIItemType_qt
 {
@@ -46,11 +46,11 @@ typedef SGIItemHolderT<SGIItemHolderQtPaintDeviceType> SGIItemHolderQtPaintDevic
 typedef SGIItemHolderT<SGIItemHolderQtSurfaceType> SGIItemHolderQtSurface;
 typedef SGIItemHolderT<SGIItemHolderQtIconType> SGIItemHolderQtIcon;
 
-typedef SGIItemT<support::SGIHostItemQt, SGIItemHolderQt> SGIItemQt;
-typedef SGIItemT<support::SGIHostItemQtMeta, SGIItemHolderQtMeta> SGIItemQtMeta;
-typedef SGIItemT<support::SGIHostItemQtPaintDevice, SGIItemHolderQtPaintDevice> SGIItemQtPaintDevice;
-typedef SGIItemT<support::SGIHostItemQtSurface, SGIItemHolderQtSurface> SGIItemQtSurface;
-typedef SGIItemT<support::SGIHostItemQtIcon, SGIItemHolderQtIcon> SGIItemQtIcon;
+typedef SGIItemT<SGIHostItemQt, SGIItemHolderQt> SGIItemQt;
+typedef SGIItemT<SGIHostItemQtMeta, SGIItemHolderQtMeta> SGIItemQtMeta;
+typedef SGIItemT<SGIHostItemQtPaintDevice, SGIItemHolderQtPaintDevice> SGIItemQtPaintDevice;
+typedef SGIItemT<SGIHostItemQtSurface, SGIItemHolderQtSurface> SGIItemQtSurface;
+typedef SGIItemT<SGIHostItemQtIcon, SGIItemHolderQtIcon> SGIItemQtIcon;
 
 template<typename OBJECT_TYPE>
 inline OBJECT_TYPE * objectPtrFromItemHolder(const QSharedPointer<OBJECT_TYPE> & obj)

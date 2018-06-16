@@ -6,14 +6,12 @@
 #include "plugins/SGIItemBase.h"
 
 namespace sgi {
-namespace support {
-    class SGIHostItemInternal;
-}
+
+typedef SGIHostItemImpl<osg::Referenced, osg::ref_ptr<osg::Referenced> > SGIHostItemInternal;
 
 typedef SGIItemHolderSharedPtr<osg::Referenced, osg::ref_ptr<osg::Referenced> > SGIItemHolderInternalType;
 typedef SGIItemHolderT<SGIItemHolderInternalType> SGIItemHolderInternal;
-
-typedef SGIItemT<support::SGIHostItemInternal, SGIItemHolderInternal> SGIItemInternal;
+typedef SGIItemT<SGIHostItemInternal, SGIItemHolderInternal> SGIItemInternal;
 
 struct InternalItemData
 {
