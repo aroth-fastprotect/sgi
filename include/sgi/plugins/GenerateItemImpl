@@ -23,7 +23,6 @@ class generateSGIItemT
 {
 public:
     typedef SGIItemClassT SGIItemClass;
-    typedef typename SGIItemClassT::ObjectStorageType ObjectStorageType;
     typedef typename SGIItemClassT::HostItemType HostItemType;
     generateSGIItemT(const HostItemType * hostItem)
         : _hostItem(hostItem), _level(0), _itemChain(nullptr)
