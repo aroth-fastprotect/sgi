@@ -58,6 +58,7 @@ LIST(APPEND TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/ContextMenuQt
     ${SGI_INCLUDE_DIR}/sgi/GenerateItem
     ${SGI_INCLUDE_DIR}/sgi/ImagePreviewDialog
+    ${SGI_INCLUDE_DIR}/sgi/LibraryInfo
     ${SGI_INCLUDE_DIR}/sgi/ObjectInfo
     ${SGI_INCLUDE_DIR}/sgi/ObjectLoggerDialog
     ${SGI_INCLUDE_DIR}/sgi/ReferencedPicker

@@ -2,6 +2,7 @@
 
 #include "sgi/Export"
 
+class QObject;
 class QWidget;
 namespace sgi {
     class ISceneGraphDialog;
@@ -30,6 +31,7 @@ SGI_EXPORT const char* sgiGetVersion();
 SGI_EXPORT const char* sgiGetSOVersion();
 SGI_EXPORT const char* sgiGetLibraryName();
 SGI_EXPORT const char* sgiGetLibraryModuleFilename();
+SGI_EXPORT QObject * sgi_libraryInfoObject();
 
 SGI_EXPORT sgi::IHostCallback * sgi_defaultHostCallback();
 SGI_EXPORT void sgi_setHostCallback(sgi::IHostCallback * callback);

@@ -23,6 +23,7 @@
 #define __GL_H__
 #endif
 
+#include "QtProxy.h"
 #include "ImageGLWidget.h"
 #include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
@@ -67,7 +68,8 @@ SGI_OBJECT_INFO_BEGIN(sgi::SGIItemBase)
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(QObject)
-    QWidget
+    QWidget,
+    sgi::QtProxy
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(QWidget)
@@ -98,6 +100,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(Image)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(sgi::ImageGLWidget)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(sgi::QtProxy)
 
 bool writePrettyHTMLImpl<osg::Referenced>::process(std::basic_ostream<char>& os)
 {
@@ -327,7 +330,7 @@ bool writePrettyHTMLImpl<SGIProxyItemBase>::process(std::basic_ostream<char>& os
     bool ret = false;
     if(WRITE_PRETTY_HTML_PROXYITEM_GET_INSTANCE)
     {
-        SGIItemBase * realObject = object->realItem(true);
+        SGIItemBase * realObject = object ? object->realItem(true) : nullptr;
         if(realObject)
             ret = _hostInterface->writePrettyHTML(os, realObject);
         else
@@ -346,10 +349,13 @@ bool writePrettyHTMLImpl<SGIProxyItemBase>::process(std::basic_ostream<char>& os
                     os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
                 ret = callNextHandler(os);
 
-                os << "<tr><td>proxyName</td><td>" << object->name() << "</td></tr>" << std::endl;
-                os << "<tr><td>proxyDisplayName</td><td>" << object->displayName() << "</td></tr>" << std::endl;
-                os << "<tr><td>proxyTypeName</td><td>" << object->typeName() << "</td></tr>" << std::endl;
-                os << "<tr><td>realItem</td><td>" << helpers::getRTTIObjectNameAndType_html(object->realItem(false)) << "</td></tr>" << std::endl;
+                if(object)
+                {
+                    os << "<tr><td>proxyName</td><td>" << object->name() << "</td></tr>" << std::endl;
+                    os << "<tr><td>proxyDisplayName</td><td>" << object->displayName() << "</td></tr>" << std::endl;
+                    os << "<tr><td>proxyTypeName</td><td>" << object->typeName() << "</td></tr>" << std::endl;
+                    os << "<tr><td>realItem</td><td>" << helpers::getRTTIObjectNameAndType_html(object->realItem(false)) << "</td></tr>" << std::endl;
+                }
 
                 if(_table)
                     os << "</table>" << std::endl;
@@ -357,7 +363,7 @@ bool writePrettyHTMLImpl<SGIProxyItemBase>::process(std::basic_ostream<char>& os
             break;
         case SGIItemTypeProxyRealItem:
             {
-                SGIItemBase * realObject = object->realItem(true);
+                SGIItemBase * realObject = object ? object->realItem(true) : nullptr;
                 if(realObject)
                     ret = _hostInterface->writePrettyHTML(os, realObject);
                 else
@@ -480,9 +486,33 @@ bool writePrettyHTMLImpl<sgi::ImageGLWidget>::process(std::basic_ostream<char>& 
     return true;
 }
 
+bool writePrettyHTMLImpl<sgi::QtProxy>::process(std::basic_ostream<char>& os)
+{
+    sgi::QtProxy * object = getObject<sgi::QtProxy,SGIItemQt>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            if(_table)
+                os << "</table>" << std::endl;
+        }
+        break;
+    default:
+        callNextHandler(os);
+        break;
+    }
+    return true;
+}
+
 GET_OBJECT_NAME_IMPL_TEMPLATE()
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(sgi::QtProxy)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
@@ -509,6 +539,11 @@ std::string getObjectNameImpl<SGIPlugins>::process()
     return "SGIPlugins";
 }
 
+std::string getObjectNameImpl<QtProxy>::process()
+{
+    return "SGIQtProxy";
+}
+
 std::string getObjectNameImpl<Image>::process()
 {
     return "SGIImage";
@@ -517,7 +552,7 @@ std::string getObjectNameImpl<Image>::process()
 std::string getObjectNameImpl<SGIProxyItemBase>::process()
 {
     SGIProxyItemBase * object = getObject<SGIProxyItemBase,SGIItemInternal>();
-    SGIItemBase * realObject = object->realItem(GET_OBJECT_NAME_PROXYITEM_GET_INSTANCE);
+    SGIItemBase * realObject = object ? object->realItem(GET_OBJECT_NAME_PROXYITEM_GET_INSTANCE) : nullptr;
     std::string ret;
     switch(itemType())
     {
@@ -540,6 +575,7 @@ std::string getObjectNameImpl<SGIProxyItemBase>::process()
 GET_OBJECT_TYPE_IMPL_TEMPLATE()
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
+GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(sgi::QtProxy)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
@@ -564,6 +600,11 @@ std::string getObjectTypeImpl<ReferencedInternalInfoData>::process()
 std::string getObjectTypeImpl<SGIPlugins>::process()
 {
     return "sgi::SGIPlugins";
+}
+
+std::string getObjectTypeImpl<QtProxy>::process()
+{
+    return "sgi::QtProxy";
 }
 
 std::string getObjectTypeImpl<Image>::process()

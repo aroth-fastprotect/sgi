@@ -87,6 +87,12 @@ int main(int argc, char **argv)
                     cmd = "{\n\"object\": { \"name\":\"app\" }\n}";
                     rawCommands.append(cmd);
                 }
+                else if(longarg == "sgi-info")
+                {
+                    QByteArray cmd;
+                    cmd = "{\n\"object\": { \"name\":\"sgi\" }\n}";
+                    rawCommands.append(cmd);
+                }
                 else if (longarg == "mainwindow")
                 {
                     QByteArray cmd;
@@ -121,10 +127,12 @@ int main(int argc, char **argv)
     else
         qWarning(helloWorldQt) << "failed to load sgi.";
 
+#if 0
     for(const QByteArray & format : QImageReader::supportedImageFormats())
     {
         qWarning(helloWorldQt) << "reader " << format;
     }
+#endif
 
     if(!load_sgi.isNull())
     {

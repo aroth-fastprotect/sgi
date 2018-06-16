@@ -109,6 +109,7 @@ public:
 	IHostCallback * defaultHostCallback();
 	IHostCallback * hostCallback();
 	void setHostCallback(IHostCallback * callback);
+    QObject * libraryInfoObject();
 
     bool generateItem(osg::ref_ptr<SGIItemBase> & item, const SGIHostItemBase * object);
 

@@ -14,6 +14,7 @@
 #include <sgi/AutoLoadQt>
 #include <sgi/ImagePreviewDialog>
 #include <sgi/SceneGraphDialog>
+#include <sgi/LibraryInfo>
 #include <sgi/helpers/qt_widgetwindow>
 #include <sgi/plugins/SGIHostItemQt.h>
 
@@ -40,7 +41,7 @@ namespace sgi {
     namespace qt_loader {
 
 
-ApplicationEventFilter * ApplicationEventFilter::s_instance = NULL;
+ApplicationEventFilter * ApplicationEventFilter::s_instance = nullptr;
 
 class SGIEvent : public QEvent
 {
@@ -110,7 +111,7 @@ void ApplicationEventFilter::uninstall()
     qDebug() << "ApplicationEventFilter uninstall" << this;
 	if (!_contextMenu.isNull())
 		delete _contextMenu;
-    s_instance = NULL;
+    s_instance = nullptr;
     sgi::shutdown<sgi::autoload::Qt>();
     deleteLater();
 }
@@ -119,7 +120,7 @@ bool ApplicationEventFilter::contextMenu(QWidget * widget, QObject * obj, float 
 {
     bool ret = false;
     if(_contextMenu.isNull())
-        _contextMenu = sgi::createContextMenuQt(widget, obj, NULL);
+        _contextMenu = sgi::createContextMenuQt(widget, obj, nullptr);
     else
         _contextMenu->setObject(obj);
     if(widget && !_contextMenu.isNull())
@@ -180,6 +181,8 @@ bool ApplicationEventFilter::handleEvent(SGIEvent * ev)
             QObject * obj = nullptr;
             if (ev->filename() == "app")
                 obj = qApp;
+            else if (ev->filename() == "sgi")
+                obj = sgi::libraryInfoObject<sgi::autoload::Qt>();
             else if (ev->filename() == "mainwindow")
             {
                 obj = widget;

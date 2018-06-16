@@ -169,6 +169,12 @@ public:
 		else
             _hostCallback = nullptr;
 	}
+    QObject * libraryInfoObject()
+    {
+        QtProxy * proxy = QtProxy::instance();
+        Q_ASSERT(proxy != nullptr);
+        return proxy;
+    }
 
     class HostInterface : public SGIPluginHostInterface
     {
@@ -1997,6 +2003,11 @@ IHostCallback * SGIPlugins::hostCallback()
 void SGIPlugins::setHostCallback(IHostCallback * callback)
 {
 	_impl->setHostCallback(callback);
+}
+
+QObject * SGIPlugins::libraryInfoObject()
+{
+    return _impl->libraryInfoObject();
 }
 
 bool SGIPlugins::generateItem(osg::ref_ptr<SGIItemBase> & item, const SGIHostItemBase * object)
