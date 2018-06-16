@@ -18,8 +18,8 @@ public:
     virtual                 ~IContextMenu() {}
     virtual QMenu *         getMenu() = 0;
     virtual IHostCallback * getHostCallback() = 0;
-    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=NULL) = 0;
-    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=NULL) = 0;
+    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=nullptr) = 0;
+    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=nullptr) = 0;
     virtual QWidget *       parentWidget() = 0;
     virtual void            popup(QWidget * parent, int x, int y) = 0;
 };
@@ -28,14 +28,14 @@ typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
 class IContextMenuItem : public osg::Referenced
 {
 public:
-    virtual bool addSimpleAction(unsigned actionId, const std::string & name, const SGIHostItemBase * item, osg::Referenced * userData=NULL) = 0;
-    virtual bool addSimpleAction(unsigned actionId, const std::string & name, SGIItemBase * item, osg::Referenced * userData=NULL) = 0;
-    virtual bool addBoolAction(unsigned actionId, const std::string & name, SGIItemBase * item, bool state, osg::Referenced * userData=NULL) = 0;
-    virtual bool addModeAction(const std::string & name, int mode, osg::Referenced * userData=NULL) = 0;
-    virtual IContextMenuItem * addMenu(const std::string & name, SGIItemBase * item, osg::Referenced * userData=NULL) = 0;
-    virtual IContextMenuItem * addMenu(const std::string & name, const SGIHostItemBase * item, osg::Referenced * userData=NULL) = 0;
-    virtual IContextMenuItem * addModeMenu(unsigned actionId, const std::string & name, SGIItemBase * item, int currentMode, osg::Referenced * userData=NULL) = 0;
-    virtual IContextMenuItem * getOrCreateMenu(const std::string & name, osg::Referenced * userData=NULL) = 0;
+    virtual bool addSimpleAction(unsigned actionId, const std::string & name, const SGIHostItemBase * item, osg::Referenced * userData=nullptr) = 0;
+    virtual bool addSimpleAction(unsigned actionId, const std::string & name, SGIItemBase * item, osg::Referenced * userData=nullptr) = 0;
+    virtual bool addBoolAction(unsigned actionId, const std::string & name, SGIItemBase * item, bool state, osg::Referenced * userData=nullptr) = 0;
+    virtual bool addModeAction(const std::string & name, int mode, osg::Referenced * userData=nullptr) = 0;
+    virtual IContextMenuItem * addMenu(const std::string & name, SGIItemBase * item, osg::Referenced * userData=nullptr) = 0;
+    virtual IContextMenuItem * addMenu(const std::string & name, const SGIHostItemBase * item, osg::Referenced * userData=nullptr) = 0;
+    virtual IContextMenuItem * addModeMenu(unsigned actionId, const std::string & name, SGIItemBase * item, int currentMode, osg::Referenced * userData=nullptr) = 0;
+    virtual IContextMenuItem * getOrCreateMenu(const std::string & name, osg::Referenced * userData=nullptr) = 0;
     virtual void addSeparator() = 0;
     virtual IContextMenu * menu() = 0;
 };

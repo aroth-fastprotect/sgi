@@ -5,8 +5,6 @@
 
 namespace sgi {
 
-class SGIItemLog4cplus;
-
 namespace log4cplus_plugin {
 
 //--------------------------------------------------------------------------------

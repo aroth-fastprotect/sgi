@@ -24,7 +24,7 @@ public:
         typedef ISettingsDialogPtr & ResultType;
     };
 
-    settingsDialogCreateImplBaseT(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL, ISettingsDialogInfo * info=NULL)
+    settingsDialogCreateImplBaseT(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr, ISettingsDialogInfo * info=nullptr)
         : functionImplBase(hostInterface, item)
         , _info(info)
         {
@@ -70,7 +70,7 @@ protected:
     class settingsDialogCreateImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        settingsDialogCreateImpl(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL, ISettingsDialogInfo * info=NULL) {} \
+        settingsDialogCreateImpl(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr, ISettingsDialogInfo * info=nullptr) {} \
         bool execute(ISettingsDialogPtr & dialog) { return false; } \
     }; \
     typedef settingsDialogCreateImplBaseT<settingsDialogCreateImpl> settingsDialogCreateImplBase;
@@ -83,7 +83,7 @@ protected:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        settingsDialogCreateImpl<__id>(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL, ISettingsDialogInfo * info=NULL) \
+        settingsDialogCreateImpl<__id>(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr, ISettingsDialogInfo * info=nullptr) \
             : settingsDialogCreateImplBase(hostInterface, item, info) {} \
         bool execute(ISettingsDialogPtr & dialog); \
     };

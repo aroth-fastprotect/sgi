@@ -9,12 +9,9 @@ namespace sgi {
 namespace support {
     class SGIHostItemInternal;
 }
-typedef SGIItemHolderT<osg::Referenced, osg::observer_ptr<osg::Referenced> > SGIItemHolderInternal;
-template<>
-inline osg::Referenced * objectPtrFromItemHolder(const osg::observer_ptr<osg::Referenced> & obj)
-{
-    return static_cast<osg::Referenced *>(obj.get());
-}
+
+typedef SGIItemHolderSharedPtr<osg::Referenced, osg::observer_ptr<osg::Referenced> > SGIItemHolderInternalType;
+typedef SGIItemHolderT<SGIItemHolderInternalType> SGIItemHolderInternal;
 
 typedef SGIItemT<support::SGIHostItemInternal, SGIItemHolderInternal> SGIItemInternal;
 

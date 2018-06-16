@@ -98,8 +98,8 @@ private:
 class ISettingsDialog : public osg::Referenced
 {
 public:
-    virtual void            setObject(SGIItemBase * item, ISettingsDialogInfo * info=NULL) = 0;
-    virtual void            setObject(const SGIHostItemBase * item, ISettingsDialogInfo * info=NULL) = 0;
+    virtual void            setObject(SGIItemBase * item, ISettingsDialogInfo * info=nullptr) = 0;
+    virtual void            setObject(const SGIHostItemBase * item, ISettingsDialogInfo * info=nullptr) = 0;
     virtual void            show() = 0;
     virtual void            hide() = 0;
     virtual bool            isVisible() = 0;

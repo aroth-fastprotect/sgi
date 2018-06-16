@@ -17,7 +17,7 @@ public:
     virtual                 ~IContextMenuQt() {}
     virtual QMenu *         getMenu() = 0;
     virtual IHostCallback * getHostCallback() = 0;
-    virtual void            setObject(QObject * item, IHostCallback * callback=NULL) = 0;
+    virtual void            setObject(QObject * item, IHostCallback * callback=nullptr) = 0;
     virtual QWidget *       parentWidget() = 0;
     virtual void            popup(QWidget * parent, int x, int y) = 0;
 };

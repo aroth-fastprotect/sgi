@@ -23,8 +23,6 @@
 
 namespace sgi {
 
-class SGIItemOsg;
-
 namespace osg_plugin {
 
 GET_OBJECT_NAME_IMPL_REGISTER(osg::Referenced)

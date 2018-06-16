@@ -9,8 +9,6 @@
 
 namespace sgi {
 
-class SGIItemQt;
-
 namespace qt_plugin {
 
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(QObject)

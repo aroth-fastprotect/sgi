@@ -22,21 +22,6 @@ inline QDebug operator<< (QDebug dbg, const std::string & s)
     return dbg << QString::fromStdString(s);
 }
 
-SGIItemOsg
-
-class TestItem : public SGIItemBase
-{
-public:
-    TestItem(unsigned score=0)
-        : SGIItemBase(SGIItemTypeInvalid, 0, score, nullptr)
-    {
-    }
-
-    virtual ~TestItem()
-    {
-    }
-};
-
 void item_osg_unittest::initTestCase()
 {
 }
@@ -60,7 +45,7 @@ void item_osg_unittest::autoLoadOsg()
 
 void item_osg_unittest::contextMenuOsg()
 {
-    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
     QCOMPARE(sgi::autoload::Osg::sgiLibraryLoaded(), false);
 
     auto lib = sgi::autoload::Osg::sgiLibrary();
@@ -87,7 +72,7 @@ void item_osg_unittest::contextMenuOsg()
 
     sgi::autoload::Osg::sgiLibraryUnload();
     QCOMPARE(sgi::autoload::Osg::sgiLibraryLoaded(), false);
-    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
 }
 
 QTEST_MAIN(item_osg_unittest)

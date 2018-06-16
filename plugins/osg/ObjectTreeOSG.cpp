@@ -73,8 +73,6 @@
 
 namespace sgi {
 
-class SGIItemOsg;
-
 namespace osg_plugin {
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Referenced)

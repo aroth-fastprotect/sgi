@@ -8,8 +8,6 @@
 
 namespace sgi {
 
-class SGIItemLog4cplus;
-
 namespace log4cplus_plugin {
 
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectBase)

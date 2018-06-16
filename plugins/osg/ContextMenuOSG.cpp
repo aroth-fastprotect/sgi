@@ -63,8 +63,6 @@
 
 namespace sgi {
 
-class SGIItemOsg;
-
 namespace osg_plugin {
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Referenced)

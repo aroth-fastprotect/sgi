@@ -78,18 +78,45 @@ protected:
     SGIItemHolder(const SGIItemHolder & rhs);
 };
 
-template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE>
-inline OBJECT_TYPE * objectPtrFromItemHolder(const OBJECT_STORAGE_TYPE & obj)
-{
-    return static_cast<OBJECT_TYPE*>(obj);
-}
+template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*>
+struct SGIItemHolderPtr {
+    typedef OBJECT_TYPE ObjectType;
+    typedef OBJECT_STORAGE_TYPE ObjectStorageType;
+
+    static ObjectType * objectPtr(const ObjectStorageType & item)
+    {
+        return static_cast<ObjectType *>(item);
+    }
+};
 
 template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*>
+struct SGIItemHolderSharedPtr {
+    typedef OBJECT_TYPE ObjectType;
+    typedef OBJECT_STORAGE_TYPE ObjectStorageType;
+
+    static ObjectType * objectPtr(const ObjectStorageType & item)
+    {
+        return static_cast<ObjectType *>(item.get());
+    }
+};
+
+template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*>
+struct SGIItemHolderSharedPtrQt {
+    typedef OBJECT_TYPE ObjectType;
+    typedef OBJECT_STORAGE_TYPE ObjectStorageType;
+
+    static ObjectType * objectPtr(const ObjectStorageType & item)
+    {
+        return static_cast<ObjectType *>(item.data());
+    }
+};
+
+template<typename TYPE>
 class SGIItemHolderT : public SGIItemHolder
 {
 public:
-    typedef OBJECT_TYPE ObjectType;
-    typedef OBJECT_STORAGE_TYPE ObjectStorageType;
+    typedef typename TYPE::ObjectType ObjectType;
+    typedef typename TYPE::ObjectStorageType ObjectStorageType;
 
     SGIItemHolderT(ObjectType * object)
         : _object(object)
@@ -105,8 +132,8 @@ public:
             return 1;
     }
 
-    ObjectType * object() { return objectPtrFromItemHolder<OBJECT_TYPE, OBJECT_STORAGE_TYPE>(_object); }
-    ObjectType * object() const { return objectPtrFromItemHolder<OBJECT_TYPE, OBJECT_STORAGE_TYPE>(_object); }
+    ObjectType * object() { return TYPE::objectPtr(_object); }
+    ObjectType * object() const { return TYPE::objectPtr(_object); }
 
 private:
     ObjectStorageType _object;

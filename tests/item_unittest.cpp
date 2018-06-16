@@ -25,12 +25,18 @@ inline QDebug operator<< (QDebug dbg, const std::string & s)
     return dbg << QString::fromStdString(s);
 }
 
+struct NullType;
+typedef SGIItemHolderPtr<NullType> SGIItemHolderNullType;
+typedef SGIItemHolderT<SGIItemHolderNullType> SGIItemHolderNull;
+typedef SGIHostItemImpl<NullType> SGIHostItemNull;
+typedef SGIItemT<SGIHostItemNull, SGIItemHolderNull> SGIItemNull;
 
-class TestItem : public SGIItemBase
+
+class TestItem : public SGIItemNull
 {
 public:
     TestItem(unsigned score=0)
-        : SGIItemBase(SGIItemTypeInvalid, 0, score, nullptr)
+        : SGIItemNull(static_cast<HostItemType*>(nullptr), SGIItemTypeInvalid, static_cast<NullType*>(nullptr), 0, score, nullptr)
     {
     }
 
@@ -206,7 +212,7 @@ void item_unittest::autoLoadQt()
 
 void item_unittest::writePrettyHTML()
 {
-    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
 
     SGIItemBasePtr item = new TestItem;
@@ -215,7 +221,7 @@ void item_unittest::writePrettyHTML()
     // TestItem is unknown to SGI so the resulting string must be empty
     QVERIFY(ss.str().empty());
     item = nullptr;
-    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
 
     auto lib = sgi::autoload::Qt::sgiLibrary();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), true);
@@ -233,12 +239,12 @@ void item_unittest::writePrettyHTML()
 
     sgi::autoload::Qt::sgiLibraryUnload();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
-    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
 }
 
 void item_unittest::sceneGraphDialog()
 {
-    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
 
     auto lib = sgi::autoload::Qt::sgiLibrary();
@@ -263,13 +269,13 @@ void item_unittest::sceneGraphDialog()
 
     sgi::autoload::Qt::sgiLibraryUnload();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
-    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
 }
 
 void item_unittest::contextMenuHidden()
 {
     return;
-    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
 
     auto lib = sgi::autoload::Qt::sgiLibrary();
@@ -296,12 +302,12 @@ void item_unittest::contextMenuHidden()
 
     sgi::autoload::Qt::sgiLibraryUnload();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
-    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
 }
 
 void item_unittest::contextMenu()
 {
-    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
 
     auto lib = sgi::autoload::Qt::sgiLibrary();
@@ -328,12 +334,12 @@ void item_unittest::contextMenu()
 
     sgi::autoload::Qt::sgiLibraryUnload();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
-    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
 }
 
 void item_unittest::contextMenuQt()
 {
-	QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
 	QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
 
 	auto lib = sgi::autoload::Qt::sgiLibrary();
@@ -359,12 +365,12 @@ void item_unittest::contextMenuQt()
 
 	sgi::autoload::Qt::sgiLibraryUnload();
 	QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
-	QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
 }
 
 void item_unittest::imagePreviewDialog()
 {
-    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
 
     auto lib = sgi::autoload::Qt::sgiLibrary();
@@ -393,7 +399,7 @@ void item_unittest::imagePreviewDialog()
 
     sgi::autoload::Qt::sgiLibraryUnload();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), false);
-    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
 }
 
 QTEST_MAIN(item_unittest)
