@@ -354,7 +354,7 @@ void ImageGLWidget::reloadImage()
         return;
 
     makeCurrent();
-    setImageImpl(_image);
+    setImageImpl(_image.get());
 
     doneCurrent();
     // trigger a repaint because we changed the widgets content outside repaintGL

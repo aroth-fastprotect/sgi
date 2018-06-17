@@ -3,9 +3,12 @@
 
 #pragma once
 #include "SGIHostItemBase.h"
+#include <osg/Referenced>
+#include <osg/ref_ptr>
 
 namespace sgi {
 
-typedef SGIHostItemImpl<osg::Referenced, osg::ref_ptr<osg::Referenced> > SGIHostItemOsg;
+typedef SGIItemInfoSharedPtr<osg::Referenced, osg::ref_ptr<osg::Referenced> > SGIItemInfoOsg;
+typedef SGIHostItemImpl<SGIItemInfoOsg> SGIHostItemOsg;
 
 } // namespace sgi

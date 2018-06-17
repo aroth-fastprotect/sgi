@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <osg/Object>
+#include <sgi/details/Object>
 #include <list>
 
 class QWidget;
@@ -15,14 +15,14 @@ class IContextMenu;
 class SGIItemBase;
 class SGIHostItemBase;
 class SGIDataItemBase;
-typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
-typedef osg::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
+typedef details::ref_ptr<SGIItemBase> SGIItemBasePtr;
+typedef details::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
 typedef std::list<SGIDataItemBasePtr> SGIDataItemBasePtrList;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrVector;
 class IHostCallback;
 
-class IObjectLoggerDialog : public osg::Referenced
+class IObjectLoggerDialog : public details::Referenced
 {
 public:
     virtual QDialog *       getDialog() = 0;
@@ -39,13 +39,13 @@ public:
     virtual bool            removeLogItem(SGIDataItemBase * item, bool first) = 0;
 };
 
-typedef osg::ref_ptr<IObjectLoggerDialog> IObjectLoggerDialogPtr;
+typedef details::ref_ptr<IObjectLoggerDialog> IObjectLoggerDialogPtr;
 
-class IObjectLogger : public osg::Object
+class IObjectLogger : public details::Object
 {
 public:
-    IObjectLogger() : osg::Object() {}
-    IObjectLogger(const IObjectLogger & rhs,const osg::CopyOp& copyop) : osg::Object(rhs, copyop) {}
+    IObjectLogger() : details::Object() {}
+    IObjectLogger(const IObjectLogger & rhs) : Object(rhs) {}
     virtual bool                addItem(SGIItemBase * item, bool alsoChilds=true) = 0;
     virtual bool                addItems(const SGIItemBasePtrPath & path) = 0;
     virtual bool                removeItem(SGIItemBase * item) = 0;
@@ -61,6 +61,6 @@ public:
     virtual IObjectLoggerDialog * getOrCreateDialog(QWidget *parent, IHostCallback * callback) = 0;
 };
 
-typedef osg::ref_ptr<IObjectLogger> IObjectLoggerPtr;
+typedef details::ref_ptr<IObjectLogger> IObjectLoggerPtr;
 
 } // namespace sgi

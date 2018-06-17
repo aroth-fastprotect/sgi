@@ -4,10 +4,10 @@
 #pragma once
 
 #include <sgi/plugins/SGIItemBase.h>
+#include <osg/Referenced>
+#include <osg/ref_ptr>
 
 namespace sgi {
-
-typedef SGIHostItemImpl<osg::Referenced, osg::ref_ptr<osg::Referenced> > SGIHostItemOsg;
 
 enum SGIItemType_osg
 {
@@ -78,8 +78,10 @@ enum SGIItemType_osg
     SGIItemTypeBuildInfo,
 };
 
-typedef SGIItemHolderSharedPtr<osg::Referenced, osg::observer_ptr<osg::Referenced> > SGIItemHolderOsgType;
-typedef SGIItemHolderT<SGIItemHolderOsgType> SGIItemHolderOsg;
+
+typedef SGIItemInfoSharedPtr<osg::Referenced, osg::ref_ptr<osg::Referenced> > SGIItemInfoOsg;
+typedef SGIHostItemImpl<SGIItemInfoOsg> SGIHostItemOsg;
+typedef SGIItemHolderT<SGIItemInfoOsg> SGIItemHolderOsg;
 typedef SGIItemT<SGIHostItemOsg, SGIItemHolderOsg> SGIItemOsg;
 
 namespace osg_plugin {

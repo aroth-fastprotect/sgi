@@ -159,7 +159,7 @@ void ImagePreviewDialog::Histogram::calculateImpl()
 
     numTransparentPixels = 0;
     double totalLuma = 0;
-    PixelReader reader(_image);
+    PixelReader reader(_image.get());
     for (unsigned y = 0; y < _image->height(); y++) {
         for (unsigned x = 0; x < _image->width(); x++) {
             Image::Pixel pixel = reader(x, y);
@@ -251,7 +251,7 @@ public:
     void setImageInfo(const Image * image);
 
     virtual QDialog *       getDialog() override { return _dialog; }
-    virtual IHostCallback * getHostCallback() override { return _dialog->_hostCallback; }
+    virtual IHostCallback * getHostCallback() override { return _dialog->_hostCallback.get(); }
     virtual void            setObject(SGIItemBase * item, IHostCallback * callback=nullptr) override { _dialog->setObject(item, callback); }
     virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=nullptr) override { _dialog->setObject(item, callback); }
     virtual void            setObject(SGIItemBase * item, const sgi::Image * image, const std::string & description, IHostCallback * callback=nullptr) override
@@ -1100,7 +1100,7 @@ void ImagePreviewDialog::refreshImpl()
     if (_item.valid())
     {
         std::string displayName;
-        SGIPlugins::instance()->getObjectDisplayName(displayName, _item);
+        SGIPlugins::instance()->getObjectDisplayName(displayName, _item.get());
         setWindowTitle(tr("Image Viewer - %1").arg(qt_helpers::fromUtf8(displayName)));
     }
     else
@@ -1277,7 +1277,7 @@ void ImagePreviewDialog::openItem()
         if(_hostCallback.valid())
             dialog = _hostCallback->showSceneGraphDialog(this, _item.get());
         else
-            dialog = _hostInterface->showSceneGraphDialog(this, _item, _hostCallback);
+            dialog = _hostInterface->showSceneGraphDialog(this, _item.get(), _hostCallback.get());
         if(dialog)
         {
             dialog->show();

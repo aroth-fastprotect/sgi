@@ -233,6 +233,6 @@ private:
     QTreeWidgetItem * _item;
 };
 
-typedef osg::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
+typedef details::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
 
 } // namespace sgi

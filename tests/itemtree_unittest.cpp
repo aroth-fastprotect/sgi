@@ -31,7 +31,7 @@ void itemtree_unittest::cleanupTestCase()
 void itemtree_unittest::test_no_object()
 {
     ISceneGraphDialogPtr dialog;
-    dialog = showSceneGraphDialog<autoload::Qt>(NULL, (SGIHostItemQt*)NULL, NULL);
+    dialog = showSceneGraphDialog<autoload::Qt>(nullptr, (SGIHostItemQt*)nullptr, nullptr);
     QVERIFY(dialog.valid() == false);
 }
 
@@ -43,7 +43,7 @@ template<int named_type>
 class QObjectT : public QObject
 {
 public:
-    QObjectT(const char * name, QObject * parent = NULL)
+    QObjectT(const char * name, QObject * parent = nullptr)
         : QObject(parent)
     {
         setObjectName(name);
@@ -60,7 +60,7 @@ void itemtree_unittest::test_qobject()
 
     SGIHostItemQt hostItem(obj);
 
-    dialog = showSceneGraphDialog<autoload::Qt>(NULL, &hostItem, NULL);
+    dialog = showSceneGraphDialog<autoload::Qt>(nullptr, &hostItem, nullptr);
     QVERIFY(dialog.valid() != false);
 
     dialog->show();
@@ -69,7 +69,7 @@ void itemtree_unittest::test_qobject()
 
     ISceneGraphDialog * raw = dialog.get();
     // ensure that the dialog pointer has exactly one reference
-    QCOMPARE(getRefCount(raw), 1u);
+    QCOMPARE(getRefCount(raw), 1);
 
     // release dialog ptr (should be deallocated immediately)
     dialog = nullptr;

@@ -19,41 +19,41 @@ namespace sgi {
 class SGIHostItemBase;
 
 class SGIItemBase;
-typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
+typedef details::ref_ptr<SGIItemBase> SGIItemBasePtr;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 
 class ISceneGraphDialog;
-typedef osg::ref_ptr<ISceneGraphDialog> ISceneGraphDialogPtr;
+typedef details::ref_ptr<ISceneGraphDialog> ISceneGraphDialogPtr;
 
 class IContextMenu;
-typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
+typedef details::ref_ptr<IContextMenu> IContextMenuPtr;
 
 class IObjectLogger;
 class IObjectLoggerDialog;
 
-typedef osg::ref_ptr<IObjectLogger> IObjectLoggerPtr;
-typedef osg::ref_ptr<IObjectLoggerDialog> IObjectLoggerDialogPtr;
+typedef details::ref_ptr<IObjectLogger> IObjectLoggerPtr;
+typedef details::ref_ptr<IObjectLoggerDialog> IObjectLoggerDialogPtr;
 
 class ISettingsDialog;
 class ISettingsDialogInfo;
-typedef osg::ref_ptr<ISettingsDialog> ISettingsDialogPtr;
-typedef osg::ref_ptr<ISettingsDialogInfo> ISettingsDialogInfoPtr;
+typedef details::ref_ptr<ISettingsDialog> ISettingsDialogPtr;
+typedef details::ref_ptr<ISettingsDialogInfo> ISettingsDialogInfoPtr;
 
 class IImagePreviewDialog;
-typedef osg::ref_ptr<IImagePreviewDialog> IImagePreviewDialogPtr;
+typedef details::ref_ptr<IImagePreviewDialog> IImagePreviewDialogPtr;
 
 class IObjectTreeItem;
-typedef osg::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
+typedef details::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
 typedef std::vector<IObjectTreeItemPtr> IObjectTreeItemPtrList;
 
 class IHostCallback;
-typedef osg::ref_ptr<IHostCallback> IHostCallbackPtr;
+typedef details::ref_ptr<IHostCallback> IHostCallbackPtr;
 
 class IContextMenuItem;
-typedef osg::ref_ptr<IContextMenuItem> IContextMenuItemPtr;
+typedef details::ref_ptr<IContextMenuItem> IContextMenuItemPtr;
 
 class IContextMenuAction;
-typedef osg::ref_ptr<IContextMenuAction> IContextMenuActionPtr;
+typedef details::ref_ptr<IContextMenuAction> IContextMenuActionPtr;
 
 class Matrix;
 class Quat;
@@ -95,11 +95,11 @@ public:
     virtual bool writeObjectFile(bool & result, const SGIHostItemBase * object, const std::string & filename, const SGIItemBase* options) = 0;
     virtual bool writeObjectFile(bool & result, SGIItemBase * item, const std::string & filename, const SGIItemBase* options) = 0;
 
-    virtual IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=NULL) = 0;
-    virtual IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL) = 0;
+    virtual IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=nullptr) = 0;
+    virtual IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHostCallback * callback=nullptr) = 0;
 
-    virtual ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=NULL) = 0;
-    virtual ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL) = 0;
+    virtual ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=nullptr) = 0;
+    virtual ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=nullptr) = 0;
 
     virtual bool createObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object) = 0;
     virtual bool createObjectLogger(IObjectLoggerPtr & logger, SGIItemBase * item) = 0;
@@ -108,12 +108,12 @@ public:
     virtual bool getOrCreateObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object) = 0;
     virtual bool getOrCreateObjectLogger(IObjectLoggerPtr & logger, SGIItemBase * item) = 0;
 
-    virtual IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback=NULL) = 0;
-    virtual IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=NULL) = 0;
-    virtual IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL) = 0;
+    virtual IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, IObjectLogger * logger, IHostCallback * callback=nullptr) = 0;
+    virtual IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=nullptr) = 0;
+    virtual IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=nullptr) = 0;
 
-    virtual IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=NULL) = 0;
-    virtual IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL) = 0;
+    virtual IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=nullptr) = 0;
+    virtual IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=nullptr) = 0;
 
     virtual bool objectTreeBuildTree(IObjectTreeItem * treeItem, SGIItemBase * item) = 0;
     virtual bool objectTreeBuildRootTree(IObjectTreeItem * treeItem, SGIItemBase * item) = 0;
@@ -121,25 +121,25 @@ public:
     virtual bool contextMenuPopulate(IContextMenuItem * menuItem, SGIItemBase * item, bool onlyRootItem=true) = 0;
     virtual bool contextMenuExecute(IContextMenuAction * menuAction, SGIItemBase * item) = 0;
 
-    virtual bool openSettingsDialog(ISettingsDialogPtr & dialog, const SGIHostItemBase * object, ISettingsDialogInfo * info=NULL) = 0;
-    virtual bool openSettingsDialog(ISettingsDialogPtr & dialog, SGIItemBase * item, ISettingsDialogInfo * info=NULL) = 0;
+    virtual bool openSettingsDialog(ISettingsDialogPtr & dialog, const SGIHostItemBase * object, ISettingsDialogInfo * info=nullptr) = 0;
+    virtual bool openSettingsDialog(ISettingsDialogPtr & dialog, SGIItemBase * item, ISettingsDialogInfo * info=nullptr) = 0;
 
     enum InputDialogStringEncoding { InputDialogStringEncodingSystem, InputDialogStringEncodingUTF8, InputDialogStringEncodingUTF16, InputDialogStringEncodingASCII };
-    virtual bool inputDialogString(QWidget *parent, std::string & text, const std::string & label, const std::string & windowTitle, InputDialogStringEncoding encoding=InputDialogStringEncodingSystem, SGIItemBase * item=NULL) = 0;
-    virtual bool inputDialogText(QWidget *parent, std::string & text, const std::string & label, const std::string & windowTitle, InputDialogStringEncoding encoding=InputDialogStringEncodingSystem, SGIItemBase * item=NULL) = 0;
-    virtual bool inputDialogInteger(QWidget *parent, int & number, const std::string & label, const std::string & windowTitle, int minNumber, int maxNumber, int step=1, SGIItemBase * item=NULL) = 0;
-    virtual bool inputDialogInteger64(QWidget *parent, int64_t & number, const std::string & label, const std::string & windowTitle, int64_t minNumber, int64_t maxNumber, int step=1, SGIItemBase * item=NULL) = 0;
-    virtual bool inputDialogDouble(QWidget *parent, double & number, const std::string & label, const std::string & windowTitle, double minNumber, double maxNumber, int decimals=1, SGIItemBase * item=NULL) = 0;
-    virtual bool inputDialogBitmask(QWidget *parent, unsigned & number, const std::string & label, const std::string & windowTitle, SGIItemBase * item=NULL) = 0;
-    virtual bool inputDialogColor(QWidget *parent, Color & color, const std::string & label, const std::string & windowTitle, SGIItemBase * item=NULL) = 0;
+    virtual bool inputDialogString(QWidget *parent, std::string & text, const std::string & label, const std::string & windowTitle, InputDialogStringEncoding encoding=InputDialogStringEncodingSystem, SGIItemBase * item=nullptr) = 0;
+    virtual bool inputDialogText(QWidget *parent, std::string & text, const std::string & label, const std::string & windowTitle, InputDialogStringEncoding encoding=InputDialogStringEncodingSystem, SGIItemBase * item=nullptr) = 0;
+    virtual bool inputDialogInteger(QWidget *parent, int & number, const std::string & label, const std::string & windowTitle, int minNumber, int maxNumber, int step=1, SGIItemBase * item=nullptr) = 0;
+    virtual bool inputDialogInteger64(QWidget *parent, int64_t & number, const std::string & label, const std::string & windowTitle, int64_t minNumber, int64_t maxNumber, int step=1, SGIItemBase * item=nullptr) = 0;
+    virtual bool inputDialogDouble(QWidget *parent, double & number, const std::string & label, const std::string & windowTitle, double minNumber, double maxNumber, int decimals=1, SGIItemBase * item=nullptr) = 0;
+    virtual bool inputDialogBitmask(QWidget *parent, unsigned & number, const std::string & label, const std::string & windowTitle, SGIItemBase * item=nullptr) = 0;
+    virtual bool inputDialogColor(QWidget *parent, Color & color, const std::string & label, const std::string & windowTitle, SGIItemBase * item=nullptr) = 0;
     enum InputDialogFilenameType { InputDialogFilenameOpen, InputDialogFilenameSave };
-    virtual bool inputDialogFilename(QWidget *parent, InputDialogFilenameType type, std::string & filename, const std::vector<std::string> & filters, const std::string & windowTitle, SGIItemBase * item=NULL) = 0;
-    virtual bool inputDialogImage(QWidget *parent, Image & image, const std::string & label, const std::string & windowTitle, SGIItemBase * item=NULL) = 0;
-    virtual bool inputDialogQuat(QWidget *parent, Quat & quat, const std::string & label, const std::string & windowTitle, SGIItemBase * item=NULL) = 0;
-    virtual bool inputDialogMatrix(QWidget *parent, Matrix & matrix, MatrixUsage usage, const std::string & label, const std::string & windowTitle, SGIItemBase * item=NULL) = 0;
+    virtual bool inputDialogFilename(QWidget *parent, InputDialogFilenameType type, std::string & filename, const std::vector<std::string> & filters, const std::string & windowTitle, SGIItemBase * item=nullptr) = 0;
+    virtual bool inputDialogImage(QWidget *parent, Image & image, const std::string & label, const std::string & windowTitle, SGIItemBase * item=nullptr) = 0;
+    virtual bool inputDialogQuat(QWidget *parent, Quat & quat, const std::string & label, const std::string & windowTitle, SGIItemBase * item=nullptr) = 0;
+    virtual bool inputDialogMatrix(QWidget *parent, Matrix & matrix, MatrixUsage usage, const std::string & label, const std::string & windowTitle, SGIItemBase * item=nullptr) = 0;
 
     template<typename VALUE_TYPE>
-    bool inputDialogValueAsString(QWidget *parent, VALUE_TYPE & v, const std::string & label, const std::string & windowTitle, InputDialogStringEncoding encoding=InputDialogStringEncodingSystem, SGIItemBase * item=NULL)
+    bool inputDialogValueAsString(QWidget *parent, VALUE_TYPE & v, const std::string & label, const std::string & windowTitle, InputDialogStringEncoding encoding=InputDialogStringEncodingSystem, SGIItemBase * item=nullptr)
     {
         bool ret;
         std::string value_as_string;
@@ -171,19 +171,19 @@ public:
     virtual bool convertToImage(ImagePtr & image, const SGIItemBase * item) = 0;
 };
 
-class SGIPluginInterface : public osg::Object
+class SGIPluginInterface : public details::Object
 {
 public:
     SGIPluginInterface(SGIPluginHostInterface * hostInterface)
-        : osg::Object()
+        : details::Object()
     {
         _hostInterface = hostInterface;
     }
-    SGIPluginInterface(const SGIPluginInterface & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : osg::Object(rhs, copyop)
+    SGIPluginInterface(const SGIPluginInterface & rhs)
+        : details::Object(rhs)
     {
     }
-    virtual ~SGIPluginInterface()
+    ~SGIPluginInterface() override
     {
     }
 

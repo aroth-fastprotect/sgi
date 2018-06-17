@@ -10,16 +10,16 @@ namespace sgi {
 
 class SGIPluginHostInterface;
 
-class SGIDataFieldBase : public osg::Referenced
+class SGIDataFieldBase : public details::Referenced
 {
 public:
-    SGIDataFieldBase() : osg::Referenced() {}
-    SGIDataFieldBase(const SGIDataFieldBase & rhs) : osg::Referenced(rhs) {}
+    SGIDataFieldBase() : details::Referenced() {}
+    SGIDataFieldBase(const SGIDataFieldBase & rhs) : details::Referenced(rhs) {}
 
     virtual std::string toString(SGIPluginHostInterface * hostInterface) const = 0;
 };
 
-typedef osg::ref_ptr<SGIDataFieldBase> SGIDataFieldBasePtr;
+typedef details::ref_ptr<SGIDataFieldBase> SGIDataFieldBasePtr;
 typedef std::vector<SGIDataFieldBasePtr> SGIDataFieldBaseVector;
 
 template<typename DATATYPE>
@@ -92,7 +92,7 @@ inline std::string SGIDataFieldT<SGIItemBasePtr>::toString(SGIPluginHostInterfac
     return ret;
 }
 
-class SGI_IMPL_EXPORT SGIDataItemBase : public osg::Referenced
+class SGI_IMPL_EXPORT SGIDataItemBase : public details::Referenced
 {
 public:
     SGIDataItemBase(SGIItemBase * item=nullptr, size_t numFields=0);
@@ -119,7 +119,7 @@ protected:
     SGIItemBasePtr          _item;
     SGIDataFieldBaseVector  _fields;
 };
-typedef osg::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
+typedef details::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
 typedef std::vector<SGIDataItemBasePtr> SGIDataItemBasePtrVector;
 typedef std::list<SGIDataItemBasePtr> SGIDataItemBasePtrList;
 

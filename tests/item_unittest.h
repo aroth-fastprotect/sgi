@@ -16,6 +16,8 @@ private slots:
 
     void autoLoadQt();
 
+    void generateItem();
+
     void writePrettyHTML();
 
     void sceneGraphDialog();

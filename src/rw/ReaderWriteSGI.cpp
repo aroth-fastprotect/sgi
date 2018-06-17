@@ -449,7 +449,7 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
                     else
                         hostItem = new SGIHostItemOsg(&ea);
                 }
-                ret = contextMenu(hostItem, x, y, parent);
+                ret = contextMenu(hostItem.get(), x, y, parent);
             }
 
         }
@@ -493,7 +493,7 @@ public:
         _view = dynamic_cast<osgViewer::View*>(camera->getView());
         if (_view)
         {
-            _inspectorHandler = new sgi::SceneGraphInspectorHandler(_hostCallback, _options);
+            _inspectorHandler = new sgi::SceneGraphInspectorHandler(_hostCallback.get(), _options);
             _view->addEventHandler(_inspectorHandler.get());
         }
     }

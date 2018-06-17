@@ -82,17 +82,16 @@ SGI_OBJECT_INFO_END()
 
 
 namespace sgi {
+
 namespace internal_plugin {
 
 GENERATE_IMPL_TEMPLATE()
-GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
-GENERATE_IMPL_NO_ACCEPT(osg::Object)
 GENERATE_IMPL_NO_ACCEPT(QObject)
 GENERATE_IMPL_NO_ACCEPT(QWidget)
 GENERATE_IMPL_NO_ACCEPT(QOpenGLWidget)
 
 WRITE_PRETTY_HTML_IMPL_TEMPLATE()
-WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(details::Referenced)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(SGIPlugins)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
@@ -102,10 +101,10 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(sgi::ImageGLWidget)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(sgi::QtProxy)
 
-bool writePrettyHTMLImpl<osg::Referenced>::process(std::basic_ostream<char>& os)
+bool writePrettyHTMLImpl<details::Referenced>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Referenced * object = getObject<osg::Referenced,SGIItemInternal>();
+    details::Referenced * object = getObject<details::Referenced,SGIItemInternal>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -510,7 +509,7 @@ bool writePrettyHTMLImpl<sgi::QtProxy>::process(std::basic_ostream<char>& os)
 }
 
 GET_OBJECT_NAME_IMPL_TEMPLATE()
-GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(details::Referenced)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(sgi::QtProxy)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
@@ -518,9 +517,9 @@ GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(Image)
 
-std::string getObjectNameImpl<osg::Referenced>::process()
+std::string getObjectNameImpl<details::Referenced>::process()
 {
-    osg::Referenced * object = getObject<osg::Referenced,SGIItemInternal>();
+    details::Referenced * object = getObject<details::Referenced,SGIItemInternal>();
     return helpers::getRTTIObjectNameAndType(object);
 }
 
@@ -573,7 +572,7 @@ std::string getObjectNameImpl<SGIProxyItemBase>::process()
 }
 
 GET_OBJECT_TYPE_IMPL_TEMPLATE()
-GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
+GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(details::Referenced)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(sgi::QtProxy)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
@@ -581,9 +580,9 @@ GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(Image)
 
-std::string getObjectTypeImpl<osg::Referenced>::process()
+std::string getObjectTypeImpl<details::Referenced>::process()
 {
-    osg::Referenced * object = getObject<osg::Referenced, SGIItemInternal>();
+    details::Referenced * object = getObject<details::Referenced, SGIItemInternal>();
     return helpers::getRTTITypename(object);
 }
 
@@ -630,16 +629,16 @@ std::string getObjectTypeImpl<SGIProxyItemBase>::process()
 }
 
 GET_OBJECT_DISPLAYNAME_IMPL_TEMPLATE()
-GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
+GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(details::Referenced)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(Image)
 
-std::string getObjectDisplayNameImpl<osg::Referenced>::process()
+std::string getObjectDisplayNameImpl<details::Referenced>::process()
 {
-    osg::Referenced * object = getObject<osg::Referenced, SGIItemInternal>();
+    details::Referenced * object = getObject<details::Referenced, SGIItemInternal>();
     return helpers::getRTTIObjectNameAndType(object);
 }
 
@@ -698,20 +697,20 @@ bool objectTreeBuildImpl<ReferencedInternalItemData>::build(IObjectTreeItem * tr
             const SGIItemBasePtr & data = object->data().item;
             if(data->nextBase())
             {
-                SGIHostItemOsg next(new ReferencedInternalItemData(data->nextBase()));
+                SGIHostItemInternal next(new ReferencedInternalItemData(data->nextBase()));
                 if(next.hasObject())
                     treeItem->addChild("Next", &next);
             }
             if(data->previousBase())
             {
-                SGIHostItemOsg previous(new ReferencedInternalItemData(data->previousBase()));
+                SGIHostItemInternal previous(new ReferencedInternalItemData(data->previousBase()));
                 if(previous.hasObject())
                     treeItem->addChild("Previous", &previous);
             }
             SGIItemBasePtr rootBase = data->rootBase();
             if(rootBase.valid() && rootBase.get() != data.get())
             {
-                SGIHostItemOsg root(new ReferencedInternalItemData(rootBase.get()));
+                SGIHostItemInternal root(new ReferencedInternalItemData(rootBase.get()));
                 if(root.hasObject())
                     treeItem->addChild("Root", &root);
             }
@@ -914,7 +913,7 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
     SGIHostItemInternal hostItem(SGIPlugins::instance());
     treeItem->addChild(std::string(), &hostItem);
 
-    treeItem->addChild(std::string("ISceneGraphDialog"), _item);
+    treeItem->addChild(std::string("ISceneGraphDialog"), _item.get());
     return true;
 }
 
@@ -962,12 +961,12 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeSettings);
         SGIITEMTYPE_NAME(SGIItemTypeObjectLogger);
     }
-    Plugin(const Plugin & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : internal_plugin::SGIPluginImpl(rhs, copyop)
+    Plugin(const Plugin & rhs)
+        : internal_plugin::SGIPluginImpl(rhs)
     {
     }
 
-    META_Object(sgi, Plugin)
+    SGI_Object(sgi, Plugin)
 };
 
 SGIPlugin_internal::Plugin * SGIPlugin_internal::Plugin::s_instance = nullptr;

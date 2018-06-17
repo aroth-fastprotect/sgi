@@ -56,8 +56,8 @@ unsigned SGIItemBase::getTotalItemCount()
     return s_ItemCount;
 }
 
-SGIItemBase::SGIItemBase(SGIItemHolder * holder, SGIItemType type, unsigned flags, unsigned score, osg::Referenced * userData)
-    : osg::Object(), _holder(holder), _type(type), _flags(flags), _score(score)
+SGIItemBase::SGIItemBase(SGIItemHolder * holder, SGIItemType type, unsigned flags, unsigned score, details::Referenced * userData)
+    : details::Object(), _holder(holder), _type(type), _flags(flags), _score(score)
     , _pluginInfo(nullptr), _type_info(nullptr), _next(nullptr), _prev()
     , _number(0), _userData(userData)
 {
@@ -65,8 +65,8 @@ SGIItemBase::SGIItemBase(SGIItemHolder * holder, SGIItemType type, unsigned flag
     ++s_ItemCount;
 }
 
-SGIItemBase::SGIItemBase(const SGIItemBase & rhs, const osg::CopyOp& copyop)
-    : osg::Object(rhs, copyop), _holder(rhs._holder), _type(rhs._type), _flags(rhs._flags), _score(rhs._score)
+SGIItemBase::SGIItemBase(const SGIItemBase & rhs)
+    : details::Object(rhs), _holder(rhs._holder), _type(rhs._type), _flags(rhs._flags), _score(rhs._score)
     , _pluginInfo(rhs._pluginInfo), _type_info(rhs._type_info), _next(rhs._next), _prev(rhs._prev)
     , _number(rhs._number), _userData(rhs._userData)
 {
@@ -234,21 +234,21 @@ void SGIItemBase::insertByScore(SGIItemBase * item, SGIItemBasePtr & front)
                 itemToInsert->_pluginInfo &&
                 itemToInsert->_pluginInfo->pluginScore() > insertionPoint->_pluginInfo->pluginScore())
             {
-                insertionPoint->insertBefore(itemToInsert);
+                insertionPoint->insertBefore(itemToInsert.get());
                 if(insertionPoint == front)
                     front = itemToInsert;
             }
             else
-                insertionPoint->insertAfter(itemToInsert);
+                insertionPoint->insertAfter(itemToInsert.get());
         }
         else if(itemToInsert->_score > insertionPoint->_score)
         {
-            insertionPoint->insertBefore(itemToInsert);
+            insertionPoint->insertBefore(itemToInsert.get());
             if(insertionPoint == front)
                 front = itemToInsert;
         }
         else
-            insertionPoint->insertAfter(itemToInsert);
+            insertionPoint->insertAfter(itemToInsert.get());
         itemToInsert = nextItemToInsert;
     }
 }
@@ -283,7 +283,7 @@ bool SGIItemBase::isListValid() const
     return ret;
 }
 
-SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, const osg::CopyOp & copyop)
+SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType)
 {
     SGIItemBasePtr ret;
     SGIItemBasePtr previous_cloned;
@@ -291,7 +291,7 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, const osg::CopyOp & co
     SGIItemBasePtr safe_this = this;
     while(current.valid())
     {
-        SGIItemBasePtr clonedItem = (SGIItemBase*)current->clone(copyop);
+        SGIItemBasePtr clonedItem = (SGIItemBase*)current->clone();
         if(newType!=SGIItemTypeInvalid)
             clonedItem->setType(newType);
         if(!ret.valid())
@@ -314,7 +314,7 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, const osg::CopyOp & co
     return ret.release();
 }
 
-SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, unsigned number, const osg::CopyOp & copyop)
+SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, unsigned number)
 {
     SGIItemBasePtr ret;
     SGIItemBasePtr previous_cloned;
@@ -322,7 +322,7 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, unsigned number, const
     SGIItemBasePtr safe_this = this;
     while(current.valid())
     {
-        SGIItemBasePtr clonedItem = (SGIItemBase*)current->clone(copyop);
+        SGIItemBasePtr clonedItem = (SGIItemBase*)current->clone();
         if(newType!=SGIItemTypeInvalid)
             clonedItem->setType(newType);
         clonedItem->setNumber(number);
@@ -346,14 +346,14 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, unsigned number, const
     return ret.release();
 }
 
-SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, osg::Referenced * userData, const osg::CopyOp & copyop)
+SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, details::Referenced * userData)
 {
     SGIItemBasePtr ret;
     SGIItemBasePtr previous_cloned;
     SGIItemBasePtr current = this;
     while(current.valid())
     {
-        SGIItemBasePtr clonedItem = (SGIItemBase*)current->clone(copyop);
+        SGIItemBasePtr clonedItem = (SGIItemBase*)current->clone();
         if(newType!=SGIItemTypeInvalid)
             clonedItem->setType(newType);
         clonedItem->setUserData(userData);
@@ -377,14 +377,14 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, osg::Referenced * user
     return ret.release();
 }
 
-SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, unsigned number, osg::Referenced * userData, const osg::CopyOp & copyop)
+SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, unsigned number, details::Referenced * userData)
 {
     SGIItemBasePtr ret;
     SGIItemBasePtr previous_cloned;
     SGIItemBasePtr current = this;
     while(current.valid())
     {
-        SGIItemBasePtr clonedItem = (SGIItemBase*)current->clone(copyop);
+        SGIItemBasePtr clonedItem = (SGIItemBase*)current->clone();
         if(newType!=SGIItemTypeInvalid)
             clonedItem->setType(newType);
         clonedItem->setNumber(number);
@@ -436,13 +436,13 @@ SGIItemBase * SGIProxyItemBase::realItem(bool getInstance)
 {
     if (!_realItem.valid() && getInstance)
         _realItem = getRealInstance();
-    return _realItem;
+    return _realItem.get();
 }
 const SGIItemBase * SGIProxyItemBase::realItem(bool getInstance) const
 {
     if (!_realItem.valid() && getInstance)
         const_cast<SGIProxyItemBase*>(this)->_realItem = const_cast<SGIProxyItemBase*>(this)->getRealInstance();
-    return _realItem;
+    return _realItem.get();
 }
 
 

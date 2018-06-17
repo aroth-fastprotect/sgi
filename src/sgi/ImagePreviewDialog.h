@@ -20,10 +20,10 @@ QT_END_NAMESPACE
 namespace sgi {
 
 class Image;
-typedef osg::ref_ptr<Image> ImagePtr;
+typedef details::ref_ptr<Image> ImagePtr;
 class SGIPluginHostInterface;
 class IContextMenu;
-typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
+typedef details::ref_ptr<IContextMenu> IContextMenuPtr;
 
 class ImagePreviewDialog : public QDialog
 {

@@ -204,7 +204,7 @@ public:
 		{
 			return _impl->setHostCallback(callback);
 		}
-        bool generateItem(osg::ref_ptr<SGIItemBase> & item, const SGIHostItemBase * object)
+        bool generateItem(SGIItemBasePtr & item, const SGIHostItemBase * object)
         {
             return _impl->generateItem(item, object);
         }
@@ -360,11 +360,11 @@ public:
         {
             return _impl->showImagePreviewDialog(parent, object, callback);
         }
-        bool openSettingsDialog(osg::ref_ptr<ISettingsDialog> & dialog, const SGIHostItemBase * object, ISettingsDialogInfo * info)
+        bool openSettingsDialog(ISettingsDialogPtr & dialog, const SGIHostItemBase * object, ISettingsDialogInfo * info)
         {
             return _impl->openSettingsDialog(dialog, object, info);
         }
-        bool openSettingsDialog(osg::ref_ptr<ISettingsDialog> & dialog, SGIItemBase * item, ISettingsDialogInfo * info)
+        bool openSettingsDialog(ISettingsDialogPtr & dialog, SGIItemBase * item, ISettingsDialogInfo * info)
         {
             return _impl->openSettingsDialog(dialog, item, info);
         }
@@ -666,7 +666,7 @@ public:
 			{
 				DisableLibraryLoadErrors disable_load_errors;
 				osgDB::ReaderWriter::ReadResult result = osgDB::Registry::instance()->readObject(pluginFilename, _pluginLoadOpts.get(), false);
-                info.pluginInterface = static_cast<SGIPluginInterface*>(result.getObject());
+                //info.pluginInterface = static_cast<SGIPluginInterface*>(result.getObject());
                 if(result.error())
                     info.errorMessage = result.message();
 			}
@@ -874,9 +874,9 @@ public:
 
     bool writePrettyHTML(std::basic_ostream<char>& os, const SGIHostItemBase * object, bool table)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return writePrettyHTML(os, item, table);
+            return writePrettyHTML(os, item.get(), table);
         else
             return false;
     }
@@ -897,9 +897,9 @@ public:
     }
     bool getObjectName(std::string & name, const SGIHostItemBase * object, bool full)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return getObjectName(name, item, full);
+            return getObjectName(name, item.get(), full);
         else
             return false;
     }
@@ -920,9 +920,9 @@ public:
     }
     bool getObjectDisplayName(std::string & name, const SGIHostItemBase * object, bool full)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return getObjectDisplayName(name, item, full);
+            return getObjectDisplayName(name, item.get(), full);
         else
             return false;
     }
@@ -943,9 +943,9 @@ public:
     }
     bool getObjectTypename(std::string & name, const SGIHostItemBase * object, bool full=true)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return getObjectTypename(name, item, full);
+            return getObjectTypename(name, item.get(), full);
         else
             return false;
     }
@@ -966,9 +966,9 @@ public:
     }
     bool getObjectSuggestedFilename(std::string & filename, const SGIHostItemBase * object)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return getObjectSuggestedFilename(filename, item);
+            return getObjectSuggestedFilename(filename, item.get());
         else
             return false;
     }
@@ -989,9 +989,9 @@ public:
     }
     bool getObjectSuggestedFilenameExtension(std::string & ext, const SGIHostItemBase * object)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return getObjectSuggestedFilenameExtension(ext, item);
+            return getObjectSuggestedFilenameExtension(ext, item.get());
         else
             return false;
     }
@@ -1012,9 +1012,9 @@ public:
     }
     bool getObjectFilenameFilters(std::vector<std::string> & filters, const SGIHostItemBase * object)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return getObjectFilenameFilters(filters, item);
+            return getObjectFilenameFilters(filters, item.get());
         else
             return false;
     }
@@ -1036,9 +1036,9 @@ public:
 
     bool getObjectPath(SGIItemBasePtrPath & path, const SGIHostItemBase * object)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return getObjectPath(path, item);
+            return getObjectPath(path, item.get());
         else
             return false;
     }
@@ -1059,9 +1059,9 @@ public:
     }
     bool writeObjectFile(bool & result, const SGIHostItemBase * object, const std::string & filename, const SGIItemBase* options)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return writeObjectFile(result, item, filename, options);
+            return writeObjectFile(result, item.get(), filename, options);
         else
             return false;
     }
@@ -1086,9 +1086,9 @@ public:
 
     IContextMenu * createContextMenu(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return createContextMenu(parent, item, callback);
+            return createContextMenu(parent, item.get(), callback);
         else
             return nullptr;
     }
@@ -1107,9 +1107,9 @@ public:
 
     ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return showSceneGraphDialog(parent, item, callback);
+            return showSceneGraphDialog(parent, item.get(), callback);
         else
             return nullptr;
     }
@@ -1121,9 +1121,9 @@ public:
     }
     IObjectLoggerDialog * showObjectLoggerDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return showObjectLoggerDialog(parent, item, callback);
+            return showObjectLoggerDialog(parent, item.get(), callback);
         else
             return nullptr;
     }
@@ -1148,9 +1148,9 @@ public:
     }
     IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return showImagePreviewDialog(parent, item, callback);
+            return showImagePreviewDialog(parent, item.get(), callback);
         else
             return nullptr;
     }
@@ -1190,9 +1190,9 @@ public:
 
     bool contextMenuPopulate(IContextMenuItem * menuItem, const SGIHostItemBase * object, bool onlyRootItem)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return contextMenuPopulate(menuItem, item, onlyRootItem);
+            return contextMenuPopulate(menuItem, item.get(), onlyRootItem);
         else
             return false;
     }
@@ -1229,15 +1229,15 @@ public:
         while(item != nullptr && !ret);
         return ret;
     }
-    bool openSettingsDialog(osg::ref_ptr<ISettingsDialog> & dialog, const SGIHostItemBase * object, ISettingsDialogInfo * info)
+    bool openSettingsDialog(ISettingsDialogPtr & dialog, const SGIHostItemBase * object, ISettingsDialogInfo * info)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return openSettingsDialog(dialog, item, info);
+            return openSettingsDialog(dialog, item.get(), info);
         else
             return false;
     }
-    bool openSettingsDialog(osg::ref_ptr<ISettingsDialog> & dialog, SGIItemBase * item, ISettingsDialogInfo * info)
+    bool openSettingsDialog(ISettingsDialogPtr & dialog, SGIItemBase * item, ISettingsDialogInfo * info)
     {
         bool ret = false;
         do
@@ -1620,7 +1620,7 @@ public:
     }
     bool setView(const SGIHostItemBase * view, const SGIItemBase * item, double animationTime = -1.0)
     {
-        osg::ref_ptr<SGIItemBase> viewItem;
+        SGIItemBasePtr viewItem;
         if(generateItem(viewItem, view))
             return setView(viewItem.get(), item, animationTime);
         else
@@ -1628,26 +1628,26 @@ public:
     }
     bool setView(SGIItemBase * view, const SGIHostItemBase * object, double animationTime = -1.0)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return setView(view, item, animationTime);
+            return setView(view, item.get(), animationTime);
         else
             return false;
     }
     bool setView(const SGIHostItemBase * view, const SGIHostItemBase * object, double animationTime = -1.0)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return setView(view, item, animationTime);
+            return setView(view, item.get(), animationTime);
         else
             return false;
     }
 
     bool createObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return createObjectLogger(logger, item);
+            return createObjectLogger(logger, item.get());
         else
             return false;
     }
@@ -1671,9 +1671,9 @@ public:
     }
     bool getObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return getObjectLogger(logger, item);
+            return getObjectLogger(logger, item.get());
         else
             return false;
     }
@@ -1697,9 +1697,9 @@ public:
     }
     bool getOrCreateObjectLogger(IObjectLoggerPtr & logger, const SGIHostItemBase * object)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return getOrCreateObjectLogger(logger, item);
+            return getOrCreateObjectLogger(logger, item.get());
         else
             return false;
     }
@@ -1723,9 +1723,9 @@ public:
     }
     bool parentWidget(QWidgetPtr & widget, const SGIHostItemBase * object)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return parentWidget(widget, item);
+            return parentWidget(widget, item.get());
         else
             return false;
     }
@@ -1751,9 +1751,9 @@ public:
 
     bool convertToImage(ImagePtr & image, const SGIHostItemBase * object)
     {
-        osg::ref_ptr<SGIItemBase> item;
+        SGIItemBasePtr item;
         if(generateItem(item, object))
-            return convertToImage(image, item);
+            return convertToImage(image, item.get());
         else
             return false;
     }
@@ -2010,7 +2010,7 @@ QObject * SGIPlugins::libraryInfoObject()
     return _impl->libraryInfoObject();
 }
 
-bool SGIPlugins::generateItem(osg::ref_ptr<SGIItemBase> & item, const SGIHostItemBase * object)
+bool SGIPlugins::generateItem(SGIItemBasePtr & item, const SGIHostItemBase * object)
 {
     return _impl->generateItem(item, object);
 }
@@ -2196,12 +2196,12 @@ bool SGIPlugins::contextMenuExecute(IContextMenuAction * menuAction, SGIItemBase
     return _impl->contextMenuExecute(menuAction, item);
 }
 
-bool SGIPlugins::openSettingsDialog(osg::ref_ptr<ISettingsDialog> & dialog, const SGIHostItemBase * object, ISettingsDialogInfo * info)
+bool SGIPlugins::openSettingsDialog(ISettingsDialogPtr & dialog, const SGIHostItemBase * object, ISettingsDialogInfo * info)
 {
     return _impl->openSettingsDialog(dialog, object, info);
 }
 
-bool SGIPlugins::openSettingsDialog(osg::ref_ptr<ISettingsDialog> & dialog, SGIItemBase * item, ISettingsDialogInfo * info)
+bool SGIPlugins::openSettingsDialog(ISettingsDialogPtr & dialog, SGIItemBase * item, ISettingsDialogInfo * info)
 {
     return _impl->openSettingsDialog(dialog, item, info);
 }

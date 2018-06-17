@@ -19,7 +19,7 @@ SGIDataItemBase::SGIDataItemBase(SGIItemBase * item, size_t numFields)
 }
 
 SGIDataItemBase::SGIDataItemBase(const SGIDataItemBase & rhs)
-    : osg::Referenced(rhs), _item(rhs._item), _fields(rhs._fields)
+    : details::Referenced(rhs), _item(rhs._item), _fields(rhs._fields)
 {
 }
 
@@ -35,16 +35,16 @@ size_t SGIDataItemBase::numFields() const
 
 SGIDataFieldBase * SGIDataItemBase::getField(unsigned n) const
 {
-    return  (n < _fields.size()) ? (_fields[n]) : nullptr;
+    return  (n < _fields.size()) ? (_fields[n].get()) : nullptr;
 }
 void SGIDataItemBase::setField(unsigned n, SGIDataFieldBase * field)
 {
-    _fields.resize(std::max(n, (unsigned)_fields.size()));
+    _fields.resize(std::max(n, static_cast<unsigned>(_fields.size())));
     _fields[n] = field;
 }
 void SGIDataItemBase::addField(SGIDataFieldBase * field)
 {
-    unsigned idx = (unsigned)_fields.size();
+    unsigned idx = static_cast<unsigned>(_fields.size());
     _fields.resize(idx+1);
     _fields[idx] = field;
 }

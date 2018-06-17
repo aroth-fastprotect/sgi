@@ -1,15 +1,16 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
 #include "SGIHostItemBase.h"
 
-namespace osg {
+namespace sgi {
+
+namespace details {
     class Referenced;
 }
 
-namespace sgi {
-
-typedef SGIHostItemImpl<osg::Referenced, osg::ref_ptr<osg::Referenced> > SGIHostItemInternal;
+typedef SGIItemInfoSharedPtr<details::Referenced, details::ref_ptr<details::Referenced> > SGIItemInfoInternal;
+typedef SGIHostItemImpl<SGIItemInfoInternal> SGIHostItemInternal;
 
 } // namespace sgi

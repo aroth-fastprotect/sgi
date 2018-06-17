@@ -748,12 +748,12 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeCullingInfoAfter);
         SGIITEMTYPE_NAME(SGIItemTypeBuildInfo);
     }
-    SGIPlugin_osg_Implementation(const SGIPlugin_osg_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : osg_plugin::SGIPluginImpl(rhs, copyop)
+    SGIPlugin_osg_Implementation(const SGIPlugin_osg_Implementation & rhs)
+        : osg_plugin::SGIPluginImpl(rhs)
     {
     }
 
-    META_Object(sgi_osg, SGIPlugin_osg_Implementation);
+    SGI_Object(sgi_osg, SGIPlugin_osg_Implementation)
 
     void registerGLConstants()
     {

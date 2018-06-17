@@ -87,6 +87,8 @@ LIST(APPEND TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/plugins/osgearth_support.h
     ${SGI_INCLUDE_DIR}/sgi/plugins/qt_support.h
 
+    ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemInfo
+
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIHostItemBase.h
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIHostItemFallback.h
     ${SGI_INCLUDE_DIR}/sgi/plugins/SGIHostItemLog4cplus.h
@@ -187,6 +189,7 @@ list(APPEND TARGET_SRC_NO_PCH
 )
 
 SET(TARGET_LIBRARIES_VARS
+    SGI_REF_LIBRARY
     SGI_PLUGIN_IMPL_LIBRARY
     SGI_QT_HELPER_LIBRARY
 	OPENTHREADS_LIBRARY

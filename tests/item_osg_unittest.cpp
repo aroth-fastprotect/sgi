@@ -55,7 +55,7 @@ void item_osg_unittest::contextMenuOsg()
     SGIHostItemOsg hostItem(lib);
     sgi::generateItem<sgi::autoload::Osg>(item, &hostItem);
     QVERIFY(item.valid());
-    sgi::IContextMenuPtr ctxIface = sgi::createContextMenu<sgi::autoload::Osg>(nullptr, item);
+    sgi::IContextMenuPtr ctxIface = sgi::createContextMenu<sgi::autoload::Osg>(nullptr, item.get());
     QVERIFY(ctxIface != nullptr);
     QMenu * menu = ctxIface->getMenu();
     menu->show();
@@ -63,7 +63,7 @@ void item_osg_unittest::contextMenuOsg()
     // need to run the main event processor to clean up (deleteLater, etc)
     QApplication::processEvents();
 
-    QCOMPARE(getRefCount(ctxIface.get()), 1u);
+    QCOMPARE(getRefCount(ctxIface.get()), 1);
     // release the menu
     ctxIface = nullptr;
     item = nullptr;

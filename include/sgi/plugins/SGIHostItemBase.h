@@ -3,19 +3,20 @@
 
 #pragma once
 #include "SGIItemBase.h"
+#include "SGIItemInfo"
 
 namespace sgi {
 
 class SGIHostItemBase;
-typedef osg::ref_ptr<SGIHostItemBase> SGIHostItemBasePtr;
+typedef details::ref_ptr<SGIHostItemBase> SGIHostItemBasePtr;
 
-class SGIHostItemBase : public osg::Referenced
+class SGIHostItemBase : public details::Referenced
 {
 public:
-    SGIHostItemBase(osg::Referenced * userData=nullptr, unsigned flags=0)
+    SGIHostItemBase(details::Referenced * userData=nullptr, unsigned flags=0)
         : _flags(flags), _userData(userData) {}
     SGIHostItemBase(const SGIHostItemBase & rhs)
-        : osg::Referenced(rhs), _flags(rhs._flags), _userData(rhs._userData)
+        : details::Referenced(rhs), _flags(rhs._flags), _userData(rhs._userData)
     {
     }
     virtual ~SGIHostItemBase() {}
@@ -37,7 +38,7 @@ public:
     bool hasFlag(unsigned flag) const { return (_flags & flag) != 0; }
     bool hasNotFlag(unsigned flag) const { return (_flags & flag) == 0; }
 
-    void setUserData(osg::Referenced * userData)
+    void setUserData(details::Referenced * userData)
     {
         _userData = userData;
     }
@@ -51,31 +52,33 @@ public:
     {
         return dynamic_cast<const USER_DATA_TYPE *>(_userData.get());
     }
-    osg::Referenced * userDataPtr()
+    details::Referenced * userDataPtr()
     {
         return _userData.get();
     }
-    osg::Referenced * userDataPtr() const
+    details::Referenced * userDataPtr() const
     {
         return _userData.get();
     }
 
 private:
     unsigned                _flags;
-    osg::ref_ptr<osg::Referenced> _userData;
+    details::ref_ptr<details::Referenced> _userData;
 };
 
-template<typename OBJECT_TYPE, typename OBJECT_STORE_TYPE>
+template<typename TYPE>
 class SGIHostItemImpl : public SGIHostItemBase
 {
 public:
-    typedef OBJECT_TYPE ObjectType;
-    typedef OBJECT_STORE_TYPE ObjectStorageType;
-    SGIHostItemImpl(ObjectType * object, osg::Referenced * userData=nullptr, unsigned flags=0)
+    typedef TYPE ItemInfoType;
+    typedef typename TYPE::ObjectType ObjectType;
+    typedef typename TYPE::ObjectStorageType ObjectStorageType;
+
+    SGIHostItemImpl(ObjectType * object, details::Referenced * userData=nullptr, unsigned flags=0)
         : SGIHostItemBase(userData, flags), _object(object)
         {
         }
-    SGIHostItemImpl(const ObjectType * object, osg::Referenced * userData=nullptr, unsigned flags=0)
+    SGIHostItemImpl(const ObjectType * object, details::Referenced * userData=nullptr, unsigned flags=0)
         : SGIHostItemBase(userData, flags), _object(const_cast<ObjectType*>(object))
         {
         }
@@ -86,9 +89,9 @@ public:
     ~SGIHostItemImpl() override
     {
     }
-    ObjectType * object() { return _object; }
-    ObjectType * object() const { return _object; }
-    bool hasObject() const { return _object != nullptr; }
+    ObjectType * object() { return TYPE::objectPtr(_object); }
+    ObjectType * object() const { return TYPE::objectPtr(_object); }
+    bool hasObject() const { return TYPE::objectPtr(_object) != nullptr; }
 protected:
     ObjectStorageType _object;
 };

@@ -1,13 +1,14 @@
-// kate: syntax C++11;
+// kate: syntax C++;
 // SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
-#include <osg/Object>
-#include <osg/ref_ptr>
-#include <osg/observer_ptr>
+#include <sgi/Export>
+#include <sgi/details/ref_ptr>
+#include <sgi/details/observer_ptr>
+#include <sgi/details/Object>
 #include <vector>
 #include <typeinfo>
-#include <sgi/Export>
+#include "SGIItemInfo"
 
 class QImage;
 
@@ -47,19 +48,19 @@ enum SGIItemFlags {
 };
 
 class SGIItemBase;
-typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
-typedef osg::observer_ptr<SGIItemBase> SGIItemBaseOverserverPtr;
+typedef details::ref_ptr<SGIItemBase> SGIItemBasePtr;
+typedef details::observer_ptr<SGIItemBase> SGIItemBaseOverserverPtr;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrVector;
 class SGIHostItemBase;
-template<typename OBJECT_TYPE, typename OBJECT_STORE_TYPE=OBJECT_TYPE*>
+template<typename TYPE>
 class SGIHostItemImpl;
 
 class SGIPluginInfo;
 
 class Image;
-typedef osg::ref_ptr<Image> ImagePtr;
-typedef osg::ref_ptr<const Image> ConstImagePtr;
+typedef details::ref_ptr<Image> ImagePtr;
+typedef details::ref_ptr<const Image> ConstImagePtr;
 
 class ISGIPluginInfo
 {
@@ -67,51 +68,18 @@ public:
     virtual unsigned pluginScore() const = 0;
 };
 
-class SGI_IMPL_EXPORT SGIItemHolder
+class SGI_IMPL_EXPORT SGIItemHolder : public details::Referenced
 {
 public:
     static unsigned getTotalItemCount();
 public:
-    virtual ~SGIItemHolder();
+    ~SGIItemHolder() override;
 
     virtual int compare(const SGIItemHolder & rhs) const = 0;
 
 protected:
     SGIItemHolder();
     SGIItemHolder(const SGIItemHolder & rhs);
-};
-
-template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*>
-struct SGIItemHolderPtr {
-    typedef OBJECT_TYPE ObjectType;
-    typedef OBJECT_STORAGE_TYPE ObjectStorageType;
-
-    static ObjectType * objectPtr(const ObjectStorageType & item)
-    {
-        return static_cast<ObjectType *>(item);
-    }
-};
-
-template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*>
-struct SGIItemHolderSharedPtr {
-    typedef OBJECT_TYPE ObjectType;
-    typedef OBJECT_STORAGE_TYPE ObjectStorageType;
-
-    static ObjectType * objectPtr(const ObjectStorageType & item)
-    {
-        return static_cast<ObjectType *>(item.get());
-    }
-};
-
-template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*>
-struct SGIItemHolderSharedPtrQt {
-    typedef OBJECT_TYPE ObjectType;
-    typedef OBJECT_STORAGE_TYPE ObjectStorageType;
-
-    static ObjectType * objectPtr(const ObjectStorageType & item)
-    {
-        return static_cast<ObjectType *>(item.data());
-    }
 };
 
 template<typename TYPE>
@@ -142,17 +110,17 @@ private:
     ObjectStorageType _object;
 };
 
-class SGI_IMPL_EXPORT SGIItemBase : public osg::Object
+class SGI_IMPL_EXPORT SGIItemBase : public details::Object
 {
 public:
     static unsigned getTotalItemCount();
 protected:
-    SGIItemBase(SGIItemHolder * holder=nullptr, SGIItemType type=SGIItemTypeInvalid, unsigned flags=0, unsigned score=0, osg::Referenced * userData=nullptr);
-    SGIItemBase(const SGIItemBase & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
+    SGIItemBase(SGIItemHolder * holder=nullptr, SGIItemType type=SGIItemTypeInvalid, unsigned flags=0, unsigned score=0, details::Referenced * userData=nullptr);
+    SGIItemBase(const SGIItemBase & rhs);
 public:
     virtual ~SGIItemBase();
 
-    META_Object(sgi, SGIItemBase)
+    SGI_Object(sgi, SGIItemBase)
 
     SGIItemBase & operator = (const SGIItemBase & rhs);
     bool operator == (const SGIItemBase & rhs) const
@@ -196,27 +164,27 @@ public:
     size_t listSize() const;
 
     template<typename ANOTHER_ITEMTYPE>
-    ANOTHER_ITEMTYPE * clone(SGIItemType newType=SGIItemTypeInvalid, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
+    ANOTHER_ITEMTYPE * clone(SGIItemType newType=SGIItemTypeInvalid)
     {
-        return static_cast<ANOTHER_ITEMTYPE *>(cloneImpl(newType, copyop));
+        return static_cast<ANOTHER_ITEMTYPE *>(cloneImpl(newType));
     }
 
     template<typename ANOTHER_ITEMTYPE>
-    ANOTHER_ITEMTYPE * clone(SGIItemType newType, unsigned number, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
+    ANOTHER_ITEMTYPE * clone(SGIItemType newType, unsigned number)
     {
-        return static_cast<ANOTHER_ITEMTYPE *>(cloneImpl(newType, number, copyop));
+        return static_cast<ANOTHER_ITEMTYPE *>(cloneImpl(newType, number));
     }
 
     template<typename ANOTHER_ITEMTYPE>
-    ANOTHER_ITEMTYPE * clone(SGIItemType newType, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
+    ANOTHER_ITEMTYPE * clone(SGIItemType newType, details::Referenced * userData)
     {
-        return static_cast<ANOTHER_ITEMTYPE *>(cloneImpl(newType, userData, copyop));
+        return static_cast<ANOTHER_ITEMTYPE *>(cloneImpl(newType, userData));
     }
 
     template<typename ANOTHER_ITEMTYPE>
-    ANOTHER_ITEMTYPE * clone(SGIItemType newType, unsigned number, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
+    ANOTHER_ITEMTYPE * clone(SGIItemType newType, unsigned number, details::Referenced * userData)
     {
-        return static_cast<ANOTHER_ITEMTYPE *>(cloneImpl(newType, number, userData, copyop));
+        return static_cast<ANOTHER_ITEMTYPE *>(cloneImpl(newType, number, userData));
     }
 
     SGIItemBase * previousBase() const { return _prev.get(); }
@@ -225,7 +193,7 @@ public:
     ITEMTYPE * next() const { return dynamic_cast<ITEMTYPE*>(_next.get()); }
     void setNext(SGIItemBase * next) { _next = next; }
 
-    SGIItemHolder * holder() const { return _holder; }
+    SGIItemHolder * holder() const { return _holder.get(); }
 
     template<typename ITEMTYPE>
     ITEMTYPE * as()
@@ -237,7 +205,7 @@ public:
     {
         return dynamic_cast<const ITEMTYPE*>(this);
     }
-    void setUserData(osg::Referenced * userData)
+    void setUserData(details::Referenced * userData)
     {
         _userData = userData;
     }
@@ -255,13 +223,13 @@ public:
 protected:
     int compare(const SGIItemBase & rhs) const;
 
-    SGIItemBase * cloneImpl(SGIItemType newType, const osg::CopyOp & copyop);
-    SGIItemBase * cloneImpl(SGIItemType newType, unsigned number, const osg::CopyOp & copyop);
-    SGIItemBase * cloneImpl(SGIItemType newType, osg::Referenced * userData, const osg::CopyOp & copyop);
-    SGIItemBase * cloneImpl(SGIItemType newType, unsigned number, osg::Referenced * userData, const osg::CopyOp & copyop);
+    SGIItemBase * cloneImpl(SGIItemType newType);
+    SGIItemBase * cloneImpl(SGIItemType newType, unsigned number);
+    SGIItemBase * cloneImpl(SGIItemType newType, details::Referenced * userData);
+    SGIItemBase * cloneImpl(SGIItemType newType, unsigned number, details::Referenced * userData);
 
 protected:
-    SGIItemHolder *         _holder;
+    details::ref_ptr<SGIItemHolder> _holder;
     SGIItemType             _type;
     unsigned                _flags;
 private:
@@ -271,7 +239,7 @@ private:
     SGIItemBasePtr          _next;
     SGIItemBaseOverserverPtr _prev;
     unsigned                _number;
-    osg::ref_ptr<osg::Referenced> _userData;
+    details::ref_ptr<details::Referenced> _userData;
 };
 
 template<typename HOST_ITEM_TYPE, typename HOLDER_TYPE>
@@ -281,47 +249,47 @@ public:
     typedef typename HOLDER_TYPE::ObjectType ObjectType;
     typedef HOST_ITEM_TYPE HostItemType;
 
-    SGIItemT(const HostItemType * hostItem=nullptr, SGIItemType type=SGIItemTypeInvalid, ObjectType * object=nullptr, unsigned flags=0, unsigned score=0, osg::Referenced * userData=nullptr)
+    SGIItemT(const HostItemType * hostItem=nullptr, SGIItemType type=SGIItemTypeInvalid, ObjectType * object=nullptr, unsigned flags=0, unsigned score=0, details::Referenced * userData=nullptr)
         : SGIItemBase(object ? new HOLDER_TYPE(object) : nullptr, type, flags, score, userData) {}
-    SGIItemT(SGIItemType type, ObjectType * object=nullptr, unsigned flags=0, unsigned score=0, osg::Referenced * userData=nullptr)
+    SGIItemT(SGIItemType type, ObjectType * object=nullptr, unsigned flags=0, unsigned score=0, details::Referenced * userData=nullptr)
         : SGIItemBase(object ? new HOLDER_TYPE(object) : nullptr, type, flags, score, userData) {}
-    SGIItemT(const SGIItemT & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : SGIItemBase(rhs, copyop) {}
+    SGIItemT(const SGIItemT & rhs)
+        : SGIItemBase(rhs) {}
     ~SGIItemT()
         { }
 
-    META_Object(sgi, SGIItemT)
+    SGI_Object(sgi, SGIItemT)
 
-    ObjectType * object() { return static_cast<HOLDER_TYPE*>(_holder)->object(); }
-    ObjectType * object() const { return static_cast<const HOLDER_TYPE*>(_holder)->object(); }
+    ObjectType * object() { return static_cast<HOLDER_TYPE*>(_holder.get())->object(); }
+    ObjectType * object() const { return static_cast<const HOLDER_TYPE*>(_holder.get())->object(); }
 };
 
 namespace internal {
-    class ReferencedAccess : public osg::Referenced {
+    class ReferencedAccess : public details::Referenced {
     public:
-        unsigned getRefCount() const { return _refCount; }
+        int getRefCount() const { return _refCount; }
     };
 }
 
 template<typename T>
-unsigned getRefCount(const T * ref) {
-    return static_cast<const internal::ReferencedAccess*>(static_cast<const osg::Referenced*>(ref))->getRefCount();
+int getRefCount(const T * ref) {
+    return static_cast<const internal::ReferencedAccess*>(static_cast<const details::Referenced*>(ref))->getRefCount();
 }
 
 template<typename T>
-class ReferencedDataT : public osg::Referenced
+class ReferencedDataT : public details::Referenced
 {
 public:
     ReferencedDataT()
-        : osg::Referenced()
+        : details::Referenced()
         , _data()
         {}
     ReferencedDataT(const T & data)
-        : osg::Referenced()
+        : details::Referenced()
         , _data(data)
         {}
     ReferencedDataT(const ReferencedDataT & rhs)
-        : osg::Referenced(rhs)
+        : details::Referenced(rhs)
         , _data(rhs._data)
         {}
     const T & data() const { return _data; }
@@ -339,19 +307,19 @@ typedef ReferencedDataT<IntPair> ReferencedDataIntPair;
 typedef ReferencedDataT<std::string> ReferencedDataString;
 
 template<typename T>
-class ReferencedRawPtrT : public osg::Referenced
+class ReferencedRawPtrT : public details::Referenced
 {
 public:
     ReferencedRawPtrT()
-        : osg::Referenced()
+        : details::Referenced()
         , _ptr(nullptr)
         {}
     ReferencedRawPtrT(T * ptr)
-        : osg::Referenced()
+        : details::Referenced()
         , _ptr(ptr)
         {}
     ReferencedRawPtrT(const ReferencedRawPtrT & rhs)
-        : osg::Referenced(rhs)
+        : details::Referenced(rhs)
         , _ptr(rhs._ptr)
         {}
 

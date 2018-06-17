@@ -4,13 +4,13 @@
 #pragma once
 
 #include "plugins/SGIItemBase.h"
+#include "details/Referenced"
 
 namespace sgi {
 
-typedef SGIHostItemImpl<osg::Referenced, osg::ref_ptr<osg::Referenced> > SGIHostItemInternal;
-
-typedef SGIItemHolderSharedPtr<osg::Referenced, osg::ref_ptr<osg::Referenced> > SGIItemHolderInternalType;
-typedef SGIItemHolderT<SGIItemHolderInternalType> SGIItemHolderInternal;
+typedef SGIItemInfoSharedPtr<details::Referenced, details::ref_ptr<details::Referenced> > SGIItemInfoInternal;
+typedef SGIHostItemImpl<SGIItemInfoInternal> SGIHostItemInternal;
+typedef SGIItemHolderT<SGIItemInfoInternal> SGIItemHolderInternal;
 typedef SGIItemT<SGIHostItemInternal, SGIItemHolderInternal> SGIItemInternal;
 
 struct InternalItemData

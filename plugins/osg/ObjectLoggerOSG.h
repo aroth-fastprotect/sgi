@@ -21,11 +21,11 @@ GET_OR_CREATE_OBJECTLOGGER_IMPL_DECLARE(osg::Node)
 class ObjectLogger : public sgi::ObjectLoggerBase
 {
 public:
-    ObjectLogger(osg::Camera * camera=NULL, SGIPluginHostInterface * hostInterface=NULL);
+    ObjectLogger(osg::Camera * camera=nullptr, SGIPluginHostInterface * hostInterface=nullptr);
     ObjectLogger(const ObjectLogger & rhs,const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
-    virtual ~ObjectLogger();
+    ~ObjectLogger() override;
 
-    META_Object(sgi, ObjectLogger);
+    SGI_Object(sgi, ObjectLogger)
 
 public:
     static ObjectLogger *   getLogger(SGIItemBase * item);
@@ -65,11 +65,11 @@ typedef std::vector<CullingInfoPtr> CullingInfoPtrList;
 class CullingInfoForCamera : public osg::Object
 {
 public:
-    CullingInfoForCamera(osg::Camera * camera = NULL, SGIPluginHostInterface * hostInterface = NULL);
+    CullingInfoForCamera(osg::Camera * camera = nullptr, SGIPluginHostInterface * hostInterface = nullptr);
     CullingInfoForCamera(const CullingInfoForCamera & rhs, const osg::CopyOp& copyop = osg::CopyOp::SHALLOW_COPY);
     virtual ~CullingInfoForCamera();
 
-    META_Object(sgi, CullingInfoForCamera);
+    META_Object(sgi, CullingInfoForCamera)
 
     static CullingInfoForCamera * getCullingInfoForCamera(osg::Camera * camera);
     static CullingInfoForCamera * getOrCreateCullingInfoForCamera(osg::Camera * camera, SGIPluginHostInterface * hostInterface);
@@ -107,7 +107,7 @@ public:
     ~CullingInfoRegistry();
     CullingInfoRegistry(const CullingInfoRegistry & rhs, const osg::CopyOp& copyop = osg::CopyOp::SHALLOW_COPY);
 
-    META_Object(sgi, CullingInfoRegistry);
+    META_Object(sgi, CullingInfoRegistry)
 
     typedef osg::observer_ptr<osg::Camera> CameraPtr;
     typedef osg::ref_ptr<CullingInfoForCamera> CullingInfoForCameraPtr;
@@ -155,7 +155,7 @@ private:
     CullingInfo(osg::Node * node=nullptr, osg::Camera * camera=nullptr);
     CullingInfo(const CullingInfo & rhs, const osg::CopyOp& copyop = osg::CopyOp::SHALLOW_COPY);
 
-    META_Object(sgi, CullingInfo);
+    META_Object(sgi, CullingInfo)
 
 public:
     static bool isPresent(osg::Node * node);

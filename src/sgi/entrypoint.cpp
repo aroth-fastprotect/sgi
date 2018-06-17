@@ -109,7 +109,7 @@ void sgi_setHostCallback(sgi::IHostCallback * callback)
 	sgi::SGIPlugins::instance()->setHostCallback(callback);
 }
 
-bool sgi_generateItem(osg::ref_ptr<sgi::SGIItemBase> & item, const sgi::SGIHostItemBase * object)
+bool sgi_generateItem(sgi::SGIItemBasePtr & item, const sgi::SGIHostItemBase * object)
 {
     return sgi::SGIPlugins::instance()->generateItem(item, object);
 }

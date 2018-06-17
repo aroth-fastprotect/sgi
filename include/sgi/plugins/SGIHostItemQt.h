@@ -11,23 +11,30 @@ class QSurface;
 class QIcon;
 
 namespace sgi {
-typedef SGIHostItemImpl<QObject> SGIHostItemQt;
-typedef SGIHostItemImpl<QMetaObject> SGIHostItemQtMeta;
-typedef SGIHostItemImpl<QPaintDevice> SGIHostItemQtPaintDevice;
-typedef SGIHostItemImpl<QSurface> SGIHostItemQtSurface;
+
+typedef SGIItemInfoPlainPtr<QObject> SGIItemInfoQt;
+typedef SGIItemInfoPlainPtr<QMetaObject> SGIItemInfoQtMeta;
+typedef SGIItemInfoSharedPtrQt<QPaintDevice> SGIItemInfoQtPaintDevice;
+typedef SGIItemInfoSharedPtrQt<QSurface> SGIItemInfoQtSurface;
+typedef SGIItemInfoPlainPtr<QIcon> SGIItemInfoQtIcon;
+
+typedef SGIHostItemImpl<SGIItemInfoQt> SGIHostItemQt;
+typedef SGIHostItemImpl<SGIItemInfoQtMeta> SGIHostItemQtMeta;
+typedef SGIHostItemImpl<SGIItemInfoQtPaintDevice> SGIHostItemQtPaintDevice;
+typedef SGIHostItemImpl<SGIItemInfoQtSurface> SGIHostItemQtSurface;
 //typedef SGIHostItemImpl<QIcon> SGIHostItemQtIcon;
 
-class SGIHostItemQtIcon : public SGIHostItemImpl<QIcon>
+class SGIHostItemQtIcon : public SGIHostItemImpl<SGIItemInfoQtIcon>
 {
 public:
-    SGIHostItemQtIcon(QIcon * object, osg::Referenced * userData=nullptr, unsigned flags=0)
-        : SGIHostItemImpl<QIcon>(object, userData, flags)
+    SGIHostItemQtIcon(QIcon * object, details::Referenced * userData=nullptr, unsigned flags=0)
+        : SGIHostItemImpl<SGIItemInfoQtIcon>(object, userData, flags)
         {}
-    SGIHostItemQtIcon(const QIcon * object, osg::Referenced * userData=nullptr, unsigned flags=0)
-        : SGIHostItemImpl<QIcon>(const_cast<QIcon*>(object), userData, flags)
+    SGIHostItemQtIcon(const QIcon * object, details::Referenced * userData=nullptr, unsigned flags=0)
+        : SGIHostItemImpl<SGIItemInfoQtIcon>(const_cast<QIcon*>(object), userData, flags)
         {}
-    SGIHostItemQtIcon(const QIcon & object, osg::Referenced * userData=nullptr, unsigned flags=0)
-        : SGIHostItemImpl<QIcon>(const_cast<QIcon*>(&object), userData, flags)
+    SGIHostItemQtIcon(const QIcon & object, details::Referenced * userData=nullptr, unsigned flags=0)
+        : SGIHostItemImpl<SGIItemInfoQtIcon>(const_cast<QIcon*>(&object), userData, flags)
         {}
 };
 
