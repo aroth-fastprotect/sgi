@@ -63,7 +63,7 @@ class Vector4;
 
 typedef QWidget * QWidgetPtr;
 
-#define SGIPLUGIN_HOSTINTERFACE_CURRENT_VERSION 3
+#define SGIPLUGIN_HOSTINTERFACE_CURRENT_VERSION 4
 
 class SGIPluginHostInterface
 {

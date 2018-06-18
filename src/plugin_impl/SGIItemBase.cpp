@@ -1,5 +1,5 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #include <sgi/plugins/SGIItemBase.h>
 #include <sgi/plugins/SGIProxyItem.h>
@@ -9,6 +9,15 @@
 #include <cmath>
 
 #include <QImage>
+
+#define SGI_DEBUG_ITEM_ALLOCATION
+
+#ifdef SGI_DEBUG_ITEM_ALLOCATION
+#include <QDebug>
+#define SGI_ITEM_LOG(msg)   qDebug() << msg
+#else
+#define SGI_ITEM_LOG(msg)   (void(0))
+#endif
 
 namespace sgi {
 // some method implementations from SGIItemBase which are only
@@ -39,16 +48,19 @@ unsigned SGIItemHolder::getTotalItemCount()
 SGIItemHolder::~SGIItemHolder()
 {
     --s_ItemHolderCount;
+    SGI_ITEM_LOG(__FUNCTION__ << (void*)this);
 }
 
 SGIItemHolder::SGIItemHolder()
 {
     ++s_ItemHolderCount;
+    SGI_ITEM_LOG(__FUNCTION__ << (void*)this);
 }
 
 SGIItemHolder::SGIItemHolder(const SGIItemHolder & /*rhs*/)
 {
     ++s_ItemHolderCount;
+    SGI_ITEM_LOG(__FUNCTION__ << (void*)this);
 }
 
 unsigned SGIItemBase::getTotalItemCount()
@@ -61,7 +73,7 @@ SGIItemBase::SGIItemBase(SGIItemHolder * holder, SGIItemType type, unsigned flag
     , _pluginInfo(nullptr), _type_info(nullptr), _next(nullptr), _prev()
     , _number(0), _userData(userData)
 {
-    //qDebug() << __FUNCTION__ << (void*)this;
+    SGI_ITEM_LOG(__FUNCTION__ << (void*)this);
     ++s_ItemCount;
 }
 
@@ -70,30 +82,47 @@ SGIItemBase::SGIItemBase(const SGIItemBase & rhs)
     , _pluginInfo(rhs._pluginInfo), _type_info(rhs._type_info), _next(rhs._next), _prev(rhs._prev)
     , _number(rhs._number), _userData(rhs._userData)
 {
-    //qDebug() << __FUNCTION__ << (void*)this;
+    SGI_ITEM_LOG(__FUNCTION__ << (void*)this << (void*)&rhs);
     ++s_ItemCount;
 }
 
 SGIItemBase::~SGIItemBase()
 {
+    _holder = nullptr;
+    _pluginInfo = nullptr;
+    _next = nullptr;
+    _prev = nullptr;
+    _userData = nullptr;
     --s_ItemCount;
-    //qDebug() << __FUNCTION__ << (void*)this;
+    SGI_ITEM_LOG(__FUNCTION__ << (void*)this);
 }
 
 SGIItemBase & SGIItemBase::operator = (const SGIItemBase & rhs)
 {
+    SGI_ITEM_LOG(__FUNCTION__ << (void*)this << (void*)&rhs);
     _holder = rhs._holder;
     _type = rhs._type;
     _flags = rhs._flags;
     _score = rhs._score;
-    _type_info = rhs._type_info;
     _pluginInfo = rhs._pluginInfo;
+    _type_info = rhs._type_info;
     _next = rhs._next;
     _prev = rhs._prev;
     _number = rhs._number;
     _userData = rhs._userData;
     return *this;
 }
+
+bool SGIItemBase::operator == (const SGIItemBase & rhs) const
+{
+    return compare(rhs) == 0;
+}
+
+bool SGIItemBase::operator != (const SGIItemBase & rhs) const
+{
+    return compare(rhs) != 0;
+}
+
 
 int SGIItemBase::compare(const SGIItemBase & rhs) const
 {
@@ -122,16 +151,11 @@ unsigned SGIItemBase::incrementScore() { return ++_score; }
 unsigned SGIItemBase::decrementScore() { return --_score; }
 
 
-/// @brief override the plugin info in all items in the list
+/// @brief override the plugin info in the current item in list
 /// @param pluginInfo pointer to plugin info
 void SGIItemBase::setPluginInfo(const ISGIPluginInfo * pluginInfo)
 {
-    SGIItemBasePtr item = this;
-    while(item.valid())
-    {
-        item->_pluginInfo = pluginInfo;
-        item = item->_next;
-    }
+    _pluginInfo = pluginInfo;
 }
 
 /// @brief determines the length of the list

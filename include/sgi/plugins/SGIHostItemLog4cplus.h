@@ -5,13 +5,9 @@
 #include "SGIHostItemBase.h"
 #include <log4cplus/logger.h>
 
-namespace osg {
-    class Referenced;
-}
-
 namespace sgi {
 namespace log4cplus_plugin {
-class Log4cplusObjectBase : public osg::Referenced
+class Log4cplusObjectBase : public details::Referenced
 {
 public:
     Log4cplusObjectBase() {}
@@ -108,6 +104,6 @@ public:
 
 } // namespace log4cplus_plugin
 
-typedef SGIHostItemImpl<log4cplus_plugin::Log4cplusObjectBase, osg::ref_ptr<log4cplus_plugin::Log4cplusObjectBase> > SGIHostItemLog4cplus;
+typedef SGIHostItemImpl<log4cplus_plugin::Log4cplusObjectBase, details::ref_ptr<log4cplus_plugin::Log4cplusObjectBase> > SGIHostItemLog4cplus;
 
 } // namespace sgi

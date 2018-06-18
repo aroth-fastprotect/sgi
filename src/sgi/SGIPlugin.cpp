@@ -831,16 +831,16 @@ public:
         }
         for(PluginMap::const_iterator it = _plugins.begin(); it != _plugins.end(); it++)
         {
-            const PluginInfo & itPluginInfo = it->second;
-            if(itPluginInfo.pluginInterface)
+            const PluginInfo * pluginInfo = &(it->second);
+            if(pluginInfo->pluginInterface)
             {
                 SGIItemBasePtr newItem;
-                bool ok = itPluginInfo.pluginInterface->generateItem(object, newItem);
+                bool ok = pluginInfo->pluginInterface->generateItem(object, newItem);
                 if(ok && newItem.valid())
                 {
-                    //std::cout << "got item " << (void*)newItem.get() << " with score=" << newItem->score() << " from " << itPluginInfo.pluginName << std::endl;
+                    //std::cout << "got item " << (void*)newItem.get() << " with score=" << newItem->score() << " from " << pluginInfo->pluginName << std::endl;
                     // always remember which plugin generated the item
-                    newItem->setPluginInfo(&itPluginInfo);
+                    newItem->setPluginInfo(pluginInfo);
                     // copy the flags from the host item to the just generated item
                     newItem->setFlags(object->flags());
 
@@ -856,12 +856,12 @@ public:
                 }
                 else
                 {
-                    //std::cout << "no item from " << itPluginInfo.pluginName << std::endl;
+                    //std::cout << "no item from " << pluginInfo->pluginName << std::endl;
                 }
             }
             else
             {
-                //std::cout << "no item from " << itPluginInfo.pluginName << " because no interface" << std::endl;
+                //std::cout << "no item from " << pluginInfo->pluginName << " because no interface" << std::endl;
             }
         }
         if(ret && item.valid())

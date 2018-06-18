@@ -165,7 +165,7 @@ public:
         return ret;
     }
 protected:
-    osg::ref_ptr<const SGIItemBase> _targetItem;
+    details::ref_ptr<const SGIItemBase> _targetItem;
     double _animationTime;
 };
 

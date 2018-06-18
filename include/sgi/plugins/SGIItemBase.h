@@ -56,8 +56,6 @@ class SGIHostItemBase;
 template<typename TYPE>
 class SGIHostItemImpl;
 
-class SGIPluginInfo;
-
 class Image;
 typedef details::ref_ptr<Image> ImagePtr;
 typedef details::ref_ptr<const Image> ConstImagePtr;
@@ -90,7 +88,11 @@ public:
     typedef typename TYPE::ObjectStorageType ObjectStorageType;
 
     SGIItemHolderT(ObjectType * object)
-        : _object(object)
+        : SGIItemHolder(), _object(object)
+    {
+    }
+    SGIItemHolderT(const SGIItemHolderT & rhs)
+        : SGIItemHolder(rhs), _object(rhs._object)
     {
     }
     int compare(const SGIItemHolder & rhs) const override
@@ -123,14 +125,8 @@ public:
     SGI_Object(sgi, SGIItemBase)
 
     SGIItemBase & operator = (const SGIItemBase & rhs);
-    bool operator == (const SGIItemBase & rhs) const
-    {
-        return compare(rhs) == 0;
-    }
-    bool operator != (const SGIItemBase & rhs) const
-    {
-        return compare(rhs) != 0;
-    }
+    bool operator == (const SGIItemBase & rhs) const;
+    bool operator != (const SGIItemBase & rhs) const;
 
     bool valid() const;
     SGIItemType type() const;
@@ -255,7 +251,7 @@ public:
         : SGIItemBase(object ? new HOLDER_TYPE(object) : nullptr, type, flags, score, userData) {}
     SGIItemT(const SGIItemT & rhs)
         : SGIItemBase(rhs) {}
-    ~SGIItemT()
+    ~SGIItemT() override
         { }
 
     SGI_Object(sgi, SGIItemT)
