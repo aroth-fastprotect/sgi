@@ -1,11 +1,7 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
-
-#include <osgDB/ReaderWriter>
-#include <osgDB/FileNameUtils>
-#include <osgDB/Registry>
 
 #include <sgi/details/type_list>
 #include <sgi/helpers/preprocessor>
@@ -517,44 +513,24 @@ private:
 };
 
 
-class SGIPluginReaderWriter: public osgDB::ReaderWriter
-{
-protected:
-    virtual Features supportedFeatures() const
-    {
-        // we only use readObject so let osgDB know this
-        return FEATURE_READ_OBJECT;
-    }
-    virtual ~SGIPluginReaderWriter()
-    {
-    }
-};
-
 #define SGI_PLUGIN_IMPLEMENT(plugin_name) \
-    class SGIPlugin##plugin_name##ReaderWriter : public sgi::SGIPluginReaderWriter { \
+    class SGIPluginEntry##plugin_name : public sgi::SGIPluginEntryInterface { \
         public: \
-            SGIPlugin##plugin_name##ReaderWriter() \
-                : sgi::SGIPluginReaderWriter() \
+            SGIPluginEntry##plugin_name() \
             { \
-                setName("SGI Plugin " #plugin_name); \
-                supportsExtension( SGI_QUOTE(sgi_##plugin_name##_plugin), "SGI Plugin " #plugin_name ); \
+                setName(#plugin_name); \
             } \
-            virtual ~SGIPlugin##plugin_name##ReaderWriter() {} \
-            virtual const char* libraryName() { return SGI_QUOTE(sgi_##plugin_name##_plugin); } \
-            virtual const char* className() { return SGI_QUOTE(SGIPlugin##plugin_name##ReaderWriter); } \
-            virtual osgDB::ReaderWriter::ReadResult readObject(const std::string& file_name, const Options* options) const \
-            { \
-                if ( !acceptsExtension(osgDB::getLowerCaseFileExtension( file_name ))) \
-                    return osgDB::ReaderWriter::ReadResult::FILE_NOT_HANDLED; \
-                const unsigned * hostInterfaceVersion = reinterpret_cast<const unsigned*>(options->getPluginData("hostInterfaceVersion")); \
-                if(!hostInterfaceVersion || *hostInterfaceVersion != SGIPLUGIN_HOSTINTERFACE_CURRENT_VERSION) {\
-                    return osgDB::ReaderWriter::ReadResult::ERROR_IN_READING_FILE; \
-                } \
-                const sgi::SGIPluginHostInterface * hostInterface = reinterpret_cast<const sgi::SGIPluginHostInterface *>(options->getPluginData("hostInterface")); \
-                return osgDB::ReaderWriter::ReadResult( new sgi::SGIPlugin_##plugin_name##_Implementation(const_cast<sgi::SGIPluginHostInterface *>(hostInterface)) ); \
+            const char* libraryName() override { return SGI_QUOTE(sgi_##plugin_name##_plugin); } \
+            const char* className() override { return SGI_QUOTE(SGIPlugin##plugin_name##ReaderWriter); } \
+            unsigned requiredMinimumHostVersion() const override { return SGIPLUGIN_HOSTINTERFACE_CURRENT_VERSION; } \
+            SGIPluginInterface * load(SGIPluginHostInterface * hostInterface) override { \
+                return new sgi::SGIPlugin_##plugin_name##_Implementation(const_cast<sgi::SGIPluginHostInterface *>(hostInterface); \
             } \
     }; \
     sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = nullptr; \
-    REGISTER_OSGPLUGIN(sgi_##plugin_name, SGIPlugin##plugin_name##ReaderWriter)
+    extern "C" SGIPluginEntryInterface * sgi_##plugin_name(void) { \
+        static SGIPluginEntryInterface s_entry; \
+        return &s_entry; \
+    }
 
 } // namespace sgi

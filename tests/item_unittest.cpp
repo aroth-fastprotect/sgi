@@ -13,7 +13,8 @@
 #include <sgi/ImagePreviewDialog>
 #include <sgi/Shutdown>
 #include <sgi/AutoLoadQt>
-#include <sgi/plugins/SGIHostItemQt.h>
+#include <sgi/LibraryInfo>
+#include <sgi/plugins/SGIHostItemInternal.h>
 
 #include <sstream>
 
@@ -233,9 +234,10 @@ void item_unittest::generateItem()
     auto lib = sgi::autoload::Qt::sgiLibrary();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), true);
 
-    SGIHostItemQt hostItem(lib);
+    auto infoObj = sgi::libraryInfoObject<sgi::autoload::Qt>();
+    SGIHostItemInternal hostItem(infoObj);
     QVERIFY(hostItem.hasObject());
-    QCOMPARE(hostItem.object(), lib);
+    QCOMPARE(hostItem.object(), infoObj);
     SGIItemBasePtr item;
     sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
     QVERIFY(item.valid());
@@ -260,11 +262,10 @@ void item_unittest::writePrettyHTML()
     QVERIFY(ss.str().empty());
     item = nullptr;
     QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
-
-    auto lib = sgi::autoload::Qt::sgiLibrary();
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), true);
 
-    SGIHostItemQt hostItem(lib);
+    auto infoObj = sgi::libraryInfoObject<sgi::autoload::Qt>();
+    SGIHostItemInternal hostItem(infoObj);
     sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
     QVERIFY(item.valid());
     sgi::writePrettyHTML<sgi::autoload::Qt>(ss, item.get());
@@ -289,7 +290,8 @@ void item_unittest::sceneGraphDialog()
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), true);
 
     SGIItemBasePtr item;
-    SGIHostItemQt hostItem(lib);
+    auto infoObj = sgi::libraryInfoObject<sgi::autoload::Qt>();
+    SGIHostItemInternal hostItem(infoObj);
     sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
     QVERIFY(item.valid());
     sgi::ISceneGraphDialogPtr dlgIface = sgi::showSceneGraphDialog<sgi::autoload::Qt>(nullptr, item.get());
@@ -320,7 +322,8 @@ void item_unittest::contextMenuHidden()
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), true);
 
     SGIItemBasePtr item;
-    SGIHostItemQt hostItem(lib);
+    auto infoObj = sgi::libraryInfoObject<sgi::autoload::Qt>();
+    SGIHostItemInternal hostItem(infoObj);
     sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
     QVERIFY(item.valid());
     sgi::IContextMenuPtr ctxIface = sgi::createContextMenu<sgi::autoload::Qt>(nullptr, item.get());
@@ -352,7 +355,8 @@ void item_unittest::contextMenu()
     QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), true);
 
     SGIItemBasePtr item;
-    SGIHostItemQt hostItem(lib);
+    auto infoObj = sgi::libraryInfoObject<sgi::autoload::Qt>();
+    SGIHostItemInternal hostItem(infoObj);
     sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
     QVERIFY(item.valid());
     sgi::IContextMenuPtr ctxIface = sgi::createContextMenu<sgi::autoload::Qt>(nullptr, item.get());
@@ -384,8 +388,9 @@ void item_unittest::contextMenuQt()
 	QCOMPARE(sgi::autoload::Qt::sgiLibraryLoaded(), true);
 
 	SGIItemBasePtr item;
-	SGIHostItemQt hostItem(lib);
-	sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
+    auto infoObj = sgi::libraryInfoObject<sgi::autoload::Qt>();
+    SGIHostItemInternal hostItem(infoObj);
+    sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
 	QVERIFY(item.valid());
     sgi::IContextMenuQt * ctxIface = sgi::createContextMenuQt(nullptr, lib);
     QVERIFY(ctxIface != nullptr);
@@ -419,7 +424,8 @@ void item_unittest::imagePreviewDialog()
     SGIItemBasePtr item;
     //SGIHostItemQtPaintDevice hostItem(pm);
     //sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
-    SGIHostItemQt hostItem(lib);
+    auto infoObj = sgi::libraryInfoObject<sgi::autoload::Qt>();
+    SGIHostItemInternal hostItem(infoObj);
     sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
 
     QVERIFY(item.valid());

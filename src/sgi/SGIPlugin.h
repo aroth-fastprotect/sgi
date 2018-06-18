@@ -8,6 +8,7 @@ namespace sgi {
 
 namespace details {
     class Referenced;
+    class Object;
 }
 
 class SGIHostItemBase;
@@ -82,11 +83,13 @@ public:
 };
 
 
-class SGIPlugins : public details::Referenced
+class SGIPlugins : public details::Object
 {
 protected:
     SGIPlugins();
     ~SGIPlugins() override;
+
+    SGI_Object(sgi, SGIPlugins)
 
     void destruct();
 
@@ -99,8 +102,10 @@ public:
     typedef std::list<PluginInfo> PluginInfoList;
     typedef std::pair<std::string, std::string> PluginFileName;
     typedef std::list<PluginFileName> PluginFileNameList;
+    typedef std::vector<std::string> StringList;
 
     bool getPlugins(PluginInfoList & pluginList);
+    const StringList & pluginDirectories() const;
     PluginFileNameList listAllAvailablePlugins(PluginType pluginType=PluginTypeModel);
 
 public:
@@ -108,7 +113,8 @@ public:
 	IHostCallback * defaultHostCallback();
 	IHostCallback * hostCallback();
 	void setHostCallback(IHostCallback * callback);
-    QObject * libraryInfoObject();
+    QObject * libraryInfoQObject();
+    sgi::details::Object * libraryInfoObject();
 
     bool generateItem(SGIItemBasePtr & item, const SGIHostItemBase * object);
 

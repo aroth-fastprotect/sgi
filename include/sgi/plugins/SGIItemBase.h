@@ -215,6 +215,14 @@ public:
     {
         return dynamic_cast<const USER_DATA_TYPE *>(_userData.get());
     }
+    details::Referenced * userDataPtr()
+    {
+        return _userData.get();
+    }
+    details::Referenced * userDataPtr() const
+    {
+        return _userData.get();
+    }
 
 protected:
     int compare(const SGIItemBase & rhs) const;

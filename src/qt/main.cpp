@@ -182,7 +182,7 @@ bool ApplicationEventFilter::handleEvent(SGIEvent * ev)
             if (ev->filename() == "app")
                 obj = qApp;
             else if (ev->filename() == "sgi")
-                obj = sgi::libraryInfoObject<sgi::autoload::Qt>();
+                obj = sgi::libraryInfoQObject<sgi::autoload::Qt>();
             else if (ev->filename() == "mainwindow")
             {
                 obj = widget;

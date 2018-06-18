@@ -17,6 +17,7 @@ namespace sgi {
     namespace details {
         template<class T>
         class ref_ptr;
+        class Object;
     }
     typedef details::ref_ptr<SGIItemBase> SGIItemBasePtr;
     typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
@@ -34,7 +35,8 @@ SGI_EXPORT const char* sgiGetVersion();
 SGI_EXPORT const char* sgiGetSOVersion();
 SGI_EXPORT const char* sgiGetLibraryName();
 SGI_EXPORT const char* sgiGetLibraryModuleFilename();
-SGI_EXPORT QObject * sgi_libraryInfoObject();
+SGI_EXPORT QObject * sgi_libraryInfoQObject();
+SGI_EXPORT sgi::details::Object * sgi_libraryInfoObject();
 
 SGI_EXPORT sgi::IHostCallback * sgi_defaultHostCallback();
 SGI_EXPORT void sgi_setHostCallback(sgi::IHostCallback * callback);

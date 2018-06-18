@@ -7,11 +7,28 @@ class QObject;
 
 namespace sgi {
 
+    namespace details {
+        class Object;
+    }
+
 template<typename AUTOLOADCLASS>
-inline QObject * libraryInfoObject()
+inline QObject * libraryInfoQObject()
 {
     QObject * ret;
     typedef QObject * (*pfn)();
+    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_libraryInfoQObject");
+    if(func)
+        ret = func();
+    else
+        ret = nullptr;
+    return ret;
+}
+
+template<typename AUTOLOADCLASS>
+inline details::Object * libraryInfoObject()
+{
+    details::Object * ret;
+    typedef details::Object * (*pfn)();
     pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddress("sgi_libraryInfoObject");
     if(func)
         ret = func();

@@ -2,14 +2,12 @@
 #include "SGIPlugin.h"
 #include "sgi/plugins/SGIItemBase.h"
 #include "sgi/plugins/SGIPluginImpl.h"
-#include <osgDB/FileUtils>
-#include <osgDB/FileNameUtils>
-#include <osgDB/PluginQuery>
-//#include <osg/Notify>
 
 #include <QInputDialog>
 #include <QFileDialog>
 #include <QColorDialog>
+#include <QLibraryInfo>
+#include <QPluginLoader>
 //#include <QDebug>
 
 #include "QtProxy.h"
@@ -33,12 +31,18 @@ using namespace sgi::qt_helpers;
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const SGIItemBase * item)
 {
-    const SGIPluginInfo * pluginInfo = (const SGIPluginInfo* )item->pluginInfo();
+    const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo*>(item->pluginInfo());
     return os << '{' << (void*)item << '/' << pluginInfo->pluginName
         << ";type=" << item->type()
         << ";typeName=" << item->typeName()
         << '}';
 }
+
+QDebug & operator<< (QDebug & dbg, const std::string & s)
+{
+    return dbg << QString::fromStdString(s);
+}
+
 
 namespace {
 	class DisableLibraryLoadErrors 
@@ -85,8 +89,7 @@ class SGIPlugins::SGIPluginsImpl
 {
 public:
     SGIPluginsImpl()
-        : _libraryDirectoryAdded(false)
-        , _pluginsLoaded(false)
+        : _pluginsLoaded(false)
         , _hostInterface(this)
         , _hostInterfaceVersion(0)
         , _defaultHostCallback(new DefaultHostCallback(this))
@@ -97,35 +100,18 @@ public:
             registerNamedEnum(value_type, "SGIItemType", false);
         }
 
-        {
-            osgDB::Registry * registry = osgDB::Registry::instance();
-            osgDB::FilePathList libraryPath = registry->getLibraryFilePathList();
-            std::string sgi_library_directory = sgiGetLibraryModuleDirectory();
-            bool libraryDirFound = false;
-            for(const auto & path : libraryPath )
-            {
-                if(path == sgi_library_directory)
-                {
-                    libraryDirFound = true;
-                    break;
-                }
-            }
-            if(!libraryDirFound)
-            {
-                libraryPath.push_back(sgi_library_directory);
-                registry->setLibraryFilePathList(libraryPath);
-                _libraryDirectoryAdded = true;
-            }
-        }
+
+        QString s = QDir::cleanPath(QString::fromStdString(sgiGetLibraryModuleDirectory()) + SGI_QT_PLUGIN_SGI_DIR);
+        _pluginDirectories.push_back(s.toStdString());
 
         loadInternalPlugin();
-#if 0
+#if 1
         PluginFileNameList pluginFiles = listAllAvailablePlugins();
         for(PluginFileNameList::const_iterator it = pluginFiles.begin(); it != pluginFiles.end(); it++)
         {
             const std::string & pluginName = (*it).first;
             const std::string & file = (*it).second;
-            std::cout << "Found plugin " << pluginName << ": " << file << std::endl;
+            qDebug() << "Found plugin" << pluginName << file;
         }
 #endif
     }
@@ -163,17 +149,21 @@ public:
 	}
 	void setHostCallback(IHostCallback * callback)
 	{
-        //OSG_WARN << "SGIPluginsImpl::setHostCallback " << _hostCallback.get() << " new:" << callback << std::endl;
+        //OSG_WARN << "SGIPluginsImpl::setHostCallback " << _hostCallback.get() << " new:" << callback;
 		if (callback)
 			_hostCallback = callback;
 		else
             _hostCallback = nullptr;
 	}
-    QObject * libraryInfoObject()
+    QObject * libraryInfoQObject()
     {
         QtProxy * proxy = QtProxy::instance();
         Q_ASSERT(proxy != nullptr);
         return proxy;
+    }
+    sgi::details::Object * libraryInfoObject()
+    {
+        return SGIPlugins::instance();
     }
 
     class HostInterface : public SGIPluginHostInterface
@@ -584,16 +574,16 @@ public:
 		sgi::IImagePreviewDialogPtr _imagePreviewDialog;
 	};
 
-    static std::string createLibraryNameForPlugin(const std::string& name)
+    static QString createLibraryNameForPlugin(const QString & dir, const std::string& name)
     {
-        return ".sgi_" + name + "_plugin";
+        return dir + QStringLiteral("/sgi_") + QString::fromStdString(name) + QStringLiteral("_plugin");
     }
 
     const PluginInfo * loadInternalPlugin()
     {
         const PluginInfo * ret = nullptr;
         {
-            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+            std::lock_guard<std::mutex> lock(_mutex);
             PluginMap::iterator it = _plugins.find(SGIPlugin_internal::PluginName);
             if (it != _plugins.end())
                 ret = &it->second;
@@ -614,7 +604,7 @@ public:
                 info.guiAdapterInterface = info.pluginInterface->getGUIAdapter();
                 info.convertToImage = info.pluginInterface->getConvertToImage();
             }
-            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+            std::lock_guard<std::mutex> lock(_mutex);
             PluginMap::iterator it = _plugins.find(info.pluginName);
             if (it != _plugins.end())
                 ret = &it->second;
@@ -636,7 +626,7 @@ public:
     {
         const PluginInfo * ret = nullptr;
         {
-            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+            std::lock_guard<std::mutex> lock(_mutex);
             PluginMap::iterator it = _plugins.find(name);
             if (it != _plugins.end())
                 ret = &it->second;
@@ -646,37 +636,30 @@ public:
             PluginInfo info;
             info.pluginName = name;
 
-            if(!_pluginLoadOpts.valid())
+            QString pluginFilename;
+            for(const std::string & pluginDir : _pluginDirectories)
             {
-                OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
-                if (!_pluginLoadOpts.valid())
+                pluginFilename = createLibraryNameForPlugin(QString::fromStdString(pluginDir), name);
+                DisableLibraryLoadErrors disable_load_errors;
+                QLibrary loader(pluginFilename);
+                if(loader.load())
                 {
-                    osgDB::Registry * registry = osgDB::Registry::instance();
-                    osg::ref_ptr<osgDB::Options> defaultOpts = registry->getOptions();
-                    if (defaultOpts.valid())
-                        _pluginLoadOpts = static_cast<osgDB::Options*>(registry->getOptions()->clone(osg::CopyOp::SHALLOW_COPY));
-                    else
-                        _pluginLoadOpts = new osgDB::Options();
-                    _pluginLoadOpts->setPluginData("hostInterface", &_hostInterface);
-                    _pluginLoadOpts->setPluginData("hostInterfaceVersion", &_hostInterfaceVersion);
+                    std::string entryPoint = "sgi_" + name;
+                    loader.resolve(entryPoint.c_str());
+                    break;
                 }
-            }
-
-            std::string pluginFilename = createLibraryNameForPlugin(name);
-			{
-				DisableLibraryLoadErrors disable_load_errors;
-				osgDB::ReaderWriter::ReadResult result = osgDB::Registry::instance()->readObject(pluginFilename, _pluginLoadOpts.get(), false);
-                //info.pluginInterface = static_cast<SGIPluginInterface*>(result.getObject());
-                if(result.error())
-                    info.errorMessage = result.message();
+                else
+                {
+                    info.errorMessage = loader.errorString().toStdString();
+                }
 			}
             if (info.pluginInterface)
             {
                 if(info.pluginInterface->getRequiredInterfaceVersion() != _hostInterface.version())
                 {
                     // release the plugin because version does not match
-                    std::cout << "Drop plugin " << name << "(" << pluginFilename << ") because to version mismatch " <<
-                        info.pluginInterface->getRequiredInterfaceVersion() << "!=" << _hostInterface.version() << std::endl;
+                    qDebug() << "Drop plugin " << name << "(" << pluginFilename << ") because to version mismatch " <<
+                        info.pluginInterface->getRequiredInterfaceVersion() << "!=" << _hostInterface.version();
                     info.pluginInterface = nullptr;
                 }
                 else
@@ -693,7 +676,7 @@ public:
                     info.convertToImage = info.pluginInterface->getConvertToImage();
                 }
             }
-            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+            std::lock_guard<std::mutex> lock(_mutex);
             PluginMap::iterator it = _plugins.find(info.pluginName);
             if (it != _plugins.end())
                 ret = &it->second;
@@ -706,51 +689,59 @@ public:
         return ret;
     }
 
+    const StringList & pluginDirectories() const
+    {
+        return _pluginDirectories;
+    }
+
     PluginFileNameList listAllAvailablePlugins(PluginType pluginType=PluginTypeModel)
     {
         PluginFileNameList ret;
-        std::string postfix = OSG_LIBRARY_POSTFIX;
 
-        osgDB::FileNameList plugins = osgDB::listAllAvailablePlugins();
-        for(osgDB::FileNameList::iterator itr = plugins.begin();
-            itr != plugins.end();
-            ++itr)
+        QString postfix = SGI_LIBRARY_POSTFIX;
+
+        for(const std::string & pluginDir : _pluginDirectories)
         {
-            std::string basename = osgDB::getSimpleFileName(*itr);
-            std::string::size_type pos;
-            switch(pluginType)
+            QString path = QString::fromStdString(pluginDir);
+            qDebug() << __FUNCTION__ << path << postfix;
+            QDir directory(path);
+            for(const QFileInfo & fi : directory.entryInfoList(QDir::Files))
             {
-            case PluginTypeModel: pos = basename.find("osgdb_sgi_"); break;
-            default: pos = std::string::npos; break;
-            }
-            if (pos == std::string::npos)
-                continue;
-
-            std::string::size_type posSuffix = basename.find("_plugin"); 
-            if(posSuffix == std::string::npos)
-                continue;
-
-            std::string pluginName;
-            switch(pluginType)
-            {
-            case PluginTypeModel: pluginName = std::string(basename.begin()+pos+10,basename.begin()+posSuffix); break;
-            default: break;
-            }
-
-            if(!pluginName.empty())
-            {
-                std::string basename_no_ext = osgDB::getNameLessAllExtensions(basename);
-                std::string expectedFilename;
+                QString basename = fi.fileName();
+                int pos = -1;
                 switch(pluginType)
                 {
-                case PluginTypeModel: expectedFilename = std::string("osgdb_sgi_") + pluginName + std::string("_plugin") + postfix; break;
-                default: pos = std::string::npos; break;
+                case PluginTypeModel: pos = basename.indexOf("sgi_"); break;
+                default: pos = -1; break;
                 }
-                if(basename_no_ext == expectedFilename)
+                if (pos < 0)
+                    continue;
+
+                int posSuffix = basename.indexOf("_plugin");
+                if(posSuffix < 0)
+                    continue;
+
+                QString pluginName;
+                switch(pluginType)
                 {
-                    const std::string & pluginLibraryFile = *itr;
-                    PluginFileName plugin(pluginName, pluginLibraryFile);
-                    ret.push_back(plugin);
+                case PluginTypeModel: pluginName = basename.mid(pos+4,posSuffix - (pos+4)); break;
+                default: break;
+                }
+
+                if(!pluginName.isEmpty())
+                {
+                    QString basename_no_ext = fi.baseName();
+                    QString expectedFilename;
+                    switch(pluginType)
+                    {
+                    case PluginTypeModel: expectedFilename = QStringLiteral("sgi_") + pluginName + QStringLiteral("_plugin") + postfix; break;
+                    default: break;
+                    }
+                    if(basename_no_ext == expectedFilename)
+                    {
+                        PluginFileName plugin(pluginName.toStdString(), fi.absoluteFilePath().toStdString());
+                        ret.push_back(plugin);
+                    }
                 }
             }
         }
@@ -760,7 +751,7 @@ public:
 
     bool getPlugins(PluginInfoList & pluginList)
     {
-        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+        std::lock_guard<std::mutex> lock(_mutex);
         pluginList.clear();
         for(PluginMap::const_iterator it = _plugins.begin(); it != _plugins.end(); it++)
         {
@@ -796,11 +787,11 @@ public:
                         const std::string & pluginFilename = plugin.second;
                         if(pluginName.compare(0, name_len, name) == 0)
                         {
-                            //std::cout << "Load plugin " << pluginName << " from " << pluginFilename << std::endl;
+                            //qDebug() << "Load plugin " << pluginName << " from " << pluginFilename;
                             impl->loadPlugin(pluginName, pluginFilename);
                         }
                         else
-                            std::cout << "Ignore plugin " << pluginName << std::endl;
+                            qDebug() << "Ignore plugin " << pluginName;
                     }
                 }
                 break;
@@ -812,7 +803,7 @@ public:
                         const PluginFileName & plugin = *it;
                         const std::string & pluginName = plugin.first;
                         const std::string & pluginFilename = plugin.second;
-                        //std::cout << "Load plugin " << pluginName << " from " << pluginFilename << std::endl;
+                        //qDebug() << "Load plugin " << pluginName << " from " << pluginFilename;
                         impl->loadPlugin(pluginName, pluginFilename);
                     }
                 }
@@ -838,7 +829,7 @@ public:
                 bool ok = pluginInfo->pluginInterface->generateItem(object, newItem);
                 if(ok && newItem.valid())
                 {
-                    //std::cout << "got item " << (void*)newItem.get() << " with score=" << newItem->score() << " from " << pluginInfo->pluginName << std::endl;
+                    //std::cout << "got item " << (void*)newItem.get() << " with score=" << newItem->score() << " from " << pluginInfo->pluginName;
                     // always remember which plugin generated the item
                     newItem->setPluginInfo(pluginInfo);
                     // copy the flags from the host item to the just generated item
@@ -856,12 +847,12 @@ public:
                 }
                 else
                 {
-                    //std::cout << "no item from " << pluginInfo->pluginName << std::endl;
+                    //std::cout << "no item from " << pluginInfo->pluginName;
                 }
             }
             else
             {
-                //std::cout << "no item from " << pluginInfo->pluginName << " because no interface" << std::endl;
+                //std::cout << "no item from " << pluginInfo->pluginName << " because no interface";
             }
         }
         if(ret && item.valid())
@@ -1778,7 +1769,7 @@ public:
 
     void shutdown()
     {
-        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+        std::lock_guard<std::mutex> lock(_mutex);
         QtProxy::instance(true);
         for(auto it = _plugins.begin(); it != _plugins.end(); ++it)
         {
@@ -1799,7 +1790,7 @@ public:
 
     bool registerNamedEnum(const std::string & enumname, const std::string & description, bool bitmask)
     {
-        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+        std::lock_guard<std::mutex> lock(_mutex);
         NamedEnumType::const_iterator it = _namedEnums.find(enumname);
         bool ret = (it == _namedEnums.end());
         if(ret)
@@ -1813,7 +1804,7 @@ public:
     }
     bool registerNamedEnumValue(const std::string & enumname, int value, const std::string & valuename)
     {
-        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+        std::lock_guard<std::mutex> lock(_mutex);
         NamedEnumType::iterator it = _namedEnums.find(enumname);
         bool ret = (it != _namedEnums.end());
         if(ret)
@@ -1828,7 +1819,7 @@ public:
     }
     bool registerNamedEnumValues(const std::string & enumname, const std::map<int, std::string> & values)
     {
-        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+        std::lock_guard<std::mutex> lock(_mutex);
         NamedEnumType::iterator it = _namedEnums.find(enumname);
         bool ret = (it != _namedEnums.end());
         if(ret)
@@ -1841,7 +1832,7 @@ public:
     }
     bool namedEnumValueToString(const std::string & enumname, std::string & text, int value)
     {
-        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+        std::lock_guard<std::mutex> lock(_mutex);
         NamedEnumType::iterator it = _namedEnums.find(enumname);
         bool ret = (it != _namedEnums.end());
         if(ret)
@@ -1919,11 +1910,10 @@ public:
     typedef std::map<std::string, EnumType> NamedEnumType;
 
 private:
-    bool _libraryDirectoryAdded;
     bool _pluginsLoaded;
+    StringList _pluginDirectories;
     PluginMap   _plugins;
-    OpenThreads::Mutex _mutex;
-    osg::ref_ptr<osgDB::Options> _pluginLoadOpts;
+    std::mutex _mutex;
     HostInterface _hostInterface;
     unsigned _hostInterfaceVersion;
 	IHostCallbackPtr _defaultHostCallback;
@@ -2005,7 +1995,12 @@ void SGIPlugins::setHostCallback(IHostCallback * callback)
 	_impl->setHostCallback(callback);
 }
 
-QObject * SGIPlugins::libraryInfoObject()
+QObject * SGIPlugins::libraryInfoQObject()
+{
+    return _impl->libraryInfoQObject();
+}
+
+sgi::details::Object * SGIPlugins::libraryInfoObject()
 {
     return _impl->libraryInfoObject();
 }
@@ -2219,6 +2214,11 @@ bool SGIPlugins::writeObjectFile(bool & result, SGIItemBase * item, const std::s
 bool SGIPlugins::getPlugins(PluginInfoList & pluginList)
 {
     return _impl->getPlugins(pluginList);
+}
+
+const SGIPlugins::StringList & SGIPlugins::pluginDirectories() const
+{
+    return _impl->pluginDirectories();
 }
 
 SGIPlugins::PluginFileNameList SGIPlugins::listAllAvailablePlugins(PluginType pluginType)

@@ -200,20 +200,11 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
         break;
     case SGIItemTypeBackendPlugins:
         {
-            os << "Library directories:<ul>";
-            osgDB::FilePathList filepath = osgDB::Registry::instance()->getLibraryFilePathList();
-            for (osgDB::FilePathList::const_iterator it = filepath.begin(); it != filepath.end(); it++)
-            {
-                os << "<li>" << *it << "</li>";
-            }
+            os << "Plugin directories:<ul>";
+            for(const auto & s : object->pluginDirectories())
+                os << "<li>" << s << "</li>";
 
             os << "</ul>Available plugins<ul>";
-            osgDB::FileNameList plugins = osgDB::listAllAvailablePlugins();
-            for(osgDB::FileNameList::const_iterator it = plugins.begin(); it != plugins.end(); it++)
-            {
-                os << "<li>" << *it << "</li>";
-            }
-#if 0
             SGIPlugins::PluginFileNameList plugins = object->listAllAvailablePlugins();
             for(SGIPlugins::PluginFileNameList::const_iterator it = plugins.begin(); it != plugins.end(); it++)
             {
@@ -221,7 +212,6 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
                 os << " from " << it->second;
                 os << "</li>";
             }
-#endif
             os << "</ul>";
         }
         break;
@@ -260,7 +250,7 @@ bool writePrettyHTMLImpl<ReferencedInternalItemData>::process(std::basic_ostream
             os << "<tr><td>score</td><td>" << data->score() << "</td></tr>" << std::endl;
             os << "<tr><td>typeName</td><td>" << helpers::demangle_html(data->typeName()) << "</td></tr>" << std::endl;
             os << "<tr><td>number</td><td>" << data->number() << "</td></tr>" << std::endl;
-            os << "<tr><td>userData</td><td>" << helpers::getRTTIObjectNameAndType_html(data->userData<osg::Referenced>()) << "</td></tr>" << std::endl;
+            os << "<tr><td>userData</td><td>" << helpers::getRTTIObjectNameAndType_html(data->userDataPtr()) << "</td></tr>" << std::endl;
             os << "<tr><td>root</td><td>" << (void*)data->rootBase() << "</td></tr>" << std::endl;
             os << "<tr><td>prev</td><td>" << (void*)data->previousBase() << "</td></tr>" << std::endl;
             os << "<tr><td>next</td><td>" << (void*)data->nextBase() << "</td></tr>" << std::endl;

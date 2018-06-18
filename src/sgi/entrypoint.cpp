@@ -89,7 +89,12 @@ const char * sgiGetLibraryModuleFilename()
     return s_cachedFilename.c_str();
 }
 
-QObject * sgi_libraryInfoObject()
+QObject * sgi_libraryInfoQObject()
+{
+    return sgi::SGIPlugins::instance()->libraryInfoQObject();
+}
+
+sgi::details::Object * sgi_libraryInfoObject()
 {
     return sgi::SGIPlugins::instance()->libraryInfoObject();
 }
