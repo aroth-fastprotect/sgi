@@ -33,8 +33,8 @@ class SGIPluginInfo : public ISGIPluginInfo
 {
 public:
     SGIPluginInfo()
-        : pluginName()
-        , pluginFilename()
+        : _pluginName()
+        , _pluginFilename()
         , pluginInterface(nullptr)
         , writePrettyHTMLInterface(nullptr)
         , objectInfoInterface(nullptr)
@@ -49,8 +49,8 @@ public:
     {
     }
     SGIPluginInfo(const SGIPluginInfo & rhs)
-        : pluginName(rhs.pluginName)
-        , pluginFilename(rhs.pluginFilename)
+        : _pluginName(rhs._pluginName)
+        , _pluginFilename(rhs._pluginFilename)
         , pluginInterface(rhs.pluginInterface)
         , writePrettyHTMLInterface(rhs.writePrettyHTMLInterface)
         , objectInfoInterface(rhs.objectInfoInterface)
@@ -64,11 +64,13 @@ public:
         , errorMessage(rhs.errorMessage)
     {
     }
-    virtual unsigned pluginScore() const { return _pluginScore; }
+    unsigned pluginScore() const override { return _pluginScore; }
+    const std::string & pluginName() const override { return _pluginName; }
+    const std::string & pluginFilename() const override { return _pluginFilename; }
     bool isInternalPlugin() const;
 public:
-    std::string                             pluginName;
-    std::string                             pluginFilename;
+    std::string                             _pluginName;
+    std::string                             _pluginFilename;
     details::ref_ptr<SGIPluginInterface>    pluginInterface;
     SGIPluginInterface::WritePrettyHTML*    writePrettyHTMLInterface;
     SGIPluginInterface::ObjectInfo*         objectInfoInterface;

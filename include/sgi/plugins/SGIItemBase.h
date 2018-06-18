@@ -64,6 +64,8 @@ class ISGIPluginInfo
 {
 public:
     virtual unsigned pluginScore() const = 0;
+    virtual const std::string & pluginName() const = 0;
+    virtual const std::string & pluginFilename() const = 0;
 };
 
 class SGI_IMPL_EXPORT SGIItemHolder : public details::Referenced

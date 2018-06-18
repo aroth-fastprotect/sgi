@@ -241,6 +241,7 @@ void item_unittest::generateItem()
     SGIItemBasePtr item;
     sgi::generateItem<sgi::autoload::Qt>(item, &hostItem);
     QVERIFY(item.valid());
+    QCOMPARE(item->pluginInfo()->pluginName(), std::string("_sgi_internal"));
     item = nullptr;
 
     sgi::shutdown<sgi::autoload::Qt>();

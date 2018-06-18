@@ -156,11 +156,11 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
                 for(SGIPlugins::PluginInfoList::const_iterator it = plugins.begin(); it != plugins.end(); it++)
                 {
                     const SGIPlugins::PluginInfo & info = *it;
-                    os << "<li>" << info.pluginName;
+                    os << "<li>" << info.pluginName();
                     if(info.isInternalPlugin())
                         os << " <i>(internal)</i>";
-                    else if(!info.pluginFilename.empty())
-                        os << " from " << info.pluginFilename;
+                    else if(!info.pluginFilename().empty())
+                        os << " from " << info.pluginFilename();
                     os << "</li>";
                 }
             }
@@ -179,9 +179,9 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
                 for(SGIPlugins::PluginInfoList::const_iterator it = plugins.begin(); it != plugins.end(); it++)
                 {
                     const SGIPlugins::PluginInfo & info = *it;
-                    os << "<li>" << info.pluginName << "<br/>";
+                    os << "<li>" << info.pluginName() << "<br/>";
                     os << "<table border=\'1\' align=\'left\' width='100%'>";
-                    os << "<tr><td>filename</td><td>" << info.pluginFilename << "</td></tr>";
+                    os << "<tr><td>filename</td><td>" << info.pluginFilename() << "</td></tr>";
                     os << "<tr><td>score</td><td>" << info.pluginScore() << "</td></tr>";
                     os << "<tr><td>error</td><td>" << info.errorMessage << "</td></tr>";
                     os << "<tr><td>WritePrettyHTML</td><td>" << (void*)info.writePrettyHTMLInterface << "</td></tr>";
@@ -256,7 +256,7 @@ bool writePrettyHTMLImpl<ReferencedInternalItemData>::process(std::basic_ostream
             os << "<tr><td>next</td><td>" << (void*)data->nextBase() << "</td></tr>" << std::endl;
 
             const SGIPlugins::PluginInfo * pluginInfo = (const SGIPlugins::PluginInfo *)data->pluginInfo();
-            os << "<tr><td>plugin</td><td>" << pluginInfo->pluginName << "</td></tr>" << std::endl;
+            os << "<tr><td>plugin</td><td>" << pluginInfo->pluginName() << "</td></tr>" << std::endl;
             os << "<tr><td>pluginScore</td><td>" << pluginInfo->pluginScore() << "</td></tr>" << std::endl;
 
             os << "<tr><td>item chain</td><td><ul>";
@@ -274,7 +274,7 @@ bool writePrettyHTMLImpl<ReferencedInternalItemData>::process(std::basic_ostream
                         os << "(this)";
                     else
                         os << (void*)item;
-                    os << "&nbsp;<b>" << helpers::demangle_html(item->typeName()) << "</b>&nbsp;<i>" << itemPluginInfo->pluginName << ':' << itemPluginInfo->pluginScore() << "</i></li>";
+                    os << "&nbsp;<b>" << helpers::demangle_html(item->typeName()) << "</b>&nbsp;<i>" << itemPluginInfo->pluginName() << ':' << itemPluginInfo->pluginScore() << "</i></li>";
                     item = item->nextBase();
                 }
             }

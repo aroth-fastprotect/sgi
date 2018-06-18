@@ -32,7 +32,7 @@ using namespace sgi::qt_helpers;
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const SGIItemBase * item)
 {
     const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo*>(item->pluginInfo());
-    return os << '{' << (void*)item << '/' << pluginInfo->pluginName
+    return os << '{' << (void*)item << '/' << pluginInfo->pluginName()
         << ";type=" << item->type()
         << ";typeName=" << item->typeName()
         << '}';
@@ -82,7 +82,7 @@ namespace {
 
 bool SGIPluginInfo::isInternalPlugin() const
 {
-    return pluginName == SGIPlugin_internal::PluginName;
+    return _pluginName == SGIPlugin_internal::PluginName;
 }
 
 class SGIPlugins::SGIPluginsImpl
@@ -591,7 +591,7 @@ public:
         if(!ret)
         {
             PluginInfo info;
-            info.pluginName = SGIPlugin_internal::PluginName;
+            info._pluginName = SGIPlugin_internal::PluginName;
             info.pluginInterface = SGIPlugin_internal::create(&_hostInterface);
             if (info.pluginInterface)
             {
@@ -605,12 +605,12 @@ public:
                 info.convertToImage = info.pluginInterface->getConvertToImage();
             }
             std::lock_guard<std::mutex> lock(_mutex);
-            PluginMap::iterator it = _plugins.find(info.pluginName);
+            PluginMap::iterator it = _plugins.find(info._pluginName);
             if (it != _plugins.end())
                 ret = &it->second;
             else
             {
-                PluginMap::iterator it = _plugins.insert(PluginMap::value_type(info.pluginName, info)).first;
+                PluginMap::iterator it = _plugins.insert(PluginMap::value_type(info._pluginName, info)).first;
                 ret = &it->second;
             }
         }
@@ -634,7 +634,7 @@ public:
         if(!ret)
         {
             PluginInfo info;
-            info.pluginName = name;
+            info._pluginName = name;
 
             QString pluginFilename;
             for(const std::string & pluginDir : _pluginDirectories)
@@ -664,7 +664,7 @@ public:
                 }
                 else
                 {
-                    info.pluginFilename = filename;
+                    info._pluginFilename = filename;
                     info._pluginScore = info.pluginInterface->getPluginScore();
                     info.writePrettyHTMLInterface = info.pluginInterface->getWritePrettyHTML();
                     info.objectInfoInterface = info.pluginInterface->getObjectInfo();
@@ -677,12 +677,12 @@ public:
                 }
             }
             std::lock_guard<std::mutex> lock(_mutex);
-            PluginMap::iterator it = _plugins.find(info.pluginName);
+            PluginMap::iterator it = _plugins.find(info._pluginName);
             if (it != _plugins.end())
                 ret = &it->second;
             else
             {
-                PluginMap::iterator it = _plugins.insert(PluginMap::value_type(info.pluginName, info)).first;
+                PluginMap::iterator it = _plugins.insert(PluginMap::value_type(info._pluginName, info)).first;
                 ret = &it->second;
             }
         }
