@@ -46,7 +46,7 @@
 
 sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = nullptr;
 
-SGI_OBJECT_INFO_BEGIN(osg::Referenced)
+SGI_OBJECT_INFO_BEGIN(sgi::details::Referenced)
     sgi::SGIPlugins,
     sgi::ISceneGraphDialog,
     sgi::IContextMenu,
@@ -56,10 +56,10 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     sgi::ReferencedInternalItemData,
     sgi::ReferencedInternalInfoData,
     sgi::Image,
-    osg::Object
+    sgi::details::Object
 SGI_OBJECT_INFO_END()
 
-SGI_OBJECT_INFO_BEGIN(osg::Object)
+SGI_OBJECT_INFO_BEGIN(sgi::details::Object)
     sgi::SGIItemBase
 SGI_OBJECT_INFO_END()
 
@@ -487,6 +487,8 @@ bool writePrettyHTMLImpl<sgi::QtProxy>::process(std::basic_ostream<char>& os)
 
             callNextHandler(os);
 
+            os << "<tr><td>ptr</td><td>" << (void*)object << "</td></tr>" << std::endl;
+
             if(_table)
                 os << "</table>" << std::endl;
         }
@@ -621,6 +623,7 @@ std::string getObjectTypeImpl<SGIProxyItemBase>::process()
 GET_OBJECT_DISPLAYNAME_IMPL_TEMPLATE()
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(details::Referenced)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
+GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(sgi::QtProxy)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
@@ -645,6 +648,11 @@ std::string getObjectDisplayNameImpl<ReferencedInternalInfoData>::process()
 std::string getObjectDisplayNameImpl<SGIPlugins>::process()
 {
     return "SGIPlugins";
+}
+
+std::string getObjectDisplayNameImpl<QtProxy>::process()
+{
+    return "SGIQtProxy";
 }
 
 std::string getObjectDisplayNameImpl<SGIProxyItemBase>::process()
@@ -675,6 +683,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(SGIPlugins)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ImageGLWidget)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::QtProxy)
 
 bool objectTreeBuildImpl<ReferencedInternalItemData>::build(IObjectTreeItem * treeItem)
 {
@@ -742,6 +751,32 @@ bool objectTreeBuildImpl<SGIPlugins>::build(IObjectTreeItem * treeItem)
             ret = true;
             treeItem->addChild("Plugins", cloneItem<SGIItemQt>(SGIItemTypePlugins, ~0u));
             treeItem->addChild("Backend plugins", cloneItem<SGIItemQt>(SGIItemTypeBackendPlugins, ~0u));
+        }
+        break;
+    case SGIItemTypePlugins:
+        ret = true;
+        break;
+    case SGIItemTypeBackendPlugins:
+        ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<sgi::QtProxy>::build(IObjectTreeItem * treeItem)
+{
+    sgi::QtProxy * object = getObject<sgi::QtProxy,SGIItemQt>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        {
+            SGIHostItemInternal plugins(SGIPlugins::instance());
+            treeItem->addChild("Plugins", &plugins);
         }
         break;
     case SGIItemTypePlugins:
