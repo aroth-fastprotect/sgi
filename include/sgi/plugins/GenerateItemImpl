@@ -4,7 +4,7 @@
 #pragma once
 #include <sgi/details/call_function_for_object_type>
 
-#define SGI_DEBUG_GENERATESGIITEM
+//#define SGI_DEBUG_GENERATESGIITEM
 #ifdef SGI_DEBUG_GENERATESGIITEM
 #include <QDebug>
 #define generateSGIItemT_debug(...) qDebug() << __VA_ARGS__

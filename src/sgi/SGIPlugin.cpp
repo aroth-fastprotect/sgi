@@ -8,7 +8,7 @@
 #include <QColorDialog>
 #include <QLibraryInfo>
 #include <QPluginLoader>
-//#include <QDebug>
+#include <QDebug>
 
 #include "QtProxy.h"
 #include "sgi_internal.h"

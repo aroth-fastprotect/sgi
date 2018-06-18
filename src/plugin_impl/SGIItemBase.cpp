@@ -10,7 +10,7 @@
 
 #include <QImage>
 
-#define SGI_DEBUG_ITEM_ALLOCATION
+//#define SGI_DEBUG_ITEM_ALLOCATION
 
 #ifdef SGI_DEBUG_ITEM_ALLOCATION
 #include <QDebug>
