@@ -852,8 +852,8 @@ public:
                 if(ok && newItem.valid())
                 {
                     //std::cout << "got item " << (void*)newItem.get() << " with score=" << newItem->score() << " from " << pluginInfo->pluginName;
-                    // always remember which plugin generated the item
-                    newItem->setPluginInfo(pluginInfo);
+                    // always remember which plugin generated the item chain
+                    newItem->overridePluginInfoForAllItems(pluginInfo);
                     // copy the flags from the host item to the just generated item
                     newItem->setFlags(object->flags());
 

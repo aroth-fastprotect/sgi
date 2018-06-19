@@ -158,6 +158,18 @@ void SGIItemBase::setPluginInfo(const ISGIPluginInfo * pluginInfo)
     _pluginInfo = pluginInfo;
 }
 
+/// @brief override the plugin info in all items in the list
+/// @param pluginInfo pointer to plugin info
+void SGIItemBase::overridePluginInfoForAllItems(const ISGIPluginInfo * pluginInfo)
+{
+    SGIItemBase* item = this;
+    while(item)
+    {
+        item->_pluginInfo = pluginInfo;
+        item = item->_next.get();
+    }
+}
+
 /// @brief determines the length of the list
 /// @note the returned list size does not include the current item
 /// @return length of the list; zero if this item is the end of the list

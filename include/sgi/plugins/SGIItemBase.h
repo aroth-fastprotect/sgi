@@ -153,6 +153,7 @@ public:
 
     const ISGIPluginInfo * pluginInfo() const { return _pluginInfo; }
     void setPluginInfo(const ISGIPluginInfo * pluginInfo);
+    void overridePluginInfoForAllItems(const ISGIPluginInfo * pluginInfo);
 
     SGIItemBase * rootBase() const;
     void insertAfter(SGIItemBase * item);
