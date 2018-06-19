@@ -72,8 +72,8 @@ protected:
     class writePrettyHTMLImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        writePrettyHTMLImpl(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr, bool table=true) {} \
-        bool process(std::basic_ostream<char>& os) { return false; } \
+        writePrettyHTMLImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, const SGIItemBase * /*item*/=nullptr, bool /*table*/=true) {} \
+        bool process(std::basic_ostream<char>& /*os*/) { return false; } \
     }; \
     typedef writePrettyHTMLImplBaseT<writePrettyHTMLImpl> writePrettyHTMLImplBase;
 

@@ -78,8 +78,8 @@ public:
     class contextMenuPopulateImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        contextMenuPopulateImpl(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr) {}\
-        bool populate(IContextMenuItem * menuItem) { return false; } \
+        contextMenuPopulateImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, SGIItemBase * /*item*/=nullptr) {}\
+        bool populate(IContextMenuItem * /*menuItem*/) { return false; } \
     }; \
     typedef contextMenuPopulateImplBaseT<contextMenuPopulateImpl> contextMenuPopulateImplBase;
 

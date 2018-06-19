@@ -76,8 +76,8 @@ public:
     class objectTreeBuildImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        objectTreeBuildImpl(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr) {} \
-        bool build(IObjectTreeItem * treeItem) { return false; } \
+        objectTreeBuildImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, SGIItemBase * /*item*/=nullptr) {} \
+        bool build(IObjectTreeItem * /*treeItem*/) { return false; } \
     }; \
     typedef objectTreeBuildImplBaseT<objectTreeBuildImpl> objectTreeBuildImplBase;
 
@@ -153,8 +153,8 @@ public:
     class objectTreeBuildRootImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        objectTreeBuildRootImpl(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr) {} \
-        bool build(IObjectTreeItem * treeItem) { return false; } \
+        objectTreeBuildRootImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, SGIItemBase * /*item*/=nullptr) {} \
+        bool build(IObjectTreeItem * /*treeItem*/) { return false; } \
     }; \
     typedef objectTreeBuildRootImplBaseT<objectTreeBuildRootImpl> objectTreeBuildRootImplBase;
 
