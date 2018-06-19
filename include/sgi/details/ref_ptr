@@ -46,6 +46,8 @@ class ref_ptr
             if (tmp_ptr) tmp_ptr->unref();
             return *this;
         }
+        // implicit output conversion
+        operator T*() const { return _ptr; }
 
         // comparison operators for ref_ptr.
         bool operator == (const ref_ptr& rp) const { return (_ptr==rp._ptr); }

@@ -512,6 +512,8 @@ private:
     ConvertToImageImpl _convertToImage;
 };
 
+} // namespace sgi
+
 
 #define SGI_PLUGIN_IMPLEMENT(plugin_name) \
     class SGIPluginEntry##plugin_name : public sgi::SGIPluginEntryInterface { \
@@ -520,17 +522,17 @@ private:
             { \
                 setName(#plugin_name); \
             } \
-            const char* libraryName() override { return SGI_QUOTE(sgi_##plugin_name##_plugin); } \
-            const char* className() override { return SGI_QUOTE(SGIPlugin##plugin_name##ReaderWriter); } \
-            unsigned requiredMinimumHostVersion() const override { return SGIPLUGIN_HOSTINTERFACE_CURRENT_VERSION; } \
-            SGIPluginInterface * load(SGIPluginHostInterface * hostInterface) override { \
-                return new sgi::SGIPlugin_##plugin_name##_Implementation(const_cast<sgi::SGIPluginHostInterface *>(hostInterface); \
+            const char* libraryName() const override { return SGI_QUOTE(sgi_##plugin_name##_plugin); } \
+            const char* className() const override { return SGI_QUOTE(SGIPlugin##plugin_name##ReaderWriter); } \
+            SGIPluginEntry##plugin_name* cloneType() const override { return nullptr; } \
+            SGIPluginEntry##plugin_name* clone() const override { return nullptr; } \
+                unsigned requiredMinimumHostVersion() const override { return SGIPLUGIN_HOSTINTERFACE_CURRENT_VERSION; } \
+            sgi::SGIPluginInterface * load(sgi::SGIPluginHostInterface * hostInterface) override { \
+                return new sgi::SGIPlugin_##plugin_name##_Implementation(const_cast<sgi::SGIPluginHostInterface *>(hostInterface)); \
             } \
     }; \
     sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = nullptr; \
-    extern "C" SGIPluginEntryInterface * sgi_##plugin_name(void) { \
-        static SGIPluginEntryInterface s_entry; \
+    extern "C" sgi::SGIPluginEntryInterface * sgi_##plugin_name(void) { \
+        static SGIPluginEntry##plugin_name s_entry; \
         return &s_entry; \
     }
-
-} // namespace sgi

@@ -1207,7 +1207,7 @@ void ImagePreviewDialog::refreshImpl()
 
 SGIItemBase * ImagePreviewDialog::getView()
 {
-    if(_hostCallback)
+    if(_hostCallback.valid())
         return _hostCallback->getView();
     else
         return nullptr;
@@ -1215,7 +1215,7 @@ SGIItemBase * ImagePreviewDialog::getView()
 
 void ImagePreviewDialog::triggerRepaint()
 {
-    if(_hostCallback)
+    if(_hostCallback.valid())
         _hostCallback->triggerRepaint();
 }
 
@@ -1278,7 +1278,7 @@ void ImagePreviewDialog::openItem()
             dialog = _hostCallback->showSceneGraphDialog(this, _item.get());
         else
             dialog = _hostInterface->showSceneGraphDialog(this, _item.get(), _hostCallback.get());
-        if(dialog)
+        if(dialog.valid())
         {
             dialog->show();
         }

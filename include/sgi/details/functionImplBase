@@ -245,6 +245,27 @@ public:
             ret = _item->rootBase()->clone<ItemTypeSecond>(static_cast<SGIItemType>(newType));
         return ret;
     }
+    template<typename ItemTypeFirst, typename ItemTypeSecond, typename SGIITEMTYPE_ENUM>
+    SGIItemBase * cloneItemMulti(SGIITEMTYPE_ENUM newType, unsigned number)
+    {
+        SGIItemBase * ret = nullptr;
+        if(ItemTypeFirst * first = dynamic_cast<ItemTypeFirst*>(_item.get()))
+            ret = _item->rootBase()->clone<ItemTypeFirst>(static_cast<SGIItemType>(newType), number);
+        else if(ItemTypeSecond * second = dynamic_cast<ItemTypeSecond*>(_item.get()))
+            ret = _item->rootBase()->clone<ItemTypeSecond>(static_cast<SGIItemType>(newType), number);
+        return ret;
+    }
+    template<typename ItemTypeFirst, typename ItemTypeSecond, typename SGIITEMTYPE_ENUM>
+    SGIItemBase * cloneItemMulti(SGIITEMTYPE_ENUM newType, unsigned number, details::Referenced * userData)
+    {
+        SGIItemBase * ret = nullptr;
+        if(ItemTypeFirst * first = dynamic_cast<ItemTypeFirst*>(_item.get()))
+            ret = _item->rootBase()->clone<ItemTypeFirst>(static_cast<SGIItemType>(newType), number, userData);
+        else if(ItemTypeSecond * second = dynamic_cast<ItemTypeSecond*>(_item.get()))
+            ret = _item->rootBase()->clone<ItemTypeSecond>(static_cast<SGIItemType>(newType), number, userData);
+        return ret;
+    }
+
     template<typename T, typename ItemType>
     inline T * getObject()
     {

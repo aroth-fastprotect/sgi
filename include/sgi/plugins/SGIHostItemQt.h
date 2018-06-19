@@ -3,6 +3,7 @@
 
 #pragma once
 #include "SGIHostItemBase.h"
+#include <QPointer>
 
 class QObject;
 struct QMetaObject;
@@ -14,8 +15,8 @@ namespace sgi {
 
 typedef SGIItemInfoPlainPtr<QObject> SGIItemInfoQt;
 typedef SGIItemInfoPlainPtr<QMetaObject> SGIItemInfoQtMeta;
-typedef SGIItemInfoSharedPtrQt<QPaintDevice> SGIItemInfoQtPaintDevice;
-typedef SGIItemInfoSharedPtrQt<QSurface> SGIItemInfoQtSurface;
+typedef SGIItemInfoSharedPtrQt<QPaintDevice, QSharedPointer<QPaintDevice> > SGIItemInfoQtPaintDevice;
+typedef SGIItemInfoSharedPtrQt<QSurface, QSharedPointer<QSurface> > SGIItemInfoQtSurface;
 typedef SGIItemInfoPlainPtr<QIcon> SGIItemInfoQtIcon;
 
 typedef SGIHostItemImpl<SGIItemInfoQt> SGIHostItemQt;

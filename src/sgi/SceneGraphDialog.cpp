@@ -311,7 +311,7 @@ SceneGraphDialog::~SceneGraphDialog()
 		delete ui;
         ui = nullptr;
 	}
-    if (_toolsMenuInterface)
+    if (_toolsMenuInterface.valid())
     {
         // tell interface that this instance is already gone, so no need to
         // delete again
@@ -429,7 +429,7 @@ void SceneGraphDialog::onObjectChanged(int tabIndex, SGIItemBase * item)
     for (int index = 0; item && existingTabIndex < 0 && index < (int)ui->tabs.size(); ++index)
     {
         Ui_TabPage * page = ui->tabs[index];
-        if (page->item == item)
+        if (page->item.get() == item)
             existingTabIndex = index;
     }
     if (existingTabIndex >= 0)
@@ -654,7 +654,7 @@ void SceneGraphDialog::itemPrevious()
         {
             if(*uiPage->item.get() == *(*it))
             {
-                if(prev)
+                if(prev.valid())
                 {
                     uiPage->item = prev;
                     selectItemInPathBox();
@@ -799,7 +799,7 @@ void SceneGraphDialog::onItemContextMenu(QPoint pt)
         IContextMenuPtr objectMenu = _hostCallback->contextMenu(this, itemData.item());
         if (!objectMenu)
         {
-            if (_contextMenu)
+            if (_contextMenu.valid())
             {
                 _contextMenu->setObject(itemData.item());
                 objectMenu = _contextMenu;
@@ -810,7 +810,7 @@ void SceneGraphDialog::onItemContextMenu(QPoint pt)
             }
         }
 
-        if (objectMenu)
+        if (objectMenu.valid())
             contextQMenu = objectMenu->getMenu();
 
         _contextMenu = objectMenu;
@@ -826,7 +826,7 @@ void SceneGraphDialog::onItemContextMenu(QPoint pt)
 
 SGIItemBase * SceneGraphDialog::getView()
 {
-    if(_hostCallback)
+    if(_hostCallback.valid())
         return _hostCallback->getView();
     else
         return nullptr;
@@ -834,7 +834,7 @@ SGIItemBase * SceneGraphDialog::getView()
 
 void SceneGraphDialog::triggerRepaint()
 {
-    if(_hostCallback)
+    if(_hostCallback.valid())
         _hostCallback->triggerRepaint();
 }
 
@@ -842,7 +842,7 @@ bool SceneGraphDialog::newInstance(SGIItemBase * item)
 {
     bool ret;
     // only open a new instance when the object is different
-    if(uiPage->item != item && *uiPage->item.get() != *item)
+    if(uiPage->item.get() != item && *uiPage->item.get() != *item)
     {
         ISceneGraphDialog * dlg = SGIPlugins::instance()->showSceneGraphDialog(parentWidget(), item, _hostCallback.get());
         if(dlg)

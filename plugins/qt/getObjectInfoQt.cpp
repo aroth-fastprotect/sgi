@@ -158,7 +158,7 @@ SGIItemBasePtrPath getObjectPathImpl<QObject>::process()
     while(parent)
     {
         SGIHostItemQt pathHostItem(parent);
-        osg::ref_ptr<SGIItemBase> pathItem;
+        SGIItemBasePtr pathItem;
         if(_hostInterface->generateItem(pathItem, &pathHostItem))
             ret.push_back(pathItem.get());
         parent = parent->parent();
@@ -175,7 +175,7 @@ SGIItemBasePtrPath getObjectPathImpl<QMetaObject>::process()
     while(parent)
     {
         SGIHostItemQtMeta pathHostItem(parent);
-        osg::ref_ptr<SGIItemBase> pathItem;
+        SGIItemBasePtr pathItem;
         if(_hostInterface->generateItem(pathItem, &pathHostItem))
             ret.push_back(pathItem.get());
         parent = parent->superClass();

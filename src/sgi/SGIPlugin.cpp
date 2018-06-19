@@ -593,7 +593,7 @@ public:
             PluginInfo info;
             info._pluginName = SGIPlugin_internal::PluginName;
             info.pluginInterface = SGIPlugin_internal::create(&_hostInterface);
-            if (info.pluginInterface)
+            if (info.pluginInterface.valid())
             {
                 info.writePrettyHTMLInterface = info.pluginInterface->getWritePrettyHTML();
                 info.objectInfoInterface = info.pluginInterface->getObjectInfo();
@@ -653,7 +653,7 @@ public:
                     info.errorMessage = loader.errorString().toStdString();
                 }
 			}
-            if (info.pluginInterface)
+            if (info.pluginInterface.valid())
             {
                 if(info.pluginInterface->getRequiredInterfaceVersion() != _hostInterface.version())
                 {
@@ -823,7 +823,7 @@ public:
         for(PluginMap::const_iterator it = _plugins.begin(); it != _plugins.end(); it++)
         {
             const PluginInfo * pluginInfo = &(it->second);
-            if(pluginInfo->pluginInterface)
+            if(pluginInfo->pluginInterface.valid())
             {
                 SGIItemBasePtr newItem;
                 bool ok = pluginInfo->pluginInterface->generateItem(object, newItem);
@@ -1169,7 +1169,7 @@ public:
         for(PluginMap::const_iterator it = _plugins.begin(); it != _plugins.end(); it++)
         {
             const PluginInfo & itPluginInfo = it->second;
-            if(itPluginInfo.pluginInterface && itPluginInfo.objectTreeInterface)
+            if(itPluginInfo.pluginInterface.valid() && itPluginInfo.objectTreeInterface)
             {
                 bool ret = itPluginInfo.objectTreeInterface->buildRootTree(treeItem, item);
                 if(ret)
@@ -1774,7 +1774,7 @@ public:
         for(auto it = _plugins.begin(); it != _plugins.end(); ++it)
         {
             const PluginInfo & pluginInfo = it->second;
-            if(pluginInfo.pluginInterface)
+            if(pluginInfo.pluginInterface.valid())
                 pluginInfo.pluginInterface->shutdown();
         }
 		_plugins.clear();

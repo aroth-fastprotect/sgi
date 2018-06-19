@@ -128,7 +128,7 @@ void item_unittest::insertItemTwoChains()
         for(unsigned n = 0; n <= (numItems * 2); n+=2)
         {
             SGIItemBasePtr item = new TestItem(n);
-            if(prev)
+            if(prev.valid())
                 prev->insertBefore(item.get());
             prev = item;
         }
@@ -142,7 +142,7 @@ void item_unittest::insertItemTwoChains()
         for(unsigned n = 1; n <= (numItems * 2) + 1; n+=2)
         {
             SGIItemBasePtr item = new TestItem(n);
-            if(prev)
+            if(prev.valid())
                 prev->insertBefore(item.get());
             prev = item;
         }
@@ -176,7 +176,7 @@ void item_unittest::insertItemSameScore()
         for(unsigned n = 0; n <= (numItems * 2); n+=2)
         {
             SGIItemBasePtr item = new TestItem(17);
-            if(prev)
+            if(prev.valid())
                 prev->insertBefore(item.get());
             prev = item;
         }
@@ -190,7 +190,7 @@ void item_unittest::insertItemSameScore()
         for(unsigned n = 1; n <= (numItems * 2) + 1; n+=2)
         {
             SGIItemBasePtr item = new TestItem(17);
-            if(prev)
+            if(prev.valid())
                 prev->insertBefore(item.get());
             prev = item;
         }

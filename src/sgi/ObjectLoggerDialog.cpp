@@ -372,7 +372,7 @@ void ObjectLoggerDialog::onItemContextMenu(QPoint pt)
     IContextMenuPtr objectMenu = _hostCallback->contextMenu(this, itemData.item());
     if(!objectMenu)
     {
-        if(_contextMenu)
+        if(_contextMenu.valid())
         {
             _contextMenu->setObject(itemData.item());
             objectMenu = _contextMenu;
@@ -383,7 +383,7 @@ void ObjectLoggerDialog::onItemContextMenu(QPoint pt)
         }
     }
 
-    if(objectMenu)
+    if(objectMenu.valid())
         contextQMenu = objectMenu->getMenu();
 
     _contextMenu = objectMenu;
@@ -421,7 +421,7 @@ void ObjectLoggerDialog::refreshTimerExpired()
 
 SGIItemBase * ObjectLoggerDialog::getView()
 {
-    if(_hostCallback)
+    if(_hostCallback.valid())
         return _hostCallback->getView();
     else
         return nullptr;
@@ -429,7 +429,7 @@ SGIItemBase * ObjectLoggerDialog::getView()
 
 void ObjectLoggerDialog::triggerRepaint()
 {
-    if(_hostCallback)
+    if(_hostCallback.valid())
         _hostCallback->triggerRepaint();
 }
 
@@ -468,7 +468,7 @@ bool ObjectLoggerDialog::newInstance(const SGIHostItemBase * hostitem)
 bool ObjectLoggerDialog::addItem(SGIItemBase * item, bool alsoChilds)
 {
     bool ret;
-    if(_logger)
+    if(_logger.valid())
         ret = _logger->addItem(item, alsoChilds);
     else
         ret = false;
@@ -478,7 +478,7 @@ bool ObjectLoggerDialog::addItem(SGIItemBase * item, bool alsoChilds)
 bool ObjectLoggerDialog::addItems(const SGIItemBasePtrPath & path)
 {
     bool ret;
-    if(_logger)
+    if(_logger.valid())
         ret = _logger->addItems(path);
     else
         ret = false;
@@ -488,7 +488,7 @@ bool ObjectLoggerDialog::addItems(const SGIItemBasePtrPath & path)
 bool ObjectLoggerDialog::removeItem(SGIItemBase * item)
 {
     bool ret;
-    if(_logger)
+    if(_logger.valid())
         ret = _logger->removeItem(item);
     else
         ret = false;
@@ -498,7 +498,7 @@ bool ObjectLoggerDialog::removeItem(SGIItemBase * item)
 bool ObjectLoggerDialog::removeItems(const SGIItemBasePtrPath & path)
 {
     bool ret;
-    if(_logger)
+    if(_logger.valid())
         ret = _logger->removeItems(path);
     else
         ret = false;

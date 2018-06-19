@@ -397,7 +397,7 @@ ContextMenu::~ContextMenu()
 
 void ContextMenu::showSceneGraphDialog(SGIItemBase * item)
 {
-    if(_hostCallback)
+    if(_hostCallback.valid())
         _hostCallback->showSceneGraphDialog(parentWidget(), item);
     else
         SGIPlugins::instance()->showSceneGraphDialog(parentWidget(), item, nullptr);
@@ -550,8 +550,8 @@ public:
 ContextMenuQt::ContextMenuQt(QObject * qobject, IHostCallback * callback, bool onlyRootItem, QWidget *parent)
     : QObject(parent)
     , _interface(new ContextMenuQtImpl(this))
-    , _qobject(qobject)
     , _hostCallback(callback)
+    , _qobject(qobject)
     , _onlyRootItem(onlyRootItem)
 {
     SGIHostItemQt hostItem(qobject);
@@ -581,7 +581,7 @@ IHostCallback * ContextMenuQt::getHostCallback()
 
 QWidget * ContextMenuQt::parentWidget()
 {
-    if (_realMenu)
+    if (_realMenu.valid())
         return _realMenu->parentWidget();
     else
         return nullptr;
@@ -589,7 +589,7 @@ QWidget * ContextMenuQt::parentWidget()
 
 QMenu * ContextMenuQt::getMenu()
 {
-    if (_realMenu)
+    if (_realMenu.valid())
         return _realMenu->getMenu();
     else
         return nullptr;
@@ -598,7 +598,7 @@ QMenu * ContextMenuQt::getMenu()
 void ContextMenuQt::setObject(QObject * qobject, IHostCallback * callback)
 {
     _hostCallback = callback;
-    if (_realMenu)
+    if(_realMenu.valid())
     {
         if (qobject)
         {
@@ -606,14 +606,14 @@ void ContextMenuQt::setObject(QObject * qobject, IHostCallback * callback)
             _realMenu->setObject(&hostItem, callback);
         }
         else
-            _realMenu->setObject((SGIItemBase*)nullptr, callback);
+            _realMenu->setObject(static_cast<SGIItemBase*>(nullptr), callback);
     }
 }
 
 void ContextMenuQt::popup(QWidget * parent, int x, int y)
 {
     //qDebug() << "ContextMenuQt::popup" << parent << x << y;
-    if(_realMenu)
+    if(_realMenu.valid())
         _realMenu->popup(parent, x, y);
 }
 
