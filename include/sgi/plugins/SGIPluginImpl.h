@@ -515,6 +515,14 @@ private:
 } // namespace sgi
 
 
+#if defined(_MSC_VER) || defined(__CYGWIN__) || defined(__MINGW32__) || defined( __BCPLUSPLUS__) || defined( __MWERKS__)
+    #  define SGI_PLUGIN_EXPORT   __declspec(dllexport)
+#elif defined(__GNUC__)
+    #  define SGI_PLUGIN_EXPORT __attribute__ ((visibility ("default")))
+#else
+    #  define SGI_PLUGIN_EXPORT
+#endif
+
 #define SGI_PLUGIN_IMPLEMENT(plugin_name) \
     class SGIPluginEntry##plugin_name : public sgi::SGIPluginEntryInterface { \
         public: \
@@ -532,7 +540,7 @@ private:
             } \
     }; \
     sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = nullptr; \
-    extern "C" sgi::SGIPluginEntryInterface * sgi_##plugin_name(void) { \
+    extern "C" SGI_PLUGIN_EXPORT sgi::SGIPluginEntryInterface * sgi_##plugin_name(void) { \
         static SGIPluginEntry##plugin_name s_entry; \
         return &s_entry; \
     }

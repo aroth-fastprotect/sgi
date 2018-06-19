@@ -35,6 +35,7 @@ public:
     SGIPluginInfo()
         : _pluginName()
         , _pluginFilename()
+        , entryInterface(nullptr)
         , pluginInterface(nullptr)
         , writePrettyHTMLInterface(nullptr)
         , objectInfoInterface(nullptr)
@@ -51,6 +52,7 @@ public:
     SGIPluginInfo(const SGIPluginInfo & rhs)
         : _pluginName(rhs._pluginName)
         , _pluginFilename(rhs._pluginFilename)
+        , entryInterface(rhs.entryInterface)
         , pluginInterface(rhs.pluginInterface)
         , writePrettyHTMLInterface(rhs.writePrettyHTMLInterface)
         , objectInfoInterface(rhs.objectInfoInterface)
@@ -71,6 +73,7 @@ public:
 public:
     std::string                             _pluginName;
     std::string                             _pluginFilename;
+    SGIPluginEntryInterface *               entryInterface;
     details::ref_ptr<SGIPluginInterface>    pluginInterface;
     SGIPluginInterface::WritePrettyHTML*    writePrettyHTMLInterface;
     SGIPluginInterface::ObjectInfo*         objectInfoInterface;
@@ -100,8 +103,7 @@ public:
         PluginTypeModel = 0,
     };
 
-    typedef SGIPluginInfo PluginInfo;
-    typedef std::list<PluginInfo> PluginInfoList;
+    typedef std::list<SGIPluginInfo> PluginInfoList;
     typedef std::pair<std::string, std::string> PluginFileName;
     typedef std::list<PluginFileName> PluginFileNameList;
     typedef std::vector<std::string> StringList;

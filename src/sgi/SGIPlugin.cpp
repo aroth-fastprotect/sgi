@@ -576,12 +576,12 @@ public:
 
     static QString createLibraryNameForPlugin(const QString & dir, const std::string& name)
     {
-        return dir + QStringLiteral("/sgi_") + QString::fromStdString(name) + QStringLiteral("_plugin");
+        return dir + QStringLiteral("/sgi_") + QString::fromStdString(name) + QStringLiteral("_plugin") + QLatin1Literal(SGI_PLUGIN_EXTENSION);
     }
 
-    const PluginInfo * loadInternalPlugin()
+    const SGIPluginInfo * loadInternalPlugin()
     {
-        const PluginInfo * ret = nullptr;
+        const SGIPluginInfo * ret = nullptr;
         {
             std::lock_guard<std::mutex> lock(_mutex);
             PluginMap::iterator it = _plugins.find(SGIPlugin_internal::PluginName);
@@ -590,7 +590,7 @@ public:
         }
         if(!ret)
         {
-            PluginInfo info;
+            SGIPluginInfo info;
             info._pluginName = SGIPlugin_internal::PluginName;
             info.pluginInterface = SGIPlugin_internal::create(&_hostInterface);
             if (info.pluginInterface.valid())
@@ -622,9 +622,9 @@ public:
     /// @param name internal name of the plugin to load without any prefix or suffix
     /// @param filename optional filename of the library to load
     /// @return pointer to plugin info struct
-    const PluginInfo * loadPlugin(const std::string & name, const std::string & filename=std::string())
+    const SGIPluginInfo * loadPlugin(const std::string & name, const std::string & filename=std::string())
     {
-        const PluginInfo * ret = nullptr;
+        const SGIPluginInfo * ret = nullptr;
         {
             std::lock_guard<std::mutex> lock(_mutex);
             PluginMap::iterator it = _plugins.find(name);
@@ -633,19 +633,28 @@ public:
         }
         if(!ret)
         {
-            PluginInfo info;
+            SGIPluginInfo info;
             info._pluginName = name;
+            //
 
             QString pluginFilename;
             for(const std::string & pluginDir : _pluginDirectories)
             {
                 pluginFilename = createLibraryNameForPlugin(QString::fromStdString(pluginDir), name);
+                if(!QFile::exists(pluginFilename))
+                    continue;
+
                 DisableLibraryLoadErrors disable_load_errors;
                 QLibrary loader(pluginFilename);
                 if(loader.load())
                 {
                     std::string entryPoint = "sgi_" + name;
-                    loader.resolve(entryPoint.c_str());
+                    QFunctionPointer symbol = loader.resolve(entryPoint.c_str());
+                    SGIPluginEntryInterface::pfnGetPluginEntryInterface pfn = reinterpret_cast<SGIPluginEntryInterface::pfnGetPluginEntryInterface>(symbol);
+                    if(pfn)
+                        info.entryInterface = pfn();
+                    else
+                        info.errorMessage = loader.errorString().toStdString();
                     break;
                 }
                 else
@@ -653,6 +662,20 @@ public:
                     info.errorMessage = loader.errorString().toStdString();
                 }
 			}
+            if (info.entryInterface)
+            {
+                unsigned reqMinHostVersion = info.entryInterface->requiredMinimumHostVersion();
+                if(reqMinHostVersion < _hostInterface.version())
+                {
+                    // release the plugin because version does not match
+                    qDebug() << "Drop plugin " << name << "(" << pluginFilename << ") because plugin requires host version" << reqMinHostVersion
+                        << " but SGI only has version " << _hostInterface.version() << "available";
+                }
+                else
+                {
+                    info.pluginInterface = info.entryInterface->load(&_hostInterface);
+                }
+            }
             if (info.pluginInterface.valid())
             {
                 if(info.pluginInterface->getRequiredInterfaceVersion() != _hostInterface.version())
@@ -730,14 +753,13 @@ public:
 
                 if(!pluginName.isEmpty())
                 {
-                    QString basename_no_ext = fi.baseName();
                     QString expectedFilename;
                     switch(pluginType)
                     {
-                    case PluginTypeModel: expectedFilename = QStringLiteral("sgi_") + pluginName + QStringLiteral("_plugin") + postfix; break;
+                    case PluginTypeModel: expectedFilename = QStringLiteral("sgi_") + pluginName + QStringLiteral("_plugin") + QLatin1Literal(SGI_PLUGIN_EXTENSION); break;
                     default: break;
                     }
-                    if(basename_no_ext == expectedFilename)
+                    if(basename == expectedFilename)
                     {
                         PluginFileName plugin(pluginName.toStdString(), fi.absoluteFilePath().toStdString());
                         ret.push_back(plugin);
@@ -755,7 +777,7 @@ public:
         pluginList.clear();
         for(PluginMap::const_iterator it = _plugins.begin(); it != _plugins.end(); it++)
         {
-            const PluginInfo & info = it->second;
+            const SGIPluginInfo & info = it->second;
             pluginList.push_back(info);
         }
         return true;
@@ -822,7 +844,7 @@ public:
         }
         for(PluginMap::const_iterator it = _plugins.begin(); it != _plugins.end(); it++)
         {
-            const PluginInfo * pluginInfo = &(it->second);
+            const SGIPluginInfo * pluginInfo = &(it->second);
             if(pluginInfo->pluginInterface.valid())
             {
                 SGIItemBasePtr newItem;
@@ -876,7 +898,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo && pluginInfo->writePrettyHTMLInterface)
             {
                 ret = pluginInfo->writePrettyHTMLInterface->writePrettyHTML(os, item, table);
@@ -899,7 +921,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo && pluginInfo->objectInfoInterface)
             {
                 ret = pluginInfo->objectInfoInterface->getObjectName(name, item, full);
@@ -922,7 +944,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo && pluginInfo->objectInfoInterface)
             {
                 ret = pluginInfo->objectInfoInterface->getObjectDisplayName(name, item, full);
@@ -945,7 +967,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo && pluginInfo->objectInfoInterface)
             {
                 ret = pluginInfo->objectInfoInterface->getObjectTypename(name, item, full);
@@ -968,7 +990,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo && pluginInfo->objectInfoInterface)
             {
                 ret = pluginInfo->objectInfoInterface->getObjectSuggestedFilename(filename, item);
@@ -991,7 +1013,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo && pluginInfo->objectInfoInterface)
             {
                 ret = pluginInfo->objectInfoInterface->getObjectSuggestedFilenameExtension(ext, item);
@@ -1014,7 +1036,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo && pluginInfo->objectInfoInterface)
             {
                 ret = pluginInfo->objectInfoInterface->getObjectFilenameFilters(filters, item);
@@ -1038,7 +1060,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo && pluginInfo->objectInfoInterface)
             {
                 ret = pluginInfo->objectInfoInterface->getObjectPath(path, item);
@@ -1061,7 +1083,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo)
             {
                 if(pluginInfo && pluginInfo->objectInfoInterface)
@@ -1152,7 +1174,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo && pluginInfo->objectTreeInterface)
             {
                 ret = pluginInfo->objectTreeInterface->buildTree(treeItem, item);
@@ -1168,7 +1190,7 @@ public:
 
         for(PluginMap::const_iterator it = _plugins.begin(); it != _plugins.end(); it++)
         {
-            const PluginInfo & itPluginInfo = it->second;
+            const SGIPluginInfo & itPluginInfo = it->second;
             if(itPluginInfo.pluginInterface.valid() && itPluginInfo.objectTreeInterface)
             {
                 bool ret = itPluginInfo.objectTreeInterface->buildRootTree(treeItem, item);
@@ -1192,7 +1214,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo && pluginInfo->contextMenuInterface)
             {
                 ret = pluginInfo->contextMenuInterface->populate(menuItem, item);
@@ -1210,7 +1232,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo && pluginInfo->contextMenuInterface)
             {
                 ret = pluginInfo->contextMenuInterface->execute(menuAction, item);
@@ -1233,7 +1255,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo && pluginInfo->settingsDialogInterface)
             {
                 ret = pluginInfo->settingsDialogInterface->create(dialog, item, info);
@@ -1597,7 +1619,7 @@ public:
         bool ret = false;
         while(view != nullptr && !ret)
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(view->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(view->pluginInfo());
             if(pluginInfo)
             {
                 if(pluginInfo && pluginInfo->guiAdapterInterface)
@@ -1647,7 +1669,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo)
             {
                 if(pluginInfo && pluginInfo->objectLoggerInterface)
@@ -1673,7 +1695,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo)
             {
                 if(pluginInfo && pluginInfo->objectLoggerInterface)
@@ -1699,7 +1721,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo)
             {
                 if(pluginInfo && pluginInfo->objectLoggerInterface)
@@ -1726,7 +1748,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo)
             {
                 if(pluginInfo && pluginInfo->guiAdapterInterface)
@@ -1753,7 +1775,7 @@ public:
         bool ret = false;
         do
         {
-            const PluginInfo * pluginInfo = static_cast<const PluginInfo *>(item->pluginInfo());
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
             if(pluginInfo)
             {
                 if(pluginInfo && pluginInfo->convertToImage)
@@ -1773,7 +1795,7 @@ public:
         QtProxy::instance(true);
         for(auto it = _plugins.begin(); it != _plugins.end(); ++it)
         {
-            const PluginInfo & pluginInfo = it->second;
+            const SGIPluginInfo & pluginInfo = it->second;
             if(pluginInfo.pluginInterface.valid())
                 pluginInfo.pluginInterface->shutdown();
         }
@@ -1900,7 +1922,7 @@ public:
         return ret;
     }
 
-    typedef std::map<std::string, PluginInfo> PluginMap;
+    typedef std::map<std::string, SGIPluginInfo> PluginMap;
     typedef std::map<int, std::string> NamedEnumValues;
     struct EnumType {
         std::string description;

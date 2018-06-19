@@ -155,7 +155,7 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
             {
                 for(SGIPlugins::PluginInfoList::const_iterator it = plugins.begin(); it != plugins.end(); it++)
                 {
-                    const SGIPlugins::PluginInfo & info = *it;
+                    const SGIPluginInfo & info = *it;
                     os << "<li>" << info.pluginName();
                     if(info.isInternalPlugin())
                         os << " <i>(internal)</i>";
@@ -178,7 +178,7 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
             {
                 for(SGIPlugins::PluginInfoList::const_iterator it = plugins.begin(); it != plugins.end(); it++)
                 {
-                    const SGIPlugins::PluginInfo & info = *it;
+                    const SGIPluginInfo & info = *it;
                     os << "<li>" << info.pluginName() << "<br/>";
                     os << "<table border=\'1\' align=\'left\' width='100%'>";
                     os << "<tr><td>filename</td><td>" << info.pluginFilename() << "</td></tr>";
@@ -255,18 +255,17 @@ bool writePrettyHTMLImpl<ReferencedInternalItemData>::process(std::basic_ostream
             os << "<tr><td>prev</td><td>" << (void*)data->previousBase() << "</td></tr>" << std::endl;
             os << "<tr><td>next</td><td>" << (void*)data->nextBase() << "</td></tr>" << std::endl;
 
-            const SGIPlugins::PluginInfo * pluginInfo = (const SGIPlugins::PluginInfo *)data->pluginInfo();
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(data->pluginInfo());
             os << "<tr><td>plugin</td><td>" << pluginInfo->pluginName() << "</td></tr>" << std::endl;
             os << "<tr><td>pluginScore</td><td>" << pluginInfo->pluginScore() << "</td></tr>" << std::endl;
 
             os << "<tr><td>item chain</td><td><ul>";
             SGIItemType initialType = data->type();
-            SGIItemBase * item;
             {
-                item = data->rootBase();
+                SGIItemBase* item = data->rootBase();
                 while(item)
                 {
-                    const SGIPlugins::PluginInfo * itemPluginInfo = (const SGIPlugins::PluginInfo *)item->pluginInfo();
+                    const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
                     os << "<li>#" << item->score() << "&nbsp;";
                     if(initialType != item->type())
                         os << enumValueToString(item->type()) << "&nbsp;";
@@ -274,7 +273,14 @@ bool writePrettyHTMLImpl<ReferencedInternalItemData>::process(std::basic_ostream
                         os << "(this)";
                     else
                         os << (void*)item;
-                    os << "&nbsp;<b>" << helpers::demangle_html(item->typeName()) << "</b>&nbsp;<i>" << itemPluginInfo->pluginName() << ':' << itemPluginInfo->pluginScore() << "</i></li>";
+                    os << "&nbsp;<b>" << helpers::demangle_html(item->typeName()) << "</b>";
+                    if(pluginInfo)
+                    {
+                        os << "&nbsp;<i>"
+                           << pluginInfo->pluginName() << ':' << pluginInfo->pluginScore()
+                           << "</i>";
+                    }
+                    os << "</li>";
                     item = item->nextBase();
                 }
             }

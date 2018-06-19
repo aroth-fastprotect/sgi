@@ -273,6 +273,8 @@ class SGIPluginEntryInterface : public details::Object
 public:
     virtual unsigned requiredMinimumHostVersion() const = 0;
     virtual SGIPluginInterface * load(SGIPluginHostInterface * hostInterface) = 0;
+
+    typedef sgi::SGIPluginEntryInterface * (*pfnGetPluginEntryInterface)();
 };
 
 } // namespace sgi
