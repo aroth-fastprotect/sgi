@@ -45,6 +45,12 @@ public:
     template<typename T>
     void accept(T * object)
     {
+        if(!generateSGIItemImplTemplate<T>::accept::value)
+        {
+            generateSGIItemT_debug(__FUNCTION__ << " " << typeid(T).name() << " level=" << _level << " " << (void*)object << " rejected");
+            return;
+        }
+
         generateSGIItemT_debug(__FUNCTION__ << " " << typeid(T).name() << " level=" << _level << " " << (void*)object);
         SGIItemType itemType = generateSGIItemImplTemplate<T>::ItemType::value;
         SGIItemClass * newItem = new SGIItemClass(_hostItem, itemType, object, 0, _level, _hostItem->userDataPtr());
@@ -53,12 +59,6 @@ public:
             _itemChain->insertBefore(newItem);
         generateSGIItemT_debug(__FUNCTION__ << " " << typeid(T).name() << " level=" << _level << " " << (void*)object << " item=" << newItem);
         _itemChain = newItem;
-    }
-    template<typename T>
-    bool canAccept(T * object)
-    {
-        generateSGIItemT_debug(__FUNCTION__ << " " << typeid(T).name() << " level=" << _level << " " << (void*)object << " ret=" << generateSGIItemImplTemplate<T>::accept::value);
-        return generateSGIItemImplTemplate<T>::accept::value;
     }
     bool wasAccepted() const
     {
