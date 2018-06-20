@@ -5,6 +5,11 @@
 
 namespace sgi {
 
+typedef details::ReferencedDataT<int> ReferencedDataInt;
+typedef std::pair<int, int> IntPair;
+typedef details::ReferencedDataT<IntPair> ReferencedDataIntPair;
+typedef details::ReferencedDataT<std::string> ReferencedDataString;
+
 template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*>
 struct SGIItemInfoPlainPtr {
     typedef OBJECT_TYPE ObjectType;

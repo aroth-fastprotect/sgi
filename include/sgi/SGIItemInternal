@@ -19,7 +19,7 @@ struct InternalItemData
     InternalItemData(SGIItemBase * item_) : item(item_) {}
 };
 
-typedef ReferencedDataT<InternalItemData> ReferencedInternalItemData;
+typedef details::ReferencedDataT<InternalItemData> ReferencedInternalItemData;
 
 struct InternalInfoData
 {
@@ -31,6 +31,6 @@ struct InternalInfoData
     InternalInfoData(CommandId command_) : command(command_) {}
 };
 
-typedef ReferencedDataT<InternalInfoData> ReferencedInternalInfoData;
+typedef details::ReferencedDataT<InternalInfoData> ReferencedInternalInfoData;
 
 } // namespace sgi

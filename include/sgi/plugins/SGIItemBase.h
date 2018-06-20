@@ -256,7 +256,7 @@ public:
     typedef typename HOLDER_TYPE::ObjectType ObjectType;
     typedef HOST_ITEM_TYPE HostItemType;
 
-    SGIItemT(const HostItemType * hostItem=nullptr, SGIItemType type=SGIItemTypeInvalid, ObjectType * object=nullptr, unsigned flags=0, unsigned score=0, details::Referenced * userData=nullptr)
+    SGIItemT(const HostItemType * /*hostItem*/=nullptr, SGIItemType type=SGIItemTypeInvalid, ObjectType * object=nullptr, unsigned flags=0, unsigned score=0, details::Referenced * userData=nullptr)
         : SGIItemBase(object ? new HOLDER_TYPE(object) : nullptr, type, flags, score, userData) {}
     SGIItemT(SGIItemType type, ObjectType * object=nullptr, unsigned flags=0, unsigned score=0, details::Referenced * userData=nullptr)
         : SGIItemBase(object ? new HOLDER_TYPE(object) : nullptr, type, flags, score, userData) {}
@@ -269,6 +269,18 @@ public:
 
     ObjectType * object() { return static_cast<HOLDER_TYPE*>(_holder.get())->object(); }
     ObjectType * object() const { return static_cast<const HOLDER_TYPE*>(_holder.get())->object(); }
+
+    template<typename USER_DATA_TYPE>
+    USER_DATA_TYPE * objectAs()
+    {
+        return dynamic_cast<USER_DATA_TYPE *>(object());
+    }
+    template<typename USER_DATA_TYPE>
+    const USER_DATA_TYPE * objectAs() const
+    {
+        return dynamic_cast<const USER_DATA_TYPE *>(object());
+    }
+
 };
 
 namespace internal {
@@ -282,64 +294,6 @@ template<typename T>
 int getRefCount(const T * ref) {
     return static_cast<const internal::ReferencedAccess*>(static_cast<const details::Referenced*>(ref))->getRefCount();
 }
-
-template<typename T>
-class ReferencedDataT : public details::Referenced
-{
-public:
-    ReferencedDataT()
-        : details::Referenced()
-        , _data()
-        {}
-    ReferencedDataT(const T & data)
-        : details::Referenced()
-        , _data(data)
-        {}
-    ReferencedDataT(const ReferencedDataT & rhs)
-        : details::Referenced(rhs)
-        , _data(rhs._data)
-        {}
-    const T & data() const { return _data; }
-    T & data() { return _data; }
-
-    operator const T & () const {return _data;}
-    operator T & () {return _data;}
-private:
-    T _data;
-};
-
-typedef ReferencedDataT<int> ReferencedDataInt;
-typedef std::pair<int, int> IntPair;
-typedef ReferencedDataT<IntPair> ReferencedDataIntPair;
-typedef ReferencedDataT<std::string> ReferencedDataString;
-
-template<typename T>
-class ReferencedRawPtrT : public details::Referenced
-{
-public:
-    ReferencedRawPtrT()
-        : details::Referenced()
-        , _ptr(nullptr)
-        {}
-    ReferencedRawPtrT(T * ptr)
-        : details::Referenced()
-        , _ptr(ptr)
-        {}
-    ReferencedRawPtrT(const ReferencedRawPtrT & rhs)
-        : details::Referenced(rhs)
-        , _ptr(rhs._ptr)
-        {}
-
-    T& operator*() const { return *_ptr; }
-    T* operator->() const { return _ptr; }
-    T* get() const { return _ptr; }
-
-    bool operator!() const   { return _ptr==nullptr; } // not required
-    bool valid() const       { return _ptr!=nullptr; }
-
-private:
-    T* _ptr;
-};
 
 struct Color {
     Color(float r_=0.0f, float g_=0.0f, float b_=0.0f, float a_=1.0f)

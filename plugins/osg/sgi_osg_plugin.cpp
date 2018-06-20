@@ -271,11 +271,11 @@ using namespace sgi::osg_plugin;
 
 SGI_OBJECT_INFO_BEGIN(sgi::details::Referenced)
     sgi::ISceneGraphDialog,
-    sgi::ISceneGraphDialogToolsMenu,
-    ReferencedSetViewNodeLookAt
+    sgi::ISceneGraphDialogToolsMenu
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::Referenced)
+    ReferencedSetViewNodeLookAt,
     osg::Object,
     osg::ObserverSet,
     osgDB::Registry,

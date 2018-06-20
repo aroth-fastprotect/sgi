@@ -2,6 +2,8 @@
 
 #include <QDialog>
 #include <sgi/plugins/SGIPluginInterface.h>
+#include <osg/ref_ptr>
+#include <osg/observer_ptr>
 
 QT_BEGIN_NAMESPACE
 class Ui_ExtraViewDialog;
@@ -9,6 +11,7 @@ QT_END_NAMESPACE
 
 namespace osg {
     class Camera;
+    class Texture;
     class GraphicsContext;
 }
 namespace osgViewer {

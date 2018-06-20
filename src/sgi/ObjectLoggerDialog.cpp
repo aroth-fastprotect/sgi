@@ -16,8 +16,8 @@
 #include <sgi/plugins/SGIDataItemBase.h>
 
 #include <sgi/plugins/ObjectTreeImpl>
-#include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/SGIItemInternal>
+#include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/helpers/qt>
 
 #ifdef _DEBUG

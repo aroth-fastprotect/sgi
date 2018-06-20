@@ -42,16 +42,6 @@ public:
     {
         _userData = userData;
     }
-    template<typename USER_DATA_TYPE>
-    USER_DATA_TYPE * userData()
-    {
-        return dynamic_cast<USER_DATA_TYPE *>(_userData.get());
-    }
-    template<typename USER_DATA_TYPE>
-    const USER_DATA_TYPE * userData() const
-    {
-        return dynamic_cast<const USER_DATA_TYPE *>(_userData.get());
-    }
     details::Referenced * userDataPtr()
     {
         return _userData.get();
@@ -91,6 +81,29 @@ public:
     }
     ObjectType * object() { return TYPE::objectPtr(_object); }
     ObjectType * object() const { return TYPE::objectPtr(_object); }
+
+    template<typename USER_DATA_TYPE>
+    USER_DATA_TYPE * objectAs()
+    {
+        return dynamic_cast<USER_DATA_TYPE *>(object());
+    }
+    template<typename USER_DATA_TYPE>
+    const USER_DATA_TYPE * objectAs() const
+    {
+        return dynamic_cast<const USER_DATA_TYPE *>(object());
+    }
+
+    template<typename USER_DATA_TYPE>
+    USER_DATA_TYPE * userData()
+    {
+        return dynamic_cast<USER_DATA_TYPE *>(SGIHostItemBase::userDataPtr());
+    }
+    template<typename USER_DATA_TYPE>
+    const USER_DATA_TYPE * userData() const
+    {
+        return dynamic_cast<const USER_DATA_TYPE *>(SGIHostItemBase::userDataPtr());
+    }
+
     bool hasObject() const { return TYPE::objectPtr(_object) != nullptr; }
 protected:
     ObjectStorageType _object;

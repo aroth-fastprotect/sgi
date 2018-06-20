@@ -22,7 +22,7 @@ class ObjectLogger : public sgi::ObjectLoggerBase
 {
 public:
     ObjectLogger(osg::Camera * camera=nullptr, SGIPluginHostInterface * hostInterface=nullptr);
-    ObjectLogger(const ObjectLogger & rhs,const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
+    ObjectLogger(const ObjectLogger & rhs);
     ~ObjectLogger() override;
 
     SGI_Object(sgi, ObjectLogger)

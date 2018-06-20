@@ -105,7 +105,39 @@ struct SetViewNodeLookAt
     NodeLookAt mode;
 };
 
-typedef ReferencedDataT<SetViewNodeLookAt> ReferencedSetViewNodeLookAt;
+template<typename T>
+class OsgReferencedDataT : public osg::Referenced
+{
+public:
+    OsgReferencedDataT()
+        : osg::Referenced()
+        , _data()
+        {}
+    OsgReferencedDataT(const T & data)
+        : osg::Referenced()
+        , _data(data)
+        {}
+    OsgReferencedDataT(const OsgReferencedDataT & rhs)
+        : osg::Referenced(rhs)
+        , _data(rhs._data)
+        {}
+    ~OsgReferencedDataT() override
+    {
+    }
+    const T & data() const { return _data; }
+    T & data() { return _data; }
+
+    // compatible std::shared_ptr accessor
+    const T & get() const { return _data; }
+    T & get() { return _data; }
+
+    operator const T & () const {return _data;}
+    operator T & () {return _data;}
+private:
+    T _data;
+};
+
+typedef OsgReferencedDataT<SetViewNodeLookAt> ReferencedSetViewNodeLookAt;
 } // namespace osg_plugin
 
 } // namespace sgi

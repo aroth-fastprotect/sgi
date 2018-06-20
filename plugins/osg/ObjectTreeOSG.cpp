@@ -403,26 +403,26 @@ bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
             cb = object->getEventCallback();
             while(cb)
             {
-                SGIHostItemOsg callbackItem(cb, object);
+                SGIHostItemOsg callbackItem(cb, new SGIRefPtrOsg(object));
                 treeItem->addChild("EventCallback", &callbackItem);
                 cb = cb->getNestedCallback();
             }
             cb = object->getUpdateCallback();
             while(cb)
             {
-                SGIHostItemOsg callbackItem(cb, object);
+                SGIHostItemOsg callbackItem(cb, new SGIRefPtrOsg(object));
                 treeItem->addChild("UpdateCallback", &callbackItem);
                 cb = cb->getNestedCallback();
             }
             cb = object->getCullCallback();
             while(cb)
             {
-                SGIHostItemOsg callbackItem(cb, object);
+                SGIHostItemOsg callbackItem(cb, new SGIRefPtrOsg(object));
                 treeItem->addChild("CullCallback", &callbackItem);
                 cb = cb->getNestedCallback();
             }
 
-            SGIHostItemOsg computeBoundingSphereCallback(object->getComputeBoundingSphereCallback(), object);
+            SGIHostItemOsg computeBoundingSphereCallback(object->getComputeBoundingSphereCallback(), new SGIRefPtrOsg(object));
             if(computeBoundingSphereCallback.hasObject())
                 treeItem->addChild("ComputeBoundingSphereCallback", &computeBoundingSphereCallback);
             ret = true;
@@ -987,19 +987,19 @@ bool objectTreeBuildImpl<osg::Camera>::build(IObjectTreeItem * treeItem)
     case SGIItemTypeCallbacks:
         {
             callNextHandler(treeItem);
-            SGIHostItemOsg initialDrawCallback(object->getInitialDrawCallback(), object);
+            SGIHostItemOsg initialDrawCallback(object->getInitialDrawCallback(), new SGIRefPtrOsg(object));
             if(initialDrawCallback.hasObject())
                 treeItem->addChild("InitialDrawCallback", &initialDrawCallback);
-            SGIHostItemOsg preDrawCallback(object->getPreDrawCallback(), object);
+            SGIHostItemOsg preDrawCallback(object->getPreDrawCallback(), new SGIRefPtrOsg(object));
             if(preDrawCallback.hasObject())
                 treeItem->addChild("PreDrawCallback", &preDrawCallback);
-            SGIHostItemOsg postDrawCallback(object->getPostDrawCallback(), object);
+            SGIHostItemOsg postDrawCallback(object->getPostDrawCallback(), new SGIRefPtrOsg(object));
             if(postDrawCallback.hasObject())
                 treeItem->addChild("PostDrawCallback", &postDrawCallback);
-            SGIHostItemOsg finalDrawCallback(object->getFinalDrawCallback(), object);
+            SGIHostItemOsg finalDrawCallback(object->getFinalDrawCallback(), new SGIRefPtrOsg(object));
             if(finalDrawCallback.hasObject())
                 treeItem->addChild("FinalDrawCallback", &finalDrawCallback);
-            SGIHostItemOsg clampProjectionMatrixCallback(object->getClampProjectionMatrixCallback(), object);
+            SGIHostItemOsg clampProjectionMatrixCallback(object->getClampProjectionMatrixCallback(), new SGIRefPtrOsg(object));
             if(clampProjectionMatrixCallback.hasObject())
                 treeItem->addChild("ClampProjectionMatrixCallback", &clampProjectionMatrixCallback);
             ret = true;
@@ -1174,11 +1174,11 @@ bool objectTreeBuildImpl<osg::Uniform>::build(IObjectTreeItem * treeItem)
             // first add all callbacks from base classes
             callNextHandler(treeItem);
 
-            SGIHostItemOsg eventCallback(object->getEventCallback(), object);
+            SGIHostItemOsg eventCallback(object->getEventCallback(), new SGIRefPtrOsg(object));
             if(eventCallback.hasObject())
                 treeItem->addChild("EventCallback", &eventCallback);
 
-            SGIHostItemOsg updateCallback(object->getUpdateCallback(), object);
+            SGIHostItemOsg updateCallback(object->getUpdateCallback(), new SGIRefPtrOsg(object));
             if(updateCallback.hasObject())
                 treeItem->addChild("UpdateCallback", &updateCallback);
 

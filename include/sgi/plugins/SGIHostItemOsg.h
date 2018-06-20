@@ -8,6 +8,7 @@
 
 namespace sgi {
 
+typedef details::ReferencedDataT< osg::ref_ptr<osg::Referenced> > SGIRefPtrOsg;
 typedef SGIItemInfoSharedPtr<osg::Referenced, osg::ref_ptr<osg::Referenced> > SGIItemInfoOsg;
 typedef SGIHostItemImpl<SGIItemInfoOsg> SGIHostItemOsg;
 

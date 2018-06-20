@@ -4,7 +4,6 @@
 #include "sgi/Export"
 #include "sgi/plugins/SGIPluginImpl.h"
 
-#include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SGIHostItemQt.h>
 #include <sgi/plugins/SGIItemQt>
 #include <sgi/plugins/SGIProxyItem.h>
