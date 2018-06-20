@@ -7,6 +7,10 @@
 #include <osg/Referenced>
 #include <osg/ref_ptr>
 
+namespace osg {
+    class Node;
+}
+
 namespace sgi {
 
 enum SGIItemType_osg

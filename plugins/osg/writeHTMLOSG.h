@@ -13,6 +13,7 @@ namespace osg {
     class StateSet;
     class StateAttribute;
     class Drawable;
+    class Array;
     class Geode;
     class Geometry;
     class ShapeDrawable;

@@ -52,7 +52,7 @@ public:
     virtual bool                removeItem(SGIItemBase * item) override
     {
         bool ret;
-        SGIItemBasePtrVector::iterator it = std::find(_items.begin(), _items.end(), item);
+        SGIItemBasePtrVector::iterator it = std::find_if(_items.begin(), _items.end(), [&item] (const SGIItemBasePtr & rhs) { return rhs.get() == item; });
         ret = (it != _items.end());
         if(ret)
             _items.erase(it);
