@@ -30,8 +30,8 @@ class ViewOSG : public QWidget
     Q_OBJECT
 
 public:
-    ViewOSG(QWidget * parent=0);
-    virtual ~ViewOSG();
+    ViewOSG(QWidget * parent=nullptr);
+    ~ViewOSG() override;
 
     void setCamera(osgViewer::CompositeViewer * viewer, osg::Camera * camera);
     void setRTTCamera(osgViewer::CompositeViewer * viewer, osg::Texture * texture);
@@ -59,7 +59,7 @@ class ExtraViewDialog : public QDialog
 
 public:
                         ExtraViewDialog(QWidget * parent, SGIItemBase * item, SGIPluginHostInterface * hostInterface);
-	virtual				~ExtraViewDialog();
+                        ~ExtraViewDialog() override;
 
 public:
     ISettingsDialog *   dialogInterface() { return _interface; }
@@ -67,15 +67,15 @@ public:
 public slots:
 	void				save();
 	void				apply();
-	virtual void		reject();
+    void                reject() override;
 	void				load();
 	void				restoreDefaults();
 
 protected:
 	void				apply(bool save);
 
-	virtual void 		showEvent  ( QShowEvent * event );
-    virtual void        hideEvent  ( QHideEvent * event );
+    void                showEvent  ( QShowEvent * event ) override;
+    void                hideEvent  ( QHideEvent * event ) override;
 
 private:
     Ui_ExtraViewDialog *	        ui;
