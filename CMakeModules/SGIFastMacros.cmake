@@ -285,7 +285,7 @@ MACRO(SETUP_OUTPUT_DIRS)
     SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${TARGET_LIB_DIR})
 
     # Per-configuration property (VS, Xcode)
-    FOREACH(CONF ${CMAKE_CONFIGURATION_TYPES})        # For each configuration (Debug, Release, MinSizeRel... and/or anything the user chooses)
+    FOREACH(CONF ${CMAKE_CONFIGURATION_TYPES} ${CMAKE_BUILD_TYPE})        # For each configuration (Debug, Release, MinSizeRel... and/or anything the user chooses)
         STRING(TOUPPER "${CONF}" CONF)                # Go uppercase (DEBUG, RELEASE...)
 
         # We use "FILE(TO_CMAKE_PATH", to create nice looking paths
@@ -298,7 +298,7 @@ MACRO(SETUP_OUTPUT_DIRS)
         endif()
         SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES "LIBRARY_OUTPUT_DIRECTORY_${CONF}" "${TARGET_LIB_DIR}")
         if(TARGET_NO_POSTFIX)
-            SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES ${CONF}_POSTFIX "")
+            SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES "${CONF}_POSTFIX" "")
         endif()
     ENDFOREACH(CONF ${CMAKE_CONFIGURATION_TYPES})
     
