@@ -4190,7 +4190,7 @@ bool objectTreeBuildImpl<ReferencedPickerBase>::build(IObjectTreeItem * treeItem
 #ifdef SGI_USE_OSGEARTH
 bool objectTreeBuildImpl<ReferencedPicker>::build(IObjectTreeItem * treeItem)
 {
-    ReferencedPicker * object = dynamic_cast<ReferencedPicker*>,SGIItemOsg>();
+    ReferencedPicker * object = getObject<ReferencedPicker,SGIItemOsg>();
     bool ret;
     switch(itemType())
     {

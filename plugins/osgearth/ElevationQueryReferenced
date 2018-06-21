@@ -1,5 +1,5 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
 
@@ -14,8 +14,8 @@ namespace osgEarth {
 namespace sgi {
 namespace osgearth_plugin {
 
-    typedef ReferencedRawPtrT<osgEarth::ElevationQuery> ElevationQueryReferenced;
-    typedef ReferencedDataT<osgEarth::TileKey> TileKeyReferenced;
+    typedef details::ReferencedRawPtrT<osgEarth::ElevationQuery> ElevationQueryReferenced;
+    typedef details::ReferencedDataT<osgEarth::TileKey> TileKeyReferenced;
 
     struct TileSourceTileKeyData
     {
@@ -49,7 +49,7 @@ namespace osgearth_plugin {
         Status status;
         ObjectType objectType;
     };
-    typedef ReferencedDataT<TileSourceTileKeyData> TileSourceTileKey;
+    typedef details::ReferencedDataT<TileSourceTileKeyData> TileSourceTileKey;
 
 } // namespace osgearth_plugin
 } // namespace sgi

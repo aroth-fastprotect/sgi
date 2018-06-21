@@ -20,8 +20,6 @@ namespace osgEarth {
 
 namespace sgi {
 
-class SGIItemOsg;
-
 namespace osgearth_plugin {
 
 typedef details::ReferencedRawPtrT<osgEarth::ElevationQuery> ElevationQueryReferenced;

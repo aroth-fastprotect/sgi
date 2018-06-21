@@ -104,8 +104,11 @@
 
 using namespace sgi::osgearth_plugin;
 
+SGI_OBJECT_INFO_BEGIN(sgi::details::Referenced)
+    sgi::ISceneGraphDialog
+SGI_OBJECT_INFO_END()
+
 SGI_OBJECT_INFO_BEGIN(osg::Referenced)
-    sgi::ISceneGraphDialog,
     osg::Object, 
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::Map, 
@@ -460,7 +463,7 @@ public:
     typedef SGIItemEarthConfig SGIItemClass;
     typedef osgEarth::Config * ObjectStorageType;
     generateSGIItemEarthConfig()
-        : _level(0), _acceptLevel(-1), _itemType(SGIItemTypeInvalid), _accepted(NULL)
+        : _level(0), _acceptLevel(-1), _itemType(SGIItemTypeInvalid), _accepted(nullptr)
     {
     }
     template<typename T>
@@ -487,15 +490,15 @@ public:
     }
     bool wasAccepted() const
     {
-        return (_accepted != NULL);
+        return (_accepted != nullptr);
     }
 
     SGIItemEarthConfig * getItem()
     {
-        if(_accepted != NULL)
+        if(_accepted != nullptr)
             return new SGIItemEarthConfig(_itemType, *_accepted, 0, _acceptLevel);
         else
-            return NULL;
+            return nullptr;
     }
 
 private:
@@ -531,7 +534,7 @@ typedef SGIPluginImplementationT<       generateItemImpl,
 class SGIPlugin_osgearth_Implementation : public osgearth_plugin::SGIPluginImpl
 {
 public:
-    SGIPlugin_osgearth_Implementation(SGIPluginHostInterface * hostInterface=NULL)
+    SGIPlugin_osgearth_Implementation(SGIPluginHostInterface * hostInterface=nullptr)
         : osgearth_plugin::SGIPluginImpl(hostInterface)
     {
         SGIITEMTYPE_NAME(SGIItemTypeLayers);
@@ -568,12 +571,12 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeProgramSharedRepo);
         SGIITEMTYPE_NAME(SGIItemTypePickerContext);
     }
-    SGIPlugin_osgearth_Implementation(const SGIPlugin_osgearth_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : osgearth_plugin::SGIPluginImpl(rhs, copyop)
+    SGIPlugin_osgearth_Implementation(const SGIPlugin_osgearth_Implementation & rhs)
+        : osgearth_plugin::SGIPluginImpl(rhs)
     {
     }
 
-    META_Object(sgi_osgearth, SGIPlugin_osgearth_Implementation);
+    SGI_Object(sgi_osgearth, SGIPlugin_osgearth_Implementation)
 };
 
 } // namespace sgi

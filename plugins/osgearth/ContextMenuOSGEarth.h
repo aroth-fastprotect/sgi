@@ -81,7 +81,7 @@ private:
     std::string _group;
 };
 
-typedef ReferencedDataT<NamedViewpoint> ReferencedNamedViewpoint;
+typedef details::ReferencedDataT<NamedViewpoint> ReferencedNamedViewpoint;
 
 CONTEXT_MENU_POPULATE_IMPL_TEMPLATE()
 

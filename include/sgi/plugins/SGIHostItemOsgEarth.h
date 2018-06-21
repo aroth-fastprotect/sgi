@@ -16,8 +16,12 @@ namespace osgEarth {
 
 namespace sgi {
 
-typedef SGIHostItemImpl<osgEarth::Config> SGIHostItemOsgEarthConfig;
-//typedef SGIHostItemImpl<osgEarth::ConfigOptions> SGIHostItemOsgEarthConfigOptions;
+typedef SGIItemInfoPlainPtr<osgEarth::Config> SGIItemInfoOsgEarthConfig;
+typedef SGIHostItemImpl<SGIItemInfoOsgEarthConfig> SGIHostItemOsgEarthConfig;
+typedef SGIItemInfoPlainPtr<osgEarth::ConfigOptions> SGIItemInfoOsgEarthConfigOptions;
+typedef SGIHostItemImpl<SGIItemInfoOsgEarthConfigOptions> SGIHostItemOsgEarthConfigOptions;
+
+#if 0
 
 class SGIHostItemOsgEarthConfigOptions : public SGIHostItemImpl<osgEarth::ConfigOptions>
 {
@@ -61,5 +65,6 @@ public:
 private:
     bool _allocated;
 };
+#endif // 0
 
 } // namespace sgi
