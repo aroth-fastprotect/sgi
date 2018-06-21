@@ -740,7 +740,7 @@ public:
                 if (pos < 0)
                     continue;
 
-                int posSuffix = basename.indexOf("_plugin");
+                int posSuffix = basename.indexOf("_plugin.");
                 if(posSuffix < 0)
                     continue;
 
