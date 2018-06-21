@@ -49,6 +49,16 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 
 	SET(SGI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+    if(OSG_DIR)
+        set(OSG_DIR "${OSG_DIR}" CACHE STRING "Directory where to find OSG")
+    endif()
+    if(OSGEARTH_DIR)
+        set(OSGEARTH_DIR "${OSGEARTH_DIR}" CACHE STRING "Directory where to find osgEarth")
+    endif()
+    if(OSGQT_DIR)
+        set(OSGQT_DIR "${OSGQT_DIR}" CACHE STRING "Directory where to find osgQt")
+    endif()
+
 	FIND_PACKAGE(OpenGL)
 
 	fast_package_qt5()
