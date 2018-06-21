@@ -9,7 +9,6 @@ namespace sgi {
 namespace log4cplus_plugin {
     class Log4cplusObjectBase;
 }
-typedef SGIHostItemImpl<log4cplus_plugin::Log4cplusObjectBase, osg::ref_ptr<log4cplus_plugin::Log4cplusObjectBase> > SGIHostItemLog4cplus;
 
 enum SGIItemType_log4cplus
 {
@@ -17,8 +16,10 @@ enum SGIItemType_log4cplus
     SGIItemTypeAppenders,
 };
 
-typedef SGIItemHolderSharedPtr<log4cplus_plugin::Log4cplusObjectBase, osg::ref_ptr<log4cplus_plugin::Log4cplusObjectBase>> SGIItemHolderLog4cplusType;
-typedef SGIItemHolderT<SGIItemHolderLog4cplusType> SGIItemHolderLog4cplus;
+
+typedef SGIItemInfoSharedPtr<log4cplus_plugin::Log4cplusObjectBase, details::ref_ptr<log4cplus_plugin::Log4cplusObjectBase> > SGIItemInfoLog4cplus;
+typedef SGIHostItemImpl<SGIItemInfoLog4cplus> SGIHostItemLog4cplus;
+typedef SGIItemHolderT<SGIItemInfoLog4cplus> SGIItemHolderLog4cplus;
 typedef SGIItemT<SGIHostItemLog4cplus, SGIItemHolderLog4cplus> SGIItemLog4cplus;
 
 } // namespace sgi

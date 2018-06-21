@@ -18,7 +18,7 @@ GET_OBJECT_PATH_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectLogger)
 
 std::string getObjectNameImpl<Log4cplusObjectBase>::process()
 {
-    Log4cplusObjectBase * object_ptr = static_cast<Log4cplusObjectBase*>(item<SGIItemLog4cplus>()->object());
+    Log4cplusObjectBase * object_ptr = getObject<Log4cplusObjectBase,SGIItemLog4cplus>();
     std::string ret;
     std::stringstream ss;
     ss << "Log4cplusObjectBase(" << (void*)object_ptr << ")";
@@ -29,7 +29,7 @@ std::string getObjectNameImpl<Log4cplusObjectBase>::process()
 std::string getObjectNameImpl<Log4cplusObjectLogger>::process()
 {
     std::string ret;
-    Log4cplusObjectLogger * object_ptr = static_cast<Log4cplusObjectLogger*>(item<SGIItemLog4cplus>()->object());
+    Log4cplusObjectLogger * object_ptr = getObject<Log4cplusObjectLogger,SGIItemLog4cplus>();
     if(object_ptr->isRoot())
         ret = "log4cplus::Logger::Root";
     else
@@ -39,7 +39,7 @@ std::string getObjectNameImpl<Log4cplusObjectLogger>::process()
 
 std::string getObjectNameImpl<Log4cplusObjectAppender>::process()
 {
-    Log4cplusObjectAppender * object_ptr = static_cast<Log4cplusObjectAppender*>(item<SGIItemLog4cplus>()->object());
+    Log4cplusObjectAppender * object_ptr = getObject<Log4cplusObjectAppender,SGIItemLog4cplus>();
     log4cplus::SharedAppenderPtr object = object_ptr->object();
     std::string ret = object->getName();
     return ret;
@@ -50,7 +50,7 @@ std::string getObjectNameImpl<Log4cplusObjectAppender>::process()
 //--------------------------------------------------------------------------------
 std::string getObjectTypeImpl<Log4cplusObjectBase>::process()
 {
-    Log4cplusObjectBase * object_ptr = static_cast<Log4cplusObjectBase*>(item<SGIItemLog4cplus>()->object());
+    Log4cplusObjectBase * object_ptr = getObject<Log4cplusObjectBase,SGIItemLog4cplus>();
     return helpers::getRTTITypename(object_ptr);
 }
 
@@ -73,7 +73,7 @@ std::string getObjectTypeImpl<Log4cplusObjectBase>::process()
 
 SGIItemBasePtrPath getObjectPathImpl<Log4cplusObjectLogger>::process()
 {
-    Log4cplusObjectLogger * object_ptr = static_cast<Log4cplusObjectLogger*>(item<SGIItemLog4cplus>()->object());
+    Log4cplusObjectLogger * object_ptr = getObject<Log4cplusObjectLogger,SGIItemLog4cplus>();
     log4cplus::Logger object = object_ptr->object();
     SGIItemBasePtrPath ret;
     log4cplus::Logger parent = object;
@@ -81,7 +81,7 @@ SGIItemBasePtrPath getObjectPathImpl<Log4cplusObjectLogger>::process()
     do
     {
         SGIHostItemLog4cplus pathHostItem(new Log4cplusObjectLogger(parent));
-        osg::ref_ptr<SGIItemBase> pathItem;
+        SGIItemBasePtr pathItem;
         if(_hostInterface->generateItem(pathItem, &pathHostItem))
             ret.push_back(pathItem.get());
 

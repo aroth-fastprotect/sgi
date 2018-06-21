@@ -104,6 +104,7 @@ public:
 
 } // namespace log4cplus_plugin
 
-typedef SGIHostItemImpl<log4cplus_plugin::Log4cplusObjectBase, details::ref_ptr<log4cplus_plugin::Log4cplusObjectBase> > SGIHostItemLog4cplus;
+typedef SGIItemInfoSharedPtr<log4cplus_plugin::Log4cplusObjectBase, details::ref_ptr<log4cplus_plugin::Log4cplusObjectBase> > SGIItemInfoLog4cplus;
+typedef SGIHostItemImpl<SGIItemInfoLog4cplus> SGIHostItemLog4cplus;
 
 } // namespace sgi

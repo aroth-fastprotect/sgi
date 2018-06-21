@@ -106,7 +106,7 @@ SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(QIcon)
 SGI_OBJECT_INFO_END()
 
-SGI_OBJECT_INFO_BEGIN(osg::Referenced)
+SGI_OBJECT_INFO_BEGIN(sgi::details::Referenced)
     ISceneGraphDialog
 SGI_OBJECT_INFO_END()
 
@@ -115,7 +115,7 @@ namespace sgi {
 namespace qt_plugin {
 
 GENERATE_IMPL_TEMPLATE()
-GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
+GENERATE_IMPL_NO_ACCEPT(sgi::details::Referenced)
 
 
 typedef generateItemImplT<generateItemAcceptImpl, SGIItemInternal, SGIItemQt, SGIItemQtMeta, SGIItemQtPaintDevice, SGIItemQtSurface, SGIItemQtIcon > generateItemImpl;
