@@ -5,6 +5,16 @@
 
 #include <sgi/plugins/SGIHostItemOsgEarth.h>
 #include <osgEarth/Config>
+#include <osgEarth/TileKey>
+#include <sgi/plugins/SGIItemOsg>
+
+namespace osgEarth {
+    class ElevationQuery;
+    class TileSource;
+    class TileKey;
+    class CacheBin;
+    class TerrainLayer;
+} // namespace osgEarth
 
 namespace sgi {
 namespace support {
@@ -51,12 +61,12 @@ enum SGIItemType_osgearth
 };
 
 typedef SGIItemInfoPlainPtr<osgEarth::Config> SGIItemInfoOsgEarthConfig;
-typedef SGIHostItemImpl<SGIItemInfoOsgEarthConfig> SGIHostItemOsgEarthConfig;
+typedef SGIHostItemCopyImpl<SGIItemInfoOsgEarthConfig> SGIHostItemOsgEarthConfig;
 typedef SGIItemHolderT<SGIItemInfoOsgEarthConfig> SGIItemHolderOsgEarthConfig;
 typedef SGIItemT<SGIHostItemOsgEarthConfig, SGIItemHolderOsgEarthConfig> SGIItemEarthConfig;
 
 typedef SGIItemInfoPlainPtr<osgEarth::ConfigOptions> SGIItemInfoOsgEarthConfigOptions;
-typedef SGIHostItemImpl<SGIItemInfoOsgEarthConfigOptions> SGIHostItemOsgEarthConfigOptions;
+typedef SGIHostItemCopyImpl<SGIItemInfoOsgEarthConfigOptions> SGIHostItemOsgEarthConfigOptions;
 typedef SGIItemHolderT<SGIItemInfoOsgEarthConfigOptions> SGIItemHolderOsgEarthConfigOptions;
 typedef SGIItemT<SGIHostItemOsgEarthConfigOptions, SGIItemHolderOsgEarthConfigOptions> SGIItemEarthConfigOptions;
 
@@ -159,5 +169,46 @@ private:
     ObjectStorageType   _object;
 };
 #endif // 0
+namespace osgearth_plugin {
+
+struct TileSourceTileKeyData
+{
+    enum Status {
+        StatusNotLoaded = 0,
+        StatusLoaded,
+        StatusLoadFailure,
+        StatusNoData
+    };
+    enum ObjectType {
+        ObjectTypeGeneric = 0,
+        ObjectTypeImage,
+        ObjectTypeHeightField,
+        ObjectTypeNode,
+        ObjectTypeString
+    };
+
+    static ObjectType getObjectType(osgEarth::CacheBin * cb);
+    static ObjectType getObjectType(osgEarth::TileSource * ts);
+    static ObjectType getObjectType(osgEarth::TerrainLayer * tl);
+
+    TileSourceTileKeyData(osgEarth::TileSource * ts, const osgEarth::TileKey & tk, osg::Referenced * td = nullptr);
+    TileSourceTileKeyData(osgEarth::TerrainLayer * tl, const osgEarth::TileKey & tk, osg::Referenced * td = nullptr);
+    TileSourceTileKeyData(osgEarth::CacheBin * cb, ObjectType type, const osgEarth::TileKey & tk, osg::Referenced * td = nullptr);
+
+    osg::ref_ptr<osgEarth::TileSource> tileSource;
+    osg::ref_ptr<osgEarth::TerrainLayer> terrainLayer;
+    osg::ref_ptr<osgEarth::CacheBin> cacheBin;
+    osgEarth::TileKey tileKey;
+    osg::ref_ptr<osg::Referenced> tileData;
+    Status status;
+    ObjectType objectType;
+};
+
+class TileSourceInfo;
+
+typedef details::ReferencedRawPtrT<osgEarth::ElevationQuery, osg::Referenced> ElevationQueryReferenced;
+typedef details::ReferencedDataT<osgEarth::TileKey, osg::Referenced> TileKeyReferenced;
+typedef details::ReferencedDataT<TileSourceTileKeyData, osg::Referenced> TileSourceTileKey;
+} // namespace osgearth_plugin
 
 } // namespace sgi

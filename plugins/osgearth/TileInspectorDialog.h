@@ -8,6 +8,10 @@ class Ui_TileInspectorDialog;
 class QTreeWidgetItem;
 QT_END_NAMESPACE
 
+namespace osg {
+    class Referenced;
+}
+
 namespace osgEarth {
     class TileSource;
     class TerrainLayer;
@@ -16,15 +20,19 @@ namespace osgEarth {
 
 namespace sgi {
 class SGIPluginHostInterface;
-class SGIItemOsg;
 
 class IObjectTreeItem;
-typedef osg::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
+typedef details::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
 
 class IObjectTreeImpl;
-typedef osg::ref_ptr<IObjectTreeImpl> IObjectTreeImplPtr;
+typedef details::ref_ptr<IObjectTreeImpl> IObjectTreeImplPtr;
 class IContextMenu;
-typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
+typedef details::ref_ptr<IContextMenu> IContextMenuPtr;
+
+typedef SGIItemInfoSharedPtr<osg::Referenced, osg::ref_ptr<osg::Referenced> > SGIItemInfoOsg;
+typedef SGIHostItemImpl<SGIItemInfoOsg> SGIHostItemOsg;
+typedef SGIItemHolderT<SGIItemInfoOsg> SGIItemHolderOsg;
+typedef SGIItemT<SGIHostItemOsg, SGIItemHolderOsg> SGIItemOsg;
 
 namespace osgearth_plugin {
 
@@ -91,7 +99,7 @@ private:
     IObjectTreeImplPtr              _treeImpl;
     IContextMenuPtr                 _contextMenu;
     IContextMenuPtr                 _layerContextMenu;
-    osg::ref_ptr<SGIItemOsg>        _item;
+    details::ref_ptr<SGIItemOsg>        _item;
     SGIItemBasePtrVector            _tiles;
 };
 

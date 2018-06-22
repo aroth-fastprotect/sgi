@@ -19,6 +19,10 @@ struct SGIItemInfoPlainPtr {
     {
         return static_cast<ObjectType *>(item);
     }
+    static ObjectType * copyObject(const ObjectType & rhs)
+    {
+        return new ObjectType(rhs);
+    }
 };
 
 template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*>
@@ -30,6 +34,10 @@ struct SGIItemInfoSharedPtr {
     {
         return static_cast<ObjectType *>(item.get());
     }
+    static ObjectType * copyObject(const ObjectType & rhs)
+    {
+        return new ObjectType(rhs);
+    }
 };
 
 template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*>
@@ -40,6 +48,10 @@ struct SGIItemInfoSharedPtrQt {
     static ObjectType * objectPtr(const ObjectStorageType & item)
     {
         return static_cast<ObjectType *>(item.data());
+    }
+    static ObjectType * copyObject(const ObjectType & rhs)
+    {
+        return new ObjectType(rhs);
     }
 };
 

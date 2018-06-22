@@ -22,11 +22,6 @@ namespace sgi {
 
 namespace osgearth_plugin {
 
-typedef details::ReferencedRawPtrT<osgEarth::ElevationQuery> ElevationQueryReferenced;
-typedef details::ReferencedDataT<osgEarth::TileKey> TileKeyReferenced;
-struct TileSourceTileKeyData;
-typedef details::ReferencedDataT<TileSourceTileKeyData> TileSourceTileKey;
-
 //--------------------------------------------------------------------------------
 // getObjectNameImpl
 //--------------------------------------------------------------------------------

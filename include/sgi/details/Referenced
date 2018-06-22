@@ -83,20 +83,20 @@ inline int Referenced::unref() const
 }
 
 
-template<typename T>
-class ReferencedDataT : public Referenced
+template<typename T, class BASE_T=Referenced>
+class ReferencedDataT : public BASE_T
 {
 public:
     ReferencedDataT()
-        : Referenced()
+        : BASE_T()
         , _data()
         {}
     ReferencedDataT(const T & data)
-        : Referenced()
+        : BASE_T()
         , _data(data)
         {}
     ReferencedDataT(const ReferencedDataT & rhs)
-        : Referenced(rhs)
+        : BASE_T(rhs)
         , _data(rhs._data)
         {}
     ~ReferencedDataT() override
@@ -115,20 +115,20 @@ private:
     T _data;
 };
 
-template<typename T>
-class ReferencedRawPtrT : public Referenced
+template<typename T, class BASE_T=Referenced>
+class ReferencedRawPtrT : public BASE_T
 {
 public:
     ReferencedRawPtrT()
-        : Referenced()
+        : BASE_T()
         , _ptr(nullptr)
         {}
     ReferencedRawPtrT(T * ptr)
-        : Referenced()
+        : BASE_T()
         , _ptr(ptr)
         {}
     ReferencedRawPtrT(const ReferencedRawPtrT & rhs)
-        : Referenced(rhs)
+        : BASE_T(rhs)
         , _ptr(rhs._ptr)
         {}
     ~ReferencedRawPtrT() override

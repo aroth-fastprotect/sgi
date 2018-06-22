@@ -36,11 +36,6 @@ namespace osgEarth {
 namespace sgi {
 namespace osgearth_plugin {
 
-typedef details::ReferencedRawPtrT<osgEarth::ElevationQuery> ElevationQueryReferenced;
-typedef details::ReferencedDataT<osgEarth::TileKey> TileKeyReferenced;
-struct TileSourceTileKeyData;
-typedef details::ReferencedDataT<TileSourceTileKeyData> TileSourceTileKey;
-
 class NamedViewpoint : public osgEarth::Viewpoint
 {
 public:
@@ -81,7 +76,7 @@ private:
     std::string _group;
 };
 
-typedef details::ReferencedDataT<NamedViewpoint> ReferencedNamedViewpoint;
+typedef details::ReferencedDataT<NamedViewpoint, osg::Referenced> ReferencedNamedViewpoint;
 
 CONTEXT_MENU_POPULATE_IMPL_TEMPLATE()
 

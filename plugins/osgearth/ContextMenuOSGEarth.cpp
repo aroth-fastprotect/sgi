@@ -30,11 +30,8 @@
 #include "MenuActionOSGEarth.h"
 
 #include "osgearth_accessor.h"
-#include "ElevationQueryReferenced"
 
 namespace sgi {
-
-class SGIItemOsg;
 
 namespace osgearth_plugin {
 
@@ -999,10 +996,10 @@ bool contextMenuPopulateImpl<osgEarth::Util::RTTPicker>::populate(IContextMenuIt
             {
                 if(i == itemNumber())
                 {
-                    menuItem->addSimpleAction(MenuActionRTTPickerView, "Preview", _item, context._view.get());
+                    menuItem->addSimpleAction(MenuActionRTTPickerView, "Preview", _item, new SGIRefPtrOsg(context._view.get()));
                     if (!context._tex.valid())
                     {
-                        menuItem->addSimpleAction(MenuActionRTTPickerTexture, "Create texture", _item, context._view.get());
+                        menuItem->addSimpleAction(MenuActionRTTPickerTexture, "Create texture", _item, new SGIRefPtrOsg(context._view.get()));
                     }
 
                     SGIHostItemOsg view(context._view.get());

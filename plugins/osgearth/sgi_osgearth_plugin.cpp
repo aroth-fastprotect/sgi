@@ -99,7 +99,6 @@
 #include <osgEarthDrivers/feature_ogr/OGRFeatureOptions>
 #include <osgEarthDrivers/gdal/GDALOptions>
 
-#include "ElevationQueryReferenced"
 #include "geo_helpers.h"
 
 using namespace sgi::osgearth_plugin;
@@ -443,7 +442,7 @@ GENERATE_IMPL_NO_ACCEPT(osg::NodeCallback)
 GENERATE_IMPL_NO_ACCEPT(osgGA::EventHandler)
 GENERATE_IMPL_NO_ACCEPT(osgGA::GUIEventHandler)
 GENERATE_IMPL_NO_ACCEPT(osgGA::CameraManipulator)
-//GENERATE_IMPL_NO_ACCEPT(osg::Node)
+GENERATE_IMPL_NO_ACCEPT(osg::Node)
 GENERATE_IMPL_NO_ACCEPT(osg::StateAttribute)
 GENERATE_IMPL_NO_ACCEPT(osg::Group)
 GENERATE_IMPL_NO_ACCEPT(osg::LOD)
@@ -453,60 +452,10 @@ GENERATE_IMPL_NO_ACCEPT(osg::Transform)
 GENERATE_IMPL_NO_ACCEPT(osg::MatrixTransform)
 GENERATE_IMPL_NO_ACCEPT(osg::Camera)
 GENERATE_IMPL_NO_ACCEPT(osg::BufferData)
-//GENERATE_IMPL_NO_ACCEPT(osg::Image)
+GENERATE_IMPL_NO_ACCEPT(osg::Image)
 
 GENERATE_IMPL_NO_ACCEPT(osgDB::ReaderWriter)
 
-class generateSGIItemEarthConfig
-{
-public:
-    typedef SGIItemEarthConfig SGIItemClass;
-    typedef osgEarth::Config * ObjectStorageType;
-    generateSGIItemEarthConfig()
-        : _level(0), _acceptLevel(-1), _itemType(SGIItemTypeInvalid), _accepted(nullptr)
-    {
-    }
-    template<typename T>
-    void ascend(T * object)
-    {
-        _level--;
-    }
-    template<typename T>
-    void decend(T * object)
-    {
-        _level++;
-    }
-    template<typename T>
-    void accept(T * object)
-    {
-        _accepted = object;
-        _acceptLevel = _level;
-        _itemType = SGIItemTypeObject;
-    }
-    template<typename T>
-    bool canAccept(T * object)
-    {
-        return true;
-    }
-    bool wasAccepted() const
-    {
-        return (_accepted != nullptr);
-    }
-
-    SGIItemEarthConfig * getItem()
-    {
-        if(_accepted != nullptr)
-            return new SGIItemEarthConfig(_itemType, *_accepted, 0, _acceptLevel);
-        else
-            return nullptr;
-    }
-
-private:
-    unsigned    _level;
-    unsigned    _acceptLevel;
-    SGIItemType _itemType;
-    ObjectStorageType   _accepted;
-};
 
 typedef generateItemImplT<generateItemAcceptImpl, SGIItemOsg, SGIItemEarthConfig, SGIItemEarthConfigOptions, SGIItemInternal> generateItemImpl;
 

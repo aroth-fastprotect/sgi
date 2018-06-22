@@ -73,7 +73,6 @@
 #include "SGIItemOsgEarth"
 
 #include "osgearth_accessor.h"
-#include "ElevationQueryReferenced"
 #include "geo_helpers.h"
 
 namespace sgi {

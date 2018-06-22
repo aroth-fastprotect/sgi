@@ -50,12 +50,9 @@
 #include <osgEarthDrivers/feature_ogr/OGRFeatureOptions>
 
 #include "osgearth_accessor.h"
-#include "ElevationQueryReferenced"
 #include "geo_helpers.h"
 
 namespace sgi {
-
-class SGIItemOsg;
 
 namespace osgearth_plugin {
 
@@ -217,7 +214,7 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
             for(osgEarth::LayerVector::const_iterator it = layers.begin(); it != layers.end(); it++)
             {
                 const osg::ref_ptr<osgEarth::Layer> & layer = *it;
-                SGIHostItemOsg childItem(layer.get(), mapNode);
+                SGIHostItemOsg childItem(layer.get(), new SGIRefPtrOsg(mapNode));
                 treeItem->addChild(std::string(), &childItem);
             }
 #endif
@@ -301,14 +298,13 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            SGIHostItemOsg map(object->getMap(), object);
+            SGIHostItemOsg map(object->getMap(), new SGIRefPtrOsg(object));
             if(map.hasObject())
                 treeItem->addChild("Map", &map);
 
             SGIHostItemOsgEarthConfigOptions runtimeOptions(object->getMapNodeOptions());
             treeItem->addChild("Runtime Options", &runtimeOptions);
 
-			MapNodeAccess * access = (MapNodeAccess*)object;
 			const auto & extensions = object->getExtensions();
 			if(!extensions.empty())
 				treeItem->addChild("Extensions", cloneItem<SGIItemOsg>(SGIItemTypeExtensions));
@@ -316,13 +312,13 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
 #if OSGEARTH_VERSION_LESS_THAN(2,8,0)
             treeItem->addChild("CullData", cloneItem<SGIItemOsg>(SGIItemTypeCullData, ~0u));
 
-			SGIHostItemOsg terrain(access->terrain());
+            SGIHostItemOsg terrain(object->terrain());
             if(terrain.hasObject())
                 treeItem->addChild("Terrain", &terrain);
-            SGIHostItemOsg terrainEngine(access->terrainEngineNode());
+            SGIHostItemOsg terrainEngine(object->terrainEngineNode());
             if(terrainEngine.hasObject())
                 treeItem->addChild("TerrainEngine", &terrainEngine);
-			SGIHostItemOsg terrainEngineContainer(access->terrainEngineContainer());
+            SGIHostItemOsg terrainEngineContainer(object->terrainEngineContainer());
 			if (terrainEngineContainer.hasObject())
 				treeItem->addChild("TerrainEngineContainer", &terrainEngineContainer);
 #else
