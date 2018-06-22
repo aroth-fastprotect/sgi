@@ -120,7 +120,9 @@ using namespace osg_helpers;
 bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
 {
     MapAccess * object = static_cast<MapAccess*>(getObject<osgEarth::Map,SGIItemOsg>());
-    osgEarth::MapNode * mapNode = _item->userData<osgEarth::MapNode>();
+    SGIRefPtrOsg * refptr = _item->userData<SGIRefPtrOsg>();
+    osg::Referenced * ref = refptr ? refptr->get() : nullptr;
+    osgEarth::MapNode * mapNode = dynamic_cast<osgEarth::MapNode*>(ref);
     bool ret = false;
     switch(itemType())
     {
@@ -1027,7 +1029,9 @@ bool objectTreeBuildImpl<osgEarth::ElevationLayer>::build(IObjectTreeItem * tree
 bool objectTreeBuildImpl<osgEarth::ModelLayer>::build(IObjectTreeItem * treeItem)
 {
     osgEarth::ModelLayer * object = static_cast<osgEarth::ModelLayer*>(item<SGIItemOsg>()->object());
-    osgEarth::MapNode * mapNode = _item->userData<osgEarth::MapNode>();
+    SGIRefPtrOsg * refptr = _item->userData<SGIRefPtrOsg>();
+    osg::Referenced * ref = refptr ? refptr->get() : nullptr;
+    osgEarth::MapNode * mapnode = dynamic_cast<osgEarth::MapNode*>(ref);
     bool ret = false;
     switch(itemType())
     {

@@ -189,11 +189,24 @@ namespace {
 		if (!item)
             return nullptr;
 
-		osg::Node * node = dynamic_cast<osg::Node *>(item->object());
-		if (!node)
+        if(!item)
             return nullptr;
+        if(osgEarth::MapNode * mapnode = dynamic_cast<osgEarth::MapNode*>(item->object()))
+            return mapnode;
+        else if(osgEarth::Map * map = dynamic_cast<osgEarth::Map*>(item->object()))
+        {
+            SGIRefPtrOsg * refptr = item->userData<SGIRefPtrOsg>();
+            osg::Referenced * ref = refptr ? refptr->get() : nullptr;
+            osgEarth::MapNode * mapnode = dynamic_cast<osgEarth::MapNode*>(ref);
+            if(mapnode)
+                return mapnode;
+        }
+        else if(osg::Node * node = dynamic_cast<osg::Node *>(item->object()))
+        {
+            return osgEarth::MapNode::findMapNode(node);
+        }
+        return nullptr;
 
-		return osgEarth::MapNode::findMapNode(node);
 	}
 	osgEarth::MapNode * findMapNode(SGIItemBase * item)
 	{

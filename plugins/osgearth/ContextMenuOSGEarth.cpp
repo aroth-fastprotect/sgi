@@ -280,7 +280,7 @@ bool contextMenuPopulateImpl<osgEarth::MapNode>::populate(IContextMenuItem * men
                     manipulateMenu->addSimpleAction(MenuActionTileBlacklistClear, "Clear blacklist", _item);
                 }
 
-                SGIHostItemOsg map(object->getMap());
+                SGIHostItemOsg map(object->getMap(), new SGIRefPtrOsg(object));
                 if(map.hasObject())
                     menuItem->addMenu("Map", &map);
 				menuItem->addBoolAction(MenuActionMapInspector, "Map inspector", _item, access->hasMapInspector());
