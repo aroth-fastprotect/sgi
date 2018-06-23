@@ -70,8 +70,8 @@ unsigned SGIItemBase::getTotalItemCount()
 
 SGIItemBase::SGIItemBase(SGIItemHolder * holder, SGIItemType type, unsigned flags, unsigned score, details::Referenced * userData)
     : details::Object(), _holder(holder), _type(type), _flags(flags), _score(score)
-    , _pluginInfo(nullptr), _type_info(nullptr), _next(nullptr), _prev()
-    , _number(0), _userData(userData)
+    , _number(0), _pluginInfo(nullptr), _type_info(nullptr), _next(nullptr), _prev()
+    , _userData(userData)
 {
     SGI_ITEM_LOG(__FUNCTION__ << (void*)this);
     ++s_ItemCount;
@@ -79,8 +79,8 @@ SGIItemBase::SGIItemBase(SGIItemHolder * holder, SGIItemType type, unsigned flag
 
 SGIItemBase::SGIItemBase(const SGIItemBase & rhs)
     : details::Object(rhs), _holder(rhs._holder), _type(rhs._type), _flags(rhs._flags), _score(rhs._score)
-    , _pluginInfo(rhs._pluginInfo), _type_info(rhs._type_info), _next(rhs._next), _prev(rhs._prev)
-    , _number(rhs._number), _userData(rhs._userData)
+    , _number(rhs._number), _pluginInfo(rhs._pluginInfo), _type_info(rhs._type_info), _next(rhs._next), _prev(rhs._prev)
+    , _userData(rhs._userData)
 {
     SGI_ITEM_LOG(__FUNCTION__ << (void*)this << (void*)&rhs);
     ++s_ItemCount;
@@ -104,11 +104,11 @@ SGIItemBase & SGIItemBase::operator = (const SGIItemBase & rhs)
     _type = rhs._type;
     _flags = rhs._flags;
     _score = rhs._score;
+    _number = rhs._number;
     _pluginInfo = rhs._pluginInfo;
     _type_info = rhs._type_info;
     _next = rhs._next;
     _prev = rhs._prev;
-    _number = rhs._number;
     _userData = rhs._userData;
     return *this;
 }

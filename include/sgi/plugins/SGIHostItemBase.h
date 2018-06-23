@@ -52,8 +52,8 @@ public:
     }
 
 private:
-    unsigned                _flags;
-    details::ref_ptr<details::Referenced> _userData;
+    unsigned       _flags;
+    SGIUserDataPtr _userData;
 };
 
 template<typename TYPE>
@@ -70,6 +70,10 @@ public:
         }
     SGIHostItemImpl(const ObjectType * object, details::Referenced * userData=nullptr, unsigned flags=0)
         : SGIHostItemBase(userData, flags), _object(const_cast<ObjectType*>(object))
+        {
+        }
+    SGIHostItemImpl(const ObjectType & object, details::Referenced * userData=nullptr, unsigned flags=0)
+        : SGIHostItemBase(userData, flags), _object(const_cast<ObjectType*>(&object))
         {
         }
     SGIHostItemImpl(const SGIHostItemImpl & rhs)

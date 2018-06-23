@@ -4,6 +4,11 @@
 #include <QDialog>
 #include <QMenu>
 
+#if defined(__linux__)
+#include <dlfcn.h>
+#include <osgDB/Version>
+#endif
+
 #define SGI_NO_HOSTITEM_GENERATOR
 #include <sgi/GenerateItem>
 #include <sgi/WritePrettyHTML>
@@ -22,8 +27,36 @@ inline QDebug operator<< (QDebug dbg, const std::string & s)
     return dbg << QString::fromStdString(s);
 }
 
+#ifdef __linux__
+namespace {
+    std::string getOSGDBModuleFilename()
+    {
+        std::string ret;
+        Dl_info info;
+        const char* (* addr) () = osgDBGetVersion;
+        if(dladdr(reinterpret_cast<const void*>(addr), &info) != 0)
+        {
+            ret = info.dli_fname;
+        }
+        return ret;
+    }
+    std::string getOSGDBModuleDirectory()
+    {
+        std::string modulefilename = getOSGDBModuleFilename();
+        return std::string(modulefilename, 0, modulefilename.find_last_of('/'));
+    }
+}
+#endif
+
 void item_osg_unittest::initTestCase()
 {
+#ifdef __linux__
+    osgDB::Registry * registry = osgDB::Registry::instance();
+    registry->initLibraryFilePathList();
+    osgDB::FilePathList libdirs = registry->getLibraryFilePathList();
+    libdirs.push_back(getOSGDBModuleDirectory());
+    registry->setLibraryFilePathList(libdirs);
+#endif
 }
 
 void item_osg_unittest::cleanupTestCase()

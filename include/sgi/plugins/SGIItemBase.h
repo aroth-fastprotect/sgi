@@ -52,6 +52,8 @@ typedef details::ref_ptr<SGIItemBase> SGIItemBasePtr;
 typedef details::observer_ptr<SGIItemBase> SGIItemBaseOverserverPtr;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrVector;
+typedef details::ref_ptr<details::Referenced> SGIUserDataPtr;
+
 class SGIHostItemBase;
 template<typename TYPE>
 class SGIHostItemImpl;
@@ -90,16 +92,21 @@ public:
     typedef typename TYPE::ObjectStorageType ObjectStorageType;
 
     SGIItemHolderT(ObjectType * object)
-        : SGIItemHolder(), _object(object)
+        : SGIItemHolder(), _object(object), _copied(false)
     {
     }
     SGIItemHolderT(const ObjectType & object)
-        : SGIItemHolder(), _object(TYPE::copyObject(object))
+        : SGIItemHolder(), _object(TYPE::copyObject(object)), _copied(true)
     {
     }
     SGIItemHolderT(const SGIItemHolderT & rhs)
-        : SGIItemHolder(rhs), _object(rhs._object)
+        : SGIItemHolder(rhs), _object(rhs._object), _copied(rhs._copied)
     {
+    }
+    ~SGIItemHolderT()
+    {
+        if(_copied)
+            TYPE::deleteObject(_object);
     }
     int compare(const SGIItemHolder & rhs) const override
     {
@@ -116,6 +123,7 @@ public:
 
 private:
     ObjectStorageType _object;
+    bool _copied;
 };
 
 class SGI_IMPL_EXPORT SGIItemBase : public details::Object
@@ -245,12 +253,12 @@ protected:
     unsigned                _flags;
 private:
     unsigned                _score;
+    unsigned                _number;
     const ISGIPluginInfo *  _pluginInfo;
     const std::type_info *  _type_info;
     SGIItemBasePtr          _next;
     SGIItemBaseOverserverPtr _prev;
-    unsigned                _number;
-    details::ref_ptr<details::Referenced> _userData;
+    SGIUserDataPtr          _userData;
 };
 
 template<typename HOST_ITEM_TYPE, typename HOLDER_TYPE>

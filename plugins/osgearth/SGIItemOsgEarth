@@ -61,114 +61,15 @@ enum SGIItemType_osgearth
 };
 
 typedef SGIItemInfoPlainPtr<osgEarth::Config> SGIItemInfoOsgEarthConfig;
-typedef SGIHostItemCopyImpl<SGIItemInfoOsgEarthConfig> SGIHostItemOsgEarthConfig;
+typedef SGIHostItemImpl<SGIItemInfoOsgEarthConfig> SGIHostItemOsgEarthConfig;
 typedef SGIItemHolderT<SGIItemInfoOsgEarthConfig> SGIItemHolderOsgEarthConfig;
 typedef SGIItemT<SGIHostItemOsgEarthConfig, SGIItemHolderOsgEarthConfig> SGIItemEarthConfig;
 
 typedef SGIItemInfoPlainPtr<osgEarth::ConfigOptions> SGIItemInfoOsgEarthConfigOptions;
-typedef SGIHostItemCopyImpl<SGIItemInfoOsgEarthConfigOptions> SGIHostItemOsgEarthConfigOptions;
+typedef SGIHostItemImpl<SGIItemInfoOsgEarthConfigOptions> SGIHostItemOsgEarthConfigOptions;
 typedef SGIItemHolderT<SGIItemInfoOsgEarthConfigOptions> SGIItemHolderOsgEarthConfigOptions;
 typedef SGIItemT<SGIHostItemOsgEarthConfigOptions, SGIItemHolderOsgEarthConfigOptions> SGIItemEarthConfigOptions;
 
-#if 0
-class SGIItemEarthConfig : public SGIItemBase
-{
-public:
-    typedef osgEarth::Config ObjectType;
-    typedef osgEarth::Config * ObjectStorageType;
-    typedef support::SGIHostItemOsgEarthConfig HostItemType;
-
-    SGIItemEarthConfig(const HostItemType * hostItem=NULL, SGIItemType type=SGIItemTypeInvalid, osgEarth::Config * cfg=NULL, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
-        : SGIItemBase(type, flags, score, userData), _object(cfg), _allocated(hostItem->isAllocated()) { const_cast<HostItemType*>(hostItem)->releaseObject(); }
-    SGIItemEarthConfig(SGIItemType type, const osgEarth::Config & cfg, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
-        : SGIItemBase(type, flags, score, userData), _object(new osgEarth::Config(cfg)), _allocated(true) {}
-    SGIItemEarthConfig(const SGIItemEarthConfig & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : SGIItemBase(rhs, copyop), _object(rhs._object), _allocated(false) {}
-    ~SGIItemEarthConfig()
-        {
-            if(_allocated)
-                delete _object;
-        }
-
-    META_Object(sgi, SGIItemEarthConfig);
-
-    SGIItemEarthConfig & operator = (const SGIItemEarthConfig & rhs)
-    {
-        SGIItemBase::operator=(rhs);
-        _object = rhs._object;
-        return *this;
-    }
-    ObjectType * object() { return _object; }
-    ObjectType * object() const { return _object; }
-
-protected:
-    virtual int compare(const SGIItemBase & rhs) const
-    {
-        int ret = SGIItemBase::compare(rhs);
-        if(!ret)
-        {
-            if(_object == static_cast<const SGIItemEarthConfig&>(rhs)._object)
-                return 0;
-            else if(_object < static_cast<const SGIItemEarthConfig&>(rhs)._object)
-                return -1;
-            else
-                return 1;
-        }
-        else
-            return ret;
-    }
-
-private:
-    ObjectStorageType   _object;
-    bool                _allocated;
-};
-
-class SGIItemEarthConfigOptions : public SGIItemBase
-{
-public:
-    typedef osgEarth::ConfigOptions ObjectType;
-    typedef osgEarth::ConfigOptions * ObjectStorageType;
-    typedef support::SGIHostItemOsgEarthConfigOptions HostItemType;
-
-    SGIItemEarthConfigOptions(const HostItemType * hostItem=NULL, SGIItemType type=SGIItemTypeInvalid, osgEarth::ConfigOptions * cfg=NULL, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
-        : SGIItemBase(type, flags, score, userData), _object(cfg) {}
-    SGIItemEarthConfigOptions(const SGIItemEarthConfigOptions & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : SGIItemBase(rhs, copyop), _object(rhs._object) {}
-    ~SGIItemEarthConfigOptions()
-        { }
-
-    META_Object(sgi, SGIItemEarthConfigOptions);
-
-    SGIItemEarthConfigOptions & operator = (const SGIItemEarthConfigOptions & rhs)
-    {
-        SGIItemBase::operator=(rhs);
-        _object = rhs._object;
-        return *this;
-    }
-    ObjectType * object() { return _object; }
-    ObjectType * object() const { return _object; }
-
-protected:
-    virtual int compare(const SGIItemBase & rhs) const
-    {
-        int ret = SGIItemBase::compare(rhs);
-        if(!ret)
-        {
-            if(_object == static_cast<const SGIItemEarthConfigOptions&>(rhs)._object)
-                return 0;
-            else if(_object < static_cast<const SGIItemEarthConfigOptions&>(rhs)._object)
-                return -1;
-            else
-                return 1;
-        }
-        else
-            return ret;
-    }
-
-private:
-    ObjectStorageType   _object;
-};
-#endif // 0
 namespace osgearth_plugin {
 
 struct TileSourceTileKeyData

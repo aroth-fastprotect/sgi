@@ -100,7 +100,7 @@ private:
     SGIItemType             _type;
     SGIItemBasePtr          _item;
     bool                    _populated;
-    details::ref_ptr<details::Referenced>   _userData;
+    SGIUserDataPtr          _userData;
 };
 
 class SGI_QT_HELPER_EXPORT QtMenuSGIItem : public QtSGIItem
