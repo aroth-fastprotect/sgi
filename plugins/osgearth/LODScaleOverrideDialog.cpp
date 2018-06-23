@@ -18,18 +18,17 @@ namespace sgi {
 
 LODScaleOverrideDialog::LODScaleOverrideDialog(QWidget * parent, SGIItemBase * item, ISettingsDialogInfo * info)
     : QDialog(parent)
-    , _item(item)
+    , ui(new Ui_LODScaleOverrideDialog)
     , _interface(new SettingsDialogImpl(this))
     , _info(info)
-    , ui(NULL)
+    , _item(item)
     , _original_value(DBL_MAX)
     , _slider_factor(2)
     , _ready(false)
 {
-    ui = new Ui_LODScaleOverrideDialog;
     ui->setupUi( this );
 
-    _slider_factor = pow(10, ui->doubleSpinBox->decimals());
+    _slider_factor = pow(10.0, ui->doubleSpinBox->decimals());
     double steps = pow(0.1, ui->doubleSpinBox->decimals());
     ui->doubleSpinBox->setSingleStep(steps);
 
@@ -56,7 +55,7 @@ LODScaleOverrideDialog::~LODScaleOverrideDialog()
     if (ui)
     {
         delete ui;
-        ui = NULL;
+        ui = nullptr;
     }
 }
 

@@ -17,12 +17,9 @@
 #ifdef SGI_USE_OSGEARTH_FAST
 #include <osgEarth/LevelDBFactory>
 #endif
-#include "ElevationQueryReferenced"
 #include <sgi/helpers/rtti>
 
 namespace sgi {
-
-class SGIItemOsg;
 
 namespace osgearth_plugin {
 

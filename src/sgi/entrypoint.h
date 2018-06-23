@@ -2,6 +2,7 @@
 
 #include "sgi/Export"
 
+class QObject;
 class QWidget;
 namespace sgi {
     class ISceneGraphDialog;
@@ -13,8 +14,12 @@ namespace sgi {
 
     class SGIHostItemBase;
     class SGIItemBase;
-
-    typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
+    namespace details {
+        template<class T>
+        class ref_ptr;
+        class Object;
+    }
+    typedef details::ref_ptr<SGIItemBase> SGIItemBasePtr;
     typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 
     typedef QWidget * QWidgetPtr;
@@ -30,12 +35,14 @@ SGI_EXPORT const char* sgiGetVersion();
 SGI_EXPORT const char* sgiGetSOVersion();
 SGI_EXPORT const char* sgiGetLibraryName();
 SGI_EXPORT const char* sgiGetLibraryModuleFilename();
+SGI_EXPORT QObject * sgi_libraryInfoQObject();
+SGI_EXPORT sgi::details::Object * sgi_libraryInfoObject();
 
 SGI_EXPORT sgi::IHostCallback * sgi_defaultHostCallback();
 SGI_EXPORT void sgi_setHostCallback(sgi::IHostCallback * callback);
 SGI_EXPORT sgi::IHostCallback * sgi_hostCallback();
 SGI_EXPORT void sgi_shutdown();
-SGI_EXPORT bool sgi_generateItem(osg::ref_ptr<sgi::SGIItemBase> & item, const sgi::SGIHostItemBase * object);
+SGI_EXPORT bool sgi_generateItem(sgi::SGIItemBasePtr & item, const sgi::SGIHostItemBase * object);
 SGI_EXPORT bool sgi_parentWidget(sgi::QWidgetPtr & widget, const sgi::SGIHostItemBase * object);
 SGI_EXPORT bool sgi_parentWidgetItem(sgi::QWidgetPtr & widget, sgi::SGIItemBase * item);
 SGI_EXPORT sgi::ISceneGraphDialog * sgi_showSceneGraphDialog(QWidget *parent, const sgi::SGIHostItemBase * object, sgi::IHostCallback * callback);

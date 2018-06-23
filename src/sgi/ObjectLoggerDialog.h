@@ -18,8 +18,8 @@ class SGIPluginHostInterface;
 class ObjectTreeItem;
 class IObjectLogger;
 class IContextMenu;
-typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
-typedef osg::ref_ptr<IHostCallback> IHostCallbackPtr;
+typedef details::ref_ptr<IContextMenu> IContextMenuPtr;
+typedef details::ref_ptr<IHostCallback> IHostCallbackPtr;
 
 class ObjectLoggerDialog : public QDialog
 {
@@ -28,7 +28,7 @@ class ObjectLoggerDialog : public QDialog
 public:
                         ObjectLoggerDialog(SGIItemBase * item, IHostCallback * callback=nullptr, QWidget *parent = 0, Qt::WindowFlags f = 0);
                         ObjectLoggerDialog(IObjectLogger * logger, IHostCallback * callback=nullptr, QWidget *parent = 0, Qt::WindowFlags f = 0);
-	virtual				~ObjectLoggerDialog();
+                        ~ObjectLoggerDialog() override;
 
 private:
                             ObjectLoggerDialog(const ObjectLoggerDialog & rhs);

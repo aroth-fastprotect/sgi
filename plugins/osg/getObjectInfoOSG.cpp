@@ -23,8 +23,6 @@
 
 namespace sgi {
 
-class SGIItemOsg;
-
 namespace osg_plugin {
 
 GET_OBJECT_NAME_IMPL_REGISTER(osg::Referenced)
@@ -391,7 +389,7 @@ SGIItemBasePtrPath getObjectPathImpl<osg::Node>::process()
 {
     osg::Node* object = static_cast<osg::Node*>(item<SGIItemOsg>()->object());
     SGIItemBasePtrPath ret;
-    osg::Node* firstParent = NULL;
+    osg::Node* firstParent = nullptr;
     osg::NodePathList parentPaths = object->getParentalNodePaths();
     if(!parentPaths.empty())
     {
@@ -399,9 +397,9 @@ SGIItemBasePtrPath getObjectPathImpl<osg::Node>::process()
         for(osg::NodePath::const_iterator it = firstParentalPath.begin(); it != firstParentalPath.end(); it++)
         {
             SGIHostItemOsg pathHostItem(*it);
-            osg::ref_ptr<SGIItemBase> pathItem;
+            SGIItemBasePtr pathItem;
             if(_hostInterface->generateItem(pathItem, &pathHostItem))
-                ret.push_back(pathItem.get());
+                ret.push_back(pathItem);
         }
     }
     return ret;
@@ -486,9 +484,11 @@ bool writeObjectFileImpl<osg::Object>::process(const std::string& filename, cons
     {
     case SGIItemTypeObject:
         {
+            const SGIItemOsg* optionsOsg = dynamic_cast<const SGIItemOsg*>(options);
+            const osgDB::Options * inputOptions = dynamic_cast<const osgDB::Options*>(optionsOsg->object());
             const bool noOptimizer = true;
             osg::ref_ptr<osgDB::Options> cloned_opts =
-                options ? static_cast<osgDB::Options*>(options->clone(osg::CopyOp::SHALLOW_COPY)) :
+                inputOptions ? static_cast<osgDB::Options*>(inputOptions->clone(osg::CopyOp::SHALLOW_COPY)) :
                 osgDB::Registry::instance()->getOptions();
 
             if(!cloned_opts.valid())
@@ -509,8 +509,10 @@ bool writeObjectFileImpl<osg::Node>::process(const std::string& filename, const 
     osg::Node* object = getObject<osg::Node,SGIItemOsg>();
     bool ret = false;
     const bool noOptimizer = true;
+    const SGIItemOsg* optionsOsg = dynamic_cast<const SGIItemOsg*>(options);
+    const osgDB::Options * inputOptions = dynamic_cast<const osgDB::Options*>(optionsOsg->object());
     osg::ref_ptr<osgDB::Options> cloned_opts =
-        options ? static_cast<osgDB::Options*>(options->clone(osg::CopyOp::SHALLOW_COPY)) :
+        inputOptions ? static_cast<osgDB::Options*>(inputOptions->clone(osg::CopyOp::SHALLOW_COPY)) :
         osgDB::Registry::instance()->getOptions();
 
     if(!cloned_opts.valid())
@@ -531,9 +533,11 @@ bool writeObjectFileImpl<osg::Image>::process(const std::string& filename, const
 {
     osg::Image* object = getObject<osg::Image,SGIItemOsg>();
     bool ret = false;
+    const SGIItemOsg* optionsOsg = dynamic_cast<const SGIItemOsg*>(options);
+    const osgDB::Options * inputOptions = dynamic_cast<const osgDB::Options*>(optionsOsg->object());
     const bool noOptimizer = true;
     osg::ref_ptr<osgDB::Options> cloned_opts =
-        options ? static_cast<osgDB::Options*>(options->clone(osg::CopyOp::SHALLOW_COPY)) :
+        inputOptions ? static_cast<osgDB::Options*>(inputOptions->clone(osg::CopyOp::SHALLOW_COPY)) :
         osgDB::Registry::instance()->getOptions();
 
     if(!cloned_opts.valid())
@@ -554,9 +558,11 @@ bool writeObjectFileImpl<osg::HeightField>::process(const std::string& filename,
 {
     osg::HeightField* object = getObject<osg::HeightField, SGIItemOsg>();
     bool ret = false;
+    const SGIItemOsg* optionsOsg = dynamic_cast<const SGIItemOsg*>(options);
+    const osgDB::Options * inputOptions = dynamic_cast<const osgDB::Options*>(optionsOsg->object());
     const bool noOptimizer = true;
     osg::ref_ptr<osgDB::Options> cloned_opts =
-        options ? static_cast<osgDB::Options*>(options->clone(osg::CopyOp::SHALLOW_COPY)) :
+        inputOptions ? static_cast<osgDB::Options*>(inputOptions->clone(osg::CopyOp::SHALLOW_COPY)) :
         osgDB::Registry::instance()->getOptions();
 
     if (!cloned_opts.valid())

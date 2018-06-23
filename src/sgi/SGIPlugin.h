@@ -3,19 +3,18 @@
 #include "sgi/plugins/SGIPluginInterface.h"
 
 class QObject;
-namespace osg {
-    class Referenced;
-}
-namespace osgDB {
-    class Options;
-}
 
 namespace sgi {
+
+namespace details {
+    class Referenced;
+    class Object;
+}
 
 class SGIHostItemBase;
 class SGIItemBase;
 
-typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
+typedef details::ref_ptr<SGIItemBase> SGIItemBasePtr;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 
 class ISceneGraphDialog;
@@ -28,13 +27,15 @@ class IContextMenuAction;
 class IHostCallback;
 class ISettingsDialog;
 class ISettingsDialogInfo;
+typedef details::ref_ptr<ISettingsDialog> ISettingsDialogPtr;
 
 class SGIPluginInfo : public ISGIPluginInfo
 {
 public:
     SGIPluginInfo()
-        : pluginName()
-        , pluginFilename()
+        : _pluginName()
+        , _pluginFilename()
+        , entryInterface(nullptr)
         , pluginInterface(nullptr)
         , writePrettyHTMLInterface(nullptr)
         , objectInfoInterface(nullptr)
@@ -49,8 +50,9 @@ public:
     {
     }
     SGIPluginInfo(const SGIPluginInfo & rhs)
-        : pluginName(rhs.pluginName)
-        , pluginFilename(rhs.pluginFilename)
+        : _pluginName(rhs._pluginName)
+        , _pluginFilename(rhs._pluginFilename)
+        , entryInterface(rhs.entryInterface)
         , pluginInterface(rhs.pluginInterface)
         , writePrettyHTMLInterface(rhs.writePrettyHTMLInterface)
         , objectInfoInterface(rhs.objectInfoInterface)
@@ -64,12 +66,15 @@ public:
         , errorMessage(rhs.errorMessage)
     {
     }
-    virtual unsigned pluginScore() const { return _pluginScore; }
+    unsigned pluginScore() const override { return _pluginScore; }
+    const std::string & pluginName() const override { return _pluginName; }
+    const std::string & pluginFilename() const override { return _pluginFilename; }
     bool isInternalPlugin() const;
 public:
-    std::string                             pluginName;
-    std::string                             pluginFilename;
-    osg::ref_ptr<SGIPluginInterface>        pluginInterface;
+    std::string                             _pluginName;
+    std::string                             _pluginFilename;
+    SGIPluginEntryInterface *               entryInterface;
+    details::ref_ptr<SGIPluginInterface>    pluginInterface;
     SGIPluginInterface::WritePrettyHTML*    writePrettyHTMLInterface;
     SGIPluginInterface::ObjectInfo*         objectInfoInterface;
     SGIPluginInterface::ObjectTree*         objectTreeInterface;
@@ -83,11 +88,13 @@ public:
 };
 
 
-class SGIPlugins : public osg::Referenced
+class SGIPlugins : public details::Object
 {
 protected:
     SGIPlugins();
-    virtual ~SGIPlugins();
+    ~SGIPlugins() override;
+
+    SGI_Object(sgi, SGIPlugins)
 
     void destruct();
 
@@ -96,12 +103,13 @@ public:
         PluginTypeModel = 0,
     };
 
-    typedef SGIPluginInfo PluginInfo;
-    typedef std::list<PluginInfo> PluginInfoList;
+    typedef std::list<SGIPluginInfo> PluginInfoList;
     typedef std::pair<std::string, std::string> PluginFileName;
     typedef std::list<PluginFileName> PluginFileNameList;
+    typedef std::vector<std::string> StringList;
 
     bool getPlugins(PluginInfoList & pluginList);
+    const StringList & pluginDirectories() const;
     PluginFileNameList listAllAvailablePlugins(PluginType pluginType=PluginTypeModel);
 
 public:
@@ -109,8 +117,10 @@ public:
 	IHostCallback * defaultHostCallback();
 	IHostCallback * hostCallback();
 	void setHostCallback(IHostCallback * callback);
+    QObject * libraryInfoQObject();
+    sgi::details::Object * libraryInfoObject();
 
-    bool generateItem(osg::ref_ptr<SGIItemBase> & item, const SGIHostItemBase * object);
+    bool generateItem(SGIItemBasePtr & item, const SGIHostItemBase * object);
 
     void writePrettyHTML(std::basic_ostream<char>& os, const SGIHostItemBase * item, bool table=true);
     void writePrettyHTML(std::basic_ostream<char>& os, const SGIItemBase * item, bool table=true);
@@ -157,8 +167,8 @@ public:
     bool contextMenuPopulate(IContextMenuItem * menuItem, SGIItemBase * item, bool onlyRootItem);
     bool contextMenuExecute(IContextMenuAction * menuAction, SGIItemBase * item);
 
-    bool openSettingsDialog(osg::ref_ptr<ISettingsDialog> & dialog, const SGIHostItemBase * object, ISettingsDialogInfo * info=nullptr);
-    bool openSettingsDialog(osg::ref_ptr<ISettingsDialog> & dialog, SGIItemBase * item, ISettingsDialogInfo * info=nullptr);
+    bool openSettingsDialog(ISettingsDialogPtr & dialog, const SGIHostItemBase * object, ISettingsDialogInfo * info=nullptr);
+    bool openSettingsDialog(ISettingsDialogPtr & dialog, SGIItemBase * item, ISettingsDialogInfo * info=nullptr);
 
     bool writeObjectFile(bool & result, const SGIHostItemBase * item, const std::string & filename, const SGIItemBase* options=nullptr);
     bool writeObjectFile(bool & result, SGIItemBase * item, const std::string & filename, const SGIItemBase* options=nullptr);

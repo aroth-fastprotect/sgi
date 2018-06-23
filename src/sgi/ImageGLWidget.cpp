@@ -354,7 +354,7 @@ void ImageGLWidget::reloadImage()
         return;
 
     makeCurrent();
-    setImageImpl(_image);
+    setImageImpl(_image.get());
 
     doneCurrent();
     // trigger a repaint because we changed the widgets content outside repaintGL
@@ -657,7 +657,7 @@ void ImageGLWidget::mouseMoveEvent(QMouseEvent *ev)
 void ImageGLWidget::resizeEvent(QResizeEvent *event)
 {
     int pheight = parentWidget()->height();
-    QSize s(_image ? static_cast<int>(_image->width()) : 0, _image ? static_cast<int>(_image->height()) : 0);
+    QSize s(_image.valid() ? static_cast<int>(_image->width()) : 0, _image.valid() ? static_cast<int>(_image->height()) : 0);
     s.scale(event->size(), Qt::KeepAspectRatio);
     s = QLayout::closestAcceptableSize(this, s);
     QRect imageRect = QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, s, rect());

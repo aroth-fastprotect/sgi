@@ -15,7 +15,7 @@ template<typename AUTOLOADCLASS>
 inline bool generateItem(SGIItemBasePtr & item, const SGIHostItemBase * object)
 {
     bool ret;
-    typedef bool (*pfn)(osg::ref_ptr<sgi::SGIItemBase> & item, const sgi::SGIHostItemBase * object);
+    typedef bool (*pfn)(SGIItemBasePtr & item, const sgi::SGIHostItemBase * object);
     pfn func = reinterpret_cast<pfn>(AUTOLOADCLASS::sgiLibraryProcAddress("sgi_generateItem"));
     if(func)
         ret = func(item, object);
@@ -28,7 +28,7 @@ inline bool generateItem(SGIItemBasePtr & item, const SGIHostItemBase * object)
 template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
 inline bool generateItem(SGIItemBasePtr & item, OBJECT_TYPE * object)
 {
-    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    SGIHostItemBasePtr hostitem = SGIHostItemGenerator::generateHostItem(object);
     return generateItem<AUTOLOADCLASS>(item, hostitem.get());
 }
 #endif // !defined(SGI_NO_HOSTITEM_GENERATOR)

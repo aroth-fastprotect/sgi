@@ -254,7 +254,7 @@ struct TextureAttributePair {
     unsigned textureUnit;
     osg::ref_ptr<osg::StateAttribute> attr;
 };
-typedef ReferencedDataT<TextureAttributePair> ReferencedDataTextureAttributePair;
+typedef details::ReferencedDataT<TextureAttributePair> ReferencedDataTextureAttributePair;
 
 ACTION_HANDLER_IMPL_TEMPLATE()
 

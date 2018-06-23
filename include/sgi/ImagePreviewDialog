@@ -54,7 +54,7 @@ inline IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, const SGIHo
 template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
 inline IImagePreviewDialog * showImagePreviewDialog(QWidget *parent, OBJECT_TYPE * object, IHostCallback * callback=nullptr)
 {
-    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    SGIHostItemBasePtr hostitem = SGIHostItemGenerator::generateHostItem(object);
     IImagePreviewDialog * ret = showImagePreviewDialogImpl<AUTOLOADCLASS>(parent, hostitem.get(), callback);
     return ret;
 }

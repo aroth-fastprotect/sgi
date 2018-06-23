@@ -20,14 +20,7 @@ namespace osgEarth {
 
 namespace sgi {
 
-class SGIItemOsg;
-
 namespace osgearth_plugin {
-
-typedef ReferencedRawPtrT<osgEarth::ElevationQuery> ElevationQueryReferenced;
-typedef ReferencedDataT<osgEarth::TileKey> TileKeyReferenced;
-struct TileSourceTileKeyData;
-typedef ReferencedDataT<TileSourceTileKeyData> TileSourceTileKey;
 
 //--------------------------------------------------------------------------------
 // getObjectNameImpl

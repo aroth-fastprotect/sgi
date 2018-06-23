@@ -21,7 +21,6 @@ SET(TARGET_SRC
 
 SET(TARGET_H
 	SGIItemOsgEarth
-	ElevationQueryReferenced
 	stdafx.h
     writeHTMLOSGEarth.h
     writeHTMLOSGEarthConfig.h
@@ -40,8 +39,7 @@ if(EXISTS ${OSGEARTH_INCLUDE_DIR}/osgEarth/LevelDBFactory)
     add_definitions(-DSGI_USE_OSGEARTH_FAST=1)
 endif()
 
-fast_configure_file(SGIItemOsgEarth ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsgEarth COPYONLY)
-fast_configure_file(ElevationQueryReferenced ${SGI_INCLUDE_DIR}/sgi/plugins/ElevationQueryReferenced COPYONLY)
+SGI_CREATE_SYMLINK(SGIItemOsgEarth ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsgEarth)
 
 SET(TARGET_MOC_H
     AutoClipPlaneCullCallbackDialog.h
@@ -60,6 +58,8 @@ SET(TARGET_LIBRARIES_VARS
     SGI_OSG_HELPER_LIBRARY
     SGI_QT_HELPER_LIBRARY
     OPENTHREADS_LIBRARY
+    OSG_LIBRARY
+    OSGDB_LIBRARY
 	OSGGA_LIBRARY
 	OSGUTIL_LIBRARY
 	OSGVIEWER_LIBRARY

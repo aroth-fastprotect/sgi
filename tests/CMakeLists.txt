@@ -6,9 +6,6 @@ MACRO(SGI_UNITTEST NAME)
         set(TARGET_MOC_H ${NAME}_unittest.h)
 
         list(APPEND TARGET_LIBRARIES_VARS
-            OSG_LIBRARY
-            OSGDB_LIBRARY
-            OPENTHREADS_LIBRARY
             SGI_PLUGIN_IMPL_LIBRARY
             QT_QTCORE_LIBRARY
             QT_QTGUI_LIBRARY
@@ -24,6 +21,27 @@ MACRO(SGI_UNITTEST NAME)
 ENDMACRO(SGI_UNITTEST)
 
 SGI_UNITTEST(item)
-SGI_UNITTEST(item_osg)
+if(SGI_PLUGIN_OSG)
+    list(APPEND TARGET_LIBRARIES_VARS
+        OSG_LIBRARY
+        OSGDB_LIBRARY
+        OPENTHREADS_LIBRARY)
+    if(UNIX)
+        list(APPEND TARGET_LIBRARIES_VARS dl)
+    endif()
+    SGI_UNITTEST(item_osg)
+endif()
+if(SGI_PLUGIN_OSGEARTH)
+    list(APPEND TARGET_LIBRARIES_VARS
+        OSG_LIBRARY
+        OSGDB_LIBRARY
+        OPENTHREADS_LIBRARY
+        OSGEARTH_LIBRARY)
+    if(UNIX)
+        list(APPEND TARGET_LIBRARIES_VARS dl)
+    endif()
+    SGI_UNITTEST(item_osgearth)
+    target_include_directories(sgi_item_osgearth_unittest PRIVATE ${OSGEARTH_INCLUDE_DIR})
+endif()
 SGI_UNITTEST(variadic)
 SGI_UNITTEST(itemtree)

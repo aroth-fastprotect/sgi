@@ -13,8 +13,8 @@ namespace qt_helpers {
 class SGIItemBase;
 class SGIHostItemBase;
 class SGIDataItemBase;
-typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
-typedef osg::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
+typedef details::ref_ptr<SGIItemBase> SGIItemBasePtr;
+typedef details::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
 typedef std::list<SGIDataItemBasePtr> SGIDataItemBasePtrList;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrVector;
@@ -24,7 +24,7 @@ class ContextMenuBase : public QMenu
     Q_OBJECT
 public:
     ContextMenuBase(QWidget *parent = nullptr);
-    virtual ~ContextMenuBase();
+    ~ContextMenuBase() override;
 signals:
     void hidden();
 
@@ -36,8 +36,8 @@ class ContextMenu : public ContextMenuBase
 {
     Q_OBJECT
 public:
-                                    ContextMenu(bool onlyRootItem=true, QWidget *parent = 0);
-                                    ContextMenu(SGIItemBase * item, IHostCallback * callback, bool onlyRootItem=true, QWidget *parent=0);
+                                    ContextMenu(bool onlyRootItem=true, QWidget *parent = nullptr);
+                                    ContextMenu(SGIItemBase * item, IHostCallback * callback, bool onlyRootItem=true, QWidget *parent=nullptr);
     virtual					        ~ContextMenu();
 
 public:
@@ -95,7 +95,7 @@ class ContextMenuQt : public QObject
     Q_OBJECT
 
 public:
-    ContextMenuQt(QObject * item, IHostCallback * callback, bool onlyRootItem=true, QWidget *parent=0);
+    ContextMenuQt(QObject * item, IHostCallback * callback, bool onlyRootItem=true, QWidget *parent=nullptr);
     virtual ~ContextMenuQt();
 
 public:

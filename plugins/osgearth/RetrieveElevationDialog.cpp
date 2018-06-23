@@ -1,7 +1,5 @@
 #include "stdafx.h"
 #include "RetrieveElevationDialog.h"
-#include "../osg/SGIItemOsg"
-
 #include "ui_RetrieveElevationDialog.h"
 
 #include <osgEarth/Version>
@@ -13,7 +11,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QProcess>
 
-#include "ElevationQueryReferenced"
+#include "SGIItemOsgEarth"
 #include "osgearth_accessor.h"
 #include "string_helpers.h"
 
@@ -28,7 +26,7 @@ namespace osgearth_plugin {
 namespace {
     ElevationQueryReferenced * getElevationQuery(SGIItemBase * item)
     {
-        ElevationQueryReferenced * ret = NULL;
+        ElevationQueryReferenced * ret = nullptr;
         SGIItemOsg* osgitem = dynamic_cast<SGIItemOsg*>(item);
         if(osgitem)
             ret = dynamic_cast<ElevationQueryReferenced*>(osgitem->object());
@@ -77,7 +75,7 @@ RetrieveElevationDialog::RetrieveElevationDialog(QWidget * parent, SGIItemBase *
     , _interface(new SettingsDialogImpl(this))
     , _info(info)
 {
-    Q_ASSERT(_info != NULL);
+    Q_ASSERT(_info != nullptr);
 
 	ui = new Ui_RetrieveElevationDialog;
 	ui->setupUi( this );
@@ -93,7 +91,7 @@ RetrieveElevationDialog::~RetrieveElevationDialog()
     if (ui)
     {
         delete ui;
-        ui = NULL;
+        ui = nullptr;
     }
 }
 
@@ -124,7 +122,7 @@ bool RetrieveElevationDialog::getQueryPoint(osgEarth::GeoPoint & point)
 {
     bool ret = false;
     ElevationQueryReferenced * queryRef = getElevationQuery(_item.get());
-    ElevationQueryAccess * query = queryRef?(ElevationQueryAccess *)queryRef->get():NULL;
+    ElevationQueryAccess * query = queryRef?(ElevationQueryAccess *)queryRef->get():nullptr;
     if(query)
     {
         const osgEarth::Profile * profile;
@@ -157,7 +155,7 @@ void RetrieveElevationDialog::query()
     if(getQueryPoint(point))
     {
         ElevationQueryReferenced * queryRef = getElevationQuery(_item.get());
-        ElevationQueryAccess * query = queryRef?(ElevationQueryAccess *)queryRef->get():NULL;
+        ElevationQueryAccess * query = queryRef?(ElevationQueryAccess *)queryRef->get():nullptr;
         
         qint64 start = QDateTime::currentMSecsSinceEpoch();
 

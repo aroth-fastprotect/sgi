@@ -4,6 +4,11 @@
 #include <QDialog>
 #include <QMenu>
 
+#if defined(__linux__)
+#include <dlfcn.h>
+#include <osgDB/Version>
+#endif
+
 #define SGI_NO_HOSTITEM_GENERATOR
 #include <sgi/GenerateItem>
 #include <sgi/WritePrettyHTML>
@@ -22,22 +27,36 @@ inline QDebug operator<< (QDebug dbg, const std::string & s)
     return dbg << QString::fromStdString(s);
 }
 
-
-class TestItem : public SGIItemBase
-{
-public:
-    TestItem(unsigned score=0)
-        : SGIItemBase(SGIItemTypeInvalid, 0, score, nullptr)
+#ifdef __linux__
+namespace {
+    std::string getOSGDBModuleFilename()
     {
+        std::string ret;
+        Dl_info info;
+        const char* (* addr) () = osgDBGetVersion;
+        if(dladdr(reinterpret_cast<const void*>(addr), &info) != 0)
+        {
+            ret = info.dli_fname;
+        }
+        return ret;
     }
-
-    virtual ~TestItem()
+    std::string getOSGDBModuleDirectory()
     {
+        std::string modulefilename = getOSGDBModuleFilename();
+        return std::string(modulefilename, 0, modulefilename.find_last_of('/'));
     }
-};
+}
+#endif
 
 void item_osg_unittest::initTestCase()
 {
+#ifdef __linux__
+    osgDB::Registry * registry = osgDB::Registry::instance();
+    registry->initLibraryFilePathList();
+    osgDB::FilePathList libdirs = registry->getLibraryFilePathList();
+    libdirs.push_back(getOSGDBModuleDirectory());
+    registry->setLibraryFilePathList(libdirs);
+#endif
 }
 
 void item_osg_unittest::cleanupTestCase()
@@ -59,7 +78,7 @@ void item_osg_unittest::autoLoadOsg()
 
 void item_osg_unittest::contextMenuOsg()
 {
-    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
     QCOMPARE(sgi::autoload::Osg::sgiLibraryLoaded(), false);
 
     auto lib = sgi::autoload::Osg::sgiLibrary();
@@ -69,7 +88,7 @@ void item_osg_unittest::contextMenuOsg()
     SGIHostItemOsg hostItem(lib);
     sgi::generateItem<sgi::autoload::Osg>(item, &hostItem);
     QVERIFY(item.valid());
-    sgi::IContextMenuPtr ctxIface = sgi::createContextMenu<sgi::autoload::Osg>(nullptr, item);
+    sgi::IContextMenuPtr ctxIface = sgi::createContextMenu<sgi::autoload::Osg>(nullptr, item.get());
     QVERIFY(ctxIface != nullptr);
     QMenu * menu = ctxIface->getMenu();
     menu->show();
@@ -77,7 +96,7 @@ void item_osg_unittest::contextMenuOsg()
     // need to run the main event processor to clean up (deleteLater, etc)
     QApplication::processEvents();
 
-    QCOMPARE(getRefCount(ctxIface.get()), 1u);
+    QCOMPARE(getRefCount(ctxIface.get()), 1);
     // release the menu
     ctxIface = nullptr;
     item = nullptr;
@@ -86,7 +105,7 @@ void item_osg_unittest::contextMenuOsg()
 
     sgi::autoload::Osg::sgiLibraryUnload();
     QCOMPARE(sgi::autoload::Osg::sgiLibraryLoaded(), false);
-    QCOMPARE(TestItem::getTotalItemCount(), 0u);
+    QCOMPARE(sgi::SGIItemBase::getTotalItemCount(), 0u);
 }
 
 QTEST_MAIN(item_osg_unittest)

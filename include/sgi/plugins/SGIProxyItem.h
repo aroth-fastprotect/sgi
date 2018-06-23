@@ -12,12 +12,12 @@ class SGIPluginHostInterface;
 class SGI_IMPL_EXPORT SGIProxyItemBase : public SGIItemBase
 {
 public:
-    SGIProxyItemBase(SGIPluginHostInterface * hostInterface = NULL, SGIItemBase * realItem = NULL);
+    SGIProxyItemBase(SGIPluginHostInterface * hostInterface = nullptr, SGIItemBase * realItem = nullptr);
     SGIProxyItemBase(SGIPluginHostInterface * hostInterface, 
         const std::string & name, 
         const std::string & typeName = std::string(), 
         const std::string & displayName = std::string(), 
-        SGIItemBase * realItem = NULL);
+        SGIItemBase * realItem = nullptr);
     SGIProxyItemBase(const SGIProxyItemBase & rhs);
 
     SGIItemBase * realItem(bool getInstance = false);
@@ -53,9 +53,9 @@ template<typename GET_REAL_INSTANCE>
 class SGIProxyItemT : public SGIProxyItemBase
 {
 public:
-    SGIProxyItemT(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * realItem=NULL)
+    SGIProxyItemT(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * realItem=nullptr)
         : SGIProxyItemBase(hostInterface, realItem) {}
-    SGIProxyItemT(SGIPluginHostInterface * hostInterface, const std::string & name, const std::string & typeName=std::string(), const std::string & displayName=std::string(), SGIItemBase * realItem=NULL)
+    SGIProxyItemT(SGIPluginHostInterface * hostInterface, const std::string & name, const std::string & typeName=std::string(), const std::string & displayName=std::string(), SGIItemBase * realItem=nullptr)
         : SGIProxyItemBase(hostInterface, name, displayName, typeName, realItem) {}
     SGIProxyItemT(const SGIProxyItemT & rhs)
         : SGIProxyItemBase(rhs) {}

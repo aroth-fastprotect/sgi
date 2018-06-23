@@ -2,6 +2,7 @@
 
 #include <QDialog>
 #include <sgi/plugins/SGIPluginInterface.h>
+#include <osg/ref_ptr>
 
 QT_BEGIN_NAMESPACE
 class Ui_CameraSettings;

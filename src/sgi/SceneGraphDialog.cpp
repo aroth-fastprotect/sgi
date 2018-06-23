@@ -58,7 +58,7 @@ public:
         delete _dialog;
     }
     QDialog *       getDialog() override { return _dialog; }
-    IHostCallback * getHostCallback() override { return _dialog->_hostCallback; }
+    IHostCallback * getHostCallback() override { return _dialog->_hostCallback.get(); }
     IContextMenu *  toolsMenu() override { return _dialog->toolsMenu(); }
     void            setObject(SGIItemBase * item, IHostCallback * callback=nullptr) override { _dialog->setObject(item, callback); }
     void            setObject(const SGIHostItemBase * item, IHostCallback * callback=nullptr) override { _dialog->setObject(item, callback); }
@@ -311,7 +311,7 @@ SceneGraphDialog::~SceneGraphDialog()
 		delete ui;
         ui = nullptr;
 	}
-    if (_toolsMenuInterface)
+    if (_toolsMenuInterface.valid())
     {
         // tell interface that this instance is already gone, so no need to
         // delete again
@@ -429,7 +429,7 @@ void SceneGraphDialog::onObjectChanged(int tabIndex, SGIItemBase * item)
     for (int index = 0; item && existingTabIndex < 0 && index < (int)ui->tabs.size(); ++index)
     {
         Ui_TabPage * page = ui->tabs[index];
-        if (page->item == item)
+        if (page->item.get() == item)
             existingTabIndex = index;
     }
     if (existingTabIndex >= 0)
@@ -492,7 +492,7 @@ void SceneGraphDialog::updatePathComboBox()
     ui->comboBoxPath->clear();
     // first get the current path
     if(uiPage->item.valid())
-        SGIPlugins::instance()->getObjectPath(uiPage->itemPath, uiPage->item);
+        SGIPlugins::instance()->getObjectPath(uiPage->itemPath, uiPage->item.get());
     else
         uiPage->itemPath.clear();
 
@@ -503,7 +503,7 @@ void SceneGraphDialog::updatePathComboBox()
         if(uiPage->item.valid())
         {
             std::string objectName;
-            SGIPlugins::instance()->getObjectName(objectName, uiPage->item, true);
+            SGIPlugins::instance()->getObjectName(objectName, uiPage->item.get(), true);
             QtSGIItem data(uiPage->item.get());
             QString qobjectName = fromUtf8(objectName);
             ui->comboBoxPath->addItem(qobjectName, QVariant::fromValue(data));
@@ -518,7 +518,7 @@ void SceneGraphDialog::updatePathComboBox()
         {
             const SGIItemBasePtr & item = *it;
             std::string objectName;
-            SGIPlugins::instance()->getObjectName(objectName, item, true);
+            SGIPlugins::instance()->getObjectName(objectName, item.get(), true);
 			QtSGIItem data(item.get());
             QString qobjectName = fromUtf8(objectName);
             ui->comboBoxPath->addItem(qobjectName, QVariant::fromValue(data));
@@ -557,7 +557,7 @@ void SceneGraphDialog::reload()
 	if (uiPage->item.valid())
 	{
 		std::string displayName;
-		SGIPlugins::instance()->getObjectDisplayName(displayName, uiPage->item);
+        SGIPlugins::instance()->getObjectDisplayName(displayName, uiPage->item.get());
 		setWindowTitle(tr("Information about %1").arg(fromUtf8(displayName)));
 	}
 	else
@@ -572,9 +572,9 @@ void SceneGraphDialog::reload()
     }
     if (!_itemToolsMenu.valid())
     {
-        SGIHostItemInternal hostItemToolsMenu(_toolsMenuInterface);
+        SGIHostItemInternal hostItemToolsMenu(_toolsMenuInterface.get());
         SGIPlugins::instance()->generateItem(_itemToolsMenu, &hostItemToolsMenu);
-        _toolsMenu->setObject(_itemToolsMenu);
+        _toolsMenu->setObject(_itemToolsMenu.get());
     }
 
     uiPage->treeWidget->blockSignals(true);
@@ -654,7 +654,7 @@ void SceneGraphDialog::itemPrevious()
         {
             if(*uiPage->item.get() == *(*it))
             {
-                if(prev)
+                if(prev.valid())
                 {
                     uiPage->item = prev;
                     selectItemInPathBox();
@@ -764,7 +764,7 @@ bool SceneGraphDialog::buildRootTree(ObjectTreeItem * treeItem)
 {
     bool ret = false;
     if(_itemSelf.valid())
-        ret = SGIPlugins::instance()->objectTreeBuildRootTree(treeItem, _itemSelf);
+        ret = SGIPlugins::instance()->objectTreeBuildRootTree(treeItem, _itemSelf.get());
     return ret;
 }
 
@@ -799,18 +799,18 @@ void SceneGraphDialog::onItemContextMenu(QPoint pt)
         IContextMenuPtr objectMenu = _hostCallback->contextMenu(this, itemData.item());
         if (!objectMenu)
         {
-            if (_contextMenu)
+            if (_contextMenu.valid())
             {
                 _contextMenu->setObject(itemData.item());
                 objectMenu = _contextMenu;
             }
             else
             {
-                objectMenu = SGIPlugins::instance()->createContextMenu(this, itemData.item(), _hostCallback);
+                objectMenu = SGIPlugins::instance()->createContextMenu(this, itemData.item(), _hostCallback.get());
             }
         }
 
-        if (objectMenu)
+        if (objectMenu.valid())
             contextQMenu = objectMenu->getMenu();
 
         _contextMenu = objectMenu;
@@ -826,7 +826,7 @@ void SceneGraphDialog::onItemContextMenu(QPoint pt)
 
 SGIItemBase * SceneGraphDialog::getView()
 {
-    if(_hostCallback)
+    if(_hostCallback.valid())
         return _hostCallback->getView();
     else
         return nullptr;
@@ -834,7 +834,7 @@ SGIItemBase * SceneGraphDialog::getView()
 
 void SceneGraphDialog::triggerRepaint()
 {
-    if(_hostCallback)
+    if(_hostCallback.valid())
         _hostCallback->triggerRepaint();
 }
 
@@ -842,9 +842,9 @@ bool SceneGraphDialog::newInstance(SGIItemBase * item)
 {
     bool ret;
     // only open a new instance when the object is different
-    if(uiPage->item != item && *uiPage->item.get() != *item)
+    if(uiPage->item.get() != item && *uiPage->item.get() != *item)
     {
-        ISceneGraphDialog * dlg = SGIPlugins::instance()->showSceneGraphDialog(parentWidget(), item, _hostCallback);
+        ISceneGraphDialog * dlg = SGIPlugins::instance()->showSceneGraphDialog(parentWidget(), item, _hostCallback.get());
         if(dlg)
             dlg->show();
         ret = (dlg != nullptr);
@@ -860,7 +860,7 @@ bool SceneGraphDialog::newInstance(SGIItemBase * item)
 bool SceneGraphDialog::newInstance(const SGIHostItemBase * hostitem)
 {
     bool ret;
-    osg::ref_ptr<SGIItemBase> item;
+    SGIItemBasePtr item;
     if(SGIPlugins::instance()->generateItem(item, hostitem))
         ret = newInstance(item.get());
     else
@@ -877,7 +877,7 @@ bool SceneGraphDialog::showObjectLoggerDialog(SGIItemBase * item)
 bool SceneGraphDialog::showObjectLoggerDialog(const SGIHostItemBase * hostitem)
 {
     bool ret;
-    osg::ref_ptr<SGIItemBase> item;
+    SGIItemBasePtr item;
     if(SGIPlugins::instance()->generateItem(item, hostitem))
         ret = showObjectLoggerDialog(item.get());
     else

@@ -54,7 +54,7 @@ inline IContextMenu * createContextMenu(QWidget *parent, SGIItemBase * item, IHo
 template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
 inline IContextMenu * createContextMenu(QWidget *parent, OBJECT_TYPE * object, IHostCallback * callback=nullptr)
 {
-    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    SGIHostItemBasePtr hostitem = SGIHostItemGenerator::generateHostItem(object);
     IContextMenu * ret = createContextMenuImpl<AUTOLOADCLASS>(parent, hostitem.get(), callback);
     return ret;
 }

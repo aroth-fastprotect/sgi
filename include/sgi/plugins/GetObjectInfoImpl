@@ -34,7 +34,7 @@ public:
         typedef std::string ResultType;
     };
 
-    getObjectInfoFullStringImplBaseT(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool full=true)
+    getObjectInfoFullStringImplBaseT(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr, bool full=true)
         : functionImplBase(hostInterface, item), _full(full) {}
 
     typedef details::call_by_type_registryT<TypePolicy> Registry;
@@ -69,7 +69,7 @@ protected:
     class getObjectNameImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        getObjectNameImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool full=true) {} \
+        getObjectNameImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, const SGIItemBase * /*item*/=nullptr, bool /*full*/=true) {} \
         std::string process() { return std::string(); } \
     }; \
     typedef getObjectInfoFullStringImplBaseT<getObjectNameImpl> getObjectNameImplBase;
@@ -82,7 +82,7 @@ protected:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        getObjectNameImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool full=true) \
+        getObjectNameImpl<__type>(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr, bool full=true) \
             : getObjectNameImplBase(hostInterface, item, full) {} \
         std::string process(); \
     };
@@ -99,7 +99,7 @@ protected:
     class getObjectDisplayNameImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        getObjectDisplayNameImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool full=true) {} \
+        getObjectDisplayNameImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, const SGIItemBase * /*item*/=nullptr, bool /*full*/=true) {} \
         std::string process() { return std::string(); } \
     }; \
     typedef getObjectInfoFullStringImplBaseT<getObjectDisplayNameImpl> getObjectDisplayNameImplBase;
@@ -112,7 +112,7 @@ protected:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        getObjectDisplayNameImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool full=true) \
+        getObjectDisplayNameImpl<__type>(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr, bool full=true) \
             : getObjectDisplayNameImplBase(hostInterface, item, full) {} \
         std::string process(); \
     };
@@ -129,7 +129,7 @@ protected:
     class getObjectTypeImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        getObjectTypeImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool full=true) {} \
+        getObjectTypeImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, const SGIItemBase * /*item*/=nullptr, bool /*full*/=true) {} \
         std::string process() { return std::string(); } \
     }; \
     typedef getObjectInfoFullStringImplBaseT<getObjectTypeImpl> getObjectTypeImplBase;
@@ -142,7 +142,7 @@ protected:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        getObjectTypeImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool full=true) \
+        getObjectTypeImpl<__type>(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr, bool full=true) \
             : getObjectTypeImplBase(hostInterface, item, full) {} \
         std::string process(); \
     };
@@ -169,7 +169,7 @@ public:
         typedef std::string ResultType;
     };
 
-    getObjectInfoStringImplBaseT(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL)
+    getObjectInfoStringImplBaseT(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr)
         : functionImplBase(hostInterface, item) {}
 
     typedef details::call_by_type_registryT<TypePolicy> Registry;
@@ -201,7 +201,7 @@ public:
     class getObjectSuggestedFilenameImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        getObjectSuggestedFilenameImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL) {} \
+        getObjectSuggestedFilenameImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, const SGIItemBase * /*item*/=nullptr) {} \
         std::string process() { return std::string(); } \
     }; \
     typedef getObjectInfoStringImplBaseT<getObjectSuggestedFilenameImpl> getObjectSuggestedFilenameImplBase;
@@ -214,7 +214,7 @@ public:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        getObjectSuggestedFilenameImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL) \
+        getObjectSuggestedFilenameImpl<__type>(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr) \
             : getObjectSuggestedFilenameImplBase(hostInterface, item) {} \
         std::string process(); \
     };
@@ -231,7 +231,7 @@ public:
     class getObjectSuggestedFilenameExtensionImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        getObjectSuggestedFilenameExtensionImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL) {} \
+        getObjectSuggestedFilenameExtensionImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, const SGIItemBase * /*item*/=nullptr) {} \
         std::string process() { return std::string(); } \
     }; \
     typedef getObjectInfoStringImplBaseT<getObjectSuggestedFilenameExtensionImpl> getObjectSuggestedFilenameExtensionImplBase;
@@ -244,7 +244,7 @@ public:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        getObjectSuggestedFilenameExtensionImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL) \
+        getObjectSuggestedFilenameExtensionImpl<__type>(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr) \
             : getObjectSuggestedFilenameExtensionImplBase(hostInterface, item) {} \
         std::string process(); \
     };
@@ -272,7 +272,7 @@ public:
         typedef std::vector<std::string> ResultType;
     };
 
-    getObjectFilenameFiltersImplBaseT(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL)
+    getObjectFilenameFiltersImplBaseT(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr)
         : functionImplBase(hostInterface, item) {}
 
     typedef details::call_by_type_registryT<TypePolicy> Registry;
@@ -304,7 +304,7 @@ public:
     class getObjectFilenameFiltersImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        getObjectFilenameFiltersImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL) {} \
+        getObjectFilenameFiltersImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, const SGIItemBase * /*item*/=nullptr) {} \
         std::vector<std::string> process() { return std::vector<std::string>(); } \
     }; \
     typedef getObjectFilenameFiltersImplBaseT<getObjectFilenameFiltersImpl> getObjectFilenameFiltersImplBase;
@@ -317,7 +317,7 @@ public:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        getObjectFilenameFiltersImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL) \
+        getObjectFilenameFiltersImpl<__type>(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr) \
             : getObjectFilenameFiltersImplBase(hostInterface, item) {} \
         std::vector<std::string> process(); \
     };
@@ -344,7 +344,7 @@ public:
         typedef SGIItemBasePtrPath ResultType;
     };
 
-    getObjectPathImplBaseT(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL)
+    getObjectPathImplBaseT(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr)
         : functionImplBase(hostInterface, item) {}
 
     typedef details::call_by_type_registryT<TypePolicy> Registry;
@@ -376,7 +376,7 @@ public:
     class getObjectPathImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        getObjectPathImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL) {} \
+        getObjectPathImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, const SGIItemBase * /*item*/=nullptr) {} \
         SGIItemBasePtrPath process() { return SGIItemBasePtrPath(); } \
     }; \
     typedef getObjectPathImplBaseT<getObjectPathImpl> getObjectPathImplBase;
@@ -389,7 +389,7 @@ public:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        getObjectPathImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL) \
+        getObjectPathImpl<__type>(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr) \
             : getObjectPathImplBase(hostInterface, item) {} \
         SGIItemBasePtrPath process(); \
     };
@@ -416,7 +416,7 @@ public:
         typedef bool ResultType;
     };
 
-    hasCallbackImplBaseT(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL)
+    hasCallbackImplBaseT(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr)
         : functionImplBase(hostInterface, item) {}
 
     typedef details::call_by_type_registryT<TypePolicy> Registry;
@@ -462,7 +462,7 @@ public:
     class hasCallbackImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        hasCallbackImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL) {} \
+        hasCallbackImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, const SGIItemBase * /*item*/=nullptr) {} \
         bool process() { return false; } \
     }; \
     typedef hasCallbackImplBaseT<hasCallbackImpl> hasCallbackImplBase;
@@ -475,7 +475,7 @@ public:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        hasCallbackImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL) \
+        hasCallbackImpl<__type>(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr) \
             : hasCallbackImplBase(hostInterface, item) {} \
         bool process(); \
     };
@@ -505,7 +505,7 @@ public:
         typedef bool ResultType;
     };
 
-    writeObjectFileImplBaseT(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL)
+    writeObjectFileImplBaseT(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr)
         : functionImplBase(hostInterface, item) {}
 
     typedef details::call_by_type_registryT<TypePolicy> Registry;
@@ -537,8 +537,8 @@ public:
     class writeObjectFileImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        writeObjectFileImpl(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL) {} \
-        bool process(const std::string & filename, const SGIItemBase* options=NULL) { return false; } \
+        writeObjectFileImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, SGIItemBase * /*item*/=nullptr) {} \
+        bool process(const std::string & /*filename*/, const SGIItemBase* /*options*/=nullptr) { return false; } \
     }; \
     typedef writeObjectFileImplBaseT<writeObjectFileImpl> writeObjectFileImplBase;
 
@@ -550,9 +550,9 @@ public:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        writeObjectFileImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL) \
+        writeObjectFileImpl<__type>(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr) \
             : writeObjectFileImplBase(hostInterface, item) {} \
-        bool process(const std::string & filename, const SGIItemBase* options=NULL); \
+        bool process(const std::string & filename, const SGIItemBase* options=nullptr); \
     };
 
 #define WRITE_OBJECT_FILE_IMPL_REGISTER(__type) \

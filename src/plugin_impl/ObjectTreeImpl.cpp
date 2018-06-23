@@ -76,7 +76,7 @@ IObjectTreeItem * ObjectTreeItem::addChild(const std::string & name, SGIItemBase
 
 IObjectTreeItem * ObjectTreeItem::addChild(const std::string & name, const SGIHostItemBase * hostitem)
 {
-    osg::ref_ptr<SGIItemBase> item;
+    details::ref_ptr<SGIItemBase> item;
     if(_hostInterface->generateItem(item, hostitem))
         return addChildImpl(name, item.get());
     else
@@ -91,7 +91,7 @@ IObjectTreeItem * ObjectTreeItem::insertChild(IObjectTreeItem * sibling, const s
 
 IObjectTreeItem * ObjectTreeItem::insertChild(IObjectTreeItem * sibling, const std::string & name, const SGIHostItemBase * hostitem)
 {
-    osg::ref_ptr<SGIItemBase> item;
+    details::ref_ptr<SGIItemBase> item;
     if (_hostInterface->generateItem(item, hostitem))
     {
         int index = sibling ? _item->indexOfChild(static_cast<ObjectTreeItem*>(sibling)->_item) : -1;

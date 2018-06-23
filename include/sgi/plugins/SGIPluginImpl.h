@@ -1,11 +1,7 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
-
-#include <osgDB/ReaderWriter>
-#include <osgDB/FileNameUtils>
-#include <osgDB/Registry>
 
 #include <sgi/details/type_list>
 #include <sgi/helpers/preprocessor>
@@ -67,7 +63,7 @@ template<typename T>
 class defaultPluginWritePrettyHTMLImpl {
 public:
     typedef sgi::details::constexpr_false accept;
-    defaultPluginWritePrettyHTMLImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool table=true) {}
+    defaultPluginWritePrettyHTMLImpl(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr, bool table=true) {}
     bool process(std::basic_ostream<char>& os) { return false; }
 };
 
@@ -76,7 +72,7 @@ template<typename T>
 class defaultPluginGetObjectInfoStringImpl {
 public:
     typedef sgi::details::constexpr_false accept;
-    defaultPluginGetObjectInfoStringImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL)
+    defaultPluginGetObjectInfoStringImpl(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr)
         {}
     std::string process() { return std::string(); }
 };
@@ -87,7 +83,7 @@ template<typename T>
 class defaultPluginGetObjectPathImpl {
 public:
     typedef sgi::details::constexpr_false accept;
-    defaultPluginGetObjectPathImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL)
+    defaultPluginGetObjectPathImpl(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr)
         {}
     SGIItemBasePtrPath process() { return SGIItemBasePtrPath(); }
 };
@@ -96,7 +92,7 @@ template<typename T>
 class defaultPluginGetObjectHasCallbackImpl {
 public:
     typedef sgi::details::constexpr_false accept;
-    defaultPluginGetObjectHasCallbackImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL)
+    defaultPluginGetObjectHasCallbackImpl(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr)
         {}
     bool process() { return false; }
 };
@@ -105,7 +101,7 @@ template<typename T>
 class defaultPluginGetObjectFilenameFiltersImpl {
 public:
     typedef sgi::details::constexpr_false accept;
-    defaultPluginGetObjectFilenameFiltersImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL)
+    defaultPluginGetObjectFilenameFiltersImpl(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr)
         {}
     std::vector<std::string> process() { return std::vector<std::string>(); }
 };
@@ -114,9 +110,9 @@ template<typename T>
 class defaultPluginWriteObjectFileImpl {
 public:
     typedef sgi::details::constexpr_false accept;
-    defaultPluginWriteObjectFileImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL)
+    defaultPluginWriteObjectFileImpl(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr)
         {}
-    bool process(const std::string & filename, const SGIItemBase* options=NULL) { return false; }
+    bool process(const std::string & filename, const SGIItemBase* options=nullptr) { return false; }
 };
 
 
@@ -125,7 +121,7 @@ template<typename T>
 class defaultPluginObjectTreeBuildImpl{
 public:
     typedef sgi::details::constexpr_false accept;
-    defaultPluginObjectTreeBuildImpl(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL)
+    defaultPluginObjectTreeBuildImpl(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr)
         {}
     bool build(IObjectTreeItem * treeItem) { return false; }
 };
@@ -137,7 +133,7 @@ template<typename T>
 class defaultPluginContextMenuPopulateImpl {
 public:
     typedef sgi::details::constexpr_false accept;
-    defaultPluginContextMenuPopulateImpl(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL)
+    defaultPluginContextMenuPopulateImpl(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr)
         {}
     bool populate(IContextMenuItem * menuItem) { return false; }
 };
@@ -148,7 +144,7 @@ typedef unsigned int defaultContextMenuActionId;
 template<defaultContextMenuActionId T>
 class defaultPluginActionHandlerImpl {
 public:
-    defaultPluginActionHandlerImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, IContextMenuAction * menuAction=NULL)
+    defaultPluginActionHandlerImpl(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr, IContextMenuAction * menuAction=nullptr)
         {}
     bool execute() { return false; }
 };
@@ -159,7 +155,7 @@ template<unsigned Id>
 class defaultPluginSettingsDialogCreateImpl {
 public:
     typedef sgi::details::constexpr_false accept;
-    defaultPluginSettingsDialogCreateImpl(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL, QWidget *parent=NULL, ISettingsDialogInfo * info=NULL) {}
+    defaultPluginSettingsDialogCreateImpl(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr, QWidget *parent=nullptr, ISettingsDialogInfo * info=nullptr) {}
     bool execute(ISettingsDialogPtr & dialog) { return false; }
 };
 
@@ -168,7 +164,7 @@ template<typename T>
 class defaultPluginGuiAdapterParentWidgetImpl {
 public:
     typedef sgi::details::constexpr_false accept;
-    defaultPluginGuiAdapterParentWidgetImpl(SGIPluginHostInterface * hostInterface=NULL, QWidgetPtr * widget=NULL, SGIItemBase * item=NULL) {}
+    defaultPluginGuiAdapterParentWidgetImpl(SGIPluginHostInterface * hostInterface=nullptr, QWidgetPtr * widget=nullptr, SGIItemBase * item=nullptr) {}
     bool execute(QWidgetPtr * /*widget*/) { return false; }
 };
 ///-----------------------
@@ -176,7 +172,7 @@ template<typename T>
 class defaultPluginGuiAdapterSetViewImpl {
 public:
     typedef sgi::details::constexpr_false accept;
-    defaultPluginGuiAdapterSetViewImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL) {}
+    defaultPluginGuiAdapterSetViewImpl(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr) {}
     bool execute(osg::View * /*view*/, double /*animationTime*/) { return false; }
 };
 
@@ -185,7 +181,7 @@ template<typename T>
 class defaultPluginGetOrCreateLoggerImpl {
 public:
     typedef sgi::details::constexpr_false accept;
-    defaultPluginGetOrCreateLoggerImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool createIfNotExists=false) {}
+    defaultPluginGetOrCreateLoggerImpl(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr, bool createIfNotExists=false) {}
     bool execute(IObjectLoggerPtr & logger) { return false; }
 };
 
@@ -194,7 +190,7 @@ template<typename T>
 class defaultPluginConvertToImageConvertImpl {
 public:
     typedef sgi::details::constexpr_false accept;
-    defaultPluginConvertToImageConvertImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL) {}
+    defaultPluginConvertToImageConvertImpl(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr) {}
     bool convert(ImagePtr & /*image*/) { return false; }
 };
 
@@ -222,7 +218,7 @@ template<   typename pluginGenerateItemImpl=defaultPluginGenerateItemImpl,
 class SGIPluginImplementationT : public SGIPluginInterface
 {
 public:
-    SGIPluginImplementationT(SGIPluginHostInterface * hostInterface=NULL, unsigned requiredInterfaceVersion=SGIPLUGIN_HOSTINTERFACE_CURRENT_VERSION)
+    SGIPluginImplementationT(SGIPluginHostInterface * hostInterface=nullptr, unsigned requiredInterfaceVersion=SGIPLUGIN_HOSTINTERFACE_CURRENT_VERSION)
         : SGIPluginInterface(hostInterface)
          , _requiredInterfaceVersion(requiredInterfaceVersion)
          , _writePrettyHTML(hostInterface)
@@ -235,8 +231,8 @@ public:
          , _convertToImage(hostInterface)
     {
     }
-    SGIPluginImplementationT(const SGIPluginImplementationT & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : SGIPluginInterface(rhs, copyop)
+    SGIPluginImplementationT(const SGIPluginImplementationT & rhs)
+        : SGIPluginInterface(rhs)
          , _requiredInterfaceVersion(rhs._requiredInterfaceVersion)
          , _writePrettyHTML(rhs._hostInterface)
          , _objectInfo(rhs._hostInterface)
@@ -516,45 +512,35 @@ private:
     ConvertToImageImpl _convertToImage;
 };
 
+} // namespace sgi
 
-class SGIPluginReaderWriter: public osgDB::ReaderWriter
-{
-protected:
-    virtual Features supportedFeatures() const
-    {
-        // we only use readObject so let osgDB know this
-        return FEATURE_READ_OBJECT;
-    }
-    virtual ~SGIPluginReaderWriter()
-    {
-    }
-};
+
+#if defined(_MSC_VER) || defined(__CYGWIN__) || defined(__MINGW32__) || defined( __BCPLUSPLUS__) || defined( __MWERKS__)
+    #  define SGI_PLUGIN_EXPORT   __declspec(dllexport)
+#elif defined(__GNUC__)
+    #  define SGI_PLUGIN_EXPORT __attribute__ ((visibility ("default")))
+#else
+    #  define SGI_PLUGIN_EXPORT
+#endif
 
 #define SGI_PLUGIN_IMPLEMENT(plugin_name) \
-    class SGIPlugin##plugin_name##ReaderWriter : public sgi::SGIPluginReaderWriter { \
+    class SGIPluginEntry##plugin_name : public sgi::SGIPluginEntryInterface { \
         public: \
-            SGIPlugin##plugin_name##ReaderWriter() \
-                : sgi::SGIPluginReaderWriter() \
+            SGIPluginEntry##plugin_name() \
             { \
-                setName("SGI Plugin " #plugin_name); \
-                supportsExtension( SGI_QUOTE(sgi_##plugin_name##_plugin), "SGI Plugin " #plugin_name ); \
+                setName(#plugin_name); \
             } \
-            virtual ~SGIPlugin##plugin_name##ReaderWriter() {} \
-            virtual const char* libraryName() { return SGI_QUOTE(sgi_##plugin_name##_plugin); } \
-            virtual const char* className() { return SGI_QUOTE(SGIPlugin##plugin_name##ReaderWriter); } \
-            virtual osgDB::ReaderWriter::ReadResult readObject(const std::string& file_name, const Options* options) const \
-            { \
-                if ( !acceptsExtension(osgDB::getLowerCaseFileExtension( file_name ))) \
-                    return osgDB::ReaderWriter::ReadResult::FILE_NOT_HANDLED; \
-                const unsigned * hostInterfaceVersion = reinterpret_cast<const unsigned*>(options->getPluginData("hostInterfaceVersion")); \
-                if(!hostInterfaceVersion || *hostInterfaceVersion != SGIPLUGIN_HOSTINTERFACE_CURRENT_VERSION) {\
-                    return osgDB::ReaderWriter::ReadResult::ERROR_IN_READING_FILE; \
-                } \
-                const sgi::SGIPluginHostInterface * hostInterface = reinterpret_cast<const sgi::SGIPluginHostInterface *>(options->getPluginData("hostInterface")); \
-                return osgDB::ReaderWriter::ReadResult( new sgi::SGIPlugin_##plugin_name##_Implementation(const_cast<sgi::SGIPluginHostInterface *>(hostInterface)) ); \
+            const char* libraryName() const override { return SGI_QUOTE(sgi_##plugin_name##_plugin); } \
+            const char* className() const override { return SGI_QUOTE(SGIPlugin##plugin_name##ReaderWriter); } \
+            SGIPluginEntry##plugin_name* cloneType() const override { return nullptr; } \
+            SGIPluginEntry##plugin_name* clone() const override { return nullptr; } \
+                unsigned requiredMinimumHostVersion() const override { return SGIPLUGIN_HOSTINTERFACE_CURRENT_VERSION; } \
+            sgi::SGIPluginInterface * load(sgi::SGIPluginHostInterface * hostInterface) override { \
+                return new sgi::SGIPlugin_##plugin_name##_Implementation(const_cast<sgi::SGIPluginHostInterface *>(hostInterface)); \
             } \
     }; \
-    sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = NULL; \
-    REGISTER_OSGPLUGIN(sgi_##plugin_name, SGIPlugin##plugin_name##ReaderWriter)
-
-} // namespace sgi
+    sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = nullptr; \
+    extern "C" SGI_PLUGIN_EXPORT sgi::SGIPluginEntryInterface * sgi_##plugin_name(void) { \
+        static SGIPluginEntry##plugin_name s_entry; \
+        return &s_entry; \
+    }

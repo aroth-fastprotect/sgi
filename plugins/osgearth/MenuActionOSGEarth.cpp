@@ -33,9 +33,9 @@
 #include <osgEarth/LineDrawable>
 #endif
 
+#include "SGIItemOsgEarth"
 #include "osgearth_accessor.h"
 #include "SettingsDialogOSGEarth.h"
-#include "ElevationQueryReferenced"
 #include "geo_helpers.h"
 
 #include "TileInspectorDialog.h"
@@ -46,8 +46,6 @@
 #include <cassert>
 
 namespace sgi {
-
-class SGIItemOsg;
 
 namespace osgearth_plugin {
 

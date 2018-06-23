@@ -47,6 +47,7 @@
 #include <sgi/AutoLoadOsg>
 #include <sgi/GenerateItem>
 #include <sgi/Shutdown>
+#include <sgi/LibraryInfo>
 #include <sgi/ReferencedPicker>
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SGIHostItemQt.h>
@@ -208,7 +209,7 @@ struct SGIOptions
         parentWidget = nullptr;
         osgReferenced = nullptr;
         filename.clear();
-        usePicketNodeMask = false;
+        usePickerNodeMask = false;
         pickerNodeMask = 0;
         pickerRoot = nullptr;
     }
@@ -220,7 +221,7 @@ struct SGIOptions
     QWidget * parentWidget;
 	osg::ref_ptr<osg::Referenced> osgReferenced;
     std::string filename;
-    bool usePicketNodeMask;
+    bool usePickerNodeMask;
     unsigned pickerNodeMask;
     osg::ref_ptr<osg::Node> pickerRoot;
 };
@@ -247,15 +248,23 @@ bool SGIOptions::getOption<bool>(const osgDB::Options * options, const std::stri
 }
 
 SGIOptions::SGIOptions(const std::string & filename_, const osgDB::Options * options)
-        : qtObject(nullptr), filename(filename_), usePicketNodeMask(false), pickerNodeMask(~0u)
+        : qtObject(nullptr), filename(filename_), usePickerNodeMask(false), pickerNodeMask(~0u)
 {
     hostCallback = getObjectOption<sgi::IHostCallback>(options, "sgi_host_callback");
-    showSceneGraphDialog = getOption<bool>(options, "showSceneGraphDialog");
-    showImagePreviewDialog = getOption<bool>(options, "showImagePreviewDialog");
+    if(filename == "sgi-info")
+    {
+        showSceneGraphDialog = true;
+        showImagePreviewDialog = false;
+    }
+    else
+    {
+        showSceneGraphDialog = getOption<bool>(options, "showSceneGraphDialog");
+        showImagePreviewDialog = getOption<bool>(options, "showImagePreviewDialog");
+    }
     osgReferenced = getObjectOption<osg::Referenced>(options, "sgi_osg_referenced");
     qtObject = getObjectOption<QObject>(options, "sgi_qt_object");
     parentWidget = getObjectOption<QWidget>(options, "parentWidget");
-    pickerNodeMask = getOption<unsigned>(options, "pickerNodeMask", ~0u, &usePicketNodeMask);
+    pickerNodeMask = getOption<unsigned>(options, "pickerNodeMask", ~0u, &usePickerNodeMask);
     pickerRoot = getObjectOption<osg::Node>(options, "pickerRoot");
 }
 
@@ -264,8 +273,14 @@ SGIHostItemBase * SGIOptions::getHostItem() const
     SGIHostItemBase * ret = nullptr;
     if(!filename.empty())
     {
-        if(filename == "qapp")
+        std::cout << __FUNCTION__ << " " << filename << std::endl;
+        if(filename == "qapp" || filename == "app")
             ret = new SGIHostItemQt(qApp);
+        else if(filename == "sgi-info")
+        {
+            sgi::details::Referenced * libinfo = sgi::libraryInfoObject<sgi::autoload::Osg>();
+            ret = new SGIHostItemInternal(libinfo);
+        }
     }
     if(!ret)
     {
@@ -441,15 +456,12 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
                 }
 
                 QWidget * parent = nullptr;
-                SGIHostItemBasePtr hostItem = _options.getHostItem();
-                if (!hostItem.valid())
-                {
-                    if (aa.asView())
-                        hostItem = new SGIHostItemOsg(aa.asView());
-                    else
-                        hostItem = new SGIHostItemOsg(&ea);
-                }
-                ret = contextMenu(hostItem, x, y, parent);
+                SGIHostItemBasePtr hostItem;
+                if (aa.asView())
+                    hostItem = new SGIHostItemOsg(aa.asView());
+                else
+                    hostItem = new SGIHostItemOsg(&ea);
+                ret = contextMenu(hostItem.get(), x, y, parent);
             }
 
         }
@@ -493,7 +505,7 @@ public:
         _view = dynamic_cast<osgViewer::View*>(camera->getView());
         if (_view)
         {
-            _inspectorHandler = new sgi::SceneGraphInspectorHandler(_hostCallback, _options);
+            _inspectorHandler = new sgi::SceneGraphInspectorHandler(_hostCallback.get(), _options);
             _view->addEventHandler(_inspectorHandler.get());
         }
     }
@@ -593,18 +605,24 @@ public:
             if(_options.showSceneGraphDialog && !gotImage)
             {
                 ISceneGraphDialogPtr dialog;
-                SGIItemBase * existingViewItem = getView();
-                if (existingViewItem)
-                    dialog = _hostCallback->showSceneGraphDialog(_parent, existingViewItem);
-                else if(_view)
-                {
-                    SGIHostItemOsg viewItem(_view);
-                    dialog = _hostCallback->showSceneGraphDialog(_parent, &viewItem);
-                }
+                SGIHostItemBasePtr hostItem = _options.getHostItem();
+                if(hostItem.valid())
+                    dialog = _hostCallback->showSceneGraphDialog(_parent, hostItem.get());
                 else
                 {
-                    SGIHostItemOsg cameraItem(camera);
-                    dialog = _hostCallback->showSceneGraphDialog(_parent, &cameraItem);
+                    SGIItemBase * existingViewItem = getView();
+                    if (existingViewItem)
+                        dialog = _hostCallback->showSceneGraphDialog(_parent, existingViewItem);
+                    else if(_view)
+                    {
+                        SGIHostItemOsg viewItem(_view);
+                        dialog = _hostCallback->showSceneGraphDialog(_parent, &viewItem);
+                    }
+                    else
+                    {
+                        SGIHostItemOsg cameraItem(camera);
+                        dialog = _hostCallback->showSceneGraphDialog(_parent, &cameraItem);
+                    }
                 }
                 if(dialog.valid())
                     dialog->show();
@@ -665,7 +683,7 @@ public:
             ReferencedPickerBase * ret = nullptr;
             osg::Node * root = _parent->_options.pickerRoot.get();
             float buffer = 1.0f;
-            unsigned traversalMask = _parent->_options.usePicketNodeMask ? _parent->_options.pickerNodeMask : (unsigned)_parent->_view->getCamera()->getCullMask();
+            unsigned traversalMask = _parent->_options.usePickerNodeMask ? _parent->_options.pickerNodeMask : (unsigned)_parent->_view->getCamera()->getCullMask();
 
             switch(type)
             {
@@ -741,7 +759,6 @@ private:
 class SGIInstallNode : public osg::Node
 {
 public:
-	static unsigned numInstances;
     SGIInstallNode(const std::string & filename=std::string(), const osgDB::Options * options=nullptr)
         : osg::Node()
         , _options(filename, options)
@@ -800,15 +817,27 @@ public:
                         OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
                         if(!_installed)
                         {
-                            setCullingActive(true);
-                            OSG_NOTICE << LC << "install." << std::endl;
-
+#if OSG_MIN_VERSION_REQUIRED(3,5,0)
+                            osgUtil::CullVisitor * cv = nv.asCullVisitor();
+#else
                             osgUtil::CullVisitor * cv = dynamic_cast<osgUtil::CullVisitor *>(&nv);
-                            if(cv)
+#endif
+                            osg::View * currentView = cv->getCurrentCamera()->getView();
+                            auto itInst = _instances.find(currentView);
+                            if(itInst != _instances.end())
                             {
+                                _proxy = itInst->second;
+                                _installed = true;
+                                setCullingActive(true);
+                            }
+                            else
+                            {
+                                OSG_NOTICE << LC << "install this=" << (void*)this << " filename=" << _options.filename << std::endl;
                                 _proxy = new sgi::DefaultSGIProxy(cv->getCurrentCamera(), _options);
                                 _installed = true;
+                                _instances[currentView] = _proxy.get();
                                 justInstalled = true;
+                                setCullingActive(true);
                             }
                         }
                     }
@@ -821,13 +850,19 @@ public:
     }
 
 private:
+    typedef osg::ref_ptr<sgi::DefaultSGIProxy> DefaultSGIProxyPtr;
+    typedef osg::observer_ptr<osg::View> ViewPtr;
     OpenThreads::Mutex _mutex;
     sgi::SGIOptions _options;
-    osg::ref_ptr<sgi::DefaultSGIProxy> _proxy;
+    DefaultSGIProxyPtr _proxy;
     bool _installed;
+
+    static std::atomic_int numInstances;
+    static std::map<ViewPtr, DefaultSGIProxyPtr> _instances;
 };
 
-unsigned SGIInstallNode::numInstances = 0;
+std::atomic_int SGIInstallNode::numInstances(0);
+std::map<SGIInstallNode::ViewPtr, SGIInstallNode::DefaultSGIProxyPtr> SGIInstallNode::_instances;
 
 class ReaderWriteSGI : public osgDB::ReaderWriter
 {
@@ -836,7 +871,7 @@ public:
     {
         supportsExtension( "sgi_loader", "SGI loader" );
     }
-	~ReaderWriteSGI()
+    ~ReaderWriteSGI() override
 	{
 	}
 

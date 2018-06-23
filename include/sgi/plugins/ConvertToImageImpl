@@ -34,7 +34,7 @@ public:
         typedef bool ResultType;
     };
 
-    convertToImageConvertImplBaseT(SGIPluginHostInterface * hostInterface=NULL, ImagePtr * image=NULL, const SGIItemBase * item=NULL)
+    convertToImageConvertImplBaseT(SGIPluginHostInterface * hostInterface=nullptr, ImagePtr * image=nullptr, const SGIItemBase * item=nullptr)
         : functionImplBase(hostInterface, item)
         , _image(image)
         {}
@@ -75,7 +75,7 @@ protected:
     class convertToImageConvertImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        convertToImageConvertImpl(SGIPluginHostInterface * hostInterface=NULL, ImagePtr * image=NULL, const SGIItemBase * item=NULL) {} \
+        convertToImageConvertImpl(SGIPluginHostInterface * hostInterface=nullptr, ImagePtr * image=nullptr, const SGIItemBase * item=nullptr) {} \
         bool convert() { return false; } \
     }; \
     typedef convertToImageConvertImplBaseT<convertToImageConvertImpl> convertToImageConvertImplBase;
@@ -88,7 +88,7 @@ protected:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        convertToImageConvertImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, ImagePtr * image=NULL, const SGIItemBase * item=NULL) \
+        convertToImageConvertImpl<__type>(SGIPluginHostInterface * hostInterface=nullptr, ImagePtr * image=nullptr, const SGIItemBase * item=nullptr) \
             : convertToImageConvertImplBase(hostInterface, image, item) {} \
         bool convert(); \
     };

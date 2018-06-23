@@ -89,6 +89,16 @@ const char * sgiGetLibraryModuleFilename()
     return s_cachedFilename.c_str();
 }
 
+QObject * sgi_libraryInfoQObject()
+{
+    return sgi::SGIPlugins::instance()->libraryInfoQObject();
+}
+
+sgi::details::Object * sgi_libraryInfoObject()
+{
+    return sgi::SGIPlugins::instance()->libraryInfoObject();
+}
+
 sgi::IHostCallback * sgi_defaultHostCallback()
 {
 	return sgi::SGIPlugins::instance()->defaultHostCallback();
@@ -104,7 +114,7 @@ void sgi_setHostCallback(sgi::IHostCallback * callback)
 	sgi::SGIPlugins::instance()->setHostCallback(callback);
 }
 
-bool sgi_generateItem(osg::ref_ptr<sgi::SGIItemBase> & item, const sgi::SGIHostItemBase * object)
+bool sgi_generateItem(sgi::SGIItemBasePtr & item, const sgi::SGIHostItemBase * object)
 {
     return sgi::SGIPlugins::instance()->generateItem(item, object);
 }

@@ -1,5 +1,5 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
 
@@ -34,7 +34,7 @@ public:
         typedef IObjectLoggerPtr & ResultType;
     };
 
-    getOrCreateObjectLoggerImplBaseT(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool createIfNotExists=false)
+    getOrCreateObjectLoggerImplBaseT(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr, bool createIfNotExists=false)
         : functionImplBase(hostInterface, item), _createIfNotExists(createIfNotExists) {}
 
     typedef details::call_by_type_registryT<TypePolicy> Registry;
@@ -67,7 +67,7 @@ protected:
     class getOrCreateObjectLoggerImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        getOrCreateObjectLoggerImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool createIfNotExists=false) {} \
+        getOrCreateObjectLoggerImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, const SGIItemBase * /*item*/=nullptr, bool /*createIfNotExists*/=false) {} \
         bool execute(IObjectLoggerPtr & result) { return false; } \
     }; \
     typedef getOrCreateObjectLoggerImplBaseT<getOrCreateObjectLoggerImpl> getOrCreateObjectLoggerImplBase;
@@ -80,7 +80,7 @@ protected:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        getOrCreateObjectLoggerImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool createIfNotExists=false) \
+        getOrCreateObjectLoggerImpl<__type>(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr, bool createIfNotExists=false) \
             : getOrCreateObjectLoggerImplBase(hostInterface, item, createIfNotExists) {} \
         bool execute(IObjectLoggerPtr & result); \
     };

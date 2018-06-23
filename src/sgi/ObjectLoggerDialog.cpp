@@ -16,8 +16,8 @@
 #include <sgi/plugins/SGIDataItemBase.h>
 
 #include <sgi/plugins/ObjectTreeImpl>
-#include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/SGIItemInternal>
+#include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/helpers/qt>
 
 #ifdef _DEBUG
@@ -42,7 +42,7 @@ class ObjectLoggerDialog::ObjectLoggerDialogImpl : public IObjectLoggerDialog
 public:
     ObjectLoggerDialogImpl(ObjectLoggerDialog * dialog)
         : _dialog(dialog) {}
-    virtual                 ~ObjectLoggerDialogImpl() { delete _dialog; }
+    virtual                 ~ObjectLoggerDialogImpl() override { delete _dialog; }
     virtual QDialog *       getDialog() override { return _dialog; }
     virtual IHostCallback * getHostCallback() override { return _dialog->getHostCallback(); }
     virtual bool            addItem(SGIItemBase * item, bool alsoChilds=true) override { return _dialog->addItem(item, alsoChilds); }
@@ -186,7 +186,7 @@ void ObjectLoggerDialog::reload()
 	if (_item.valid())
 	{
 		std::string displayName;
-		SGIPlugins::instance()->getObjectDisplayName(displayName, _item);
+        SGIPlugins::instance()->getObjectDisplayName(displayName, _item.get());
 		setWindowTitle(tr("Log of %1").arg(fromUtf8(displayName)));
 	}
 	else
@@ -206,7 +206,6 @@ void ObjectLoggerDialog::reloadTree()
     ui->treeWidget->clear();
     QList<int> panes_sizes;
     int total_width ;
-    QLayout * currentLayout = ui->verticalLayout;
     total_width = this->width() - ui->verticalLayout->margin();
     const int tree_width = 3 * total_width / 5;
     const int textbox_width = 2 * total_width / 5;
@@ -224,7 +223,7 @@ void ObjectLoggerDialog::reloadTree()
 
     if(!_logger.valid() && _item.valid())
     {
-        SGIPlugins::instance()->getOrCreateObjectLogger(_logger, _item);
+        SGIPlugins::instance()->getOrCreateObjectLogger(_logger, _item.get());
     }
 
     if(_logger.valid())
@@ -297,7 +296,7 @@ void ObjectLoggerDialog::reloadLog()
             {
                 SGIDataFieldBase * field = dataItem->getField(column);
                 QTableWidgetItem * tableItem = new QTableWidgetItem;
-                QtTableSGIItem data(dataItem, column);
+                QtTableSGIItem data(dataItem.get(), column);
                 tableItem->setText(fromUtf8(field->toString(_hostInterface)));
                 tableItem->setData(Qt::UserRole, QVariant::fromValue(data));
 
@@ -351,7 +350,7 @@ bool ObjectLoggerDialog::buildTree(ObjectTreeItem * treeItem, SGIItemBase * item
     if(ret)
     {
         InternalItemData internalItemData(item);;
-        SGIHostItemOsg hostItemInternal(new ReferencedInternalItemData(internalItemData));
+        SGIHostItemInternal hostItemInternal(new ReferencedInternalItemData(internalItemData));
         treeItem->addChild("Internal", &hostItemInternal);
 
         QTreeWidgetItem * treeItemQt = treeItem->treeItem();
@@ -373,18 +372,18 @@ void ObjectLoggerDialog::onItemContextMenu(QPoint pt)
     IContextMenuPtr objectMenu = _hostCallback->contextMenu(this, itemData.item());
     if(!objectMenu)
     {
-        if(_contextMenu)
+        if(_contextMenu.valid())
         {
             _contextMenu->setObject(itemData.item());
             objectMenu = _contextMenu;
         }
         else
         {
-            objectMenu = SGIPlugins::instance()->createContextMenu(this, itemData.item(), _hostCallback);
+            objectMenu = SGIPlugins::instance()->createContextMenu(this, itemData.item(), _hostCallback.get());
         }
     }
 
-    if(objectMenu)
+    if(objectMenu.valid())
         contextQMenu = objectMenu->getMenu();
 
     _contextMenu = objectMenu;
@@ -422,7 +421,7 @@ void ObjectLoggerDialog::refreshTimerExpired()
 
 SGIItemBase * ObjectLoggerDialog::getView()
 {
-    if(_hostCallback)
+    if(_hostCallback.valid())
         return _hostCallback->getView();
     else
         return nullptr;
@@ -430,7 +429,7 @@ SGIItemBase * ObjectLoggerDialog::getView()
 
 void ObjectLoggerDialog::triggerRepaint()
 {
-    if(_hostCallback)
+    if(_hostCallback.valid())
         _hostCallback->triggerRepaint();
 }
 
@@ -442,7 +441,7 @@ bool ObjectLoggerDialog::showSceneGraphDialog(SGIItemBase * item)
 bool ObjectLoggerDialog::showSceneGraphDialog(const SGIHostItemBase * hostitem)
 {
     bool ret;
-    osg::ref_ptr<SGIItemBase> item;
+    SGIItemBasePtr item;
     if(SGIPlugins::instance()->generateItem(item, hostitem))
         ret = showSceneGraphDialog(item.get());
     else
@@ -458,7 +457,7 @@ bool ObjectLoggerDialog::newInstance(SGIItemBase * item)
 bool ObjectLoggerDialog::newInstance(const SGIHostItemBase * hostitem)
 {
     bool ret;
-    osg::ref_ptr<SGIItemBase> item;
+    SGIItemBasePtr item;
     if(SGIPlugins::instance()->generateItem(item, hostitem))
         ret = newInstance(item.get());
     else
@@ -469,7 +468,7 @@ bool ObjectLoggerDialog::newInstance(const SGIHostItemBase * hostitem)
 bool ObjectLoggerDialog::addItem(SGIItemBase * item, bool alsoChilds)
 {
     bool ret;
-    if(_logger)
+    if(_logger.valid())
         ret = _logger->addItem(item, alsoChilds);
     else
         ret = false;
@@ -479,7 +478,7 @@ bool ObjectLoggerDialog::addItem(SGIItemBase * item, bool alsoChilds)
 bool ObjectLoggerDialog::addItems(const SGIItemBasePtrPath & path)
 {
     bool ret;
-    if(_logger)
+    if(_logger.valid())
         ret = _logger->addItems(path);
     else
         ret = false;
@@ -489,7 +488,7 @@ bool ObjectLoggerDialog::addItems(const SGIItemBasePtrPath & path)
 bool ObjectLoggerDialog::removeItem(SGIItemBase * item)
 {
     bool ret;
-    if(_logger)
+    if(_logger.valid())
         ret = _logger->removeItem(item);
     else
         ret = false;
@@ -499,7 +498,7 @@ bool ObjectLoggerDialog::removeItem(SGIItemBase * item)
 bool ObjectLoggerDialog::removeItems(const SGIItemBasePtrPath & path)
 {
     bool ret;
-    if(_logger)
+    if(_logger.valid())
         ret = _logger->removeItems(path);
     else
         ret = false;
