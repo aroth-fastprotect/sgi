@@ -29,7 +29,7 @@ bool settingsDialogCreateImpl<SettingsDialogAutoClipPlaneCullCallback>::execute(
 
 bool settingsDialogCreateImpl<SettingsDialogTileInspector>::execute(ISettingsDialogPtr & dialog)
 {
-    TileInspectorDialog * qtdialog = new TileInspectorDialog(parent(), dynamic_cast<SGIItemOsg*>(_item.get()), info(), _hostInterface);
+    TileInspectorDialog * qtdialog = new TileInspectorDialog(parent(), itemAs<SGIItemOsg>(), info(), _hostInterface);
     dialog = qtdialog->dialogInterface();
     return true;
 }
