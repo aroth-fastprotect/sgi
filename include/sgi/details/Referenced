@@ -2,6 +2,7 @@
 // SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
+#include <sgi/Export>
 #include <atomic>
 
 namespace sgi {
@@ -10,7 +11,7 @@ namespace details {
 class Observer;
 class ObserverSet;
 
-class Referenced
+class SGI_REF_EXPORT Referenced
 {
 public:
     Referenced();
@@ -61,8 +62,16 @@ protected:
 
     void signalObserversAndDelete(bool signalDelete, bool doDelete) const;
 
+#ifdef _MSC_VER
+#pragma warning(push)
+    // disable warning C4251: '_observerSet': struct 'std::atomic<T>' needs to have dll-interface to be used by clients of class 'Referenced'
+#pragma warning(disable:4251)
+#endif
     mutable std::atomic<ObserverSet*> _observerSet;
     mutable std::atomic_int _refCount;
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 };
 
 inline int Referenced::ref() const

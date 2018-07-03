@@ -18,19 +18,12 @@
 #include "sgi/helpers/rtti"
 #include "sgi/helpers/qt"
 
-#if defined(_WIN32) && defined(OSG_GL3_AVAILABLE)
-#define __GL_H__
-#endif
-
 #include "QtProxy.h"
 #include "ImageGLWidget.h"
 #include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QOpenGLTexture>
-
-#include <osgDB/Registry>
-#include <osgDB/PluginQuery>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

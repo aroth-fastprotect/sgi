@@ -247,6 +247,11 @@ protected:
     SGIItemBase * cloneImpl(SGIItemType newType, details::Referenced * userData);
     SGIItemBase * cloneImpl(SGIItemType newType, unsigned number, details::Referenced * userData);
 
+#ifdef _MSC_VER
+#pragma warning(push)
+    // disable warning C4251: '_xxx': struct 'yyy' needs to have dll-interface to be used by clients of class 'SGIItemBase'
+#pragma warning(disable:4251)
+#endif
 protected:
     details::ref_ptr<SGIItemHolder> _holder;
     SGIItemType             _type;
@@ -259,6 +264,9 @@ private:
     SGIItemBasePtr          _next;
     SGIItemBaseOverserverPtr _prev;
     SGIUserDataPtr          _userData;
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 };
 
 template<typename HOST_ITEM_TYPE, typename HOLDER_TYPE>

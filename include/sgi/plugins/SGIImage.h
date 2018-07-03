@@ -2,7 +2,6 @@
 // SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
-#include <sgi/Export>
 #include <sgi/details/Referenced>
 #include <sgi/details/ref_ptr>
 #include <string>

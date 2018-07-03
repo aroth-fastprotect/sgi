@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDialog>
+#include <osg/ref_ptr>
 #include <sgi/plugins/SGIPluginInterface.h>
 
 QT_BEGIN_NAMESPACE
@@ -44,7 +45,7 @@ class TileInspectorDialog : public QDialog
 	Q_OBJECT
 
 public:
-                                TileInspectorDialog(QWidget * parent, SGIItemOsg * item, ISettingsDialogInfo * info=NULL, SGIPluginHostInterface * hostInterface=NULL);
+                                TileInspectorDialog(QWidget * parent, SGIItemOsg * item, ISettingsDialogInfo * info=nullptr, SGIPluginHostInterface * hostInterface=nullptr);
 	virtual				        ~TileInspectorDialog();
 
 public:

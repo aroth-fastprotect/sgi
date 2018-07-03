@@ -2364,7 +2364,7 @@ bool objectTreeBuildImpl<osgViewer::GraphicsWindow>::build(IObjectTreeItem * tre
 #ifdef SGI_USE_OSGQT
 bool objectTreeBuildImpl<osgQt::GraphicsWindowQt>::build(IObjectTreeItem * treeItem)
 {
-    osgQt::GraphicsWindowQt * object = static_cast<osgQt::GraphicsWindowQt*>,SGIItemOsg>();
+    osgQt::GraphicsWindowQt * object = getObject<osgQt::GraphicsWindowQt,SGIItemOsg>();
     bool ret;
     switch(itemType())
     {

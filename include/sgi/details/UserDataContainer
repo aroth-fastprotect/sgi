@@ -12,7 +12,7 @@ namespace sgi {
 namespace details {
 
 /** Internal structure for storing all user data.*/
-class UserDataContainer : public Object
+class SGI_REF_EXPORT UserDataContainer : public Object
 {
     public:
         UserDataContainer();
@@ -110,7 +110,7 @@ class UserDataContainer : public Object
 };
 
 /** Internal structure for storing all user data.*/
-class DefaultUserDataContainer : public UserDataContainer
+class SGI_REF_EXPORT DefaultUserDataContainer : public UserDataContainer
 {
     public:
         DefaultUserDataContainer();
@@ -184,9 +184,17 @@ protected:
 
         typedef std::vector< ref_ptr<Object> > ObjectList;
 
+#ifdef _MSC_VER
+#pragma warning(push)
+        // disable warning C4251: '_userData': struct 'std::string' needs to have dll-interface to be used by clients of class 'Object'
+#pragma warning(disable:4251)
+#endif
         ref_ptr<Referenced>     _userData;
         DescriptionList         _descriptionList;
         ObjectList              _objectList;
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 };
 
 

@@ -1,12 +1,12 @@
 #include "stdafx.h"
 #include <sgi/plugins/Matrix>
+#include <sgi/plugins/Quat>
+#include <sgi/plugins/Vector>
 #include "MatrixInputDialog.h"
 
 #include <unordered_map>
 #include <QPushButton>
 #include <QTextStream>
-
-#include <osg/Matrixd>
 
 #include <ui_MatrixInputDialog.h>
 
@@ -16,17 +16,21 @@
 
 namespace sgi {
 
-    QTextStream & operator<< (QTextStream & ts, const osg::Vec3d & v)
+    QTextStream & operator<< (QTextStream & ts, const Vector3 & v)
     {
         ts << v.x() << ',' << v.y() << ',' << v.z();
         return ts;
     }
-    QTextStream & operator<< (QTextStream & ts, const osg::Quat & q)
+    QTextStream & operator<< (QTextStream & ts, const Vector4 & v)
     {
-        ts << q.x() << ',' << q.y() << ',' << q.z() << q.w();
+        ts << v.x() << ',' << v.y() << ',' << v.z() << ',' << v.w();
         return ts;
     }
-
+    QTextStream & operator<< (QTextStream & ts, const Quat & q)
+    {
+        ts << q.x() << ',' << q.y() << ',' << q.z() << ',' << q.w();
+        return ts;
+    }
 
 void MatrixInputDialog::formatMatrixValue(const Matrix & matrix, QString & text, MatrixUsage usage)
 {
@@ -145,9 +149,9 @@ namespace {
         }
         return ret;
     }
-    osg::Vec3d readVec3d(const QStringMap & map, const QString & key, bool & ok)
+    Vector3 readVec3d(const QStringMap & map, const QString & key, bool & ok)
     {
-        osg::Vec3d ret;
+        Vector3 ret;
         if (ok)
         {
             auto it = map.find(key);
@@ -169,9 +173,9 @@ namespace {
         }
         return ret;
     }
-    osg::Quat readQuat(const QStringMap & map, const QString & key, bool & ok)
+    Quat readQuat(const QStringMap & map, const QString & key, bool & ok)
     {
-        osg::Quat ret;
+        Quat ret;
         if (ok)
         {
             auto it = map.find(key);
@@ -312,31 +316,31 @@ bool MatrixInputDialog::parseMatrixValue(Matrix & matrix, const QString & text, 
         break;
     case MatrixUsageView:
         {
-#if 0
             bool v_ok = true;
-            osg::Vec3d eye = readVec3d(kvmap, "eye", v_ok);
-            osg::Vec3d center = readVec3d(kvmap, "center", v_ok);
-            osg::Vec3d up = readVec3d(kvmap, "up", v_ok);
+            Vector3 eye = readVec3d(kvmap, "eye", v_ok);
+            Vector3 center = readVec3d(kvmap, "center", v_ok);
+            Vector3 up = readVec3d(kvmap, "up", v_ok);
             if (v_ok)
             {
+#if 0
                 osg::Matrixd m;
                 m.makeLookAt(eye, center, up);
                 matrix.set(m.ptr());
                 ret = true;
-            }
 #endif
+            }
         }
         break;
     case MatrixUsageModel:
         {
-#if 0
             bool v_ok = true;
-            osg::Vec3d translate = readVec3d(kvmap, "translate", v_ok);
-            osg::Vec3d scale = readVec3d(kvmap, "scale", v_ok);
-            osg::Quat so = readQuat(kvmap, "so", v_ok);
-            osg::Quat rotation = readQuat(kvmap, "rotation", v_ok);
+            Vector3 translate = readVec3d(kvmap, "translate", v_ok);
+            Vector3 scale = readVec3d(kvmap, "scale", v_ok);
+            Quat so = readQuat(kvmap, "so", v_ok);
+            Quat rotation = readQuat(kvmap, "rotation", v_ok);
             if (v_ok)
             {
+#if 0
                 osg::Matrixd m = osg::Matrixd::identity();
                 m.postMultTranslate(translate);
                 m.postMultTranslate(scale);
@@ -344,8 +348,8 @@ bool MatrixInputDialog::parseMatrixValue(Matrix & matrix, const QString & text, 
                 m.postMultRotate(so);
                 matrix.set(m.ptr());
                 ret = true;
-            }
 #endif
+            }
         }
         break;
 
