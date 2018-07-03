@@ -83,7 +83,7 @@ public:
 
 protected:
     typedef bool(*pixelTranslateFunc)(const QRgb & src, QRgb & dest);
-    ColorFilter(const QString & name, const QString & vertexShader=QString(), const QString & fragmentShader=QString(), pixelTranslateFunc translate=NULL);
+    ColorFilter(const QString & name, const QString & vertexShader=QString(), const QString & fragmentShader=QString(), pixelTranslateFunc translate=nullptr);
 
 private:
     static ColorFilter s_filters[];

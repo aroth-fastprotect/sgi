@@ -1,7 +1,7 @@
 #pragma once
 
-#include <osg/Referenced>
-#include <osg/ref_ptr>
+#include <sgi/details/Referenced>
+#include <sgi/details/ref_ptr>
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
 
@@ -13,8 +13,8 @@ class QOpenGLTexture;
 namespace sgi {
 
 class Image;
-typedef osg::ref_ptr<Image> ImagePtr;
-typedef osg::ref_ptr<const Image> ConstImagePtr;
+typedef details::ref_ptr<Image> ImagePtr;
+typedef details::ref_ptr<const Image> ConstImagePtr;
 
 class ImageGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -22,7 +22,8 @@ class ImageGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 
 public:
     ImageGLWidget(QWidget * parent);
-    ~ImageGLWidget();
+    ~ImageGLWidget() override;
+
     // OpenGL Events
 public:
     void initializeGL() override;

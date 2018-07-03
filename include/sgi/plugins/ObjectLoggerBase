@@ -21,8 +21,8 @@ public:
         , _dialog()
     {
     }
-    ObjectLoggerBase(const ObjectLoggerBase & rhs,const osg::CopyOp& copyop)
-        : IObjectLogger(rhs, copyop)
+    ObjectLoggerBase(const ObjectLoggerBase & rhs)
+        : IObjectLogger(rhs)
         , _maximum_log_items(rhs._maximum_log_items)
         , _items(rhs._items)
         , _fields(rhs._fields)
@@ -31,7 +31,7 @@ public:
     {
     }
 
-    virtual bool                addItem(SGIItemBase * item, bool alsoChilds)
+    bool                addItem(SGIItemBase * item, bool alsoChilds) override
     {
         bool ret;
         ret = !isItemPresent(item);
@@ -39,62 +39,62 @@ public:
             _items.push_back(item);
         return ret;
     }
-    virtual bool                addItems(const SGIItemBasePtrPath & path)
+    virtual bool                addItems(const SGIItemBasePtrPath & path) override
     {
         bool ret = true;
         for(SGIItemBasePtrPath::const_iterator it = path.begin(); it != path.end(); it++)
         {
-            if(!addItem(*it, false))
+            if(!addItem((*it).get(), false))
                 ret = false;
         }
         return ret;
     }
-    virtual bool                removeItem(SGIItemBase * item)
+    virtual bool                removeItem(SGIItemBase * item) override
     {
         bool ret;
-        SGIItemBasePtrVector::iterator it = std::find(_items.begin(), _items.end(), item);
+        SGIItemBasePtrVector::iterator it = std::find_if(_items.begin(), _items.end(), [&item] (const SGIItemBasePtr & rhs) { return rhs.get() == item; });
         ret = (it != _items.end());
         if(ret)
             _items.erase(it);
         return ret;
     }
-    virtual bool                removeItems(const SGIItemBasePtrPath & path)
+    virtual bool                removeItems(const SGIItemBasePtrPath & path) override
     {
         bool ret = true;
         for(SGIItemBasePtrPath::const_iterator it = path.begin(); it != path.end(); it++)
         {
-            if(!removeItem(*it))
+            if(!removeItem((*it).get()))
                 ret = false;
         }
         return ret;
     }
-    virtual bool                isItemPresent(SGIItemBase * item) const
+    virtual bool                isItemPresent(SGIItemBase * item) const override
     {
         for(SGIItemBasePtrVector::const_iterator it = _items.begin(); it != _items.end(); it++)
             if((*it).get() == item)
                 return true;
         return false;
     }
-    virtual bool                getItems(SGIItemBasePtrVector & vector)
+    virtual bool                getItems(SGIItemBasePtrVector & vector) override
     {
         vector = _items;
         return true;
     }
-    virtual bool                getFields(SGIDataItemBasePtr & fields)
+    virtual bool                getFields(SGIDataItemBasePtr & fields) override
     {
         fields = _fields;
         return fields.valid();
     }
-    virtual bool                getLog(SGIDataItemBasePtrList & list)
+    virtual bool                getLog(SGIDataItemBasePtrList & list) override
     {
         list = _log;
         return true;
     }
-    virtual IObjectLoggerDialog * getDialog()
+    virtual IObjectLoggerDialog * getDialog() override
     {
         return _dialog.get();
     }
-    virtual bool                addLogItem(SGIDataItemBase * item)
+    virtual bool                addLogItem(SGIDataItemBase * item) override
     {
         _log.push_back(item);
         if(_dialog.valid())

@@ -285,8 +285,8 @@ StatisticsVisitor::StatisticsVisitor(unsigned int contextID)
     , _numInstancedDisplayListDrawables(0)
     , _ignoreKnownPagedLODs(false)
     , _ignoreKnownProxyNodes(false)
-    , _uniqueMemory(NULL)
-    , _instancedMemory(NULL)
+    , _uniqueMemory(nullptr)
+    , _instancedMemory(nullptr)
 {
     for(int n = 0; n < MaxStateAttributeType; n++)
         _numInstancedSA[n] = 0;
@@ -340,10 +340,10 @@ void StatisticsVisitor::reset()
     _numInstancedUniform = 0;
 
     delete _uniqueMemory;
-    _uniqueMemory = NULL;
+    _uniqueMemory = nullptr;
 
     delete _instancedMemory;
-    _instancedMemory = NULL;
+    _instancedMemory = nullptr;
 
     _ignoreKnownPagedLODs = false;
     _ignoreKnownProxyNodes = false;

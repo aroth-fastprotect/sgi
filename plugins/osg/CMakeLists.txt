@@ -60,7 +60,7 @@ SET(TARGET_H
     DrawableHelper.h
 	NodeHelper.h
     )
-fast_configure_file(SGIItemOsg ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsg COPYONLY)
+SGI_CREATE_SYMLINK(SGIItemOsg ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsg)
 
 SET(TARGET_MOC_H
     CameraSettings.h

@@ -9,7 +9,7 @@ class QTreeWidgetItem;
 
 namespace sgi {
 
-class IObjectTreeItem : public osg::Referenced
+class IObjectTreeItem : public details::Referenced
 {
 public:
     virtual IObjectTreeItem * root() = 0;
@@ -33,9 +33,9 @@ public:
     virtual void setName(const std::string & name) = 0;
     virtual void updateName() = 0;
 };
-typedef osg::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
+typedef details::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
 
-class IObjectTreeImpl : public osg::Referenced
+class IObjectTreeImpl : public details::Referenced
 {
 public:
     virtual void    itemSelected(IObjectTreeItem * oldItem, IObjectTreeItem * newItem) = 0;
@@ -45,7 +45,7 @@ public:
     virtual void    itemActivated(IObjectTreeItem * item) = 0;
     virtual void    itemClicked(IObjectTreeItem * item) = 0;
 };
-typedef osg::ref_ptr<IObjectTreeImpl> IObjectTreeImplPtr;
+typedef details::ref_ptr<IObjectTreeImpl> IObjectTreeImplPtr;
 
 
 } // namespace sgi

@@ -1,21 +1,25 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2017 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
-#include <osg/Object>
-#include <osg/ref_ptr>
-#include <osg/observer_ptr>
 #include <sgi/Export>
+#include <sgi/details/Referenced>
+#include <sgi/details/ref_ptr>
+#include <string>
+#include <vector>
 
 #ifdef _WIN32
 #undef RGB
 #endif
 
 class QImage;
+namespace osg {
+    class Referenced;
+}
 
 namespace sgi {
 
-class SGI_IMPL_EXPORT Image : public osg::Referenced
+class SGI_IMPL_EXPORT Image : public details::Referenced
 {
 public:
     enum ImageFormat {
@@ -202,7 +206,7 @@ public:
     unsigned lines(unsigned index=0) const { return _lines[index]; }
     unsigned planeOffset(unsigned index=0) const { return _planeOffset[index]; }
     unsigned planeEndOffset(unsigned index = 0) const;
-    const osg::Referenced * originalImage() const { return _originalImage.get(); }
+    const osg::Referenced * originalImage() const { return _originalImage; }
     QImage * originalImageQt() const { return _originalImageQt; }
     Origin origin() const { return _origin; }
     bool allocate(unsigned width, unsigned height, ImageFormat format, DataType dataType=DataTypeUnsignedByte, Origin origin=OriginDefault);
@@ -248,7 +252,7 @@ protected:
     unsigned _pitch[4];
     unsigned _lines[4];
     unsigned _planeOffset[4];
-    osg::ref_ptr<const osg::Referenced> _originalImage;
+    const osg::Referenced * _originalImage;
     QImage * _originalImageQt;
     pfnFreeQt _freeQt;
     pfnCopyImageQt _copyQt;

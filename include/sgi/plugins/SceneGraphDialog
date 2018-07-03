@@ -5,6 +5,7 @@
 
 #include "HostCallback"
 #include <vector>
+#include <sgi/details/Referenced>
 
 class QWidget;
 class QDialog;
@@ -16,11 +17,11 @@ class IContextMenu;
 class IObjectTreeItem;
 
 class SGIItemBase;
-typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
+typedef details::ref_ptr<SGIItemBase> SGIItemBasePtr;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 class SGIHostItemBase;
 
-class ISceneGraphDialog : public osg::Referenced
+class ISceneGraphDialog : public details::Referenced
 {
 public:
     virtual                 ~ISceneGraphDialog() override {}
@@ -39,9 +40,9 @@ public:
 	virtual const SGIItemBasePtrPath & itemPath() const = 0;
 };
 
-typedef osg::ref_ptr<ISceneGraphDialog> ISceneGraphDialogPtr;
+typedef details::ref_ptr<ISceneGraphDialog> ISceneGraphDialogPtr;
 
-class ISceneGraphDialogToolsMenu : public osg::Referenced
+class ISceneGraphDialogToolsMenu : public details::Referenced
 {
 public:
     virtual                     ~ISceneGraphDialogToolsMenu() override {}
@@ -49,6 +50,6 @@ public:
     virtual IContextMenu *      toolsMenu() = 0;
 };
 
-typedef osg::ref_ptr<ISceneGraphDialogToolsMenu> ISceneGraphDialogToolsMenuPtr;
+typedef details::ref_ptr<ISceneGraphDialogToolsMenu> ISceneGraphDialogToolsMenuPtr;
 
 } // namespace sgi

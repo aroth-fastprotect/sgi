@@ -38,7 +38,7 @@
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/plugins/ObjectTreeImpl>
 
-#include "ElevationQueryReferenced"
+#include "SGIItemOsgEarth"
 #include "string_helpers.h"
 #include "geo_helpers.h"
 #include "osgearth_accessor.h"
@@ -170,35 +170,48 @@ namespace {
 	osg::Camera * findCamera(SGIItemOsg * item)
 	{
 		if (!item)
-			return NULL;
+            return nullptr;
 
 		osg::Node * node = dynamic_cast<osg::Node *>(item->object());
 		if (!node)
-			return NULL;
+            return nullptr;
 
 		return osgEarth::findFirstParentOfType<osg::Camera>(node);
 	}
 	osg::Camera * findCamera(SGIItemBase * item)
 	{
 		if (!item)
-			return NULL;
+            return nullptr;
 		return findCamera(dynamic_cast<SGIItemOsg*>(item));
 	}
 	osgEarth::MapNode * findMapNode(SGIItemOsg * item)
 	{
 		if (!item)
-			return NULL;
+            return nullptr;
 
-		osg::Node * node = dynamic_cast<osg::Node *>(item->object());
-		if (!node)
-			return NULL;
+        if(!item)
+            return nullptr;
+        if(osgEarth::MapNode * mapnode = dynamic_cast<osgEarth::MapNode*>(item->object()))
+            return mapnode;
+        else if(osgEarth::Map * map = dynamic_cast<osgEarth::Map*>(item->object()))
+        {
+            SGIRefPtrOsg * refptr = item->userData<SGIRefPtrOsg>();
+            osg::Referenced * ref = refptr ? refptr->get() : nullptr;
+            osgEarth::MapNode * mapnode = dynamic_cast<osgEarth::MapNode*>(ref);
+            if(mapnode)
+                return mapnode;
+        }
+        else if(osg::Node * node = dynamic_cast<osg::Node *>(item->object()))
+        {
+            return osgEarth::MapNode::findMapNode(node);
+        }
+        return nullptr;
 
-		return osgEarth::MapNode::findMapNode(node);
 	}
 	osgEarth::MapNode * findMapNode(SGIItemBase * item)
 	{
 		if (!item)
-			return NULL;
+            return nullptr;
 		return findMapNode(dynamic_cast<SGIItemOsg*>(item));
 	}
 } // namespace
@@ -243,7 +256,7 @@ public:
 public:
     virtual void    itemSelected(IObjectTreeItem * oldItem, IObjectTreeItem * newItem)
     {
-        _dialog->setNodeInfo(newItem?newItem->item():NULL);
+        _dialog->setNodeInfo(newItem?newItem->item():nullptr);
     }
     virtual void    itemContextMenu(IObjectTreeItem * item, IContextMenuPtr & contextMenu)
     {
@@ -272,38 +285,38 @@ namespace {
     osgEarth::Map * getMap(SGIItemOsg * item)
     {
         if(!item)
-            return NULL;
+            return nullptr;
         if(osgEarth::Map * map = dynamic_cast<osgEarth::Map*>(item->object()))
             return map;
         else if(osgEarth::MapNode * mapnode = dynamic_cast<osgEarth::MapNode*>(item->object()))
             return mapnode->getMap();
         else
-            return NULL;
+            return nullptr;
     }
     osgEarth::TileSource * getTileSource(SGIItemOsg * item)
     {
         if(!item)
-            return NULL;
+            return nullptr;
         if(osgEarth::TileSource * tileSource = dynamic_cast<osgEarth::TileSource *>(item->object()))
             return tileSource;
         else if(osgEarth::TerrainLayer * terrainLayer = dynamic_cast<osgEarth::TerrainLayer*>(item->object()))
             return terrainLayer->getTileSource();
         else
-            return NULL;
+            return nullptr;
     }
     osgEarth::TerrainLayer * getTerrainLayer(SGIItemOsg * item)
     {
         if(!item)
-            return NULL;
+            return nullptr;
         if(osgEarth::TerrainLayer * terrainLayer = dynamic_cast<osgEarth::TerrainLayer *>(item->object()))
             return terrainLayer;
         else
-            return NULL;
+            return nullptr;
     }
     osgEarth::CacheBin * getCacheBin(SGIItemOsg * item)
     {
         if (!item)
-            return NULL;
+            return nullptr;
         if (osgEarth::TerrainLayer * terrainLayer = dynamic_cast<osgEarth::TerrainLayer *>(item->object()))
         {
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
@@ -316,7 +329,7 @@ namespace {
                 return cs->getCacheBin();
 #endif
         }
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -328,7 +341,7 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
     , _info(info)
     , _treeImpl(new ObjectTreeImpl(this))
 {
-    Q_ASSERT(_info != NULL);
+    Q_ASSERT(_info != nullptr);
 
 	ui = new Ui_TileInspectorDialog;
 	ui->setupUi( this );
@@ -456,7 +469,7 @@ TileInspectorDialog::~TileInspectorDialog()
     if (ui)
     {
         delete ui;
-        ui = NULL;
+        ui = nullptr;
     }
 }
 
@@ -483,7 +496,7 @@ void TileInspectorDialog::reloadTree()
 #if 0
     ObjectTreeItem objectTreeRootItem(ui->treeWidget->invisibleRootItem());
 
-    ObjectTreeItem * firstTreeItem = NULL;
+    ObjectTreeItem * firstTreeItem = nullptr;
 
     for(SGIItemBasePtrVector::const_iterator it = _tiles.begin(); it != _tiles.end(); it++)
     {
@@ -506,15 +519,15 @@ void TileInspectorDialog::reloadTree()
 
 SGIItemBase * TileInspectorDialog::getView()
 {
-    if(_info)
+    if(_info.valid())
         return _info->getView();
     else
-        return NULL;
+        return nullptr;
 }
 
 void TileInspectorDialog::triggerRepaint()
 {
-    if(_info)
+    if(_info.valid())
         _info->triggerRepaint();
 }
 
@@ -656,7 +669,7 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
         ui->previewImage->setPixmap(QPixmap());
         ui->previewImage->setTextFormat(Qt::PlainText);
         ui->previewImage->setText(tr("No image"));
-        os << "<b>item is <i>NULL</i></b>";
+        os << "<b>item is <i>nullptr</i></b>";
     }
     ui->textEdit->blockSignals(true);
     ui->textEdit->setHtml(fromUtf8(os.str()));
@@ -670,14 +683,14 @@ void TileInspectorDialog::refresh()
     QVariant data = ui->layer->itemData(index);
     QtSGIItem qitem = data.value<QtSGIItem>();
     SGIItemOsg * item = (SGIItemOsg *)qitem.item();
-    osgEarth::TileSource * tileSource = (layerDataSource == LayerDataSourceTileSource) ? getTileSource(item) : NULL;
-    osgEarth::TerrainLayer * terrainLayer = (layerDataSource == LayerDataSourceLayer) ? getTerrainLayer(item) : NULL;
+    osgEarth::TileSource * tileSource = (layerDataSource == LayerDataSourceTileSource) ? getTileSource(item) : nullptr;
+    osgEarth::TerrainLayer * terrainLayer = (layerDataSource == LayerDataSourceLayer) ? getTerrainLayer(item) : nullptr;
     osgEarth::TerrainLayer * cacheBinTerrainLayer = nullptr;
-    osgEarth::CacheBin * cachebin = (layerDataSource == LayerDataSourceCache) ? getCacheBin(item) : NULL;
+    osgEarth::CacheBin * cachebin = (layerDataSource == LayerDataSourceCache) ? getCacheBin(item) : nullptr;
     TileSourceTileKeyData::ObjectType objectType = TileSourceTileKeyData::ObjectTypeGeneric;
     osgEarth::ImageLayer* imageLayer = dynamic_cast<osgEarth::ImageLayer*>(terrainLayer);
     osgEarth::ElevationLayer * elevLayer = dynamic_cast<osgEarth::ElevationLayer*>(terrainLayer);
-    const osgEarth::Profile * profile = NULL;
+    const osgEarth::Profile * profile = nullptr;
     if (tileSource)
         profile = tileSource->getProfile();
     else if (terrainLayer)
@@ -1304,7 +1317,7 @@ void TileInspectorDialog::itemContextMenu(IObjectTreeItem * treeItem, IContextMe
 
     if (!contextMenu)
     {
-        if (_contextMenu)
+        if (_contextMenu.valid())
         {
             _contextMenu->setObject(item, _info);
             contextMenu = _contextMenu;
@@ -1332,7 +1345,7 @@ void TileInspectorDialog::takePositionFromCamera()
 	{
 		osg::Vec3d eye, center, up;
 		osg::Camera * camera = osgEarth::findFirstParentOfType<osg::Camera>(mapnode);
-		osgViewer::View * view = NULL;
+        osgViewer::View * view = nullptr;
 		if (camera)
 		{
 			view = dynamic_cast<osgViewer::View*>(camera->getView());
@@ -1558,9 +1571,9 @@ void TileInspectorDialog::updateLayerContextMenu()
         return;
 
     LAYER_DATA_SOURCE layerDataSource = (LAYER_DATA_SOURCE)ui->layerSource->itemData(ui->layerSource->currentIndex()).toInt();
-    osgEarth::TileSource * tileSource = (layerDataSource == LayerDataSourceTileSource) ? getTileSource(item) : NULL;
-    osgEarth::TerrainLayer * terrainLayer = (layerDataSource == LayerDataSourceLayer) ? getTerrainLayer(item) : NULL;
-    osgEarth::CacheBin * cachebin = (layerDataSource == LayerDataSourceCache) ? getCacheBin(item) : NULL;
+    osgEarth::TileSource * tileSource = (layerDataSource == LayerDataSourceTileSource) ? getTileSource(item) : nullptr;
+    osgEarth::TerrainLayer * terrainLayer = (layerDataSource == LayerDataSourceLayer) ? getTerrainLayer(item) : nullptr;
+    osgEarth::CacheBin * cachebin = (layerDataSource == LayerDataSourceCache) ? getCacheBin(item) : nullptr;
 
     SGIHostItemOsg hostitem((osg::Referenced*)nullptr);
     if (tileSource)
@@ -1570,7 +1583,7 @@ void TileInspectorDialog::updateLayerContextMenu()
     if (cachebin)
         hostitem = SGIHostItemOsg(cachebin);
 
-    if (_layerContextMenu)
+    if (_layerContextMenu.valid())
     {
         _layerContextMenu->setObject(&hostitem, _info);
     }

@@ -1,5 +1,5 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
 
@@ -11,7 +11,7 @@
 namespace sgi {
 
 template<typename AUTOLOADCLASS>
-inline ISceneGraphDialog * showSceneGraphDialogImpl(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=NULL)
+inline ISceneGraphDialog * showSceneGraphDialogImpl(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback=nullptr)
 {
     ISceneGraphDialog * ret;
     typedef ISceneGraphDialog * (*pfn)(QWidget *parent, const SGIHostItemBase * object, IHostCallback * callback);
@@ -19,12 +19,12 @@ inline ISceneGraphDialog * showSceneGraphDialogImpl(QWidget *parent, const SGIHo
     if(func)
         ret = func(parent, object, callback);
     else
-        ret = NULL;
+        ret = nullptr;
     return ret;
 }
 
 template<typename AUTOLOADCLASS>
-inline ISceneGraphDialog * showSceneGraphDialogImpl(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL)
+inline ISceneGraphDialog * showSceneGraphDialogImpl(QWidget *parent, SGIItemBase * item, IHostCallback * callback=nullptr)
 {
     ISceneGraphDialog * ret;
     typedef ISceneGraphDialog * (*pfn)(QWidget *parent, const SGIItemBase * item, IHostCallback * callback);
@@ -32,19 +32,19 @@ inline ISceneGraphDialog * showSceneGraphDialogImpl(QWidget *parent, SGIItemBase
     if(func)
         ret = func(parent, item, callback);
     else
-        ret = NULL;
+        ret = nullptr;
     return ret;
 }
 
 template<typename AUTOLOADCLASS>
-inline ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=NULL)
+inline ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback=nullptr)
 {
     ISceneGraphDialog * ret = showSceneGraphDialogImpl<AUTOLOADCLASS>(parent, item, callback);
     return ret;
 }
 
 template<typename AUTOLOADCLASS>
-inline ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * item, IHostCallback * callback=NULL)
+inline ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostItemBase * item, IHostCallback * callback=nullptr)
 {
     ISceneGraphDialog * ret = showSceneGraphDialogImpl<AUTOLOADCLASS>(parent, item, callback);
     return ret;
@@ -52,9 +52,9 @@ inline ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, const SGIHostIt
 
 #if !defined(SGI_NO_HOSTITEM_GENERATOR)
 template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
-inline ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, OBJECT_TYPE * object, IHostCallback * callback=NULL)
+inline ISceneGraphDialog * showSceneGraphDialog(QWidget *parent, OBJECT_TYPE * object, IHostCallback * callback=nullptr)
 {
-    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    SGIHostItemBasePtr hostitem = SGIHostItemGenerator::generateHostItem(object);
     ISceneGraphDialog * ret = showSceneGraphDialogImpl<AUTOLOADCLASS>(parent, hostitem.get(), callback);
     return ret;
 }

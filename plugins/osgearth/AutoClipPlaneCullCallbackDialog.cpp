@@ -37,7 +37,7 @@ AutoClipPlaneCullCallbackDialog::~AutoClipPlaneCullCallbackDialog()
 	if (ui)
 	{
 		delete ui;
-		ui = NULL;
+        ui = nullptr;
 	}
 }
 

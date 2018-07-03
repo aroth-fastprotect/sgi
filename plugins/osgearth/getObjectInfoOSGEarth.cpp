@@ -14,12 +14,12 @@
 #include <osgEarth/ModelLayer>
 #include <osgEarth/MaskLayer>
 #include <osgEarth/XmlUtils>
-#include "ElevationQueryReferenced"
+#ifdef SGI_USE_OSGEARTH_FAST
+#include <osgEarth/LevelDBFactory>
+#endif
 #include <sgi/helpers/rtti>
 
 namespace sgi {
-
-class SGIItemOsg;
 
 namespace osgearth_plugin {
 
@@ -29,6 +29,9 @@ GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskLayer)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::Registry)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::Config)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::ConfigOptions)
+#ifdef SGI_USE_OSGEARTH_FAST
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::LevelDBDatabase)
+#endif
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(TileKeyReferenced)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
 
@@ -81,6 +84,14 @@ std::string getObjectNameImpl<osgEarth::Registry>::process()
 {
     return "osgEarth::Registry";
 }
+
+#ifdef SGI_USE_OSGEARTH_FAST
+std::string getObjectNameImpl<osgEarth::LevelDBDatabase>::process()
+{
+	osgEarth::LevelDBDatabase * object = static_cast<osgEarth::LevelDBDatabase*>(item<SGIItemOsg>()->object());
+	return object->rootPath().full();
+}
+#endif
 
 std::string getObjectNameImpl<TileKeyReferenced>::process()
 {

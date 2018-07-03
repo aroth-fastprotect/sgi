@@ -425,7 +425,7 @@ void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, 
     os << std::setprecision(12) << "(" << v[0] << ", " << v[1] << ", " << v[2] << ")@("
         << ecef[0] << ", " << ecef[1] << ", " << ecef[2] << ")" << std::endl;
     /*
-    const osg::Node * refNode = (refDrawable && refDrawable->getNumParents() > 0)?refDrawable->getParent(0):NULL;
+    const osg::Node * refNode = (refDrawable && refDrawable->getNumParents() > 0)?refDrawable->getParent(0):nullptr;
     osg::Vec3d absv;
     if(refNode)
     {
@@ -684,9 +684,9 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::Viewport* object)
 const sgi::Image * convertImage(const osg::Image * image)
 {
     if (!image)
-        return NULL;
+        return nullptr;
 
-    sgi::Image * ret = NULL;
+    sgi::Image * ret = nullptr;
     sgi::Image::ImageFormat imageFormat;
     sgi::Image::DataType dataType;
     switch(image->getPixelFormat())
@@ -774,8 +774,8 @@ const sgi::Image * convertImage(const osg::Image * image)
 const sgi::Image * convertImage(const osg::HeightField * hf)
 {
     if (!hf)
-        return NULL;
-    sgi::Image * ret = NULL;
+        return nullptr;
+    sgi::Image * ret = nullptr;
     sgi::Image::ImageFormat imageFormat = sgi::Image::ImageFormatFloat;
     sgi::Image::DataType dataType = sgi::Image::DataTypeFloat32;
     sgi::Image::Origin origin = sgi::Image::OriginBottomLeft;
@@ -862,7 +862,7 @@ osg::Camera * findCamera(const osg::Node * node)
 
 osg::Camera * findCamera(const osg::StateSet * stateset)
 {
-    osg::Camera * ret = NULL;
+    osg::Camera * ret = nullptr;
     const osg::StateSet::ParentList & parents = stateset->getParents();
     for (osg::Node * ss : parents)
     {
@@ -875,7 +875,7 @@ osg::Camera * findCamera(const osg::StateSet * stateset)
 
 osg::Camera * findCamera(const osg::StateAttribute * sa)
 {
-    osg::Camera * ret = NULL;
+    osg::Camera * ret = nullptr;
     const osg::StateAttribute::ParentList & parents = sa->getParents();
     for (osg::StateSet * ss : parents)
     {

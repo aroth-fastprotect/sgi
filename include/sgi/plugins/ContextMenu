@@ -1,5 +1,5 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
 #include "HostCallback"
@@ -10,38 +10,56 @@ class QMenu;
 namespace sgi {
 
 class SGIItemBase;
+typedef details::ref_ptr<SGIItemBase> SGIItemBasePtr;
 class SGIHostItemBase;
 
-class IContextMenu : public osg::Referenced
+class IContextMenu : public details::Referenced
 {
 public:
     virtual                 ~IContextMenu() {}
     virtual QMenu *         getMenu() = 0;
     virtual IHostCallback * getHostCallback() = 0;
-    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=NULL) = 0;
-    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=NULL) = 0;
+    virtual void            setObject(SGIItemBase * item, IHostCallback * callback=nullptr) = 0;
+    virtual void            setObject(const SGIHostItemBase * item, IHostCallback * callback=nullptr) = 0;
     virtual QWidget *       parentWidget() = 0;
     virtual void            popup(QWidget * parent, int x, int y) = 0;
 };
-typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
+typedef details::ref_ptr<IContextMenu> IContextMenuPtr;
 
-class IContextMenuItem : public osg::Referenced
+class IContextMenuItem : public details::Referenced
 {
 public:
-    virtual bool addSimpleAction(unsigned actionId, const std::string & name, const SGIHostItemBase * item, osg::Referenced * userData=NULL) = 0;
-    virtual bool addSimpleAction(unsigned actionId, const std::string & name, SGIItemBase * item, osg::Referenced * userData=NULL) = 0;
-    virtual bool addBoolAction(unsigned actionId, const std::string & name, SGIItemBase * item, bool state, osg::Referenced * userData=NULL) = 0;
-    virtual bool addModeAction(const std::string & name, int mode, osg::Referenced * userData=NULL) = 0;
-    virtual IContextMenuItem * addMenu(const std::string & name, SGIItemBase * item, osg::Referenced * userData=NULL) = 0;
-    virtual IContextMenuItem * addMenu(const std::string & name, const SGIHostItemBase * item, osg::Referenced * userData=NULL) = 0;
-    virtual IContextMenuItem * addModeMenu(unsigned actionId, const std::string & name, SGIItemBase * item, int currentMode, osg::Referenced * userData=NULL) = 0;
-    virtual IContextMenuItem * getOrCreateMenu(const std::string & name, osg::Referenced * userData=NULL) = 0;
+    virtual bool addSimpleAction(unsigned actionId, const std::string & name, const SGIHostItemBase * item, details::Referenced * userData=nullptr) = 0;
+    virtual bool addSimpleAction(unsigned actionId, const std::string & name, SGIItemBase * item, details::Referenced * userData=nullptr) = 0;
+    virtual bool addBoolAction(unsigned actionId, const std::string & name, SGIItemBase * item, bool state, details::Referenced * userData=nullptr) = 0;
+    virtual bool addModeAction(const std::string & name, int mode, details::Referenced * userData=nullptr) = 0;
+    virtual IContextMenuItem * addMenu(const std::string & name, SGIItemBase * item, details::Referenced * userData=nullptr) = 0;
+    virtual IContextMenuItem * addMenu(const std::string & name, const SGIHostItemBase * item, details::Referenced * userData=nullptr) = 0;
+    virtual IContextMenuItem * addModeMenu(unsigned actionId, const std::string & name, SGIItemBase * item, int currentMode, details::Referenced * userData=nullptr) = 0;
+    virtual IContextMenuItem * getOrCreateMenu(const std::string & name, details::Referenced * userData=nullptr) = 0;
     virtual void addSeparator() = 0;
     virtual IContextMenu * menu() = 0;
-};
-typedef osg::ref_ptr<IContextMenuItem> IContextMenuItemPtr;
 
-class IContextMenuAction : public osg::Referenced
+    inline bool addSimpleAction(unsigned actionId, const std::string & name, const SGIItemBasePtr & item, details::Referenced * userData=nullptr)
+    {
+        return addSimpleAction(actionId, name, item.get(), userData);
+    }
+    inline bool addBoolAction(unsigned actionId, const std::string & name, const SGIItemBasePtr & item, bool state, details::Referenced * userData=nullptr)
+    {
+        return addBoolAction(actionId, name, item.get(), state, userData);
+    }
+    inline IContextMenuItem * addMenu(const std::string & name, const SGIItemBasePtr & item, details::Referenced * userData=nullptr)
+    {
+        return addMenu(name, item.get(), userData);
+    }
+    inline IContextMenuItem * addModeMenu(unsigned actionId, const std::string & name, const SGIItemBasePtr & item, int currentMode, details::Referenced * userData=nullptr)
+    {
+        return addModeMenu(actionId, name, item.get(), currentMode, userData);
+    }
+};
+typedef details::ref_ptr<IContextMenuItem> IContextMenuItemPtr;
+
+class IContextMenuAction : public details::Referenced
 {
 public:
     virtual unsigned actionId() = 0;
@@ -49,11 +67,11 @@ public:
     virtual SGIItemBase * item() = 0;
     virtual unsigned mode() = 0;
     virtual bool state() = 0;
-    virtual osg::Referenced * userData() = 0;
-    virtual const osg::Referenced * userData() const = 0;
-    virtual osg::Referenced * modeUserData() = 0;
-    virtual const osg::Referenced * modeUserData() const = 0;
+    virtual details::Referenced * userData() = 0;
+    virtual const details::Referenced * userData() const = 0;
+    virtual details::Referenced * modeUserData() = 0;
+    virtual const details::Referenced * modeUserData() const = 0;
 };
-typedef osg::ref_ptr<IContextMenuAction> IContextMenuActionPtr;
+typedef details::ref_ptr<IContextMenuAction> IContextMenuActionPtr;
 
 } // namespace sgi

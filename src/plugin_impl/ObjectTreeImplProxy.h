@@ -17,9 +17,9 @@ class ObjectTreeImplProxyPrivate;
 class ObjectTreeImplProxy : public QObject
 {
 	Q_OBJECT
-    Q_DECLARE_PRIVATE(ObjectTreeImplProxy);
+    Q_DECLARE_PRIVATE(ObjectTreeImplProxy)
 public:
-	ObjectTreeImplProxy(QTreeWidget * widget, IObjectTreeImpl * impl=NULL, SGIPluginHostInterface * hostInterface=NULL);
+    ObjectTreeImplProxy(QTreeWidget * widget, IObjectTreeImpl * impl=nullptr, SGIPluginHostInterface * hostInterface=nullptr);
 	virtual ~ObjectTreeImplProxy();
 
 public slots:

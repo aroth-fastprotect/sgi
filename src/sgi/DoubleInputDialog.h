@@ -13,7 +13,7 @@ class DoubleInputDialog : public QDialog
     Q_OBJECT
 
 public:
-    DoubleInputDialog(QWidget *parent = 0, Qt::WindowFlags f = 0);
+    DoubleInputDialog(QWidget *parent = nullptr, Qt::WindowFlags f = 0);
     ~DoubleInputDialog();
 
 public slots:

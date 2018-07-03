@@ -26,7 +26,7 @@ SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(Log4cplusObjectLayout)
     Log4cplusObjectSimpleLayout, Log4cplusObjectPatternLayout
 SGI_OBJECT_INFO_END()
-SGI_OBJECT_INFO_BEGIN(osg::Referenced)
+SGI_OBJECT_INFO_BEGIN(sgi::details::Referenced)
     ISceneGraphDialog
 SGI_OBJECT_INFO_END()
 
@@ -35,7 +35,7 @@ namespace sgi {
 namespace log4cplus_plugin {
 
 GENERATE_IMPL_TEMPLATE()
-GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
+GENERATE_IMPL_NO_ACCEPT(sgi::details::Referenced)
 
 typedef generateItemImplT<generateItemAcceptImpl, SGIItemLog4cplus, SGIItemInternal > generateItemImpl;
 
@@ -63,17 +63,17 @@ typedef SGIPluginImplementationT< generateItemImpl,
 class SGIPlugin_log4cplus_Implementation : public log4cplus_plugin::SGIPluginImpl
 {
 public:
-    SGIPlugin_log4cplus_Implementation(SGIPluginHostInterface * hostInterface=NULL)
+    SGIPlugin_log4cplus_Implementation(SGIPluginHostInterface * hostInterface=nullptr)
         : log4cplus_plugin::SGIPluginImpl(hostInterface)
     {
         SGIITEMTYPE_NAME(SGIItemTypeAppenders);
     }
-    SGIPlugin_log4cplus_Implementation(const SGIPlugin_log4cplus_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : log4cplus_plugin::SGIPluginImpl(rhs, copyop)
+    SGIPlugin_log4cplus_Implementation(const SGIPlugin_log4cplus_Implementation & rhs)
+        : log4cplus_plugin::SGIPluginImpl(rhs)
     {
     }
 
-    META_Object(sgi_log4cplus, SGIPlugin_log4cplus_Implementation);
+    SGI_Object(sgi_log4cplus, SGIPlugin_log4cplus_Implementation)
 };
 
 } // namespace sgi

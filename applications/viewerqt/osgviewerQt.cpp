@@ -159,9 +159,9 @@ ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared)
 
     const osg::GraphicsContext::Traits* traits = _mainGW->getTraits();
 
-    camera->setClearColor( osg::Vec4(0.2, 0.2, 0.6, 1.0) );
+    camera->setClearColor( osg::Vec4(0.2f, 0.2f, 0.6f, 1.0f) );
     camera->setViewport( new osg::Viewport(0, 0, traits->width, traits->height) );
-    camera->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(traits->width)/static_cast<double>(traits->height), 1.0f, 10000.0f );
+    camera->setProjectionMatrixAsPerspective(30.0, static_cast<double>(traits->width)/static_cast<double>(traits->height), 1.0, 10000.0 );
 
     _viewer->addView(_view);
 }
@@ -211,9 +211,9 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     const osg::GraphicsContext::Traits* traits = _mainGW ? _mainGW->getTraits() : nullptr;
     int widget_width = traits ? traits->width : 100;
     int widget_height = traits ? traits->height : 100;
-    camera->setClearColor(osg::Vec4(0.2, 0.2, 0.6, 1.0));
+    camera->setClearColor(osg::Vec4(0.2f, 0.2f, 0.6f, 1.0f));
     camera->setViewport(new osg::Viewport(0, 0, widget_width, widget_height));
-    camera->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(widget_width) / static_cast<double>(widget_height), 1.0f, 10000.0f);
+    camera->setProjectionMatrixAsPerspective(30.0, static_cast<double>(widget_width) / static_cast<double>(widget_height), 1.0, 10000.0);
     GLenum buffer = traits->doubleBuffer ? GL_BACK : GL_FRONT;
     camera->setDrawBuffer(buffer);
     camera->setReadBuffer(buffer);
@@ -346,7 +346,7 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
             // for non GL3/GL4 and non GLES2 platforms we need enable the osg_ uniforms that the shaders will use,
             // you don't need thse two lines on GL3/GL4 and GLES2 specific builds as these will be enable by default.
             ret->getState()->setUseModelViewAndProjectionUniforms(true);
-            ret->getState()->setUseVertexAttributeAliasing(true);
+            //ret->getState()->setUseVertexAttributeAliasing(true);
             break;
         }
     }

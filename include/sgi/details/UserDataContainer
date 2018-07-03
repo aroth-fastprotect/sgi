@@ -1,0 +1,209 @@
+// kate: mode C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include "Object"
+
+#include <string>
+#include <vector>
+
+namespace sgi {
+namespace details {
+
+/** Internal structure for storing all user data.*/
+class UserDataContainer : public Object
+{
+    public:
+        UserDataContainer();
+        UserDataContainer(const UserDataContainer& udc);
+
+        virtual bool isSameKindAs(const Object* obj) const { return dynamic_cast<const UserDataContainer*>(obj)!=nullptr; }
+
+        /** return the name of the object's library. Must be defined
+            by derived classes. The OpenSceneGraph convention is that the
+            namespace of a library is the same as the library name.*/
+        virtual const char* libraryName() const { return "sgi"; }
+
+        /** return the name of the object's class type. Must be defined
+            by derived classes.*/
+        virtual const char* className() const  { return "UserDataContainer"; }
+
+        /** Convert 'this' into a UserDataContainer pointer if Object is a UserDataContainer, otherwise return 0.
+          * Equivalent to dynamic_cast<UserDataContainer*>(this).*/
+        virtual UserDataContainer* asUserDataContainer() { return this; }
+
+        /** convert 'const this' into a const UserDataContainer pointer if Object is a UserDataContainer, otherwise return 0.
+          * Equivalent to dynamic_cast<const UserDataContainer*>(this).*/
+        virtual const UserDataContainer* asUserDataContainer() const { return this; }
+
+        /**
+         * Set user data, data must be subclassed from Referenced to allow
+         * automatic memory handling.  If your own data isn't directly
+         * subclassed from Referenced then create an adapter object
+         * which points to your own object and handles the memory addressing.
+         */
+        virtual void setUserData(Referenced* obj) = 0;
+
+        using Object::setUserData;
+
+        /** Get user data.*/
+        virtual Referenced* getUserData() = 0;
+
+        /** Get const user data.*/
+        virtual const Referenced* getUserData() const  = 0;
+
+        /** Add user data object. Returns the index position of object added. */
+        virtual unsigned int addUserObject(Object* obj)  = 0;
+
+        template<class T> unsigned int addUserObject(const ref_ptr<T>& obj) { return addUserObject(obj.get()); }
+
+         /** Add element to list of user data objects.*/
+        virtual void setUserObject(unsigned int i, Object* obj)  = 0;
+
+        /** Remove element from the list of user data objects.*/
+        virtual void removeUserObject(unsigned int i)  = 0;
+
+
+        /** Get user data object as specified index position. */
+        virtual Object* getUserObject(unsigned int i)  = 0;
+
+        /** Get const user data object as specified index position. */
+        virtual const Object* getUserObject(unsigned int i) const  = 0;
+
+        /** Get number of user objects assigned to this object.*/
+        virtual unsigned int getNumUserObjects() const  = 0;
+
+        /** Get the index position of specified user data object.*/
+        virtual unsigned int getUserObjectIndex(const Object* obj, unsigned int startPos=0) const = 0;
+
+        /** Get the index position of first user data object that matches specified name.*/
+        virtual unsigned int getUserObjectIndex(const std::string& name, unsigned int startPos=0) const = 0;
+
+
+        /** Get first user data object with specified name. */
+        virtual Object* getUserObject(const std::string& name, unsigned int startPos=0);
+
+        /** Get first const user data object with specified name. */
+        virtual const Object* getUserObject(const std::string& name, unsigned int startPos=0) const;
+
+
+        typedef std::vector<std::string> DescriptionList;
+
+        /** Set the list of string descriptions.*/
+        virtual void setDescriptions(const DescriptionList& descriptions) = 0;
+
+        /** Get the description list.*/
+        virtual DescriptionList& getDescriptions() = 0;
+
+        /** Get the const description list.*/
+        virtual const DescriptionList& getDescriptions() const = 0;
+
+        /** Get number of description strings.*/
+        virtual unsigned int getNumDescriptions() const = 0;
+
+        /** Add a description string.*/
+        virtual void addDescription(const std::string& desc) = 0;
+
+    protected:
+        virtual ~UserDataContainer() {}
+};
+
+/** Internal structure for storing all user data.*/
+class DefaultUserDataContainer : public UserDataContainer
+{
+    public:
+        DefaultUserDataContainer();
+        DefaultUserDataContainer(const DefaultUserDataContainer& udc);
+
+        SGI_Object(osg, DefaultUserDataContainer)
+
+        /**
+         * Set user data, data must be subclassed from Referenced to allow
+         * automatic memory handling.  If your own data isn't directly
+         * subclassed from Referenced then create an adapter object
+         * which points to your own object and handles the memory addressing.
+         */
+        virtual void setUserData(Referenced* obj);
+
+        using Object::setUserData;
+        using UserDataContainer::addUserObject;
+
+        /** Get user data.*/
+        virtual Referenced* getUserData();
+
+        /** Get const user data.*/
+        virtual const Referenced* getUserData() const;
+
+        /** Add user data object. Returns the index position of object added. */
+        virtual unsigned int addUserObject(Object* obj);
+
+         /** Add element to list of user data objects.*/
+        virtual void setUserObject(unsigned int i, Object* obj);
+
+        /** Remove element from the list of user data objects.*/
+        virtual void removeUserObject(unsigned int i);
+
+
+        /** Get user data object as specified index position. */
+        virtual Object* getUserObject(unsigned int i);
+
+        /** Get const user data object as specified index position. */
+        virtual const Object* getUserObject(unsigned int i) const;
+
+        /** Get number of user objects assigned to this object.*/
+        virtual unsigned int getNumUserObjects() const;
+
+        /** Get the index position of specified user data object.*/
+        virtual unsigned int getUserObjectIndex(const Object* obj, unsigned int startPos=0) const;
+
+        /** Get the index position of first user data object that matches specified name.*/
+        virtual unsigned int getUserObjectIndex(const std::string& name, unsigned int startPos=0) const;
+
+
+
+
+        /** Set the list of string descriptions.*/
+        virtual void setDescriptions(const DescriptionList& descriptions);
+
+        /** Get the description list.*/
+        virtual DescriptionList& getDescriptions();
+
+        /** Get the const description list.*/
+        virtual const DescriptionList& getDescriptions() const;
+
+        /** Get number of description strings.*/
+        virtual unsigned int getNumDescriptions() const;
+
+        /** Add a description string.*/
+        virtual void addDescription(const std::string& desc);
+
+protected:
+
+        virtual ~DefaultUserDataContainer() {}
+
+        typedef std::vector< ref_ptr<Object> > ObjectList;
+
+        ref_ptr<Referenced>     _userData;
+        DescriptionList         _descriptionList;
+        ObjectList              _objectList;
+};
+
+
+/** Convenience function for getting the User Object associated with specified name from an Object's UserDataContainer.*/
+inline Object* getUserObject(Object* object, const std::string& name)
+{
+    UserDataContainer* udc = object->getUserDataContainer();
+    return udc ? udc->getUserObject(name) : nullptr;
+}
+
+/** Convenience function for getting the User Object associated with specified name from an Object's UserDataContainer.*/
+inline const Object* getUserObject(const Object* object, const std::string& name)
+{
+    const UserDataContainer* udc = object->getUserDataContainer();
+    return udc ? udc->getUserObject(name) : nullptr;
+}
+
+} // namespace details
+} // namespace sgi
+
