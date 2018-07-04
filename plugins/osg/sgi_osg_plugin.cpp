@@ -454,7 +454,9 @@ SGI_OBJECT_INFO_BEGIN(osg::Group)
 #if OSG_MIN_VERSION_REQUIRED(3,4,0)
     osg::Geode,
 #endif
-    osg::Transform, osg::LOD, osg::ProxyNode, osg::CoordinateSystemNode, osgFX::Effect, osgTerrain::TerrainTile
+    osg::Transform, osg::LOD, osg::ProxyNode, osg::CoordinateSystemNode, 
+    osg::LightSource,
+    osgFX::Effect, osgTerrain::TerrainTile
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::CoordinateSystemNode)

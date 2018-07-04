@@ -123,6 +123,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::BlendFunc)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::BlendColor)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::PolygonMode)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::CullFace)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::LightSource)
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgDB::Registry)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgDB::ImagePager)
@@ -342,6 +343,9 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
 
                 manipulateMenu->addSimpleAction(MenuActionNodeMask, helpers::str_plus_hex("Node mask", object->getNodeMask()), _item);
                 manipulateMenu->addSimpleAction(MenuActionNodeMaskAndChilds, helpers::str_plus_hex("Node mask (+childs)", object->getNodeMask()), _item);
+
+                if(object->getStateSet())
+                    manipulateMenu->addSimpleAction(MenuActionNodeClearStateSet, "Clear StateSet", _item);
 
                 manipulateMenu->addSimpleAction(MenuActionNodeNumUpdateTraversal, helpers::str_plus_count("Num update traversal", numUpdateTraversal), _item);
                 manipulateMenu->addSimpleAction(MenuActionNodeNumEventTraversal, helpers::str_plus_count("Num event traversal", numEventTraversal), _item);
@@ -1093,6 +1097,34 @@ bool contextMenuPopulateImpl<osg::CullFace>::populate(IContextMenuItem * menuIte
     return ret;
 }
 
+bool contextMenuPopulateImpl<osg::LightSource>::populate(IContextMenuItem * menuItem)
+{
+    osg::LightSource * object = getObject<osg::LightSource, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            SGIHostItemOsg light(object->getLight());
+            if(light.hasObject())
+                menuItem->addMenu(std::string(), &light);
+            IContextMenuItem * refFrameMenu = menuItem->addModeMenu(MenuActionLightSourceReferenceFrame, "Reference Frame", _item, object->getReferenceFrame());
+            if (refFrameMenu)
+            {
+                refFrameMenu->addModeAction("Relative", osg::LightSource::RELATIVE_RF);
+                refFrameMenu->addModeAction("Absolute", osg::LightSource::ABSOLUTE_RF);
+            }
+
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
 bool contextMenuPopulateImpl<osg::Geode>::populate(IContextMenuItem * menuItem)
 {
     osg::Geode * object = static_cast<osg::Geode*>(item<SGIItemOsg>()->object());
