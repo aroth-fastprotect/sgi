@@ -120,6 +120,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSour
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::FeatureGeomModelOptions)
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::FunctionLocation & t);
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::StageMaskValues & t);
 
 using namespace osg_helpers;
 
@@ -1533,6 +1534,11 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
             object->getFunctions(functions);
             if(!functions.empty())
                 treeItem->addChild(helpers::str_plus_count("Functions", functions.size()), cloneItem<SGIItemOsg>(SGIItemTypeVirtualProgramFunctions, ~0u));
+
+            VirtualProgramAccessor::ProgramMap programCache;
+            object->getProgramCache(programCache);
+            if(!programCache.empty())
+                treeItem->addChild(helpers::str_plus_count("Cache", programCache.size()), cloneItem<SGIItemOsg>(SGIItemTypeVirtualProgramCache, ~0u));
         }
         break;
     case SGIItemTypeVirtualProgramShaderMap:
@@ -1608,6 +1614,41 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
         break;
     case SGIItemTypeVirtualProgramEffectiveProgram:
         ret = true;
+        break;
+    case SGIItemTypeVirtualProgramCache:
+        {
+            osgEarth::VirtualProgram::ProgramMap programCache;
+            object->getProgramCache(programCache);
+            for (auto it = programCache.begin(); it != programCache.end(); it++)
+            {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+                const osgEarth::ProgramKey & keys = it->first;
+#else
+                const std::vector< osg::ref_ptr<osg::Shader> > & keys = it->first;
+#endif
+                for (const auto & k : keys)
+                {
+                    SGIHostItemOsg item(k.get());
+                    if (item.hasObject())
+                    {
+                        std::string name = k->getName();
+                        if (name.empty())
+                            name = helpers::str_plus_info("PolyShader", (void*)k.get());
+                        treeItem->addChild(name, &item);
+                    }
+                }
+                const osgEarth::VirtualProgram::ProgramEntry & entry = it->second;
+                SGIHostItemOsg program(entry._program.get());
+                if (program.hasObject())
+                {
+                    std::string name = entry._program->getName();
+                    if (name.empty())
+                        name = helpers::str_plus_info("Program", (void*)entry._program.get());
+                    treeItem->addChild(name, &program);
+                }
+            }
+            ret = true;
+        }
         break;
     default:
         ret = callNextHandler(treeItem);
@@ -1726,11 +1767,20 @@ bool objectTreeBuildImpl<osgEarth::PolyShader>::build(IObjectTreeItem * treeItem
             if (nominalShader.hasObject())
                 treeItem->addChild("NominalShader", &nominalShader);
 
-            for (unsigned i = 0; i < 5; ++i)
+            osgEarth::ShaderComp::StageMaskValues stages[] = {
+                osgEarth::ShaderComp::STAGE_VERTEX,
+                osgEarth::ShaderComp::STAGE_TESSCONTROL,
+                osgEarth::ShaderComp::STAGE_TESSEVALUATION,
+                osgEarth::ShaderComp::STAGE_GEOMETRY,
+                osgEarth::ShaderComp::STAGE_FRAGMENT,
+                osgEarth::ShaderComp::STAGE_COMPUTE
+            };
+
+            for (unsigned i = 0; i < sizeof(stages)/sizeof(stages[0]); ++i)
             {
-                SGIHostItemOsg shader(object->getShader(1 << i));
+                SGIHostItemOsg shader(object->getShader(stages[i]));
                 if (shader.hasObject())
-                    treeItem->addChild(helpers::str_plus_info("Shader", i), &shader);
+                    treeItem->addChild(helpers::str_plus_info("Shader", stages[i]), &shader);
             }
         }
         break;

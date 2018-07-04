@@ -2269,6 +2269,21 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     return os;
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::StageMaskValues & t)
+{
+    switch (t)
+    {
+    case osgEarth::ShaderComp::STAGE_VERTEX: os << "STAGE_VERTEX"; break;
+    case osgEarth::ShaderComp::STAGE_TESSCONTROL: os << "STAGE_TESSCONTROL"; break;
+    case osgEarth::ShaderComp::STAGE_TESSEVALUATION: os << "STAGE_TESSEVALUATION"; break;
+    case osgEarth::ShaderComp::STAGE_GEOMETRY: os << "STAGE_GEOMETRY"; break;
+    case osgEarth::ShaderComp::STAGE_FRAGMENT: os << "STAGE_FRAGMENT"; break;
+    case osgEarth::ShaderComp::STAGE_COMPUTE: os << "STAGE_COMPUTE"; break;
+    default: os << (int)t; break;
+    }
+    return os;
+}
+
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::Function & f)
 {
@@ -2557,6 +2572,41 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
     case SGIItemTypeVirtualProgramEffectiveProgram:
         {
             os << "<i>Not yet implemented</i>";
+            ret = true;
+        }
+        break;
+    case SGIItemTypeVirtualProgramCache:
+        {
+            osgEarth::VirtualProgram::ProgramMap programCache;
+            object->getProgramCache(programCache);
+            if (programCache.empty())
+                os << "<i>empty</i>";
+            else
+            {
+                os << "<ul>";
+                for (auto it = programCache.begin(); it != programCache.end(); it++)
+                {
+                    os << "<li>";
+                    bool firstKey = true;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+                    const osgEarth::ProgramKey & keys = it->first;
+#else
+                    const std::vector< osg::ref_ptr<osg::Shader> > & keys = it->first;
+#endif
+                    for (const auto & k : keys)
+                    {
+                        if (!firstKey)
+                            os << ",";
+                        os << getObjectNameAndType(k.get());
+                        firstKey = false;
+                    }
+                    const osgEarth::VirtualProgram::ProgramEntry & entry = it->second;
+                    os << "=>";
+                    os << getObjectNameAndType(entry._program.get()) << " fno=" << entry._frameLastUsed;
+                    os << "</li>";
+                }
+                os << "</ul>";
+            }
             ret = true;
         }
         break;
