@@ -1,28 +1,76 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2017 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
 #include <sgi/Export>
 
 namespace sgi {
 
-class SGI_IMPL_EXPORT Vector2 {
+class /*SGI_IMPL_EXPORT*/ Vector2 {
 
 public:
     typedef double value_type;
     value_type _v[2];
+
+    inline value_type & operator [] (int i) { return _v[i]; }
+    inline value_type   operator [] (int i) const { return _v[i]; }
+
+    inline value_type & x() { return _v[0]; }
+    inline value_type & y() { return _v[1]; }
+
+    inline value_type x() const { return _v[0]; }
+    inline value_type y() const { return _v[1]; }
+
+    inline void set(const value_type & x, const value_type & y)
+    {
+        _v[0] = x; _v[1] = y;
+    }
 };
-class SGI_IMPL_EXPORT Vector3 {
+class /*SGI_IMPL_EXPORT*/ Vector3 {
 
 public:
     typedef double value_type;
     value_type _v[3];
+
+    inline value_type & operator [] (int i) { return _v[i]; }
+    inline value_type   operator [] (int i) const { return _v[i]; }
+
+    inline value_type & x() { return _v[0]; }
+    inline value_type & y() { return _v[1]; }
+    inline value_type & z() { return _v[2]; }
+    
+    inline value_type x() const { return _v[0]; }
+    inline value_type y() const { return _v[1]; }
+    inline value_type z() const { return _v[2]; }
+
+    inline void set(const value_type & x, const value_type & y, const value_type & z)
+    {
+        _v[0] = x; _v[1] = y; _v[2] = z;
+    }
 };
-class SGI_IMPL_EXPORT Vector4 {
+class /*SGI_IMPL_EXPORT*/ Vector4 {
 
 public:
     typedef double value_type;
     value_type _v[4];
+
+    inline value_type & operator [] (int i) { return _v[i]; }
+    inline value_type   operator [] (int i) const { return _v[i]; }
+
+    inline value_type & x() { return _v[0]; }
+    inline value_type & y() { return _v[1]; }
+    inline value_type & z() { return _v[2]; }
+    inline value_type & w() { return _v[3]; }
+
+    inline value_type x() const { return _v[0]; }
+    inline value_type y() const { return _v[1]; }
+    inline value_type z() const { return _v[2]; }
+    inline value_type w() const { return _v[3]; }
+
+    inline void set(const value_type & x, const value_type & y, const value_type & z, const value_type & w)
+    {
+        _v[0] = x; _v[1] = y; _v[2] = z; _v[3] = w;
+    }
 };
 
 } // namespace sgi

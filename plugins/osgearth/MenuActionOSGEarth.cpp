@@ -19,9 +19,6 @@
 #include <osgEarth/ImageUtils>
 #include <osgEarth/MaskLayer>
 #include <osgEarth/TileSource>
-#ifdef SGI_USE_OSGEARTH_FAST
-#include <osgEarth/LevelDBFactory>
-#endif
 
 #include <osgEarthDrivers/debug/DebugOptions>
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
@@ -41,6 +38,7 @@
 #include "TileInspectorDialog.h"
 
 #include <sgi/helpers/osg>
+#include <sgi/helpers/osg_helper_nodes>
 #include <sgi/helpers/string>
 
 #include <cassert>
@@ -100,11 +98,6 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionControlDirty)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionControlActive)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionControlAbsorbEvents)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionControlVisible)
-
-#ifdef SGI_USE_OSGEARTH_FAST
-ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLevelDBDatabaseRead)
-ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLevelDBDatabaseWrite)
-#endif // SGI_USE_OSGEARTH_FAST
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTileKeyAdd)
 
@@ -345,10 +338,9 @@ bool actionHandlerImpl<MenuActionTerrainLayerCacheUsage>::execute()
 
 bool actionHandlerImpl<MenuActionMapInspector>::execute()
 {
-	osgEarth::MapNode * object = static_cast<osgEarth::MapNode*>(item<SGIItemOsg>()->object());
-	MapNodeAccess * access = static_cast<MapNodeAccess*>(object);
+    MapNodeAccess * object = static_cast<MapNodeAccess*>(getObject<osgEarth::MapNode,SGIItemOsg>());
 
-	access->toggleMapInspector();
+    runMethodInUpdateCallback(object, &MapNodeAccess::toggleMapInspector);
 	return true;
 }
 
@@ -794,46 +786,6 @@ bool actionHandlerImpl<MenuActionControlCanvasDirty>::execute()
     access->dirty();
     return true;
 }
-
-#ifdef SGI_USE_OSGEARTH_FAST
-bool actionHandlerImpl<MenuActionLevelDBDatabaseRead>::execute()
-{
-	osgEarth::LevelDBDatabase * object = getObject<osgEarth::LevelDBDatabase, SGIItemOsg>();
-	std::string key = "enter key";
-	bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), key, "Key", "Enter key to read from database", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
-	if (gotInput)
-	{
-		std::string value;
-		if (object->read(key, value))
-		{
-			_hostInterface->inputDialogText(menuAction()->menu()->parentWidget(), value, "Value", helpers::str_plus_info("Value", key), SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
-		}
-		else
-		{
-            std::string msg = helpers::str_plus_info("failed to read", key);
-			_hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), msg, "Key", helpers::str_plus_info("Value", key), SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
-		}
-	}
-	return true;
-}
-
-bool actionHandlerImpl<MenuActionLevelDBDatabaseWrite>::execute()
-{
-	osgEarth::LevelDBDatabase * object = getObject<osgEarth::LevelDBDatabase, SGIItemOsg>();
-	std::string key = "enter key";
-	bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), key, "Key", "Enter key to write to database", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
-	if (gotInput)
-	{
-		std::string value;
-		bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), value, "Value", "Enter value to write to database", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
-		if(gotInput)
-		{
-			object->write(key, value);
-		}
-	}
-	return true;
-}
-#endif // SGI_USE_OSGEARTH_FAST
 
 bool actionHandlerImpl<MenuActionTileKeyAdd>::execute()
 {

@@ -29,6 +29,7 @@
 #include <osg/BlendFunc>
 #include <osg/Point>
 #include <osg/PolygonMode>
+#include <osg/CullFace>
 #include <osg/TexEnv>
 #include <osg/TexEnvFilter>
 #include <osg/TexMat>
@@ -62,8 +63,8 @@
 #include "SettingsDialogOSG.h"
 #include "DrawableHelper.h"
 #include "NodeHelper.h"
-#include "ManipulateObject.h"
 #include "ObjectLoggerOSG.h"
+#include <sgi/helpers/osg_helper_nodes>
 
 #undef max
 #undef min
@@ -167,6 +168,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionBlendColorConstantColor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionPolygonModeFront)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionPolygonModeBack)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionPolygonModeFrontAndBack)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCullFaceMode)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMaterialColorMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMaterialAmbient)
@@ -549,22 +551,12 @@ namespace {
             }
         }
     };
-
-    struct StripTextures
-    {
-    public:
-        void operator()(osg::Node * object, osg::NodeVisitor* nv)
-        {
-            StripTexturesVisitor stv;
-            object->accept(stv);
-        }
-    };
 }
 
 bool actionHandlerImpl<MenuActionNodeStripTextures>::execute()
 {
     osg::Node * object = getObject<osg::Node, SGIItemOsg>();
-    manipulateObject<StripTextures>(object);
+    runVisitorInUpdateCallback<StripTexturesVisitor>(object);
     return true;
 }
 
@@ -603,7 +595,7 @@ bool actionHandlerImpl<MenuActionNodeOptimizerRun>::execute()
 {
 	osg::Node * object = getObject<osg::Node, SGIItemOsg>();
 	MenuActionOptimizerRunMode mode = (MenuActionOptimizerRunMode)menuAction()->mode();
-	manipulateObject<OptimizerRun>(object, mode);
+    //runOperationInUpdateCallback(object, std::bind(OptimizerRun, mode));
 	return true;
 }
 
@@ -711,20 +703,6 @@ bool actionHandlerImpl<MenuActionObjectLoggerActive>::execute()
     return true;
 }
 
-namespace {
-    struct AddChildUpdateOperation
-    {
-    public:
-        AddChildUpdateOperation(osg::Node * child)
-            : _child(child) { }
-        void operator()(osg::Node * object, osg::NodeVisitor* nv)
-        {
-            static_cast<osg::Group*>(object)->addChild(_child.release());
-        }
-        osg::ref_ptr<osg::Node> _child;
-    };
-}
-
 bool actionHandlerImpl<MenuActionGroupAddChild>::execute()
 {
     osg::Group * object = getObject<osg::Group, SGIItemOsg>();
@@ -756,29 +734,15 @@ bool actionHandlerImpl<MenuActionGroupAddChild>::execute()
         }
         break;
     }
-    manipulateObject<AddChildUpdateOperation>(static_cast<osg::Node*>(object), child);
+    runOperationInUpdateCallback(object, std::bind(static_cast<bool (osg::Group::*)(const osg::ref_ptr<osg::Node> &)>(&osg::Group::addChild), object, child));
     return true;
-}
-
-namespace {
-    struct RemoveChildUpdateOperation
-    {
-    public:
-        RemoveChildUpdateOperation(osg::Node * child)
-            : _child(child) { }
-        void operator()(osg::Node * object, osg::NodeVisitor* nv)
-        {
-            static_cast<osg::Group*>(object)->removeChild(_child.release());
-        }
-        osg::ref_ptr<osg::Node> _child;
-    };
 }
 
 bool actionHandlerImpl<MenuActionGroupRemoveChild>::execute()
 {
     osg::Group * object = getObject<osg::Group, SGIItemOsg>();
-    osg::Node * child = userData<osg::Node>();
-    manipulateObject<RemoveChildUpdateOperation>(static_cast<osg::Node*>(object), child);
+    osg::ref_ptr<osg::Node> child = userData<osg::Node>();
+    runOperationInUpdateCallback(object, std::bind(static_cast<bool (osg::Group::*)(const osg::ref_ptr<osg::Node> &)>(&osg::Group::removeChild), object, child));
     return true;
 }
 
@@ -1766,6 +1730,13 @@ bool actionHandlerImpl<MenuActionPolygonModeFrontAndBack>::execute()
 {
     osg::PolygonMode * object = getObject<osg::PolygonMode, SGIItemOsg>();
     object->setMode(osg::PolygonMode::FRONT_AND_BACK, (osg::PolygonMode::Mode)menuAction()->mode());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionCullFaceMode>::execute()
+{
+    osg::CullFace * object = getObject<osg::CullFace, SGIItemOsg>();
+    object->setMode((osg::CullFace::Mode)menuAction()->mode());
     return true;
 }
 

@@ -13,6 +13,11 @@ namespace sgi {
 //
 // Object
 //
+Object::Object() 
+    :Referenced(), _userDataContainer(nullptr)
+{
+}
+
 Object::Object(const Object& obj)
     : Referenced()
     , _name(obj._name)

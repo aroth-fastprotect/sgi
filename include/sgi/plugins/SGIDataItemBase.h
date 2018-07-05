@@ -1,5 +1,5 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
 #include "SGIItemBase.h"
@@ -116,8 +116,16 @@ public:
     void addField(SGIDataFieldBase * field);
 
 protected:
+#ifdef _MSC_VER
+#pragma warning(push)
+    // disable warning C4251: '_xxx': struct 'yyy' needs to have dll-interface to be used by clients of class 'SGIItemBase'
+#pragma warning(disable:4251)
+#endif
     SGIItemBasePtr          _item;
     SGIDataFieldBaseVector  _fields;
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 };
 typedef details::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
 typedef std::vector<SGIDataItemBasePtr> SGIDataItemBasePtrVector;

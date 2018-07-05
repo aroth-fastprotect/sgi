@@ -70,11 +70,12 @@ IF(NOT SGI_IS_SYSTEM_LIB)
         ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -DNOMINMAX)
 	ENDIF(WIN32)
 
-	IF(CMAKE_COMPILER_IS_GNUCXX)
-		add_compile_options(-std=c++11)
-	ELSEIF(CLANG)
-		add_compile_options(-std=c++11 -Wno-deprecated-register -Wno-switch -Wno-inconsistent-missing-override)
-	ENDIF()
+    # Set C++ language to C++14
+    set(CMAKE_CXX_STANDARD 14)
+
+	if(CLANG)
+		add_compile_options(-Wno-deprecated-register -Wno-switch -Wno-inconsistent-missing-override)
+	endif()
 
 	# Make the headers visible to everything
 	INCLUDE_DIRECTORIES(

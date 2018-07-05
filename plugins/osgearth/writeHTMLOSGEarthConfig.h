@@ -19,7 +19,6 @@ namespace osgEarth {
     class MaskLayerOptions;
     class TileSourceOptions;
     class ModelSourceOptions;
-	class LevelDBOptions;
     namespace Drivers {
         class TMSOptions;
         class WMSOptions;

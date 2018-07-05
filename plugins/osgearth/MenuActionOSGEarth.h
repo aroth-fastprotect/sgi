@@ -66,9 +66,6 @@ enum MenuAction {
     MenuActionControlAbsorbEvents,
     MenuActionControlVisible,
 
-	MenuActionLevelDBDatabaseRead,
-	MenuActionLevelDBDatabaseWrite,
-
     MenuActionTileKeyAdd,
 
     MenuActionLODScaleOverrideNodeLODScale,

@@ -1,12 +1,6 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
-
-#include <osg/Image>
-
-#if defined(_WIN32) && defined(OSG_GL3_AVAILABLE)
-#define __GL_H__
-#endif
 #include <QImage>
 #include <QGLWidget>
 
@@ -14,9 +8,6 @@
 #include <sgi/plugins/SGIImage.h>
 #include <sgi/helpers/string>
 #include <sgi/helpers/rtti>
-#include <sgi/helpers/osg>
-
-extern QImage decodeDDSImage(const osg::Image * image);
 
 namespace sgi {
 
@@ -168,6 +159,7 @@ namespace {
     }
 }
 
+#if 0
 bool osgImageToQImage(const osg::Image * image, QImage * qimage)
 {
     bool ret = false;
@@ -213,7 +205,7 @@ bool osgImageToQImage(const osg::Image * image, QImage * qimage)
     }
     return ret;
 }
-
+#endif
 
 } // namespace osg_helpers
 } // namespace sgi

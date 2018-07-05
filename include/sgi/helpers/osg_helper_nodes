@@ -10,6 +10,7 @@
 #include <osg/Geode>
 #endif
 #include <osg/Texture2D>
+#include <functional>
 
 namespace sgi {
 namespace osg_helpers {
@@ -23,10 +24,10 @@ inline void tagNodeForObjectTree(osg::Node * node, const std::string & name=std:
 
 inline osg::Node* createNodeForImage(osg::Image* image,float s,float t)
 {
-    osg::Node* ret = NULL;
+    osg::Node* ret = nullptr;
     if (image && s>0 && t>0)
     {
-        osg::Geometry* geom = NULL;
+        osg::Geometry* geom = nullptr;
         float y = 1.0;
         float x = y*(s/t);
 
@@ -127,6 +128,75 @@ protected:
     NodeList _nodes;
 };
 
+namespace run_operation_impl {
+    template<typename CALLABLE, typename OBJECT_TYPE>
+    class ObjectUpdateCallbackT : public osg::Callback
+    {
+        osg::ref_ptr<osg::Callback> _oldCallback;
+        CALLABLE _op;
+    public:
+        ObjectUpdateCallbackT(OBJECT_TYPE * object, const CALLABLE & op)
+            : osg::Callback()
+            , _op(op)
+        {
+            // remember the old callback (if any)
+            _oldCallback = object->getUpdateCallback();
+            // ... and replace it with this one
+            object->setUpdateCallback(this);
+        }
 
-    } // namespace osg_helpers
+        bool run(osg::Object* object, osg::Object * data) override
+        {
+            // first let the old update callback know that something happened
+            if(_oldCallback.valid())
+                _oldCallback->run(object, data);
+
+            _op();
+
+            // note, callback is responsible for scene graph traversal so
+            // they must call traverse(node,nv) to ensure that the
+            // scene graph subtree (and associated callbacks) are traversed.
+            bool ret = osg::Callback::run(object, data);
+
+            osg::ref_ptr<osg::Callback> myself = this;
+            static_cast<osg::Node*>(object)->setUpdateCallback(_oldCallback.get());
+            _oldCallback = nullptr;
+            return ret;
+        }
+    };
+} // namespace details
+
+
+template<typename CALLABLE, class OBJECT_TYPE>
+inline void runOperationInUpdateCallback(OBJECT_TYPE * object, const CALLABLE & op)
+{
+    new run_operation_impl::ObjectUpdateCallbackT<CALLABLE, OBJECT_TYPE>(object, op);
+}
+template<typename CALLABLE, class OBJECT_TYPE>
+inline void runMethodInUpdateCallback(OBJECT_TYPE * object, const CALLABLE & op)
+{
+    runOperationInUpdateCallback(object, std::bind(op, object));
+}
+template<typename CALLABLE, class OBJECT_TYPE, typename ...Targs>
+inline void runOperatorInUpdateCallback(OBJECT_TYPE * object, Targs... args)
+{
+    new run_operation_impl::ObjectUpdateCallbackT<CALLABLE, OBJECT_TYPE>(object, CALLABLE ( std::forward<Targs>(args)... ) );
+}
+
+template<typename VISITOR_TYPE, class OBJECT_TYPE, typename ...Targs>
+inline void runVisitorInUpdateCallback(OBJECT_TYPE * object, Targs... args)
+{
+    struct CALLABLE {
+        static void runVisitor(OBJECT_TYPE * object)
+        {
+            //VISITOR_TYPE v(std::forward<Targs>(args)...);
+            VISITOR_TYPE v;
+            object->accept(v);
+        }
+    };
+    runOperationInUpdateCallback(object, std::bind(&CALLABLE::runVisitor, object) );
+}
+
+
+} // namespace osg_helpers
 } // namespace sgi

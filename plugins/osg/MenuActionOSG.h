@@ -182,6 +182,7 @@ enum MenuAction {
     MenuActionPolygonModeFront,
     MenuActionPolygonModeBack,
     MenuActionPolygonModeFrontAndBack,
+    MenuActionCullFaceMode,
 
     MenuActionMaterialColorMode,
     MenuActionMaterialAmbient,

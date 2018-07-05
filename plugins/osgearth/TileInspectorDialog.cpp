@@ -611,7 +611,7 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
 			const osg::HeightField * hf = dynamic_cast<const osg::HeightField*>(osgitem->object());
             if(image)
             {
-                osg_helpers::osgImageToQImage(image, &qimage);
+                //osg_helpers::osgImageToQImage(image, &qimage);
             }
 			else if (hf)
 			{
@@ -629,7 +629,7 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
 					const osg::HeightField * hf = dynamic_cast<const osg::HeightField*>(data.tileData.get());
                     if(image)
                     {
-                        osg_helpers::osgImageToQImage(image, &qimage);
+                        //osg_helpers::osgImageToQImage(image, &qimage);
                     }
 					else if (hf)
 					{

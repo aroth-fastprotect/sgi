@@ -17,9 +17,6 @@
 #include <osgEarth/MaskLayer>
 #include <osgEarth/TileSource>
 #include <osgEarth/Registry>
-#ifdef SGI_USE_OSGEARTH_FAST
-#include <osgEarth/LevelDBFactory>
-#endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
 #include <osgEarth/LineDrawable>
 #endif
@@ -58,7 +55,6 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TileSource)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TileBlacklist)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::VirtualProgram)
 #ifdef SGI_USE_OSGEARTH_FAST
-CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LevelDBDatabase)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LODScaleOverrideNode)
 #endif
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Cache)
@@ -525,27 +521,6 @@ bool contextMenuPopulateImpl<osgEarth::LineDrawable>::populate(IContextMenuItem 
 
 
 #ifdef SGI_USE_OSGEARTH_FAST
-bool contextMenuPopulateImpl<osgEarth::LevelDBDatabase>::populate(IContextMenuItem * menuItem)
-{
-	osgEarth::LevelDBDatabase * object = static_cast<osgEarth::LevelDBDatabase*>(item<SGIItemOsg>()->object());
-	bool ret = false;
-	switch (itemType())
-	{
-	case SGIItemTypeObject:
-		ret = callNextHandler(menuItem);
-		if (ret)
-		{
-			menuItem->addSimpleAction(MenuActionLevelDBDatabaseRead, "Read...", _item);
-			menuItem->addSimpleAction(MenuActionLevelDBDatabaseWrite, "Write...", _item);
-		}
-		break;
-	default:
-		ret = callNextHandler(menuItem);
-		break;
-	}
-	return ret;
-}
-
 bool contextMenuPopulateImpl<osgEarth::LODScaleOverrideNode>::populate(IContextMenuItem * menuItem)
 {
     osgEarth::LODScaleOverrideNode * object = getObject<osgEarth::LODScaleOverrideNode,SGIItemOsg>();

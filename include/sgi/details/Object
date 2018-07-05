@@ -22,7 +22,7 @@ class UserDataContainer;
         virtual const char* libraryName() const { return #library; }\
         virtual const char* className() const { return #name; }
 
-class Object : public Referenced
+class SGI_REF_EXPORT Object : public Referenced
 {
 public:
 
@@ -31,10 +31,9 @@ public:
         and therefore cannot be constructed on its own, only derived
         classes which override the clone and className methods are
         concrete classes and can be constructed.*/
-    inline Object():Referenced(), _userDataContainer(nullptr) {}
+    Object();
 
-    /** Copy constructor, optional CopyOp object can be used to control
-      * shallow vs deep copying of dynamic data.*/
+    /** Copy constructor */
     Object(const Object&);
 
     /** Clone the type of an object, with Object* return type.
@@ -129,7 +128,15 @@ protected:
         = new Node().*/
     virtual ~Object();
 
+#ifdef _MSC_VER
+#pragma warning(push)
+    // disable warning C4251: '_name': struct 'std::string' needs to have dll-interface to be used by clients of class 'Object'
+#pragma warning(disable:4251)
+#endif
     std::string _name;
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
     UserDataContainer* _userDataContainer;
 

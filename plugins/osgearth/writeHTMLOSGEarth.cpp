@@ -18,6 +18,7 @@
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
 #include <osgEarth/OverlayDecorator>
+#include <osgEarth/ScreenSpaceLayout>
 
 #include <osgEarth/ImageLayer>
 #include <osgEarth/ElevationLayer>
@@ -39,9 +40,6 @@
 
 #include <osgEarth/ElevationQuery>
 #include <osgEarth/ImageUtils>
-#ifdef SGI_USE_OSGEARTH_FAST
-#include <osgEarth/LevelDBFactory>
-#endif
 #include <osgEarth/TraversalData>
 
 #include <osgEarthUtil/LatLongFormatter>
@@ -132,13 +130,13 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::VirtualProgram)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TileBlacklist)
 #ifdef SGI_USE_OSGEARTH_FAST
-WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LevelDBDatabase)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LODScaleOverrideNode)
 #endif
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::LineDrawable)
 #endif
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ScreenSpaceLayoutData)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ElevationQueryReferenced)
 
@@ -148,7 +146,6 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::ControlCanvas)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::Control)
-WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::ControlEventHandler)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::Container)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::ControlNodeBin)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::ControlNode)
@@ -266,14 +263,6 @@ bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& 
 			os << "<tr><td>blacklist filenames</td><td>" << access->numBlacklistFilenames() << " entries</td></tr>" << std::endl;
 			os << "<tr><td>activities</td><td>";
 
-#ifdef SGI_USE_OSGEARTH_FAST
-			{
-				std::vector<osgEarth::LevelDBDatabasePtr> databases;
-				osgEarth::LevelDBFactory::getActiveDatabases(databases);
-				os << "<tr><td>LevelDB databases</td><td>" << databases.size() << " entries</td></tr>" << std::endl;
-			}
-#endif
-			
 			std::set<std::string> activities;
 			object->getActivities(activities);
 			if (activities.empty())
@@ -310,32 +299,6 @@ bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& 
 			ret = true;
 		}
 		break;
-#ifdef SGI_USE_OSGEARTH_FAST
-    case SGIItemTypeDatabases:
-		{
-            osgEarth::LevelDBDatabasePairList databases;
-			osgEarth::LevelDBFactory::getDatabases(databases, false);
-			os << databases.size() << " databases<br/>" << std::endl;
-			os << "<ul>";
-			for (const osgEarth::LevelDBDatabasePair & pair : databases)
-			{
-                os << "<li>" << pair.first << ": ";
-                if (pair.second.valid())
-                {
-                    os << (void*)pair.second->_db << " " << pair.second->created();
-                }
-                else
-                {
-                    os << "NULL";
-                }
-                os << "</li>" << std::endl;
-			}
-			os << "</ul>" << std::endl;
-
-			ret = true;
-        }
-		break;
-#endif
     default:
         ret = callNextHandler(os);
         break;
@@ -2282,38 +2245,6 @@ bool writePrettyHTMLImpl<osgEarth::ModelSource>::process(std::basic_ostream<char
     return ret;
 }
 
-#ifdef SGI_USE_OSGEARTH_FAST
-bool writePrettyHTMLImpl<osgEarth::LevelDBDatabase>::process(std::basic_ostream<char>& os)
-{
-	osgEarth::LevelDBDatabase * object = getObject<osgEarth::LevelDBDatabase, SGIItemOsg>();
-	bool ret = false;
-	switch (itemType())
-	{
-	case SGIItemTypeObject:
-		{
-			if (_table)
-				os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
-
-			// add Object properties first
-			callNextHandler(os);
-
-			os << "<tr><td>rootPath</td><td>" << object->rootPath() << "</td></tr>" << std::endl;
-			os << "<tr><td>isDynamic</td><td>" << (object->created() ? "true" : "false") << "</td></tr>" << std::endl;
-			os << "<tr><td>database ptr</td><td>" << (void*)object->getDB() << "</td></tr>" << std::endl;
-
-			if (_table)
-				os << "</table>" << std::endl;
-			ret = true;
-		}
-		break;
-	default:
-		ret = callNextHandler(os);
-		break;
-	}
-	return ret;
-}
-#endif // SGI_USE_OSGEARTH_FAST
-
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::FunctionLocation & t)
 {
     switch(t)
@@ -3019,6 +2950,37 @@ bool writePrettyHTMLImpl<osgEarth::LineDrawable>::process(std::basic_ostream<cha
 }
 #endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
 
+bool writePrettyHTMLImpl<osgEarth::ScreenSpaceLayoutData>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::ScreenSpaceLayoutData * object = getObject<osgEarth::ScreenSpaceLayoutData,SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        // add Camera properties first
+        callNextHandler(os);
+
+        os << "<tr><td>priority</td><td>" << object->getPriority() << "</td></tr>" << std::endl;
+        os << "<tr><td>pixelOffset</td><td>" << object->getPixelOffset() << "</td></tr>" << std::endl;
+        os << "<tr><td>anchorPoint</td><td>" << object->getAnchorPoint() << "</td></tr>" << std::endl;
+        os << "<tr><td>projPoint</td><td>" << object->getProjPoint() << "</td></tr>" << std::endl;
+
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Util::Controls::ControlContext & object)
 {
     os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
@@ -3190,31 +3152,6 @@ bool writePrettyHTMLImpl<osgEarth::Util::Controls::Control>::process(std::basic_
                 os << "<li>" << getObjectNameAndType(evthandler.get()) << "</li>" << std::endl;
             }
             os << "</ul>";
-            ret = true;
-        }
-        break;
-    default:
-        ret = callNextHandler(os);
-        break;
-    }
-    return ret;
-}
-
-bool writePrettyHTMLImpl<osgEarth::Util::Controls::ControlEventHandler>::process(std::basic_ostream<char>& os)
-{
-    osgEarth::Util::Controls::ControlEventHandler * object = getObject<osgEarth::Util::Controls::ControlEventHandler,SGIItemOsg>();
-    bool ret = false;
-    switch(itemType())
-    {
-    case SGIItemTypeObject:
-        {
-            if(_table)
-                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
-
-            callNextHandler(os);
-
-            if(_table)
-                os << "</table>" << std::endl;
             ret = true;
         }
         break;

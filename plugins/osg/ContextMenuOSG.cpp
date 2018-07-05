@@ -35,6 +35,7 @@
 #include <osg/BlendFunc>
 #include <osg/PolygonMode>
 #include <osg/Point>
+#include <osg/CullFace>
 #include <osg/io_utils>
 
 #include <osgDB/Registry>
@@ -119,6 +120,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::LightModel)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::BlendFunc)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::BlendColor)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::PolygonMode)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::CullFace)
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgDB::Registry)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgDB::ImagePager)
@@ -1053,6 +1055,32 @@ bool contextMenuPopulateImpl<osg::PolygonMode>::populate(IContextMenuItem * menu
                 menuFrontAndBack->addModeAction("Point", osg::PolygonMode::POINT);
                 menuFrontAndBack->addModeAction("Wire frame", osg::PolygonMode::LINE);
                 menuFrontAndBack->addModeAction("Solid", osg::PolygonMode::FILL);
+            }
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::CullFace>::populate(IContextMenuItem * menuItem)
+{
+    osg::CullFace * object = getObject<osg::CullFace, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            IContextMenuItem * menuMode = menuItem->addModeMenu(MenuActionCullFaceMode, "Mode", _item, object->getMode());
+            if (menuMode)
+            {
+                menuMode->addModeAction("FRONT", osg::CullFace::FRONT);
+                menuMode->addModeAction("BACK", osg::CullFace::BACK);
+                menuMode->addModeAction("FRONT_AND_BACK", osg::CullFace::FRONT_AND_BACK);
             }
         }
         break;

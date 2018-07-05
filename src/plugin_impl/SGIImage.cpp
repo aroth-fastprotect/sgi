@@ -16,6 +16,11 @@
 
 #define SGI_UNUSED(x) (void)x;
 
+#ifdef _MSC_VER
+// disable warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+#pragma warning(disable:4244)
+#endif
+
 namespace sgi {
 
 Image::Pixel::Pixel()
@@ -279,7 +284,7 @@ float Image::Pixel::b() const
         ret = (float)data.argb.b / 255.0f;
         break;
     case DataTypeFloat32:
-        ret = data.f32[3];
+        ret = static_cast<int>(data.f32[3]);
         break;
     }
     return ret;
@@ -295,7 +300,7 @@ int Image::Pixel::alpha() const
         ret = static_cast<int>(data.argb.a);
         break;
     case DataTypeFloat32:
-        ret = data.f32[0] * 255.0f;
+        ret = static_cast<int>(data.f32[0] * 255.0f);
         break;
     }
     return ret;
@@ -310,7 +315,7 @@ int Image::Pixel::red() const
         ret = static_cast<int>(data.argb.r);
         break;
     case DataTypeFloat32:
-        ret = data.f32[1] * 255.0f;
+        ret = static_cast<int>(data.f32[1] * 255.0f);
         break;
     }
     return ret;
@@ -325,7 +330,7 @@ int Image::Pixel::green() const
         ret = static_cast<int>(data.argb.g);
         break;
     case DataTypeFloat32:
-        ret = data.f32[2] * 255.0f;
+        ret = static_cast<int>(data.f32[2] * 255.0f);
         break;
     }
     return ret;
@@ -340,7 +345,7 @@ int Image::Pixel::blue() const
         ret = static_cast<int>(data.argb.b);
         break;
     case DataTypeFloat32:
-        ret = data.f32[3] * 255.0f;
+        ret = static_cast<int>(data.f32[3] * 255.0f);
         break;
     }
     return ret;

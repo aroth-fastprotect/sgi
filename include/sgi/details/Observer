@@ -11,7 +11,7 @@ namespace sgi {
     namespace details {
 
 /** Observer base class for tracking when objects are unreferenced (their reference count goes to 0) and are being deleted.*/
-class Observer
+class SGI_REF_EXPORT Observer
 {
     public:
         Observer();
@@ -25,7 +25,7 @@ class Observer
 };
 
 /** Class used by osg::Referenced to track the observers associated with it.*/
-class ObserverSet : public Referenced
+class SGI_REF_EXPORT ObserverSet : public Referenced
 {
     public:
 
@@ -57,9 +57,17 @@ class ObserverSet : public Referenced
         ObserverSet& operator = (const ObserverSet& /*rhs*/) { return *this; }
         virtual ~ObserverSet();
 
+#ifdef _MSC_VER
+#pragma warning(push)
+        // disable warning C4251: '_mutex': struct 'std::mutex' needs to have dll-interface to be used by clients of class 'ObserverSet'
+#pragma warning(disable:4251)
+#endif
         mutable std::mutex _mutex;
         Referenced* _observedObject;
         Observers _observers;
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 };
 
     } // namespace details

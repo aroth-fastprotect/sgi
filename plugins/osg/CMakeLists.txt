@@ -59,8 +59,6 @@ SET(TARGET_H
 
     DrawableHelper.h
 	NodeHelper.h
-    ManipulateObject.h
-
     )
 SGI_CREATE_SYMLINK(SGIItemOsg ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsg)
 
