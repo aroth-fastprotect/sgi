@@ -79,6 +79,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectDataVariance)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNotifyLevel)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeMask)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeMaskAndChilds)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeClearStateSet)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeNumUpdateTraversal)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeNumEventTraversal)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeRecomputeBound)
@@ -164,6 +165,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLightModelColorControl)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLightModelLocalViewer)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLightModelTwoSided)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLightModelAmbientIntensity)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLightSourceReferenceFrame)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionBlendColorConstantColor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionPolygonModeFront)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionPolygonModeBack)
@@ -424,6 +426,13 @@ bool actionHandlerImpl<MenuActionNodeMaskAndChilds>::execute()
         object->accept(snmv);
         object->setNodeMask(nodeMask);
     }
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionNodeClearStateSet>::execute()
+{
+    osg::Node * object = getObject<osg::Node, SGIItemOsg>();
+    object->setStateSet(nullptr);
     return true;
 }
 
@@ -1683,6 +1692,13 @@ bool actionHandlerImpl<MenuActionLightModelTwoSided>::execute()
 {
     osg::LightModel * object = getObject<osg::LightModel, SGIItemOsg>();
     object->setTwoSided(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionLightSourceReferenceFrame>::execute()
+{
+    osg::LightSource * object = getObject<osg::LightSource, SGIItemOsg>();
+    object->setReferenceFrame((osg::LightSource::ReferenceFrame)menuAction()->mode());
     return true;
 }
 

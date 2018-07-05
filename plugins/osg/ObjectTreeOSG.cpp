@@ -119,6 +119,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Array)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::BufferObject)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::PrimitiveSet)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::DrawElements)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::LightSource)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::State)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::ShaderComposer)
@@ -1965,6 +1966,28 @@ bool objectTreeBuildImpl<osg::DrawElements>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osg::LightSource>::build(IObjectTreeItem * treeItem)
+{
+    bool ret;
+    osg::LightSource * object = getObject<osg::LightSource, SGIItemOsg>();
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsg light(object->getLight());
+            if (light.hasObject())
+                treeItem->addChild("Light", &light);
         }
         break;
     default:

@@ -176,6 +176,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Material)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::TexEnv)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Light)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::LightModel)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::LightSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Stencil)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Viewport)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Program)
@@ -3621,6 +3622,36 @@ bool writePrettyHTMLImpl<osg::LightModel>::process(std::basic_ostream<char>& os)
     return ret;
 }
 
+bool writePrettyHTMLImpl<osg::LightSource>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    osg::LightSource * object = getObject<osg::LightSource,SGIItemOsg>();
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        // add state attribute properties first
+        callNextHandler(os);
+
+        // add remaining LightSource properties
+        os << "<tr><td>light</td><td>" << osg_helpers::getObjectNameAndType(object->getLight()) << "</td></tr>" << std::endl;
+        os << "<tr><td>ref</td><td>" << object->getReferenceFrame() << "</td></tr>" << std::endl;
+        
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::TexEnv::Mode & t)
 {
     switch(t)
@@ -5540,6 +5571,7 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
             os << "<tr><td>numChildrenWithOccluderNodes</td><td>" << object->getNumChildrenWithOccluderNodes() << "</td></tr>" << std::endl;
             os << "<tr><td>numUpdateTraversal</td><td>" << object->getNumChildrenRequiringUpdateTraversal() << "</td></tr>" << std::endl;
             os << "<tr><td>numEventTraversal</td><td>" << object->getNumChildrenRequiringEventTraversal() << "</td></tr>" << std::endl;
+            os << "<tr><td>stateSet</td><td>" << osg_helpers::getObjectNameAndType(object->getStateSet()) << "</td></tr>" << std::endl;
             os << "<tr><td>initialBound</td><td>" << object->getInitialBound() << "</td></tr>" << std::endl;
             os << "<tr><td>bound</td><td>" << access->getBoundNoCompute() << "</td></tr>" << std::endl;
             os << "<tr><td>isBoundingSphereComputed</td><td>" << (access->isBoundingSphereComputed()?"true":"false") << "</td></tr>" << std::endl;
