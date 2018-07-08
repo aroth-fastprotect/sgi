@@ -13,7 +13,7 @@ namespace sgi {
 
 DoubleInputDialog::DoubleInputDialog(QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
-    , ui(NULL)
+    , ui(nullptr)
     , _original_value(DBL_MAX)
     , _slider_factor(2)
 {
@@ -32,7 +32,7 @@ DoubleInputDialog::~DoubleInputDialog()
     if (ui)
     {
         delete ui;
-        ui = NULL;
+        ui = nullptr;
     }
 }
 

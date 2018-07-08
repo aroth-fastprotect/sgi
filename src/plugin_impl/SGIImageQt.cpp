@@ -25,7 +25,7 @@ Image::Image(ImageFormat format, DataType type, Origin origin, void * data, size
     , _allocatedWidth(width), _allocatedHeight(height)
     , _pitch{ bytesPerLine, 0, 0, 0 }, _lines{ height, 0, 0, 0 }
     , _planeOffset { 0, 0, 0, 0 }
-    , _originalImage(NULL), _originalImageQt((originalImage)?new QImage(*originalImage):NULL)
+    , _originalImage(nullptr), _originalImageQt((originalImage)?new QImage(*originalImage):nullptr)
     , _freeQt(&Image::freeQt)
     , _allocated(copyData)
 {
@@ -118,13 +118,13 @@ namespace {
 Image::Image(QImage * originalImage, bool copyData)
     : _format(imageFormatFromQImage(originalImage->format()))
     , _dataType(DataTypeUnsignedByte)
-    , _origin(OriginTopLeft), _data(NULL), _length(originalImage->byteCount())
+    , _origin(OriginTopLeft), _data(nullptr), _length(originalImage->byteCount())
     , _width(originalImage->width()), _height(originalImage->height()), _depth(1)
     , _allocatedWidth(originalImage->bytesPerLine() / bytesPerPixelFromQImage(originalImage->format())), _allocatedHeight(originalImage->height())
     , _pitch { (unsigned)originalImage->bytesPerLine(), 0, 0, 0 }
     , _lines{ (unsigned)originalImage->height(), 0, 0, 0 }
     , _planeOffset{0, 0, 0, 0}
-    , _originalImage(NULL), _originalImageQt(new QImage(*originalImage))
+    , _originalImage(nullptr), _originalImageQt(new QImage(*originalImage))
     , _freeQt(&Image::freeQt), _copyQt(&Image::copyQt)
     , _allocated(false)
 {
@@ -142,7 +142,7 @@ void Image::freeQt()
     if (_originalImageQt)
     {
         delete _originalImageQt;
-        _originalImageQt = NULL;
+        _originalImageQt = nullptr;
     }
 }
 

@@ -4,7 +4,6 @@
 #include "sgi/Export"
 #include "sgi/plugins/SGIPluginImpl.h"
 
-#include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SGIHostItemQt.h>
 #include <sgi/plugins/SGIItemQt>
 #include <sgi/plugins/SGIProxyItem.h>
@@ -19,18 +18,12 @@
 #include "sgi/helpers/rtti"
 #include "sgi/helpers/qt"
 
-#if defined(_WIN32) && defined(OSG_GL3_AVAILABLE)
-#define __GL_H__
-#endif
-
+#include "QtProxy.h"
 #include "ImageGLWidget.h"
 #include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QOpenGLTexture>
-
-#include <osgDB/Registry>
-#include <osgDB/PluginQuery>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -43,9 +36,9 @@
 #define GET_OBJECT_TYPE_PROXYITEM_GET_INSTANCE false
 #define GET_OBJECT_DISPLAYNAME_PROXYITEM_GET_INSTANCE false
 
-sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = NULL;
+sgi::SGIPluginHostInterface * sgi::SGIPluginInterface::_hostInterface = nullptr;
 
-SGI_OBJECT_INFO_BEGIN(osg::Referenced)
+SGI_OBJECT_INFO_BEGIN(sgi::details::Referenced)
     sgi::SGIPlugins,
     sgi::ISceneGraphDialog,
     sgi::IContextMenu,
@@ -55,10 +48,10 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     sgi::ReferencedInternalItemData,
     sgi::ReferencedInternalInfoData,
     sgi::Image,
-    osg::Object
+    sgi::details::Object
 SGI_OBJECT_INFO_END()
 
-SGI_OBJECT_INFO_BEGIN(osg::Object)
+SGI_OBJECT_INFO_BEGIN(sgi::details::Object)
     sgi::SGIItemBase
 SGI_OBJECT_INFO_END()
 
@@ -67,7 +60,8 @@ SGI_OBJECT_INFO_BEGIN(sgi::SGIItemBase)
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(QObject)
-    QWidget
+    QWidget,
+    sgi::QtProxy
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(QWidget)
@@ -80,17 +74,16 @@ SGI_OBJECT_INFO_END()
 
 
 namespace sgi {
+
 namespace internal_plugin {
 
 GENERATE_IMPL_TEMPLATE()
-GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
-GENERATE_IMPL_NO_ACCEPT(osg::Object)
 GENERATE_IMPL_NO_ACCEPT(QObject)
 GENERATE_IMPL_NO_ACCEPT(QWidget)
 GENERATE_IMPL_NO_ACCEPT(QOpenGLWidget)
 
 WRITE_PRETTY_HTML_IMPL_TEMPLATE()
-WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(details::Referenced)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(SGIPlugins)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
@@ -98,11 +91,12 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(Image)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(sgi::ImageGLWidget)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(sgi::QtProxy)
 
-bool writePrettyHTMLImpl<osg::Referenced>::process(std::basic_ostream<char>& os)
+bool writePrettyHTMLImpl<details::Referenced>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osg::Referenced * object = getObject<osg::Referenced,SGIItemInternal>();
+    details::Referenced * object = getObject<details::Referenced,SGIItemInternal>();
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -153,12 +147,12 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
             {
                 for(SGIPlugins::PluginInfoList::const_iterator it = plugins.begin(); it != plugins.end(); it++)
                 {
-                    const SGIPlugins::PluginInfo & info = *it;
-                    os << "<li>" << info.pluginName;
+                    const SGIPluginInfo & info = *it;
+                    os << "<li>" << info.pluginName();
                     if(info.isInternalPlugin())
                         os << " <i>(internal)</i>";
-                    else if(!info.pluginFilename.empty())
-                        os << " from " << info.pluginFilename;
+                    else if(!info.pluginFilename().empty())
+                        os << " from " << info.pluginFilename();
                     os << "</li>";
                 }
             }
@@ -176,10 +170,10 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
             {
                 for(SGIPlugins::PluginInfoList::const_iterator it = plugins.begin(); it != plugins.end(); it++)
                 {
-                    const SGIPlugins::PluginInfo & info = *it;
-                    os << "<li>" << info.pluginName << "<br/>";
+                    const SGIPluginInfo & info = *it;
+                    os << "<li>" << info.pluginName() << "<br/>";
                     os << "<table border=\'1\' align=\'left\' width='100%'>";
-                    os << "<tr><td>filename</td><td>" << info.pluginFilename << "</td></tr>";
+                    os << "<tr><td>filename</td><td>" << info.pluginFilename() << "</td></tr>";
                     os << "<tr><td>score</td><td>" << info.pluginScore() << "</td></tr>";
                     os << "<tr><td>error</td><td>" << info.errorMessage << "</td></tr>";
                     os << "<tr><td>WritePrettyHTML</td><td>" << (void*)info.writePrettyHTMLInterface << "</td></tr>";
@@ -198,20 +192,11 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
         break;
     case SGIItemTypeBackendPlugins:
         {
-            os << "Library directories:<ul>";
-            osgDB::FilePathList filepath = osgDB::Registry::instance()->getLibraryFilePathList();
-            for (osgDB::FilePathList::const_iterator it = filepath.begin(); it != filepath.end(); it++)
-            {
-                os << "<li>" << *it << "</li>";
-            }
+            os << "Plugin directories:<ul>";
+            for(const auto & s : object->pluginDirectories())
+                os << "<li>" << s << "</li>";
 
             os << "</ul>Available plugins<ul>";
-            osgDB::FileNameList plugins = osgDB::listAllAvailablePlugins();
-            for(osgDB::FileNameList::const_iterator it = plugins.begin(); it != plugins.end(); it++)
-            {
-                os << "<li>" << *it << "</li>";
-            }
-#if 0
             SGIPlugins::PluginFileNameList plugins = object->listAllAvailablePlugins();
             for(SGIPlugins::PluginFileNameList::const_iterator it = plugins.begin(); it != plugins.end(); it++)
             {
@@ -219,7 +204,6 @@ bool writePrettyHTMLImpl<SGIPlugins>::process(std::basic_ostream<char>& os)
                 os << " from " << it->second;
                 os << "</li>";
             }
-#endif
             os << "</ul>";
         }
         break;
@@ -258,23 +242,22 @@ bool writePrettyHTMLImpl<ReferencedInternalItemData>::process(std::basic_ostream
             os << "<tr><td>score</td><td>" << data->score() << "</td></tr>" << std::endl;
             os << "<tr><td>typeName</td><td>" << helpers::demangle_html(data->typeName()) << "</td></tr>" << std::endl;
             os << "<tr><td>number</td><td>" << data->number() << "</td></tr>" << std::endl;
-            os << "<tr><td>userData</td><td>" << helpers::getRTTIObjectNameAndType_html(data->userData<osg::Referenced>()) << "</td></tr>" << std::endl;
+            os << "<tr><td>userData</td><td>" << helpers::getRTTIObjectNameAndType_html(data->userDataPtr()) << "</td></tr>" << std::endl;
             os << "<tr><td>root</td><td>" << (void*)data->rootBase() << "</td></tr>" << std::endl;
             os << "<tr><td>prev</td><td>" << (void*)data->previousBase() << "</td></tr>" << std::endl;
             os << "<tr><td>next</td><td>" << (void*)data->nextBase() << "</td></tr>" << std::endl;
 
-            const SGIPlugins::PluginInfo * pluginInfo = (const SGIPlugins::PluginInfo *)data->pluginInfo();
-            os << "<tr><td>plugin</td><td>" << pluginInfo->pluginName << "</td></tr>" << std::endl;
+            const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(data->pluginInfo());
+            os << "<tr><td>plugin</td><td>" << pluginInfo->pluginName() << "</td></tr>" << std::endl;
             os << "<tr><td>pluginScore</td><td>" << pluginInfo->pluginScore() << "</td></tr>" << std::endl;
 
             os << "<tr><td>item chain</td><td><ul>";
             SGIItemType initialType = data->type();
-            SGIItemBase * item;
             {
-                item = data->rootBase();
+                SGIItemBase* item = data->rootBase();
                 while(item)
                 {
-                    const SGIPlugins::PluginInfo * itemPluginInfo = (const SGIPlugins::PluginInfo *)item->pluginInfo();
+                    const SGIPluginInfo * pluginInfo = static_cast<const SGIPluginInfo *>(item->pluginInfo());
                     os << "<li>#" << item->score() << "&nbsp;";
                     if(initialType != item->type())
                         os << enumValueToString(item->type()) << "&nbsp;";
@@ -282,7 +265,14 @@ bool writePrettyHTMLImpl<ReferencedInternalItemData>::process(std::basic_ostream
                         os << "(this)";
                     else
                         os << (void*)item;
-                    os << "&nbsp;<b>" << helpers::demangle_html(item->typeName()) << "</b>&nbsp;<i>" << itemPluginInfo->pluginName << ':' << itemPluginInfo->pluginScore() << "</i></li>";
+                    os << "&nbsp;<b>" << helpers::demangle_html(item->typeName()) << "</b>";
+                    if(pluginInfo)
+                    {
+                        os << "&nbsp;<i>"
+                           << pluginInfo->pluginName() << ':' << pluginInfo->pluginScore()
+                           << "</i>";
+                    }
+                    os << "</li>";
                     item = item->nextBase();
                 }
             }
@@ -327,12 +317,12 @@ bool writePrettyHTMLImpl<SGIProxyItemBase>::process(std::basic_ostream<char>& os
     bool ret = false;
     if(WRITE_PRETTY_HTML_PROXYITEM_GET_INSTANCE)
     {
-        SGIItemBase * realObject = object->realItem(true);
+        SGIItemBase * realObject = object ? object->realItem(true) : nullptr;
         if(realObject)
             ret = _hostInterface->writePrettyHTML(os, realObject);
         else
         {
-            os <<  "<i>NULL</i>";
+            os <<  "<i>nullptr</i>";
             ret = true;
         }
     }
@@ -346,10 +336,13 @@ bool writePrettyHTMLImpl<SGIProxyItemBase>::process(std::basic_ostream<char>& os
                     os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
                 ret = callNextHandler(os);
 
-                os << "<tr><td>proxyName</td><td>" << object->name() << "</td></tr>" << std::endl;
-                os << "<tr><td>proxyDisplayName</td><td>" << object->displayName() << "</td></tr>" << std::endl;
-                os << "<tr><td>proxyTypeName</td><td>" << object->typeName() << "</td></tr>" << std::endl;
-                os << "<tr><td>realItem</td><td>" << helpers::getRTTIObjectNameAndType_html(object->realItem(false)) << "</td></tr>" << std::endl;
+                if(object)
+                {
+                    os << "<tr><td>proxyName</td><td>" << object->name() << "</td></tr>" << std::endl;
+                    os << "<tr><td>proxyDisplayName</td><td>" << object->displayName() << "</td></tr>" << std::endl;
+                    os << "<tr><td>proxyTypeName</td><td>" << object->typeName() << "</td></tr>" << std::endl;
+                    os << "<tr><td>realItem</td><td>" << helpers::getRTTIObjectNameAndType_html(object->realItem(false)) << "</td></tr>" << std::endl;
+                }
 
                 if(_table)
                     os << "</table>" << std::endl;
@@ -357,12 +350,12 @@ bool writePrettyHTMLImpl<SGIProxyItemBase>::process(std::basic_ostream<char>& os
             break;
         case SGIItemTypeProxyRealItem:
             {
-                SGIItemBase * realObject = object->realItem(true);
+                SGIItemBase * realObject = object ? object->realItem(true) : nullptr;
                 if(realObject)
                     ret = _hostInterface->writePrettyHTML(os, realObject);
                 else
                 {
-                    os <<  "<i>NULL</i>";
+                    os <<  "<i>nullptr</i>";
                     ret = true;
                 }
             }
@@ -480,17 +473,43 @@ bool writePrettyHTMLImpl<sgi::ImageGLWidget>::process(std::basic_ostream<char>& 
     return true;
 }
 
+bool writePrettyHTMLImpl<sgi::QtProxy>::process(std::basic_ostream<char>& os)
+{
+    sgi::QtProxy * object = getObject<sgi::QtProxy,SGIItemQt>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>ptr</td><td>" << (void*)object << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+        }
+        break;
+    default:
+        callNextHandler(os);
+        break;
+    }
+    return true;
+}
+
 GET_OBJECT_NAME_IMPL_TEMPLATE()
-GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(details::Referenced)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(sgi::QtProxy)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(Image)
 
-std::string getObjectNameImpl<osg::Referenced>::process()
+std::string getObjectNameImpl<details::Referenced>::process()
 {
-    osg::Referenced * object = getObject<osg::Referenced,SGIItemInternal>();
+    details::Referenced * object = getObject<details::Referenced,SGIItemInternal>();
     return helpers::getRTTIObjectNameAndType(object);
 }
 
@@ -509,6 +528,11 @@ std::string getObjectNameImpl<SGIPlugins>::process()
     return "SGIPlugins";
 }
 
+std::string getObjectNameImpl<QtProxy>::process()
+{
+    return "SGIQtProxy";
+}
+
 std::string getObjectNameImpl<Image>::process()
 {
     return "SGIImage";
@@ -517,7 +541,7 @@ std::string getObjectNameImpl<Image>::process()
 std::string getObjectNameImpl<SGIProxyItemBase>::process()
 {
     SGIProxyItemBase * object = getObject<SGIProxyItemBase,SGIItemInternal>();
-    SGIItemBase * realObject = object->realItem(GET_OBJECT_NAME_PROXYITEM_GET_INSTANCE);
+    SGIItemBase * realObject = object ? object->realItem(GET_OBJECT_NAME_PROXYITEM_GET_INSTANCE) : nullptr;
     std::string ret;
     switch(itemType())
     {
@@ -538,16 +562,17 @@ std::string getObjectNameImpl<SGIProxyItemBase>::process()
 }
 
 GET_OBJECT_TYPE_IMPL_TEMPLATE()
-GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
+GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(details::Referenced)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
+GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(sgi::QtProxy)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(Image)
 
-std::string getObjectTypeImpl<osg::Referenced>::process()
+std::string getObjectTypeImpl<details::Referenced>::process()
 {
-    osg::Referenced * object = getObject<osg::Referenced, SGIItemInternal>();
+    details::Referenced * object = getObject<details::Referenced, SGIItemInternal>();
     return helpers::getRTTITypename(object);
 }
 
@@ -564,6 +589,11 @@ std::string getObjectTypeImpl<ReferencedInternalInfoData>::process()
 std::string getObjectTypeImpl<SGIPlugins>::process()
 {
     return "sgi::SGIPlugins";
+}
+
+std::string getObjectTypeImpl<QtProxy>::process()
+{
+    return "sgi::QtProxy";
 }
 
 std::string getObjectTypeImpl<Image>::process()
@@ -589,16 +619,17 @@ std::string getObjectTypeImpl<SGIProxyItemBase>::process()
 }
 
 GET_OBJECT_DISPLAYNAME_IMPL_TEMPLATE()
-GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
+GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(details::Referenced)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(sgi::SGIPlugins)
+GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(sgi::QtProxy)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 GET_OBJECT_DISPLAYNAME_IMPL_DECLARE_AND_REGISTER(Image)
 
-std::string getObjectDisplayNameImpl<osg::Referenced>::process()
+std::string getObjectDisplayNameImpl<details::Referenced>::process()
 {
-    osg::Referenced * object = getObject<osg::Referenced, SGIItemInternal>();
+    details::Referenced * object = getObject<details::Referenced, SGIItemInternal>();
     return helpers::getRTTIObjectNameAndType(object);
 }
 
@@ -615,6 +646,11 @@ std::string getObjectDisplayNameImpl<ReferencedInternalInfoData>::process()
 std::string getObjectDisplayNameImpl<SGIPlugins>::process()
 {
     return "SGIPlugins";
+}
+
+std::string getObjectDisplayNameImpl<QtProxy>::process()
+{
+    return "SGIQtProxy";
 }
 
 std::string getObjectDisplayNameImpl<SGIProxyItemBase>::process()
@@ -645,6 +681,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(SGIPlugins)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ImageGLWidget)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::QtProxy)
 
 bool objectTreeBuildImpl<ReferencedInternalItemData>::build(IObjectTreeItem * treeItem)
 {
@@ -657,20 +694,20 @@ bool objectTreeBuildImpl<ReferencedInternalItemData>::build(IObjectTreeItem * tr
             const SGIItemBasePtr & data = object->data().item;
             if(data->nextBase())
             {
-                SGIHostItemOsg next(new ReferencedInternalItemData(data->nextBase()));
+                SGIHostItemInternal next(new ReferencedInternalItemData(data->nextBase()));
                 if(next.hasObject())
                     treeItem->addChild("Next", &next);
             }
             if(data->previousBase())
             {
-                SGIHostItemOsg previous(new ReferencedInternalItemData(data->previousBase()));
+                SGIHostItemInternal previous(new ReferencedInternalItemData(data->previousBase()));
                 if(previous.hasObject())
                     treeItem->addChild("Previous", &previous);
             }
             SGIItemBasePtr rootBase = data->rootBase();
             if(rootBase.valid() && rootBase.get() != data.get())
             {
-                SGIHostItemOsg root(new ReferencedInternalItemData(rootBase.get()));
+                SGIHostItemInternal root(new ReferencedInternalItemData(rootBase.get()));
                 if(root.hasObject())
                     treeItem->addChild("Root", &root);
             }
@@ -712,6 +749,32 @@ bool objectTreeBuildImpl<SGIPlugins>::build(IObjectTreeItem * treeItem)
             ret = true;
             treeItem->addChild("Plugins", cloneItem<SGIItemQt>(SGIItemTypePlugins, ~0u));
             treeItem->addChild("Backend plugins", cloneItem<SGIItemQt>(SGIItemTypeBackendPlugins, ~0u));
+        }
+        break;
+    case SGIItemTypePlugins:
+        ret = true;
+        break;
+    case SGIItemTypeBackendPlugins:
+        ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<sgi::QtProxy>::build(IObjectTreeItem * treeItem)
+{
+    sgi::QtProxy * object = getObject<sgi::QtProxy,SGIItemQt>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        {
+            SGIHostItemInternal plugins(SGIPlugins::instance());
+            treeItem->addChild("Plugins", &plugins);
         }
         break;
     case SGIItemTypePlugins:
@@ -867,13 +930,13 @@ OBJECT_TREE_BUILD_ROOT_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 
 bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeItem)
 {
-    ISceneGraphDialog * object = static_cast<ISceneGraphDialog*>(item<SGIItemInternal>()->object());
+    ISceneGraphDialog * object = getObject<ISceneGraphDialog,SGIItemInternal>();
 
     // no need to use a proxy node here, because the plugin instance is already created anyway
     SGIHostItemInternal hostItem(SGIPlugins::instance());
     treeItem->addChild(std::string(), &hostItem);
 
-    treeItem->addChild(std::string("ISceneGraphDialog"), _item);
+    treeItem->addChild(std::string("ISceneGraphDialog"), _item.get());
     return true;
 }
 
@@ -905,7 +968,7 @@ class SGIPlugin_internal::Plugin : public internal_plugin::SGIPluginImpl
 {
 public:
     static Plugin * s_instance;
-    Plugin(SGIPluginHostInterface * hostInterface=NULL)
+    Plugin(SGIPluginHostInterface * hostInterface=nullptr)
         : internal_plugin::SGIPluginImpl(hostInterface)
     {
         s_instance = this;
@@ -921,15 +984,15 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeSettings);
         SGIITEMTYPE_NAME(SGIItemTypeObjectLogger);
     }
-    Plugin(const Plugin & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : internal_plugin::SGIPluginImpl(rhs, copyop)
+    Plugin(const Plugin & rhs)
+        : internal_plugin::SGIPluginImpl(rhs)
     {
     }
 
-    META_Object(sgi, Plugin);
+    SGI_Object(sgi, Plugin)
 };
 
-SGIPlugin_internal::Plugin * SGIPlugin_internal::Plugin::s_instance = NULL;
+SGIPlugin_internal::Plugin * SGIPlugin_internal::Plugin::s_instance = nullptr;
 const char * SGIPlugin_internal::PluginName = "_sgi_internal";
 
 SGIPluginInterface * SGIPlugin_internal::create(SGIPluginHostInterface * hostInterface)

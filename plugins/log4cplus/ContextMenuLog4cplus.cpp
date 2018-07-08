@@ -6,8 +6,6 @@
 
 namespace sgi {
 
-class SGIItemLog4cplus;
-
 namespace log4cplus_plugin {
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectLogger)

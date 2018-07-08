@@ -64,8 +64,6 @@
 
 namespace sgi {
 
-class SGIItemOsg;
-
 namespace osg_plugin {
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
@@ -199,7 +197,7 @@ namespace {
         ss << '#' << member << ':' << type << ' ' << attr->getName();
 
         StateAttributeModeValue currentMode = getStateAttributeModeFromOverrideValue(value);
-        IContextMenuItem * childMenu = menuItem->addModeMenu(MenuActionStateSetAttributeSet, ss.str(), item, currentMode, attr);
+        IContextMenuItem * childMenu = menuItem->addModeMenu(MenuActionStateSetAttributeSet, ss.str(), item, currentMode, new SGIRefPtrOsg(attr));
         buildStateAttributeOverrideMenu(childMenu);
         childMenu->addSeparator();
         childMenu->addSimpleAction(MenuActionStateSetAttributeRemove, "Remove", item, new ReferencedDataIntPair(IntPair((int)type, (int)member)));
@@ -212,7 +210,7 @@ namespace {
         SGIHostItemOsg uniformItem(uniform);
         std::stringstream ss;
         ss << osg::Uniform::getTypename(uniform->getType()) << ' ' << uniform->getName();
-        IContextMenuItem * childMenu = menuItem->addModeMenu(MenuActionStateSetUniformSet, ss.str(), item, currentMode, uniform);
+        IContextMenuItem * childMenu = menuItem->addModeMenu(MenuActionStateSetUniformSet, ss.str(), item, currentMode, new SGIRefPtrOsg(uniform));
         buildStateAttributeOverrideMenu(childMenu);
         childMenu->addSeparator();
         childMenu->addSimpleAction(MenuActionStateSetUniformRemove, "Remove", item, new ReferencedDataString(uniform->getName()));
@@ -458,7 +456,7 @@ bool contextMenuPopulateImpl<osg::Group>::populate(IContextMenuItem * menuItem)
                 osg::Node * child = object->getChild(i);
                 SGIHostItemOsg childItem(child);
                 IContextMenuItem * childMenu = menuItem->addMenu(std::string(), &childItem);
-                childMenu->addSimpleAction(MenuActionGroupRemoveChild, "Remove", _item, child);
+                childMenu->addSimpleAction(MenuActionGroupRemoveChild, "Remove", _item, new SGIRefPtrOsg(child));
             }
             ret = true;
         }

@@ -1,0 +1,160 @@
+// kate: mode C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
+
+#pragma once
+#include <sgi/Export>
+#include <atomic>
+
+namespace sgi {
+namespace details {
+
+class Observer;
+class ObserverSet;
+
+class SGI_REF_EXPORT Referenced
+{
+public:
+    Referenced();
+
+    Referenced(const Referenced&);
+
+    inline Referenced& operator = (const Referenced&) { return *this; }
+
+    /** Increment the reference count by one, indicating that
+        this object has another pointer which is referencing it.*/
+    inline int ref() const;
+
+    /** Decrement the reference count by one, indicating that
+        a pointer to this object is no longer referencing it.  If the
+        reference count goes to zero, it is assumed that this object
+        is no longer referenced and is automatically deleted.*/
+    inline int unref() const;
+
+    /** Decrement the reference count by one, indicating that
+        a pointer to this object is no longer referencing it.  However, do
+        not delete it, even if ref count goes to 0.  Warning, unref_nodelete()
+        should only be called if the user knows exactly who will
+        be responsible for, one should prefer unref() over unref_nodelete()
+        as the latter can lead to memory leaks.*/
+    int unref_nodelete() const;
+
+    /** Return the number of pointers currently referencing this object. */
+    inline int referenceCount() const { return _refCount; }
+
+
+    /** Get the ObserverSet if one is attached, otherwise return NULL.*/
+    ObserverSet* getObserverSet() const
+    {
+        return _observerSet;
+    }
+
+    /** Get the ObserverSet if one is attached, otherwise create an ObserverSet, attach it, then return this newly created ObserverSet.*/
+    ObserverSet* getOrCreateObserverSet() const;
+
+    /** Add a Observer that is observing this object, notify the Observer when this object gets deleted.*/
+    void addObserver(Observer* observer) const;
+
+    /** Remove Observer that is observing this object.*/
+    void removeObserver(Observer* observer) const;
+
+protected:
+    virtual ~Referenced();
+
+    void signalObserversAndDelete(bool signalDelete, bool doDelete) const;
+
+#ifdef _MSC_VER
+#pragma warning(push)
+    // disable warning C4251: '_observerSet': struct 'std::atomic<T>' needs to have dll-interface to be used by clients of class 'Referenced'
+#pragma warning(disable:4251)
+#endif
+    mutable std::atomic<ObserverSet*> _observerSet;
+    mutable std::atomic_int _refCount;
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+};
+
+inline int Referenced::ref() const
+{
+    return ++_refCount;
+}
+
+inline int Referenced::unref() const
+{
+    int newRef;
+    newRef = --_refCount;
+    bool needDelete = (newRef == 0);
+    if (needDelete)
+    {
+        signalObserversAndDelete(true,true);
+    }
+    return newRef;
+}
+
+
+template<typename T, class BASE_T=Referenced>
+class ReferencedDataT : public BASE_T
+{
+public:
+    ReferencedDataT()
+        : BASE_T()
+        , _data()
+        {}
+    ReferencedDataT(const T & data)
+        : BASE_T()
+        , _data(data)
+        {}
+    ReferencedDataT(const ReferencedDataT & rhs)
+        : BASE_T(rhs)
+        , _data(rhs._data)
+        {}
+    ~ReferencedDataT() override
+    {
+    }
+    const T & data() const { return _data; }
+    T & data() { return _data; }
+
+    // compatible std::shared_ptr accessor
+    const T & get() const { return _data; }
+    T & get() { return _data; }
+
+    operator const T & () const {return _data;}
+    operator T & () {return _data;}
+private:
+    T _data;
+};
+
+template<typename T, class BASE_T=Referenced>
+class ReferencedRawPtrT : public BASE_T
+{
+public:
+    ReferencedRawPtrT()
+        : BASE_T()
+        , _ptr(nullptr)
+        {}
+    ReferencedRawPtrT(T * ptr)
+        : BASE_T()
+        , _ptr(ptr)
+        {}
+    ReferencedRawPtrT(const ReferencedRawPtrT & rhs)
+        : BASE_T(rhs)
+        , _ptr(rhs._ptr)
+        {}
+    ~ReferencedRawPtrT() override
+    {
+    }
+
+    T& operator*() const { return *_ptr; }
+    T* operator->() const { return _ptr; }
+    T* get() const { return _ptr; }
+
+    bool operator!() const   { return _ptr==nullptr; } // not required
+    bool valid() const       { return _ptr!=nullptr; }
+
+private:
+    T* _ptr;
+};
+
+    } // namespace details
+} // namespace sgi
+

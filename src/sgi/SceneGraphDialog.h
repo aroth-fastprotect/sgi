@@ -15,16 +15,16 @@ namespace sgi {
 
 class IContextMenuItem;
 class IContextMenu;
-typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
+typedef details::ref_ptr<IContextMenu> IContextMenuPtr;
 class IObjectTreeItem;
 class ObjectTreeItem;
 class ContextMenu;
-typedef osg::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
+typedef details::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
 class SGIItemBase;
 class SGIHostItemBase;
 class SGIDataItemBase;
-typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
-typedef osg::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
+typedef details::ref_ptr<SGIItemBase> SGIItemBasePtr;
+typedef details::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
 typedef std::list<SGIDataItemBasePtr> SGIDataItemBasePtrList;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrPath;
 typedef std::vector<SGIItemBasePtr> SGIItemBasePtrVector;
@@ -34,9 +34,9 @@ class SceneGraphDialog : public QDialog
 	Q_OBJECT
 
 public:
-							SceneGraphDialog(QWidget *parent = 0, Qt::WindowFlags f = 0);
-							SceneGraphDialog(SGIItemBase * item, IHostCallback * callback=NULL, QWidget *parent = 0, Qt::WindowFlags f = 0);
-	virtual					~SceneGraphDialog();
+                            SceneGraphDialog(QWidget *parent = nullptr, Qt::WindowFlags f = 0);
+                            SceneGraphDialog(SGIItemBase * item, IHostCallback * callback=nullptr, QWidget *parent = nullptr, Qt::WindowFlags f = 0);
+                            ~SceneGraphDialog() override;
 
 public:
     ISceneGraphDialog *     dialogInterface() { return _interface; }
@@ -52,7 +52,7 @@ public:
 public slots:
     void					itemPrevious();
     void					itemNext();
-    void					onObjectChanged(SGIItemBase * item);
+    void					onObjectChanged(int tabIndex, SGIItemBase * item);
 
 	void					onItemExpanded(QTreeWidgetItem * item);
 	void					onItemCollapsed(QTreeWidgetItem * item);
@@ -75,7 +75,7 @@ protected slots:
     void                    showBesideParent();
 
 signals:
-    void                    triggerOnObjectChanged(SGIItemBase * item);
+    void                    triggerOnObjectChanged(int tabIndex, SGIItemBase * item);
     void                    triggerShow();
     void                    triggerHide();
 

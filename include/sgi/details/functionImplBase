@@ -76,7 +76,7 @@ public:
     {
         bool ret;
         InterfaceType * typeImpl = _registed_types[std::type_index(ti)];
-        ret = (typeImpl != NULL);
+        ret = (typeImpl != nullptr);
         if(ret)
             ret = typeImpl->callImpl(param, result);
         return ret;
@@ -138,7 +138,7 @@ public:
     {
         bool ret;
         InterfaceType * typeImpl = _registed_types[id];
-        ret = (typeImpl != NULL);
+        ret = (typeImpl != nullptr);
         if(ret)
             ret = typeImpl->callImpl(param, result);
         return ret;
@@ -189,8 +189,8 @@ private:
 class SGI_IMPL_EXPORT functionImplBase
 {
 public:
-    functionImplBase(SGIPluginHostInterface * hostInterface, SGIItemBase * item=NULL);
-    functionImplBase(SGIPluginHostInterface * hostInterface, const SGIItemBase * item=NULL);
+    functionImplBase(SGIPluginHostInterface * hostInterface, SGIItemBase * item=nullptr);
+    functionImplBase(SGIPluginHostInterface * hostInterface, const SGIItemBase * item=nullptr);
     virtual ~functionImplBase();
 
     template<typename ANOTHER_ITEMTYPE>
@@ -215,36 +215,57 @@ public:
     }
 
     template<typename ANOTHER_ITEMTYPE, typename SGIITEMTYPE_ENUM>
-    ANOTHER_ITEMTYPE * cloneItem(SGIITEMTYPE_ENUM newType=(SGIITEMTYPE_ENUM)0, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
+    ANOTHER_ITEMTYPE * cloneItem(SGIITEMTYPE_ENUM newType=static_cast<SGIITEMTYPE_ENUM>(0))
     {
-        return _item->rootBase()->clone<ANOTHER_ITEMTYPE>((SGIItemType)newType, copyop);
+        return _item->rootBase()->clone<ANOTHER_ITEMTYPE>(static_cast<SGIItemType>(newType));
     }
     template<typename ANOTHER_ITEMTYPE, typename SGIITEMTYPE_ENUM>
-    ANOTHER_ITEMTYPE * cloneItem(SGIITEMTYPE_ENUM newType, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
+    ANOTHER_ITEMTYPE * cloneItem(SGIITEMTYPE_ENUM newType, details::Referenced * userData)
     {
-        return _item->rootBase()->clone<ANOTHER_ITEMTYPE>((SGIItemType)newType, userData, copyop);
+        return _item->rootBase()->clone<ANOTHER_ITEMTYPE>(static_cast<SGIItemType>(newType), userData);
     }
     template<typename ANOTHER_ITEMTYPE, typename SGIITEMTYPE_ENUM>
-    ANOTHER_ITEMTYPE * cloneItem(SGIITEMTYPE_ENUM newType, unsigned number, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
+    ANOTHER_ITEMTYPE * cloneItem(SGIITEMTYPE_ENUM newType, unsigned number)
     {
-        return _item->rootBase()->clone<ANOTHER_ITEMTYPE>((SGIItemType)newType, number, copyop);
+        return _item->rootBase()->clone<ANOTHER_ITEMTYPE>(static_cast<SGIItemType>(newType), number);
     }
     template<typename ANOTHER_ITEMTYPE, typename SGIITEMTYPE_ENUM>
-    ANOTHER_ITEMTYPE * cloneItem(SGIITEMTYPE_ENUM newType, unsigned number, osg::Referenced * userData, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
+    ANOTHER_ITEMTYPE * cloneItem(SGIITEMTYPE_ENUM newType, unsigned number, details::Referenced * userData)
     {
-        return _item->rootBase()->clone<ANOTHER_ITEMTYPE>((SGIItemType)newType, number, userData, copyop);
+        return _item->rootBase()->clone<ANOTHER_ITEMTYPE>(static_cast<SGIItemType>(newType), number, userData);
     }
 
     template<typename ItemTypeFirst, typename ItemTypeSecond, typename SGIITEMTYPE_ENUM>
-    SGIItemBase * cloneItemMulti(SGIITEMTYPE_ENUM newType=(SGIITEMTYPE_ENUM)0, const osg::CopyOp & copyop=osg::CopyOp::SHALLOW_COPY)
+    SGIItemBase * cloneItemMulti(SGIITEMTYPE_ENUM newType=static_cast<SGIITEMTYPE_ENUM>(0))
     {
-        SGIItemBase * ret = NULL;
+        SGIItemBase * ret = nullptr;
         if(ItemTypeFirst * first = dynamic_cast<ItemTypeFirst*>(_item.get()))
-            ret = _item->rootBase()->clone<ItemTypeFirst>((SGIItemType)newType, copyop);
+            ret = _item->rootBase()->clone<ItemTypeFirst>(static_cast<SGIItemType>(newType));
         else if(ItemTypeSecond * second = dynamic_cast<ItemTypeSecond*>(_item.get()))
-            ret = _item->rootBase()->clone<ItemTypeSecond>((SGIItemType)newType, copyop);
+            ret = _item->rootBase()->clone<ItemTypeSecond>(static_cast<SGIItemType>(newType));
         return ret;
     }
+    template<typename ItemTypeFirst, typename ItemTypeSecond, typename SGIITEMTYPE_ENUM>
+    SGIItemBase * cloneItemMulti(SGIITEMTYPE_ENUM newType, unsigned number)
+    {
+        SGIItemBase * ret = nullptr;
+        if(ItemTypeFirst * first = dynamic_cast<ItemTypeFirst*>(_item.get()))
+            ret = _item->rootBase()->clone<ItemTypeFirst>(static_cast<SGIItemType>(newType), number);
+        else if(ItemTypeSecond * second = dynamic_cast<ItemTypeSecond*>(_item.get()))
+            ret = _item->rootBase()->clone<ItemTypeSecond>(static_cast<SGIItemType>(newType), number);
+        return ret;
+    }
+    template<typename ItemTypeFirst, typename ItemTypeSecond, typename SGIITEMTYPE_ENUM>
+    SGIItemBase * cloneItemMulti(SGIITEMTYPE_ENUM newType, unsigned number, details::Referenced * userData)
+    {
+        SGIItemBase * ret = nullptr;
+        if(ItemTypeFirst * first = dynamic_cast<ItemTypeFirst*>(_item.get()))
+            ret = _item->rootBase()->clone<ItemTypeFirst>(static_cast<SGIItemType>(newType), number, userData);
+        else if(ItemTypeSecond * second = dynamic_cast<ItemTypeSecond*>(_item.get()))
+            ret = _item->rootBase()->clone<ItemTypeSecond>(static_cast<SGIItemType>(newType), number, userData);
+        return ret;
+    }
+
     template<typename T, typename ItemType>
     inline T * getObject()
     {
@@ -284,7 +305,7 @@ public:
     template<typename T, typename ItemTypeFirst, typename ItemTypeSecond, typename CasterT>
     T * getObjectMulti()
     {
-        T * ret = NULL;
+        T * ret = nullptr;
         if(ItemTypeFirst * first = dynamic_cast<ItemTypeFirst*>(_item.get()))
         {
             typedef typename ItemTypeFirst::ObjectType ObjectType;
@@ -302,7 +323,7 @@ public:
     template<typename T, typename ItemTypeFirst, typename ItemTypeSecond, typename CasterT>
     const T * getObjectMulti() const
     {
-        const T * ret = NULL;
+        const T * ret = nullptr;
         if(const ItemTypeFirst * first = dynamic_cast<const ItemTypeFirst*>(_item.get()))
         {
             typedef typename ItemTypeFirst::ObjectType ObjectType;
@@ -323,7 +344,7 @@ public:
     {
         std::string ret;
         const std::string& value_type = details::StaticTypeName<T>::name();
-        namedEnumValueToString(value_type, ret, (int)value);
+        namedEnumValueToString(value_type, ret, static_cast<int>(value));
         return ret;
     }
 
@@ -332,7 +353,7 @@ public:
     {
         std::string ret;
         const std::string& value_type = details::StaticTypeName<T>::name();
-        namedEnumValueToString(value_type, ret, (int)value);
+        namedEnumValueToString(value_type, ret, static_cast<int>(value));
         return ret;
     }
 
@@ -353,7 +374,7 @@ template<typename CallParamType, typename ResultType, typename SGIItemType=SGIIt
 class functionImplBaseT : public functionImplBase
 {
 public:
-    functionImplBaseT(SGIPluginHostInterface * hostInterface, SGIItemType * item=NULL)
+    functionImplBaseT(SGIPluginHostInterface * hostInterface, SGIItemType * item=nullptr)
         : functionImplBase(hostInterface, item)
         {
         }
@@ -367,7 +388,7 @@ public:
             bool ret;
             const std::type_info * ti = item->typeInfo();
             Registry * typeImpl = _registed_types[std::type_index(*ti)];
-            ret = (typeImpl != NULL);
+            ret = (typeImpl != nullptr);
             if(ret)
                 result = typeImpl->callImpl(hostInterface, param, item);
             return ret;

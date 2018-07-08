@@ -269,12 +269,16 @@
 
 using namespace sgi::osg_plugin;
 
+SGI_OBJECT_INFO_BEGIN(sgi::details::Referenced)
+    sgi::ISceneGraphDialog,
+    sgi::ISceneGraphDialogToolsMenu
+SGI_OBJECT_INFO_END()
+
 SGI_OBJECT_INFO_BEGIN(osg::Referenced)
+    ReferencedSetViewNodeLookAt,
     osg::Object,
     osg::ObserverSet,
     osgDB::Registry,
-    sgi::ISceneGraphDialog,
-    sgi::ISceneGraphDialogToolsMenu,
     osg::GraphicsContext::Traits, 
     osg::OperationThread, 
     osg::Operation,
@@ -318,7 +322,6 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osgText::Font::FontImplementation,
     osgText::Glyph3D,
     osgText::GlyphGeometry,
-    ReferencedSetViewNodeLookAt,
     sgi::ReferencedPickerBase,
     CullingNodeInfo
 SGI_OBJECT_INFO_END()
@@ -615,7 +618,7 @@ bool objectInfo_hasCallback(SGIPluginHostInterface * hostInterface, bool & resul
         ret = hasCallbackImplBaseT<hasCallbackImpl>::call(hostInterface, item, result);
         item = item->nextBase();
     }
-    while(item != NULL && !ret);
+    while(item != nullptr && !ret);
     return ret;
 }
 
@@ -664,7 +667,7 @@ typedef SGIPluginImplementationT<       generateItemImpl,
 class SGIPlugin_osg_Implementation : public osg_plugin::SGIPluginImpl
 {
 public:
-    SGIPlugin_osg_Implementation(SGIPluginHostInterface * hostInterface=NULL)
+    SGIPlugin_osg_Implementation(SGIPluginHostInterface * hostInterface=nullptr)
         : osg_plugin::SGIPluginImpl(hostInterface)
     {
         // register the osgNodeMask enum as bit field
@@ -750,12 +753,12 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeCullingInfoAfter);
         SGIITEMTYPE_NAME(SGIItemTypeBuildInfo);
     }
-    SGIPlugin_osg_Implementation(const SGIPlugin_osg_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : osg_plugin::SGIPluginImpl(rhs, copyop)
+    SGIPlugin_osg_Implementation(const SGIPlugin_osg_Implementation & rhs)
+        : osg_plugin::SGIPluginImpl(rhs)
     {
     }
 
-    META_Object(sgi_osg, SGIPlugin_osg_Implementation);
+    SGI_Object(sgi_osg, SGIPlugin_osg_Implementation)
 
     void registerGLConstants()
     {

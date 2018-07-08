@@ -15,9 +15,9 @@ class HighlightWidget : public QWidget
 
 public:
     enum { DEFAULT_INTERVAL=330, DEFAULT_AUTOCLOSE_TIME = 10000 };
-    HighlightWidget(QWidget *parent=0);
-    HighlightWidget(unsigned interval, unsigned autoCloseTime= DEFAULT_AUTOCLOSE_TIME, QWidget *parent=0);
-    virtual ~HighlightWidget();
+    HighlightWidget(QWidget *parent=nullptr);
+    HighlightWidget(unsigned interval, unsigned autoCloseTime= DEFAULT_AUTOCLOSE_TIME, QWidget *parent=nullptr);
+    ~HighlightWidget() override;
 
 protected:
     void blink();

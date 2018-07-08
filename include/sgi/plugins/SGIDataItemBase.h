@@ -1,5 +1,5 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
 #include "SGIItemBase.h"
@@ -10,16 +10,16 @@ namespace sgi {
 
 class SGIPluginHostInterface;
 
-class SGIDataFieldBase : public osg::Referenced
+class SGIDataFieldBase : public details::Referenced
 {
 public:
-    SGIDataFieldBase() : osg::Referenced() {}
-    SGIDataFieldBase(const SGIDataFieldBase & rhs) : osg::Referenced(rhs) {}
+    SGIDataFieldBase() : details::Referenced() {}
+    SGIDataFieldBase(const SGIDataFieldBase & rhs) : details::Referenced(rhs) {}
 
     virtual std::string toString(SGIPluginHostInterface * hostInterface) const = 0;
 };
 
-typedef osg::ref_ptr<SGIDataFieldBase> SGIDataFieldBasePtr;
+typedef details::ref_ptr<SGIDataFieldBase> SGIDataFieldBasePtr;
 typedef std::vector<SGIDataFieldBasePtr> SGIDataFieldBaseVector;
 
 template<typename DATATYPE>
@@ -92,7 +92,7 @@ inline std::string SGIDataFieldT<SGIItemBasePtr>::toString(SGIPluginHostInterfac
     return ret;
 }
 
-class SGI_IMPL_EXPORT SGIDataItemBase : public osg::Referenced
+class SGI_IMPL_EXPORT SGIDataItemBase : public details::Referenced
 {
 public:
     SGIDataItemBase(SGIItemBase * item=nullptr, size_t numFields=0);
@@ -116,10 +116,18 @@ public:
     void addField(SGIDataFieldBase * field);
 
 protected:
+#ifdef _MSC_VER
+#pragma warning(push)
+    // disable warning C4251: '_xxx': struct 'yyy' needs to have dll-interface to be used by clients of class 'SGIItemBase'
+#pragma warning(disable:4251)
+#endif
     SGIItemBasePtr          _item;
     SGIDataFieldBaseVector  _fields;
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 };
-typedef osg::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
+typedef details::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
 typedef std::vector<SGIDataItemBasePtr> SGIDataItemBasePtrVector;
 typedef std::list<SGIDataItemBasePtr> SGIDataItemBasePtrList;
 

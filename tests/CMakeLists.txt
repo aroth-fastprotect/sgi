@@ -1,14 +1,12 @@
 MACRO(SGI_UNITTEST NAME)
 
-    OPTION(SGI_UNITEST_${NAME} "Build SGI unit test ${NAME}" OFF)
+    OPTION(SGI_UNITEST_${NAME} "Build SGI unit test ${NAME}" ON)
     IF(SGI_UNITEST_${NAME})
         set(TARGET_SRC ${NAME}_unittest.cpp)
         set(TARGET_MOC_H ${NAME}_unittest.h)
 
         list(APPEND TARGET_LIBRARIES_VARS
-            OSG_LIBRARY
-            OSGDB_LIBRARY
-            OPENTHREADS_LIBRARY
+            SGI_REF_LIBRARY
             SGI_PLUGIN_IMPL_LIBRARY
             QT_QTCORE_LIBRARY
             QT_QTGUI_LIBRARY
@@ -19,10 +17,32 @@ MACRO(SGI_UNITTEST NAME)
         ENDIF()
         LIST(APPEND TARGET_DEFINITIONS QT_GUI_LIB QT_WIDGETS_LIB)
 
-        FAST_COMMANDLINE_APPLICATION(sgi_${NAME}_unittest)
+        FAST_COMMANDLINE_APPLICATION(sgi_${NAME}_unittest NO_MOC_INCLUDE)
     ENDIF()
 ENDMACRO(SGI_UNITTEST)
 
 SGI_UNITTEST(item)
+if(SGI_PLUGIN_OSG)
+    list(APPEND TARGET_LIBRARIES_VARS
+        OSG_LIBRARY
+        OSGDB_LIBRARY
+        OPENTHREADS_LIBRARY)
+    if(UNIX)
+        list(APPEND TARGET_LIBRARIES_VARS dl)
+    endif()
+    SGI_UNITTEST(item_osg)
+endif()
+if(SGI_PLUGIN_OSGEARTH)
+    list(APPEND TARGET_LIBRARIES_VARS
+        OSG_LIBRARY
+        OSGDB_LIBRARY
+        OPENTHREADS_LIBRARY
+        OSGEARTH_LIBRARY)
+    if(UNIX)
+        list(APPEND TARGET_LIBRARIES_VARS dl)
+    endif()
+    SGI_UNITTEST(item_osgearth)
+    target_include_directories(sgi_item_osgearth_unittest PRIVATE ${OSGEARTH_INCLUDE_DIR})
+endif()
 SGI_UNITTEST(variadic)
 SGI_UNITTEST(itemtree)

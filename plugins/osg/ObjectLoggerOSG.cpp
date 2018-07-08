@@ -64,7 +64,7 @@ public:
 
     void release()
     {
-        _original = NULL;
+        _original = nullptr;
     }
 protected:
     virtual void copyStateToOriginal() = 0;
@@ -200,10 +200,10 @@ public:
     typedef NodeVisitorHook<OPERATION, osgUtil::CullVisitor> _Base;
 
     CullVisitorHook(osg::Camera * camera)
-        : _Base(NULL), _camera(camera)
+        : _Base(nullptr), _camera(camera)
     {
         osgViewer::Renderer* renderer = dynamic_cast<osgViewer::Renderer*>(_camera->getRenderer());
-        osgUtil::SceneView * sceneView = renderer?renderer->getSceneView(0):NULL;
+        osgUtil::SceneView * sceneView = renderer?renderer->getSceneView(0):nullptr;
         if(sceneView)
         {
             _Base::_original = sceneView->getCullVisitor();
@@ -221,12 +221,12 @@ public:
         {
             copyStateToOriginal();
             osgViewer::Renderer* renderer = dynamic_cast<osgViewer::Renderer*>(_camera->getRenderer());
-            osgUtil::SceneView * sceneView = renderer?renderer->getSceneView(0):NULL;
+            osgUtil::SceneView * sceneView = renderer?renderer->getSceneView(0):nullptr;
             if(sceneView)
                 sceneView->setCullVisitor(_Base::_original.get());
-            _Base::_original = NULL;
+            _Base::_original = nullptr;
         }
-        _camera = NULL;
+        _camera = nullptr;
         _Base::release();
     }
 
@@ -388,10 +388,10 @@ class UpdateVisitorHook : public NodeVisitorHook<OPERATION, osgUtil::UpdateVisit
 public:
     typedef NodeVisitorHook<OPERATION, osgUtil::UpdateVisitor> _Base;
     UpdateVisitorHook(osg::Camera * camera)
-        : _Base(NULL), _camera(camera)
+        : _Base(nullptr), _camera(camera)
     {
         osgViewer::View * view = dynamic_cast<osgViewer::View*>(_camera->getView());
-        osgViewer::ViewerBase * viewer = (view)?view->getViewerBase():NULL;
+        osgViewer::ViewerBase * viewer = (view)?view->getViewerBase():nullptr;
         if(viewer)
         {
             _Base::_original = viewer->getUpdateVisitor();
@@ -410,12 +410,12 @@ public:
         {
             copyStateToOriginal();
             osgViewer::View * view = dynamic_cast<osgViewer::View*>(_camera->getView());
-            osgViewer::ViewerBase * viewer = (view)?view->getViewerBase():NULL;
+            osgViewer::ViewerBase * viewer = (view)?view->getViewerBase():nullptr;
             if(viewer)
                 viewer->setUpdateVisitor(_Base::_original.get());
-            _Base::_original = NULL;
+            _Base::_original = nullptr;
         }
-        _camera = NULL;
+        _camera = nullptr;
         _Base::release();
     }
 protected:
@@ -435,10 +435,10 @@ class EventVisitorHook : public NodeVisitorHook<OPERATION, osgGA::EventVisitor>
 public:
     typedef NodeVisitorHook<OPERATION, osgGA::EventVisitor> _Base;
     EventVisitorHook(osg::Camera * camera)
-        : _Base(NULL), _camera(camera)
+        : _Base(nullptr), _camera(camera)
     {
         osgViewer::View * view = dynamic_cast<osgViewer::View*>(_camera->getView());
-        osgViewer::ViewerBase * viewer = (view)?view->getViewerBase():NULL;
+        osgViewer::ViewerBase * viewer = (view)?view->getViewerBase():nullptr;
         if(viewer)
         {
             _Base::_original = viewer->getEventVisitor();
@@ -457,12 +457,12 @@ public:
         {
             copyStateToOriginal();
             osgViewer::View * view = dynamic_cast<osgViewer::View*>(_camera->getView());
-            osgViewer::ViewerBase * viewer = (view)?view->getViewerBase():NULL;
+            osgViewer::ViewerBase * viewer = (view)?view->getViewerBase():nullptr;
             if(viewer)
                 viewer->setEventVisitor(_Base::_original.get());
-            _Base::_original = NULL;
+            _Base::_original = nullptr;
         }
-        _camera = NULL;
+        _camera = nullptr;
         _Base::release();
     }
 protected:
@@ -484,7 +484,7 @@ public:
     {
     public:
         LogEntry()
-            : _logger(NULL)
+            : _logger(nullptr)
             {
             }
 
@@ -572,14 +572,14 @@ ObjectLogger::ObjectLogger(osg::Camera * camera, SGIPluginHostInterface * hostIn
     setup(camera);
 }
 
-ObjectLogger::ObjectLogger(const ObjectLogger & rhs,const osg::CopyOp& copyop)
-    : ObjectLoggerBase(rhs, copyop)
+ObjectLogger::ObjectLogger(const ObjectLogger & rhs)
+    : ObjectLoggerBase(rhs)
 {
 }
 
 ObjectLogger::~ObjectLogger()
 {
-    setup(NULL);
+    setup(nullptr);
 }
 
 void ObjectLogger::setup(osg::Camera * camera)
@@ -600,9 +600,9 @@ void ObjectLogger::setup(osg::Camera * camera)
     }
     else
     {
-        _updateVisitor = NULL;
-        _cullVisitor = NULL;
-        _eventVisitor = NULL;
+        _updateVisitor = nullptr;
+        _cullVisitor = nullptr;
+        _eventVisitor = nullptr;
     }
     _activeCamera = camera;
 }
@@ -655,9 +655,9 @@ void ObjectLogger::addEntry(const osg::NodeVisitor * nv, bool preApply, osg::Nod
 
 ObjectLogger * ObjectLogger::getLoggerFromCamera(osg::Camera * camera)
 {
-    ObjectLogger * ret = NULL;
-    osgViewer::View * view = camera?dynamic_cast<osgViewer::View*>(camera->getView()):NULL;
-    osgViewer::ViewerBase * viewer = (view)?view->getViewerBase():NULL;
+    ObjectLogger * ret = nullptr;
+    osgViewer::View * view = camera?dynamic_cast<osgViewer::View*>(camera->getView()):nullptr;
+    osgViewer::ViewerBase * viewer = (view)?view->getViewerBase():nullptr;
     if(viewer)
     {
         osgUtil::UpdateVisitor * updateVisitorBase = viewer->getUpdateVisitor();
@@ -881,7 +881,7 @@ CullingInfoForCamera::CullingInfoForCamera(const CullingInfoForCamera & rhs, con
 
 CullingInfoForCamera::~CullingInfoForCamera()
 {
-    setup(NULL);
+    setup(nullptr);
 }
 
 void CullingInfoForCamera::setup(osg::Camera * camera)
@@ -899,7 +899,7 @@ void CullingInfoForCamera::setup(osg::Camera * camera)
     }
     else
     {
-        _cullVisitor = NULL;
+        _cullVisitor = nullptr;
         CullingInfoRegistry::instance()->remove(_activeCamera.get(), this);
     }
     _activeCamera = camera;
@@ -907,9 +907,9 @@ void CullingInfoForCamera::setup(osg::Camera * camera)
 
 CullingInfoForCamera * CullingInfoForCamera::getCullingInfoForCamera(osg::Camera * camera)
 {
-    CullingInfoForCamera * ret = NULL;
-    osgViewer::View * view = camera ? dynamic_cast<osgViewer::View*>(camera->getView()) : NULL;
-    osgViewer::ViewerBase * viewer = (view) ? view->getViewerBase() : NULL;
+    CullingInfoForCamera * ret = nullptr;
+    osgViewer::View * view = camera ? dynamic_cast<osgViewer::View*>(camera->getView()) : nullptr;
+    osgViewer::ViewerBase * viewer = (view) ? view->getViewerBase() : nullptr;
     if (viewer)
     {
         osgUtil::UpdateVisitor * updateVisitorBase = viewer->getUpdateVisitor();
@@ -922,9 +922,9 @@ CullingInfoForCamera * CullingInfoForCamera::getCullingInfoForCamera(osg::Camera
 
 CullingInfoForCamera * CullingInfoForCamera::getOrCreateCullingInfoForCamera(osg::Camera * camera, SGIPluginHostInterface * hostInterface)
 {
-    CullingInfoForCamera * ret = NULL;
-    osgViewer::View * view = camera ? dynamic_cast<osgViewer::View*>(camera->getView()) : NULL;
-    osgViewer::ViewerBase * viewer = (view) ? view->getViewerBase() : NULL;
+    CullingInfoForCamera * ret = nullptr;
+    osgViewer::View * view = camera ? dynamic_cast<osgViewer::View*>(camera->getView()) : nullptr;
+    osgViewer::ViewerBase * viewer = (view) ? view->getViewerBase() : nullptr;
     if (viewer)
     {
         osgUtil::UpdateVisitor * updateVisitorBase = viewer->getUpdateVisitor();
@@ -1047,7 +1047,7 @@ CullingInfoRegistry * CullingInfoRegistry::instance()
 CullingInfoForCamera * CullingInfoRegistry::getCullingInfoForCamera(osg::Camera * camera)
 {
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
-    CullingInfoForCamera * ret = NULL;
+    CullingInfoForCamera * ret = nullptr;
     CameraCullingInfoMap::const_iterator it = _map.find(camera);
     if (it != _map.end())
         ret = it->second.get();
@@ -1057,7 +1057,7 @@ CullingInfoForCamera * CullingInfoRegistry::getCullingInfoForCamera(osg::Camera 
 CullingInfoForCamera * CullingInfoRegistry::getOrCreateCullingInfoForCamera(osg::Camera * camera, SGIPluginHostInterface * hostInterface)
 {
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
-    CullingInfoForCamera * ret = NULL;
+    CullingInfoForCamera * ret = nullptr;
     CameraCullingInfoMap::const_iterator it = _map.find(camera);
     if (it != _map.end())
         ret = it->second.get();

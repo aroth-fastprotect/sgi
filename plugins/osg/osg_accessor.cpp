@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include <osg/Texture>
 #include <osg/Stats>
 #include "osg_accessor.h"

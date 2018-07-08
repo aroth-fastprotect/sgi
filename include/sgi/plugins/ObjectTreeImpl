@@ -31,7 +31,7 @@ public:
         typedef bool ResultType;
     };
 
-    objectTreeBuildImplBaseT(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL)
+    objectTreeBuildImplBaseT(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr)
         : functionImplBase(hostInterface, item) {}
 
     typedef details::call_by_type_registryT<TypePolicy> Registry;
@@ -76,8 +76,8 @@ public:
     class objectTreeBuildImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        objectTreeBuildImpl(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL) {} \
-        bool build(IObjectTreeItem * treeItem) { return false; } \
+        objectTreeBuildImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, SGIItemBase * /*item*/=nullptr) {} \
+        bool build(IObjectTreeItem * /*treeItem*/) { return false; } \
     }; \
     typedef objectTreeBuildImplBaseT<objectTreeBuildImpl> objectTreeBuildImplBase;
 
@@ -89,7 +89,7 @@ public:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        objectTreeBuildImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL) \
+        objectTreeBuildImpl<__type>(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr) \
             : objectTreeBuildImplBase(hostInterface, item) {} \
         bool build(IObjectTreeItem * treeItem); \
     };
@@ -117,7 +117,7 @@ public:
         typedef bool ResultType;
     };
 
-    objectTreeBuildRootImplBaseT(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL)
+    objectTreeBuildRootImplBaseT(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr)
         : functionImplBase(hostInterface, item) {}
 
     typedef details::call_by_type_registryT<TypePolicy> Registry;
@@ -153,8 +153,8 @@ public:
     class objectTreeBuildRootImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        objectTreeBuildRootImpl(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL) {} \
-        bool build(IObjectTreeItem * treeItem) { return false; } \
+        objectTreeBuildRootImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, SGIItemBase * /*item*/=nullptr) {} \
+        bool build(IObjectTreeItem * /*treeItem*/) { return false; } \
     }; \
     typedef objectTreeBuildRootImplBaseT<objectTreeBuildRootImpl> objectTreeBuildRootImplBase;
 
@@ -166,7 +166,7 @@ public:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        objectTreeBuildRootImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL) \
+        objectTreeBuildRootImpl<__type>(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr) \
             : objectTreeBuildRootImplBase(hostInterface, item) {} \
         bool build(IObjectTreeItem * treeItem); \
     };
@@ -233,6 +233,6 @@ private:
     QTreeWidgetItem * _item;
 };
 
-typedef osg::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
+typedef details::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
 
 } // namespace sgi

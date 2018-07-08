@@ -14,12 +14,14 @@ private slots:
     void insertItemTwoChains();
     void insertItemSameScore();
 
-    void autoLoadOsg();
     void autoLoadQt();
+
+    void generateItem();
 
     void writePrettyHTML();
 
     void sceneGraphDialog();
+    void contextMenuHidden();
     void contextMenu();
 	void contextMenuQt();
     void imagePreviewDialog();

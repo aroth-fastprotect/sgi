@@ -1,10 +1,20 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
 
 #include <sgi/plugins/SGIHostItemOsgEarth.h>
 #include <osgEarth/Config>
+#include <osgEarth/TileKey>
+#include <sgi/plugins/SGIItemOsg>
+
+namespace osgEarth {
+    class ElevationQuery;
+    class TileSource;
+    class TileKey;
+    class CacheBin;
+    class TerrainLayer;
+} // namespace osgEarth
 
 namespace sgi {
 namespace support {
@@ -51,102 +61,56 @@ enum SGIItemType_osgearth
     SGIItemTypePickerContext
 };
 
-class SGIItemEarthConfig : public SGIItemBase
+typedef SGIItemInfoPlainPtr<osgEarth::Config> SGIItemInfoOsgEarthConfig;
+typedef SGIHostItemImpl<SGIItemInfoOsgEarthConfig> SGIHostItemOsgEarthConfig;
+typedef SGIItemHolderT<SGIItemInfoOsgEarthConfig> SGIItemHolderOsgEarthConfig;
+typedef SGIItemT<SGIHostItemOsgEarthConfig, SGIItemHolderOsgEarthConfig> SGIItemEarthConfig;
+
+typedef SGIItemInfoPlainPtr<osgEarth::ConfigOptions> SGIItemInfoOsgEarthConfigOptions;
+typedef SGIHostItemImpl<SGIItemInfoOsgEarthConfigOptions> SGIHostItemOsgEarthConfigOptions;
+typedef SGIItemHolderT<SGIItemInfoOsgEarthConfigOptions> SGIItemHolderOsgEarthConfigOptions;
+typedef SGIItemT<SGIHostItemOsgEarthConfigOptions, SGIItemHolderOsgEarthConfigOptions> SGIItemEarthConfigOptions;
+
+namespace osgearth_plugin {
+
+struct TileSourceTileKeyData
 {
-public:
-    typedef osgEarth::Config ObjectType;
-    typedef osgEarth::Config * ObjectStorageType;
-    typedef support::SGIHostItemOsgEarthConfig HostItemType;
+    enum Status {
+        StatusNotLoaded = 0,
+        StatusLoaded,
+        StatusLoadFailure,
+        StatusNoData
+    };
+    enum ObjectType {
+        ObjectTypeGeneric = 0,
+        ObjectTypeImage,
+        ObjectTypeHeightField,
+        ObjectTypeNode,
+        ObjectTypeString
+    };
 
-    SGIItemEarthConfig(const HostItemType * hostItem=NULL, SGIItemType type=SGIItemTypeInvalid, osgEarth::Config * cfg=NULL, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
-        : SGIItemBase(type, flags, score, userData), _object(cfg), _allocated(hostItem->isAllocated()) { const_cast<HostItemType*>(hostItem)->releaseObject(); }
-    SGIItemEarthConfig(SGIItemType type, const osgEarth::Config & cfg, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
-        : SGIItemBase(type, flags, score, userData), _object(new osgEarth::Config(cfg)), _allocated(true) {}
-    SGIItemEarthConfig(const SGIItemEarthConfig & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : SGIItemBase(rhs, copyop), _object(rhs._object), _allocated(false) {}
-    ~SGIItemEarthConfig()
-        {
-            if(_allocated)
-                delete _object;
-        }
+    static ObjectType getObjectType(osgEarth::CacheBin * cb);
+    static ObjectType getObjectType(osgEarth::TileSource * ts);
+    static ObjectType getObjectType(osgEarth::TerrainLayer * tl);
 
-    META_Object(sgi, SGIItemEarthConfig);
+    TileSourceTileKeyData(osgEarth::TileSource * ts, const osgEarth::TileKey & tk, osg::Referenced * td = nullptr);
+    TileSourceTileKeyData(osgEarth::TerrainLayer * tl, const osgEarth::TileKey & tk, osg::Referenced * td = nullptr);
+    TileSourceTileKeyData(osgEarth::CacheBin * cb, ObjectType type, const osgEarth::TileKey & tk, osg::Referenced * td = nullptr);
 
-    SGIItemEarthConfig & operator = (const SGIItemEarthConfig & rhs)
-    {
-        SGIItemBase::operator=(rhs);
-        _object = rhs._object;
-        return *this;
-    }
-    ObjectType * object() { return _object; }
-    ObjectType * object() const { return _object; }
-
-protected:
-    virtual int compare(const SGIItemBase & rhs) const
-    {
-        int ret = SGIItemBase::compare(rhs);
-        if(!ret)
-        {
-            if(_object == static_cast<const SGIItemEarthConfig&>(rhs)._object)
-                return 0;
-            else if(_object < static_cast<const SGIItemEarthConfig&>(rhs)._object)
-                return -1;
-            else
-                return 1;
-        }
-        else
-            return ret;
-    }
-
-private:
-    ObjectStorageType   _object;
-    bool                _allocated;
+    osg::ref_ptr<osgEarth::TileSource> tileSource;
+    osg::ref_ptr<osgEarth::TerrainLayer> terrainLayer;
+    osg::ref_ptr<osgEarth::CacheBin> cacheBin;
+    osgEarth::TileKey tileKey;
+    osg::ref_ptr<osg::Referenced> tileData;
+    Status status;
+    ObjectType objectType;
 };
 
-class SGIItemEarthConfigOptions : public SGIItemBase
-{
-public:
-    typedef osgEarth::ConfigOptions ObjectType;
-    typedef osgEarth::ConfigOptions * ObjectStorageType;
-    typedef support::SGIHostItemOsgEarthConfigOptions HostItemType;
+class TileSourceInfo;
 
-    SGIItemEarthConfigOptions(const HostItemType * hostItem=NULL, SGIItemType type=SGIItemTypeInvalid, osgEarth::ConfigOptions * cfg=NULL, unsigned flags=0, unsigned score=0, osg::Referenced * userData=NULL)
-        : SGIItemBase(type, flags, score, userData), _object(cfg) {}
-    SGIItemEarthConfigOptions(const SGIItemEarthConfigOptions & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : SGIItemBase(rhs, copyop), _object(rhs._object) {}
-    ~SGIItemEarthConfigOptions()
-        { }
-
-    META_Object(sgi, SGIItemEarthConfigOptions);
-
-    SGIItemEarthConfigOptions & operator = (const SGIItemEarthConfigOptions & rhs)
-    {
-        SGIItemBase::operator=(rhs);
-        _object = rhs._object;
-        return *this;
-    }
-    ObjectType * object() { return _object; }
-    ObjectType * object() const { return _object; }
-
-protected:
-    virtual int compare(const SGIItemBase & rhs) const
-    {
-        int ret = SGIItemBase::compare(rhs);
-        if(!ret)
-        {
-            if(_object == static_cast<const SGIItemEarthConfigOptions&>(rhs)._object)
-                return 0;
-            else if(_object < static_cast<const SGIItemEarthConfigOptions&>(rhs)._object)
-                return -1;
-            else
-                return 1;
-        }
-        else
-            return ret;
-    }
-
-private:
-    ObjectStorageType   _object;
-};
+typedef details::ReferencedRawPtrT<osgEarth::ElevationQuery, osg::Referenced> ElevationQueryReferenced;
+typedef details::ReferencedDataT<osgEarth::TileKey, osg::Referenced> TileKeyReferenced;
+typedef details::ReferencedDataT<TileSourceTileKeyData, osg::Referenced> TileSourceTileKey;
+} // namespace osgearth_plugin
 
 } // namespace sgi

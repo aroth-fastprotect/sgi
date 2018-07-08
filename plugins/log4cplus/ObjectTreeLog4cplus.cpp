@@ -29,7 +29,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(Log4cplusObjectPatternLayout)
 
 bool objectTreeBuildImpl<Log4cplusObjectLogger>::build(IObjectTreeItem * treeItem)
 {
-    Log4cplusObjectLogger * object_ptr = static_cast<Log4cplusObjectLogger*>(item<SGIItemLog4cplus>()->object());
+    Log4cplusObjectLogger * object_ptr = getObject<Log4cplusObjectLogger,SGIItemLog4cplus>();
     log4cplus::Logger object = object_ptr->object();
     bool ret = false;
     switch(itemType())
@@ -106,7 +106,7 @@ bool objectTreeBuildImpl<Log4cplusObjectLogger>::build(IObjectTreeItem * treeIte
 
 bool objectTreeBuildImpl<Log4cplusObjectHierarchy>::build(IObjectTreeItem * treeItem)
 {
-    Log4cplusObjectHierarchy * object_ptr = static_cast<Log4cplusObjectHierarchy*>(item<SGIItemLog4cplus>()->object());
+    Log4cplusObjectHierarchy * object_ptr = getObject<Log4cplusObjectHierarchy,SGIItemLog4cplus>();
     log4cplus::Hierarchy & object = object_ptr->object();
     bool ret = false;
     switch(itemType())
@@ -144,7 +144,7 @@ bool objectTreeBuildImpl<Log4cplusObjectHierarchy>::build(IObjectTreeItem * tree
 
 bool objectTreeBuildImpl<Log4cplusObjectAppender>::build(IObjectTreeItem * treeItem)
 {
-    Log4cplusObjectAppender * object_ptr = static_cast<Log4cplusObjectAppender*>(item<SGIItemLog4cplus>()->object());
+    Log4cplusObjectAppender * object_ptr = getObject<Log4cplusObjectAppender,SGIItemLog4cplus>();
     log4cplus::SharedAppenderPtr object = object_ptr->object();
     bool ret = false;
     switch(itemType())
@@ -169,7 +169,7 @@ bool objectTreeBuildImpl<Log4cplusObjectAppender>::build(IObjectTreeItem * treeI
 
 bool objectTreeBuildImpl<Log4cplusObjectLayout>::build(IObjectTreeItem * treeItem)
 {
-    Log4cplusObjectLayout * object_ptr = static_cast<Log4cplusObjectLayout*>(item<SGIItemLog4cplus>()->object());
+    Log4cplusObjectLayout * object_ptr = getObject<Log4cplusObjectLayout,SGIItemLog4cplus>();
     bool ret = false;
     switch(itemType())
     {
@@ -184,7 +184,7 @@ bool objectTreeBuildImpl<Log4cplusObjectLayout>::build(IObjectTreeItem * treeIte
 
 bool objectTreeBuildImpl<Log4cplusObjectSimpleLayout>::build(IObjectTreeItem * treeItem)
 {
-    Log4cplusObjectSimpleLayout * object_ptr = static_cast<Log4cplusObjectSimpleLayout*>(item<SGIItemLog4cplus>()->object());
+    Log4cplusObjectSimpleLayout * object_ptr = getObject<Log4cplusObjectSimpleLayout,SGIItemLog4cplus>();
     bool ret = false;
     switch(itemType())
     {
@@ -199,7 +199,7 @@ bool objectTreeBuildImpl<Log4cplusObjectSimpleLayout>::build(IObjectTreeItem * t
 
 bool objectTreeBuildImpl<Log4cplusObjectPatternLayout>::build(IObjectTreeItem * treeItem)
 {
-    Log4cplusObjectPatternLayout * object_ptr = static_cast<Log4cplusObjectPatternLayout*>(item<SGIItemLog4cplus>()->object());
+    Log4cplusObjectPatternLayout * object_ptr = getObject<Log4cplusObjectPatternLayout,SGIItemLog4cplus>();
     bool ret = false;
     switch(itemType())
     {
@@ -228,7 +228,7 @@ struct LoggerRootSingleton
 
 bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeItem)
 {
-    ISceneGraphDialog * object = static_cast<ISceneGraphDialog*>(item<SGIItemInternal>()->object());
+    //ISceneGraphDialog * object = getObject<ISceneGraphDialog,SGIItemInternal>();
 
     SGIHostItemInternal hostItem(new SGIProxyItemT<LoggerRootSingleton>(_hostInterface, "log4cplus::RootLogger"));
     treeItem->addChild(std::string(), &hostItem);

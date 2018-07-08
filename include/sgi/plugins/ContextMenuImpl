@@ -34,7 +34,7 @@ public:
         typedef bool ResultType;
     };
 
-    contextMenuPopulateImplBaseT(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL)
+    contextMenuPopulateImplBaseT(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr)
         : functionImplBase(hostInterface, item) {}
 
     typedef details::call_by_type_registryT<TypePolicy> Registry;
@@ -78,8 +78,8 @@ public:
     class contextMenuPopulateImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        contextMenuPopulateImpl(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL) {}\
-        bool populate(IContextMenuItem * menuItem) { return false; } \
+        contextMenuPopulateImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, SGIItemBase * /*item*/=nullptr) {}\
+        bool populate(IContextMenuItem * /*menuItem*/) { return false; } \
     }; \
     typedef contextMenuPopulateImplBaseT<contextMenuPopulateImpl> contextMenuPopulateImplBase;
 
@@ -91,7 +91,7 @@ public:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        contextMenuPopulateImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * item=NULL) \
+        contextMenuPopulateImpl<__type>(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr) \
             : contextMenuPopulateImplBase(hostInterface, item) {} \
         bool populate(IContextMenuItem * menuItem); \
     };

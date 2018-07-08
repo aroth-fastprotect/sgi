@@ -73,8 +73,6 @@
 
 namespace sgi {
 
-class SGIItemOsg;
-
 namespace osg_plugin {
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg::Referenced)
@@ -207,7 +205,7 @@ extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg::C
 
 bool objectTreeBuildImpl<osg::Referenced>::build(IObjectTreeItem * treeItem)
 {
-    osg::Referenced * object = static_cast<osg::Referenced*>(item<SGIItemOsg>()->object());
+    osg::Referenced * object = getObject<osg::Referenced,SGIItemOsg>();
 
     switch(itemType())
     {
@@ -225,7 +223,7 @@ bool objectTreeBuildImpl<osg::Referenced>::build(IObjectTreeItem * treeItem)
 bool objectTreeBuildImpl<osg::ObserverSet>::build(IObjectTreeItem * treeItem)
 {
     bool ret = false;
-    osg::ObserverSet * object = static_cast<osg::ObserverSet*>(item<SGIItemOsg>()->object());
+    osg::ObserverSet * object = getObject<osg::ObserverSet,SGIItemOsg>();
 
     switch(itemType())
     {
@@ -253,7 +251,7 @@ bool objectTreeBuildImpl<osg::ObserverSet>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::Object>::build(IObjectTreeItem * treeItem)
 {
-    osg::Object * object = static_cast<osg::Object*>(item<SGIItemOsg>()->object());
+    osg::Object * object = getObject<osg::Object,SGIItemOsg>();
     bool ret;
 
     switch(itemType())
@@ -280,7 +278,7 @@ bool objectTreeBuildImpl<osg::Object>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::UserDataContainer>::build(IObjectTreeItem * treeItem)
 {
-    osg::UserDataContainer * object = static_cast<osg::UserDataContainer*>(item<SGIItemOsg>()->object());
+    osg::UserDataContainer * object = getObject<osg::UserDataContainer,SGIItemOsg>();
     bool ret;
     switch(itemType())
     {
@@ -312,7 +310,7 @@ bool objectTreeBuildImpl<osg::UserDataContainer>::build(IObjectTreeItem * treeIt
 
 bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
 {
-    osg::Node * object = static_cast<osg::Node*>(item<SGIItemOsg>()->object());
+    osg::Node * object = getObject<osg::Node,SGIItemOsg>();
     bool ret;
     switch(itemType())
     {
@@ -406,26 +404,26 @@ bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
             cb = object->getEventCallback();
             while(cb)
             {
-                SGIHostItemOsg callbackItem(cb, object);
+                SGIHostItemOsg callbackItem(cb, new SGIRefPtrOsg(object));
                 treeItem->addChild("EventCallback", &callbackItem);
                 cb = cb->getNestedCallback();
             }
             cb = object->getUpdateCallback();
             while(cb)
             {
-                SGIHostItemOsg callbackItem(cb, object);
+                SGIHostItemOsg callbackItem(cb, new SGIRefPtrOsg(object));
                 treeItem->addChild("UpdateCallback", &callbackItem);
                 cb = cb->getNestedCallback();
             }
             cb = object->getCullCallback();
             while(cb)
             {
-                SGIHostItemOsg callbackItem(cb, object);
+                SGIHostItemOsg callbackItem(cb, new SGIRefPtrOsg(object));
                 treeItem->addChild("CullCallback", &callbackItem);
                 cb = cb->getNestedCallback();
             }
 
-            SGIHostItemOsg computeBoundingSphereCallback(object->getComputeBoundingSphereCallback(), object);
+            SGIHostItemOsg computeBoundingSphereCallback(object->getComputeBoundingSphereCallback(), new SGIRefPtrOsg(object));
             if(computeBoundingSphereCallback.hasObject())
                 treeItem->addChild("ComputeBoundingSphereCallback", &computeBoundingSphereCallback);
             ret = true;
@@ -440,7 +438,7 @@ bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::Group>::build(IObjectTreeItem * treeItem)
 {
-    osg::Group * object = static_cast<osg::Group*>(item<SGIItemOsg>()->object());
+    osg::Group * object = getObject<osg::Group,SGIItemOsg>();
     bool ret;
     switch(itemType())
     {
@@ -497,7 +495,7 @@ bool objectTreeBuildImpl<osg::Group>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::Geode>::build(IObjectTreeItem * treeItem)
 {
-    osg::Geode * object = static_cast<osg::Geode*>(item<SGIItemOsg>()->object());
+    osg::Geode * object = getObject<osg::Geode,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -536,7 +534,7 @@ bool objectTreeBuildImpl<osg::Geode>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::Drawable>::build(IObjectTreeItem * treeItem)
 {
-    osg::Drawable * object = static_cast<osg::Drawable*>(item<SGIItemOsg>()->object());
+    osg::Drawable * object = getObject<osg::Drawable,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -612,7 +610,7 @@ bool objectTreeBuildImpl<osg::Drawable>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::ShapeDrawable>::build(IObjectTreeItem * treeItem)
 {
-    osg::ShapeDrawable * object = static_cast<osg::ShapeDrawable*>(item<SGIItemOsg>()->object());
+    osg::ShapeDrawable * object = getObject<osg::ShapeDrawable,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -638,7 +636,7 @@ bool objectTreeBuildImpl<osg::ShapeDrawable>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::Geometry>::build(IObjectTreeItem * treeItem)
 {
-    osg::Geometry * object = static_cast<osg::Geometry*>(item<SGIItemOsg>()->object());
+    osg::Geometry * object = getObject<osg::Geometry,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -746,7 +744,7 @@ bool objectTreeBuildImpl<osg::Geometry>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
 {
-    osg::StateSet * object = static_cast<osg::StateSet*>(item<SGIItemOsg>()->object());
+    osg::StateSet * object = getObject<osg::StateSet,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -933,14 +931,14 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::Transform>::build(IObjectTreeItem * treeItem)
 {
-    osg::Transform * object = static_cast<osg::Transform*>(item<SGIItemOsg>()->object());
+    osg::Transform * object = getObject<osg::Transform,SGIItemOsg>();
     bool ret = callNextHandler(treeItem);
     return ret;
 }
 
 bool objectTreeBuildImpl<osg::Camera>::build(IObjectTreeItem * treeItem)
 {
-    osg::Camera * object = static_cast<osg::Camera*>(item<SGIItemOsg>()->object());
+    osg::Camera * object = getObject<osg::Camera,SGIItemOsg>();
     bool ret;
     switch(itemType())
     {
@@ -990,19 +988,19 @@ bool objectTreeBuildImpl<osg::Camera>::build(IObjectTreeItem * treeItem)
     case SGIItemTypeCallbacks:
         {
             callNextHandler(treeItem);
-            SGIHostItemOsg initialDrawCallback(object->getInitialDrawCallback(), object);
+            SGIHostItemOsg initialDrawCallback(object->getInitialDrawCallback(), new SGIRefPtrOsg(object));
             if(initialDrawCallback.hasObject())
                 treeItem->addChild("InitialDrawCallback", &initialDrawCallback);
-            SGIHostItemOsg preDrawCallback(object->getPreDrawCallback(), object);
+            SGIHostItemOsg preDrawCallback(object->getPreDrawCallback(), new SGIRefPtrOsg(object));
             if(preDrawCallback.hasObject())
                 treeItem->addChild("PreDrawCallback", &preDrawCallback);
-            SGIHostItemOsg postDrawCallback(object->getPostDrawCallback(), object);
+            SGIHostItemOsg postDrawCallback(object->getPostDrawCallback(), new SGIRefPtrOsg(object));
             if(postDrawCallback.hasObject())
                 treeItem->addChild("PostDrawCallback", &postDrawCallback);
-            SGIHostItemOsg finalDrawCallback(object->getFinalDrawCallback(), object);
+            SGIHostItemOsg finalDrawCallback(object->getFinalDrawCallback(), new SGIRefPtrOsg(object));
             if(finalDrawCallback.hasObject())
                 treeItem->addChild("FinalDrawCallback", &finalDrawCallback);
-            SGIHostItemOsg clampProjectionMatrixCallback(object->getClampProjectionMatrixCallback(), object);
+            SGIHostItemOsg clampProjectionMatrixCallback(object->getClampProjectionMatrixCallback(), new SGIRefPtrOsg(object));
             if(clampProjectionMatrixCallback.hasObject())
                 treeItem->addChild("ClampProjectionMatrixCallback", &clampProjectionMatrixCallback);
             ret = true;
@@ -1048,7 +1046,7 @@ bool objectTreeBuildImpl<osg::Camera>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::View>::build(IObjectTreeItem * treeItem)
 {
-    osg::View * object = dynamic_cast<osg::View*>(item<SGIItemOsg>()->object());
+    osg::View * object = getObject<osg::View,SGIItemOsg,DynamicCaster>();
     bool ret = false;
     switch(itemType())
     {
@@ -1094,7 +1092,7 @@ bool objectTreeBuildImpl<osg::View>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::Shader>::build(IObjectTreeItem * treeItem)
 {
-    osg::Shader * object = dynamic_cast<osg::Shader*>(item<SGIItemOsg>()->object());
+    osg::Shader * object = getObject<osg::Shader,SGIItemOsg,DynamicCaster>();
     bool ret;
     switch(itemType())
     {
@@ -1128,7 +1126,7 @@ bool objectTreeBuildImpl<osg::Shader>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::Uniform>::build(IObjectTreeItem * treeItem)
 {
-    osg::Uniform * object = dynamic_cast<osg::Uniform*>(item<SGIItemOsg>()->object());
+    osg::Uniform * object = getObject<osg::Uniform,SGIItemOsg,DynamicCaster>();
     bool ret;
     switch(itemType())
     {
@@ -1177,11 +1175,11 @@ bool objectTreeBuildImpl<osg::Uniform>::build(IObjectTreeItem * treeItem)
             // first add all callbacks from base classes
             callNextHandler(treeItem);
 
-            SGIHostItemOsg eventCallback(object->getEventCallback(), object);
+            SGIHostItemOsg eventCallback(object->getEventCallback(), new SGIRefPtrOsg(object));
             if(eventCallback.hasObject())
                 treeItem->addChild("EventCallback", &eventCallback);
 
-            SGIHostItemOsg updateCallback(object->getUpdateCallback(), object);
+            SGIHostItemOsg updateCallback(object->getUpdateCallback(), new SGIRefPtrOsg(object));
             if(updateCallback.hasObject())
                 treeItem->addChild("UpdateCallback", &updateCallback);
 
@@ -1197,7 +1195,7 @@ bool objectTreeBuildImpl<osg::Uniform>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::Program>::build(IObjectTreeItem * treeItem)
 {
-    osg::Program * object = dynamic_cast<osg::Program*>(item<SGIItemOsg>()->object());
+    osg::Program * object = getObject<osg::Program,SGIItemOsg,DynamicCaster>();
     bool ret;
     switch(itemType())
     {
@@ -1481,7 +1479,7 @@ bool objectTreeBuildImpl<osg::PagedLOD>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::StateAttribute>::build(IObjectTreeItem * treeItem)
 {
-    osg::StateAttribute * object = dynamic_cast<osg::StateAttribute*>(item<SGIItemOsg>()->object());
+    osg::StateAttribute * object = getObject<osg::StateAttribute,SGIItemOsg,DynamicCaster>();
     bool ret = false;
     switch(itemType())
     {
@@ -1729,7 +1727,7 @@ bool objectTreeBuildImpl<osg::Texture::TextureObjectManager>::build(IObjectTreeI
 
 bool objectTreeBuildImpl<osg::Texture2D>::build(IObjectTreeItem * treeItem)
 {
-    osg::Texture2D * object = dynamic_cast<osg::Texture2D*>(item<SGIItemOsg>()->object());
+    osg::Texture2D * object = getObject<osg::Texture2D,SGIItemOsg,DynamicCaster>();
     bool ret;
     switch(itemType())
     {
@@ -1749,7 +1747,7 @@ bool objectTreeBuildImpl<osg::Texture2D>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::Texture3D>::build(IObjectTreeItem * treeItem)
 {
-    osg::Texture3D * object = dynamic_cast<osg::Texture3D*>(item<SGIItemOsg>()->object());
+    osg::Texture3D * object = getObject<osg::Texture3D,SGIItemOsg,DynamicCaster>();
     bool ret;
     switch(itemType())
     {
@@ -1769,7 +1767,7 @@ bool objectTreeBuildImpl<osg::Texture3D>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::Image>::build(IObjectTreeItem * treeItem)
 {
-    osg::Image * object = dynamic_cast<osg::Image*>(item<SGIItemOsg>()->object());
+    osg::Image * object = getObject<osg::Image,SGIItemOsg,DynamicCaster>();
     bool ret;
     switch(itemType())
     {
@@ -1849,7 +1847,7 @@ bool objectTreeBuildImpl<osg::BufferData>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osg::HeightField>::build(IObjectTreeItem * treeItem)
 {
-	osg::HeightField * object = dynamic_cast<osg::HeightField*>(item<SGIItemOsg>()->object());
+    osg::HeightField * object = getObject<osg::HeightField,SGIItemOsg,DynamicCaster>();
 	bool ret;
 	switch (itemType())
 	{
@@ -2207,7 +2205,7 @@ bool objectTreeBuildImpl<osgViewer::ViewerBase>::build(IObjectTreeItem * treeIte
 
 bool objectTreeBuildImpl<osgViewer::View>::build(IObjectTreeItem * treeItem)
 {
-    osgViewer::View * object = dynamic_cast<osgViewer::View*>(item<SGIItemOsg>()->object());
+    osgViewer::View * object = getObject<osgViewer::View,SGIItemOsg,DynamicCaster>();
     bool ret = false;
     switch(itemType())
     {
@@ -2277,7 +2275,7 @@ bool objectTreeBuildImpl<osgViewer::View>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osgViewer::Scene>::build(IObjectTreeItem * treeItem)
 {
-    osgViewer::Scene * object = static_cast<osgViewer::Scene*>(item<SGIItemOsg>()->object());
+    osgViewer::Scene * object = getObject<osgViewer::Scene,SGIItemOsg>();
     bool ret;
     switch(itemType())
     {
@@ -2307,7 +2305,7 @@ bool objectTreeBuildImpl<osgViewer::Scene>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osgViewer::Renderer>::build(IObjectTreeItem * treeItem)
 {
-    osgViewer::Renderer * object = dynamic_cast<osgViewer::Renderer*>(item<SGIItemOsg>()->object());
+    osgViewer::Renderer * object = getObject<osgViewer::Renderer,SGIItemOsg,DynamicCaster>();
     bool ret;
     switch(itemType())
     {
@@ -2381,7 +2379,7 @@ bool objectTreeBuildImpl<osgViewer::StatsHandler>::build(IObjectTreeItem * treeI
 
 bool objectTreeBuildImpl<osgViewer::GraphicsWindow>::build(IObjectTreeItem * treeItem)
 {
-    osgViewer::GraphicsWindow * object = static_cast<osgViewer::GraphicsWindow*>(item<SGIItemOsg>()->object());
+    osgViewer::GraphicsWindow * object = getObject<osgViewer::GraphicsWindow,SGIItemOsg>();
     bool ret = callNextHandler(treeItem);
     return ret;
 }
@@ -2389,7 +2387,7 @@ bool objectTreeBuildImpl<osgViewer::GraphicsWindow>::build(IObjectTreeItem * tre
 #ifdef SGI_USE_OSGQT
 bool objectTreeBuildImpl<osgQt::GraphicsWindowQt>::build(IObjectTreeItem * treeItem)
 {
-    osgQt::GraphicsWindowQt * object = static_cast<osgQt::GraphicsWindowQt*>(item<SGIItemOsg>()->object());
+    osgQt::GraphicsWindowQt * object = getObject<osgQt::GraphicsWindowQt,SGIItemOsg>();
     bool ret;
     switch(itemType())
     {
@@ -2456,7 +2454,7 @@ bool objectTreeBuildImpl<osgQt::GLWidget>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osgGA::GUIEventHandler>::build(IObjectTreeItem * treeItem)
 {
-    osgGA::GUIEventHandler * object = dynamic_cast<osgGA::GUIEventHandler*>(item<SGIItemOsg>()->object());
+    osgGA::GUIEventHandler * object = getObject<osgGA::GUIEventHandler,SGIItemOsg,DynamicCaster>();
     bool ret = callNextHandler(treeItem);
     switch(itemType())
     {
@@ -2468,7 +2466,7 @@ bool objectTreeBuildImpl<osgGA::GUIEventHandler>::build(IObjectTreeItem * treeIt
 
 bool objectTreeBuildImpl<osgGA::GUIEventAdapter>::build(IObjectTreeItem * treeItem)
 {
-    osgGA::GUIEventAdapter * object = static_cast<osgGA::GUIEventAdapter*>(item<SGIItemOsg>()->object());
+    osgGA::GUIEventAdapter * object = getObject<osgGA::GUIEventAdapter,SGIItemOsg>();
     bool ret = callNextHandler(treeItem);
     switch(itemType())
     {
@@ -2858,7 +2856,7 @@ bool objectTreeBuildImpl<osgDB::ReaderWriter>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<osgDB::DatabasePager>::build(IObjectTreeItem * treeItem)
 {
-    DatabasePagerAccessor * object = static_cast<DatabasePagerAccessor*>(dynamic_cast<osgDB::DatabasePager*>(item<SGIItemOsg>()->object()));
+    DatabasePagerAccessor * object = static_cast<DatabasePagerAccessor*>(getObject<osgDB::DatabasePager,SGIItemOsg,DynamicCaster>());
     bool ret;
     switch(itemType())
     {
@@ -2989,7 +2987,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::DatabaseThread
 
 bool objectTreeBuildImpl<osgDB::DatabasePager::DatabaseThread>::build(IObjectTreeItem * treeItem)
 {
-    osgDB::DatabasePager::DatabaseThread * object = dynamic_cast<osgDB::DatabasePager::DatabaseThread*>(item<SGIItemOsg>()->object());
+    osgDB::DatabasePager::DatabaseThread * object = getObject<osgDB::DatabasePager::DatabaseThread,SGIItemOsg,DynamicCaster>();
     bool ret;
     switch(itemType())
     {
@@ -3008,7 +3006,7 @@ bool objectTreeBuildImpl<osgDB::DatabasePager::DatabaseThread>::build(IObjectTre
 
 bool objectTreeBuildImpl<osgDB::ImagePager>::build(IObjectTreeItem * treeItem)
 {
-    osgDB::ImagePager * object = dynamic_cast<osgDB::ImagePager*>(item<SGIItemOsg>()->object());
+    osgDB::ImagePager * object = getObject<osgDB::ImagePager,SGIItemOsg,DynamicCaster>();
     bool ret;
     switch(itemType())
     {
@@ -4188,7 +4186,7 @@ bool objectTreeBuildImpl<RenderInfoGeometry>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<ReferencedPickerBase>::build(IObjectTreeItem * treeItem)
 {
-    ReferencedPickerBase * object = dynamic_cast<ReferencedPickerBase*>(item<SGIItemOsg>()->object());
+    ReferencedPickerBase * object = getObject<ReferencedPickerBase,SGIItemOsg,DynamicCaster>();
     bool ret;
     switch(itemType())
     {
@@ -4215,7 +4213,7 @@ bool objectTreeBuildImpl<ReferencedPickerBase>::build(IObjectTreeItem * treeItem
 #ifdef SGI_USE_OSGEARTH
 bool objectTreeBuildImpl<ReferencedPicker>::build(IObjectTreeItem * treeItem)
 {
-    ReferencedPicker * object = dynamic_cast<ReferencedPicker*>(item<SGIItemOsg>()->object());
+    ReferencedPicker * object = getObject<ReferencedPicker,SGIItemOsg>();
     bool ret;
     switch(itemType())
     {
@@ -4280,7 +4278,7 @@ bool objectTreeBuildImpl<ReferencedPicker>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<ReferencedLinePicker>::build(IObjectTreeItem * treeItem)
 {
-    ReferencedLinePicker * object = dynamic_cast<ReferencedLinePicker*>(item<SGIItemOsg>()->object());
+    ReferencedLinePicker * object = getObject<ReferencedLinePicker,SGIItemOsg,DynamicCaster>();
     bool ret;
     switch(itemType())
     {

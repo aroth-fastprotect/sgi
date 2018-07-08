@@ -106,7 +106,7 @@ SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(QIcon)
 SGI_OBJECT_INFO_END()
 
-SGI_OBJECT_INFO_BEGIN(osg::Referenced)
+SGI_OBJECT_INFO_BEGIN(sgi::details::Referenced)
     ISceneGraphDialog
 SGI_OBJECT_INFO_END()
 
@@ -115,7 +115,7 @@ namespace sgi {
 namespace qt_plugin {
 
 GENERATE_IMPL_TEMPLATE()
-GENERATE_IMPL_NO_ACCEPT(osg::Referenced)
+GENERATE_IMPL_NO_ACCEPT(sgi::details::Referenced)
 
 
 typedef generateItemImplT<generateItemAcceptImpl, SGIItemInternal, SGIItemQt, SGIItemQtMeta, SGIItemQtPaintDevice, SGIItemQtSurface, SGIItemQtIcon > generateItemImpl;
@@ -148,7 +148,7 @@ typedef SGIPluginImplementationT<       generateItemImpl,
 class SGIPlugin_qt_Implementation : public qt_plugin::SGIPluginImpl
 {
 public:
-    SGIPlugin_qt_Implementation(SGIPluginHostInterface * hostInterface=NULL)
+    SGIPlugin_qt_Implementation(SGIPluginHostInterface * hostInterface=nullptr)
         : qt_plugin::SGIPluginImpl(hostInterface)
     {
         SGIITEMTYPE_NAME(SGIItemTypeWidgets);
@@ -164,12 +164,12 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeShaderLog);
         SGIITEMTYPE_NAME(SGIItemTypePalette);
     }
-    SGIPlugin_qt_Implementation(const SGIPlugin_qt_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : qt_plugin::SGIPluginImpl(rhs, copyop)
+    SGIPlugin_qt_Implementation(const SGIPlugin_qt_Implementation & rhs)
+        : qt_plugin::SGIPluginImpl(rhs)
     {
     }
 
-    META_Object(sgi_qt, SGIPlugin_qt_Implementation);
+    SGI_Object(sgi_qt, SGIPlugin_qt_Implementation)
 };
 
 } // namespace sgi

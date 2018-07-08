@@ -58,22 +58,22 @@ namespace sgi {
 class SGIItemBase;
 class SGIDataItemBase;
 
-typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
-typedef osg::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
+typedef details::ref_ptr<SGIItemBase> SGIItemBasePtr;
+typedef details::ref_ptr<SGIDataItemBase> SGIDataItemBasePtr;
 
 namespace qt_helpers {
 
 class SGI_QT_HELPER_EXPORT QtSGIItem
 {
 public:
-    QtSGIItem(SGIItemType type=SGIItemTypeInvalid, SGIItemBase * item=NULL, bool populated=false, osg::Referenced * userData=NULL)
+    QtSGIItem(SGIItemType type=SGIItemTypeInvalid, SGIItemBase * item=nullptr, bool populated=false, details::Referenced * userData=nullptr)
         : _type(type), _item(item), _populated(populated), _userData(userData) {}
-    QtSGIItem(SGIItemBase * item, bool populated=false, osg::Referenced * userData=NULL)
+    QtSGIItem(SGIItemBase * item, bool populated=false, details::Referenced * userData=nullptr)
         : _type(item?item->type():SGIItemTypeInvalid), _item(item), _populated(populated), _userData(userData) {}
     QtSGIItem(const QtSGIItem & rhs)
         : _type(rhs._type), _item(rhs._item), _populated(rhs._populated), _userData(rhs._userData) {}
     ~QtSGIItem()
-        { _item = NULL; }
+        { _item = nullptr; }
 
     QtSGIItem & operator = (const QtSGIItem & rhs)
     {
@@ -92,23 +92,23 @@ public:
     void markAsPopulated() { _populated = true; }
     void markAsUnpopulated() { _populated = false; }
 
-    const osg::Referenced * userData() const { return _userData.get(); }
-    osg::Referenced * userData() { return _userData.get(); }
-    void setUserData(osg::Referenced * userData) { _userData = userData; }
+    const details::Referenced * userData() const { return _userData.get(); }
+    details::Referenced * userData() { return _userData.get(); }
+    void setUserData(details::Referenced * userData) { _userData = userData; }
 
 private:
     SGIItemType             _type;
     SGIItemBasePtr          _item;
     bool                    _populated;
-    osg::ref_ptr<osg::Referenced>   _userData;
+    SGIUserDataPtr          _userData;
 };
 
 class SGI_QT_HELPER_EXPORT QtMenuSGIItem : public QtSGIItem
 {
 public:
-    QtMenuSGIItem(SGIItemType type=SGIItemTypeInvalid, SGIItemBase * item=NULL, bool populated=false, osg::Referenced * userData=NULL)
+    QtMenuSGIItem(SGIItemType type=SGIItemTypeInvalid, SGIItemBase * item=nullptr, bool populated=false, details::Referenced * userData=nullptr)
         : QtSGIItem(type, item, populated, userData), _actionId(0), _mode(0) {}
-    QtMenuSGIItem(SGIItemBase * item, bool populated=false, osg::Referenced * userData=NULL)
+    QtMenuSGIItem(SGIItemBase * item, bool populated=false, details::Referenced * userData=nullptr)
         : QtSGIItem(item, populated, userData), _actionId(0), _mode(0) {}
     QtMenuSGIItem(const QtMenuSGIItem & rhs)
         : QtSGIItem(rhs), _actionId(rhs._actionId), _mode(rhs._mode) {}
@@ -137,7 +137,7 @@ private:
 class SGI_QT_HELPER_EXPORT QtTableSGIItem
 {
 public:
-    QtTableSGIItem(SGIDataItemBase * item=NULL, unsigned field=0)
+    QtTableSGIItem(SGIDataItemBase * item=nullptr, unsigned field=0)
         : _item(item), _field(field) {}
     QtTableSGIItem(const QtTableSGIItem & rhs)
         : _item(rhs._item), _field(rhs._field) {}

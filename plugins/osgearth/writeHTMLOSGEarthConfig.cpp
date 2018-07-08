@@ -133,9 +133,11 @@ void writePrettyHTMLImplForDriverOptions(SGIPluginHostInterface * hostInterface,
         actualOpts = new osgEarth::Drivers::GDALOptions(opts);
     else if(driver == "ogr")
         actualOpts = new osgEarth::Drivers::OGRFeatureOptions(opts);
-    SGIHostItemOsgEarthConfigOptions featureOptions((actualOpts==&opts)?SGIHostItemOsgEarthConfigOptions::NO_DELETE:SGIHostItemOsgEarthConfigOptions::USE_NEW_DELETE, actualOpts);
+    SGIHostItemOsgEarthConfigOptions featureOptions(*actualOpts);
     if(featureOptions.hasObject())
         hostInterface->writePrettyHTML(os, &featureOptions);
+    if(actualOpts != &opts)
+        delete actualOpts;
 }
 
 template<typename T>

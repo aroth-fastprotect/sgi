@@ -16,7 +16,7 @@ class MatrixInputDialog : public QDialog
     Q_OBJECT
 
 public:
-    MatrixInputDialog(QWidget *parent = 0, Qt::WindowFlags f = 0);
+    MatrixInputDialog(QWidget *parent = nullptr, Qt::WindowFlags f = 0);
     ~MatrixInputDialog();
 
 public slots:
@@ -45,7 +45,7 @@ protected:
     void                    fillMatrixUsageType(QComboBox * combo, MatrixUsage usage);
 
     static void             formatMatrixValue(const Matrix & matrix, QString & text, MatrixUsage usage);
-    static bool             parseMatrixValue(Matrix & matrix, const QString & text, MatrixUsage usage, bool * ok=NULL);
+    static bool             parseMatrixValue(Matrix & matrix, const QString & text, MatrixUsage usage, bool * ok=nullptr);
 
     void                    parseMatrixValue(const QString & text, MatrixUsage usage);
     void                    parseMatrixValue(QPlainTextEdit * textEdit, MatrixUsage usage);

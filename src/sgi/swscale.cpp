@@ -141,7 +141,7 @@ bool SWScale::load()
             sws_getContext = (pfn_sws_getContext)library->resolve("sws_getContext");
             sws_scale = (pfn_sws_scale)library->resolve("sws_scale");
             sws_freeContext = (pfn_sws_freeContext)library->resolve("sws_freeContext");
-            ready = (sws_getContext != NULL && sws_scale != NULL && sws_freeContext != NULL);
+            ready = (sws_getContext != nullptr && sws_scale != nullptr && sws_freeContext != nullptr);
             std::cout << "Loaded swscale library " << library->fileName() << " ready=" << ready << std::endl;
         }
         else
@@ -171,10 +171,10 @@ bool SWScale::convert_with_avcodec(const sgi::Image& src, sgi::Image& dest)
     const unsigned destPlaneOffset[4] = { dest.planeOffset(0), dest.planeOffset(1), dest.planeOffset(2), dest.planeOffset(3) };
     uint8_t* destPlanes[4] = { destdata + destPlaneOffset[0], destdata + destPlaneOffset[1], destdata + destPlaneOffset[2], destdata + destPlaneOffset[3] };
 
-    Q_ASSERT(sws_getContext != NULL);
+    Q_ASSERT(sws_getContext != nullptr);
     ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
         dest.width(), dest.height(), destPixelFormat,
-        SWS_BILINEAR, NULL, NULL, NULL);
+        SWS_BILINEAR, nullptr, nullptr, nullptr);
     sws_scale(ctx, srcPlanes, srcPitch, 0, src.height(), destPlanes, destPitch);
     sws_freeContext(ctx);
     return true;
@@ -198,15 +198,15 @@ bool SWScale::to_qimage_argb32_with_avcodec(const sgi::Image& src, QImage& dest,
         uint8_t* dstdata = reinterpret_cast<uint8_t*>(dest.bits());
         int dstPitch[4] = { (int)dest.bytesPerLine(), 0, 0, 0 };
         const unsigned dstPlaneOffset[4] = { 0, 0, 0, 0 };
-        uint8_t * dstPlanes[4] = { dstdata + dstPlaneOffset[0], NULL, NULL, NULL };
+        uint8_t * dstPlanes[4] = { dstdata + dstPlaneOffset[0], nullptr, nullptr, nullptr };
 
-        Q_ASSERT(sws_getContext != NULL);
+        Q_ASSERT(sws_getContext != nullptr);
         ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
                                                     dest.width(), dest.height(),
                                                     // The QImage::Format_ARGB32 is the BGRA format on ffmpeg side, with the more
                                                     // obvious ffmpeg::AV_PIX_FMT_ARGB the red-blue colors are swapped.
                                                     ffmpeg::AV_PIX_FMT_BGRA,
-                                                    SWS_BILINEAR, NULL, NULL, NULL);
+                                                    SWS_BILINEAR, nullptr, nullptr, nullptr);
         sws_scale(ctx, srcPlanes, srcPitch, 0, src.height(), dstPlanes, dstPitch);
         sws_freeContext(ctx);
     }
@@ -222,15 +222,15 @@ bool SWScale::to_qimage_argb32_with_avcodec(const sgi::Image& src, QImage& dest,
         uint8_t* dstdata = reinterpret_cast<uint8_t*>(dest.bits());
         int dstPitch[4] = { (int)dest.bytesPerLine(), 0, 0, 0 };
         const unsigned dstPlaneOffset[4] = { 0, 0, 0, 0 };
-        uint8_t * dstPlanes[4] = { dstdata + dstPlaneOffset[0], NULL, NULL, NULL };
+        uint8_t * dstPlanes[4] = { dstdata + dstPlaneOffset[0], nullptr, nullptr, nullptr };
 
-        Q_ASSERT(sws_getContext != NULL);
+        Q_ASSERT(sws_getContext != nullptr);
         ffmpeg::SwsContext * ctx = sws_getContext(src.width(), src.height(), srcPixelFormat,
                                                     dest.width(), dest.height(),
                                                     // The QImage::Format_ARGB32 is the BGRA format on ffmpeg side, with the more
                                                     // obvious ffmpeg::AV_PIX_FMT_ARGB the red-blue colors are swapped.
                                                     ffmpeg::AV_PIX_FMT_BGRA,
-                                                    SWS_BILINEAR, NULL, NULL, NULL);
+                                                    SWS_BILINEAR, nullptr, nullptr, nullptr);
         sws_scale(ctx, srcPlanes, srcPitch, 0, src.height(), dstPlanes, dstPitch);
         sws_freeContext(ctx);
     }
@@ -574,12 +574,12 @@ inline QRgb compute_pixel<float>(const ColorGradient & colorGradient, const floa
         return colorGradient.getInvalidColor();
 }
 
-QLibrary * SWScale::library = NULL;
+QLibrary * SWScale::library = nullptr;
 bool SWScale::loadAttempted = false;
 bool SWScale::ready = false;
-SWScale::pfn_sws_getContext SWScale::sws_getContext = NULL;
-SWScale::pfn_sws_scale SWScale::sws_scale = NULL;
-SWScale::pfn_sws_freeContext SWScale::sws_freeContext = NULL;
+SWScale::pfn_sws_getContext SWScale::sws_getContext = nullptr;
+SWScale::pfn_sws_scale SWScale::sws_scale = nullptr;
+SWScale::pfn_sws_freeContext SWScale::sws_freeContext = nullptr;
 
 } // namespace sgi
 

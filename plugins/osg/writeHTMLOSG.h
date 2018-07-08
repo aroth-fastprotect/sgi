@@ -13,6 +13,7 @@ namespace osg {
     class StateSet;
     class StateAttribute;
     class Drawable;
+    class Array;
     class Geode;
     class Geometry;
     class ShapeDrawable;
@@ -106,8 +107,6 @@ namespace sgi {
 class ReferencedPickerBase;
 class ReferencedPicker;
 class ReferencedLinePicker;
-
-class SGIItemOsg;
 
 namespace osg_plugin {
 

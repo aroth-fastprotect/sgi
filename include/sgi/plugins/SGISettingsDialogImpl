@@ -1,5 +1,5 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
 
@@ -9,15 +9,15 @@ namespace sgi {
 namespace details {
     template<class DIALOG_CLASS>
     struct IgnoreSetObjectPolicy {
-        IgnoreSetObjectPolicy(DIALOG_CLASS * dialog) {}
-        void            setObject(SGIItemBase * item, ISettingsDialogInfo * info=NULL) {}
-        void            setObject(const SGIHostItemBase * item, ISettingsDialogInfo * info=NULL) {}
+        IgnoreSetObjectPolicy(DIALOG_CLASS * /*dialog*/) {}
+        void            setObject(SGIItemBase * /*item*/, ISettingsDialogInfo * /*info*/=nullptr) {}
+        void            setObject(const SGIHostItemBase * /*item*/, ISettingsDialogInfo * /*info*/=nullptr) {}
     };
     template<class DIALOG_CLASS>
     struct PerformSetObjectPolicy {
         PerformSetObjectPolicy(DIALOG_CLASS * dialog) : _dialog(dialog) {}
-        void            setObject(SGIItemBase * item, ISettingsDialogInfo * info=NULL) { _dialog->setObject(item, info); }
-        void            setObject(const SGIHostItemBase * item, ISettingsDialogInfo * info=NULL) { _dialog->setObject(item, info); }
+        void            setObject(SGIItemBase * item, ISettingsDialogInfo * info=nullptr) { _dialog->setObject(item, info); }
+        void            setObject(const SGIHostItemBase * item, ISettingsDialogInfo * info=nullptr) { _dialog->setObject(item, info); }
         DIALOG_CLASS * _dialog;
     };
 }
@@ -31,15 +31,15 @@ public:
         {
             _dialog->setAttribute(Qt::WA_DeleteOnClose);
         }
-    virtual ~SettingsDialogImplT()
+    ~SettingsDialogImplT() override
         { }
 
-    virtual void            setObject(SGIItemBase * item, ISettingsDialogInfo * info=NULL) { _setObject.setObject(item, info); }
-    virtual void            setObject(const SGIHostItemBase * item, ISettingsDialogInfo * info=NULL) { _setObject.setObject(item, info); }
-    virtual void            show() { _dialog->show(); }
-    virtual void            hide() { _dialog->hide(); }
-    virtual bool            isVisible() { return _dialog->isVisible(); }
-    virtual int             showModal() { return _dialog->exec(); }
+    void            setObject(SGIItemBase * item, ISettingsDialogInfo * info=nullptr) override { _setObject.setObject(item, info); }
+    void            setObject(const SGIHostItemBase * item, ISettingsDialogInfo * info=nullptr) override { _setObject.setObject(item, info); }
+    void            show() override { _dialog->show(); }
+    void            hide() override { _dialog->hide(); }
+    bool            isVisible() override { return _dialog->isVisible(); }
+    int             showModal() override { return _dialog->exec(); }
 
 protected:
     DIALOG_CLASS * _dialog;

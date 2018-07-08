@@ -97,13 +97,15 @@
 #include <osgEarthDrivers/feature_ogr/OGRFeatureOptions>
 #include <osgEarthDrivers/gdal/GDALOptions>
 
-#include "ElevationQueryReferenced"
 #include "geo_helpers.h"
 
 using namespace sgi::osgearth_plugin;
 
+SGI_OBJECT_INFO_BEGIN(sgi::details::Referenced)
+    sgi::ISceneGraphDialog
+SGI_OBJECT_INFO_END()
+
 SGI_OBJECT_INFO_BEGIN(osg::Referenced)
-    sgi::ISceneGraphDialog,
     osg::Object, 
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::Map, 
@@ -434,7 +436,7 @@ GENERATE_IMPL_NO_ACCEPT(osg::NodeCallback)
 GENERATE_IMPL_NO_ACCEPT(osgGA::EventHandler)
 GENERATE_IMPL_NO_ACCEPT(osgGA::GUIEventHandler)
 GENERATE_IMPL_NO_ACCEPT(osgGA::CameraManipulator)
-//GENERATE_IMPL_NO_ACCEPT(osg::Node)
+GENERATE_IMPL_NO_ACCEPT(osg::Node)
 GENERATE_IMPL_NO_ACCEPT(osg::StateAttribute)
 GENERATE_IMPL_NO_ACCEPT(osg::Group)
 GENERATE_IMPL_NO_ACCEPT(osg::LOD)
@@ -444,60 +446,10 @@ GENERATE_IMPL_NO_ACCEPT(osg::Transform)
 GENERATE_IMPL_NO_ACCEPT(osg::MatrixTransform)
 GENERATE_IMPL_NO_ACCEPT(osg::Camera)
 GENERATE_IMPL_NO_ACCEPT(osg::BufferData)
-//GENERATE_IMPL_NO_ACCEPT(osg::Image)
+GENERATE_IMPL_NO_ACCEPT(osg::Image)
 
 GENERATE_IMPL_NO_ACCEPT(osgDB::ReaderWriter)
 
-class generateSGIItemEarthConfig
-{
-public:
-    typedef SGIItemEarthConfig SGIItemClass;
-    typedef osgEarth::Config * ObjectStorageType;
-    generateSGIItemEarthConfig()
-        : _level(0), _acceptLevel(-1), _itemType(SGIItemTypeInvalid), _accepted(NULL)
-    {
-    }
-    template<typename T>
-    void ascend(T * object)
-    {
-        _level--;
-    }
-    template<typename T>
-    void decend(T * object)
-    {
-        _level++;
-    }
-    template<typename T>
-    void accept(T * object)
-    {
-        _accepted = object;
-        _acceptLevel = _level;
-        _itemType = SGIItemTypeObject;
-    }
-    template<typename T>
-    bool canAccept(T * object)
-    {
-        return true;
-    }
-    bool wasAccepted() const
-    {
-        return (_accepted != NULL);
-    }
-
-    SGIItemEarthConfig * getItem()
-    {
-        if(_accepted != NULL)
-            return new SGIItemEarthConfig(_itemType, *_accepted, 0, _acceptLevel);
-        else
-            return NULL;
-    }
-
-private:
-    unsigned    _level;
-    unsigned    _acceptLevel;
-    SGIItemType _itemType;
-    ObjectStorageType   _accepted;
-};
 
 typedef generateItemImplT<generateItemAcceptImpl, SGIItemOsg, SGIItemEarthConfig, SGIItemEarthConfigOptions, SGIItemInternal> generateItemImpl;
 
@@ -525,7 +477,7 @@ typedef SGIPluginImplementationT<       generateItemImpl,
 class SGIPlugin_osgearth_Implementation : public osgearth_plugin::SGIPluginImpl
 {
 public:
-    SGIPlugin_osgearth_Implementation(SGIPluginHostInterface * hostInterface=NULL)
+    SGIPlugin_osgearth_Implementation(SGIPluginHostInterface * hostInterface=nullptr)
         : osgearth_plugin::SGIPluginImpl(hostInterface)
     {
         SGIITEMTYPE_NAME(SGIItemTypeLayers);
@@ -562,12 +514,12 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeProgramSharedRepo);
         SGIITEMTYPE_NAME(SGIItemTypePickerContext);
     }
-    SGIPlugin_osgearth_Implementation(const SGIPlugin_osgearth_Implementation & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : osgearth_plugin::SGIPluginImpl(rhs, copyop)
+    SGIPlugin_osgearth_Implementation(const SGIPlugin_osgearth_Implementation & rhs)
+        : osgearth_plugin::SGIPluginImpl(rhs)
     {
     }
 
-    META_Object(sgi_osgearth, SGIPlugin_osgearth_Implementation);
+    SGI_Object(sgi_osgearth, SGIPlugin_osgearth_Implementation)
 };
 
 } // namespace sgi

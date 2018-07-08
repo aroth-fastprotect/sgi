@@ -1,4 +1,4 @@
-// kate: syntax C++11;
+// kate: syntax C++;
 // SGI - @SGI_COPYRIGHT_TEXT@ FAST Protect, Andreas Roth
 
 #pragma once
@@ -8,6 +8,11 @@
     #    define SGI_EXPORT   __declspec(dllexport)
     #  else
     #    define SGI_EXPORT   __declspec(dllimport)
+    #  endif
+    #  if defined( SGI_REF_LIBRARY )
+    #    define SGI_REF_EXPORT   __declspec(dllexport)
+    #  else
+    #    define SGI_REF_EXPORT   __declspec(dllimport)
     #  endif
     #  if defined( SGI_IMPL_LIBRARY )
     #    define SGI_IMPL_EXPORT   __declspec(dllexport)
@@ -26,11 +31,13 @@
     #  endif
 #elif defined(__GNUC__)
     #  define SGI_EXPORT __attribute__ ((visibility ("default")))
+    #  define SGI_REF_EXPORT __attribute__ ((visibility ("default")))
     #  define SGI_IMPL_EXPORT __attribute__ ((visibility ("default")))
     #  define SGI_OSG_HELPER_EXPORT __attribute__ ((visibility ("default")))
     #  define SGI_QT_HELPER_EXPORT __attribute__ ((visibility ("default")))
 #else
     #  define SGI_EXPORT
+    #  define SGI_REF_EXPORT
     #  define SGI_IMPL_EXPORT
     #  define SGI_OSG_HELPER_EXPORT
     #  define SGI_QT_HELPER_EXPORT
@@ -43,9 +50,10 @@ The sgi library is a NodeKit that allows to inspect and modify a scene graph dur
 */
 
 
-#define SGI_MAJOR_VERSION    @SGI_MAJOR_VERSION@
-#define SGI_MINOR_VERSION    @SGI_MINOR_VERSION@
-#define SGI_PATCH_VERSION    @SGI_PATCH_VERSION@
+#define SGI_VERSION_MAJOR    @SGI_VERSION_MAJOR@
+#define SGI_VERSION_MINOR    @SGI_VERSION_MINOR@
+#define SGI_VERSION_PATCH    @SGI_VERSION_PATCH@
+#define SGI_VERSION_BUILD    @SGI_VERSION_BUILD@
 #define SGI_SOVERSION        @SGI_SOVERSION@
 
 #define SGI_VERSION_STR      "@SGI_VERSION@"

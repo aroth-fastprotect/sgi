@@ -50,7 +50,7 @@ IObjectTreeItem * ObjectTreeItem::root()
     if(widget)
         return new ObjectTreeItem(widget->invisibleRootItem(), _hostInterface);
     else
-        return NULL;
+        return nullptr;
 }
 
 IObjectTreeItem * ObjectTreeItem::parent()
@@ -59,7 +59,7 @@ IObjectTreeItem * ObjectTreeItem::parent()
     if(parent)
         return new ObjectTreeItem(parent, _hostInterface);
     else
-        return NULL;
+        return nullptr;
 }
 
 void ObjectTreeItem::clear()
@@ -76,11 +76,11 @@ IObjectTreeItem * ObjectTreeItem::addChild(const std::string & name, SGIItemBase
 
 IObjectTreeItem * ObjectTreeItem::addChild(const std::string & name, const SGIHostItemBase * hostitem)
 {
-    osg::ref_ptr<SGIItemBase> item;
+    details::ref_ptr<SGIItemBase> item;
     if(_hostInterface->generateItem(item, hostitem))
         return addChildImpl(name, item.get());
     else
-        return NULL;
+        return nullptr;
 }
 
 IObjectTreeItem * ObjectTreeItem::insertChild(IObjectTreeItem * sibling, const std::string & name, SGIItemBase * item)
@@ -91,20 +91,20 @@ IObjectTreeItem * ObjectTreeItem::insertChild(IObjectTreeItem * sibling, const s
 
 IObjectTreeItem * ObjectTreeItem::insertChild(IObjectTreeItem * sibling, const std::string & name, const SGIHostItemBase * hostitem)
 {
-    osg::ref_ptr<SGIItemBase> item;
+    details::ref_ptr<SGIItemBase> item;
     if (_hostInterface->generateItem(item, hostitem))
     {
         int index = sibling ? _item->indexOfChild(static_cast<ObjectTreeItem*>(sibling)->_item) : -1;
         return insertChildImpl(index, name, item.get());
     }
     else
-        return NULL;
+        return nullptr;
 }
 
 IObjectTreeItem * ObjectTreeItem::findChild(const std::string & name)
 {
     QString qname = fromUtf8(name);
-    QTreeWidgetItem * retitem = NULL;
+    QTreeWidgetItem * retitem = nullptr;
     for(int n = _item->childCount() - 1; !retitem && n >= 0; n--)
     {
         QTreeWidgetItem * child = _item->child(n);
@@ -114,7 +114,7 @@ IObjectTreeItem * ObjectTreeItem::findChild(const std::string & name)
     if(retitem)
         return new ObjectTreeItem(retitem, _hostInterface);
     else
-        return NULL;
+        return nullptr;
 }
 
 IObjectTreeItem * ObjectTreeItem::addChildIfNotExists(const std::string & name, SGIItemBase * item)
@@ -232,7 +232,7 @@ void ObjectTreeItem::children(IObjectTreeItemPtrList & children)
 IObjectTreeItem * ObjectTreeItem::selectedItem()
 {
     if(!_item)
-        return NULL;
+        return nullptr;
     QTreeWidgetItem * selitem = _item->treeWidget()->currentItem();
     return new ObjectTreeItem(selitem, _hostInterface);
 }
