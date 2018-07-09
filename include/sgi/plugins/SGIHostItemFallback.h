@@ -1,21 +1,12 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
 #include "SGIHostItemBase.h"
 
 namespace sgi {
-namespace support {
 
-class SGIHostItemFallback : public SGIHostItemImpl<void>
-{
-public:
-    SGIHostItemFallback(void * object)
-        : SGIHostItemImpl<void>(object)
-        {}
-};
-} // namespace support
-
-typedef support::SGIHostItemFallback SGIHostItemFallback;
+typedef SGIItemInfoPlainPtr<void> SGIItemInfoFallback;
+typedef SGIHostItemImpl<SGIItemInfoFallback> SGIHostItemFallback;
 
 } // namespace sgi
