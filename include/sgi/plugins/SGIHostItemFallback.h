@@ -6,7 +6,7 @@
 
 namespace sgi {
 
-typedef SGIItemInfoPlainPtr<void> SGIItemInfoFallback;
+typedef SGIItemInfoPlainPtr<void,void*, details::copy_object,details::do_not_delete> SGIItemInfoFallback;
 typedef SGIHostItemImpl<SGIItemInfoFallback> SGIHostItemFallback;
 
 } // namespace sgi
