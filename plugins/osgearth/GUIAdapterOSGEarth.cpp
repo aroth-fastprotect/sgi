@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "GUIAdapterOSGEarth.h"
-#include "../osg/SGIItemOsg"
+#include <sgi/plugins/SGIItemOsg>
 
 #include "ContextMenuOSGEarth.h"
 

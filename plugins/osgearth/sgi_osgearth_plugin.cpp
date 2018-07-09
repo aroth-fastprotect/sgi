@@ -9,7 +9,7 @@
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/plugins/SettingsDialog>
 #include <sgi/plugins/SceneGraphDialog>
-#include "../osg/SGIItemOsg"
+#include <sgi/plugins/SGIItemOsg>
 #include "SGIItemOsgEarth"
 #include <sgi/SGIItemInternal>
 

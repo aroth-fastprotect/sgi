@@ -32,7 +32,10 @@ FUNCTION(SGI_CREATE_SYMLINK src_file dest_file)
     if(UNIX)
         execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_SOURCE_DIR}/${src_file} ${dest_file})
     else()
-        file(WRITE ${dest_file} "#include \"${CMAKE_CURRENT_SOURCE_DIR}/${src_file}\"\n")
-        #execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/${src_file} ${dest_file})
+        # Generate a "wrapper" header file to simulate a symlink for this poor OS (win32). But this does 
+        # not work when the "wrapper" header file is installed as public header file. Therefore we use
+        # cmake copy to avoid this issue.
+        #file(WRITE ${dest_file} "#include \"${CMAKE_CURRENT_SOURCE_DIR}/${src_file}\"\n")
+        execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/${src_file} ${dest_file})
     endif()
 ENDFUNCTION(SGI_CREATE_SYMLINK)

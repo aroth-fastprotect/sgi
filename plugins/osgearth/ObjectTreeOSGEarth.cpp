@@ -4,7 +4,7 @@
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SGIHostItemOsgEarth.h>
 #include <sgi/plugins/SGIHostItemInternal.h>
-#include "../osg/SGIItemOsg"
+#include <sgi/plugins/SGIItemOsg>
 #include "SGIItemOsgEarth"
 
 #include <sgi/SGIItemInternal>
