@@ -38,7 +38,7 @@
 #include <QtCore/qmath.h>
 
 #include <QtGui/qimage.h>
-#include <osg/Image>
+//#include <osg/Image>
 
 #ifndef GL_EXT_texture_compression_s3tc
     #define GL_COMPRESSED_RGB_S3TC_DXT1_EXT         0x83F0
@@ -1370,6 +1370,7 @@ static int formatByName(const QByteArray &name)
     return FormatUnknown;
 }
 
+#if 0
 QImage decodeDDSImage(const osg::Image * image)
 {
 	QByteArray imageData((const char*)image->data(), image->getTotalDataSize());
@@ -1430,6 +1431,7 @@ QImage decodeDDSImage(const osg::Image * image)
 
 	return ok ? ret : QImage();
 }
+#endif
 
 QT_END_NAMESPACE
 

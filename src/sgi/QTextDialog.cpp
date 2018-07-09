@@ -11,7 +11,7 @@ namespace sgi {
 
 QTextDialog::QTextDialog(QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)
-	, ui(NULL)
+    , ui(nullptr)
 {
 	ui = new Ui_QTextDialog;
     ui->setupUi( this );
@@ -22,7 +22,7 @@ QTextDialog::~QTextDialog()
 	if (ui)
 	{
 		delete ui;
-		ui = NULL;
+        ui = nullptr;
 	}
 }
 

@@ -11,6 +11,66 @@
 
 Q_LOGGING_CATEGORY(helloWorldQt, "helloWorldQt", QtDebugMsg)
 
+bool isImageFile(const QString & filename)
+{
+    QByteArray format = QImageReader::imageFormat(filename);
+    return !format.isNull();
+}
+
+struct ImageFile {
+    ImageFile(const QString & file, const QByteArray & fmt )
+        : filename(file), format(fmt) {}
+    QString filename;
+    QByteArray format;
+};
+
+bool sendSGIRawCommand(const QByteArray & cmd)
+{
+    QBuffer dummyMem;
+    QImage load_file_with_sgi;
+    dummyMem.setData(cmd);
+    return load_file_with_sgi.load(&dummyMem, "sgi_loader");
+}
+
+bool openSGIImage(const ImageFile & imgf)
+{
+    QBuffer dummyMem;
+    QImage load_file_with_sgi;
+    dummyMem.setData("{\n\"image\": {\n\"filename\": \"" + imgf.filename.toLocal8Bit() + "\",\n\"format\": \"" + imgf.format + "\"}\n}");
+    return load_file_with_sgi.load(&dummyMem, "sgi_loader");
+}
+
+QByteArray parseSGICommand(const QString & arg)
+{
+    QByteArray cmd;
+    if(arg == "list-plugins")
+    {
+        cmd = "{\n\"list-plugins\": {}\n}";
+    }
+    else if(arg == "app")
+    {
+        cmd = "{\n\"object\": { \"name\":\"app\" }\n}";
+    }
+    else if(arg == "sgi-info")
+    {
+        cmd = "{\n\"object\": { \"name\":\"sgi\" }\n}";
+    }
+    else if (arg == "mainwindow")
+    {
+        cmd = "{\n\"object\": { \"name\":\"mainwindow\" }\n}";
+    }
+    return cmd;
+}
+
+bool sendSGITextCommand(const QString & cmd)
+{
+    QByteArray raw = parseSGICommand(cmd);
+    if(raw.isNull())
+        return false;
+    return sendSGIRawCommand(raw);
+}
+
+
 MainWindow::MainWindow(QImage * image, QWidget * parent)
     : QMainWindow(parent)
 {
@@ -31,23 +91,15 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::sgiVersionInfo()
+{
+    sendSGITextCommand("sgi-info");
+}
+
 void MainWindow::fileQuit()
 {
     QApplication::quit();
 }
-
-bool isImageFile(const QString & filename)
-{
-    QByteArray format = QImageReader::imageFormat(filename);
-    return !format.isNull();
-}
-
-struct ImageFile {
-    ImageFile(const QString & file, const QByteArray & fmt )
-        : filename(file), format(fmt) {}
-    QString filename;
-    QByteArray format;
-};
 
 int main(int argc, char **argv)
 {
@@ -75,28 +127,11 @@ int main(int argc, char **argv)
             if(isLongArg)
             {
                 QString longarg = arg.mid(2);
-                if(longarg == "list-plugins")
-                {
-                    QByteArray cmd;
-                    cmd = "{\n\"list-plugins\": {}\n}";
-                    rawCommands.append(cmd);
-                }
-                else if(longarg == "app")
-                {
-                    QByteArray cmd;
-                    cmd = "{\n\"object\": { \"name\":\"app\" }\n}";
-                    rawCommands.append(cmd);
-                }
-                else if (longarg == "mainwindow")
-                {
-                    QByteArray cmd;
-                    cmd = "{\n\"object\": { \"name\":\"mainwindow\" }\n}";
-                    rawCommands.append(cmd);
-                }
-                else
-                {
+                QByteArray cmd = parseSGICommand(longarg);
+                if(cmd.isNull())
                     qCritical() << "invalid argument" << arg;
-                }
+                else
+                    rawCommands.append(cmd);
             }
             else
             {
@@ -121,28 +156,24 @@ int main(int argc, char **argv)
     else
         qWarning(helloWorldQt) << "failed to load sgi.";
 
+#if 0
     for(const QByteArray & format : QImageReader::supportedImageFormats())
     {
         qWarning(helloWorldQt) << "reader " << format;
     }
+#endif
 
     if(!load_sgi.isNull())
     {
         for(const QByteArray & cmd : rawCommands)
         {
-            QBuffer dummyMem;
-            QImage load_file_with_sgi;
-            dummyMem.setData(cmd);
-            if(!load_file_with_sgi.load(&dummyMem, "sgi_loader"))
+            if(!sendSGIRawCommand(cmd))
                 qWarning(helloWorldQt) << "Command" << cmd << "failed";
         }
 
         for(const ImageFile & imgf : imageFiles)
         {
-            QBuffer dummyMem;
-            QImage load_file_with_sgi;
-            dummyMem.setData("{\n\"image\": {\n\"filename\": \"" + imgf.filename.toLocal8Bit() + "\",\n\"format\": \"" + imgf.format + "\"}\n}");
-            if(load_file_with_sgi.load(&dummyMem, "sgi_loader"))
+            if(openSGIImage(imgf))
                 qWarning(helloWorldQt) << imgf.filename << " loading...";
         }
     }

@@ -1,5 +1,5 @@
 // kate: mode C++;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
 
@@ -24,7 +24,7 @@ public:
         typedef bool ResultType;
     };
 
-    writePrettyHTMLImplBaseT(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool table=true)
+    writePrettyHTMLImplBaseT(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr, bool table=true)
         : functionImplBase(hostInterface, item), _table(table) {}
 
     typedef details::call_by_type_registryT<TypePolicy> Registry;
@@ -72,8 +72,8 @@ protected:
     class writePrettyHTMLImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        writePrettyHTMLImpl(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool table=true) {} \
-        bool process(std::basic_ostream<char>& os) { return false; } \
+        writePrettyHTMLImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, const SGIItemBase * /*item*/=nullptr, bool /*table*/=true) {} \
+        bool process(std::basic_ostream<char>& /*os*/) { return false; } \
     }; \
     typedef writePrettyHTMLImplBaseT<writePrettyHTMLImpl> writePrettyHTMLImplBase;
 
@@ -85,7 +85,7 @@ protected:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        writePrettyHTMLImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, const SGIItemBase * item=NULL, bool table=true) \
+        writePrettyHTMLImpl<__type>(SGIPluginHostInterface * hostInterface=nullptr, const SGIItemBase * item=nullptr, bool table=true) \
             : writePrettyHTMLImplBase(hostInterface, item, table) {} \
         bool process(std::basic_ostream<char>& os); \
     };

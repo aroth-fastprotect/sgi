@@ -34,7 +34,7 @@ public:
         typedef bool ResultType;
     };
 
-    guiAdapterParentWidgetImplBaseT(SGIPluginHostInterface * hostInterface=NULL, QWidgetPtr * widget=NULL, SGIItemBase * item=NULL)
+    guiAdapterParentWidgetImplBaseT(SGIPluginHostInterface * hostInterface=nullptr, QWidgetPtr * widget=nullptr, SGIItemBase * item=nullptr)
         : functionImplBase(hostInterface, item)
         , _widget(widget)
         {}
@@ -75,7 +75,7 @@ protected:
     class guiAdapterParentWidgetImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        guiAdapterParentWidgetImpl(SGIPluginHostInterface * hostInterface=NULL, QWidgetPtr * widget=NULL, SGIItemBase * item=NULL) {} \
+        guiAdapterParentWidgetImpl(SGIPluginHostInterface * hostInterface=nullptr, QWidgetPtr * widget=nullptr, SGIItemBase * item=nullptr) {} \
         bool execute() { return false; } \
     }; \
     typedef guiAdapterParentWidgetImplBaseT<guiAdapterParentWidgetImpl> guiAdapterParentWidgetImplBase;
@@ -88,7 +88,7 @@ protected:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        guiAdapterParentWidgetImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, QWidgetPtr * widget=NULL, SGIItemBase * item=NULL) \
+        guiAdapterParentWidgetImpl<__type>(SGIPluginHostInterface * hostInterface=nullptr, QWidgetPtr * widget=nullptr, SGIItemBase * item=nullptr) \
             : guiAdapterParentWidgetImplBase(hostInterface, widget, item) {} \
         bool execute(); \
     };
@@ -117,7 +117,7 @@ public:
         typedef bool ResultType;
     };
 
-    guiAdapterSetViewImplBaseT(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * view=NULL, const SGIItemBase * targetItem=NULL, double animationTime=0)
+    guiAdapterSetViewImplBaseT(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * view=nullptr, const SGIItemBase * targetItem=nullptr, double animationTime=0)
         : functionImplBase(hostInterface, view)
         , _targetItem(targetItem)
         , _animationTime(animationTime) {}
@@ -158,14 +158,14 @@ public:
     const T * getTargetObject() const
     {
         if(!_targetItem.valid())
-            return NULL;
+            return nullptr;
         typedef typename ItemType::ObjectType ObjectType;
         const ObjectType * obj = static_cast<const ItemType*>(_targetItem.get())->object();
         const T * ret = CasterT::template cast<const T, const ObjectType>(obj);
         return ret;
     }
 protected:
-    osg::ref_ptr<const SGIItemBase> _targetItem;
+    details::ref_ptr<const SGIItemBase> _targetItem;
     double _animationTime;
 };
 
@@ -175,7 +175,7 @@ protected:
     class guiAdapterSetViewImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        guiAdapterSetViewImpl(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * view=NULL, const SGIItemBase * item=NULL, double animationTime=0) {} \
+        guiAdapterSetViewImpl(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * view=nullptr, const SGIItemBase * item=nullptr, double animationTime=0) {} \
         bool execute() { return false; } \
     }; \
     typedef guiAdapterSetViewImplBaseT<guiAdapterSetViewImpl> guiAdapterSetViewImplBase;
@@ -188,7 +188,7 @@ protected:
         static AutoRegisterType s_autoregister; \
     public: \
         typedef sgi::details::constexpr_true accept; \
-        guiAdapterSetViewImpl<__type>(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * view=NULL, const SGIItemBase * item=NULL, double animationTime=0) \
+        guiAdapterSetViewImpl<__type>(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * view=nullptr, const SGIItemBase * item=nullptr, double animationTime=0) \
             : guiAdapterSetViewImplBase(hostInterface, view, item, animationTime) {} \
         bool execute(); \
     };

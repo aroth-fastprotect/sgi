@@ -1,5 +1,4 @@
 #include "variadic_unittest.h"
-#include "variadic_unittest.moc"
 
 #include <QDebug>
 #include <QDialog>

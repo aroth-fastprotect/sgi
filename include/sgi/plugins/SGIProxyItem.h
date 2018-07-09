@@ -12,12 +12,12 @@ class SGIPluginHostInterface;
 class SGI_IMPL_EXPORT SGIProxyItemBase : public SGIItemBase
 {
 public:
-    SGIProxyItemBase(SGIPluginHostInterface * hostInterface = NULL, SGIItemBase * realItem = NULL);
+    SGIProxyItemBase(SGIPluginHostInterface * hostInterface = nullptr, SGIItemBase * realItem = nullptr);
     SGIProxyItemBase(SGIPluginHostInterface * hostInterface, 
         const std::string & name, 
         const std::string & typeName = std::string(), 
         const std::string & displayName = std::string(), 
-        SGIItemBase * realItem = NULL);
+        SGIItemBase * realItem = nullptr);
     SGIProxyItemBase(const SGIProxyItemBase & rhs);
 
     SGIItemBase * realItem(bool getInstance = false);
@@ -41,21 +41,29 @@ public:
 protected:
     virtual SGIItemBase * getRealInstance() = 0;
 
+#ifdef _MSC_VER
+#pragma warning(push)
+    // disable warning C4251: '_xxx': struct 'yyy' needs to have dll-interface to be used by clients of class 'SGIItemBase'
+#pragma warning(disable:4251)
+#endif
 protected:
     std::string     _name;
     std::string     _displayName;
     std::string     _typeName;
     SGIItemBasePtr _realItem;
     SGIPluginHostInterface * _hostInterface;
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 };
 
 template<typename GET_REAL_INSTANCE>
 class SGIProxyItemT : public SGIProxyItemBase
 {
 public:
-    SGIProxyItemT(SGIPluginHostInterface * hostInterface=NULL, SGIItemBase * realItem=NULL)
+    SGIProxyItemT(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * realItem=nullptr)
         : SGIProxyItemBase(hostInterface, realItem) {}
-    SGIProxyItemT(SGIPluginHostInterface * hostInterface, const std::string & name, const std::string & typeName=std::string(), const std::string & displayName=std::string(), SGIItemBase * realItem=NULL)
+    SGIProxyItemT(SGIPluginHostInterface * hostInterface, const std::string & name, const std::string & typeName=std::string(), const std::string & displayName=std::string(), SGIItemBase * realItem=nullptr)
         : SGIProxyItemBase(hostInterface, name, displayName, typeName, realItem) {}
     SGIProxyItemT(const SGIProxyItemT & rhs)
         : SGIProxyItemBase(rhs) {}

@@ -31,7 +31,7 @@ inline void writePrettyHTML(std::basic_ostream<char>& os, const SGIItemBase * it
 template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
 inline void writePrettyHTML(std::basic_ostream<char>& os, OBJECT_TYPE * object, bool table=true)
 {
-    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    SGIHostItemBasePtr hostitem = SGIHostItemGenerator::generateHostItem(object);
     writePrettyHTMLImpl<AUTOLOADCLASS>(os, hostitem.get(), table);
 }
 #endif // !defined(SGI_NO_HOSTITEM_GENERATOR)

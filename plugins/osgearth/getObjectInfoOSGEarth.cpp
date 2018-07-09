@@ -14,12 +14,9 @@
 #include <osgEarth/ModelLayer>
 #include <osgEarth/MaskLayer>
 #include <osgEarth/XmlUtils>
-#include "ElevationQueryReferenced"
 #include <sgi/helpers/rtti>
 
 namespace sgi {
-
-class SGIItemOsg;
 
 namespace osgearth_plugin {
 

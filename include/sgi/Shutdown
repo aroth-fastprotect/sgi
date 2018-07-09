@@ -9,7 +9,7 @@ template<typename AUTOLOADCLASS>
 inline void shutdown()
 {
     typedef void (*pfn)();
-    pfn func = (pfn)AUTOLOADCLASS::sgiLibraryProcAddressNoLoad("sgi_shutdown");
+    pfn func = reinterpret_cast<pfn>(AUTOLOADCLASS::sgiLibraryProcAddressNoLoad("sgi_shutdown"));
     if(func)
     {
         func();

@@ -5,13 +5,9 @@
 #include "SGIHostItemBase.h"
 #include <log4cplus/logger.h>
 
-namespace osg {
-    class Referenced;
-}
-
 namespace sgi {
 namespace log4cplus_plugin {
-class Log4cplusObjectBase : public osg::Referenced
+class Log4cplusObjectBase : public details::Referenced
 {
 public:
     Log4cplusObjectBase() {}
@@ -108,22 +104,7 @@ public:
 
 } // namespace log4cplus_plugin
 
-namespace support {
-
-class SGIHostItemLog4cplus : public SGIHostItemImpl<log4cplus_plugin::Log4cplusObjectBase, osg::ref_ptr<log4cplus_plugin::Log4cplusObjectBase> >
-{
-public:
-    SGIHostItemLog4cplus(log4cplus_plugin::Log4cplusObjectBase * object, osg::Referenced * userData=NULL, unsigned flags=0)
-        : SGIHostItemImpl<log4cplus_plugin::Log4cplusObjectBase, osg::ref_ptr<log4cplus_plugin::Log4cplusObjectBase> >(object, userData, flags)
-        {}
-    SGIHostItemLog4cplus(const log4cplus_plugin::Log4cplusObjectBase * object, osg::Referenced * userData=NULL, unsigned flags=0)
-        : SGIHostItemImpl<log4cplus_plugin::Log4cplusObjectBase, osg::ref_ptr<log4cplus_plugin::Log4cplusObjectBase> >(
-            const_cast<log4cplus_plugin::Log4cplusObjectBase *>(object), userData, flags
-        )
-        {}
-};
-} // namespace support
-
-typedef support::SGIHostItemLog4cplus SGIHostItemLog4cplus;
+typedef SGIItemInfoSharedPtr<log4cplus_plugin::Log4cplusObjectBase, details::ref_ptr<log4cplus_plugin::Log4cplusObjectBase> > SGIItemInfoLog4cplus;
+typedef SGIHostItemImpl<SGIItemInfoLog4cplus> SGIHostItemLog4cplus;
 
 } // namespace sgi

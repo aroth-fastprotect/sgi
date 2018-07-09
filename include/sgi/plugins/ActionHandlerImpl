@@ -113,7 +113,7 @@ protected:
     class actionHandlerImpl { \
     public: \
         typedef sgi::details::constexpr_false accept; \
-        actionHandlerImpl(SGIPluginHostInterface * hostInterface=nullptr, SGIItemBase * item=nullptr, IContextMenuAction * menuAction=nullptr) {}\
+        actionHandlerImpl(SGIPluginHostInterface * /*hostInterface*/=nullptr, SGIItemBase * /*item*/=nullptr, IContextMenuAction * /*menuAction*/=nullptr) {}\
         bool execute() { return false; } \
     }; \
     typedef actionHandlerImplBaseT<actionHandlerImpl> actionHandlerImplBase;

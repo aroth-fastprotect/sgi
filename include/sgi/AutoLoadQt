@@ -49,7 +49,7 @@ namespace sgi {
         }
         PROC_ADDRESS getProcAddress(const char* procName)
         {
-            PROC_ADDRESS ret = NULL;
+            PROC_ADDRESS ret = nullptr;
             if(_library)
             {
                 ret = (PROC_ADDRESS)_library->resolve(procName);
@@ -63,7 +63,7 @@ namespace sgi {
         }
         std::string libraryFilename() const
         {
-            return (_library)?_library->fileName().toStdString():NULL;
+            return (_library)?_library->fileName().toStdString():nullptr;
         }
         const std::string & libraryError() const
         {
@@ -91,7 +91,7 @@ namespace sgi {
             if(inst)
                 return inst->getProcAddress(procName);
             else
-                return NULL;
+                return nullptr;
         }
         static inline std::string sgiLibraryName()
         {
@@ -109,7 +109,7 @@ namespace sgi {
         {
             Qt * inst = Qt::instance(Singleton::InstanceActionGet);
             if(inst)
-                return inst->library() != NULL;
+                return inst->library() != nullptr;
             else
                 return false;
         }

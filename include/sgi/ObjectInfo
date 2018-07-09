@@ -23,7 +23,7 @@ inline bool getObjectNameImpl(std::string & name, const SGIHostItemBase * object
 template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
 inline std::string getObjectName(std::string & name, OBJECT_TYPE * object, bool full=true)
 {
-    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    SGIHostItemBasePtr hostitem = SGIHostItemGenerator::generateHostItem(object);
     return getObjectNameImpl<AUTOLOADCLASS>(name, hostitem.get(), full);
 }
 
@@ -47,7 +47,7 @@ inline bool getObjectDisplayNameImpl(std::string & name, const SGIHostItemBase *
 template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
 inline bool getObjectDisplayName(std::string & name, OBJECT_TYPE * object)
 {
-    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    SGIHostItemBasePtr hostitem = SGIHostItemGenerator::generateHostItem(object);
     return getObjectDisplayNameImpl<AUTOLOADCLASS>(name, hostitem.get());
 }
 
@@ -71,7 +71,7 @@ inline bool getObjectTypenameImpl(std::string & name, const SGIHostItemBase * ob
 template<typename AUTOLOADCLASS, typename OBJECT_TYPE>
 inline bool getObjectTypename(std::string & name, OBJECT_TYPE * object, bool full=true)
 {
-    osg::ref_ptr<SGIHostItemBase> hostitem = SGIHostItemGenerator::generateHostItem(object);
+    SGIHostItemBasePtr hostitem = SGIHostItemGenerator::generateHostItem(object);
     return getObjectTypenameImpl<AUTOLOADCLASS>(name, hostitem.get(), full);
 }
 

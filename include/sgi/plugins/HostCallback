@@ -1,9 +1,9 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
-#include <osg/Referenced>
-#include <osg/ref_ptr>
+#include <sgi/details/Referenced>
+#include <sgi/details/ref_ptr>
 #include <type_traits>
 
 class QWidget;
@@ -19,7 +19,7 @@ class IObjectLogger;
 class IImagePreviewDialog;
 class ReferencedPickerBase;
 
-class IHostCallback : public osg::Referenced
+class IHostCallback : public details::Referenced
 {
 public:
     virtual IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) = 0;
@@ -44,7 +44,7 @@ public:
     virtual QWidget *               getFallbackParentWidget() = 0;
 	virtual void					shutdown() = 0;
 };
-typedef osg::ref_ptr<IHostCallback> IHostCallbackPtr;
+typedef details::ref_ptr<IHostCallback> IHostCallbackPtr;
 
 class HostCallbackBase : public IHostCallback
 {

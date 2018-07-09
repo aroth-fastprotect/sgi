@@ -10,14 +10,14 @@ class QDialog;
 namespace sgi {
 
 class Image;
-typedef osg::ref_ptr<Image> ImagePtr;
-typedef osg::ref_ptr<const Image> ConstImagePtr;
+typedef details::ref_ptr<Image> ImagePtr;
+typedef details::ref_ptr<const Image> ConstImagePtr;
 class IContextMenu;
 class SGIItemBase;
 class SGIHostItemBase;
-typedef osg::ref_ptr<SGIItemBase> SGIItemBasePtr;
+typedef details::ref_ptr<SGIItemBase> SGIItemBasePtr;
 
-class IImagePreviewDialog : public osg::Referenced
+class IImagePreviewDialog : public details::Referenced
 {
 public:
     virtual QDialog *       getDialog() = 0;
@@ -33,6 +33,6 @@ public:
     virtual SGIItemBase *   item() const = 0;
 };
 
-typedef osg::ref_ptr<IImagePreviewDialog> IImagePreviewDialogPtr;
+typedef details::ref_ptr<IImagePreviewDialog> IImagePreviewDialogPtr;
 
 } // namespace sgi

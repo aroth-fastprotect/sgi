@@ -1,12 +1,17 @@
 #pragma once
 
 #include <QDialog>
+#include <osg/ref_ptr>
 #include <sgi/plugins/SGIPluginInterface.h>
 
 QT_BEGIN_NAMESPACE
 class Ui_TileInspectorDialog;
 class QTreeWidgetItem;
 QT_END_NAMESPACE
+
+namespace osg {
+    class Referenced;
+}
 
 namespace osgEarth {
     class TileSource;
@@ -16,15 +21,19 @@ namespace osgEarth {
 
 namespace sgi {
 class SGIPluginHostInterface;
-class SGIItemOsg;
 
 class IObjectTreeItem;
-typedef osg::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
+typedef details::ref_ptr<IObjectTreeItem> IObjectTreeItemPtr;
 
 class IObjectTreeImpl;
-typedef osg::ref_ptr<IObjectTreeImpl> IObjectTreeImplPtr;
+typedef details::ref_ptr<IObjectTreeImpl> IObjectTreeImplPtr;
 class IContextMenu;
-typedef osg::ref_ptr<IContextMenu> IContextMenuPtr;
+typedef details::ref_ptr<IContextMenu> IContextMenuPtr;
+
+typedef SGIItemInfoSharedPtr<osg::Referenced, osg::ref_ptr<osg::Referenced> > SGIItemInfoOsg;
+typedef SGIHostItemImpl<SGIItemInfoOsg> SGIHostItemOsg;
+typedef SGIItemHolderT<SGIItemInfoOsg> SGIItemHolderOsg;
+typedef SGIItemT<SGIHostItemOsg, SGIItemHolderOsg> SGIItemOsg;
 
 namespace osgearth_plugin {
 
@@ -36,7 +45,7 @@ class TileInspectorDialog : public QDialog
 	Q_OBJECT
 
 public:
-                                TileInspectorDialog(QWidget * parent, SGIItemOsg * item, ISettingsDialogInfo * info=NULL, SGIPluginHostInterface * hostInterface=NULL);
+                                TileInspectorDialog(QWidget * parent, SGIItemOsg * item, ISettingsDialogInfo * info=nullptr, SGIPluginHostInterface * hostInterface=nullptr);
 	virtual				        ~TileInspectorDialog();
 
 public:
@@ -91,7 +100,7 @@ private:
     IObjectTreeImplPtr              _treeImpl;
     IContextMenuPtr                 _contextMenu;
     IContextMenuPtr                 _layerContextMenu;
-    osg::ref_ptr<SGIItemOsg>        _item;
+    details::ref_ptr<SGIItemOsg>        _item;
     SGIItemBasePtrVector            _tiles;
 };
 

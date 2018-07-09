@@ -69,7 +69,6 @@ namespace osgViewer {
 
 class QObject;
 class QWidget;
-class QImage;
 
 namespace sgi {
 
@@ -167,11 +166,11 @@ SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const o
 
 SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::ObserverNodePath & path, bool includeNodeMask = false);
 
-SGI_OSG_HELPER_EXPORT void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Node * refNode=NULL);
-SGI_OSG_HELPER_EXPORT void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Drawable * refDrawable=NULL);
+SGI_OSG_HELPER_EXPORT void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Node * refNode=nullptr);
+SGI_OSG_HELPER_EXPORT void writePrettyPositionHTML(std::basic_ostream<char>& os, const osg::Vec3 & v, const osg::Drawable * refDrawable=nullptr);
 SGI_OSG_HELPER_EXPORT void writePrettyRotationHTML(std::basic_ostream<char>& os, const osg::Quat & q);
-SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSphere & bs, const osg::Node * refNode=NULL);
-SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSphere * bs, const osg::Node * refNode=NULL);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSphere & bs, const osg::Node * refNode=nullptr);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingSphere * bs, const osg::Node * refNode=nullptr);
 SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox & bb, const osg::Node * refNode);
 SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox & bb, const osg::Drawable * refDrawable);
 SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::BoundingBox * bb, const osg::Drawable * refDrawable);
@@ -187,9 +186,9 @@ enum MatrixUsageType
     MatrixUsageTypeWindow,
 };
 
-SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Node * refNode=NULL);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Node * refNode=nullptr);
 SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Matrixd & mat, MatrixUsageType type, const osg::Drawable * refDrawable);
-SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::RefMatrixd * mat, MatrixUsageType type, const osg::Node * refNode = NULL);
+SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::RefMatrixd * mat, MatrixUsageType type, const osg::Node * refNode = nullptr);
 SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::RefMatrixd * mat, MatrixUsageType type, const osg::Drawable * refDrawable);
 SGI_OSG_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const osg::Viewport * vp);
 
@@ -198,7 +197,6 @@ SGI_OSG_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<ch
 SGI_OSG_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSpheref & b);
 SGI_OSG_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingSphered & b);
 
-SGI_QT_HELPER_EXPORT bool osgImageToQImage(const osg::Image * image, QImage * qimage);
 SGI_OSG_HELPER_EXPORT const sgi::Image * convertImage(const osg::Image * image);
 SGI_OSG_HELPER_EXPORT const sgi::Image * convertImage(const osg::HeightField * hf);
 
@@ -260,7 +258,7 @@ SGI_OSG_HELPER_EXPORT void heightFieldDumpPlainText(std::basic_ostream<char>& os
      * that matches the template parameter type.
      */
     template<typename T>
-    T* findTopMostNodeOfType(osg::Node* node, unsigned traversalMask =~0u, T * excludedNode=NULL)
+    T* findTopMostNodeOfType(osg::Node* node, unsigned traversalMask =~0u, T * excludedNode=nullptr)
     {
         if (!node) return 0;
 
@@ -278,7 +276,7 @@ SGI_OSG_HELPER_EXPORT void heightFieldDumpPlainText(std::basic_ostream<char>& os
      * that matches the template parameter type.
      */
     template<typename T>
-    T* findFirstParentOfType(osg::Node* node, unsigned traversalMask =~0u, T * excludedNode=NULL)
+    T* findFirstParentOfType(osg::Node* node, unsigned traversalMask =~0u, T * excludedNode=nullptr)
     {
         if (!node) return 0;
 
@@ -296,7 +294,7 @@ SGI_OSG_HELPER_EXPORT void heightFieldDumpPlainText(std::basic_ostream<char>& os
      * that matches the template parameter type. First searched upward, then downward.
      */
     template<typename T>
-    T* findRelativeNodeOfType(osg::Node* node, unsigned traversalMask =~0u, T * excludedNode=NULL)
+    T* findRelativeNodeOfType(osg::Node* node, unsigned traversalMask =~0u, T * excludedNode=nullptr)
     {
         if ( !node ) return 0;
         T* result = findFirstParentOfType<T>( node, traversalMask, excludedNode );
@@ -336,7 +334,7 @@ SGI_OSG_HELPER_EXPORT void heightFieldDumpPlainText(std::basic_ostream<char>& os
     {
         FindTopMostNamedNodesVisitor(const std::string& name)
             : osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN)
-            , _name(name), _foundNode(NULL) {}
+            , _name(name), _foundNode(nullptr) {}
 
         void apply(osg::Node& node)
         {

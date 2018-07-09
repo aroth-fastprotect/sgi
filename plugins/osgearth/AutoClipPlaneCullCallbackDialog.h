@@ -2,6 +2,7 @@
 
 #include <QDialog>
 #include <sgi/plugins/SGIPluginInterface.h>
+#include <osg/ref_ptr>
 
 QT_BEGIN_NAMESPACE
 class Ui_AutoClipPlaneCullCallbackDialog;
@@ -21,7 +22,7 @@ class AutoClipPlaneCullCallbackDialog : public QDialog
 	Q_OBJECT
 
 public:
-                        AutoClipPlaneCullCallbackDialog(QWidget * parent, osgEarth::Util::AutoClipPlaneCullCallback * callback, ISettingsDialogInfo * info=NULL);
+                        AutoClipPlaneCullCallbackDialog(QWidget * parent, osgEarth::Util::AutoClipPlaneCullCallback * callback, ISettingsDialogInfo * info=nullptr);
 	virtual				~AutoClipPlaneCullCallbackDialog();
 
 public:
@@ -45,7 +46,7 @@ public slots:
 protected:
 	void				apply(bool save);
 
-	virtual void 		showEvent  ( QShowEvent * event );
+    void                showEvent  ( QShowEvent * event ) override;
 
 private:
 

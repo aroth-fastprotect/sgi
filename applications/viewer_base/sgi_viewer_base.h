@@ -88,7 +88,7 @@ public:
         unsigned char* lastData;
         double timeStamp, lastOutput;
 
-        ImageStreamPlaybackSpeedData() : fps(0), lastData(NULL), timeStamp(0), lastOutput(0) {}
+        ImageStreamPlaybackSpeedData() : fps(0), lastData(nullptr), timeStamp(0), lastOutput(0) {}
 
     };
 
@@ -126,7 +126,7 @@ public:
         osg::ArgumentParser& args,
         osgViewer::View*     view
 #ifdef SGI_USE_OSGEARTH
-        , osgEarth::Util::Controls::Container* userContainer = 0L
+        , osgEarth::Util::Controls::Container* userContainer = nullptr
 #endif
     );
 
@@ -151,8 +151,8 @@ public:
         osgEarth::MapNode*   mapNode,
         osg::ArgumentParser& args,
         osgViewer::View*     view,
-        osg::Group*          parentGroup = 0L,
-        osgEarth::Util::Controls::Container* userContainer = 0L
+        osg::Group*          parentGroup = nullptr,
+        osgEarth::Util::Controls::Container* userContainer = nullptr
     );
 #endif // WITH_OSGEARTH
 
@@ -194,5 +194,4 @@ private:
     bool _movieTrackMouse;
     int _viewpointNum;
     std::string _viewpointName;
-
 };

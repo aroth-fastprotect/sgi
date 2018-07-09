@@ -220,7 +220,7 @@ bool ImageGLWidget::reloadShaders()
     if (!shaderOk)
     {
         delete _program;
-        _program = NULL;
+        _program = nullptr;
 
         // shaders are bad and we cannot get them to work, so we only have the
         // background color to inform the user about the error.
@@ -354,7 +354,7 @@ void ImageGLWidget::reloadImage()
         return;
 
     makeCurrent();
-    setImageImpl(_image);
+    setImageImpl(_image.get());
 
     doneCurrent();
     // trigger a repaint because we changed the widgets content outside repaintGL
@@ -507,7 +507,7 @@ void ImageGLWidget::setImageImpl(const sgi::Image * image, bool reset)
         }
         if (!_image.valid() || reset || image->format() != _image->format() || image->hscale() != _image->hscale() || image->vscale() != _image->vscale())
         {
-            Q_ASSERT(_program != NULL);
+            Q_ASSERT(_program != nullptr);
             _program->bind();
             float vscale = image->vscale();
             float hscale = image->hscale();
@@ -530,7 +530,7 @@ void ImageGLWidget::setImageImpl(const sgi::Image * image, bool reset)
         if (_texture->width() != textureWidth || _texture->height() != textureHeight || _texture->format() != textureFormat)
         {
             qWarning() << "texture size/format changed" << textureWidth << textureHeight << textureFormat;
-            //        _texture->setData(0, pixelFormat, QOpenGLTexture::UInt8, (const void*)NULL, &uploadOptions);
+            //        _texture->setData(0, pixelFormat, QOpenGLTexture::UInt8, (const void*)nullptr, &uploadOptions);
             _texture->destroy();
             _texture->create();
             _texture->bind();
@@ -657,7 +657,7 @@ void ImageGLWidget::mouseMoveEvent(QMouseEvent *ev)
 void ImageGLWidget::resizeEvent(QResizeEvent *event)
 {
     int pheight = parentWidget()->height();
-    QSize s(_image ? static_cast<int>(_image->width()) : 0, _image ? static_cast<int>(_image->height()) : 0);
+    QSize s(_image.valid() ? static_cast<int>(_image->width()) : 0, _image.valid() ? static_cast<int>(_image->height()) : 0);
     s.scale(event->size(), Qt::KeepAspectRatio);
     s = QLayout::closestAcceptableSize(this, s);
     QRect imageRect = QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, s, rect());

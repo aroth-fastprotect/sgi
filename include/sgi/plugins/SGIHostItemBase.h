@@ -1,20 +1,22 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
 #include "SGIItemBase.h"
+#include "SGIItemInfo"
 
 namespace sgi {
 
 class SGIHostItemBase;
-typedef osg::ref_ptr<SGIHostItemBase> SGIHostItemBasePtr;
+typedef details::ref_ptr<SGIHostItemBase> SGIHostItemBasePtr;
 
-class SGIHostItemBase : public osg::Referenced
+class SGIHostItemBase : public details::Referenced
 {
 public:
-    SGIHostItemBase(osg::Referenced * userData=NULL, unsigned flags=0) : _userData(userData), _flags(flags) {}
+    SGIHostItemBase(details::Referenced * userData=nullptr, unsigned flags=0)
+        : _flags(flags), _userData(userData) {}
     SGIHostItemBase(const SGIHostItemBase & rhs)
-        : osg::Referenced(rhs), _userData(rhs._userData), _flags(rhs._flags)
+        : details::Referenced(rhs), _flags(rhs._flags), _userData(rhs._userData)
     {
     }
     virtual ~SGIHostItemBase() {}
@@ -36,55 +38,79 @@ public:
     bool hasFlag(unsigned flag) const { return (_flags & flag) != 0; }
     bool hasNotFlag(unsigned flag) const { return (_flags & flag) == 0; }
 
-    void setUserData(osg::Referenced * userData)
+    void setUserData(details::Referenced * userData)
     {
         _userData = userData;
     }
-    template<typename USER_DATA_TYPE>
-    USER_DATA_TYPE * userData()
-    {
-        return dynamic_cast<USER_DATA_TYPE *>(_userData.get());
-    }
-    template<typename USER_DATA_TYPE>
-    const USER_DATA_TYPE * userData() const
-    {
-        return dynamic_cast<const USER_DATA_TYPE *>(_userData.get());
-    }
-    osg::Referenced * userDataPtr()
+    details::Referenced * userDataPtr()
     {
         return _userData.get();
     }
-    osg::Referenced * userDataPtr() const
+    details::Referenced * userDataPtr() const
     {
         return _userData.get();
     }
 
 private:
-    unsigned                _flags;
-    osg::ref_ptr<osg::Referenced> _userData;
+    unsigned       _flags;
+    SGIUserDataPtr _userData;
 };
 
-template<typename OBJECT_TYPE, typename OBJECT_STORE_TYPE=OBJECT_TYPE*>
+template<typename TYPE>
 class SGIHostItemImpl : public SGIHostItemBase
 {
 public:
-    typedef OBJECT_TYPE ObjectType;
-    SGIHostItemImpl(OBJECT_TYPE * object, osg::Referenced * userData=NULL, unsigned flags=0)
+    typedef TYPE ItemInfoType;
+    typedef typename TYPE::ObjectType ObjectType;
+    typedef typename TYPE::ObjectStorageType ObjectStorageType;
+
+    SGIHostItemImpl(ObjectType * object, details::Referenced * userData=nullptr, unsigned flags=0)
         : SGIHostItemBase(userData, flags), _object(object)
+        {
+        }
+    SGIHostItemImpl(const ObjectType * object, details::Referenced * userData=nullptr, unsigned flags=0)
+        : SGIHostItemBase(userData, flags), _object(const_cast<ObjectType*>(object))
+        {
+        }
+    SGIHostItemImpl(const ObjectType & object, details::Referenced * userData=nullptr, unsigned flags=0)
+        : SGIHostItemBase(userData, flags), _object(const_cast<ObjectType*>(&object))
         {
         }
     SGIHostItemImpl(const SGIHostItemImpl & rhs)
         : SGIHostItemBase(rhs), _object(rhs._object)
     {
     }
-    virtual ~SGIHostItemImpl()
+    ~SGIHostItemImpl() override
     {
     }
-    OBJECT_TYPE * object() { return _object; }
-    OBJECT_TYPE * object() const { return _object; }
-    bool hasObject() const { return _object != NULL; }
+    ObjectType * object() { return TYPE::objectPtr(_object); }
+    ObjectType * object() const { return TYPE::objectPtr(_object); }
+
+    template<typename USER_DATA_TYPE>
+    USER_DATA_TYPE * objectAs()
+    {
+        return dynamic_cast<USER_DATA_TYPE *>(object());
+    }
+    template<typename USER_DATA_TYPE>
+    const USER_DATA_TYPE * objectAs() const
+    {
+        return dynamic_cast<const USER_DATA_TYPE *>(object());
+    }
+
+    template<typename USER_DATA_TYPE>
+    USER_DATA_TYPE * userData()
+    {
+        return dynamic_cast<USER_DATA_TYPE *>(SGIHostItemBase::userDataPtr());
+    }
+    template<typename USER_DATA_TYPE>
+    const USER_DATA_TYPE * userData() const
+    {
+        return dynamic_cast<const USER_DATA_TYPE *>(SGIHostItemBase::userDataPtr());
+    }
+
+    bool hasObject() const { return TYPE::objectPtr(_object) != nullptr; }
 protected:
-    OBJECT_STORE_TYPE _object;
+    ObjectStorageType _object;
 };
 
 } // namespace sgi

@@ -1,0 +1,101 @@
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
+
+#pragma once
+
+namespace sgi {
+
+typedef details::ReferencedDataT<int> ReferencedDataInt;
+typedef std::pair<int, int> IntPair;
+typedef details::ReferencedDataT<IntPair> ReferencedDataIntPair;
+typedef details::ReferencedDataT<std::string> ReferencedDataString;
+
+namespace details {
+    template<typename TYPE>
+    struct copy_object {
+        static TYPE * copyObject(TYPE * obj)
+        {
+            return new ObjectType(*obj);
+        }
+    };
+    template<>
+    struct copy_object<void> {
+        static void * copyObject(void * obj)
+        {
+            return nullptr;
+        }
+    };
+
+    template<typename TYPE>
+    struct delete_operator {
+        static void deleteObject(TYPE * obj)
+        {
+            delete obj;
+        }
+    };
+    template<typename TYPE>
+    struct do_not_delete {
+        static void deleteObject(TYPE *)
+        {
+        }
+    };
+}
+
+template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*, 
+            template<typename> typename OBJECT_COPY=details::copy_object,
+            template<typename> typename OBJECT_DELETER=details::delete_operator >
+struct SGIItemInfoPlainPtr {
+    typedef OBJECT_TYPE ObjectType;
+    typedef OBJECT_STORAGE_TYPE ObjectStorageType;
+
+    static ObjectType * objectPtr(const ObjectStorageType & item)
+    {
+        return static_cast<ObjectType *>(item);
+    }
+    static ObjectType * copyObject(const ObjectType & rhs)
+    {
+        return OBJECT_COPY::copyObject(rhs);
+    }
+    static void deleteObject(const ObjectStorageType & item)
+    {
+        OBJECT_DELETER<ObjectType>::deleteObject(static_cast<ObjectType *>(item));
+    }
+};
+
+template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*>
+struct SGIItemInfoSharedPtr {
+    typedef OBJECT_TYPE ObjectType;
+    typedef OBJECT_STORAGE_TYPE ObjectStorageType;
+
+    static ObjectType * objectPtr(const ObjectStorageType & item)
+    {
+        return static_cast<ObjectType *>(item.get());
+    }
+    static ObjectType * copyObject(const ObjectType & rhs)
+    {
+        return new ObjectType(rhs);
+    }
+    static void deleteObject(const ObjectStorageType & /*item*/)
+    {
+    }
+};
+
+template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*>
+struct SGIItemInfoSharedPtrQt {
+    typedef OBJECT_TYPE ObjectType;
+    typedef OBJECT_STORAGE_TYPE ObjectStorageType;
+
+    static ObjectType * objectPtr(const ObjectStorageType & item)
+    {
+        return static_cast<ObjectType *>(item.data());
+    }
+    static ObjectType * copyObject(const ObjectType & rhs)
+    {
+        return new ObjectType(rhs);
+    }
+    static void deleteObject(const ObjectStorageType & /*item*/)
+    {
+    }
+};
+
+} // namespace sgi

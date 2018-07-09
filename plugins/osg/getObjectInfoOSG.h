@@ -10,6 +10,7 @@ namespace osg {
     class Group;
     class Camera;
     class StateSet;
+    class Image;
     class LOD;
     class PagedLOD;
     class HeightField;
@@ -34,8 +35,6 @@ namespace OpenThreads {
 }
 
 namespace sgi {
-
-class SGIItemOsg;
 
 namespace osg_plugin {
 

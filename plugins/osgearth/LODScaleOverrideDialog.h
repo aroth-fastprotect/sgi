@@ -48,7 +48,6 @@ private:
 
 private:  // for now
     Ui_LODScaleOverrideDialog* ui;
-    SGIPluginHostInterface *        _hostInterface;
     ISettingsDialogPtr _interface;
     ISettingsDialogInfoPtr          _info;
     SGIItemBasePtr                  _item;

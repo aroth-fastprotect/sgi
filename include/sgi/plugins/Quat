@@ -49,6 +49,11 @@ public:
     {
         return _v[0]*_v[0] + _v[1]*_v[1] + _v[2]*_v[2] + _v[3]*_v[3];
     }
+
+    void set(const value_type & x, const value_type & y, const value_type & z, const value_type & w)
+    {
+        _v[0] = x; _v[1] = y; _v[2] = z; _v[3] = w;
+    }
 };
 
 } // namespace sgi

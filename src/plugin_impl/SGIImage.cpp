@@ -16,6 +16,11 @@
 
 #define SGI_UNUSED(x) (void)x;
 
+#ifdef _MSC_VER
+// disable warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+#pragma warning(disable:4244)
+#endif
+
 namespace sgi {
 
 Image::Pixel::Pixel()
@@ -279,7 +284,7 @@ float Image::Pixel::b() const
         ret = (float)data.argb.b / 255.0f;
         break;
     case DataTypeFloat32:
-        ret = data.f32[3];
+        ret = static_cast<int>(data.f32[3]);
         break;
     }
     return ret;
@@ -295,7 +300,7 @@ int Image::Pixel::alpha() const
         ret = static_cast<int>(data.argb.a);
         break;
     case DataTypeFloat32:
-        ret = data.f32[0] * 255.0f;
+        ret = static_cast<int>(data.f32[0] * 255.0f);
         break;
     }
     return ret;
@@ -310,7 +315,7 @@ int Image::Pixel::red() const
         ret = static_cast<int>(data.argb.r);
         break;
     case DataTypeFloat32:
-        ret = data.f32[1] * 255.0f;
+        ret = static_cast<int>(data.f32[1] * 255.0f);
         break;
     }
     return ret;
@@ -325,7 +330,7 @@ int Image::Pixel::green() const
         ret = static_cast<int>(data.argb.g);
         break;
     case DataTypeFloat32:
-        ret = data.f32[2] * 255.0f;
+        ret = static_cast<int>(data.f32[2] * 255.0f);
         break;
     }
     return ret;
@@ -340,7 +345,7 @@ int Image::Pixel::blue() const
         ret = static_cast<int>(data.argb.b);
         break;
     case DataTypeFloat32:
-        ret = data.f32[3] * 255.0f;
+        ret = static_cast<int>(data.f32[3] * 255.0f);
         break;
     }
     return ret;
@@ -512,11 +517,11 @@ std::string Image::Pixel::toString(bool includeDataType) const
 
 
 Image::Image(ImageFormat format, DataType type)
-    : _format(format), _dataType(type), _origin(OriginDefault), _data(NULL), _length(0)
+    : _format(format), _dataType(type), _origin(OriginDefault), _data(nullptr), _length(0)
     , _width(0), _height(0), _depth(0)
     , _allocatedWidth(0), _allocatedHeight(0)
     , _pitch { 0, 0, 0, 0 }, _lines{ 0, 0, 0, 0 }, _planeOffset{0, 0, 0, 0}
-    , _originalImage(NULL), _originalImageQt(NULL), _freeQt(NULL), _copyQt(NULL)
+    , _originalImage(nullptr), _originalImageQt(nullptr), _freeQt(nullptr), _copyQt(nullptr)
     , _allocated(false)
 {
 }
@@ -529,7 +534,7 @@ Image::Image(ImageFormat format, DataType type, Origin origin, void * data, size
     , _allocatedWidth(width), _allocatedHeight(height)
     , _pitch { bytesPerLine, 0, 0, 0 }, _lines{ height, 0, 0, 0 }
     , _planeOffset{0, 0, 0, 0}
-    , _originalImage(originalImage), _originalImageQt(NULL), _freeQt(NULL), _copyQt(NULL)
+    , _originalImage(originalImage), _originalImageQt(nullptr), _freeQt(nullptr), _copyQt(nullptr)
     , _allocated(copyData)
 {
     if (copyData)
@@ -542,7 +547,7 @@ Image::Image(ImageFormat format, DataType type, void * data, size_t length, bool
     , _width(0), _height(0), _depth(0)
     , _allocatedWidth(0), _allocatedHeight(0)
     , _pitch{ 0, 0, 0, 0 }, _lines{ 0, 0, 0, 0 }, _planeOffset{ 0, 0, 0, 0 }
-    , _originalImage(NULL), _originalImageQt(NULL), _freeQt(NULL), _copyQt(NULL)
+    , _originalImage(nullptr), _originalImageQt(nullptr), _freeQt(nullptr), _copyQt(nullptr)
     , _allocated(copyData)
 {
     if (copyData)
@@ -558,7 +563,7 @@ Image::Image(const Image & rhs)
     , _lines{ rhs._lines[0], rhs._lines[1], rhs._lines[2], rhs._lines[3] }
     , _planeOffset { rhs._planeOffset[0], rhs._planeOffset[1], rhs._planeOffset[2], rhs._planeOffset[3] }
     , _originalImage(rhs._originalImage)
-    , _originalImageQt( (rhs._originalImageQt && rhs._copyQt) ? (rhs.*rhs._copyQt)() : NULL)
+    , _originalImageQt( (rhs._originalImageQt && rhs._copyQt) ? (rhs.*rhs._copyQt)() : nullptr)
     , _freeQt(rhs._freeQt), _copyQt(rhs._copyQt)
     , _allocated(false)
 {

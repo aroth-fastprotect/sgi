@@ -241,7 +241,8 @@ ExtraViewDialog::ExtraViewDialog(QWidget * parent, SGIItemBase * item, SGIPlugin
     osgViewer::CompositeViewer * viewer = nullptr;
     osgViewer::View * view = nullptr;
     osg::Camera * masterCamera = nullptr;
-    _camera = _item->asCamera();
+    osg::Referenced * object = dynamic_cast<SGIItemOsg*>(_item.get())->object();
+    _camera = dynamic_cast<osg::Node*>(object)->asCamera();
 
     if (_camera.valid())
     {
