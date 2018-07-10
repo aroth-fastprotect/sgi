@@ -15,7 +15,7 @@ namespace details {
     struct copy_object {
         static TYPE * copyObject(TYPE * obj)
         {
-            return new ObjectType(*obj);
+            return new TYPE(*obj);
         }
     };
     template<>
@@ -54,7 +54,7 @@ struct SGIItemInfoPlainPtr {
     }
     static ObjectType * copyObject(const ObjectType & rhs)
     {
-        return OBJECT_COPY::copyObject(rhs);
+        return OBJECT_COPY<ObjectType>::copyObject(rhs);
     }
     static void deleteObject(const ObjectStorageType & item)
     {
