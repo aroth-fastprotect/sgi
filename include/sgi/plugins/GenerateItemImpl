@@ -53,7 +53,11 @@ public:
 
         generateSGIItemT_debug(__FUNCTION__ << " " << typeid(T).name() << " level=" << _level << " " << (void*)object);
         SGIItemType itemType = generateSGIItemImplTemplate<T>::ItemType::value;
-        SGIItemClass * newItem = new SGIItemClass(_hostItem, itemType, object, 0, _level, _hostItem->userDataPtr());
+        SGIItemClass * newItem;
+        if (_itemChain.valid())
+            newItem = new SGIItemClass(_itemChain->holder(), itemType, 0, _level, _hostItem->userDataPtr());
+        else
+            newItem = new SGIItemClass(_hostItem, itemType, object, 0, _level, _hostItem->userDataPtr());
         newItem->setTypeInfo(typeid(T));
         if(_itemChain.valid())
             _itemChain->insertBefore(newItem);
