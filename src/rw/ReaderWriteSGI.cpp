@@ -457,8 +457,18 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
 
                 QWidget * parent = nullptr;
                 SGIHostItemBasePtr hostItem;
-                if (aa.asView())
-                    hostItem = new SGIHostItemOsg(aa.asView());
+                if (view)
+                {
+#ifdef _WIN32
+                    unsigned int qobject_ptr_value = 0;
+#else
+                    unsigned int qobject_ptr_value = 0;
+#endif
+                    if(view->getUserValue("sgi_qt_object", qobject_ptr_value) && qobject_ptr_value != 0)
+                        hostItem = new SGIHostItemQt(reinterpret_cast<QObject*>(qobject_ptr_value));
+                    else
+                        hostItem = new SGIHostItemOsg(view);
+                }
                 else
                     hostItem = new SGIHostItemOsg(&ea);
                 ret = contextMenu(hostItem.get(), x, y, parent);
