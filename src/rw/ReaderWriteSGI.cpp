@@ -1,4 +1,4 @@
-// kate: syntax C++11;
+// kate: syntax C++;
 // SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #include <osg/Notify>
@@ -214,7 +214,7 @@ struct SGIOptions
         pickerRoot = nullptr;
     }
 
-    osg::ref_ptr<sgi::IHostCallback> hostCallback;
+    sgi::IHostCallbackPtr hostCallback;
     bool showSceneGraphDialog;
     bool showImagePreviewDialog;
 	QObject * qtObject;
