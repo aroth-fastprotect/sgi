@@ -459,13 +459,12 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
                 SGIHostItemBasePtr hostItem;
                 if (view)
                 {
-#ifdef _WIN32
-                    unsigned int qobject_ptr_value = 0;
-#else
-                    unsigned int qobject_ptr_value = 0;
-#endif
-                    if(view->getUserValue("sgi_qt_object", qobject_ptr_value) && qobject_ptr_value != 0)
-                        hostItem = new SGIHostItemQt(reinterpret_cast<QObject*>(qobject_ptr_value));
+                    QObject * qobject = nullptr;
+                    double sgi_qt_object;
+                    if (view->getUserValue("sgi_qt_object", sgi_qt_object) && sgi_qt_object)
+                        qobject = (QObject*)(void*)(qulonglong)sgi_qt_object;
+                    if(qobject)
+                        hostItem = new SGIHostItemQt(qobject);
                     else
                         hostItem = new SGIHostItemOsg(view);
                 }
