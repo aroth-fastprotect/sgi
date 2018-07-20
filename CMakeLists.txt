@@ -59,8 +59,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
         set(OSGQT_DIR "${OSGQT_DIR}" CACHE STRING "Directory where to find osgQt")
     endif()
 
-	FIND_PACKAGE(OpenGL)
-
+	fast_package_opengl()
 	fast_package_qt5()
 	fast_package_osg()
     fast_package_log4cplus()
