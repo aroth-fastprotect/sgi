@@ -42,8 +42,8 @@ namespace details {
 }
 
 template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*, 
-            template<typename> typename OBJECT_COPY=details::copy_object,
-            template<typename> typename OBJECT_DELETER=details::delete_operator >
+            template<typename> class OBJECT_COPY=details::copy_object,
+            template<typename> class OBJECT_DELETER=details::delete_operator >
 struct SGIItemInfoPlainPtr {
     typedef OBJECT_TYPE ObjectType;
     typedef OBJECT_STORAGE_TYPE ObjectStorageType;
