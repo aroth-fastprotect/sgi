@@ -20,6 +20,7 @@
 #include "ContextMenuOSGEarth.h"
 #include "MenuActionOSGEarth.h"
 #include "SettingsDialogOSGEarth.h"
+#include "GUIAdapterOSGEarth.h"
 
 #include <osgEarth/Version>
 #include <osgEarth/Map>
@@ -468,7 +469,9 @@ typedef SGIPluginImplementationT<       generateItemImpl,
                                         objectTreeBuildRootImpl,
                                         contextMenuPopulateImpl,
                                         actionHandlerImpl,
-                                        settingsDialogCreateImpl
+                                        settingsDialogCreateImpl,
+                                        defaultPluginGuiAdapterParentWidgetImpl,
+                                        guiAdapterSetViewImpl
                                         >
     SGIPluginImpl;
 
