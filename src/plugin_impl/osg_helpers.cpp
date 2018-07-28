@@ -1,5 +1,5 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #include <osg/StateAttribute>
 #include <osg/Texture>
@@ -1004,6 +1004,71 @@ void FindTreeItemNodeVisitor::apply(osg::Node& node)
     traverse(node);
 }
 
+
+osg::Geometry* createImageGeometry(float s, float t, osg::Image::Origin origin, osg::Texture * texture)
+{
+    osg::Geometry* geom = nullptr;
+    float y = 1.0;
+    float x = y * (s / t);
+
+    float texcoord_y_b = (origin == osg::Image::BOTTOM_LEFT) ? 0.0f : 1.0f;
+    float texcoord_y_t = (origin == osg::Image::BOTTOM_LEFT) ? 1.0f : 0.0f;
+    float texcoord_x = 1.0f;
+
+    // set up the drawstate.
+    osg::StateSet* dstate = new osg::StateSet;
+    dstate->setMode(GL_CULL_FACE, osg::StateAttribute::OFF);
+    dstate->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+    dstate->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
+
+    geom = new osg::Geometry;
+    geom->setStateSet(dstate);
+
+    osg::Vec3Array* coords = new osg::Vec3Array(4);
+    (*coords)[0].set(-x, 0.0f, y);
+    (*coords)[1].set(-x, 0.0f, -y);
+    (*coords)[2].set(x, 0.0f, -y);
+    (*coords)[3].set(x, 0.0f, y);
+    geom->setVertexArray(coords);
+
+    osg::Vec2Array* tcoords = new osg::Vec2Array(4);
+    (*tcoords)[0].set(0.0f*texcoord_x, texcoord_y_t);
+    (*tcoords)[1].set(0.0f*texcoord_x, texcoord_y_b);
+    (*tcoords)[2].set(1.0f*texcoord_x, texcoord_y_b);
+    (*tcoords)[3].set(1.0f*texcoord_x, texcoord_y_t);
+    geom->setTexCoordArray(0, tcoords);
+
+    osg::Vec4Array* colours = new osg::Vec4Array(1);
+    (*colours)[0].set(1.0f, 1.0f, 1.0, 1.0f);
+    geom->setColorArray(colours, osg::Array::BIND_OVERALL);
+
+    geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS, 0, 4));
+
+    return geom;
+}
+
+osg::Geometry* createGeometryForImage(osg::Image* image, float s, float t)
+{
+    osg::Geometry* geom = nullptr;
+    if (image && s > 0 && t > 0)
+    {
+        osg::Texture2D* texture = new osg::Texture2D;
+        texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR);
+        texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+        texture->setResizeNonPowerOfTwoHint(false);
+        geom = createImageGeometry(s, t, image->getOrigin(), texture);
+    }
+    return geom;
+}
+osg::Geometry * createGeometryForImage(osg::Image* image)
+{
+    return createGeometryForImage(image, image->s(), image->t());
+}
+
+osg::Geometry * createGeometryForTexture(osg::Texture* texture)
+{
+    return createImageGeometry(texture->getTextureWidth(), texture->getTextureHeight(), osg::Image::BOTTOM_LEFT, texture);
+}
 
     } // namespace osg_helpers
 } // namespace sgi

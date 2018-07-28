@@ -421,5 +421,9 @@ SGI_OSG_HELPER_EXPORT void heightFieldDumpPlainText(std::basic_ostream<char>& os
 #endif
     bool createWidgetForGraphicsWindow(osg::GraphicsContext * ctx, QObject * parent = nullptr);
 
+    SGI_OSG_HELPER_EXPORT osg::Geometry * createGeometryForImage(osg::Image* image,float s,float t);
+    SGI_OSG_HELPER_EXPORT osg::Geometry * createGeometryForImage(osg::Image* image);
+    SGI_OSG_HELPER_EXPORT osg::Geometry * createGeometryForTexture(osg::Texture* texture);
+
     } // namespace osg_helpers
 } // namespace sgi

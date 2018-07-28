@@ -93,6 +93,7 @@ namespace {
 #endif
     static void ensure_QApplication(osg::GraphicsContext * ctx)
     {
+        Q_UNUSED(ctx);
         const int application_timer_interval_in_ms = 50;
         QCoreApplication * app = QApplication::instance();
         if(!app)
@@ -292,6 +293,14 @@ SGIHostItemBase * SGIOptions::getHostItem() const
     return ret;
 }
 
+
+QDebug & operator<<(QDebug & dbg, const SGIOptions & opts)
+{
+    dbg << "showSceneGraphDialog" << opts.showSceneGraphDialog
+        << "showImagePreviewDialog" << opts.showImagePreviewDialog
+           ;
+    return dbg;
+}
 
 class SceneGraphInspectorHandler : public osgGA::GUIEventHandler
 {
@@ -575,10 +584,16 @@ public:
             }
             qWarning() << "DefaultSGIProxy parent " << _parent;
         }
+        runStartup(_options);
+    }
+
+    void runStartup(const SGIOptions & options)
+    {
         if(_parent)
         {
+            osg::Camera * camera = _view->getCamera();
             bool gotImage = false;
-            if(_options.showImagePreviewDialog)
+            if(options.showImagePreviewDialog)
             {
                 IImagePreviewDialogPtr dialog;
                 osg_helpers::FindTreeItemNodeVisitor ftinv;
@@ -611,10 +626,10 @@ public:
                 if(dialog.valid())
                     dialog->show();
             }
-            if(_options.showSceneGraphDialog && !gotImage)
+            if(options.showSceneGraphDialog && !gotImage)
             {
                 ISceneGraphDialogPtr dialog;
-                SGIHostItemBasePtr hostItem = _options.getHostItem();
+                SGIHostItemBasePtr hostItem = options.getHostItem();
                 if(hostItem.valid())
                     dialog = _hostCallback->showSceneGraphDialog(_parent, hostItem.get());
                 else
@@ -765,11 +780,24 @@ private:
 };
 } // namespace sgi
 
-class SGIInstallNode : public osg::Node
+class SGIInstallNode : public osg::Group
 {
+private:
+    static osg::Node * buildNode(const std::string & filename)
+    {
+        if(filename.empty())
+            return nullptr;
+        osg::Node * ret = nullptr;
+        std::string name = osgDB::getStrippedName(filename);
+        if(name.compare("box") == 0)
+        {
+            ret = sgi::osg_helpers::createBoxGeometry(10.0f, 10.0f, 10.0f);
+        }
+        return ret;
+    }
 public:
     SGIInstallNode(const std::string & filename=std::string(), const osgDB::Options * options=nullptr)
-        : osg::Node()
+        : osg::Group()
         , _options(filename, options)
         , _installed(false)
     {
@@ -777,10 +805,14 @@ public:
         // disable culling initially so this node would not be culled on first render traversal.
         // after the first pass we can re-enable culling for this node.
         setCullingActive(false);
+
+        osg::Node * child = buildNode(filename);
+        if(child)
+            addChild(child);
 		++numInstances;
     }
     SGIInstallNode(const SGIInstallNode & rhs, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY)
-        : osg::Node(rhs, copyop)
+        : osg::Group(rhs, copyop)
         , _options(rhs._options)
         , _installed(false)
     {
@@ -837,7 +869,6 @@ public:
                             {
                                 _proxy = itInst->second;
                                 _installed = true;
-                                setCullingActive(true);
                             }
                             else
                             {
@@ -846,12 +877,14 @@ public:
                                 _installed = true;
                                 _instances[currentView] = _proxy.get();
                                 justInstalled = true;
-                                setCullingActive(true);
                             }
+                            setCullingActive(true);
                         }
                     }
                     if(justInstalled)
                         _proxy->runOperations();
+                    else
+                        _proxy->runStartup(_options);
                 }
             }
             nv.popFromNodePath();
@@ -869,6 +902,8 @@ private:
     static std::atomic_int numInstances;
     static std::map<ViewPtr, DefaultSGIProxyPtr> _instances;
 };
+
+
 
 std::atomic_int SGIInstallNode::numInstances(0);
 std::map<SGIInstallNode::ViewPtr, SGIInstallNode::DefaultSGIProxyPtr> SGIInstallNode::_instances;

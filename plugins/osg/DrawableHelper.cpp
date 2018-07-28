@@ -11,6 +11,8 @@
 #include <osgDB/WriteFile>
 #include <iostream>
 
+#include <sgi/helpers/osg>
+
 namespace sgi {
 namespace osg_plugin {
 
@@ -25,7 +27,7 @@ bool RenderInfo::isPresent(osg::Node * node)
         for (unsigned n = 0; !ret && n < numDrawables; n++)
         {
             RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(geode->getDrawable(n));
-            ret = (renderInfoDrawable != NULL);
+            ret = (renderInfoDrawable != nullptr);
         }
     }
     else if (group)
@@ -34,7 +36,7 @@ bool RenderInfo::isPresent(osg::Node * node)
         for (unsigned n = 0; !ret && n < numChilds; n++)
         {
             RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(group->getChild(n));
-            ret = (renderInfoDrawable != NULL);
+            ret = (renderInfoDrawable != nullptr);
         }
     }
     return ret;
@@ -82,7 +84,7 @@ bool RenderInfo::enable(osg::Node * node, bool enable)
             for (unsigned n = 0; !ret && n < numDrawables; n++)
             {
                 RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(geode->getDrawable(n));
-                ret = (renderInfoDrawable != NULL);
+                ret = (renderInfoDrawable != nullptr);
             }
         }
         else if (group)
@@ -91,7 +93,7 @@ bool RenderInfo::enable(osg::Node * node, bool enable)
             for (unsigned n = 0; !ret && n < numChilds; n++)
             {
                 RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(group->getChild(n));
-                ret = (renderInfoDrawable != NULL);
+                ret = (renderInfoDrawable != nullptr);
             }
         }
         if (!ret)
@@ -110,7 +112,7 @@ bool RenderInfo::hasDrawCallback(osg::Drawable* node)
 {
     osg::Drawable::DrawCallback * cb = node->getDrawCallback();
     RenderInfoDrawCallback* rcb = dynamic_cast<RenderInfoDrawCallback*>(cb);
-    return (rcb != NULL);
+    return (rcb != nullptr);
 }
 
 bool RenderInfo::installDrawCallback(osg::Drawable* node, bool enable)
@@ -118,7 +120,7 @@ bool RenderInfo::installDrawCallback(osg::Drawable* node, bool enable)
     osg::Drawable::DrawCallback * cb = node->getDrawCallback();
     RenderInfoDrawCallback* rcb = dynamic_cast<RenderInfoDrawCallback*>(cb);
     if (rcb && !enable)
-        node->setDrawCallback(NULL);
+        node->setDrawCallback(nullptr);
     else if (!rcb && enable)
         node->setDrawCallback(new RenderInfoDrawCallback);
     return true;
@@ -137,7 +139,7 @@ void RenderInfoData::copyStateSetStack(StateSetStack & dest, const std::vector<c
     {
         const osg::StateSet* src_ss = *it;
         StateSetEntry & entry = dest[dest_index];
-        entry.stateSet = (osg::StateSet*)src_ss->clone(osg::CopyOp::DEEP_COPY_ALL);
+        entry.stateSet = static_cast<osg::StateSet*>(src_ss->clone(osg::CopyOp::DEEP_COPY_ALL));
         entry.parentalNodePaths.resize(src_ss->getNumParents());
         for (unsigned i = 0; i < src_ss->getNumParents(); ++i)
         {
@@ -231,7 +233,7 @@ void RenderInfoData::captureCurrentState(osg::StateSet * dest, osg::State * src)
         const osg::State::AttributeMap & attributemap = *it;
         for (osg::State::AttributeMap::const_iterator it2 = attributemap.begin(); it2 != attributemap.end(); ++it2)
         {
-            const osg::StateAttribute::TypeMemberPair & typemem = it2->first;
+            //const osg::StateAttribute::TypeMemberPair & typemem = it2->first;
             const osg::State::AttributeStack & stack = it2->second;
 
             if(stack.last_applied_attribute)
@@ -305,7 +307,7 @@ namespace {
 
     void StateAccess::copyFrom(const osg::State * src_)
     {
-        StateAccess * src = (StateAccess*)src_;
+        const StateAccess * src = static_cast<const StateAccess*>(src_);
 
         StateAccess_copyFrom(_graphicsContext);
         StateAccess_copyFrom(_contextID);
@@ -403,7 +405,7 @@ namespace {
 
 void RenderInfoData::copyRenderInfo(osg::RenderInfo& renderInfo)
 {
-    StateAccess * state = (StateAccess*)renderInfo.getState();
+    StateAccess * state = static_cast<StateAccess*>(renderInfo.getState());
     osg::State::StateSetStack& stateSetStack = state->getStateSetStack();
 #if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
     osg::RenderInfo::RenderBinStack & renderBinStack = renderInfo.getRenderBinStack();
@@ -764,7 +766,7 @@ void WindowCaptureCallback::ContextData::singlePBO(osg::GLExtensions* ext)
     osg::Timer_t tick_start = osg::Timer::instance()->tick();
 
 #if 1
-    glReadPixels(0, 0, _width, _height, _pixelFormat, _type, 0);
+    glReadPixels(0, 0, _width, _height, _pixelFormat, _type, nullptr);
 #endif
 
     osg::Timer_t tick_afterReadPixels = osg::Timer::instance()->tick();
@@ -837,7 +839,7 @@ void WindowCaptureCallback::ContextData::multiPBO(osg::GLExtensions* ext)
     {
         ext->glGenBuffers(1, &copy_pbo);
         ext->glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, copy_pbo);
-        ext->glBufferData(GL_PIXEL_PACK_BUFFER_ARB, image->getTotalSizeInBytes(), 0, GL_STREAM_READ);
+        ext->glBufferData(GL_PIXEL_PACK_BUFFER_ARB, image->getTotalSizeInBytes(), nullptr, GL_STREAM_READ);
 
         //OSG_NOTICE<<"ScreenCaptureHandler: Generating pbo "<<read_pbo<<std::endl;
     }
@@ -846,7 +848,7 @@ void WindowCaptureCallback::ContextData::multiPBO(osg::GLExtensions* ext)
     {
         ext->glGenBuffers(1, &read_pbo);
         ext->glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, read_pbo);
-        ext->glBufferData(GL_PIXEL_PACK_BUFFER_ARB, image->getTotalSizeInBytes(), 0, GL_STREAM_READ);
+        ext->glBufferData(GL_PIXEL_PACK_BUFFER_ARB, image->getTotalSizeInBytes(), nullptr, GL_STREAM_READ);
 
         //OSG_NOTICE<<"ScreenCaptureHandler: Generating pbo "<<read_pbo<<std::endl;
     }
@@ -946,17 +948,17 @@ void WindowCaptureCallback::operator () (osg::RenderInfo& renderInfo) const
         {
             // the callback must remove itself when it's done.
             if (_position == START_FRAME)
-                renderInfo.getCurrentCamera()->setInitialDrawCallback(0);
+                renderInfo.getCurrentCamera()->setInitialDrawCallback(nullptr);
             if (_position == END_FRAME)
-                renderInfo.getCurrentCamera()->setFinalDrawCallback(0);
+                renderInfo.getCurrentCamera()->setFinalDrawCallback(nullptr);
         }
     }
 
-    int prec = osg::notify(osg::INFO).precision(5);
+    std::streamsize prec = osg::notify(osg::INFO).precision(5);
     OSG_INFO << "ScreenCaptureHandler: "
-        << "copy=" << (cd->_timeForFullCopy*1000.0f) << "ms, "
-        << "operation=" << (cd->_timeForCaptureOperation*1000.0f) << "ms, "
-        << "total=" << (cd->_timeForFullCopyAndOperation*1000.0f) << std::endl;
+        << "copy=" << (cd->_timeForFullCopy*1000.0) << "ms, "
+        << "operation=" << (cd->_timeForCaptureOperation*1000.0) << "ms, "
+        << "total=" << (cd->_timeForFullCopyAndOperation*1000.0) << std::endl;
     osg::notify(osg::INFO).precision(prec);
 
     cd->_timeForFullCopy = 0;
@@ -971,7 +973,7 @@ public:
     {
         _mutex.lock();
     }
-    ~CaptureImage()
+    ~CaptureImage() override
     {
         // avoid Qt warning
         _mutex.trylock();
@@ -1113,71 +1115,6 @@ bool captureViewImage(osg::View * view, osg::ref_ptr<osg::Image> & image)
     return ret;
 }
 
-osg::Geometry* createImageGeometry(float s, float t, osg::Image::Origin origin, osg::Texture * texture)
-{
-    osg::Geometry* geom = NULL;
-    float y = 1.0;
-    float x = y * (s / t);
-
-    float texcoord_y_b = (origin == osg::Image::BOTTOM_LEFT) ? 0.0f : 1.0f;
-    float texcoord_y_t = (origin == osg::Image::BOTTOM_LEFT) ? 1.0f : 0.0f;
-    float texcoord_x = 1.0f;
-
-    // set up the drawstate.
-    osg::StateSet* dstate = new osg::StateSet;
-    dstate->setMode(GL_CULL_FACE, osg::StateAttribute::OFF);
-    dstate->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-    dstate->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
-
-    geom = new osg::Geometry;
-    geom->setStateSet(dstate);
-
-    osg::Vec3Array* coords = new osg::Vec3Array(4);
-    (*coords)[0].set(-x, 0.0f, y);
-    (*coords)[1].set(-x, 0.0f, -y);
-    (*coords)[2].set(x, 0.0f, -y);
-    (*coords)[3].set(x, 0.0f, y);
-    geom->setVertexArray(coords);
-
-    osg::Vec2Array* tcoords = new osg::Vec2Array(4);
-    (*tcoords)[0].set(0.0f*texcoord_x, texcoord_y_t);
-    (*tcoords)[1].set(0.0f*texcoord_x, texcoord_y_b);
-    (*tcoords)[2].set(1.0f*texcoord_x, texcoord_y_b);
-    (*tcoords)[3].set(1.0f*texcoord_x, texcoord_y_t);
-    geom->setTexCoordArray(0, tcoords);
-
-    osg::Vec4Array* colours = new osg::Vec4Array(1);
-    (*colours)[0].set(1.0f, 1.0f, 1.0, 1.0f);
-    geom->setColorArray(colours, osg::Array::BIND_OVERALL);
-
-    geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS, 0, 4));
-
-    return geom;
-}
-
-osg::Geometry* createGeometryForImage(osg::Image* image, float s, float t)
-{
-    osg::Geometry* geom = NULL;
-    if (image && s > 0 && t > 0)
-    {
-        osg::Texture2D* texture = new osg::Texture2D;
-        texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR);
-        texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
-        texture->setResizeNonPowerOfTwoHint(false);
-        geom = createImageGeometry(s, t, image->getOrigin(), texture);
-    }
-    return geom;
-}
-osg::Geometry * createGeometryForImage(osg::Image* image)
-{
-    return createGeometryForImage(image, image->s(), image->t());
-}
-
-osg::Geometry * createGeometryForTexture(osg::Texture* texture)
-{
-    return createImageGeometry(texture->getTextureWidth(), texture->getTextureHeight(), osg::Image::BOTTOM_LEFT, texture);
-}
-
 bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, osg::ref_ptr<osg::Image> & image)
 {
     osg::ref_ptr<osg::Camera> slaveCamera = new osg::Camera;
@@ -1197,7 +1134,7 @@ bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, o
     //slaveCamera->setProjectionMatrixAsOrtho2D(-texture->getTextureWidth() / 2, texture->getTextureWidth() / 2, -texture->getTextureHeight() / 2, texture->getTextureHeight() / 2);
     //slaveCamera->setProjectionMatrixAsOrtho2D(-2.0, 2.0, -2.0, 2.0);
     //slaveCamera->setProjectionMatrixAsOrtho2D(-1.0, 1.0, -1.0, 1.0);
-    osg::ref_ptr<osg::Geometry> geom = createGeometryForTexture(texture);
+    osg::ref_ptr<osg::Geometry> geom = osg_helpers::createGeometryForTexture(texture);
 
     osg::ComputeBoundsVisitor v;
     geom->accept(v);
@@ -1246,7 +1183,7 @@ bool convertTextureToImage(osg::Camera * masterCamera, osg::Texture * texture, o
 
         osgDB::writeImageFile(*image, "/tmp/slave_cam_image.png");
     }
-    slaveCamera->setFinalDrawCallback(0);
+    slaveCamera->setFinalDrawCallback(nullptr);
     return true;
 }
 
