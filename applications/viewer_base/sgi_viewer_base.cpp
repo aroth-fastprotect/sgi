@@ -36,9 +36,15 @@
 #include <osgEarth/MapFrame>
 #include <osgEarth/Registry>
 #include <osgEarth/TerrainEngineNode>
+#include <osgEarth/GLUtils>
+#include <osgEarth/Lighting>
+#include <osgEarth/PhongLightingEffect>
+#include <osgEarth/NodeUtils>
 
+#include <osgEarthUtil/Ephemeris>
 #include <osgEarthUtil/ExampleResources>
 #include <osgEarthUtil/EarthManipulator>
+#include <osgEarthUtil/Shadowing>
 #endif // SGI_USE_OSGEARTH
 
 #include <sgi/helpers/osg_helper_nodes>
@@ -675,6 +681,7 @@ sgi_MapNodeHelper::sgi_MapNodeHelper()
     , m_files()
 #ifdef SGI_USE_OSGEARTH
     , _mapNodeHelper(new osgEarth::Util::MapNodeHelper)
+    , _useOELighting(true)
 #endif
     , _usageMessage(nullptr)
     , _onlyImages(false)
@@ -801,6 +808,73 @@ sgi_MapNodeHelper::usage() const
 std::string sgi_MapNodeHelper::errorMessages() const
 {
     return m_errorMessages.str();
+}
+
+osg::Group * sgi_MapNodeHelper::setupLight(osg::Group * root)
+{
+    unsigned lightNum = 0;
+    osg::Group* lights = root;
+#ifdef SGI_USE_OSGEARTH
+    if (_useOELighting)
+    {
+        lights = new osg::Group();
+        lights->setName("lights");
+
+        osg::StateSet * stateset = lights->getOrCreateStateSet();
+
+        osgEarth::Util::Ephemeris e;
+        osgEarth::DateTime dt(2016, 8, 10, 14.0);
+        osgEarth::Util::CelestialBody sun = e.getSunPosition(dt);
+        osg::Vec3d world = sun.geocentric;
+
+        osg::Light* sunLight = new osg::Light(lightNum++);
+        world.normalize();
+        sunLight->setPosition(osg::Vec4d(world, 0.0));
+
+        sunLight->setAmbient(osg::Vec4(0.2, 0.2, 0.2, 1.0));
+        sunLight->setDiffuse(osg::Vec4(1.0, 1.0, 0.9, 1.0));
+
+        osg::LightSource* sunLS = new osg::LightSource();
+        sunLS->setLight(sunLight);
+        osgEarth::GenerateGL3LightingUniforms generateUniforms;
+        sunLS->accept(generateUniforms);
+
+        osgEarth::Util::ShadowCaster* caster = osgEarth::findTopMostNodeOfType<osgEarth::Util::ShadowCaster>(root);
+        if (caster)
+        {
+            OE_INFO << "Found a shadow caster!\n";
+            caster->setLight(sunLight);
+        }
+
+        osg::Group * groupPhong = new osg::Group;
+        groupPhong->setName("groupPhong");
+        // Add phong lighting.
+        osgEarth::PhongLightingEffect * phong = new osgEarth::PhongLightingEffect();
+        phong->attach(groupPhong->getOrCreateStateSet());
+
+        // Generate the necessary uniforms for the shaders.
+        osgEarth::GenerateGL3LightingUniforms gen;
+        groupPhong->accept(gen);
+
+        osg::Group * groupDefaultMaterial = new osg::Group;
+        groupDefaultMaterial->setName("defaultMaterial");
+        // install a default material for everything in the map
+        osg::Material* defaultMaterial = new osgEarth::MaterialGL3();
+        defaultMaterial->setDiffuse(defaultMaterial->FRONT, osg::Vec4(1, 1, 1, 1));
+        defaultMaterial->setAmbient(defaultMaterial->FRONT, osg::Vec4(1, 1, 1, 1));
+        groupDefaultMaterial->getOrCreateStateSet()->setAttributeAndModes(defaultMaterial, 1);
+        osgEarth::MaterialCallback().operator()(defaultMaterial, nullptr);
+
+        lights->addChild(groupDefaultMaterial);
+        groupDefaultMaterial->addChild(sunLS);
+        sunLS->addChild(groupPhong);
+        groupPhong->addChild(root);
+
+        // DO NOT run the shader generator because this would cause to model to go dark (again)!
+        //osgEarth::Registry::shaderGenerator().run(root);
+    }
+#endif
+    return lights;
 }
 
 osg::Group*
@@ -1015,6 +1089,8 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
 
             view->setCameraManipulator(keyswitchManipulator.get());
         }
+
+        root = setupLight(root);
     }
 
     if (args.read("--keys"))

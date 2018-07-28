@@ -42,6 +42,7 @@
 #include <osgEarth/MapFrame>
 #include <osgEarth/Registry>
 #include <osgEarth/TerrainEngineNode>
+#include <osgEarth/GLUtils>
 
 #include <osgEarthUtil/ExampleResources>
 #include <osgEarthUtil/EarthManipulator>
@@ -195,6 +196,9 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
 
     // disable the default setting of viewer.done() by pressing Escape.
     _viewer->setKeyEventSetsDone(0);
+#if defined(OSG_GL3_AVAILABLE) && defined(SGI_USE_OSGEARTH)
+    _viewer->setRealizeOperation(new osgEarth::GL3RealizeOperation());
+#endif
 
     _mainGW = createGraphicsWindow(0, 0, QMainWindow::width(), QMainWindow::height(), nullptr, glver, glprofile);
 
@@ -218,6 +222,10 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     camera->setDrawBuffer(buffer);
     camera->setReadBuffer(buffer);
 
+#if defined(SGI_USE_OSGEARTH)
+    // Sets up global default uniform values needed by osgEarth
+    osgEarth::GLUtils::setGlobalDefaults(camera->getOrCreateStateSet());
+#endif
 
     if (x >= 0 && y >= 0 && width >= 0 && height >= 0)
     {
