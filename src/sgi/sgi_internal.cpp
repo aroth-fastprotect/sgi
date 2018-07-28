@@ -48,6 +48,7 @@ SGI_OBJECT_INFO_BEGIN(sgi::details::Referenced)
     sgi::ReferencedInternalItemData,
     sgi::ReferencedInternalInfoData,
     sgi::Image,
+    sgi::SGIItemHolder,
     sgi::details::Object
 SGI_OBJECT_INFO_END()
 
@@ -88,6 +89,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(SGIPlugins)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ReferencedInternalItemData)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ReferencedInternalInfoData)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(Image)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(SGIItemHolder)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(sgi::ImageGLWidget)
@@ -366,6 +368,28 @@ bool writePrettyHTMLImpl<SGIProxyItemBase>::process(std::basic_ostream<char>& os
         }
     }
     return ret;
+}
+
+bool writePrettyHTMLImpl<SGIItemHolder>::process(std::basic_ostream<char>& os)
+{
+    SGIItemHolder * object = getObject<SGIItemHolder, SGIItemInternal>();
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+            callNextHandler(os);
+
+            if (_table)
+                os << "</table>" << std::endl;
+        }
+        break;
+    default:
+        callNextHandler(os);
+        break;
+    }
+    return true;
 }
 
 bool writePrettyHTMLImpl<Image>::process(std::basic_ostream<char>& os)
@@ -692,6 +716,10 @@ bool objectTreeBuildImpl<ReferencedInternalItemData>::build(IObjectTreeItem * tr
     case SGIItemTypeObject:
         {
             const SGIItemBasePtr & data = object->data().item;
+            SGIHostItemInternal holder(data->holder());
+            if (holder.hasObject())
+                treeItem->addChild("Holder", &holder);
+
             if(data->nextBase())
             {
                 SGIHostItemInternal next(new ReferencedInternalItemData(data->nextBase()));

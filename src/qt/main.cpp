@@ -111,16 +111,23 @@ void ApplicationEventFilter::uninstall()
     qDebug() << "ApplicationEventFilter uninstall" << this;
 	if (!_contextMenu.isNull())
 		delete _contextMenu;
+    _hostCallback = nullptr;
     s_instance = nullptr;
     sgi::shutdown<sgi::autoload::Qt>();
     deleteLater();
 }
 
+void ApplicationEventFilter::initializeHostCallback()
+{
+    sgi::getHostCallback<sgi::autoload::Qt>(_hostCallback);
+}
+  
+
 bool ApplicationEventFilter::contextMenu(QWidget * widget, QObject * obj, float x, float y)
 {
     bool ret = false;
     if(_contextMenu.isNull())
-        _contextMenu = sgi::createContextMenuQt(widget, obj, nullptr);
+        _contextMenu = sgi::createContextMenuQt(widget, obj, _hostCallback.get());
     else
         _contextMenu->setObject(obj);
     if(widget && !_contextMenu.isNull())
@@ -133,8 +140,9 @@ bool ApplicationEventFilter::contextMenu(QWidget * widget, QObject * obj, float 
 
 bool ApplicationEventFilter::imagePreviewDialog(QWidget * parent, QImage * image)
 {
+    initializeHostCallback();
     sgi::SGIHostItemQtPaintDevice item(image);
-    IImagePreviewDialog * dialog = sgi::showImagePreviewDialog<sgi::autoload::Qt>(parent, static_cast<const SGIHostItemBase *>(&item));
+    IImagePreviewDialog * dialog = sgi::showImagePreviewDialog<sgi::autoload::Qt>(parent, static_cast<const SGIHostItemBase *>(&item), _hostCallback.get());
     if (dialog)
         dialog->show();
     return true;
@@ -142,8 +150,9 @@ bool ApplicationEventFilter::imagePreviewDialog(QWidget * parent, QImage * image
 
 bool ApplicationEventFilter::sceneGraphDialog(QWidget * parent, QObject * obj)
 {
+    initializeHostCallback();
     sgi::SGIHostItemQt item(obj);
-    ISceneGraphDialog * dialog = sgi::showSceneGraphDialog<sgi::autoload::Qt>(parent, static_cast<const SGIHostItemBase *>(&item));
+    ISceneGraphDialog * dialog = sgi::showSceneGraphDialog<sgi::autoload::Qt>(parent, static_cast<const SGIHostItemBase *>(&item), _hostCallback.get());
     if (dialog)
         dialog->show();
     return true;

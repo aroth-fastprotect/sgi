@@ -1,8 +1,9 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 #pragma once
 
 #include <QImageIOHandler>
+#include <sgi/details/ref_ptr>
 
 class QCoreApplication;
 
@@ -11,7 +12,10 @@ namespace sgi {
     class IContextMenuQt;
     typedef QPointer<IContextMenuQt> IContextMenuQtPtr;
 
-    namespace qt_loader {
+    class IHostCallback;
+    typedef details::ref_ptr<IHostCallback> IHostCallbackPtr;
+
+namespace qt_loader {
 
 class SGIEvent;
 
@@ -35,11 +39,15 @@ protected:
     bool handleEvent(SGIEvent * ev);
 
 private:
+    void initializeHostCallback();
+
+private:
     static ApplicationEventFilter * s_instance;
 
     int                     _inspectorContextMenuMouseButton;
     int                     _inspectorContextMenuMouseModifier;
     sgi::IContextMenuQtPtr  _contextMenu;
+    IHostCallbackPtr        _hostCallback;
 };
 
 class sgiImageIOHandler : public QImageIOHandler

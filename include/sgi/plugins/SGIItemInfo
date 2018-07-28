@@ -10,7 +10,40 @@ typedef std::pair<int, int> IntPair;
 typedef details::ReferencedDataT<IntPair> ReferencedDataIntPair;
 typedef details::ReferencedDataT<std::string> ReferencedDataString;
 
-template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*>
+namespace details {
+    template<typename TYPE>
+    struct copy_object {
+        static TYPE * copyObject(TYPE * obj)
+        {
+            return new TYPE(*obj);
+        }
+    };
+    template<>
+    struct copy_object<void> {
+        static void * copyObject(void * obj)
+        {
+            return nullptr;
+        }
+    };
+
+    template<typename TYPE>
+    struct delete_operator {
+        static void deleteObject(TYPE * obj)
+        {
+            delete obj;
+        }
+    };
+    template<typename TYPE>
+    struct do_not_delete {
+        static void deleteObject(TYPE *)
+        {
+        }
+    };
+}
+
+template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*, 
+            template<typename> class OBJECT_COPY=details::copy_object,
+            template<typename> class OBJECT_DELETER=details::delete_operator >
 struct SGIItemInfoPlainPtr {
     typedef OBJECT_TYPE ObjectType;
     typedef OBJECT_STORAGE_TYPE ObjectStorageType;
@@ -21,11 +54,11 @@ struct SGIItemInfoPlainPtr {
     }
     static ObjectType * copyObject(const ObjectType & rhs)
     {
-        return new ObjectType(rhs);
+        return OBJECT_COPY<ObjectType>::copyObject(rhs);
     }
     static void deleteObject(const ObjectStorageType & item)
     {
-        delete static_cast<ObjectType *>(item);
+        OBJECT_DELETER<ObjectType>::deleteObject(static_cast<ObjectType *>(item));
     }
 };
 

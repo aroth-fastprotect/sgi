@@ -59,8 +59,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
         set(OSGQT_DIR "${OSGQT_DIR}" CACHE STRING "Directory where to find osgQt")
     endif()
 
-	FIND_PACKAGE(OpenGL)
-
+	fast_package_opengl()
 	fast_package_qt5()
 	fast_package_osg()
     fast_package_log4cplus()
@@ -70,12 +69,14 @@ IF(NOT SGI_IS_SYSTEM_LIB)
         ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -DNOMINMAX)
 	ENDIF(WIN32)
 
-    # Set C++ language to C++14
+    # Use C++14 as default
     set(CMAKE_CXX_STANDARD 14)
-
-	if(CLANG)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    # ... and keep C++ extensions on (which is the CMake default, but to be safe)
+    set(CMAKE_CXX_EXTENSIONS ON)
+	IF(CLANG)
 		add_compile_options(-Wno-deprecated-register -Wno-switch -Wno-inconsistent-missing-override)
-	endif()
+	ENDIF()
 
 	# Make the headers visible to everything
 	INCLUDE_DIRECTORIES(
