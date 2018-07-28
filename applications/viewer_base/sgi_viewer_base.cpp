@@ -66,7 +66,7 @@ namespace std {
         case osg::INFO: os << "INFO"; break;
         case osg::DEBUG_INFO: os << "DEBUG_INFO"; break;
         case osg::DEBUG_FP: os << "DEBUG_FP"; break;
-        default: os << (int)t; break;
+        default: os << static_cast<int>(t); break;
         }
         return os;
     }
@@ -103,7 +103,7 @@ namespace std {
         case osgGA::GUIEventAdapter::CLOSE_WINDOW: os << "CloseWnd"; break;
         case osgGA::GUIEventAdapter::QUIT_APPLICATION: os << "Quit"; break;
         case osgGA::GUIEventAdapter::USER: os << "User"; break;
-        default: os << (int)t; break;
+        default: os << static_cast<int>(t); break;
         }
         return os;
     }
@@ -217,7 +217,7 @@ namespace std {
             }
             else if (k >= osgGA::GUIEventAdapter::KEY_A && k <= osgGA::GUIEventAdapter::KEY_Z)
             {
-                os << "Key_" << (char)('A' + (k - osgGA::GUIEventAdapter::KEY_A));
+                os << "Key_" << static_cast<char>('A' + (k - osgGA::GUIEventAdapter::KEY_A));
             }
             else if (k >= osgGA::GUIEventAdapter::KEY_KP_0 && k <= osgGA::GUIEventAdapter::KEY_KP_9)
             {
@@ -228,7 +228,7 @@ namespace std {
                 os << "Key_" << 'F' << (k - osgGA::GUIEventAdapter::KEY_F1 + 1);
             }
             else
-                os << "0x" << std::hex << (int)k << std::dec;
+                os << "0x" << std::hex << static_cast<int>(k) << std::dec;
         }
         break;
         }
@@ -326,7 +326,7 @@ namespace std {
 
 osg::NotifySeverity severityFromString(const std::string & input)
 {
-    osg::NotifySeverity ret = (osg::NotifySeverity) - 1;
+    osg::NotifySeverity ret = (osg::NotifySeverity)-1;
 
     std::string str = input;
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
@@ -760,7 +760,7 @@ void sgi_MapNodeHelper::setupInitialPosition(osgViewer::View* view) const
             osg::Group * mainGroup = dynamic_cast<osg::Group*>(root.get());
             if (mainGroup)
             {
-                osg::ref_ptr<osg::LOD> firstChildLOD = mainGroup->getNumChildren() ? dynamic_cast<osg::LOD*>(mainGroup->getChild(0)) : NULL;
+                osg::ref_ptr<osg::LOD> firstChildLOD = mainGroup->getNumChildren() ? dynamic_cast<osg::LOD*>(mainGroup->getChild(0)) : nullptr;
                 if (firstChildLOD)
                 {
                     bs._center = firstChildLOD->getCenter();
@@ -778,19 +778,23 @@ std::string
 sgi_MapNodeHelper::usage() const
 {
     std::stringstream ss;
+    ss  << "  --osgdebug <level>            : set OSG_NOTIFY_LEVEL to specified level\n";
+
 #ifdef SGI_USE_OSGEARTH
-    ss << _mapNodeHelper->usage()
-        << "    --earthdebug <level> : set OSGEARTG_NOTIFY_LEVEL to specified level\n"
-        << "    --debug              : set OSG_NOTIFY_LEVEL and OSGEARTG_NOTIFY_LEVEL to debug\n"
-        << "    --autoclose <ms>     : set up timer to close the main window after the given time in milliseconds\n"
-        << "    --viewpoint <name|num>  : jump to the given viewpoint\n"
+    ss  << _mapNodeHelper->usage()
+        << "  --earthdebug <level>          : set OSGEARTG_NOTIFY_LEVEL to specified level\n"
+        << "  --debug                       : set OSG_NOTIFY_LEVEL and OSGEARTG_NOTIFY_LEVEL to debug\n"
+        << "  --autoclose <ms>              : set up timer to close the main window after the given time in milliseconds\n"
+        << "  --viewpoint <name|num>        : jump to the given viewpoint\n"
         ;
 #endif
-    ss << "    --nosgi              : do not add SceneGraphInspector\n"
-        << "    --hidesgi            : do not show SceneGraphInspector\n"
-        << "    --nokeys             : do not add keyboard dump handler\n"
-        << "    --nomouse            : do not add mouse dump handler\n"
-        << "    --osgdebug <level>   : set OSG_NOTIFY_LEVEL to specified level\n";
+    ss  << "  --nosgi                       : do not add SceneGraphInspector handle\n"
+        << "  --hidesgi                     : do not show SceneGraphInspector after loading\n"
+        << "  --keys                        : enable keyboard event logging\n"
+        << "  --mouse                       : enable mouse event logging\n"
+        << "  --track-mouse                 : adjust animation speed by mouse moves\n"
+        ;
+
     return ss.str();
 }
 
@@ -817,6 +821,8 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
 
     // a root node to hold everything:
     bool previousWasOption = false;
+    // check if the args only contain the executable name and nothing else
+    bool emptyArgs = args.argc() <= 1;
     osg::Group * root = new osg::Group;
     // load all files from the given args
     for (int i = 1; i < args.argc(); )
@@ -947,8 +953,11 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
 
     if (!hasAtLeastOneNode && !hasAtLeastOneObject && !hasAtLeastOneImage)
     {
-        m_errorMessages << "No .earth, 3D model or image file/url specified in the command line." << std::endl;
-        return 0L;
+        if(emptyArgs)
+            m_errorMessages << "No .earth, 3D model or image file/url specified in the command line. Empty command line arguments." << std::endl;
+        else
+            m_errorMessages << "No .earth, 3D model or image file/url specified in the command line." << std::endl;
+        return nullptr;
     }
 
     // check if we only got one image and nothing else
@@ -970,8 +979,9 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
     else
 #endif // SGI_USE_OSGEARTH
     {
+#ifdef SGI_USE_OSGEARTH
         m_errorMessages << "Loaded scene graph does not contain a MapNode" << std::endl;
-        // warn about not having an earth manip
+#endif // SGI_USE_OSGEARTH
         osgGA::TrackballManipulator* manipulator = dynamic_cast<osgGA::TrackballManipulator*>(view->getCameraManipulator());
         if (!manipulator)
         {
