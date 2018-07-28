@@ -920,6 +920,23 @@ unsigned findContextID(const osg::StateAttribute * sa)
     return findContextID(camera);
 }
 
+osg::StateSet* buildEffectiveStateSet(const osg::NodePath & path, osg::StateSet* top)
+{
+    if(path.empty())
+        return nullptr;
+    osg::StateSet* ret = new osg::StateSet;
+    for(osg::NodePath::const_iterator it = path.begin(); it != path.end(); ++it)
+    {
+        osg::Node * node = *it;
+        osg::StateSet * cur = node->getStateSet();
+        if(cur)
+            ret->merge(*cur);
+    }
+    if(top)
+        ret->merge(*top);
+    return ret;
+}
+
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxf & b)
 {
     return output << std::setprecision(12) << '[' << b._min << ',' << b._max << ']';

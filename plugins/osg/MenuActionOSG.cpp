@@ -1932,7 +1932,7 @@ bool actionHandlerImpl<MenuActionTextureSetImage>::execute()
     osg::Texture * object = getObject<osg::Texture,SGIItemOsg>();
     std::string filename;
     std::vector<std::string> filters;
-    filters.push_back("Image files (*.png *.jpg *.bmp *.tiff)");
+    filters.push_back("Image files (*.png *.jpg *.bmp *.tiff *.dds)");
     filters.push_back("All files (*.*)");
 
     bool ret;
@@ -1947,6 +1947,7 @@ bool actionHandlerImpl<MenuActionTextureSetImage>::execute()
             unsigned numImages = std::max(object->getNumImages(), 1u);
             for(unsigned n = 0; n < numImages; n++)
                 object->setImage(n, image);
+            object->dirtyTextureObject();
         }
     }
     return true;

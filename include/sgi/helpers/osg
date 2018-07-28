@@ -409,6 +409,8 @@ SGI_OSG_HELPER_EXPORT void heightFieldDumpPlainText(std::basic_ostream<char>& os
     SGI_OSG_HELPER_EXPORT unsigned findContextID(const osg::StateSet * stateset);
     SGI_OSG_HELPER_EXPORT unsigned findContextID(const osg::StateAttribute * sa);
 
+    SGI_OSG_HELPER_EXPORT osg::StateSet* buildEffectiveStateSet(const osg::NodePath & path, osg::StateSet* top=nullptr);
+
 #if !defined(BUILD_SGI_VIEWER_BASE)
     SGI_OSG_HELPER_EXPORT 
 #endif
