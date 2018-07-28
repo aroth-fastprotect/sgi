@@ -9,7 +9,7 @@
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/plugins/SettingsDialog>
 #include <sgi/plugins/SceneGraphDialog>
-#include "../osg/SGIItemOsg"
+#include <sgi/plugins/SGIItemOsg>
 #include "SGIItemOsgEarth"
 #include <sgi/SGIItemInternal>
 
@@ -20,6 +20,7 @@
 #include "ContextMenuOSGEarth.h"
 #include "MenuActionOSGEarth.h"
 #include "SettingsDialogOSGEarth.h"
+#include "GUIAdapterOSGEarth.h"
 
 #include <osgEarth/Version>
 #include <osgEarth/Map>
@@ -436,7 +437,7 @@ GENERATE_IMPL_NO_ACCEPT(osg::NodeCallback)
 GENERATE_IMPL_NO_ACCEPT(osgGA::EventHandler)
 GENERATE_IMPL_NO_ACCEPT(osgGA::GUIEventHandler)
 GENERATE_IMPL_NO_ACCEPT(osgGA::CameraManipulator)
-GENERATE_IMPL_NO_ACCEPT(osg::Node)
+//GENERATE_IMPL_NO_ACCEPT(osg::Node)
 GENERATE_IMPL_NO_ACCEPT(osg::StateAttribute)
 GENERATE_IMPL_NO_ACCEPT(osg::Group)
 GENERATE_IMPL_NO_ACCEPT(osg::LOD)
@@ -459,8 +460,8 @@ typedef SGIPluginImplementationT<       generateItemImpl,
                                         getObjectNameImpl,
                                         getObjectTypeImpl,
                                         defaultPluginGetObjectPathImpl,
-                                        getObjectSuggestedFilenameImpl,
                                         getObjectSuggestedFilenameExtensionImpl,
+                                        getObjectSuggestedFilenameImpl,
                                         getObjectFilenameFiltersImpl,
                                         defaultPluginGetObjectHasCallbackImpl,
                                         writeObjectFileImpl,
@@ -468,7 +469,9 @@ typedef SGIPluginImplementationT<       generateItemImpl,
                                         objectTreeBuildRootImpl,
                                         contextMenuPopulateImpl,
                                         actionHandlerImpl,
-                                        settingsDialogCreateImpl
+                                        settingsDialogCreateImpl,
+                                        defaultPluginGuiAdapterParentWidgetImpl,
+                                        guiAdapterSetViewImpl
                                         >
     SGIPluginImpl;
 

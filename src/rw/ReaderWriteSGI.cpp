@@ -1,4 +1,4 @@
-// kate: syntax C++11;
+// kate: syntax C++;
 // SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #include <osg/Notify>
@@ -214,7 +214,7 @@ struct SGIOptions
         pickerRoot = nullptr;
     }
 
-    osg::ref_ptr<sgi::IHostCallback> hostCallback;
+    sgi::IHostCallbackPtr hostCallback;
     bool showSceneGraphDialog;
     bool showImagePreviewDialog;
 	QObject * qtObject;
@@ -457,8 +457,17 @@ bool SceneGraphInspectorHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA:
 
                 QWidget * parent = nullptr;
                 SGIHostItemBasePtr hostItem;
-                if (aa.asView())
-                    hostItem = new SGIHostItemOsg(aa.asView());
+                if (view)
+                {
+                    QObject * qobject = nullptr;
+                    double sgi_qt_object;
+                    if (view->getUserValue("sgi_qt_object", sgi_qt_object) && sgi_qt_object)
+                        qobject = (QObject*)(void*)(qulonglong)sgi_qt_object;
+                    if(qobject)
+                        hostItem = new SGIHostItemQt(qobject);
+                    else
+                        hostItem = new SGIHostItemOsg(view);
+                }
                 else
                     hostItem = new SGIHostItemOsg(&ea);
                 ret = contextMenu(hostItem.get(), x, y, parent);

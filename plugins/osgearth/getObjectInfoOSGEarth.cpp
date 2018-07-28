@@ -3,7 +3,7 @@
 #include "string_helpers.h"
 
 #include <sgi/plugins/SGIHostItemOsgEarth.h>
-#include "../osg/SGIItemOsg"
+#include <sgi/plugins/SGIItemOsg>
 #include "SGIItemOsgEarth"
 
 #include <osgEarth/Registry>

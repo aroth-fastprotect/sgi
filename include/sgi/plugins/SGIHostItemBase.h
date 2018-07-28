@@ -83,8 +83,10 @@ public:
     ~SGIHostItemImpl() override
     {
     }
-    ObjectType * object() { return TYPE::objectPtr(_object); }
-    ObjectType * object() const { return TYPE::objectPtr(_object); }
+    //ObjectType * object() { return TYPE::objectPtr(_object); }
+    //ObjectType * object() const { return TYPE::objectPtr(_object); }
+    ObjectType * object() { return _object; }
+    ObjectType * object() const { return _object; }
 
     template<typename USER_DATA_TYPE>
     USER_DATA_TYPE * objectAs()
@@ -108,9 +110,10 @@ public:
         return dynamic_cast<const USER_DATA_TYPE *>(SGIHostItemBase::userDataPtr());
     }
 
-    bool hasObject() const { return TYPE::objectPtr(_object) != nullptr; }
+    bool hasObject() const { return object() != nullptr; }
 protected:
-    ObjectStorageType _object;
+    //ObjectStorageType _object;
+    ObjectType * _object;
 };
 
 } // namespace sgi

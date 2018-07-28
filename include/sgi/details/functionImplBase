@@ -365,8 +365,16 @@ private:
     void namedEnumValueToString(const std::string& value_type, std::string& ret, int value);
 
 protected:
+#ifdef _MSC_VER
+#pragma warning(push)
+    // disable warning C4251: '_xxx': struct 'yyy' needs to have dll-interface to be used by clients of class 'SGIItemBase'
+#pragma warning(disable:4251)
+#endif
     SGIPluginHostInterface * _hostInterface;
     SGIItemBasePtr _item;
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 };
 
 #if 0

@@ -74,6 +74,14 @@ macro(FAST_IS_SYSTEM_LIBRARY prjname var)
     set(${var} 0)
 endmacro(FAST_IS_SYSTEM_LIBRARY)
 
+macro(fast_package_opengl)
+    # Load OpenGL Package
+    if(UNIX)
+        # use the modern GLVND library
+        set(OpenGL_GL_PREFERENCE GLVND)
+    endif()
+    find_package(OpenGL REQUIRED)
+endmacro(fast_package_opengl)
 
 macro(fast_package_qt5)
 

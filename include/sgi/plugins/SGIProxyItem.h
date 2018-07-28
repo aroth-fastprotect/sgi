@@ -41,12 +41,20 @@ public:
 protected:
     virtual SGIItemBase * getRealInstance() = 0;
 
+#ifdef _MSC_VER
+#pragma warning(push)
+    // disable warning C4251: '_xxx': struct 'yyy' needs to have dll-interface to be used by clients of class 'SGIItemBase'
+#pragma warning(disable:4251)
+#endif
 protected:
     std::string     _name;
     std::string     _displayName;
     std::string     _typeName;
     SGIItemBasePtr _realItem;
     SGIPluginHostInterface * _hostInterface;
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 };
 
 template<typename GET_REAL_INSTANCE>

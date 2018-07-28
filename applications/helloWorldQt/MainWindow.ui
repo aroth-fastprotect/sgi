@@ -106,7 +106,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -114,14 +114,17 @@
      <string>F&amp;ile</string>
     </property>
     <addaction name="actionSGI_Version_info"/>
-    <addaction name="actionExit"/>
+    <addaction name="actionQuit"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionExit">
+  <action name="actionQuit">
+   <property name="icon">
+    <iconset theme="application-exit"/>
+   </property>
    <property name="text">
-    <string>&amp;Exit</string>
+    <string>&amp;Quit</string>
    </property>
   </action>
   <action name="actionSGI_Version_info">
@@ -133,10 +136,10 @@
  <resources/>
  <connections>
   <connection>
-   <sender>actionExit</sender>
+   <sender>actionQuit</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>close()</slot>
+   <slot>fileQuit()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -183,5 +186,6 @@
  </connections>
  <slots>
   <slot>sgiVersionInfo()</slot>
+  <slot>fileQuit()</slot>
  </slots>
 </ui>

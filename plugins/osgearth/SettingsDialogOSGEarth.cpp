@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "SettingsDialogOSGEarth.h"
 #include "string_helpers.h"
-#include "../osg/SGIItemOsg"
+#include <sgi/plugins/SGIItemOsg>
 
 #include <sgi/plugins/SettingsDialog>
 #include <osgEarthUtil/AutoClipPlaneHandler>

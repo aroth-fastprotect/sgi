@@ -817,6 +817,8 @@ bool Image::allocate(unsigned width, unsigned height, ImageFormat format, DataTy
     case ImageFormatBGR32:
     case ImageFormatBGRA32:
     case ImageFormatABGR32:
+        _length = allocated_width * allocated_height * 4 * bytesPerDataElement;
+        break;
     case ImageFormatFloat:
     case ImageFormatFloat64:
         _length = allocated_width * allocated_height * bytesPerDataElement;

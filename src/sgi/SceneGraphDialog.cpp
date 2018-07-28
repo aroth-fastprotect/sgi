@@ -335,14 +335,14 @@ void SceneGraphDialog::closeEvent(QCloseEvent * event)
         _refreshTimer = nullptr;
     }
 
+    _itemPending = nullptr;
     for (Ui_TabPage * page : ui->tabs)
         page->clear();
     ui->comboBoxPath->clear();
     _toolsMenu->setObject(static_cast<SGIItemBase*>(nullptr));
     _contextMenu = nullptr;
-    _itemSelf = nullptr;
     _itemToolsMenu = nullptr;
-    _itemPending = nullptr;
+    //_itemSelf = nullptr;
 
     /*
     delete ui->comboBoxPath;

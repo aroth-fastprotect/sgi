@@ -3,7 +3,7 @@
 
 #pragma once
 #include "SGIHostItemBase.h"
-#include <QPointer>
+#include <QtCore/QPointer>
 
 class QObject;
 struct QMetaObject;

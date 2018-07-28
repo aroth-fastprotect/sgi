@@ -278,6 +278,8 @@ public:
 
     SGIItemT(const HostItemType * /*hostItem*/=nullptr, SGIItemType type=SGIItemTypeInvalid, ObjectType * object=nullptr, unsigned flags=0, unsigned score=0, details::Referenced * userData=nullptr)
         : SGIItemBase(object ? new HOLDER_TYPE(object) : nullptr, type, flags, score, userData) {}
+    SGIItemT(SGIItemHolder * holder, SGIItemType type = SGIItemTypeInvalid, unsigned flags = 0, unsigned score = 0, details::Referenced * userData = nullptr)
+        : SGIItemBase(holder, type, flags, score, userData) {}
     SGIItemT(const HostItemType * /*hostItem*/, SGIItemType type, const ObjectType & object, unsigned flags=0, unsigned score=0, details::Referenced * userData=nullptr)
         : SGIItemBase(new HOLDER_TYPE(object), type, flags, score, userData) {}
     SGIItemT(SGIItemType type, ObjectType * object=nullptr, unsigned flags=0, unsigned score=0, details::Referenced * userData=nullptr)
