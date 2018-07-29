@@ -50,6 +50,7 @@ namespace osgearth_plugin {
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectInfo)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNotifyLevel)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeRegenerateShaders)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeEditShaders)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMapCachePolicyUsage)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMapDebugImageLayer)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMapInspector)
@@ -296,6 +297,20 @@ bool actionHandlerImpl<MenuActionNotifyLevel>::execute()
     osg::NotifySeverity notifyLevel = (osg::NotifySeverity)menuAction()->mode();
     osgEarth::setNotifyLevel(notifyLevel);
     return true;
+}
+
+bool actionHandlerImpl<MenuActionNodeEditShaders>::execute()
+{
+    ISettingsDialogPtr dialog;
+    bool ret;
+    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogShaderEditor, menu()->parentWidget(), hostCallback());
+    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
+    if(ret)
+    {
+        if(dialog.valid())
+            dialog->show();
+    }
+    return ret;
 }
 
 bool actionHandlerImpl<MenuActionNodeRegenerateShaders>::execute()

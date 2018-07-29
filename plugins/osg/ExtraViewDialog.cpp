@@ -220,28 +220,23 @@ void ViewOSG::resizeEvent(QResizeEvent *event)
 
 
 
-ExtraViewDialog::ExtraViewDialog(QWidget * parent, SGIItemBase * item, SGIPluginHostInterface * hostInterface)
-	: QDialog(parent)
-    , _hostInterface(hostInterface)
-    , _item(item)
+ExtraViewDialog::ExtraViewDialog(QWidget * parent, SGIPluginHostInterface * hostInterface, SGIItemBase * item, ISettingsDialogInfo * info)
+    : SettingsQDialogImpl(parent, hostInterface, item, info)
 	, _camera(nullptr)
-    , _interface(new SettingsDialogImpl(this))
     , _timer(new QTimer(this))
 {
 	ui = new Ui_ExtraViewDialog;
 	ui->setupUi( this );
 
-	//connect(ui->buttonBox->button(QDialogButtonBox::Save), SIGNAL(clicked()), this, SLOT(save()));
 	connect(ui->buttonBox->button(QDialogButtonBox::Close), &QPushButton::clicked, this, &ExtraViewDialog::reject);
 	connect(ui->buttonBox->button(QDialogButtonBox::RestoreDefaults), &QPushButton::clicked, this, &ExtraViewDialog::restoreDefaults);
 
     connect(_timer, &QTimer::timeout, this, &ExtraViewDialog::load);
 
-
     osgViewer::CompositeViewer * viewer = nullptr;
     osgViewer::View * view = nullptr;
     osg::Camera * masterCamera = nullptr;
-    osg::Referenced * object = dynamic_cast<SGIItemOsg*>(_item.get())->object();
+    osg::Referenced * object = getObject<osg::Referenced,SGIItemOsg>();
     _camera = dynamic_cast<osg::Node*>(object)->asCamera();
 
     if (_camera.valid())

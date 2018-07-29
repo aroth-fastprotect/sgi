@@ -11,6 +11,9 @@ class QDialog;
 namespace sgi {
 
 class SGIHostItemBase;
+class SGIItemBase;
+typedef details::ref_ptr<SGIItemBase> SGIItemBasePtr;
+class SGIPluginHostInterface;
 
 class ISettingsDialogInfo : public IHostCallback
 {
@@ -26,8 +29,8 @@ public:
     SettingsDialogInfoBase(unsigned dialogId, QWidget * parent, IHostCallback * callback)
         : _dialogId(dialogId), _parent(parent), _hostCallback(callback) {}
 
-    virtual unsigned dialogId() { return _dialogId; }
-    virtual QWidget * parent() { return _parent; }
+    unsigned dialogId() override { return _dialogId; }
+    QWidget * parent() override { return _parent; }
     IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) override
     {
         return _hostCallback->contextMenu(parent, item);

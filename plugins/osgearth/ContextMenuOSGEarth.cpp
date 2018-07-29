@@ -79,6 +79,7 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
             if(manipulateMenu)
             {
                 manipulateMenu->addSimpleAction(MenuActionNodeRegenerateShaders, "Re-generate shaders", _item);
+                manipulateMenu->addSimpleAction(MenuActionNodeEditShaders, "Edit shaders...", _item);
             }
         }
         break;

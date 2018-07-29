@@ -61,6 +61,14 @@ public:
         return _info;
     }
 
+    template<typename DialogImpl>
+    bool openDialog(ISettingsDialogPtr & dialog)
+    {
+        DialogImpl * qtdialog = new DialogImpl(parent(), _hostInterface, _item.get(), _info);
+        dialog = qtdialog->dialogInterface();
+        return true;
+    }
+
 protected:
     ISettingsDialogInfo * _info;
 };

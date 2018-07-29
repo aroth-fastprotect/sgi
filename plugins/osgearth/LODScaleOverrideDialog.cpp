@@ -16,12 +16,9 @@
 
 namespace sgi {
 
-LODScaleOverrideDialog::LODScaleOverrideDialog(QWidget * parent, SGIItemBase * item, ISettingsDialogInfo * info)
-    : QDialog(parent)
+LODScaleOverrideDialog::LODScaleOverrideDialog(QWidget * parent, SGIPluginHostInterface * hostInterface, SGIItemBase * item, ISettingsDialogInfo * info)
+    : SettingsQDialogImpl(parent, hostInterface, item, info)
     , ui(new Ui_LODScaleOverrideDialog)
-    , _interface(new SettingsDialogImpl(this))
-    , _info(info)
-    , _item(item)
     , _original_value(DBL_MAX)
     , _slider_factor(2)
     , _ready(false)

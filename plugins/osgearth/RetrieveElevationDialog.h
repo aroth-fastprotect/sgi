@@ -1,8 +1,7 @@
 #pragma once
 
 #include <QDateTime>
-#include <QDialog>
-#include <sgi/plugins/SGIPluginInterface.h>
+#include <sgi/plugins/SGISettingsDialogImpl>
 
 QT_BEGIN_NAMESPACE
 class Ui_RetrieveElevationDialog;
@@ -18,16 +17,13 @@ class SGIPluginHostInterface;
 
 namespace osgearth_plugin {
 
-class RetrieveElevationDialog : public QDialog
+class RetrieveElevationDialog : public SettingsQDialogImpl
 {
 	Q_OBJECT
 
 public:
-                                RetrieveElevationDialog(QWidget * parent, SGIItemBase * item, ISettingsDialogInfo * info=NULL);
-	virtual				        ~RetrieveElevationDialog();
-
-public:
-    ISettingsDialog *           dialogInterface() { return _interface; }
+    RetrieveElevationDialog(QWidget * parent, SGIPluginHostInterface * hostInterface, SGIItemBase * item, ISettingsDialogInfo * info);
+    ~RetrieveElevationDialog() override;
 
 public slots:
     void                        query();
@@ -37,7 +33,7 @@ public slots:
     void                        resultItemClicked(QTreeWidgetItem * item, int column);
 
 protected:
-    virtual void                closeEvent(QCloseEvent * event);
+    void                        closeEvent(QCloseEvent * event) override;
 
 private:
     bool                        getQueryPoint(osgEarth::GeoPoint & point);
@@ -48,10 +44,6 @@ private:
 
 private:
 	Ui_RetrieveElevationDialog *    ui;
-    SGIPluginHostInterface *        _hostInterface;
-    ISettingsDialogPtr _interface;
-    ISettingsDialogInfoPtr          _info;
-    SGIItemBasePtr                  _item;
 };
 
 } // namespace osgearth_plugin

@@ -333,16 +333,10 @@ namespace {
     }
 }
 
-TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, ISettingsDialogInfo * info, SGIPluginHostInterface * hostInterface)
-	: QDialog(parent)
-    , _hostInterface(hostInterface)
-    , _item(item)
-    , _interface(new SettingsDialogImpl(this))
-    , _info(info)
+TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIPluginHostInterface * hostInterface, SGIItemBase * item, ISettingsDialogInfo * info)
+    : SettingsQDialogImpl(parent, hostInterface, item, info)
     , _treeImpl(new ObjectTreeImpl(this))
 {
-    Q_ASSERT(_info != nullptr);
-
 	ui = new Ui_TileInspectorDialog;
 	ui->setupUi( this );
 
@@ -360,7 +354,7 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
     ui->coordinateStatus->setText(tr("No coordinate or tile key"));
 
     ui->treeWidget->setHeaderHidden(true);
-    _treeRoot = new ObjectTreeItem(ui->treeWidget, _treeImpl.get(), _hostInterface);
+    _treeRoot = new ObjectTreeItem(ui->treeWidget, _treeImpl.get(), hostInterface);
 
     osgEarth::Map * map = getMap(_item.get());
     if(map)
@@ -402,10 +396,10 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
 
             SGIHostItemOsg hostitem(layer);
             SGIItemBasePtr item;
-            if (_hostInterface->generateItem(item, &hostitem))
+            if (hostInterface->generateItem(item, &hostitem))
             {
                 std::string name;
-                _hostInterface->getObjectDisplayName(name, item.get());
+                hostInterface->getObjectDisplayName(name, item.get());
                 QString itemname;
                 if(imageLayer)
                     itemname = tr("Image: %1").arg(fromUtf8(name));
@@ -419,7 +413,7 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIItemOsg * item, IS
     else
     {
         std::string name;
-        _hostInterface->getObjectDisplayName(name, _item.get());
+        hostInterface->getObjectDisplayName(name, _item.get());
         ui->layer->addItem(fromUtf8(name), QVariant::fromValue(QtSGIItem(_item.get())));
     }
 
@@ -481,7 +475,6 @@ void TileInspectorDialog::reloadTree()
     ui->treeWidget->clear();
     QList<int> panes_sizes;
     int total_width ;
-    QLayout * currentLayout = ui->verticalLayout;
     total_width = this->width() - ui->verticalLayout->margin();
     const int tree_width = 3 * total_width / 5;
     const int textbox_width = 2 * total_width / 5;

@@ -4,6 +4,8 @@
 #pragma once
 
 #include "SettingsDialog"
+#include <sgi/details/functionImplBase>
+#include <QDialog>
 
 namespace sgi {
 namespace details {
@@ -23,29 +25,114 @@ namespace details {
 }
 
 template<class DIALOG_CLASS=QDialog, template<typename> class SETOBJECTPOLICY=details::IgnoreSetObjectPolicy>
-class SettingsDialogImplT : public ISettingsDialog
+class SettingsDialogImplT : public ISettingsDialog, public details::functionImplBase
 {
 public:
-    SettingsDialogImplT(DIALOG_CLASS * dialog)
-        : _dialog(dialog), _setObject(dialog)
+    SettingsDialogImplT(DIALOG_CLASS * dialog, SGIPluginHostInterface * hostInterface, SGIItemBase * item=nullptr, ISettingsDialogInfo * info=nullptr)
+        : _dialog(dialog), details::functionImplBase(hostInterface, item), _info(info), _setObject(dialog)
         {
             _dialog->setAttribute(Qt::WA_DeleteOnClose);
         }
     ~SettingsDialogImplT() override
         { }
 
-    void            setObject(SGIItemBase * item, ISettingsDialogInfo * info=nullptr) override { _setObject.setObject(item, info); }
-    void            setObject(const SGIHostItemBase * item, ISettingsDialogInfo * info=nullptr) override { _setObject.setObject(item, info); }
+    void            setObject(SGIItemBase * item, ISettingsDialogInfo * info=nullptr) override
+    {
+        _item = item;
+        if(info)
+            _info = info;
+        _setObject.setObject(item, info);
+    }
+    void            setObject(const SGIHostItemBase * item, ISettingsDialogInfo * info=nullptr) override
+    {
+        if(info)
+            _info = info;
+        _setObject.setObject(item, info);
+    }
     void            show() override { _dialog->show(); }
     void            hide() override { _dialog->hide(); }
     bool            isVisible() override { return _dialog->isVisible(); }
     int             showModal() override { return _dialog->exec(); }
 
+    QWidget * parent()
+    {
+        return _info->parent();
+    }
+    ISettingsDialogInfo * info()
+    {
+        return _info;
+    }
+    void triggerRepaint()
+    {
+        return _info->triggerRepaint();
+    }
+    SGIItemBase * getView()
+    {
+        return _info->getView();
+    }
+
 protected:
     DIALOG_CLASS * _dialog;
+    ISettingsDialogInfoPtr _info;
+    SETOBJECTPOLICY<DIALOG_CLASS> _setObject;
+};
+
+template<class DIALOG_CLASS=QDialog, template<typename> class SETOBJECTPOLICY=details::IgnoreSetObjectPolicy>
+class SettingsQDialogImplT : public DIALOG_CLASS, public ISettingsDialog, public details::functionImplBase
+{
+public:
+    SettingsQDialogImplT(QWidget * parent, SGIPluginHostInterface * hostInterface, SGIItemBase * item=nullptr, ISettingsDialogInfo * info=nullptr)
+        : DIALOG_CLASS(parent), details::functionImplBase(hostInterface, item), _info(info), _setObject(this)
+        {
+            DIALOG_CLASS::setAttribute(Qt::WA_DeleteOnClose);
+        }
+    ~SettingsQDialogImplT() override
+        { }
+
+    ISettingsDialog *           dialogInterface() { return this; }
+
+    void            setObject(SGIItemBase * item, ISettingsDialogInfo * info=nullptr) override
+    {
+        _item = item;
+        if(info)
+            _info = info;
+        _setObject.setObject(item, info);
+    }
+    void            setObject(const SGIHostItemBase * item, ISettingsDialogInfo * info=nullptr) override
+    {
+        if(info)
+            _info = info;
+        _setObject.setObject(item, info);
+    }
+    void            show() override { DIALOG_CLASS::show(); }
+    void            hide() override { DIALOG_CLASS::hide(); }
+    bool            isVisible() override { return DIALOG_CLASS::isVisible(); }
+    int             showModal() override { return DIALOG_CLASS::exec(); }
+
+    QWidget * parent()
+    {
+        return _info->parent();
+    }
+    ISettingsDialogInfo * info()
+    {
+        return _info;
+    }
+    void triggerRepaint()
+    {
+        return _info->triggerRepaint();
+    }
+    SGIItemBase * getView()
+    {
+        return _info->getView();
+    }
+
+protected:
+    ISettingsDialogInfoPtr _info;
     SETOBJECTPOLICY<DIALOG_CLASS> _setObject;
 };
 
 typedef SettingsDialogImplT<QDialog, details::IgnoreSetObjectPolicy> SettingsDialogImpl;
+typedef SettingsQDialogImplT<QDialog, details::IgnoreSetObjectPolicy> SettingsQDialogImpl;
+
 
 } // namespace sgi

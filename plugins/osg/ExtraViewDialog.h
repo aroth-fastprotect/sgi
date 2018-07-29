@@ -1,7 +1,6 @@
 #pragma once
 
-#include <QDialog>
-#include <sgi/plugins/SGIPluginInterface.h>
+#include <sgi/plugins/SGISettingsDialogImpl>
 #include <osg/ref_ptr>
 #include <osg/observer_ptr>
 
@@ -53,16 +52,13 @@ protected:
     QWidget * _widget;
 };
 
-class ExtraViewDialog : public QDialog
+class ExtraViewDialog : public SettingsQDialogImpl
 {
 	Q_OBJECT
 
 public:
-                        ExtraViewDialog(QWidget * parent, SGIItemBase * item, SGIPluginHostInterface * hostInterface);
+                        ExtraViewDialog(QWidget * parent, SGIPluginHostInterface * hostInterface, SGIItemBase * item, ISettingsDialogInfo * info);
                         ~ExtraViewDialog() override;
-
-public:
-    ISettingsDialog *   dialogInterface() { return _interface; }
 
 public slots:
 	void				save();
@@ -79,10 +75,7 @@ protected:
 
 private:
     Ui_ExtraViewDialog *	        ui;
-    SGIPluginHostInterface *        _hostInterface;
     osg::ref_ptr<osg::Camera>   _camera;
-    ISettingsDialogPtr _interface;
-    SGIItemBasePtr _item;
     QTimer * _timer;
 };
 

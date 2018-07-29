@@ -18,16 +18,13 @@ SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogExtraView)
 
 bool settingsDialogCreateImpl<SettingsDialogCamera>::execute(ISettingsDialogPtr & dialog)
 {
-    osg::Camera * object = getObject<osg::Camera,SGIItemOsg>();
-    CameraSettings * qtdialog = new CameraSettings(parent(), object);
-    dialog = qtdialog->dialogInterface();
-    return true;
+    return openDialog<CameraSettings>(dialog);
 }
 
 bool settingsDialogCreateImpl<SettingsDialogObjectLogger>::execute(ISettingsDialogPtr & dialog)
 {
-    osg::Node * object = getObject<osg::Node,SGIItemOsg>();
     /*
+    osg::Node * object = getObject<osg::Node,SGIItemOsg>();
     ObjectLogger * inspector = ObjectLogger::getOrCreateInspector(object);
 
     if(inspector)
@@ -42,9 +39,7 @@ bool settingsDialogCreateImpl<SettingsDialogObjectLogger>::execute(ISettingsDial
 
 bool settingsDialogCreateImpl<SettingsDialogExtraView>::execute(ISettingsDialogPtr & dialog)
 {
-    ExtraViewDialog * qtdialog = new ExtraViewDialog(parent(), _item.get(), _hostInterface);
-    dialog = qtdialog->dialogInterface();
-    return true;
+    return openDialog<ExtraViewDialog>(dialog);
 }
 
 } // namespace osg_plugin
