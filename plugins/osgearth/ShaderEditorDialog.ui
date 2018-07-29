@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>314</height>
+    <height>372</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -44,7 +44,7 @@
    <item>
     <widget class="QTabWidget" name="tabShaders">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tabVertex">
       <attribute name="title">
@@ -66,6 +66,64 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tabVirtualProgram">
+      <attribute name="title">
+       <string>Virtual Program</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QCheckBox" name="vpInheritShaders">
+         <property name="text">
+          <string>Inherit from parent</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>Function</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="vpFunction">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="vpFunctionAdd">
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset theme="list-add"/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="vpFunctionRemove">
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset theme="list-remove"/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="shaderVP"/>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>
@@ -81,9 +139,76 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>vpFunction</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>vpFunctionChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>198</x>
+     <y>90</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>185</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>vpFunctionAdd</sender>
+   <signal>clicked()</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>vpFunctionAdd()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>341</x>
+     <y>89</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>185</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>vpFunctionRemove</sender>
+   <signal>clicked()</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>vpFunctionRemove()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>369</x>
+     <y>89</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>185</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>vpInheritShaders</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>vpInheritShaders(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>88</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>185</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
  <slots>
-  <slot>sliderChanged(int)</slot>
-  <slot>spinBoxChanged(double)</slot>
+  <slot>vpFunctionChanged(int)</slot>
+  <slot>vpFunctionAdd()</slot>
+  <slot>vpFunctionRemove()</slot>
+  <slot>vpInheritShaders(bool)</slot>
  </slots>
 </ui>

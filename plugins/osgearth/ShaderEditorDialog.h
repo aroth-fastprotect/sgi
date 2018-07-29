@@ -22,6 +22,12 @@ public slots:
 protected slots:
     void                    reset();
     void                    apply();
+    void                    load();
+
+    void                    vpFunctionChanged(int index);
+    void                    vpFunctionAdd();
+    void                    vpFunctionRemove();
+    void                    vpInheritShaders(bool b);
 
 private:  // for now
     Ui_ShaderEditorDialog* ui;
