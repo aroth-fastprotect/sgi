@@ -542,8 +542,27 @@ public:
                 _imagePreviewDialog->show();
 			return _imagePreviewDialog.get();
 		}
-		virtual ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
+        bool openSettingsDialog(ISettingsDialogPtr & dialog, const SGIHostItemBase * item, ISettingsDialogInfo * info) override
+        {
+            bool ret;
+            ret = _impl->openSettingsDialog(dialog, item, info);
+            if(ret && dialog.valid())
+                _settingsDialogs.push_back(dialog.get());
+            return ret;
+        }
+        bool openSettingsDialog(ISettingsDialogPtr & dialog, SGIItemBase * item, ISettingsDialogInfo * info) override
+        {
+            bool ret;
+            ret = _impl->openSettingsDialog(dialog, item, info);
+            if(ret && dialog.valid())
+                _settingsDialogs.push_back(dialog.get());
+            return ret;
+        }
+        ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
 		{
+            Q_UNUSED(type);
+            Q_UNUSED(x);
+            Q_UNUSED(y);
             return nullptr;
 		}
 		void triggerRepaint() override
@@ -554,17 +573,20 @@ public:
 		{
             return nullptr;
 		}
-        virtual QWidget * getFallbackParentWidget() override
+        QWidget * getFallbackParentWidget() override
         {
             return nullptr;
         }
-		virtual void shutdown() override
+        void shutdown() override
 		{
             _contextMenu = nullptr;
             _dialog = nullptr;
             _loggerDialog = nullptr;
             _imagePreviewDialog = nullptr;
+            _settingsDialogs.clear();
 		}
+
+        typedef std::vector<sgi::ISettingsDialogPtr> ISettingsDialogPtrList;
 
 	private:
 		SGIPluginsImpl * _impl;
@@ -572,6 +594,7 @@ public:
 		sgi::ISceneGraphDialogPtr _dialog;
 		sgi::IObjectLoggerDialogPtr _loggerDialog;
 		sgi::IImagePreviewDialogPtr _imagePreviewDialog;
+        ISettingsDialogPtrList _settingsDialogs;
 	};
 
     static QString createLibraryNameForPlugin(const QString & dir, const std::string& name)

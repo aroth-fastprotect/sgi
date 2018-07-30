@@ -1245,16 +1245,7 @@ bool actionHandlerImpl<MenuActionClipNodeSetState>::execute()
 
 bool actionHandlerImpl<MenuActionCameraCullSettings>::execute()
 {
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogCamera, menu()->parentWidget(), hostCallback());
-    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-    if(ret)
-    {
-        if(dialog.valid())
-            dialog->show();
-    }
-    return ret;
+    return openSettingsDialog(SettingsDialogCamera);
 }
 
 bool actionHandlerImpl<MenuActionCameraClearColor>::execute()
@@ -1323,16 +1314,7 @@ bool actionHandlerImpl<MenuActionCameraProjectionMatrix>::execute()
 
 bool actionHandlerImpl<MenuActionCameraLiveView>::execute()
 {
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogExtraView, menu()->parentWidget(), hostCallback());
-    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-    if (ret)
-    {
-        if (dialog.valid())
-            dialog->show();
-    }
-    return ret;
+    return openSettingsDialog(SettingsDialogExtraView);
 }
 
 bool actionHandlerImpl<MenuActionUniformDirty>::execute()
@@ -2091,14 +2073,7 @@ bool actionHandlerImpl<MenuActionImagePreview>::execute()
     osg::Texture * texture = getObject<osg::Texture, SGIItemOsg, DynamicCaster>();
     if (texture)
     {
-        ISettingsDialogPtr dialog;
-        ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogExtraView, menu()->parentWidget(), hostCallback());
-        ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-        if (ret)
-        {
-            if (dialog.valid())
-                dialog->show();
-        }
+        ret = openSettingsDialog(SettingsDialogExtraView);
     }
     else
     {

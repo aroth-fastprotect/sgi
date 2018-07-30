@@ -10,6 +10,7 @@
 #include "TileInspectorDialog.h"
 #include "RetrieveElevationDialog.h"
 #include "LODScaleOverrideDialog.h"
+#include "ShaderEditorDialog.h"
 
 namespace sgi {
 namespace osgearth_plugin {
@@ -18,34 +19,31 @@ SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogAutoClipPlaneCull
 SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogTileInspector)
 SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogRetrieveElevation)
 SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogLODScaleOverride)
+SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogShaderEditor)
 
 bool settingsDialogCreateImpl<SettingsDialogAutoClipPlaneCullCallback>::execute(ISettingsDialogPtr & dialog)
 {
-    osgEarth::Util::AutoClipPlaneCullCallback * object = getObject<osgEarth::Util::AutoClipPlaneCullCallback,SGIItemOsg,DynamicCaster>();
-    AutoClipPlaneCullCallbackDialog * qtdialog = new AutoClipPlaneCullCallbackDialog(parent(), object, info());
-    dialog = qtdialog->dialogInterface();
-    return true;
+    return openDialog<AutoClipPlaneCullCallbackDialog>(dialog);
 }
 
 bool settingsDialogCreateImpl<SettingsDialogTileInspector>::execute(ISettingsDialogPtr & dialog)
 {
-    TileInspectorDialog * qtdialog = new TileInspectorDialog(parent(), itemAs<SGIItemOsg>(), info(), _hostInterface);
-    dialog = qtdialog->dialogInterface();
-    return true;
+    return openDialog<TileInspectorDialog>(dialog);
 }
 
 bool settingsDialogCreateImpl<SettingsDialogRetrieveElevation>::execute(ISettingsDialogPtr & dialog)
 {
-    RetrieveElevationDialog * qtdialog = new RetrieveElevationDialog(parent(), _item.get(), info());
-    dialog = qtdialog->dialogInterface();
-    return true;
+    return openDialog<RetrieveElevationDialog>(dialog);
 }
 
 bool settingsDialogCreateImpl<SettingsDialogLODScaleOverride>::execute(ISettingsDialogPtr & dialog)
 {
-    LODScaleOverrideDialog * qtdialog = new LODScaleOverrideDialog(parent(), _item.get(), info());
-    dialog = qtdialog->dialogInterface();
-    return true;
+    return openDialog<LODScaleOverrideDialog>(dialog);
+}
+
+bool settingsDialogCreateImpl<SettingsDialogShaderEditor>::execute(ISettingsDialogPtr & dialog)
+{
+    return openDialog<ShaderEditorDialog>(dialog);
 }
 
 } // namespace osgearth_plugin

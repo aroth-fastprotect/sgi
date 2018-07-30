@@ -1,7 +1,6 @@
 #pragma once
 
-#include <QDialog>
-#include <sgi/plugins/SGIPluginInterface.h>
+#include <sgi/plugins/SGISettingsDialogImpl>
 #include <osg/ref_ptr>
 
 QT_BEGIN_NAMESPACE
@@ -15,16 +14,13 @@ namespace osg {
 namespace sgi {
 namespace osg_plugin {
 
-class CameraSettings : public QDialog
+class CameraSettings : public SettingsQDialogImpl
 {
 	Q_OBJECT
 
 public:
-                        CameraSettings(QWidget * parent, osg::Camera * camera);
+                        CameraSettings(QWidget * parent, SGIPluginHostInterface * hostInterface, SGIItemBase * item, ISettingsDialogInfo * info);
 	virtual				~CameraSettings();
-
-public:
-    ISettingsDialog *   dialogInterface() { return _interface; }
 
 public slots:
 	void				save();
@@ -69,7 +65,6 @@ private:
 private:
 	Ui_CameraSettings *	        ui;
     osg::ref_ptr<osg::Camera>   _camera;
-    ISettingsDialogPtr _interface;
     QTimer * _timer;
 };
 

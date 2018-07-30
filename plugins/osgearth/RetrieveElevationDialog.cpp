@@ -69,11 +69,8 @@ namespace {
 }
 
 
-RetrieveElevationDialog::RetrieveElevationDialog(QWidget * parent, SGIItemBase * item, ISettingsDialogInfo * info)
-	: QDialog(parent)
-    , _item(item)
-    , _interface(new SettingsDialogImpl(this))
-    , _info(info)
+RetrieveElevationDialog::RetrieveElevationDialog(QWidget * parent, SGIPluginHostInterface * hostInterface, SGIItemBase * item, ISettingsDialogInfo * info)
+    : SettingsQDialogImpl(parent, hostInterface, item, info)
 {
     Q_ASSERT(_info != nullptr);
 

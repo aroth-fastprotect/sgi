@@ -6,6 +6,7 @@
 #include "ui_AutoClipPlaneCullCallbackDialog.h"
 
 #include <sgi/plugins/SGISettingsDialogImpl>
+#include <sgi/plugins/SGIItemOsg>
 
 #include <osgEarthUtil/AutoClipPlaneHandler>
 
@@ -16,18 +17,17 @@
 namespace sgi {
 namespace osgearth_plugin {
 
-AutoClipPlaneCullCallbackDialog::AutoClipPlaneCullCallbackDialog(QWidget * parent, osgEarth::Util::AutoClipPlaneCullCallback * callback, ISettingsDialogInfo * info)
-	: QDialog(parent)
-	, _callback(callback)
-    , _interface(new SettingsDialogImpl(this))
-    , _info(info)
+AutoClipPlaneCullCallbackDialog::AutoClipPlaneCullCallbackDialog(QWidget * parent, SGIPluginHostInterface * hostInterface, SGIItemBase * item, ISettingsDialogInfo * info)
+    : SettingsQDialogImpl(parent, hostInterface, item, info)
 {
 	ui = new Ui_AutoClipPlaneCullCallbackDialog;
 	ui->setupUi( this );
 
 	//connect(ui->buttonBox->button(QDialogButtonBox::Save), SIGNAL(clicked()), this, SLOT(save()));
-	connect(ui->buttonBox->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(reject()));
-	connect(ui->buttonBox->button(QDialogButtonBox::RestoreDefaults), SIGNAL(clicked()), this, SLOT(restoreDefaults()));
+    connect(ui->buttonBox->button(QDialogButtonBox::Close), &QPushButton::clicked, this, &AutoClipPlaneCullCallbackDialog::reject);
+    connect(ui->buttonBox->button(QDialogButtonBox::RestoreDefaults), &QPushButton::clicked, this, &AutoClipPlaneCullCallbackDialog::restoreDefaults);
+
+    _callback = getObject<osgEarth::Util::AutoClipPlaneCullCallback, SGIItemOsg, DynamicCaster>();
 
 	load();
 }
@@ -41,7 +41,7 @@ AutoClipPlaneCullCallbackDialog::~AutoClipPlaneCullCallbackDialog()
 	}
 }
 
-void AutoClipPlaneCullCallbackDialog::showEvent( QShowEvent * event )
+void AutoClipPlaneCullCallbackDialog::showEvent( QShowEvent * /*event*/ )
 {
 	load();
 }
@@ -158,7 +158,8 @@ void AutoClipPlaneCullCallbackDialog::apply(bool save)
     _callback->setMaxNearFarRatio(ui->maxNearFarRatioSpin->value());
     _callback->setHeightThreshold(ui->heightThresholdSpin->value());
     _callback->setClampFarClipPlane(ui->clampFarClipPlane->isChecked());
-    _info->triggerRepaint();
+
+    triggerRepaint();
 }
 
 void AutoClipPlaneCullCallbackDialog::reject()
