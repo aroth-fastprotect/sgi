@@ -18,6 +18,9 @@ class IObjectLoggerDialog;
 class IObjectLogger;
 class IImagePreviewDialog;
 class ReferencedPickerBase;
+class ISettingsDialogInfo;
+class ISettingsDialog;
+typedef details::ref_ptr<ISettingsDialog> ISettingsDialogPtr;
 
 class IHostCallback : public details::Referenced
 {
@@ -31,6 +34,8 @@ public:
     virtual IObjectLoggerDialog *   showObjectLoggerDialog(QWidget * parent, const SGIHostItemBase * item) = 0;
     virtual IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, SGIItemBase * item) = 0;
     virtual IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, const SGIHostItemBase * item) = 0;
+    virtual bool                    openSettingsDialog(ISettingsDialogPtr & dialog, const SGIHostItemBase * item, ISettingsDialogInfo * info=nullptr) = 0;
+    virtual bool                    openSettingsDialog(ISettingsDialogPtr & dialog, SGIItemBase * item, ISettingsDialogInfo * info=nullptr) = 0;
 
     enum PickerType {
         PickerTypeDefault,
@@ -116,7 +121,21 @@ public:
 		else
             return nullptr;
 	}
-	virtual ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
+    bool openSettingsDialog(ISettingsDialogPtr & dialog, const SGIHostItemBase * item, ISettingsDialogInfo * info) override
+    {
+        if (_original.valid())
+            return _original->openSettingsDialog(dialog, item, info);
+        else
+            return false;
+    }
+    bool openSettingsDialog(ISettingsDialogPtr & dialog, SGIItemBase * item, ISettingsDialogInfo * info) override
+    {
+        if (_original.valid())
+            return _original->openSettingsDialog(dialog, item, info);
+        else
+            return false;
+    }
+    ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
 	{
 		if (_original.valid())
 			return _original->createPicker(type, x, y);
@@ -135,14 +154,14 @@ public:
 		else
             return nullptr;
 	}
-    virtual QWidget * getFallbackParentWidget() override
+    QWidget * getFallbackParentWidget() override
     {
         if (_original.valid())
             return _original->getFallbackParentWidget();
         else
             return nullptr;
     }
-	virtual void shutdown() override
+    void shutdown() override
 	{
 		if (_original.valid())
 			_original->shutdown();
@@ -240,7 +259,21 @@ public:
 		else
             return nullptr;
 	}
-    virtual ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
+    bool openSettingsDialog(ISettingsDialogPtr & dialog, const SGIHostItemBase * item, ISettingsDialogInfo * info) override
+    {
+        if (_original.valid())
+            return _original->openSettingsDialog(dialog, item, info);
+        else
+            return false;
+    }
+    bool openSettingsDialog(ISettingsDialogPtr & dialog, SGIItemBase * item, ISettingsDialogInfo * info) override
+    {
+        if (_original.valid())
+            return _original->openSettingsDialog(dialog, item, info);
+        else
+            return false;
+    }
+    ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
     {
 		if (_original.valid())
 			return _original->createPicker(type, x, y);
@@ -259,14 +292,14 @@ public:
 		else
             return nullptr;
     }
-    virtual QWidget * getFallbackParentWidget() override
+    QWidget * getFallbackParentWidget() override
     {
         if (_original.valid())
             return _original->getFallbackParentWidget();
         else
             return nullptr;
     }
-	virtual void shutdown() override
+    void shutdown() override
 	{
 		if (_original.valid())
 			_original->shutdown();
