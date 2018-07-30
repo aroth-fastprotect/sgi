@@ -24,6 +24,7 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QOpenGLTexture>
+#include "AboutDialog.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -991,16 +992,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionSGIAbout)
 
 bool actionHandlerImpl<MenuActionSGIAbout>::execute()
 {
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogAbout, menu()->parentWidget(), hostCallback());
-    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-    if (ret)
-    {
-        if (dialog.valid())
-            dialog->show();
-    }
-    return ret;
+    return openSettingsDialog(SettingsDialogAbout);
 }
 
 SETTINGS_DIALOG_CREATE_IMPL_TEMPLATE()
@@ -1008,8 +1000,7 @@ SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogAbout)
 
 bool settingsDialogCreateImpl<SettingsDialogAbout>::execute(ISettingsDialogPtr & dialog)
 {
-    //return openDialog<CameraSettings>(dialog);
-    return false;
+    return openDialog<AboutDialog>(dialog);
 }
 
 OBJECT_TREE_BUILD_ROOT_IMPL_TEMPLATE()

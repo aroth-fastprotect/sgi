@@ -301,16 +301,7 @@ bool actionHandlerImpl<MenuActionNotifyLevel>::execute()
 
 bool actionHandlerImpl<MenuActionNodeEditShaders>::execute()
 {
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogShaderEditor, menu()->parentWidget(), hostCallback());
-    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-    if(ret)
-    {
-        if(dialog.valid())
-            dialog->show();
-    }
-    return ret;
+    return openSettingsDialog(SettingsDialogShaderEditor);
 }
 
 bool actionHandlerImpl<MenuActionNodeRegenerateShaders>::execute()
@@ -388,16 +379,7 @@ bool actionHandlerImpl<MenuActionTerrainProfile>::execute()
 
 bool actionHandlerImpl<MenuActionTileInspector>::execute()
 {
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogTileInspector, menu()->parentWidget(), hostCallback());
-    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-    if(ret)
-    {
-        if(dialog.valid())
-            dialog->show();
-    }
-    return ret;
+    return openSettingsDialog(SettingsDialogTileInspector);
 }
 
 bool actionHandlerImpl<MenuActionImageLayerOpacity>::execute()
@@ -636,16 +618,7 @@ bool actionHandlerImpl<MenuActionSkyNodeSetMoonVisible>::execute()
 
 bool actionHandlerImpl<MenuActionAutoClipPlaneCullCallbackSetup>::execute()
 {
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogAutoClipPlaneCullCallback, menu()->parentWidget(), hostCallback());
-    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-    if(ret)
-    {
-        if(dialog.valid())
-            dialog->show();
-    }
-    return ret;
+    return openSettingsDialog(SettingsDialogAutoClipPlaneCullCallback);
 }
 
 bool actionHandlerImpl<MenuActionAutoClipPlaneCullCallbackMinNearFarRatio>::execute()
@@ -754,16 +727,7 @@ bool actionHandlerImpl<MenuActionVirtualProgramLoggingFile>::execute()
 
 bool actionHandlerImpl<MenuActionElevationQueryCustom>::execute()
 {
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogRetrieveElevation, menu()->parentWidget(), hostCallback());
-    ret = _hostInterface->openSettingsDialog(dialog, _item.get(), info);
-    if(ret)
-    {
-        if(dialog.valid())
-            dialog->show();
-    }
-    return true;
+    return openSettingsDialog(SettingsDialogRetrieveElevation);
 }
 
 bool actionHandlerImpl<MenuActionControlDirty>::execute()
@@ -876,16 +840,7 @@ bool actionHandlerImpl<MenuActionTileKeyAdd>::execute()
 
 bool actionHandlerImpl<MenuActionLODScaleOverrideNodeLODScale>::execute()
 {
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogLODScaleOverride, menu()->parentWidget(), hostCallback());
-    ret = _hostInterface->openSettingsDialog(dialog, _item.get(), info);
-    if (ret)
-    {
-        if (dialog.valid())
-            dialog->show();
-    }
-    return true;
+    return openSettingsDialog(SettingsDialogLODScaleOverride);
 }
 
 namespace {
