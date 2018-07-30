@@ -50,6 +50,7 @@ namespace osgearth_plugin {
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectInfo)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNotifyLevel)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeRegenerateShaders)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeEditShaders)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMapCachePolicyUsage)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMapDebugImageLayer)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMapInspector)
@@ -298,6 +299,11 @@ bool actionHandlerImpl<MenuActionNotifyLevel>::execute()
     return true;
 }
 
+bool actionHandlerImpl<MenuActionNodeEditShaders>::execute()
+{
+    return openSettingsDialog(SettingsDialogShaderEditor);
+}
+
 bool actionHandlerImpl<MenuActionNodeRegenerateShaders>::execute()
 {
     osg::Node * object = getObject<osg::Node, SGIItemOsg>();
@@ -373,16 +379,7 @@ bool actionHandlerImpl<MenuActionTerrainProfile>::execute()
 
 bool actionHandlerImpl<MenuActionTileInspector>::execute()
 {
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogTileInspector, menu()->parentWidget(), hostCallback());
-    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-    if(ret)
-    {
-        if(dialog.valid())
-            dialog->show();
-    }
-    return ret;
+    return openSettingsDialog(SettingsDialogTileInspector);
 }
 
 bool actionHandlerImpl<MenuActionImageLayerOpacity>::execute()
@@ -621,16 +618,7 @@ bool actionHandlerImpl<MenuActionSkyNodeSetMoonVisible>::execute()
 
 bool actionHandlerImpl<MenuActionAutoClipPlaneCullCallbackSetup>::execute()
 {
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogAutoClipPlaneCullCallback, menu()->parentWidget(), hostCallback());
-    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-    if(ret)
-    {
-        if(dialog.valid())
-            dialog->show();
-    }
-    return ret;
+    return openSettingsDialog(SettingsDialogAutoClipPlaneCullCallback);
 }
 
 bool actionHandlerImpl<MenuActionAutoClipPlaneCullCallbackMinNearFarRatio>::execute()
@@ -739,16 +727,7 @@ bool actionHandlerImpl<MenuActionVirtualProgramLoggingFile>::execute()
 
 bool actionHandlerImpl<MenuActionElevationQueryCustom>::execute()
 {
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogRetrieveElevation, menu()->parentWidget(), hostCallback());
-    ret = _hostInterface->openSettingsDialog(dialog, _item.get(), info);
-    if(ret)
-    {
-        if(dialog.valid())
-            dialog->show();
-    }
-    return true;
+    return openSettingsDialog(SettingsDialogRetrieveElevation);
 }
 
 bool actionHandlerImpl<MenuActionControlDirty>::execute()
@@ -861,16 +840,7 @@ bool actionHandlerImpl<MenuActionTileKeyAdd>::execute()
 
 bool actionHandlerImpl<MenuActionLODScaleOverrideNodeLODScale>::execute()
 {
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogLODScaleOverride, menu()->parentWidget(), hostCallback());
-    ret = _hostInterface->openSettingsDialog(dialog, _item.get(), info);
-    if (ret)
-    {
-        if (dialog.valid())
-            dialog->show();
-    }
-    return true;
+    return openSettingsDialog(SettingsDialogLODScaleOverride);
 }
 
 namespace {

@@ -364,7 +364,7 @@ bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
             else
             {
                 if(numPath >= parentalNodePaths.size())
-                    treeItem->addChild(helpers::str_plus_number("N/A", numPath), (SGIItemBase*)NULL);
+                    treeItem->addChild(helpers::str_plus_number("N/A", numPath), (SGIItemBase*)nullptr);
                 else
                 {
                     for(osg::NodePathList::const_iterator itPathList = parentalNodePaths.begin(); itPathList != parentalNodePaths.end(); itPathList++, parentalNodePathNum++)
@@ -654,7 +654,7 @@ bool objectTreeBuildImpl<osg::Geometry>::build(IObjectTreeItem * treeItem)
                 if(stateSet)
                 {
                     osg::StateAttribute * sa = stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
-                    osg::Texture * texture = sa ? sa->asTexture() : NULL;
+                    osg::Texture * texture = sa ? sa->asTexture() : nullptr;
                     if(texture)
                     {
                         std::string itemname;
@@ -754,7 +754,10 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
         {
             unsigned numParents = object->getNumParents();
             if(numParents)
+            {
                 treeItem->addChild(helpers::str_plus_count("Parents", numParents), cloneItem<SGIItemOsg>(SGIItemTypeParents));
+                treeItem->addChild(helpers::str_plus_count("EffectiveStateSet", numParents), cloneItem<SGIItemOsg>(SGIItemTypeStateSetEffective, ~0u));
+            }
 
             const osg::StateSet::ModeList & modelist = object->getModeList();
             if(!modelist.empty())
@@ -786,6 +789,18 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
             {
                 SGIHostItemOsg parentItem(object->getParent(i));
                 treeItem->addChild(std::string(), &parentItem);
+            }
+            ret = true;
+        }
+        break;
+    case SGIItemTypeStateSetEffective:
+        {
+            unsigned itemNumber = _item->number();
+            if(itemNumber == ~0u)
+            {
+                unsigned numParents = object->getNumParents();
+                for(unsigned i = 0; i < numParents; i++)
+                    treeItem->addChild(std::string(), cloneItem<SGIItemOsg>(SGIItemTypeStateSetEffective, i));
             }
             ret = true;
         }
@@ -4391,7 +4406,7 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
     SGIItemOsg * osgitem = dynamic_cast<SGIItemOsg *>(object->item());
     if (osgitem)
     {
-        osg::Node * node = NULL;
+        osg::Node * node = nullptr;
         osg::View * view = dynamic_cast<osg::View*>(osgitem->object());
         if(view)
             node = view->getCamera();

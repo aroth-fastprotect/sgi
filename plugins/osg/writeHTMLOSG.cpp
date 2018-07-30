@@ -75,6 +75,7 @@
 #include <sgi/helpers/osg_statistics>
 #include <sgi/helpers/string>
 #include <sgi/helpers/rtti>
+#include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/ReferencedPicker>
 
 #include "DrawableHelper.h"
@@ -5092,6 +5093,33 @@ bool writePrettyHTMLImpl<osg::StateSet>::process(std::basic_ostream<char>& os)
 
             if(_table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeStateSetEffective:
+        {
+            unsigned itemNumber = _item->number();
+            if(itemNumber == ~0u)
+            {
+                os << "<ol>" << std::endl;
+                for(unsigned n = 0; n < object->getNumParents(); n++)
+                {
+                    const osg::Object * parent = object->getParent(n);
+                    os << "<li>" << osg_helpers::getObjectNameAndType(parent, true) << "</li>" << std::endl;
+                }
+                os << "</ol>" << std::endl;
+            }
+            else
+            {
+                osg::Node * parentNode = object->getParent(itemNumber);
+                osg::NodePathList parentPath = parentNode->getParentalNodePaths();
+                for(const osg::NodePath & path : parentPath)
+                {
+                    osg::ref_ptr<osg::StateSet> ss = buildEffectiveStateSet(path, object);
+                    SGIHostItemOsg item(ss.get());
+                    _hostInterface->writePrettyHTML(os, &item, true);
+                }
+            }
             ret = true;
         }
         break;

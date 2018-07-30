@@ -6,8 +6,8 @@
 #include <QTimer>
 
 #include <ui_CameraSettings.h>
+#include <sgi/plugins/SGIItemOsg>
 
-#include <sgi/plugins/SGISettingsDialogImpl>
 #include <osgViewer/View>
 
 #ifdef _DEBUG
@@ -17,20 +17,20 @@
 namespace sgi {
 namespace osg_plugin {
 
-CameraSettings::CameraSettings(QWidget * parent, osg::Camera * camera)
-	: QDialog(parent)
-	, _camera(camera)
-    , _interface(new SettingsDialogImpl(this))
+CameraSettings::CameraSettings(QWidget * parent, SGIPluginHostInterface * hostInterface, SGIItemBase * item, ISettingsDialogInfo * info)
+    : SettingsQDialogImpl(parent, hostInterface, item, info)
+    , _camera()
     , _timer(new QTimer(this))
 {
 	ui = new Ui_CameraSettings;
 	ui->setupUi( this );
 
-	//connect(ui->buttonBox->button(QDialogButtonBox::Save), SIGNAL(clicked()), this, SLOT(save()));
-	connect(ui->buttonBox->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(reject()));
-	connect(ui->buttonBox->button(QDialogButtonBox::RestoreDefaults), SIGNAL(clicked()), this, SLOT(restoreDefaults()));
+    connect(ui->buttonBox->button(QDialogButtonBox::Close), &QPushButton::clicked, this, &CameraSettings::reject);
+    connect(ui->buttonBox->button(QDialogButtonBox::RestoreDefaults), &QPushButton::clicked, this, &CameraSettings::restoreDefaults);
 
-    connect(_timer, SIGNAL(timeout()), this, SLOT(load()));
+    connect(_timer, &QTimer::timeout, this, &CameraSettings::load);
+
+    _camera = getObject<osg::Camera, SGIItemOsg>();
 
 	load();
 }
@@ -40,7 +40,7 @@ CameraSettings::~CameraSettings()
 	if (ui)
 	{
 		delete ui;
-		ui = NULL;
+        ui = nullptr;
 	}
 }
 

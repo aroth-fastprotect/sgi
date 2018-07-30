@@ -104,6 +104,22 @@ public:
         return dynamic_cast<const USER_DATA_TYPE *>(_menuAction->modeUserData());
     }
 
+    bool openSettingsDialog(unsigned id)
+    {
+        bool ret;
+        IHostCallback * cb = hostCallback();
+        ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(id, menu()->parentWidget(), cb);
+        ISettingsDialogPtr dialog;
+        ret = cb->openSettingsDialog(dialog, _item, info);
+        if (ret)
+        {
+            if (dialog.valid())
+                dialog->show();
+        }
+        return ret;
+    }
+
+
 protected:
     IContextMenuActionPtr _menuAction;
 };

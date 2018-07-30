@@ -15,6 +15,7 @@ enum MenuAction {
     MenuActionObjectInfo,
     MenuActionNotifyLevel,
     MenuActionNodeRegenerateShaders,
+    MenuActionNodeEditShaders,
     MenuActionMapCachePolicyUsage,
     MenuActionMapDebugImageLayer,
     MenuActionTerrainLayerEnable,

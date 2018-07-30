@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QDialog>
-#include <sgi/plugins/SGIPluginInterface.h>
+#include <sgi/plugins/SGISettingsDialogImpl>
 #include <osg/ref_ptr>
 
 QT_BEGIN_NAMESPACE
@@ -17,21 +17,18 @@ namespace osgEarth {
 namespace sgi {
 namespace osgearth_plugin {
 
-class AutoClipPlaneCullCallbackDialog : public QDialog
+class AutoClipPlaneCullCallbackDialog : public SettingsQDialogImpl
 {
 	Q_OBJECT
 
 public:
-                        AutoClipPlaneCullCallbackDialog(QWidget * parent, osgEarth::Util::AutoClipPlaneCullCallback * callback, ISettingsDialogInfo * info=nullptr);
-	virtual				~AutoClipPlaneCullCallbackDialog();
-
-public:
-    ISettingsDialog *   dialogInterface() { return _interface; }
+    AutoClipPlaneCullCallbackDialog(QWidget * parent, SGIPluginHostInterface * hostInterface, SGIItemBase * item, ISettingsDialogInfo * info);
+    ~AutoClipPlaneCullCallbackDialog() override;
 
 public slots:
 	void				save();
 	void				apply();
-	virtual void		reject();
+    virtual void		reject() override;
 	void				load();
 	void				restoreDefaults();
 
@@ -54,7 +51,6 @@ private:
 	Ui_AutoClipPlaneCullCallbackDialog *	        ui;
     osg::ref_ptr<osgEarth::Util::AutoClipPlaneCullCallback>   _callback;
     ISettingsDialogPtr _interface;
-    ISettingsDialogInfoPtr _info;
 };
 
 } // namespace osgearth_plugin

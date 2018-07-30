@@ -36,9 +36,15 @@
 #include <osgEarth/MapFrame>
 #include <osgEarth/Registry>
 #include <osgEarth/TerrainEngineNode>
+#include <osgEarth/GLUtils>
+#include <osgEarth/Lighting>
+#include <osgEarth/PhongLightingEffect>
+#include <osgEarth/NodeUtils>
 
+#include <osgEarthUtil/Ephemeris>
 #include <osgEarthUtil/ExampleResources>
 #include <osgEarthUtil/EarthManipulator>
+#include <osgEarthUtil/Shadowing>
 #endif // SGI_USE_OSGEARTH
 
 #include <sgi/helpers/osg_helper_nodes>
@@ -66,7 +72,7 @@ namespace std {
         case osg::INFO: os << "INFO"; break;
         case osg::DEBUG_INFO: os << "DEBUG_INFO"; break;
         case osg::DEBUG_FP: os << "DEBUG_FP"; break;
-        default: os << (int)t; break;
+        default: os << static_cast<int>(t); break;
         }
         return os;
     }
@@ -103,7 +109,7 @@ namespace std {
         case osgGA::GUIEventAdapter::CLOSE_WINDOW: os << "CloseWnd"; break;
         case osgGA::GUIEventAdapter::QUIT_APPLICATION: os << "Quit"; break;
         case osgGA::GUIEventAdapter::USER: os << "User"; break;
-        default: os << (int)t; break;
+        default: os << static_cast<int>(t); break;
         }
         return os;
     }
@@ -217,7 +223,7 @@ namespace std {
             }
             else if (k >= osgGA::GUIEventAdapter::KEY_A && k <= osgGA::GUIEventAdapter::KEY_Z)
             {
-                os << "Key_" << (char)('A' + (k - osgGA::GUIEventAdapter::KEY_A));
+                os << "Key_" << static_cast<char>('A' + (k - osgGA::GUIEventAdapter::KEY_A));
             }
             else if (k >= osgGA::GUIEventAdapter::KEY_KP_0 && k <= osgGA::GUIEventAdapter::KEY_KP_9)
             {
@@ -228,7 +234,7 @@ namespace std {
                 os << "Key_" << 'F' << (k - osgGA::GUIEventAdapter::KEY_F1 + 1);
             }
             else
-                os << "0x" << std::hex << (int)k << std::dec;
+                os << "0x" << std::hex << static_cast<int>(k) << std::dec;
         }
         break;
         }
@@ -326,7 +332,7 @@ namespace std {
 
 osg::NotifySeverity severityFromString(const std::string & input)
 {
-    osg::NotifySeverity ret = (osg::NotifySeverity) - 1;
+    osg::NotifySeverity ret = (osg::NotifySeverity)-1;
 
     std::string str = input;
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
@@ -675,6 +681,7 @@ sgi_MapNodeHelper::sgi_MapNodeHelper()
     , m_files()
 #ifdef SGI_USE_OSGEARTH
     , _mapNodeHelper(new osgEarth::Util::MapNodeHelper)
+    , _useOELighting(true)
 #endif
     , _usageMessage(nullptr)
     , _onlyImages(false)
@@ -760,7 +767,7 @@ void sgi_MapNodeHelper::setupInitialPosition(osgViewer::View* view) const
             osg::Group * mainGroup = dynamic_cast<osg::Group*>(root.get());
             if (mainGroup)
             {
-                osg::ref_ptr<osg::LOD> firstChildLOD = mainGroup->getNumChildren() ? dynamic_cast<osg::LOD*>(mainGroup->getChild(0)) : NULL;
+                osg::ref_ptr<osg::LOD> firstChildLOD = mainGroup->getNumChildren() ? dynamic_cast<osg::LOD*>(mainGroup->getChild(0)) : nullptr;
                 if (firstChildLOD)
                 {
                     bs._center = firstChildLOD->getCenter();
@@ -778,25 +785,96 @@ std::string
 sgi_MapNodeHelper::usage() const
 {
     std::stringstream ss;
+    ss  << "  --osgdebug <level>            : set OSG_NOTIFY_LEVEL to specified level\n";
+
 #ifdef SGI_USE_OSGEARTH
-    ss << _mapNodeHelper->usage()
-        << "    --earthdebug <level> : set OSGEARTG_NOTIFY_LEVEL to specified level\n"
-        << "    --debug              : set OSG_NOTIFY_LEVEL and OSGEARTG_NOTIFY_LEVEL to debug\n"
-        << "    --autoclose <ms>     : set up timer to close the main window after the given time in milliseconds\n"
-        << "    --viewpoint <name|num>  : jump to the given viewpoint\n"
+    ss  << _mapNodeHelper->usage()
+        << "  --earthdebug <level>          : set OSGEARTG_NOTIFY_LEVEL to specified level\n"
+        << "  --debug                       : set OSG_NOTIFY_LEVEL and OSGEARTG_NOTIFY_LEVEL to debug\n"
+        << "  --autoclose <ms>              : set up timer to close the main window after the given time in milliseconds\n"
+        << "  --viewpoint <name|num>        : jump to the given viewpoint\n"
         ;
 #endif
-    ss << "    --nosgi              : do not add SceneGraphInspector\n"
-        << "    --hidesgi            : do not show SceneGraphInspector\n"
-        << "    --nokeys             : do not add keyboard dump handler\n"
-        << "    --nomouse            : do not add mouse dump handler\n"
-        << "    --osgdebug <level>   : set OSG_NOTIFY_LEVEL to specified level\n";
+    ss  << "  --nosgi                       : do not add SceneGraphInspector handle\n"
+        << "  --hidesgi                     : do not show SceneGraphInspector after loading\n"
+        << "  --keys                        : enable keyboard event logging\n"
+        << "  --mouse                       : enable mouse event logging\n"
+        << "  --track-mouse                 : adjust animation speed by mouse moves\n"
+        ;
+
     return ss.str();
 }
 
 std::string sgi_MapNodeHelper::errorMessages() const
 {
     return m_errorMessages.str();
+}
+
+osg::Group * sgi_MapNodeHelper::setupLight(osg::Group * root)
+{
+    unsigned lightNum = 0;
+    osg::Group* lights = root;
+#ifdef SGI_USE_OSGEARTH
+    if (_useOELighting)
+    {
+        lights = new osg::Group();
+        lights->setName("lights");
+
+        osg::StateSet * stateset = lights->getOrCreateStateSet();
+
+        osgEarth::Util::Ephemeris e;
+        osgEarth::DateTime dt(2016, 8, 10, 14.0);
+        osgEarth::Util::CelestialBody sun = e.getSunPosition(dt);
+        osg::Vec3d world = sun.geocentric;
+
+        osg::Light* sunLight = new osg::Light(lightNum++);
+        world.normalize();
+        sunLight->setPosition(osg::Vec4d(world, 0.0));
+
+        sunLight->setAmbient(osg::Vec4(0.2, 0.2, 0.2, 1.0));
+        sunLight->setDiffuse(osg::Vec4(1.0, 1.0, 0.9, 1.0));
+
+        osg::LightSource* sunLS = new osg::LightSource();
+        sunLS->setLight(sunLight);
+        osgEarth::GenerateGL3LightingUniforms generateUniforms;
+        sunLS->accept(generateUniforms);
+
+        osgEarth::Util::ShadowCaster* caster = osgEarth::findTopMostNodeOfType<osgEarth::Util::ShadowCaster>(root);
+        if (caster)
+        {
+            OE_INFO << "Found a shadow caster!\n";
+            caster->setLight(sunLight);
+        }
+
+        osg::Group * groupPhong = new osg::Group;
+        groupPhong->setName("groupPhong");
+        // Add phong lighting.
+        osgEarth::PhongLightingEffect * phong = new osgEarth::PhongLightingEffect();
+        phong->attach(groupPhong->getOrCreateStateSet());
+
+        // Generate the necessary uniforms for the shaders.
+        osgEarth::GenerateGL3LightingUniforms gen;
+        groupPhong->accept(gen);
+
+        osg::Group * groupDefaultMaterial = new osg::Group;
+        groupDefaultMaterial->setName("defaultMaterial");
+        // install a default material for everything in the map
+        osg::Material* defaultMaterial = new osgEarth::MaterialGL3();
+        defaultMaterial->setDiffuse(defaultMaterial->FRONT, osg::Vec4(1, 1, 1, 1));
+        defaultMaterial->setAmbient(defaultMaterial->FRONT, osg::Vec4(1, 1, 1, 1));
+        groupDefaultMaterial->getOrCreateStateSet()->setAttributeAndModes(defaultMaterial, 1);
+        osgEarth::MaterialCallback().operator()(defaultMaterial, nullptr);
+
+        lights->addChild(groupDefaultMaterial);
+        groupDefaultMaterial->addChild(sunLS);
+        sunLS->addChild(groupPhong);
+        groupPhong->addChild(root);
+
+        // DO NOT run the shader generator because this would cause to model to go dark (again)!
+        //osgEarth::Registry::shaderGenerator().run(root);
+    }
+#endif
+    return lights;
 }
 
 osg::Group*
@@ -817,6 +895,8 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
 
     // a root node to hold everything:
     bool previousWasOption = false;
+    // check if the args only contain the executable name and nothing else
+    bool emptyArgs = args.argc() <= 1;
     osg::Group * root = new osg::Group;
     // load all files from the given args
     for (int i = 1; i < args.argc(); )
@@ -947,8 +1027,11 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
 
     if (!hasAtLeastOneNode && !hasAtLeastOneObject && !hasAtLeastOneImage)
     {
-        m_errorMessages << "No .earth, 3D model or image file/url specified in the command line." << std::endl;
-        return 0L;
+        if(emptyArgs)
+            m_errorMessages << "No .earth, 3D model or image file/url specified in the command line. Empty command line arguments." << std::endl;
+        else
+            m_errorMessages << "No .earth, 3D model or image file/url specified in the command line." << std::endl;
+        return nullptr;
     }
 
     // check if we only got one image and nothing else
@@ -970,8 +1053,9 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
     else
 #endif // SGI_USE_OSGEARTH
     {
+#ifdef SGI_USE_OSGEARTH
         m_errorMessages << "Loaded scene graph does not contain a MapNode" << std::endl;
-        // warn about not having an earth manip
+#endif // SGI_USE_OSGEARTH
         osgGA::TrackballManipulator* manipulator = dynamic_cast<osgGA::TrackballManipulator*>(view->getCameraManipulator());
         if (!manipulator)
         {
@@ -1005,6 +1089,8 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
 
             view->setCameraManipulator(keyswitchManipulator.get());
         }
+
+        root = setupLight(root);
     }
 
     if (args.read("--keys"))

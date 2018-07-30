@@ -165,6 +165,7 @@ public:
     void setupInitialPosition(osgViewer::View* view) const;
 
     osg::Group * setupRootGroup(osg::Group * root);
+    osg::Group * setupLight(osg::Group * root);
 
     /**
     * Returns a usage string
@@ -186,6 +187,7 @@ private:
     std::vector<std::string> m_files;
 #ifdef SGI_USE_OSGEARTH
     osgEarth::Util::MapNodeHelper * _mapNodeHelper;
+    bool _useOELighting;
 #endif
     osg::ApplicationUsage * _usageMessage;
     bool _onlyImages;

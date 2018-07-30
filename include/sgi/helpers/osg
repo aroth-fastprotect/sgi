@@ -409,6 +409,8 @@ SGI_OSG_HELPER_EXPORT void heightFieldDumpPlainText(std::basic_ostream<char>& os
     SGI_OSG_HELPER_EXPORT unsigned findContextID(const osg::StateSet * stateset);
     SGI_OSG_HELPER_EXPORT unsigned findContextID(const osg::StateAttribute * sa);
 
+    SGI_OSG_HELPER_EXPORT osg::StateSet* buildEffectiveStateSet(const osg::NodePath & path, osg::StateSet* top=nullptr);
+
 #if !defined(BUILD_SGI_VIEWER_BASE)
     SGI_OSG_HELPER_EXPORT 
 #endif
@@ -418,6 +420,10 @@ SGI_OSG_HELPER_EXPORT void heightFieldDumpPlainText(std::basic_ostream<char>& os
     SGI_OSG_HELPER_EXPORT
 #endif
     bool createWidgetForGraphicsWindow(osg::GraphicsContext * ctx, QObject * parent = nullptr);
+
+    SGI_OSG_HELPER_EXPORT osg::Geometry * createGeometryForImage(osg::Image* image,float s,float t);
+    SGI_OSG_HELPER_EXPORT osg::Geometry * createGeometryForImage(osg::Image* image);
+    SGI_OSG_HELPER_EXPORT osg::Geometry * createGeometryForTexture(osg::Texture* texture);
 
     } // namespace osg_helpers
 } // namespace sgi

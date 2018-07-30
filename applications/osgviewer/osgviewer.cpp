@@ -33,6 +33,10 @@
 
 #include <osgGA/Device>
 
+#ifdef SGI_USE_OSGEARTH
+#include <osgEarth/GLUtils>
+#endif
+
 #include <iostream>
 
 #include <QApplication>
@@ -344,8 +348,17 @@ int main(int argc, char** argv)
         }
     }
 
+#if defined(OSG_GL3_AVAILABLE) && defined(SGI_USE_OSGEARTH)
+    viewer.setRealizeOperation(new osgEarth::GL3RealizeOperation());
+#endif
+
     osgViewer::View* firstview = new osgViewer::View;
     firstview->setName("First view");
+
+#if defined(SGI_USE_OSGEARTH)
+    // Sets up global default uniform values needed by osgEarth
+    osgEarth::GLUtils::setGlobalDefaults(firstview->getCamera()->getOrCreateStateSet());
+#endif
 
     if (width > 0 && height > 0)
     {

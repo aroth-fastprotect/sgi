@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QDialog>
-#include <sgi/plugins/SGIPluginInterface.h>
+#include <sgi/plugins/SGISettingsDialogImpl>
 
 QT_BEGIN_NAMESPACE
 class Ui_LODScaleOverrideDialog;
@@ -9,16 +9,13 @@ QT_END_NAMESPACE
 
 namespace sgi {
 
-class LODScaleOverrideDialog : public QDialog
+class LODScaleOverrideDialog : public SettingsQDialogImpl
 {
     Q_OBJECT
 
 public:
-    LODScaleOverrideDialog(QWidget * parent, SGIItemBase * item, ISettingsDialogInfo * info);
-    ~LODScaleOverrideDialog();
-
-public:
-    ISettingsDialog *           dialogInterface() { return _interface; }
+    LODScaleOverrideDialog(QWidget * parent, SGIPluginHostInterface * hostInterface, SGIItemBase * item, ISettingsDialogInfo * info);
+    ~LODScaleOverrideDialog() override;
 
 public slots:
     void                    setLabel(const QString & message);
@@ -48,9 +45,6 @@ private:
 
 private:  // for now
     Ui_LODScaleOverrideDialog* ui;
-    ISettingsDialogPtr _interface;
-    ISettingsDialogInfoPtr          _info;
-    SGIItemBasePtr                  _item;
 };
 
 } // namespace sgi

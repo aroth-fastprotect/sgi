@@ -125,6 +125,7 @@ SET(TARGET_UI
 	QuatInputDialog.ui
 	MatrixInputDialog.ui
     ImagePreviewDialog.ui
+    AboutDialog.ui
     )
 
 SET(TARGET_MOC_H
@@ -140,6 +141,7 @@ SET(TARGET_MOC_H
 	ImageGLWidget.h
 	ImageQtWidget.h
 	ImageScrollArea.h
+    AboutDialog.h
 )
 
 # CHECK-IT:
@@ -158,6 +160,7 @@ SET(TARGET_SRC
 	QuatInputDialog.cpp
 	MatrixInputDialog.cpp
 	ImagePreviewDialog.cpp
+    AboutDialog.cpp
 	ImageGLWidget.cpp
 	ImageQtWidget.cpp
 	ImageScrollArea.cpp

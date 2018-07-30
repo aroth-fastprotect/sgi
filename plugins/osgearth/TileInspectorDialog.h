@@ -2,7 +2,7 @@
 
 #include <QDialog>
 #include <osg/ref_ptr>
-#include <sgi/plugins/SGIPluginInterface.h>
+#include <sgi/plugins/SGISettingsDialogImpl>
 
 QT_BEGIN_NAMESPACE
 class Ui_TileInspectorDialog;
@@ -40,16 +40,13 @@ namespace osgearth_plugin {
 class TileKeyList;
 class TileKeySet;
 
-class TileInspectorDialog : public QDialog
+class TileInspectorDialog : public SettingsQDialogImpl
 {
 	Q_OBJECT
 
 public:
-                                TileInspectorDialog(QWidget * parent, SGIItemOsg * item, ISettingsDialogInfo * info=nullptr, SGIPluginHostInterface * hostInterface=nullptr);
-	virtual				        ~TileInspectorDialog();
-
-public:
-    ISettingsDialog *           dialogInterface() { return _interface; }
+    TileInspectorDialog(QWidget * parent, SGIPluginHostInterface * hostInterface, SGIItemBase * item, ISettingsDialogInfo * info);
+    ~TileInspectorDialog() override;
 
 public slots:
     void                        refresh();
@@ -93,14 +90,12 @@ protected:
 
 private:
 	Ui_TileInspectorDialog *	    ui;
-    SGIPluginHostInterface *        _hostInterface;
     ISettingsDialogPtr _interface;
-	ISettingsDialogInfoPtr          _info;
     IObjectTreeItemPtr              _treeRoot;
     IObjectTreeImplPtr              _treeImpl;
     IContextMenuPtr                 _contextMenu;
     IContextMenuPtr                 _layerContextMenu;
-    details::ref_ptr<SGIItemOsg>        _item;
+    details::ref_ptr<SGIItemOsg>    _item;
     SGIItemBasePtrVector            _tiles;
 };
 
