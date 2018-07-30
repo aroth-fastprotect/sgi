@@ -78,6 +78,18 @@ namespace sgi {
 
 namespace internal_plugin {
 
+enum MenuAction {
+    MenuActionNone = -1,
+    MenuActionObjectInfo,
+    MenuActionSGIAbout,
+};
+
+
+enum SettingsDialog {
+    SettingsDialogNone = -1,
+    SettingsDialogAbout,
+};
+
 GENERATE_IMPL_TEMPLATE()
 GENERATE_IMPL_NO_ACCEPT(QObject)
 GENERATE_IMPL_NO_ACCEPT(QWidget)
@@ -919,6 +931,7 @@ bool objectTreeBuildImpl<sgi::ImageGLWidget>::build(IObjectTreeItem * treeItem)
 
 CONTEXT_MENU_POPULATE_IMPL_TEMPLATE()
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(SGIProxyItemBase)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(SGIPlugins)
 
 bool contextMenuPopulateImpl<SGIProxyItemBase>::populate(IContextMenuItem * menuItem)
 {
@@ -953,6 +966,52 @@ bool contextMenuPopulateImpl<SGIProxyItemBase>::populate(IContextMenuItem * menu
     return ret;
 }
 
+bool contextMenuPopulateImpl<SGIPlugins>::populate(IContextMenuItem * menuItem)
+{
+    SGIPlugins * object = getObject<SGIPlugins, SGIItemInternal>();
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            callNextHandler(menuItem);
+            menuItem->addSimpleAction(MenuActionSGIAbout, "About SGI", _item);
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+ACTION_HANDLER_IMPL_TEMPLATE()
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionSGIAbout)
+
+bool actionHandlerImpl<MenuActionSGIAbout>::execute()
+{
+    ISettingsDialogPtr dialog;
+    bool ret;
+    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogAbout, menu()->parentWidget(), hostCallback());
+    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
+    if (ret)
+    {
+        if (dialog.valid())
+            dialog->show();
+    }
+    return ret;
+}
+
+SETTINGS_DIALOG_CREATE_IMPL_TEMPLATE()
+SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogAbout)
+
+bool settingsDialogCreateImpl<SettingsDialogAbout>::execute(ISettingsDialogPtr & dialog)
+{
+    //return openDialog<CameraSettings>(dialog);
+    return false;
+}
+
 OBJECT_TREE_BUILD_ROOT_IMPL_TEMPLATE()
 OBJECT_TREE_BUILD_ROOT_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 
@@ -984,8 +1043,8 @@ typedef SGIPluginImplementationT<       generateItemImpl,
                                         objectTreeBuildImpl,
                                         objectTreeBuildRootImpl,
                                         contextMenuPopulateImpl,
-                                        defaultPluginActionHandlerImpl,
-                                        defaultPluginSettingsDialogCreateImpl,
+                                        actionHandlerImpl,
+                                        settingsDialogCreateImpl,
                                         defaultPluginGuiAdapterSetViewImpl
                                         >
     SGIPluginImpl;
