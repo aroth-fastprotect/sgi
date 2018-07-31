@@ -294,7 +294,7 @@ SGIHostItemBase * SGIOptions::getHostItem() const
 }
 
 
-QDebug & operator<<(QDebug & dbg, const SGIOptions & opts)
+inline QDebug operator<<(QDebug dbg, const sgi::SGIOptions & opts)
 {
     dbg << "showSceneGraphDialog" << opts.showSceneGraphDialog
         << "showImagePreviewDialog" << opts.showImagePreviewDialog
@@ -536,10 +536,11 @@ public:
         _viewPtr = nullptr;
         _hostCallback = nullptr;
     }
-    void runOperations()
+    void runInstallOperations()
     {
         osg::Camera * camera = _view->getCamera();
         osg::GraphicsContext * ctx = camera->getGraphicsContext();
+        qWarning() << "DefaultSGIProxy runInstallOperations " << camera << ctx;
         if(ctx)
         {
             ensure_QApplication(ctx);
@@ -589,6 +590,7 @@ public:
 
     void runStartup(const SGIOptions & options)
     {
+        qWarning() << "DefaultSGIProxy runStartup " << _parent << options;
         if(_parent)
         {
             osg::Camera * camera = _view->getCamera();
@@ -793,6 +795,14 @@ private:
         {
             ret = sgi::osg_helpers::createBoxGeometry(10.0f, 10.0f, 10.0f);
         }
+        else if(name.compare("quad") == 0)
+        {
+            ret = sgi::osg_helpers::createQuadGeometry(10.0f, 10.0f);
+        }
+        else if(name.compare("tri") == 0 || name.compare("triangle") == 0)
+        {
+            ret = sgi::osg_helpers::createTriangleGeometry(10.0f);
+        }
         return ret;
     }
 public:
@@ -882,9 +892,12 @@ public:
                         }
                     }
                     if(justInstalled)
-                        _proxy->runOperations();
+                        _proxy->runInstallOperations();
                     else
+                    {
+                        OSG_NOTICE << LC << "post-install this=" << (void*)this << " filename=" << _options.filename << std::endl;
                         _proxy->runStartup(_options);
+                    }
                 }
             }
             nv.popFromNodePath();

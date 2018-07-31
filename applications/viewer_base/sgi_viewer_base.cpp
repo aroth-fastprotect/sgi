@@ -820,24 +820,26 @@ osg::Group * sgi_MapNodeHelper::setupLight(osg::Group * root)
         lights = new osg::Group();
         lights->setName("lights");
 
-        osg::StateSet * stateset = lights->getOrCreateStateSet();
-
         osgEarth::Util::Ephemeris e;
         osgEarth::DateTime dt(2016, 8, 10, 14.0);
         osgEarth::Util::CelestialBody sun = e.getSunPosition(dt);
         osg::Vec3d world = sun.geocentric;
 
-        osg::Light* sunLight = new osg::Light(lightNum++);
+        osg::Light* sunLight = new osg::Light(lightNum);
         world.normalize();
         sunLight->setPosition(osg::Vec4d(world, 0.0));
 
-        sunLight->setAmbient(osg::Vec4(0.2, 0.2, 0.2, 1.0));
-        sunLight->setDiffuse(osg::Vec4(1.0, 1.0, 0.9, 1.0));
+        sunLight->setAmbient(osg::Vec4(0.2f, 0.2f, 0.2f, 1.0f));
+        sunLight->setDiffuse(osg::Vec4(1.0f, 1.0f, 0.9f, 1.0f));
 
         osg::LightSource* sunLS = new osg::LightSource();
         sunLS->setLight(sunLight);
         osgEarth::GenerateGL3LightingUniforms generateUniforms;
         sunLS->accept(generateUniforms);
+#ifdef OSG_GL3_FEATURES
+        // remove GL_LIGHT0 from the stateSet to avoid GL errors about invalid enum
+        sunLS->getStateSet()->removeMode(GL_LIGHT0 + lightNum);
+#endif
 
         osgEarth::Util::ShadowCaster* caster = osgEarth::findTopMostNodeOfType<osgEarth::Util::ShadowCaster>(root);
         if (caster)
