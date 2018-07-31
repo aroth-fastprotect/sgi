@@ -793,6 +793,14 @@ private:
         {
             ret = sgi::osg_helpers::createBoxGeometry(10.0f, 10.0f, 10.0f);
         }
+        else if(name.compare("quad") == 0)
+        {
+            ret = sgi::osg_helpers::createQuadGeometry(10.0f, 10.0f);
+        }
+        else if(name.compare("tri") == 0 || name.compare("triangle") == 0)
+        {
+            ret = sgi::osg_helpers::createTriangleGeometry(10.0f);
+        }
         return ret;
     }
 public:

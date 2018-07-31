@@ -100,6 +100,60 @@ inline osg::Node * createNodeForImage(osg::Image* image)
     return createNodeForImage(image,image->s(),image->t());
 }
 
+inline osg::Geometry * createQuadGeometry(float w,float h)
+{
+    osg::Geometry * geom = new osg::Geometry;
+    osg::Vec3Array* coords = new osg::Vec3Array(6);
+    (*coords)[0].set(-w, 0.0f, h);
+    (*coords)[1].set(-w, 0.0f, -h);
+    (*coords)[2].set(w, 0.0f, -h);
+    (*coords)[3].set(-w, 0.0f, h);
+    (*coords)[4].set(w, 0.0f, -h);
+    (*coords)[5].set(w, 0.0f, h);
+    geom->setVertexArray(coords);
+
+    float texcoord_y_b = 0.0f;
+    float texcoord_y_t = 1.0f;
+    float texcoord_x = 1.0f;
+
+    osg::Vec2Array* tcoords = new osg::Vec2Array(6);
+    (*tcoords)[0].set(0.0f*texcoord_x, texcoord_y_t);
+    (*tcoords)[1].set(0.0f*texcoord_x, texcoord_y_b);
+    (*tcoords)[2].set(1.0f*texcoord_x, texcoord_y_b);
+    (*tcoords)[3].set(0.0f*texcoord_x, texcoord_y_t);
+    (*tcoords)[4].set(1.0f*texcoord_x, texcoord_y_b);
+    (*tcoords)[5].set(1.0f*texcoord_x, texcoord_y_t);
+    geom->setTexCoordArray(0, tcoords);
+
+    osg::Vec4Array* colours = new osg::Vec4Array(1);
+    (*colours)[0].set(1.0f, 0.0f, 0.0, 1.0f);
+    geom->setColorArray(colours, osg::Array::BIND_OVERALL);
+
+    geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::TRIANGLES, 0, 6));
+
+    return geom;
+}
+
+inline osg::Geometry * createTriangleGeometry(float s)
+{
+    osg::Geometry * geom = new osg::Geometry;
+    osg::Vec3Array* coords = new osg::Vec3Array(3);
+    (*coords)[0].set(-(s/0.5f), 0.0f, 0.0f);
+    (*coords)[1].set(+(s/0.5f), 0.0f, 0.0f);
+    (*coords)[2].set(     0.0f, 0.0f, s);
+    geom->setVertexArray(coords);
+
+    osg::Vec4Array* colours = new osg::Vec4Array(3);
+    (*colours)[0].set(1.0f, 0.0f, 0.0f, 1.0f);
+    (*colours)[1].set(0.0f, 1.0f, 0.0f, 1.0f);
+    (*colours)[2].set(0.0f, 0.0f, 1.0f, 1.0f);
+    geom->setColorArray(colours, osg::Array::BIND_PER_VERTEX);
+
+    geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::TRIANGLES, 0, 3));
+
+    return geom;
+}
+
 inline osg::Geometry * createBoxGeometry(float w,float h, float d)
 {
     osg::Geometry * geom = new osg::Geometry;
