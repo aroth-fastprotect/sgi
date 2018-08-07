@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include <ostream>
 #include <QThread>
-#include <QCoreApplication>
+#include <QApplication>
 #include <QProcessEnvironment>
 #include <QDialog>
 #ifdef WITH_QTOPENGL
@@ -38,6 +38,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QSurface)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QDialog)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QThread)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QCoreApplication)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QApplication)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLContext)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLWidget)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLShaderProgram)
@@ -516,6 +517,40 @@ bool writePrettyHTMLImpl<QCoreApplication>::process(std::basic_ostream<char>& os
                 }
                 os << "</ul>";
             }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+
+bool writePrettyHTMLImpl<QApplication>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    QApplication * object = getObject<QApplication, SGIItemQt>();
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add QObject properties first
+            callNextHandler(os);
+
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypePalette:
+        {
+            os << object->palette(static_cast<const char*>(nullptr));
             ret = true;
         }
         break;

@@ -9,6 +9,7 @@
 #include <QWidget>
 #include <QWindow>
 #include <QSurface>
+#include <QStyle>
 #include <QDesktopWidget>
 #include <QOpenGLContext>
 #include <QOpenGLWidget>
@@ -320,6 +321,10 @@ bool objectTreeBuildImpl<QApplication>::build(IObjectTreeItem * treeItem)
             if(desktop.hasObject())
                 treeItem->addChild("Desktop", &desktop);
 
+            SGIHostItemQt style(object->style());
+            if (style.hasObject())
+                treeItem->addChild("Style", &style);
+
             SGIHostItemQt clipboard(object->clipboard());
             if(clipboard.hasObject())
                 treeItem->addChild("Clipboard", &clipboard);
@@ -327,6 +332,8 @@ bool objectTreeBuildImpl<QApplication>::build(IObjectTreeItem * treeItem)
             QWidgetList allWidgets = object->allWidgets();
             if(!allWidgets.isEmpty())
                 treeItem->addChild(helpers::str_plus_count("Widgets", allWidgets.size()), cloneItem<SGIItemQt>(SGIItemTypeWidgets));
+
+            treeItem->addChild("Palette", cloneItem<SGIItemQt>(SGIItemTypePalette));
         }
         break;
     case SGIItemTypeWidgets:
@@ -339,6 +346,9 @@ bool objectTreeBuildImpl<QApplication>::build(IObjectTreeItem * treeItem)
             }
             ret = true;
         }
+        break;
+    case SGIItemTypePalette:
+        ret = true;
         break;
     default:
         ret = callNextHandler(treeItem);
