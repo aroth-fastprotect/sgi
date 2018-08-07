@@ -163,6 +163,7 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeShaderSourceCode);
         SGIITEMTYPE_NAME(SGIItemTypeShaderLog);
         SGIITEMTYPE_NAME(SGIItemTypePalette);
+        SGIITEMTYPE_NAME(SGIItemTypeTheme);
     }
     SGIPlugin_qt_Implementation(const SGIPlugin_qt_Implementation & rhs)
         : qt_plugin::SGIPluginImpl(rhs)

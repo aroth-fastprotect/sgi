@@ -119,15 +119,23 @@ bool writePrettyHTMLImpl<QIcon>::process(std::basic_ostream<char>& os)
             }
             os << "</ul></td></tr>" << std::endl;
 
+            if(_table)
+                os << "</table>" << std::endl;
+        }
+        break;
+    case SGIItemTypeTheme:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
             os << "<tr><td>themeSearchPaths</td><td><ul>";
-            for(const QString & s : object->themeSearchPaths())
+            for (const QString & s : object->themeSearchPaths())
             {
                 os << "<li>" << s << "</li>";
             }
             os << "</ul></td></tr>" << std::endl;
             os << "<tr><td>themeName</td><td>" << object->themeName() << "</td></tr>" << std::endl;
-
-            if(_table)
+            if (_table)
                 os << "</table>" << std::endl;
         }
         break;

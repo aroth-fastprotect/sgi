@@ -46,6 +46,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLContext)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLWidget)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLShaderProgram)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLShader)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QIcon)
 
 #ifdef WITH_QTOPENGL
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QGLWidget)
@@ -485,6 +486,26 @@ bool objectTreeBuildImpl<QOpenGLShader>::build(IObjectTreeItem * treeItem)
         ret = true;
         break;
     case SGIItemTypeShaderLog:
+        ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<QIcon>::build(IObjectTreeItem * treeItem)
+{
+    QIcon * object = getObject<QIcon, SGIItemQtIcon>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        treeItem->addChild("Theme", cloneItem<SGIItemQtIcon>(SGIItemTypeTheme));
+        ret = true;
+        break;
+    case SGIItemTypeTheme:
         ret = true;
         break;
     default:

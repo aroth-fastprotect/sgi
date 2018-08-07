@@ -12,4 +12,5 @@ private slots:
     void autoLoadQt();
     void hostItemPaintDevice();
     void qImage();
+    void qIcon();
 };
