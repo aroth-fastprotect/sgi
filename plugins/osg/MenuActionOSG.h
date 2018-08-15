@@ -154,6 +154,7 @@ enum MenuAction {
     MenuActionEventAdapterHitTest,
     MenuActionEventHandlerIgnoreHandledEventsMask,
     MenuActionCameraManipulatorAutoComputeHome,
+    MenuActionCameraManipulatorHome,
 
     MenuActionShaderDirty,
     MenuActionShaderEditSource,

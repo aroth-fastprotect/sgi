@@ -230,6 +230,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAutoTransformSetAutoUpdateEye
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAutoTransformSetAutoScaleTransitionWidthRatio)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraManipulatorAutoComputeHome)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraManipulatorHome)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewerBaseMaxFrameRate)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionViewerBaseRunFrameScheme)
@@ -2489,6 +2490,13 @@ bool actionHandlerImpl<MenuActionCameraManipulatorAutoComputeHome>::execute()
 {
     osgGA::CameraManipulator * object = getObject<osgGA::CameraManipulator,SGIItemOsg, DynamicCaster>();
     object->setAutoComputeHomePosition(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionCameraManipulatorHome>::execute()
+{
+    osgGA::CameraManipulator * object = getObject<osgGA::CameraManipulator, SGIItemOsg, DynamicCaster>();
+    object->home(DBL_MAX);
     return true;
 }
 

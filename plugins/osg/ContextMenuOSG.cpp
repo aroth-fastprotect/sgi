@@ -2403,6 +2403,7 @@ bool contextMenuPopulateImpl<osgGA::CameraManipulator>::populate(IContextMenuIte
         ret = callNextHandler(menuItem);
         if(ret)
         {
+            menuItem->addSimpleAction(MenuActionCameraManipulatorHome, "Home", _item);
             menuItem->addBoolAction(MenuActionCameraManipulatorAutoComputeHome, "Auto compute home", _item, object->getAutoComputeHomePosition());
 
             SGIHostItemOsg node(object->getNode());
