@@ -47,6 +47,8 @@ enum MenuAction {
     MenuActionNodeCullingActive,
     MenuActionNodeLookAt,
     MenuActionNodeCreateStateSet,
+    MenuActionNodeRemoveStateSet,
+    MenuActionNodeRemoveAllStateSets,
     MenuActionNodeStripTextures,
     MenuActionNodeSmoothingVisitor,
 	MenuActionNodeOptimizerRun,

@@ -107,6 +107,20 @@ bool writePrettyHTMLImpl<osgText::Font>::process(std::basic_ostream<char>& os)
 			ret = true;
 		}
 		break;
+
+    case SGIItemTypeFontCachedStateSets:
+    {
+        const osgText::Font::StateSets & cachedStateSets = object->getCachedStateSets();
+        os << "<ul>";
+        for (const auto & ss : cachedStateSets)
+        {
+            os << "<li>" << getObjectNameAndType(ss.get()) << "</li>" << std::endl;
+        }
+        os << "</ul>";
+        ret = true;
+    }
+    break;
+
     default:
         ret = callNextHandler(os);
         break;

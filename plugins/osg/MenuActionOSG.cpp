@@ -86,6 +86,8 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeRecomputeBound)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeCullingActive)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeLookAt)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeCreateStateSet)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeRemoveStateSet)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeRemoveAllStateSets)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeStripTextures)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeOptimizerRun)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeSmoothingVisitor)
@@ -508,6 +510,39 @@ bool actionHandlerImpl<MenuActionNodeCreateStateSet>::execute()
     osg::ref_ptr<osg::StateSet> stateSet = object->getOrCreateStateSet();
     return true;
 }
+
+bool actionHandlerImpl<MenuActionNodeRemoveStateSet>::execute()
+{
+    osg::Node * object = getObject<osg::Node, SGIItemOsg>();
+    object->setStateSet(nullptr);
+    return true;
+}
+namespace {
+
+    class RemoveAllStateSetsVisitor : public osg::NodeVisitor
+    {
+    public:
+        RemoveAllStateSetsVisitor()
+            : osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN)
+        {
+        }
+
+        virtual void apply(osg::Node& node)
+        {
+            node.setStateSet(nullptr);
+            traverse(node);
+        }
+    };
+}
+
+bool actionHandlerImpl<MenuActionNodeRemoveAllStateSets>::execute()
+{
+    osg::Node * object = getObject<osg::Node, SGIItemOsg>();
+    runVisitorInUpdateCallback<RemoveAllStateSetsVisitor>(object);
+    return true;
+}
+
+
 
 namespace {
 

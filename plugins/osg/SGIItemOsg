@@ -73,6 +73,7 @@ enum SGIItemType_osg
     SGIItemTypeColorLayers,
     SGIItemTypeCameaBufferAttachments,
 	SGIItemTypeFontTextureList,
+    SGIItemTypeFontCachedStateSets,
     SGIItemTypeStatsFrame,
     SGIItemTypeCachedObjects,
     SGIItemTypeTextureObjects,

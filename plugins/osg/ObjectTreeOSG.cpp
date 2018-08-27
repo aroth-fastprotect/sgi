@@ -3866,6 +3866,10 @@ bool objectTreeBuildImpl<osgText::Font>::build(IObjectTreeItem * treeItem)
 			const osgText::Font::GlyphTextureList & textureList = object->getGlyphTextureList();
 			if (!textureList.empty())
 				treeItem->addChild(helpers::str_plus_count("TextureList", textureList.size()), cloneItem<SGIItemOsg>(SGIItemTypeFontTextureList));
+
+            const osgText::Font::StateSets & cachedStateSets = object->getCachedStateSets();
+            if (!cachedStateSets.empty())
+                treeItem->addChild(helpers::str_plus_count("CachedStateSets", cachedStateSets.size()), cloneItem<SGIItemOsg>(SGIItemTypeFontCachedStateSets));
         }
         break;
 	case SGIItemTypeFontTextureList:
@@ -3879,6 +3883,17 @@ bool objectTreeBuildImpl<osgText::Font>::build(IObjectTreeItem * treeItem)
 			ret = true;
 		}
 		break;
+    case SGIItemTypeFontCachedStateSets:
+        {
+            const osgText::Font::StateSets & cachedStateSets = object->getCachedStateSets();
+            for (const auto & ss : cachedStateSets)
+            {
+                SGIHostItemOsg item(ss.get());
+                treeItem->addChild(std::string(), &item);
+            }
+            ret = true;
+        }
+        break;
     default:
         ret = callNextHandler(treeItem);
         break;

@@ -142,6 +142,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgQt::GraphicsWindowQt)
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgText::TextBase)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgText::Text)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgText::Font)
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgUtil::IncrementalCompileOperation)
 
@@ -394,8 +395,12 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
                 menuItem->addMenu("CullCallback", &cullCallback);
 
             SGIHostItemOsg stateSet(object->getStateSet());
-            if(stateSet.hasObject())
+            if (stateSet.hasObject())
+            {
                 menuItem->addMenu("StateSet", &stateSet);
+                manipulateMenu->addSimpleAction(MenuActionNodeRemoveStateSet, "Remove StateSet", _item);
+                manipulateMenu->addSimpleAction(MenuActionNodeRemoveAllStateSets, "Remove all StateSets", _item);
+            }
             else
                 manipulateMenu->addSimpleAction(MenuActionNodeCreateStateSet, "Create StateSet", _item);
         }
@@ -2539,6 +2544,25 @@ bool contextMenuPopulateImpl<osgText::Text>::populate(IContextMenuItem * menuIte
             menuItem->addSimpleAction(MenuActionTextBackdropHorizontalOffset, helpers::str_plus_info("Backdrop Horz. Offset", object->getBackdropHorizontalOffset()), _item);
             menuItem->addSimpleAction(MenuActionTextBackdropVerticalOffset, helpers::str_plus_info("Backdrop Vert. Offset", object->getBackdropVerticalOffset()), _item);
             menuItem->addSimpleAction(MenuActionTextBackdropColor, "Backdrop color...", _item);
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osgText::Font>::populate(IContextMenuItem * menuItem)
+{
+    osgText::Font * object = getObject<osgText::Font, SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if(ret)
+        {
         }
         break;
     default:
