@@ -2339,6 +2339,7 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
             }
             os << "</td></tr>" << std::endl;
 
+#if 0
             osgEarth::VirtualProgram::ProgramMap programCache;
             object->getProgramCache(programCache);
             os << "<tr><td>programCache</td><td>";
@@ -2371,6 +2372,7 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
                 os << "</ul>";
             }
             os << "</td></tr>" << std::endl;
+#endif
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
             osgEarth::VirtualProgram::ExtensionsSet extensions;
@@ -2576,6 +2578,7 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
         break;
     case SGIItemTypeVirtualProgramCache:
         {
+#if 0
             osgEarth::VirtualProgram::ProgramMap programCache;
             object->getProgramCache(programCache);
             if (programCache.empty())
@@ -2606,6 +2609,7 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
                 }
                 os << "</ul>";
             }
+#endif
             ret = true;
         }
         break;

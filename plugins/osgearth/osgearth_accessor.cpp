@@ -179,11 +179,13 @@ void RTTPickerAccess::getPickContexts(PickContexts & contexts) const
     contexts = _pickContexts;
 }
 
+#if 0
 void VirtualProgramAccessor::getProgramCache(ProgramMap & programCache)
 {
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_programCacheMutex);
     programCache = _programCache;
 }
+#endif
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 void VirtualProgramAccessor::getGLSLExtensions(ExtensionsSet & extensions)

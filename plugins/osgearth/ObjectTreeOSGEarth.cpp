@@ -533,7 +533,7 @@ bool objectTreeBuildImpl<osgEarth::Registry>::build(IObjectTreeItem * treeItem)
     case SGIItemTypeProgramSharedRepo:
         {
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
-            const osgEarth::ProgramSharedRepo * repo = object->getProgramSharedRepo();
+            //const osgEarth::ProgramSharedRepo * repo = object->getProgramSharedRepo();
 #endif
             ret = true;
         }
@@ -1535,10 +1535,12 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
             if(!functions.empty())
                 treeItem->addChild(helpers::str_plus_count("Functions", functions.size()), cloneItem<SGIItemOsg>(SGIItemTypeVirtualProgramFunctions, ~0u));
 
+#if 0
             VirtualProgramAccessor::ProgramMap programCache;
             object->getProgramCache(programCache);
             if(!programCache.empty())
                 treeItem->addChild(helpers::str_plus_count("Cache", programCache.size()), cloneItem<SGIItemOsg>(SGIItemTypeVirtualProgramCache, ~0u));
+#endif
         }
         break;
     case SGIItemTypeVirtualProgramShaderMap:
@@ -1617,6 +1619,7 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
         break;
     case SGIItemTypeVirtualProgramCache:
         {
+#if 0
             osgEarth::VirtualProgram::ProgramMap programCache;
             object->getProgramCache(programCache);
             for (auto it = programCache.begin(); it != programCache.end(); it++)
@@ -1647,6 +1650,7 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
                     treeItem->addChild(name, &program);
                 }
             }
+#endif
             ret = true;
         }
         break;

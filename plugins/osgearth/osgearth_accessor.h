@@ -220,9 +220,7 @@ namespace osgearth_plugin {
     {
     public:
         typedef osgEarth::VirtualProgram::ShaderEntry ShaderEntry;
-        typedef osgEarth::VirtualProgram::ProgramMap ProgramMap;
 
-        void getProgramCache(ProgramMap & programCache);
 #if OSGEARTH_VERSION_LESS_OR_EQUAL(2,7,0)
         void getShaderMap( ShaderMap& out ) const { osgEarth::VirtualProgram::getShaderMap(out); }
         void getFunctions( osgEarth::ShaderComp::FunctionLocationMap& out ) const { osgEarth::VirtualProgram::getFunctions(out); }
@@ -252,9 +250,6 @@ namespace osgearth_plugin {
 #if OSGEARTH_VERSION_LESS_THAN(2,7,0)
                     osgEarth::Threading::ScopedWriteLock exclusive(_programCacheMutex);
                     _programCache.clear();
-#else
-					osgEarth::Threading::ScopedMutexLock exclusive(_programCacheMutex);
-					_programCache.clear();
 #endif
                 }
 
