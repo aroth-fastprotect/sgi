@@ -756,7 +756,7 @@ void TileInspectorDialog::refresh()
     }
 
     osgEarth::optional<osgEarth::URI> url;
-    layerConf.getIfSet("url", url);
+    layerConf.get("url", url);
     if (url.isSet())
     {
         baseurl = url.value().full();
@@ -1045,7 +1045,7 @@ void TileInspectorDialog::proxySaveScript()
             bool invertY = false;
             osgEarth::Config layerConf = options.getConfig();
             osgEarth::optional<osgEarth::URI> url;
-            layerConf.getIfSet("url", url);
+            layerConf.get("url", url);
             if(url.isSet())
             {
                 baseurl = url.value().full();
