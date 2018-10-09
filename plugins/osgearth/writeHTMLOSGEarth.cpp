@@ -596,7 +596,9 @@ bool writePrettyHTMLImpl<osgEarth::SpatialReference>::process(std::basic_ostream
             os << "<tr><td>isContiguous</td><td>" << (object->isContiguous()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>isCube</td><td>" << (object->isCube()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>isLTP</td><td>" << (object->isLTP()?"true":"false") << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,10,0)
             os << "<tr><td>isPlateCarre</td><td>" << (object->isPlateCarre()?"true":"false") << "</td></tr>" << std::endl;
+#endif
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -2283,7 +2285,13 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     return os;
 }
 
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::Function & f)
+{
+    os << f._name << " accept=" << getObjectNameAndType(f._accept.get());
+    return os;
+}
+#elif OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::Function & f)
 {
     os << f._name << " min=" << f._minRange << " max=" << f._maxRange << " accept=" << getObjectNameAndType(f._accept.get());
@@ -2447,10 +2455,12 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
                         const osgEarth::ShaderComp::Function & function = it->second;
                         os << "<li>order " << order << " function " << function._name;
+#if OSGEARTH_VERSION_LESS_THAN(2,10,0)
                         if (function._minRange.isSet())
                             os << " min=" << function._minRange.value();
                         if (function._maxRange.isSet())
                             os << " max=" << function._maxRange.value();
+#endif
                         if (function._accept.valid())
                             os << " accept=" << getObjectNameAndType(function._accept.get());
                         os << "</li>";

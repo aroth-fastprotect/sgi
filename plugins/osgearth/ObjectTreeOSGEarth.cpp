@@ -523,10 +523,11 @@ bool objectTreeBuildImpl<osgEarth::Registry>::build(IObjectTreeItem * treeItem)
             if(sphericalMercatorProfile.hasObject())
                 treeItem->addChild("Spherical mercator profile", &sphericalMercatorProfile);
 
+#if OSGEARTH_VERSION_LESS_THAN(2,10,0)
             SGIHostItemOsg cubeProfile(object->getCubeProfile());
             if(cubeProfile.hasObject())
                 treeItem->addChild("Cube profile", &cubeProfile);
-
+#endif
             ret = true;
         }
         break;
