@@ -1250,7 +1250,7 @@ void TileInspectorDialog::loadData()
                     else if (elevLayer)
                     {
                         osgEarth::GeoHeightField hf = elevLayer->createHeightField(data.tileKey);
-                        data.tileData = hf.getHeightField();
+                        data.tileData = const_cast<osg::HeightField*>(hf.getHeightField());
                     }
                     data.status = data.tileData.valid() ? TileSourceTileKeyData::StatusLoaded : TileSourceTileKeyData::StatusLoadFailure;
                 }
