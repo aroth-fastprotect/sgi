@@ -528,13 +528,13 @@ Image::Image(ImageFormat format, DataType type)
 
 Image::Image(ImageFormat format, DataType type, Origin origin, void * data, size_t length,
         unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
-        const osg::Referenced * originalImage, bool copyData)
+        bool copyData)
     : _format(format), _dataType(type), _origin(origin), _data(copyData ? malloc(length) : data), _length(length)
     , _width(width), _height(height), _depth(depth)
     , _allocatedWidth(width), _allocatedHeight(height)
     , _pitch { bytesPerLine, 0, 0, 0 }, _lines{ height, 0, 0, 0 }
     , _planeOffset{0, 0, 0, 0}
-    , _originalImage(originalImage), _originalImageQt(nullptr), _freeQt(nullptr), _copyQt(nullptr)
+    , _originalImage(nullptr), _originalImageQt(nullptr), _freeQt(nullptr), _copyQt(nullptr)
     , _allocated(copyData)
 {
     if (copyData)
@@ -1339,7 +1339,8 @@ const void * Image::pixelDataPtr(unsigned x, unsigned y, unsigned z, unsigned pl
             src_offset = _planeOffset[plane] + (((_lines[plane] - y) * _pitch[plane]) + (x * src_bits / 8));
             break;
         }
-        ret = src_data + src_offset;
+        if(src_offset < _length)
+            ret = src_data + src_offset;
     }
     return ret;
 }
@@ -1352,57 +1353,66 @@ Image::Pixel Image::pixel(unsigned x, unsigned y, unsigned z, unsigned plane) co
     case ImageFormatABGR32:
         {
             const ARGB * px = pixelData<ARGB>(x, y);
-            ret.setARGB(px->a, px->b, px->g, px->r);
+            if(px)
+                ret.setARGB(px->a, px->b, px->g, px->r);
         }
         break;
     case ImageFormatARGB32:
         {
             const ARGB * px = pixelData<ARGB>(x, y);
-            ret.setARGB(px->a, px->r, px->g, px->b);
+            if (px)
+                ret.setARGB(px->a, px->r, px->g, px->b);
         }
         break;
     case ImageFormatBGRA32:
         {
             const ARGB * px = pixelData<ARGB>(x, y);
-            ret.setARGB(px->b, px->a, px->r, px->g);
+            if (px)
+                ret.setARGB(px->b, px->a, px->r, px->g);
         }
         break;
     case ImageFormatRGBA32:
         {
             const ARGB * px = pixelData<ARGB>(x, y);
-            ret.setARGB(px->b, px->g, px->r, px->a);
+            if (px)
+                ret.setARGB(px->b, px->g, px->r, px->a);
         }
         break;
     case ImageFormatBGR32:
         {
             const ARGB * px = pixelData<ARGB>(x, y);
-            ret.setARGB(0, px->b, px->g, px->r);
+            if (px)
+                ret.setARGB(0, px->b, px->g, px->r);
         }
         break;
     case ImageFormatRGB32:
         {
             const ARGB * px = pixelData<ARGB>(x, y);
-            ret.setARGB(0, px->r, px->g, px->b);
+            if (px)
+                ret.setARGB(0, px->r, px->g, px->b);
         }
         break;
 
     case ImageFormatBGR24:
         {
             const RGB * px = pixelData<RGB>(x, y);
-            ret.setARGB(0, px->b, px->g, px->r);
+            if (px)
+                ret.setARGB(0, px->b, px->g, px->r);
         }
         break;
     case ImageFormatRGB24:
         {
             const RGB * px = pixelData<RGB>(x, y);
-            ret.setARGB(0, px->r, px->g, px->b);
+            if (px)
+                ret.setARGB(0, px->r, px->g, px->b);
         }
         break;
     case ImageFormatDepth:
     case ImageFormatFloat:
         {
             const float * px = pixelData<float>(x, y);
-            ret.setFloat32(*px);
+            if (px)
+                ret.setFloat32(*px);
         }
         break;
     case ImageFormatRed:
@@ -1419,38 +1429,53 @@ Image::Pixel Image::pixel(unsigned x, unsigned y, unsigned z, unsigned plane) co
             case Image::DataTypeSignedByte:
                 {
                     const unsigned char * px = pixelData<unsigned char>(x, y);
-                    ret.type = _dataType;
-                    ret.data.u8 = *px;
+                    if (px)
+                    {
+                        ret.type = _dataType;
+                        ret.data.u8 = *px;
+                    }
                 }
                 break;
             case Image::DataTypeUnsignedShort:
             case Image::DataTypeSignedShort:
                 {
                     const unsigned short * px = pixelData<unsigned short>(x, y);
-                    ret.type = _dataType;
-                    ret.data.u16 = *px;
+                    if (px)
+                    {
+                        ret.type = _dataType;
+                        ret.data.u16 = *px;
+                    }
                 }
                 break;
             case Image::DataTypeUnsignedInt:
             case Image::DataTypeSignedInt:
                 {
                     const unsigned int * px = pixelData<unsigned int>(x, y);
-                    ret.type = _dataType;
-                    ret.data.u32 = *px;
+                    if (px)
+                    {
+                        ret.type = _dataType;
+                        ret.data.u32 = *px;
+                    }
                 }
                 break;
             case Image::DataTypeFloat32:
                 {
                     const float * px = pixelData<float>(x, y);
-                    ret.type = _dataType;
-                    ret.data.f32[0] = *px;
+                    if (px)
+                    {
+                        ret.type = _dataType;
+                        ret.data.f32[0] = *px;
+                    }
                 }
                 break;
             case Image::DataTypeFloat64:
                 {
                     const double * px = pixelData<double>(x, y);
-                    ret.type = _dataType;
-                    ret.data.f64[0] = *px;
+                    if (px)
+                    {
+                        ret.type = _dataType;
+                        ret.data.f64[0] = *px;
+                    }
                 }
                 break;
             }
@@ -1782,6 +1807,8 @@ namespace {
             return &ColorReader<GLFormat, uint32_t>::read;
         case Image::DataTypeFloat32:
             return &ColorReader<GLFormat, float>::read;
+        case Image::DataTypeFloat64:
+            return &ColorReader<GLFormat, double>::read;
         default:
             return &ColorReader<Image::ImageFormatInvalid, uint8_t>::read;
         }
@@ -1909,6 +1936,15 @@ namespace
     {
         switch( format )
         {
+        case Image::ImageFormatDepth:
+        case Image::ImageFormatLuminance:
+        case Image::ImageFormatRed:
+        case Image::ImageFormatAlpha:
+        case Image::ImageFormatLuminanceAlpha:
+        case Image::ImageFormatRGB24:
+        case Image::ImageFormatRGBA32:
+        case Image::ImageFormatBGR24:
+        case Image::ImageFormatBGRA32:
         default:
             return nullptr;
             break;

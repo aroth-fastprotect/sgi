@@ -30,6 +30,7 @@ SET(TARGET_SRC
     osg_helpers.cpp
 	osg_statistics.cpp
     osg_viewer.cpp
+    SGIImageOsg.cpp
 	ReferencePicker.cpp
     )
 

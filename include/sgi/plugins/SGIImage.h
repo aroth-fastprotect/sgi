@@ -179,6 +179,9 @@ public:
     Image(ImageFormat format=ImageFormatInvalid, DataType type=DataTypeInvalid);
     explicit Image(ImageFormat format, DataType type, void * data, size_t length, bool copyData=true);
     explicit Image(ImageFormat format, DataType type, Origin origin, void * data, size_t length,
+        unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine, 
+        bool copyData = false);
+    explicit Image(ImageFormat format, DataType type, Origin origin, void * data, size_t length,
           unsigned width, unsigned height, unsigned depth, unsigned bytesPerLine,
           const osg::Referenced * originalImage, bool copyData = false);
     explicit Image(ImageFormat format, DataType type, Origin origin, void * data, size_t length,
