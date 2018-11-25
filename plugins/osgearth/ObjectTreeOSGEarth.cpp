@@ -14,6 +14,11 @@
 #include <sgi/helpers/osg>
 
 #include <osgEarth/Version>
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+#define protected public
+#include <osgEarth/ElevationPool>
+#undef protected
+#endif
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
 #include <osgEarth/MaskLayer>
@@ -22,6 +27,9 @@
 #include <osgEarth/ShaderFactory>
 #include <osgEarth/ResourceReleaser>
 #include <osgEarth/VideoLayer>
+#endif
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+#include <osgEarth/ElevationPool>
 #endif
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
@@ -97,6 +105,11 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheBin)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheSettings)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::PolyShader)
 #endif
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationPool)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationPool::Tile)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationEnvelope)
+#endif
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Picker)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::RTTPicker)
@@ -151,6 +164,11 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg cache(object->getCache());
             if(cache.hasObject())
                 treeItem->addChild("Cache", &cache);
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+            SGIHostItemOsg elevationPool(object->getElevationPool());
+            if(elevationPool.hasObject())
+                treeItem->addChild("ElevationPool", &elevationPool);
+#endif
 
             SGIHostItemOsg globalOpts(object->getGlobalOptions());
             if(globalOpts.hasObject())
@@ -1791,6 +1809,118 @@ bool objectTreeBuildImpl<osgEarth::PolyShader>::build(IObjectTreeItem * treeItem
         break;
     case SGIItemTypeConfig:
         ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+#endif
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+bool objectTreeBuildImpl<osgEarth::ElevationPool>::build(IObjectTreeItem * treeItem)
+{
+    ElevationPoolAccess * object = static_cast<ElevationPoolAccess*>(getObject<osgEarth::ElevationPool, SGIItemOsg>());
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            treeItem->addChild("Elevation Layers", cloneItem<SGIItemOsg>(SGIItemTypeElevationLayers));
+            treeItem->addChild("Tile cache", cloneItem<SGIItemOsg>(SGIItemTypeTileCache));
+            treeItem->addChild("MRU", cloneItem<SGIItemOsg>(SGIItemTypeTileCacheLRU));
+
+        }
+        break;
+    case SGIItemTypeElevationLayers:
+        {
+            const osgEarth::ElevationLayerVector & elevationLayers = object->getElevationLayers();
+            for(osgEarth::ElevationLayerVector::const_iterator it = elevationLayers.begin(); it != elevationLayers.end(); it++)
+            {
+                const osg::ref_ptr<osgEarth::ElevationLayer> & layer = *it;
+                SGIHostItemOsg childItem(layer.get());
+                treeItem->addChild(std::string(), &childItem);
+            }
+            ret = true;
+        }
+        break;
+    case SGIItemTypeTileCache:
+        {
+            ElevationPoolAccess::Tiles tiles;
+            object->getTiles(tiles);
+            for(ElevationPoolAccess::Tiles::const_iterator it = tiles.begin(); it != tiles.end(); it++)
+            {
+                const osgEarth::TileKey & key = it->first;
+                const osg::observer_ptr<osgEarth::ElevationPool::Tile> & tile = it->second;
+                SGIHostItemOsg childItem(tile.get());
+                treeItem->addChild(key.str(), &childItem);
+            }
+            ret = true;
+        }
+        break;
+    case SGIItemTypeTileCacheLRU:
+        {
+            ElevationPoolAccess::MRU mru;
+            object->getMRU(mru);
+            for(ElevationPoolAccess::MRU::const_iterator it = mru.begin(); it != mru.end(); it++)
+            {
+                const osg::ref_ptr<osgEarth::ElevationPool::Tile> & tile = *it;
+                SGIHostItemOsg childItem(tile.get());
+                treeItem->addChild(tile->_key.str(), &childItem);
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osgEarth::ElevationPool::Tile>::build(IObjectTreeItem * treeItem)
+{
+    osgEarth::ElevationPool::Tile * object = getObject<osgEarth::ElevationPool::Tile, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            treeItem->addChild("Heightfield", cloneItem<SGIItemOsg>(SGIItemTypeGeoHeightfield));
+        }
+        break;
+    case SGIItemTypeGeoHeightfield:
+        {
+            SGIHostItemOsg hf(object->_hf.getHeightField());
+            if(hf.hasObject())
+                treeItem->addChild("Heightfield", &hf);
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osgEarth::ElevationEnvelope>::build(IObjectTreeItem * treeItem)
+{
+    osgEarth::ElevationEnvelope * object = getObject<osgEarth::ElevationEnvelope, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+        }
         break;
     default:
         ret = callNextHandler(treeItem);

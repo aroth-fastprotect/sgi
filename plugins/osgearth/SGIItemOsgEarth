@@ -10,6 +10,7 @@
 
 namespace osgEarth {
     class ElevationQuery;
+    class ElevationPool;
     class TileSource;
     class TileKey;
     class CacheBin;
@@ -58,7 +59,8 @@ enum SGIItemType_osgearth
     SGIItemTypePostMergeOps,
     SGIItemTypeProfiles,
     SGIItemTypeProgramSharedRepo,
-    SGIItemTypePickerContext
+    SGIItemTypePickerContext,
+    SGIItemTypeGeoHeightfield
 };
 
 typedef SGIItemInfoPlainPtr<osgEarth::Config> SGIItemInfoOsgEarthConfig;
@@ -109,6 +111,7 @@ struct TileSourceTileKeyData
 class TileSourceInfo;
 
 typedef details::ReferencedRawPtrT<osgEarth::ElevationQuery, osg::Referenced> ElevationQueryReferenced;
+typedef details::ReferencedDataT<osgEarth::ElevationPool, osg::Referenced> ElevationPoolReferenced;
 typedef details::ReferencedDataT<osgEarth::TileKey, osg::Referenced> TileKeyReferenced;
 typedef details::ReferencedDataT<TileSourceTileKeyData, osg::Referenced> TileSourceTileKey;
 } // namespace osgearth_plugin
