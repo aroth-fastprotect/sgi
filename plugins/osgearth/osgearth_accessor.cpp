@@ -165,6 +165,20 @@ const osgEarth::Map* ElevationQueryAccess::getMap() const
 }
 #endif
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+void ElevationPoolAccess::getTiles(Tiles & tiles)
+{
+    osgEarth::Threading::ScopedMutexLock lock(_tilesMutex);
+    reinterpret_cast<ElevationPool::Tiles&>(tiles) = _tiles;
+}
+
+void ElevationPoolAccess::getMRU(MRU & mru)
+{
+    osgEarth::Threading::ScopedMutexLock lock(_tilesMutex);
+    reinterpret_cast<ElevationPool::MRU&>(mru) = _mru;
+}
+#endif
+
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 void LayerAccessor::getLayerCallbacks(LayerCallbackList & callbacks) const

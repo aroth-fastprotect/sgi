@@ -756,7 +756,7 @@ void TileInspectorDialog::refresh()
     }
 
     osgEarth::optional<osgEarth::URI> url;
-    layerConf.getIfSet("url", url);
+    layerConf.get("url", url);
     if (url.isSet())
     {
         baseurl = url.value().full();
@@ -1045,7 +1045,7 @@ void TileInspectorDialog::proxySaveScript()
             bool invertY = false;
             osgEarth::Config layerConf = options.getConfig();
             osgEarth::optional<osgEarth::URI> url;
-            layerConf.getIfSet("url", url);
+            layerConf.get("url", url);
             if(url.isSet())
             {
                 baseurl = url.value().full();
@@ -1250,7 +1250,7 @@ void TileInspectorDialog::loadData()
                     else if (elevLayer)
                     {
                         osgEarth::GeoHeightField hf = elevLayer->createHeightField(data.tileKey);
-                        data.tileData = hf.getHeightField();
+                        data.tileData = const_cast<osg::HeightField*>(hf.getHeightField());
                     }
                     data.status = data.tileData.valid() ? TileSourceTileKeyData::StatusLoaded : TileSourceTileKeyData::StatusLoadFailure;
                 }

@@ -329,7 +329,7 @@ bool writePrettyHTMLImpl<osgEarth::MapNodeOptions>::process(std::basic_ostream<c
             callNextHandler(os);
 
             os << "<tr><td>proxy</td><td>" << object->proxySettings() << "</td></tr>" << std::endl;
-            os << "<tr><td>cacheOnly</td><td>" << object->cacheOnly() << "</td></tr>" << std::endl;
+            //os << "<tr><td>cacheOnly</td><td>" << object->cacheOnly() << "</td></tr>" << std::endl;
             os << "<tr><td>lighting</td><td>" << object->enableLighting() << "</td></tr>" << std::endl;
             os << "<tr><td>terrainOptions</td><td>";
             writePrettyHTMLImplForDriverOptions(_hostInterface, os, object->getTerrainOptions());

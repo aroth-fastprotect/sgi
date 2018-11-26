@@ -316,6 +316,18 @@ namespace osgearth_plugin {
 #endif
     };
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+    class ElevationPoolAccess : public osgEarth::ElevationPool
+    {
+    public:
+        typedef std::list<osg::ref_ptr<Tile> > MRU;
+        typedef std::map<osgEarth::TileKey, osg::observer_ptr<Tile> > Tiles;
+
+        void getTiles(Tiles & tiles);
+        void getMRU(MRU & mru);
+    };
+#endif
+
     class TileBlacklistAccess : public osgEarth::TileBlacklist
     {
     public:

@@ -23,6 +23,11 @@
 #include "GUIAdapterOSGEarth.h"
 
 #include <osgEarth/Version>
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+#define protected public
+#include <osgEarth/ElevationPool>
+#undef protected
+#endif
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
 #include <osgEarth/MaskSource>
@@ -52,7 +57,6 @@
 #include <osgEarth/VirtualProgram>
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 #include <osgEarth/ShaderFactory>
-#include <osgEarth/ElevationPool>
 #include <osgEarth/ResourceReleaser>
 #endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
@@ -124,6 +128,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
     osgEarth::ShaderFactory,
     osgEarth::ElevationPool,
+    osgEarth::ElevationPool::Tile,
     osgEarth::ElevationEnvelope,
     osgEarth::PolyShader,
     osgEarth::ScreenSpaceLayoutData,
