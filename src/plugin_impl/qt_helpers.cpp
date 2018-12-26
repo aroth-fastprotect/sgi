@@ -1,5 +1,5 @@
 // kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #include <sgi/helpers/qt>
 
@@ -34,6 +34,15 @@
 #include <QFont>
 #include <QModelIndex>
 #include <QPersistentModelIndex>
+#include <QTextLength>
+#include <QTextFormat>
+#include <QVector2D>
+#include <QVector3D>
+#include <QVector4D>
+#include <QQuaternion>
+#include <QMatrix4x4>
+#include <QPolygonF>
+#include <QIcon>
 #include <sgi/helpers/rtti>
 
 namespace std {
@@ -200,7 +209,17 @@ namespace std {
         case QVariant::Cursor: os << v.value<QCursor>(); break;
         case QVariant::KeySequence: os << v.value<QKeySequence>(); break;
         case QVariant::Pen: os << v.value<QPen>(); break;
-
+        case QVariant::TextLength: os << v.value<QTextLength>(); break;
+        case QVariant::TextFormat: os << v.value<QTextFormat>(); break;
+        case QVariant::Matrix: os << v.value<QMatrix>(); break;
+        case QVariant::Transform: os << v.value<QTransform>(); break;
+        case QVariant::Matrix4x4: os << v.value<QMatrix4x4>(); break;
+        case QVariant::Vector2D: os << v.value<QVector2D>(); break;
+        case QVariant::Vector3D: os << v.value<QVector3D>(); break;
+        case QVariant::Vector4D: os << v.value<QVector4D>(); break;
+        case QVariant::Quaternion: os << v.value<QQuaternion>(); break;
+        case QVariant::PolygonF: os << v.value<QPolygonF>(); break;
+        case QVariant::Icon: os << v.value<QIcon>(); break;
         default: os << v.toString(); break;
         }
         return os;
@@ -468,4 +487,66 @@ namespace std {
     {
         return os << '(' << p.color() << ',' << p.style() << ')';
     }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QTextLength & t)
+    {
+        return os << '(' << t.type() << ',' << t.rawValue() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QTextFormat & t)
+    {
+        return os << '(' << t.type() << ',' << t.objectIndex() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMatrix & t)
+    {
+        return os << '(' << t.m11() << ',' << t.m12() << '/' << t.m21() << ',' << t.m22() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QTransform & t)
+    {
+        return os << '(' << t.type() << '=' << t.m11() << ',' << t.m12() << '/' << t.m21() << ',' << t.m22() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMatrix4x4 & t)
+    {
+        return os;
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVector2D & t)
+    {
+        return os << '(' << t.x() << ',' << t.y() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVector3D & t)
+    {
+        return os << '(' << t.x() << ',' << t.y() << ',' << t.z() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVector4D & t)
+    {
+        return os << '(' << t.x() << ',' << t.y() << ',' << t.z() << ',' << t.w() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPolygonF & p)
+    {
+        return os << p.toPolygon();
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QIcon & i)
+    {
+        if(i.isNull())
+            return os << "(null)";
+        else
+        {
+            os << '(' << i.name() << ";cache=" << i.cacheKey();
+            if(i.isMask())
+                os << ";mask=1";
+            for(const QSize & s : i.availableSizes())
+                os << ";size=" << s;
+            os << ')';
+        }
+        return os;
+    }
+
 }

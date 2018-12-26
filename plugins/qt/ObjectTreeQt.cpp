@@ -10,6 +10,7 @@
 #include <QWindow>
 #include <QSurface>
 #include <QStyle>
+#include <QBitmap>
 #include <QDesktopWidget>
 #include <QOpenGLContext>
 #include <QOpenGLWidget>
@@ -121,12 +122,32 @@ bool objectTreeBuildImpl<QObject>::build(IObjectTreeItem * treeItem)
                     const char *typeName = metaproperty.typeName();
                     QVariant value = object->property(name);
 
-                    bool isQObject = value.canConvert<QObject*>();
-                    if(isQObject)
+                    if(value.canConvert<QObject*>())
                     {
                         std::stringstream ss;
                         ss << metaObject->className() << "::" << name;
                         SGIHostItemQt item(value.value<QObject*>());
+                        treeItem->addChild(ss.str(), &item);
+                    }
+                    else if(value.canConvert<QIcon>())
+                    {
+                        std::stringstream ss;
+                        ss << metaObject->className() << "::" << name;
+                        SGIHostItemQtIcon item(value.value<QIcon>());
+                        treeItem->addChild(ss.str(), &item);
+                    }
+                    else if(value.canConvert<QBitmap>())
+                    {
+                        std::stringstream ss;
+                        ss << metaObject->className() << "::" << name;
+                        SGIHostItemQtPaintDevice item(value.value<QBitmap>());
+                        treeItem->addChild(ss.str(), &item);
+                    }
+                    else if(value.canConvert<QImage>())
+                    {
+                        std::stringstream ss;
+                        ss << metaObject->className() << "::" << name;
+                        SGIHostItemQtPaintDevice item(value.value<QImage>());
                         treeItem->addChild(ss.str(), &item);
                     }
                 }

@@ -241,6 +241,7 @@ bool contextMenuPopulateImpl<QIcon>::populate(IContextMenuItem * menuItem)
     {
     case SGIItemTypeObject:
         menuItem->addSimpleAction(MenuActionImagePreview, "Preview...", _item);
+        menuItem->addSimpleAction(MenuActionIconFromTheme, "From theme...", _item);
         ret = true;
         break;
     default:

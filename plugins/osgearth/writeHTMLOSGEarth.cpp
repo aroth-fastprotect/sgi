@@ -704,6 +704,16 @@ bool writePrettyHTMLImpl<osgEarth::Profile>::process(std::basic_ostream<char>& o
             else
                 os << "(null)";
             os << "</td></tr>" << std::endl;
+            std::vector<osgEarth::TileKey> root_keys;
+            object->getRootKeys(root_keys);
+            os << "<tr><td>root keys</td><td><ul>";
+            for(const osgEarth::TileKey & key : root_keys)
+                os << "<li>" << key.str() << "</li>";
+            os << "</ul></td></tr>" << std::endl;
+
+            unsigned x_tiles_at_lod0 = 0, y_tiles_at_lod0 = 0;
+            object->getNumTiles(0, x_tiles_at_lod0, y_tiles_at_lod0);
+            os << "<tr><td>tiles at LOD0</td><td>" << x_tiles_at_lod0 << '/' << y_tiles_at_lod0 << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
