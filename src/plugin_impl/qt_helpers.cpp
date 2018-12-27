@@ -80,7 +80,7 @@ std::string toUtf8(const QString & str)
 
 std::string getObjectTypename(const QObject * object)
 {
-    const QMetaObject * meta = object?object->metaObject():NULL;
+    const QMetaObject * meta = object?object->metaObject():nullptr;
     return meta?std::string(meta->className()):"(null)";
 }
 
@@ -287,6 +287,24 @@ namespace std {
         return os << l.name();
     }
 
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const _QtColorBox<char>& color)
+    {
+        if(color._color.isValid())
+        {
+            std::stringstream buf;
+            buf << "#";
+            buf << std::hex << std::setw(2) << std::setfill('0') << color._color.red();
+            buf << std::hex << std::setw(2) << std::setfill('0') << color._color.green();
+            buf << std::hex << std::setw(2) << std::setfill('0') << color._color.blue();
+            if ( color._color.alpha() < 255)
+                buf << std::hex << std::setw(2) << std::setfill('0') << color._color.alpha();
+            os << "<div style=\"width: 16px; height: 16px; background: " << buf.str() << ";\">&nbsp;</div>";
+        }
+        else
+            os << "invalid";
+        return os;
+    }
+
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QColor& color)
     {
         if(color.isValid())
@@ -411,7 +429,7 @@ namespace std {
                    << colorGroupEnum.key(cg)
                    << '/' << colorRoleEnum.key(cr)
                    << "</td><td>"
-                   << c
+                   << c << std::colorBox<char>(c)
                    << "</td></tr>"
                    << std::endl;
             }

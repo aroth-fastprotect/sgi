@@ -201,6 +201,17 @@ namespace std {
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QTime& t);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QDateTime& date);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QLocale& l);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& colorBox(std::basic_ostream<char>& os, const QColor & color);
+
+    template<typename _CharT>
+    struct _QtColorBox
+    {
+        const QColor & _color;
+    };
+
+    template<typename _CharT> inline _QtColorBox<_CharT> colorBox(const QColor & color)
+        { return {color}; }
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const _QtColorBox<char>& color);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QColor& color);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSize & size);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSizeF & size);
