@@ -11,6 +11,7 @@
 #include <QSurface>
 #include <QStyle>
 #include <QBitmap>
+#include <QSystemTrayIcon>
 #include <QDesktopWidget>
 #include <QOpenGLContext>
 #include <QOpenGLWidget>
@@ -49,6 +50,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLWidget)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLShaderProgram)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLShader)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QIcon)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QSystemTrayIcon)
 
 #ifdef WITH_QTOPENGL
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QGLWidget)
@@ -218,6 +220,9 @@ bool objectTreeBuildImpl<QWidget>::build(IObjectTreeItem * treeItem)
             if(windowHandle.hasObject())
                 treeItem->addChild("WindowHandle", &windowHandle);
             treeItem->addChild("Palette", cloneItemMulti<SGIItemQt, SGIItemQtPaintDevice>(SGIItemTypePalette, ~0u));
+            SGIHostItemQt style(object->style());
+            if(style.hasObject())
+                treeItem->addChild("Style", &style);
         }
         break;
     case SGIItemTypePalette:
@@ -538,6 +543,29 @@ bool objectTreeBuildImpl<QIcon>::build(IObjectTreeItem * treeItem)
         break;
     case SGIItemTypeTheme:
         ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<QSystemTrayIcon>::build(IObjectTreeItem * treeItem)
+{
+    QSystemTrayIcon * object = getObject<QSystemTrayIcon, SGIItemQt>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemQt contextMenu(object->contextMenu());
+            if (contextMenu.hasObject())
+                treeItem->addChild("ContextMenu", &contextMenu);
+            ret = true;
+        }
         break;
     default:
         ret = callNextHandler(treeItem);

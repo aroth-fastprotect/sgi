@@ -5,6 +5,7 @@
 #include "MenuActionQt.h"
 #include <QMetaClassInfo>
 #include <QWidget>
+#include <QSystemTrayIcon>
 #include <sgi/helpers/string>
 #include <sgi/helpers/qt>
 #include <sgi/helpers/qt_widgetwindow>
@@ -20,6 +21,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QMetaObject)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QPaintDevice)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QImage)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QIcon)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QSystemTrayIcon)
 
 using namespace sgi::qt_helpers;
 
@@ -245,6 +247,29 @@ bool contextMenuPopulateImpl<QIcon>::populate(IContextMenuItem * menuItem)
         ret = true;
         break;
     default:
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<QSystemTrayIcon>::populate(IContextMenuItem * menuItem)
+{
+    QSystemTrayIcon * object = getObject<QSystemTrayIcon,SGIItemQt>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            SGIHostItemQt contextMenu(object->contextMenu());
+            if (contextMenu.hasObject())
+                menuItem->addMenu("ContextMenu", &contextMenu);
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
         break;
     }
     return ret;
