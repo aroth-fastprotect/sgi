@@ -505,7 +505,7 @@ bool writePrettyHTMLImpl<osgEarth::CacheBin>::process(std::basic_ostream<char>& 
 
 bool writePrettyHTMLImpl<osgEarth::Cache>::process(std::basic_ostream<char>& os)
 {
-    osgEarth::Cache * object = static_cast<osgEarth::Cache*>(item<SGIItemOsg>()->object());
+    CacheAccess * object = static_cast<CacheAccess*>(item<SGIItemOsg>()->object());
     bool ret = false;
     switch(itemType())
     {
@@ -515,23 +515,10 @@ bool writePrettyHTMLImpl<osgEarth::Cache>::process(std::basic_ostream<char>& os)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
             callNextHandler(os);
-            CacheAccess * access = (CacheAccess *)object;
-
             os << "<tr><td>ok</td><td>" << (object->isOK()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>options</td><td>";
-            /*
-            if(access->getCacheOptions().getDriver() == "filesystem")
-            {
-                osgEarth::Drivers::FileSystemCacheOptions fsopt(access->getCacheOptions());
-                writePrettyHTML(os, fsopt);
-            }
-            else
-                writePrettyHTML(os, access->getCacheOptions());
-            */
-            os << "</td></tr>" << std::endl;
-            os << "<tr><td>default cache bin</td><td>" << getObjectNameAndType(access->getDefaultBin()) << "</td></tr>" << std::endl;
+            os << "<tr><td>default cache bin</td><td>" << getObjectNameAndType(object->getDefaultBin()) << "</td></tr>" << std::endl;
             os << "<tr><td>cache bins</td><td><ul>";
-            const ThreadSafeCacheBinMapAccessor::MAP & cacheBinMap = ((const ThreadSafeCacheBinMapAccessor&)access->getCacheBinMap())._data;
+            const ThreadSafeCacheBinMapAccessor::MAP & cacheBinMap = ((const ThreadSafeCacheBinMapAccessor&)object->getCacheBinMap())._data;
             for(ThreadSafeCacheBinMapAccessor::MAP::const_iterator it = cacheBinMap.begin(); it != cacheBinMap.end(); it++)
             {
                 const std::string & name = it->first;
@@ -552,7 +539,7 @@ bool writePrettyHTMLImpl<osgEarth::Cache>::process(std::basic_ostream<char>& os)
     case SGIItemTypeChilds:
         {
             os << "<ul>";
-            const ThreadSafeCacheBinMapAccessor::MAP & cacheBinMap = ((const ThreadSafeCacheBinMapAccessor&)((CacheAccess*)object)->getCacheBinMap())._data;
+            const ThreadSafeCacheBinMapAccessor::MAP & cacheBinMap = ((const ThreadSafeCacheBinMapAccessor&)object->getCacheBinMap())._data;
             for(ThreadSafeCacheBinMapAccessor::MAP::const_iterator it = cacheBinMap.begin(); it != cacheBinMap.end(); it++)
             {
                 const std::string & name = it->first;
