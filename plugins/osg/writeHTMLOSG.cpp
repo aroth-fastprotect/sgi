@@ -182,6 +182,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Stencil)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Viewport)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Program)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Program::PerContextProgram)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Program::ProgramBinary)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::TexGen)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ClipPlane)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BlendFunc)
@@ -231,7 +232,9 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BoundingSpheredValueObject)
 
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawable)
+#if OSG_VERSION_LESS_THAN(3,5,0)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(RenderInfoGeometry)
+#endif
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawCallback)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(OpenThreads::Thread)
@@ -3859,7 +3862,17 @@ bool writePrettyHTMLImpl<osg::Program>::process(std::basic_ostream<char>& os)
 
             // add remaining program properties
             os << "<tr><td>numShaders</td><td>" << object->getNumShaders() << "</td></tr>" << std::endl;
+            os << "<tr><td>binary</td><td>" << osg_helpers::getObjectNameAndType(object->getProgramBinary()) << "</td></tr>" << std::endl;
             os << "<tr><td>isFixedFunction</td><td>" << (object->isFixedFunction()?"true":"false") << "</td></tr>" << std::endl;
+
+            os << "<tr><td>transformFeedBackMode</td><td>" << sgi::castToEnumValueString<sgi::osg_helpers::GLEnum>(object->getTransformFeedBackMode()) << "</td></tr>" << std::endl;
+
+            os << "<tr><td>transformFeedBackVaryings</td><td><ul>";
+            for (unsigned i = 0; i != object->getNumTransformFeedBackVaryings(); ++i)
+            {
+                os << "<li>" << object->getTransformFeedBackVarying(i) << "</li>";
+            }
+            os << "</ul></td></tr>" << std::endl;
 
 #if OSG_VERSION_LESS_THAN(3,5,9)
             GLint numGroupsX, numGroupsY, numGroupsZ;
@@ -3915,6 +3928,36 @@ bool writePrettyHTMLImpl<osg::Program>::process(std::basic_ostream<char>& os)
             ret = true;
         }
         break;
+    case SGIItemTypeShaderDefines:
+        {
+            const osg::ShaderDefines & defines = object->getShaderDefines();
+            os << "<ol>";
+            for(osg::ShaderDefines::const_iterator it = defines.begin(); it != defines.end(); ++it)
+            {
+                os << "<li>" << *it << "</li>";
+            }
+            os << "</ol>";
+            ret = true;
+        }
+        break;
+    case SGIItemTypeProgramLog:
+        {
+            unsigned contextId = _item->number();
+            std::string log;
+            if (object->getGlProgramInfoLog(contextId, log))
+            {
+                os << "<b>Log for context ID " << contextId << "</b><br/>";
+                if (log.empty())
+                    os << "<i>empty</i>";
+                else
+                    os << "<pre>" << log << "</pre>";
+            }
+            else
+            {
+                os << "<i>No log available for context ID</i>" << contextId;
+            }
+        }
+        break;
     default:
         ret = callNextHandler(os);
         break;
@@ -3948,6 +3991,36 @@ bool writePrettyHTMLImpl<osg::Program::PerContextProgram>::process(std::basic_os
             os << "<tr><td>loadedBinary</td><td>" << (object->loadedBinary()?"true":"false") << "</td></tr>" << std::endl;
 
             if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osg::Program::ProgramBinary>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    osg::Program::ProgramBinary * object = getObject<osg::Program::ProgramBinary, SGIItemOsg>();
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add state attribute properties first
+            callNextHandler(os);
+
+            // add remaining program properties
+            os << "<tr><td>format</td><td>" << object->getFormat() << "</td></tr>" << std::endl;
+            os << "<tr><td>size</td><td>" << object->getSize() << "</td></tr>" << std::endl;
+
+            if (_table)
                 os << "</table>" << std::endl;
             ret = true;
         }
@@ -6643,6 +6716,7 @@ bool writePrettyHTMLImpl<RenderInfoDrawable>::process(std::basic_ostream<char>& 
     return ret;
 }
 
+#if OSG_VERSION_LESS_THAN(3,5,0)
 bool writePrettyHTMLImpl<RenderInfoGeometry>::process(std::basic_ostream<char>& os)
 {
     RenderInfoGeometry * object = getObject<RenderInfoGeometry, SGIItemOsg>();
@@ -6650,6 +6724,7 @@ bool writePrettyHTMLImpl<RenderInfoGeometry>::process(std::basic_ostream<char>& 
     bool ret = writePrettyHTMLImpl_RenderInfoData(_hostInterface, os, _table, _item, data);
     return ret;
 }
+#endif
 
 #define writePrettyHTML_ValueObject(__c) \
 bool writePrettyHTMLImpl<__c>::process(std::basic_ostream<char>& os) \

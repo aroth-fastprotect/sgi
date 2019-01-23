@@ -924,6 +924,7 @@ osg::StateSet* buildEffectiveStateSet(const osg::NodePath & path, osg::StateSet*
 {
     if(path.empty())
         return nullptr;
+    
     osg::StateSet* ret = new osg::StateSet;
     for(osg::NodePath::const_iterator it = path.begin(); it != path.end(); ++it)
     {

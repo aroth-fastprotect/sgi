@@ -414,7 +414,11 @@ void RenderInfoData::copyRenderInfo(osg::RenderInfo& renderInfo)
     //const osg::State::AppliedProgramObjectSet& appliedProgramObjectSet = state->getAppliedProgramObjectSet();
 #endif
 
+#if 0
     HashedStateId hashStateSetStack = refPathHash(stateSetStack);
+#else
+    HashedStateId hashStateSetStack = state->getContextID();
+#endif
 
     RenderInfoData::State & currentState = _hashedState[hashStateSetStack];
 
@@ -429,10 +433,13 @@ void RenderInfoData::copyRenderInfo(osg::RenderInfo& renderInfo)
 #if OSG_VERSION_GREATER_OR_EQUAL(3,3,0)
     RenderInfoData::copyRenderBinStack(currentState.renderBinStack, renderBinStack);
     RenderInfoData::copyCameraStack(currentState.cameraStack, cameraStack);
-#else
-    //copyPerContextProgramSet(currentState.appliedProgamSet, appliedProgramObjectSet);
+    const osg::Program::PerContextProgram * pcp = state->getLastAppliedProgramObject();
+    if (pcp)
+        currentState.appliedProgam = pcp->getProgram();
+    else
+        currentState.appliedProgam = nullptr;
 #endif
-    currentState.combinedStateSet = new osg::StateSet;;
+    currentState.combinedStateSet = new osg::StateSet;
     for (auto it = stateSetStack.begin(); it != stateSetStack.end(); ++it)
     {
         currentState.combinedStateSet->merge(*(*it));
@@ -468,6 +475,7 @@ void RenderInfoDrawable::drawImplementation(osg::RenderInfo& renderInfo) const
     const_cast<RenderInfoData&>(_data).copyRenderInfo(renderInfo);
 }
 
+#if OSG_VERSION_LESS_THAN(3,5,0)
 RenderInfoGeometry::RenderInfoGeometry(osg::Geometry * geometry)
     : osg::Geometry()
     , _childGeometry(geometry)
@@ -509,6 +517,7 @@ void RenderInfoGeometry::drawImplementation(osg::RenderInfo& renderInfo) const
         _childGeometry->drawImplementation(renderInfo);
     const_cast<RenderInfoData&>(_data).copyRenderInfo(renderInfo);
 }
+#endif // OSG_VERSION_LESS_THAN(3,5,0)
 
 RenderInfoDrawCallback::RenderInfoDrawCallback()
 {

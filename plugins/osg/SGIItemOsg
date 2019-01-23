@@ -36,6 +36,8 @@ enum SGIItemType_osg
     SGIItemTypeShaders,
     SGIItemTypeShaderSource,
     SGIItemTypeShaderCodeInjectionMap,
+    SGIItemTypeShaderDefines,
+    SGIItemTypeProgramLog,
     SGIItemTypeArrayData,
     SGIItemTypeEventHandlers,
     SGIItemTypeDevices,

@@ -188,7 +188,9 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgAnimation::Animation)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgAnimation::AnimationManagerBase)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawable)
+#if OSG_VERSION_LESS_THAN(3,5,0)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(RenderInfoGeometry)
+#endif
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawCallback)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedPickerBase)
@@ -1222,9 +1224,17 @@ bool objectTreeBuildImpl<osg::Program>::build(IObjectTreeItem * treeItem)
             if(numShaders)
                 treeItem->addChild(helpers::str_plus_count("Shaders", numShaders), cloneItem<SGIItemOsg>(SGIItemTypeShaders));
 
+            const osg::ShaderDefines & defines = object->getShaderDefines();
+            if(!defines.empty())
+                treeItem->addChild(helpers::str_plus_count("Defines", defines.size()), cloneItem<SGIItemOsg>(SGIItemTypeShaderDefines));
+
             SGIHostItemOsg programBinary(object->getProgramBinary());
             if(programBinary.hasObject())
                 treeItem->addChild("Program Binary", &programBinary);
+
+            unsigned contextId = findContextID(object);
+            if(contextId != ~0u)
+                treeItem->addChild(helpers::str_plus_number("Log", contextId), cloneItem<SGIItemOsg>(SGIItemTypeProgramLog, contextId));
         }
         break;
     case SGIItemTypeShaders:
@@ -1240,6 +1250,12 @@ bool objectTreeBuildImpl<osg::Program>::build(IObjectTreeItem * treeItem)
             }
             ret = true;
         }
+        break;
+    case SGIItemTypeShaderDefines:
+        ret = true;
+        break;
+    case SGIItemTypeProgramLog:
+        ret = true;
         break;
     default:
         ret = callNextHandler(treeItem);
@@ -4093,7 +4109,13 @@ bool objectTreeBuildImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, 
                 treeItem->addChild(helpers::str_plus_count("StateSetStack", state.stateSetStack.size()), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoStateSetStack, item->number()));
                 treeItem->addChild(helpers::str_plus_count("RenderBinStack", state.renderBinStack.size()), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoRenderBinStack, item->number()));
                 treeItem->addChild(helpers::str_plus_count("CameraStack", state.cameraStack.size()), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoCameraStack, item->number()));
+#if OSG_VERSION_LESS_THAN(3,5,0)
                 treeItem->addChild(helpers::str_plus_count("AppliedProgramSet", state.appliedProgamSet.size()), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoAppliedProgramSet, item->number()));
+#else
+                SGIHostItemOsg appliedProgam(const_cast<osg::Program*>(state.appliedProgam.get()));
+                if(appliedProgam.hasObject())
+                    treeItem->addChild("AppliedProgam", &appliedProgam);
+#endif
             }
         }
         ret = true;
@@ -4205,7 +4227,7 @@ bool objectTreeBuildImpl<RenderInfoDrawable>::build(IObjectTreeItem * treeItem)
     bool ret = objectTreeBuildImpl_RenderInfoData(_hostInterface, treeItem, _item, data);
     return ret;
 }
-
+#if OSG_VERSION_LESS_THAN(3,5,0)
 bool objectTreeBuildImpl<RenderInfoGeometry>::build(IObjectTreeItem * treeItem)
 {
     RenderInfoGeometry * object = getObject<RenderInfoGeometry, SGIItemOsg>();
@@ -4213,6 +4235,7 @@ bool objectTreeBuildImpl<RenderInfoGeometry>::build(IObjectTreeItem * treeItem)
     bool ret = objectTreeBuildImpl_RenderInfoData(_hostInterface, treeItem, _item, data);
     return ret;
 }
+#endif
 
 bool objectTreeBuildImpl<ReferencedPickerBase>::build(IObjectTreeItem * treeItem)
 {

@@ -3,6 +3,7 @@
 
 #include <osg/Geometry>
 #include <osg/Program>
+#include <osg/Version>
 
 namespace osgUtil {
     class RenderBin;
@@ -113,6 +114,7 @@ public:
         RenderBinStack renderBinStack;
         CameraStack cameraStack;
         PerContextProgramSet appliedProgamSet;
+        osg::ref_ptr<const osg::Program> appliedProgam;
         osg::ref_ptr<osg::View> view;
         osg::ref_ptr<osg::StateSet> capturedStateSet;
         osg::ref_ptr<osg::StateSet> combinedStateSet;
@@ -169,6 +171,7 @@ protected:
     RenderInfoData _data;
 };
 
+#if OSG_VERSION_LESS_THAN(3,5,0)
 class RenderInfoGeometry : public osg::Geometry
 {
 public:
@@ -188,6 +191,7 @@ protected:
     RenderInfoData _data;
     osg::ref_ptr<osg::Geometry> _childGeometry;
 };
+#endif // OSG_VERSION_LESS_THAN(3,5,0)
 
 class RenderInfoDrawCallback : public osg::Drawable::DrawCallback
 {

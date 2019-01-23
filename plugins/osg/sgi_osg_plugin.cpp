@@ -340,6 +340,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Object)
     osg::RefMatrixd, osg::RefMatrixf, osg::Callback,
     osg::Drawable::DrawCallback,
     osg::ValueObject,
+    osg::Program::ProgramBinary,
     osgAnimation::Animation,
     osgAnimation::AnimationUpdateCallbackBase,
     osgDB::Options, osgDB::ReaderWriter, osgDB::DatabaseRevision, osgDB::DatabaseRevisions, osgDB::FileList,
@@ -437,9 +438,11 @@ SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osg::Drawable)
     osg::Geometry, osgText::TextBase, osg::ShapeDrawable, RenderInfoDrawable
 SGI_OBJECT_INFO_END()
+#if OSG_VERSION_LESS_THAN(3,5,0)
 SGI_OBJECT_INFO_BEGIN(osg::Geometry)
     RenderInfoGeometry
 SGI_OBJECT_INFO_END()
+#endif
 SGI_OBJECT_INFO_BEGIN(osg::GraphicsContext)
     osgViewer::GraphicsWindow
 SGI_OBJECT_INFO_END()
