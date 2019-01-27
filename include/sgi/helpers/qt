@@ -192,6 +192,7 @@ SGI_QT_HELPER_EXPORT bool convertImageToQImage(const sgi::Image * image, sgi::Im
 
 namespace std {
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVariant & v);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& writeVariant(std::basic_ostream<char>& os, const QVariant & v, const QMetaProperty * property=nullptr);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QString& str);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QStringRef& str);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QBitArray& v);

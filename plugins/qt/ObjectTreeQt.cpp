@@ -171,6 +171,9 @@ bool objectTreeBuildImpl<QObject>::build(IObjectTreeItem * treeItem)
             ret = true;
         }
         break;
+    case SGIItemTypeProperties:
+        ret = true;
+        break;
     case SGIItemTypeMethods:
         {
             if (_item->number() == ~0u)
