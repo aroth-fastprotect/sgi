@@ -791,11 +791,11 @@ private:
             return nullptr;
         osg::Node * ret = nullptr;
         std::string name = osgDB::getStrippedName(filename);
-        if(name.compare("box") == 0)
+        if(name.compare("box") == 0 || name.compare("cube") == 0)
         {
             ret = sgi::osg_helpers::createBoxGeometry(10.0f, 10.0f, 10.0f);
         }
-        else if(name.compare("quad") == 0)
+        else if(name.compare("quad") == 0 || name.compare("rect") == 0)
         {
             ret = sgi::osg_helpers::createQuadGeometry(10.0f, 10.0f);
         }
@@ -852,7 +852,7 @@ public:
     osg::Object* clone(const osg::CopyOp& copyop) const override { return new SGIInstallNode (*this,copyop); }
     bool isSameKindAs(const osg::Object* obj) const override { return dynamic_cast<const SGIInstallNode *>(obj)!=nullptr; }
     const char* className() const override { return "SGIInstallNode"; }
-    const char* libraryName() const override { return "osgdb_sgi"; }
+    const char* libraryName() const override { return "osgdb_sgi_loader"; }
     void accept(osg::NodeVisitor& nv) override
     {
         if (nv.validNodeMask(*this))
