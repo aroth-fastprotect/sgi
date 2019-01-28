@@ -30,10 +30,17 @@
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="objectComboBox"/>
+      <widget class="QComboBox" name="objectComboBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="selectObjectButton">
+      <widget class="QPushButton" name="openItemButton">
        <property name="text">
         <string>...</string>
        </property>
@@ -44,7 +51,7 @@
    <item>
     <widget class="QTabWidget" name="tabShaders">
      <property name="currentIndex">
-      <number>1</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tabVertex">
       <attribute name="title">
@@ -72,11 +79,33 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
-        <widget class="QCheckBox" name="vpInheritShaders">
-         <property name="text">
-          <string>Inherit from parent</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QCheckBox" name="vpInheritShaders">
+           <property name="text">
+            <string>Inherit from parent</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <widget class="QCheckBox" name="vpLog">
+             <property name="text">
+              <string>Log</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="vpLogFile">
+             <property name="placeholderText">
+              <string>Log file</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -98,13 +127,28 @@
           </widget>
          </item>
          <item>
+          <widget class="QToolButton" name="vpFunctionOrder">
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset theme="view-list-details"/>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QToolButton" name="vpFunctionAdd">
            <property name="text">
             <string>...</string>
            </property>
            <property name="icon">
-            <iconset theme="list-add">
-             <normaloff>.</normaloff>.</iconset>
+            <iconset theme="list-add"/>
+           </property>
+           <property name="popupMode">
+            <enum>QToolButton::InstantPopup</enum>
+           </property>
+           <property name="arrowType">
+            <enum>Qt::RightArrow</enum>
            </property>
           </widget>
          </item>
@@ -114,8 +158,7 @@
             <string>...</string>
            </property>
            <property name="icon">
-            <iconset theme="list-remove">
-             <normaloff>.</normaloff>.</iconset>
+            <iconset theme="list-remove"/>
            </property>
           </widget>
          </item>
@@ -123,6 +166,23 @@
        </item>
        <item>
         <widget class="QTextEdit" name="shaderVP"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabNoShader">
+      <attribute name="title">
+       <string>No Shader</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Selected item does not use a shader.</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -151,22 +211,6 @@
     <hint type="sourcelabel">
      <x>198</x>
      <y>90</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>185</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>vpFunctionAdd</sender>
-   <signal>clicked()</signal>
-   <receiver>ShaderEditorDialog</receiver>
-   <slot>vpFunctionAdd()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>341</x>
-     <y>89</y>
     </hint>
     <hint type="destinationlabel">
      <x>199</x>
@@ -206,11 +250,79 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>vpLog</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>vpLogChanged(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>162</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>vpLogFile</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>vpLogFile(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>282</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>openItemButton</sender>
+   <signal>clicked()</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>openItem()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>328</x>
+     <y>21</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>vpFunctionOrder</sender>
+   <signal>clicked()</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>vpFunctionOrder()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>304</x>
+     <y>112</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>188</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>vpFunctionChanged(int)</slot>
   <slot>vpFunctionAdd()</slot>
   <slot>vpFunctionRemove()</slot>
   <slot>vpInheritShaders(bool)</slot>
+  <slot>vpLogChanged(bool)</slot>
+  <slot>vpLogFile(QString)</slot>
+  <slot>openItem()</slot>
+  <slot>vpFunctionOrder()</slot>
  </slots>
 </ui>

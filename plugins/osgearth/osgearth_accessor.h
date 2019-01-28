@@ -5,6 +5,7 @@
 #endif
 #include <osgEarth/MapNode>
 #include <osgEarth/Map>
+#include <osgEarth/Version>
 #ifdef MAPNODE_ACCESS_HACK
 #undef private
 #endif

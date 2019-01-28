@@ -6,6 +6,13 @@
 QT_BEGIN_NAMESPACE
 class Ui_ShaderEditorDialog;
 QT_END_NAMESPACE
+namespace osg {
+    class StateSet;
+}
+namespace osgEarth {
+    class VirtualProgram;
+    class PolyShader;
+}
 
 namespace sgi {
 
@@ -25,13 +32,26 @@ protected slots:
     void                    load();
 
     void                    vpFunctionChanged(int index);
-    void                    vpFunctionAdd();
+    void                    vpFunctionAdd(QAction * action);
     void                    vpFunctionRemove();
     void                    vpInheritShaders(bool b);
+    void                    vpFunctionOrder();
+    void                    vpLogChanged(bool b);
+    void                    vpLogFile(const QString & s);
+
+    void                    openItem();
+
+protected:
+    osg::StateSet *         getStateSet(bool create = false);
+    osgEarth::VirtualProgram * getVirtualProgram(bool create = false);
+    osgEarth::PolyShader *  getPolyShader(int index);
+    bool                    removeVPShader(int index);
 
 private:  // for now
+    IHostCallbackPtr                _hostCallback;
     Ui_ShaderEditorDialog* ui;
     bool _ready;
+    int _currentVPFunctionIndex;
 };
 
 } // namespace sgi
