@@ -1,6 +1,5 @@
-<!DOCTYPE RCC>
-<RCC version="1.0">
-<qresource>
-    <file>../../img/microscope64.png</file>
-</qresource>
+<RCC>
+    <qresource prefix="/">
+        <file alias="microscope64.png">../../img/microscope64.png</file>
+    </qresource>
 </RCC>
