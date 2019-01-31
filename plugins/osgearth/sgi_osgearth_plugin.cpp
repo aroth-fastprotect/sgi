@@ -141,6 +141,7 @@ SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::Object)
     osg::Callback,
+    osg::StateSet,
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
     osgEarth::Map, 
     osgEarth::Layer,

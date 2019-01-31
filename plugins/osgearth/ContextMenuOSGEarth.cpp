@@ -33,6 +33,7 @@ namespace sgi {
 namespace osgearth_plugin {
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Node)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::StateSet)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Registry)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Map)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNode)
@@ -67,7 +68,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::EarthManipulator
 
 bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
 {
-    osg::Node * object = static_cast<osg::Node*>(item<SGIItemOsg>()->object());
+    osg::Node * object = getObject<osg::Node,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -79,6 +80,30 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
             if(manipulateMenu)
             {
                 manipulateMenu->addSimpleAction(MenuActionNodeRegenerateShaders, "Re-generate shaders", _item);
+                manipulateMenu->addSimpleAction(MenuActionNodeEditShaders, "Edit shaders...", _item);
+            }
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::StateSet>::populate(IContextMenuItem * menuItem)
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+            {
                 manipulateMenu->addSimpleAction(MenuActionNodeEditShaders, "Edit shaders...", _item);
             }
         }
@@ -794,6 +819,7 @@ bool contextMenuPopulateImpl<osgEarth::VirtualProgram>::populate(IContextMenuIte
         ret = callNextHandler(menuItem);
         if(ret)
         {
+            menuItem->addSimpleAction(MenuActionNodeEditShaders, "Edit shaders...", _item);
             menuItem->addSimpleAction(MenuActionVirtualProgramMask, helpers::str_plus_hex("Mask", object->mask()), _item);
             menuItem->addBoolAction(MenuActionVirtualProgramLogging, "Logging", _item, object->getShaderLogging());
             menuItem->addSimpleAction(MenuActionVirtualProgramLoggingFile, helpers::str_plus_info("Logfile", object->getShaderLogFile()), _item);
