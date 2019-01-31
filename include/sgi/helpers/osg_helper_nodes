@@ -223,6 +223,33 @@ inline osg::Geometry * createBoxGeometry(float w,float h, float d)
     return geom;
 }
 
+inline osg::Geometry * createImageBoxGeometry(float w, float h, float d, osg::Image* image)
+{
+    osg::Geometry * ret = createBoxGeometry(w, h, d);
+    // set up the texture.
+
+    osg::Texture2D* texture = new osg::Texture2D;
+    texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR);
+    texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+    texture->setResizeNonPowerOfTwoHint(false);
+    float texcoord_x = 1.0f;
+
+    texture->setImage(image);
+
+    // set up the drawstate.
+    osg::StateSet* dstate = new osg::StateSet;
+    dstate->setMode(GL_CULL_FACE, osg::StateAttribute::OFF);
+    dstate->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+    dstate->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
+    if (image->isImageTranslucent())
+    {
+        dstate->setMode(GL_BLEND, osg::StateAttribute::ON);
+        dstate->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+    }
+    ret->setStateSet(dstate);
+    return ret;
+}
+
 class SGI_OSG_HELPER_EXPORT FindTreeItemNodeVisitor : public osg::NodeVisitor
 {
 public:

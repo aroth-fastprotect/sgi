@@ -1,5 +1,5 @@
 // kate: syntax C++;
-// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
+// SGI - Copyright (C) 2012-2019 FAST Protect, Andreas Roth
 
 #include <osg/Notify>
 #include <osgDB/FileNameUtils>
@@ -54,6 +54,8 @@
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/SGIItemInternal>
 #include <sgi/helpers/osg_helper_nodes>
+
+#include "../../img/microscope64.c"
 
 #if defined(_DEBUG)
 #if defined(_MSC_VER)
@@ -782,6 +784,21 @@ private:
 };
 } // namespace sgi
 
+namespace {
+    osg::Image * getSGILogoImage()
+    {
+        osgDB::ReaderWriter * rw = osgDB::Registry::instance()->getReaderWriterForExtension("png");
+        std::string microscope64_png_str;
+        microscope64_png_str.assign((const char*)microscope64_png, sizeof(microscope64_png));
+        std::stringstream ss(microscope64_png_str);
+        osgDB::ReaderWriter::ReadResult result;
+        if (rw)
+            result = rw->readImage(ss);
+        return result.takeImage();
+    }
+
+}
+
 class SGIInstallNode : public osg::Group
 {
 private:
@@ -802,6 +819,11 @@ private:
         else if(name.compare("tri") == 0 || name.compare("triangle") == 0)
         {
             ret = sgi::osg_helpers::createTriangleGeometry(10.0f);
+        }
+        else if (name.compare("logo") == 0)
+        {
+            osg::ref_ptr<osg::Image> img = getSGILogoImage();
+            ret = sgi::osg_helpers::createImageBoxGeometry(10.0f, 10.0f, 10.0f, img.get());
         }
         return ret;
     }
