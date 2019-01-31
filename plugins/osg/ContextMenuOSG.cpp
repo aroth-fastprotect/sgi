@@ -212,6 +212,8 @@ namespace {
         std::stringstream ss;
         ss << osg::Uniform::getTypename(uniform->getType()) << ' ' << uniform->getName();
         IContextMenuItem * childMenu = menuItem->addModeMenu(MenuActionStateSetUniformSet, ss.str(), item, currentMode, new SGIRefPtrOsg(uniform));
+        childMenu->addSimpleAction(MenuActionUniformEdit, "Edit...", item, new ReferencedDataString(uniform->getName()));
+        childMenu->addSeparator();
         buildStateAttributeOverrideMenu(childMenu);
         childMenu->addSeparator();
         childMenu->addSimpleAction(MenuActionStateSetUniformRemove, "Remove", item, new ReferencedDataString(uniform->getName()));

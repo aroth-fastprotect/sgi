@@ -1360,15 +1360,61 @@ bool actionHandlerImpl<MenuActionUniformDirty>::execute()
     return true;
 }
 
+#define UNIFORM_EDIT_TYPE(__uniform_type, __element_type) \
+    case osg::Uniform::__uniform_type: { \
+        __element_type value; \
+        object->get(value); \
+        std::stringstream ss; \
+        ss << value; \
+        std::string str_value = ss.str(); \
+        bool ret = _hostInterface->inputDialogString(menu()->parentWidget(), str_value, "Value:", object->getName() + " Value", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item); \
+        if (ret) { \
+            std::stringstream in(str_value); \
+            in >> value; \
+            object->set(value); \
+        } \
+    } \
+    break; \
+
 bool actionHandlerImpl<MenuActionUniformEdit>::execute()
 {
-    osg::Uniform * object = getObject<osg::Uniform,SGIItemOsg>();
+    osg::Uniform * object = getObject<osg::Uniform, SGIItemOsg, DynamicCaster>();
+    osg::StateSet * stateSet = nullptr;
+    if (!object)
+    {
+        stateSet = getObject<osg::StateSet, SGIItemOsg, DynamicCaster>();
+        if (stateSet)
+        {
+            const ReferencedDataString * uniformName = userData<ReferencedDataString>();
+            object = stateSet->getUniform(uniformName->data());
+        }
+    }
+    if (!object)
+        return true;
     switch(object->getType())
     {
     case osg::Uniform::BOOL:
         {
-            bool value = menuAction()->state();
-            object->set(value);
+            if (stateSet)
+            {
+                bool value = 0;
+                int int_value = value ? 1 : 0;
+                object->get(value);
+                bool ret;
+                ret = _hostInterface->inputDialogInteger(menu()->parentWidget(),
+                    int_value,
+                    "Value:", object->getName() + " Value",
+                    0, 1, 1,
+                    _item
+                );
+                if (ret)
+                    object->set(int_value != 0);
+            }
+            else
+            {
+                bool value = menuAction()->state();
+                object->set(value);
+            }
         }
         break;
     case osg::Uniform::INT:
@@ -1379,7 +1425,7 @@ bool actionHandlerImpl<MenuActionUniformEdit>::execute()
             bool ret;
             ret = _hostInterface->inputDialogInteger(menu()->parentWidget(),
                                                     value,
-                                                    "Value:", "Value",
+                                                    "Value:", object->getName() + " Value",
                                                     std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), 1,
                                                     _item
                                                     );
@@ -1396,7 +1442,7 @@ bool actionHandlerImpl<MenuActionUniformEdit>::execute()
             bool ret;
             ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
                                                     value,
-                                                    "Value:", "Value",
+                                                    "Value:", object->getName() + " Value",
                                                     std::numeric_limits<float>::min(), std::numeric_limits<float>::max(), 1,
                                                     _item
                                                     );
@@ -1411,7 +1457,7 @@ bool actionHandlerImpl<MenuActionUniformEdit>::execute()
             bool ret;
             ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
                                                     value,
-                                                    "Value:", "Value",
+                                                    "Value:", object->getName() + " Value",
                                                     std::numeric_limits<double>::min(), std::numeric_limits<double>::max(), 1,
                                                     _item
                                                     );
@@ -1419,6 +1465,12 @@ bool actionHandlerImpl<MenuActionUniformEdit>::execute()
                 object->set(value);
         }
         break;
+    UNIFORM_EDIT_TYPE(FLOAT_VEC2, osg::Vec2);
+    UNIFORM_EDIT_TYPE(FLOAT_VEC3, osg::Vec3);
+    UNIFORM_EDIT_TYPE(FLOAT_VEC4, osg::Vec4);
+    UNIFORM_EDIT_TYPE(DOUBLE_VEC2, osg::Vec2d);
+    UNIFORM_EDIT_TYPE(DOUBLE_VEC3, osg::Vec3d);
+    UNIFORM_EDIT_TYPE(DOUBLE_VEC4, osg::Vec4d);
     default:
         // Type not yet implemented
         break;
