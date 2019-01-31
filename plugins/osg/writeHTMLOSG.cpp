@@ -5215,6 +5215,81 @@ bool writePrettyHTMLImpl<osg::StateSet>::process(std::basic_ostream<char>& os)
     return ret;
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& fout, const osg::State::ModeStack & m)
+{
+    fout << "<pre>valid = " << m.valid << std::endl;
+    fout << "changed = " << m.changed << std::endl;
+    fout << "last_applied_value = " << m.last_applied_value << std::endl;
+    fout << "global_default_value = " << m.global_default_value << std::endl;
+    fout << "valueVec { " << std::endl;
+    for (osg::State::ModeStack::ValueVec::const_iterator itr = m.valueVec.begin();
+        itr != m.valueVec.end();
+        ++itr)
+    {
+        if (itr != m.valueVec.begin()) fout << ", ";
+        fout << *itr;
+    }
+    fout << " }</pre>" << std::endl;
+    return fout;
+}
+
+
+inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::StateAttribute::TypeMemberPair & t)
+{
+    os << '(' << t.first << ',' << t.second << ')';
+    return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& fout, const osg::State::UniformStack & u)
+{
+    fout << "<pre>UniformVec { ";
+    for (osg::State::UniformStack::UniformVec::const_iterator itr = u.uniformVec.begin();
+        itr != u.uniformVec.end();
+        ++itr)
+    {
+        if (itr != u.uniformVec.begin()) fout << ", ";
+        fout << "(" << osg_helpers::getObjectNameAndType(itr->first) << ", " << itr->second << ")";
+    }
+    fout << " }</pre>" << std::endl;
+    return fout;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& fout, const osg::State::AttributeStack & u)
+{
+    fout << "<pre>changed = " << u.changed << std::endl;
+    fout << "last_applied_attribute = " << u.last_applied_attribute;
+    if (u.last_applied_attribute) fout << ", " << u.last_applied_attribute->className() << ", " << u.last_applied_attribute->getName() << std::endl;
+    fout << "last_applied_shadercomponent = " << u.last_applied_shadercomponent << std::endl;
+    if (u.last_applied_shadercomponent)  fout << ", " << u.last_applied_shadercomponent->className() << ", " << u.last_applied_shadercomponent->getName() << std::endl;
+    fout << "global_default_attribute = " << u.global_default_attribute.get() << std::endl;
+    fout << "attributeVec { ";
+    for (osg::State::AttributeVec::const_iterator itr = u.attributeVec.begin();
+        itr != u.attributeVec.end();
+        ++itr)
+    {
+        if (itr != u.attributeVec.begin()) fout << ", ";
+        fout << "(" << osg_helpers::getObjectNameAndType(itr->first) << ", " << itr->second << ")";
+    }
+    fout << " }</pre>" << std::endl;
+    return fout;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& fout, const osg::State::DefineStack & u)
+{
+    fout << "<pre>changed = " << u.changed << std::endl;
+    fout << "defineVec { ";
+    for (osg::State::DefineStack::DefineVec::const_iterator itr = u.defineVec.begin();
+        itr != u.defineVec.end();
+        ++itr)
+    {
+        if (itr != u.defineVec.begin()) fout << ", ";
+        fout << "(" << itr->first << ", " << itr->second << ")";
+    }
+    fout << " }</pre>" << std::endl;
+    return fout;
+}
+
+
 bool writePrettyHTMLImpl<osg::State>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -5259,10 +5334,97 @@ bool writePrettyHTMLImpl<osg::State>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>check GL errors</td><td>" << object->getCheckForGLErrors() << "</td></tr>" << std::endl;
             
-            
+            os << "<tr><td>modeMap</td><td>" << object->getModeMap().size() << "&nbsp;entries</td></tr>" << std::endl;
+            os << "<tr><td>attributeMap</td><td>" << object->getAttributeMap().size() << "&nbsp;entries</td></tr>" << std::endl;
+            os << "<tr><td>uniformMap</td><td>" << object->getUniformMap().size() << "&nbsp;entries</td></tr>" << std::endl;
+            os << "<tr><td>defineMap</td><td>" << object->getDefineMap().map.size() << "&nbsp;entries</td></tr>" << std::endl;
+            os << "<tr><td>textureModeMapList</td><td>" << object->getTextureModeMapList().size() << "&nbsp;entries</td></tr>" << std::endl;
+            os << "<tr><td>textureAttributeMapList</td><td>" << object->getTextureAttributeMapList().size() << "&nbsp;entries</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeStateModeMap:
+        {
+            const osg::State::ModeMap& modemap = object->getModeMap();
+            os << "<ul>";
+            for (auto it : modemap)
+            {
+                os << "<li>" << it.first << "=" << it.second << "</li>";
+            }
+            os << "</ul>";
+            ret = true;
+        }
+        break;
+    case SGIItemTypeStateAttributeMap:
+        {
+            const osg::State::AttributeMap& attributemap = object->getAttributeMap();
+            os << "<ul>";
+            for (auto it : attributemap)
+            {
+                os << "<li>" << it.first << "=" << it.second << "</li>";
+            }
+            os << "</ul>";
+            ret = true;
+        }
+        break;
+    case SGIItemTypeStateUniformMap:
+        {
+            const osg::State::UniformMap& uniformmap = object->getUniformMap();
+            os << "<ul>";
+            for (auto it : uniformmap)
+            {
+                os << "<li>" << it.first << "=" << it.second << "</li>";
+            }
+            os << "</ul>";
+            ret = true;
+        }
+        break;
+    case SGIItemTypeStateDefineMap:
+        {
+            const osg::State::DefineMap& definemap = object->getDefineMap();
+            os << "<ul>changed=" << (definemap.changed ? "true" : "false") << "<br/>";
+            for (auto it : definemap.map)
+            {
+                os << "<li>" << it.first << "=" << it.second << "</li>";
+            }
+            os << "</ul>";
+            ret = true;
+        }
+        break;
+    case SGIItemTypeStateTextureModeMapList:
+        {
+            const osg::State::TextureModeMapList& texturemodemaplist = object->getTextureModeMapList();
+            os << "<ol>";
+            for (auto it : texturemodemaplist)
+            {
+                os << "<li><ul>";
+                for (auto it_inner : it)
+                {
+                    os << "<li>" << it_inner.first << "=" << it_inner.second << "</li>";
+                }
+                os << "</ul></li>";
+            }
+            os << "</ul>";
+            ret = true;
+        }
+        break;
+    case SGIItemTypeStateTextureAttributeMapList:
+        {
+            const osg::State::TextureAttributeMapList& textureattributemaplist = object->getTextureAttributeMapList();
+            os << "<ol>";
+            for (auto it : textureattributemaplist)
+            {
+                os << "<li><ul>";
+                for (auto it_inner : it)
+                {
+                    os << "<li>" << it_inner.first << "=" << it_inner.second << "</li>";
+                }
+                os << "</ul></li>";
+            }
+            os << "</ul>";
             ret = true;
         }
         break;

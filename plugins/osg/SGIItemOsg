@@ -84,6 +84,13 @@ enum SGIItemType_osg
     SGIItemTypeCullingInfoBefore,
     SGIItemTypeCullingInfoAfter,
     SGIItemTypeBuildInfo,
+    SGIItemTypeStateModeMap,
+    SGIItemTypeStateAttributeMap,
+    SGIItemTypeStateUniformMap,
+    SGIItemTypeStateDefineMap,
+    SGIItemTypeStateTextureModeMapList,
+    SGIItemTypeStateTextureAttributeMapList,
+
 };
 
 

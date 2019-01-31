@@ -2038,6 +2038,29 @@ bool objectTreeBuildImpl<osg::State>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
+            const osg::State::ModeMap& modemap = object->getModeMap();
+            if(!modemap.empty())
+                treeItem->addChild(helpers::str_plus_count("ModeMap", modemap.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateModeMap));
+
+            const osg::State::AttributeMap& attributemap = object->getAttributeMap();
+            if (!attributemap.empty())
+                treeItem->addChild(helpers::str_plus_count("AttributeMap", attributemap.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateAttributeMap));
+
+            const osg::State::UniformMap& uniformmap = object->getUniformMap();
+            if (!uniformmap.empty())
+                treeItem->addChild(helpers::str_plus_count("UniformMap", uniformmap.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateUniformMap));
+            const osg::State::DefineMap& definemap = object->getDefineMap();
+            if (!definemap.map.empty())
+                treeItem->addChild(helpers::str_plus_count("DefineMap", definemap.map.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateDefineMap));
+
+            const osg::State::TextureModeMapList& texturemodemaplist = object->getTextureModeMapList();
+            if (!texturemodemaplist.empty())
+                treeItem->addChild(helpers::str_plus_count("TextureModeMapList", texturemodemaplist.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateTextureModeMapList));
+
+            const osg::State::TextureAttributeMapList& textureattributemaplist = object->getTextureAttributeMapList();
+            if (!textureattributemaplist.empty())
+                treeItem->addChild(helpers::str_plus_count("TextureAttributeMapList", textureattributemaplist.size()), cloneItem<SGIItemOsg>(SGIItemTypeStateTextureAttributeMapList));
+
             SGIHostItemOsg shaderComposer(object->getShaderComposer());
             if(shaderComposer.hasObject())
                 treeItem->addChild("ShaderComposer", &shaderComposer);
@@ -2068,6 +2091,24 @@ bool objectTreeBuildImpl<osg::State>::build(IObjectTreeItem * treeItem)
                 treeItem->addChild("CurrentPBO", &pbo);
 
         }
+        break;
+    case SGIItemTypeStateModeMap:
+        ret = true;
+        break;
+    case SGIItemTypeStateAttributeMap:
+        ret = true;
+        break;
+    case SGIItemTypeStateUniformMap:
+        ret = true;
+        break;
+    case SGIItemTypeStateDefineMap:
+        ret = true;
+        break;
+    case SGIItemTypeStateTextureModeMapList:
+        ret = true;
+        break;
+    case SGIItemTypeStateTextureAttributeMapList:
+        ret = true;
         break;
     default:
         ret = callNextHandler(treeItem);

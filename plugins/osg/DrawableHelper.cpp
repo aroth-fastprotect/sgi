@@ -344,14 +344,14 @@ namespace {
         StateAccess_copyFrom(_texCoordAliasList);
         StateAccess_copyFrom(_attributeBindingList);
 
-        //StateAccess_copyFrom(_modeMap);
-        //StateAccess_copyFrom(_attributeMap);
-        //StateAccess_copyFrom(_uniformMap);
-        //StateAccess_copyFrom(_defineMap);
-        //StateAccess_copyFrom(_textureModeMapList);
-        //StateAccess_copyFrom(_textureAttributeMapList);
-        //StateAccess_copyFrom(_lastAppliedProgramObject);
-        //StateAccess_copyFrom(_stateStateStack);
+        StateAccess_copyFrom(_modeMap);
+        StateAccess_copyFrom(_attributeMap);
+        StateAccess_copyFrom(_uniformMap);
+        StateAccess_copyFrom(_defineMap);
+        StateAccess_copyFrom(_textureModeMapList);
+        StateAccess_copyFrom(_textureAttributeMapList);
+        StateAccess_copyFrom(_lastAppliedProgramObject);
+        StateAccess_copyFrom(_stateStateStack);
         StateAccess_copyFrom(_maxTexturePoolSize);
         StateAccess_copyFrom(_maxBufferObjectPoolSize);
         StateAccess_copyFrom(_currentActiveTextureUnit);
