@@ -797,6 +797,43 @@ namespace {
         return result.takeImage();
     }
 
+
+    inline osg::Geometry * createImageBoxGeometryTexEnv(float w, float h, float d, osg::Image* image, bool includeMaterial = false)
+    {
+        osg::Geometry * ret = sgi::osg_helpers::createBoxGeometry(w, h, d);
+        // set up the texture.
+
+        osg::Texture2D* texture = new osg::Texture2D;
+        texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR);
+        texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+        texture->setResizeNonPowerOfTwoHint(false);
+        float texcoord_x = 1.0f;
+
+        texture->setImage(image);
+
+        osg::StateSet* stateSet = new osg::StateSet;
+        stateSet->setMode(GL_CULL_FACE, osg::StateAttribute::ON);
+        //stateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+
+        stateSet->setTextureAttributeAndModes(1, texture, osg::StateAttribute::ON);
+        stateSet->setTextureAttributeAndModes(1, new osg::TexEnv(), osg::StateAttribute::ON);
+        stateSet->setTextureMode(1, GL_TEXTURE_2D, osg::StateAttribute::ON);
+        if (image->isImageTranslucent())
+        {
+            stateSet->setMode(GL_BLEND, osg::StateAttribute::ON);
+            stateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+        }
+        if (includeMaterial)
+        {
+            osg::Material * mat = new osg::Material;
+            mat->setDiffuse(osg::Material::FRONT, osg::Vec4(1, 1, 1, 1));
+            mat->setDiffuse(osg::Material::FRONT_AND_BACK, osg::Vec4(1, 1, 1, 1));
+            mat->setDiffuse(osg::Material::BACK, osg::Vec4(1, 1, 1, 1));
+            stateSet->setAttribute(mat, osg::StateAttribute::ON);
+        }
+        ret->setStateSet(stateSet);
+        return ret;
+    }
 }
 
 class SGIInstallNode : public osg::Group
@@ -824,6 +861,11 @@ private:
         {
             osg::ref_ptr<osg::Image> img = getSGILogoImage();
             ret = sgi::osg_helpers::createImageBoxGeometry(10.0f, 10.0f, 10.0f, img.get());
+        }
+        else if (name.compare("logo_mat") == 0)
+        {
+            osg::ref_ptr<osg::Image> img = getSGILogoImage();
+            ret = createImageBoxGeometryTexEnv(10.0f, 10.0f, 10.0f, img.get(), true);
         }
         return ret;
     }

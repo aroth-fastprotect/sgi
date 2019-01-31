@@ -10,6 +10,7 @@
 #include <osg/Geode>
 #endif
 #include <osg/Texture2D>
+#include <osg/Material>
 #include <functional>
 
 namespace sgi {
@@ -223,7 +224,7 @@ inline osg::Geometry * createBoxGeometry(float w,float h, float d)
     return geom;
 }
 
-inline osg::Geometry * createImageBoxGeometry(float w, float h, float d, osg::Image* image)
+inline osg::Geometry * createImageBoxGeometry(float w, float h, float d, osg::Image* image, bool includeMaterial=false)
 {
     osg::Geometry * ret = createBoxGeometry(w, h, d);
     // set up the texture.
@@ -236,17 +237,21 @@ inline osg::Geometry * createImageBoxGeometry(float w, float h, float d, osg::Im
 
     texture->setImage(image);
 
-    // set up the drawstate.
-    osg::StateSet* dstate = new osg::StateSet;
-    dstate->setMode(GL_CULL_FACE, osg::StateAttribute::OFF);
-    dstate->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-    dstate->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
+    osg::StateSet* stateSet = new osg::StateSet;
+    stateSet->setMode(GL_CULL_FACE, osg::StateAttribute::OFF);
+    stateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+    stateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
     if (image->isImageTranslucent())
     {
-        dstate->setMode(GL_BLEND, osg::StateAttribute::ON);
-        dstate->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+        stateSet->setMode(GL_BLEND, osg::StateAttribute::ON);
+        stateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
     }
-    ret->setStateSet(dstate);
+    if (includeMaterial)
+    {
+        osg::Material * mat = new osg::Material;
+        stateSet->setAttribute(mat, osg::StateAttribute::ON);
+    }
+    ret->setStateSet(stateSet);
     return ret;
 }
 
