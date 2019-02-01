@@ -8,6 +8,7 @@
 #include <osgUtil/CullVisitor>
 #include <osgViewer/View>
 #include <osg/ValueObject>
+#include <osg/io_utils>
 
 #if defined(_WIN32) && defined(OSG_GL3_AVAILABLE)
 #define __GL_H__
@@ -800,7 +801,8 @@ namespace {
 
     inline osg::Geometry * createImageBoxGeometryTexEnv(float w, float h, float d, osg::Image* image, bool includeMaterial = false)
     {
-        osg::Geometry * ret = sgi::osg_helpers::createBoxGeometry(w, h, d);
+        osg::Vec4 color(1, 1, 1, 1);
+        osg::Geometry * ret = sgi::osg_helpers::createBoxGeometry(osg::Vec3(w, h, d), &color);
         // set up the texture.
 
         osg::Texture2D* texture = new osg::Texture2D;
@@ -826,9 +828,9 @@ namespace {
         if (includeMaterial)
         {
             osg::Material * mat = new osg::Material;
-            mat->setDiffuse(osg::Material::FRONT, osg::Vec4(1, 1, 1, 1));
-            mat->setDiffuse(osg::Material::FRONT_AND_BACK, osg::Vec4(1, 1, 1, 1));
-            mat->setDiffuse(osg::Material::BACK, osg::Vec4(1, 1, 1, 1));
+            mat->setDiffuse(osg::Material::FRONT, color);
+            mat->setDiffuse(osg::Material::FRONT_AND_BACK, color);
+            mat->setDiffuse(osg::Material::BACK, color);
             stateSet->setAttribute(mat, osg::StateAttribute::ON);
         }
         ret->setStateSet(stateSet);
@@ -836,38 +838,112 @@ namespace {
     }
 }
 
+namespace {
+    typedef std::map<std::string, std::string> stringmap;
+    typedef std::pair<std::string, std::string> stringpair;
+    typedef std::map<std::string, stringpair> stringpairmap;
+
+    static stringpairmap propertiesAliases = {
+        std::make_pair("red", std::make_pair("color", "1 0 0 1")),
+        std::make_pair("green", std::make_pair("color", "0 1 0 1")),
+        std::make_pair("blue", std::make_pair("color", "0 0 1 1")),
+    };
+    template<typename T>
+    static bool getPropertyAs(const stringmap & props, const std::string & key, T & v)
+    {
+        auto it = props.find(key);
+        bool ret = (it != props.end());
+        if (ret)
+        {
+            std::stringstream ss(it->second);
+            ss >> v;
+            ret = ss.good() || ss.eof();
+        }
+        return ret;
+    }
+}
+
 class SGIInstallNode : public osg::Group
 {
 private:
+    static bool parseProperty(const std::string & s, stringpair & out)
+    {
+        bool ret = false;
+        auto it = propertiesAliases.find(s);
+        if (it != propertiesAliases.end())
+        {
+            out.first = it->second.first;
+            out.second = it->second.second;
+            ret = true;
+        }
+        return ret;
+    }
+    static osg::Node * buildNodeImpl(const std::string & filename, stringmap & props)
+    {
+        osg::Node * ret = nullptr;
+        std::string ext = osgDB::getFileExtension(filename);
+        if (ext.empty())
+        {
+            osg::Vec3 size;
+            osg::Vec4 color;
+            if (!getPropertyAs(props, "color", color))
+                color.set(1, 0, 0, 1);
+            if (!getPropertyAs(props, "size", size))
+                size.set(10.0f, 10.0f, 10.0f);
+
+            if (filename.compare("box") == 0 || filename.compare("cube") == 0)
+            {
+                ret = sgi::osg_helpers::createBoxGeometry(size, &color);
+            }
+            else if (filename.compare("quad") == 0 || filename.compare("rect") == 0)
+            {
+                ret = sgi::osg_helpers::createQuadGeometry(10.0f, 10.0f);
+            }
+            else if (filename.compare("tri") == 0 || filename.compare("triangle") == 0)
+            {
+                ret = sgi::osg_helpers::createTriangleGeometry(10.0f);
+            }
+            else if (filename.compare("logo") == 0)
+            {
+                osg::ref_ptr<osg::Image> img = getSGILogoImage();
+                ret = sgi::osg_helpers::createImageBoxGeometry(10.0f, 10.0f, 10.0f, img.get());
+            }
+            else if (filename.compare("logo_mat") == 0)
+            {
+                osg::ref_ptr<osg::Image> img = getSGILogoImage();
+                ret = createImageBoxGeometryTexEnv(10.0f, 10.0f, 10.0f, img.get(), true);
+            }
+        }
+        else
+        {
+            std::string::size_type i = ext.find('=');
+            stringpair v;
+            if (i != std::string::npos)
+            {
+                v.first = ext.substr(0, i);
+                v.second = ext.substr(i + 1);
+            }
+            else
+            {
+                if (!parseProperty(ext, v))
+                {
+                    v.first = ext;
+                }
+            }
+            props[v.first] = v.second;
+            std::string name = osgDB::getStrippedName(filename);
+            ret = buildNodeImpl(name, props);
+        }
+        return ret;
+
+    }
+
     static osg::Node * buildNode(const std::string & filename)
     {
         if(filename.empty())
             return nullptr;
-        osg::Node * ret = nullptr;
-        std::string name = osgDB::getStrippedName(filename);
-        if(name.compare("box") == 0 || name.compare("cube") == 0)
-        {
-            ret = sgi::osg_helpers::createBoxGeometry(10.0f, 10.0f, 10.0f);
-        }
-        else if(name.compare("quad") == 0 || name.compare("rect") == 0)
-        {
-            ret = sgi::osg_helpers::createQuadGeometry(10.0f, 10.0f);
-        }
-        else if(name.compare("tri") == 0 || name.compare("triangle") == 0)
-        {
-            ret = sgi::osg_helpers::createTriangleGeometry(10.0f);
-        }
-        else if (name.compare("logo") == 0)
-        {
-            osg::ref_ptr<osg::Image> img = getSGILogoImage();
-            ret = sgi::osg_helpers::createImageBoxGeometry(10.0f, 10.0f, 10.0f, img.get());
-        }
-        else if (name.compare("logo_mat") == 0)
-        {
-            osg::ref_ptr<osg::Image> img = getSGILogoImage();
-            ret = createImageBoxGeometryTexEnv(10.0f, 10.0f, 10.0f, img.get(), true);
-        }
-        return ret;
+        stringmap props;
+        return buildNodeImpl(filename, props);
     }
 public:
     SGIInstallNode(const std::string & filename=std::string(), const osgDB::Options * options=nullptr)

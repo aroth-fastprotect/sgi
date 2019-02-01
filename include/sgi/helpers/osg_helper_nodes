@@ -135,7 +135,7 @@ inline osg::Geometry * createQuadGeometry(float w,float h)
     return geom;
 }
 
-inline osg::Geometry * createTriangleGeometry(float s)
+inline osg::Geometry * createTriangleGeometry(float s, const osg::Vec4 * color = nullptr)
 {
     osg::Geometry * geom = new osg::Geometry;
     osg::Vec3Array* coords = new osg::Vec3Array(3);
@@ -145,9 +145,17 @@ inline osg::Geometry * createTriangleGeometry(float s)
     geom->setVertexArray(coords);
 
     osg::Vec4Array* colours = new osg::Vec4Array(3);
-    (*colours)[0].set(1.0f, 0.0f, 0.0f, 1.0f);
-    (*colours)[1].set(0.0f, 1.0f, 0.0f, 1.0f);
-    (*colours)[2].set(0.0f, 0.0f, 1.0f, 1.0f);
+    if (!color)
+    {
+        (*colours)[0].set(1.0f, 0.0f, 0.0f, 1.0f);
+        (*colours)[1].set(0.0f, 1.0f, 0.0f, 1.0f);
+        (*colours)[2].set(0.0f, 0.0f, 1.0f, 1.0f);
+    }
+    else
+    {
+        for (unsigned i = 0; i < 3; ++i)
+            (*colours)[i] = *color;
+    }
     geom->setColorArray(colours, osg::Array::BIND_PER_VERTEX);
 
     geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::TRIANGLES, 0, 3));
@@ -155,10 +163,13 @@ inline osg::Geometry * createTriangleGeometry(float s)
     return geom;
 }
 
-inline osg::Geometry * createBoxGeometry(float w,float h, float d)
+inline osg::Geometry * createBoxGeometry(const osg::Vec3 & size, const osg::Vec4 * color=nullptr)
 {
     osg::Geometry * geom = new osg::Geometry;
     osg::Vec3Array* coords = new osg::Vec3Array(8);
+    const float & w = size.x();
+    const float & d = size.y();
+    const float & h = size.z();
     // front
     (*coords)[0].set(-w, -d,  h);
     (*coords)[1].set( w, -d,  h);
@@ -187,14 +198,22 @@ inline osg::Geometry * createBoxGeometry(float w,float h, float d)
     geom->setTexCoordArray(0, tcoords);
 
     osg::Vec4Array* colours = new osg::Vec4Array(8);
-    (*colours)[0].set(1.0f, 0.0f, 0.0f, 1.0f);
-    (*colours)[1].set(0.0f, 1.0f, 0.0f, 1.0f);
-    (*colours)[2].set(0.0f, 0.0f, 1.0f, 1.0f);
-    (*colours)[3].set(1.0f, 1.0f, 0.0f, 1.0f);
-    (*colours)[4].set(0.0f, 1.0f, 1.0f, 1.0f);
-    (*colours)[5].set(1.0f, 0.0f, 1.0f, 1.0f);
-    (*colours)[6].set(0.5f, 0.0f, 0.0f, 1.0f);
-    (*colours)[7].set(0.0f, 0.5f, 0.0f, 1.0f);
+    if (!color)
+    {
+        (*colours)[0].set(1.0f, 0.0f, 0.0f, 1.0f);
+        (*colours)[1].set(0.0f, 1.0f, 0.0f, 1.0f);
+        (*colours)[2].set(0.0f, 0.0f, 1.0f, 1.0f);
+        (*colours)[3].set(1.0f, 1.0f, 0.0f, 1.0f);
+        (*colours)[4].set(0.0f, 1.0f, 1.0f, 1.0f);
+        (*colours)[5].set(1.0f, 0.0f, 1.0f, 1.0f);
+        (*colours)[6].set(0.5f, 0.0f, 0.0f, 1.0f);
+        (*colours)[7].set(0.0f, 0.5f, 0.0f, 1.0f);
+    }
+    else
+    {
+        for (unsigned i = 0; i < 8; ++i)
+            (*colours)[i] = *color;
+    }
     geom->setColorArray(colours, osg::Array::BIND_PER_VERTEX);
 
     GLubyte cube_elements[] = {
@@ -226,7 +245,8 @@ inline osg::Geometry * createBoxGeometry(float w,float h, float d)
 
 inline osg::Geometry * createImageBoxGeometry(float w, float h, float d, osg::Image* image, bool includeMaterial=false)
 {
-    osg::Geometry * ret = createBoxGeometry(w, h, d);
+    osg::Vec4 color(1, 1, 1, 1);
+    osg::Geometry * ret = createBoxGeometry(osg::Vec3(w, h, d), &color);
     // set up the texture.
 
     osg::Texture2D* texture = new osg::Texture2D;
