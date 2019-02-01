@@ -5951,16 +5951,13 @@ bool writePrettyHTMLImpl<osg::Node>::process(std::basic_ostream<char>& os)
     case SGIItemTypeStatistics:
         {
             unsigned contextID = osg_helpers::findContextID(object);
-            if (contextID != ~0u)
-            {
-                osg_helpers::StatisticsVisitor sv(contextID);
-                object->accept(sv);
-                sv.printHTML(os);
-            }
-            else
-            {
+            if (contextID == ~0u)
                 os << "<p>Unable to find context id for <b>" << osg_helpers::getObjectNameAndType(object, true) << "</b></p>" << std::endl;
-            }
+
+            osg_helpers::StatisticsVisitor sv(contextID);
+            object->accept(sv);
+            sv.printHTML(os);
+
             ret = true;
         }
         break;

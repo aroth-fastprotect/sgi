@@ -450,9 +450,12 @@ void StatisticsVisitor::apply(osg::Geode& node)
 void StatisticsVisitor::apply(osg::Drawable& node)
 {
     osgUtil::StatsVisitor::apply(node);
-    if (!_instancedMemory)
-        _instancedMemory = new MemoryStatisticsVisitor(_contextID);
-    _instancedMemory->apply(node);
+    if (_contextID != ~0u)
+    {
+        if (!_instancedMemory)
+            _instancedMemory = new MemoryStatisticsVisitor(_contextID);
+        _instancedMemory->apply(node);
+    }
 
     if (node.getUseVertexBufferObjects())
     {
@@ -581,9 +584,12 @@ void StatisticsVisitor::apply(osg::CameraView& node)
 
 void StatisticsVisitor::apply(osg::BufferData& buffer)
 {
-    if (!_instancedMemory)
-        _instancedMemory = new MemoryStatisticsVisitor(_contextID);
-    _instancedMemory->apply(buffer);
+    if (_contextID != ~0u)
+    {
+        if (!_instancedMemory)
+            _instancedMemory = new MemoryStatisticsVisitor(_contextID);
+        _instancedMemory->apply(buffer);
+    }
 }
 
 void StatisticsVisitor::apply(osg::MatrixTransform& node)
@@ -672,9 +678,12 @@ void StatisticsVisitor::apply(osg::StateSet& ss)
 
 void StatisticsVisitor::apply(osg::Texture::TextureObject & to)
 {
-    if (!_instancedMemory)
-        _instancedMemory = new MemoryStatisticsVisitor(_contextID);
-    _instancedMemory->apply(to);
+    if (_contextID != ~0u)
+    {
+        if (!_instancedMemory)
+            _instancedMemory = new MemoryStatisticsVisitor(_contextID);
+        _instancedMemory->apply(to);
+    }
 }
 
 void StatisticsVisitor::apply(osg::StateAttribute & attr)
@@ -722,9 +731,12 @@ void StatisticsVisitor::apply(osg::Uniform & uniform)
     ++_numInstancedUniform;
     _uniformSet.insert(&uniform);
 
-    if (!_instancedMemory)
-        _instancedMemory = new MemoryStatisticsVisitor(_contextID);
-    _instancedMemory->apply(uniform);
+    if (_contextID != ~0u)
+    {
+        if (!_instancedMemory)
+            _instancedMemory = new MemoryStatisticsVisitor(_contextID);
+        _instancedMemory->apply(uniform);
+    }
 }
 
 void StatisticsVisitor::apply(osgText::TextBase & text)
