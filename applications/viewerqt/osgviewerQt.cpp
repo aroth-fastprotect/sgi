@@ -14,6 +14,7 @@
 #include <QThread>
 #include <QWindow>
 #include <QWidget>
+#include <QResizeEvent>
 #include <QDebug>
 
 #include <osg/ValueObject>
@@ -213,8 +214,8 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     camera->setGraphicsContext(_mainGW);
 
     const osg::GraphicsContext::Traits* traits = _mainGW ? _mainGW->getTraits() : nullptr;
-    int widget_width = traits ? traits->width : 100;
-    int widget_height = traits ? traits->height : 100;
+    int widget_width = traits ? traits->width : QMainWindow::width();
+    int widget_height = traits ? traits->height : QMainWindow::height();
     camera->setClearColor(osg::Vec4(0.2f, 0.2f, 0.6f, 1.0f));
     camera->setViewport(new osg::Viewport(0, 0, widget_width, widget_height));
     camera->setProjectionMatrixAsPerspective(30.0, static_cast<double>(widget_width) / static_cast<double>(widget_height), 1.0, 10000.0);
@@ -361,10 +362,22 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
     return ret;
 }
 
+void ViewerWidget::showEvent(QShowEvent * event)
+{
+    QMainWindow::showEvent(event);
+    _viewWidget->updateGeometry();
+}
+
 void ViewerWidget::paintEvent( QPaintEvent* event )
 {
     QMainWindow::paintEvent(event);
     _viewer->frame();
+}
+
+void ViewerWidget::resizeEvent(QResizeEvent * event)
+{
+    QMainWindow::resizeEvent(event);
+    _viewWidget->updateGeometry();
 }
 
 CreateViewHandlerProxy::CreateViewHandlerProxy(CreateViewHandler * handler, QObject * parent)

@@ -4,7 +4,9 @@
 #include <osgViewer/CompositeViewer>
 
 class QTimer;
+class QShowEvent;
 class QPaintEvent;
+class QResizeEvent;
 class CompositeViewerThread;
 class CreateViewHandler;
 
@@ -46,7 +48,9 @@ public:
     void setData(osg::Node * node);
 
 protected:
-    virtual void paintEvent( QPaintEvent* event );
+    void showEvent( QShowEvent* event ) override;
+    void paintEvent( QPaintEvent* event ) override;
+    void resizeEvent(QResizeEvent * event) override;
 
     enum GLContextProfile {
         GLContextProfileNone,
