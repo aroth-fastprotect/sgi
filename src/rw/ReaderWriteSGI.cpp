@@ -8,6 +8,7 @@
 #include <osgUtil/CullVisitor>
 #include <osgViewer/View>
 #include <osg/ValueObject>
+#include <osg/Material>
 #include <osg/io_utils>
 
 #if defined(_WIN32) && defined(OSG_GL3_AVAILABLE)
@@ -55,8 +56,6 @@
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/SGIItemInternal>
 #include <sgi/helpers/osg_helper_nodes>
-
-#include "../../img/microscope64.c"
 
 #if defined(_DEBUG)
 #if defined(_MSC_VER)
@@ -786,59 +785,6 @@ private:
 } // namespace sgi
 
 namespace {
-    osg::Image * getSGILogoImage()
-    {
-        osgDB::ReaderWriter * rw = osgDB::Registry::instance()->getReaderWriterForExtension("png");
-        std::string microscope64_png_str;
-        microscope64_png_str.assign((const char*)microscope64_png, sizeof(microscope64_png));
-        std::stringstream ss(microscope64_png_str);
-        osgDB::ReaderWriter::ReadResult result;
-        if (rw)
-            result = rw->readImage(ss);
-        return result.takeImage();
-    }
-
-
-    inline osg::Geometry * createImageBoxGeometryTexEnv(float w, float h, float d, osg::Image* image, bool includeMaterial = false)
-    {
-        osg::Vec4 color(1, 1, 1, 1);
-        osg::Geometry * ret = sgi::osg_helpers::createBoxGeometry(osg::Vec3(w, h, d), &color);
-        // set up the texture.
-
-        osg::Texture2D* texture = new osg::Texture2D;
-        texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR);
-        texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
-        texture->setResizeNonPowerOfTwoHint(false);
-        float texcoord_x = 1.0f;
-
-        texture->setImage(image);
-
-        osg::StateSet* stateSet = new osg::StateSet;
-        stateSet->setMode(GL_CULL_FACE, osg::StateAttribute::ON);
-        //stateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-
-        stateSet->setTextureAttributeAndModes(1, texture, osg::StateAttribute::ON);
-        stateSet->setTextureAttributeAndModes(1, new osg::TexEnv(), osg::StateAttribute::ON);
-        stateSet->setTextureMode(1, GL_TEXTURE_2D, osg::StateAttribute::ON);
-        if (image->isImageTranslucent())
-        {
-            stateSet->setMode(GL_BLEND, osg::StateAttribute::ON);
-            stateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-        }
-        if (includeMaterial)
-        {
-            osg::Material * mat = new osg::Material;
-            mat->setDiffuse(osg::Material::FRONT, color);
-            mat->setDiffuse(osg::Material::FRONT_AND_BACK, color);
-            mat->setDiffuse(osg::Material::BACK, color);
-            stateSet->setAttribute(mat, osg::StateAttribute::ON);
-        }
-        ret->setStateSet(stateSet);
-        return ret;
-    }
-}
-
-namespace {
     typedef std::map<std::string, std::string> stringmap;
     typedef std::pair<std::string, std::string> stringpair;
     typedef std::map<std::string, stringpair> stringpairmap;
@@ -847,6 +793,7 @@ namespace {
         std::make_pair("red", std::make_pair("color", "1 0 0 1")),
         std::make_pair("green", std::make_pair("color", "0 1 0 1")),
         std::make_pair("blue", std::make_pair("color", "0 0 1 1")),
+        std::make_pair("mat", std::make_pair("material", "1")),
     };
     template<typename T>
     static bool getPropertyAs(const stringmap & props, const std::string & key, T & v)
@@ -858,6 +805,25 @@ namespace {
             std::stringstream ss(it->second);
             ss >> v;
             ret = ss.good() || ss.eof();
+        }
+        return ret;
+    }
+    template<>
+    bool getPropertyAs<bool>(const stringmap & props, const std::string & key, bool & v)
+    {
+        auto it = props.find(key);
+        bool ret = (it != props.end());
+        if (ret)
+        {
+            if(it->second == "0" || it->second == "false" || it->second == "off" || it->second == "no")
+                v = false;
+            else if(it->second == "1" || it->second == "true" || it->second == "on" || it->second == "yes")
+                v = true;
+            else
+            {
+                v = false;
+                ret = false;
+            }
         }
         return ret;
     }
@@ -885,33 +851,30 @@ private:
         if (ext.empty())
         {
             osg::Vec3 size;
-            osg::Vec4 color;
-            if (!getPropertyAs(props, "color", color))
-                color.set(1, 0, 0, 1);
+            sgi::osg_helpers::GeometryParams params;
+            if (!getPropertyAs(props, "color", params.color))
+                params.color.set(1, 0, 0, 1);
             if (!getPropertyAs(props, "size", size))
                 size.set(10.0f, 10.0f, 10.0f);
+            if (!getPropertyAs(props, "material", params.useMaterial))
+                params.useMaterial = false;
 
             if (filename.compare("box") == 0 || filename.compare("cube") == 0)
             {
-                ret = sgi::osg_helpers::createBoxGeometry(size, &color);
+                ret = sgi::osg_helpers::createBoxGeometry(size, params);
             }
             else if (filename.compare("quad") == 0 || filename.compare("rect") == 0)
             {
-                ret = sgi::osg_helpers::createQuadGeometry(10.0f, 10.0f);
+                ret = sgi::osg_helpers::createQuadGeometry(10.0f, 10.0f, params);
             }
             else if (filename.compare("tri") == 0 || filename.compare("triangle") == 0)
             {
-                ret = sgi::osg_helpers::createTriangleGeometry(10.0f);
+                ret = sgi::osg_helpers::createTriangleGeometry(10.0f, params);
             }
             else if (filename.compare("logo") == 0)
             {
-                osg::ref_ptr<osg::Image> img = getSGILogoImage();
-                ret = sgi::osg_helpers::createImageBoxGeometry(10.0f, 10.0f, 10.0f, img.get());
-            }
-            else if (filename.compare("logo_mat") == 0)
-            {
-                osg::ref_ptr<osg::Image> img = getSGILogoImage();
-                ret = createImageBoxGeometryTexEnv(10.0f, 10.0f, 10.0f, img.get(), true);
+                params.useLogo = true;
+                ret = sgi::osg_helpers::createBoxGeometry(size, params);
             }
         }
         else
