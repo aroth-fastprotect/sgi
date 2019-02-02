@@ -1,5 +1,5 @@
 // kate: syntax C++;
-// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
+// SGI - Copyright (C) 2012-2019 FAST Protect, Andreas Roth
 
 #include <osg/StateAttribute>
 #include <osg/Texture>
