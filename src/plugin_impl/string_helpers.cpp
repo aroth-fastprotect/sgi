@@ -4,6 +4,13 @@
 #include <cctype>
 #include <algorithm>
 
+#include <QtCore/QDebug>
+
+QDebug & operator<<(QDebug & d, const std::string & s)
+{
+    return d << s.c_str();
+}
+
 namespace sgi {
     namespace helpers {
 

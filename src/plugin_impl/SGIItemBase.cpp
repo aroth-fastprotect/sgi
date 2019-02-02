@@ -1,5 +1,5 @@
 // kate: syntax C++;
-// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
+// SGI - Copyright (C) 2012-2019 FAST Protect, Andreas Roth
 
 #include <sgi/plugins/SGIItemBase.h>
 #include <sgi/plugins/SGIProxyItem.h>
@@ -11,13 +11,25 @@
 #include <QImage>
 
 //#define SGI_DEBUG_ITEM_ALLOCATION
+//#define SGI_DEBUG_PROXY_ITEM_ALLOCATION
+
+#if defined(SGI_DEBUG_ITEM_ALLOCATION) || defined(SGI_DEBUG_PROXY_ITEM_ALLOCATION)
+#include <QDebug>
+#endif
 
 #ifdef SGI_DEBUG_ITEM_ALLOCATION
-#include <QDebug>
 #define SGI_ITEM_LOG(msg)   qDebug() << msg
 #else
 #define SGI_ITEM_LOG(msg)   (void(0))
 #endif
+
+#ifdef SGI_DEBUG_PROXY_ITEM_ALLOCATION
+#define SGI_PROXY_ITEM_LOG(msg)   qDebug() << msg
+#else
+#define SGI_PROXY_ITEM_LOG(msg)   (void(0))
+#endif
+
+extern QDebug & operator<<(QDebug & d, const std::string & s);
 
 namespace sgi {
 // some method implementations from SGIItemBase which are only
@@ -448,6 +460,7 @@ SGIItemBase * SGIItemBase::cloneImpl(SGIItemType newType, unsigned number, detai
 SGIProxyItemBase::SGIProxyItemBase(SGIPluginHostInterface * hostInterface, SGIItemBase * realItem)
     : _realItem(realItem), _hostInterface(hostInterface)
 {
+    SGI_PROXY_ITEM_LOG(__FUNCTION__ << (void*)this << " real=" << (void*)realItem);
 }
 
 SGIProxyItemBase::SGIProxyItemBase(SGIPluginHostInterface * hostInterface, 
@@ -459,6 +472,7 @@ SGIProxyItemBase::SGIProxyItemBase(SGIPluginHostInterface * hostInterface,
     , _realItem(realItem) 
     , _hostInterface(hostInterface)
 {
+    SGI_PROXY_ITEM_LOG(__FUNCTION__ << (void*)this << " name=" << _name << " displayName=" << _displayName << " typeName=" << _typeName << " real=" << (void*)realItem);
 }
 
 SGIProxyItemBase::SGIProxyItemBase(const SGIProxyItemBase & rhs)
@@ -466,18 +480,25 @@ SGIProxyItemBase::SGIProxyItemBase(const SGIProxyItemBase & rhs)
     , _typeName(rhs._typeName), _realItem(rhs._realItem) 
     , _hostInterface(rhs._hostInterface)
 {
+    SGI_PROXY_ITEM_LOG(__FUNCTION__ << (void*)this << " rhs=" << (void*)&rhs);
 }
 
 SGIItemBase * SGIProxyItemBase::realItem(bool getInstance)
 {
     if (!_realItem.valid() && getInstance)
+    {
         _realItem = getRealInstance();
+        SGI_PROXY_ITEM_LOG(__FUNCTION__ << (void*)this << " realItem=" << (void*)_realItem.get());
+    }
     return _realItem.get();
 }
 const SGIItemBase * SGIProxyItemBase::realItem(bool getInstance) const
 {
     if (!_realItem.valid() && getInstance)
+    {
         const_cast<SGIProxyItemBase*>(this)->_realItem = const_cast<SGIProxyItemBase*>(this)->getRealInstance();
+        SGI_PROXY_ITEM_LOG(__FUNCTION__ << (void*)this << " realItem=" << (void*)_realItem.get());
+    }
     return _realItem.get();
 }
 
