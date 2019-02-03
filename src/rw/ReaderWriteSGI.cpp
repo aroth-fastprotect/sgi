@@ -56,6 +56,7 @@
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/SGIItemInternal>
 #include <sgi/helpers/osg_helper_nodes>
+#include <sgi/helpers/string>
 
 #if defined(_DEBUG)
 #if defined(_MSC_VER)
@@ -85,6 +86,7 @@ namespace {
 #elif defined(__linux__)
     static void x11_app_timer_signal(int sig, siginfo_t*, void*)
     {
+        Q_UNUSED(sig);
         //std::cout << "x11_app_timer_signal" << std::endl;
         QCoreApplication::instance()->processEvents();
     }
@@ -151,15 +153,6 @@ namespace {
 
 struct SGIOptions
 {
-    static bool string_to_bool(const std::string & s, bool defaultValue=false)
-    {
-        if(s.compare("1") == 0 || s.compare("on") == 0 || s.compare("true") == 0)
-            return true;
-        else if(s.compare("0") == 0 || s.compare("off") == 0 || s.compare("false") == 0)
-            return false;
-        else
-            return defaultValue;
-    }
     template<typename T>
     static T * getObjectOption(const osgDB::Options * options, const std::string & key, T * defaultValue=nullptr, bool * gotOption=nullptr)
     {
@@ -247,7 +240,7 @@ bool SGIOptions::getOption<bool>(const osgDB::Options * options, const std::stri
     }
     if (gotOption)
         *gotOption = true;
-    return string_to_bool(val, defaultValue);
+    return helpers::string_to_bool(val, nullptr, defaultValue);
 }
 
 SGIOptions::SGIOptions(const std::string & filename_, const osgDB::Options * options)
@@ -793,7 +786,11 @@ namespace {
         std::make_pair("red", std::make_pair("color", "1 0 0 1")),
         std::make_pair("green", std::make_pair("color", "0 1 0 1")),
         std::make_pair("blue", std::make_pair("color", "0 0 1 1")),
+        std::make_pair("black", std::make_pair("color", "0 0 0 1")),
+        std::make_pair("white", std::make_pair("color", "1 1 1 1")),
+        std::make_pair("gray", std::make_pair("color", "0.75 0.75 0.75 1")),
         std::make_pair("mat", std::make_pair("material", "1")),
+        std::make_pair("logo", std::make_pair("logo", "1")),
     };
     template<typename T>
     static bool getPropertyAs(const stringmap & props, const std::string & key, T & v)
@@ -814,17 +811,7 @@ namespace {
         auto it = props.find(key);
         bool ret = (it != props.end());
         if (ret)
-        {
-            if(it->second == "0" || it->second == "false" || it->second == "off" || it->second == "no")
-                v = false;
-            else if(it->second == "1" || it->second == "true" || it->second == "on" || it->second == "yes")
-                v = true;
-            else
-            {
-                v = false;
-                ret = false;
-            }
-        }
+            v = sgi::helpers::string_to_bool(it->second, &ret, false);
         return ret;
     }
 }
@@ -850,31 +837,39 @@ private:
         std::string ext = osgDB::getFileExtension(filename);
         if (ext.empty())
         {
-            osg::Vec3 size;
-            sgi::osg_helpers::GeometryParams params;
-            if (!getPropertyAs(props, "color", params.color))
-                params.color.set(1, 0, 0, 1);
-            if (!getPropertyAs(props, "size", size))
-                size.set(10.0f, 10.0f, 10.0f);
-            if (!getPropertyAs(props, "material", params.useMaterial))
-                params.useMaterial = false;
+            if(!filename.empty())
+            {
+                std::cout << "buildNodeImpl " << filename << std::endl;
 
-            if (filename.compare("box") == 0 || filename.compare("cube") == 0)
-            {
-                ret = sgi::osg_helpers::createBoxGeometry(size, params);
-            }
-            else if (filename.compare("quad") == 0 || filename.compare("rect") == 0)
-            {
-                ret = sgi::osg_helpers::createQuadGeometry(10.0f, 10.0f, params);
-            }
-            else if (filename.compare("tri") == 0 || filename.compare("triangle") == 0)
-            {
-                ret = sgi::osg_helpers::createTriangleGeometry(10.0f, params);
-            }
-            else if (filename.compare("logo") == 0)
-            {
-                params.useLogo = true;
-                ret = sgi::osg_helpers::createBoxGeometry(size, params);
+                osg::Vec3 size;
+                osg::Vec4 color;
+                sgi::osg_helpers::GeometryParams params;
+                if (getPropertyAs(props, "color", color))
+                    params.setCustomColor(color);
+                if (!getPropertyAs(props, "size", size))
+                    size.set(10.0f, 10.0f, 10.0f);
+                if (!getPropertyAs(props, "material", params.useMaterial))
+                    params.useMaterial = false;
+                if (!getPropertyAs(props, "logo", params.useLogo))
+                    params.useLogo = false;
+
+                if (filename.compare("box") == 0 || filename.compare("cube") == 0)
+                {
+                    ret = sgi::osg_helpers::createBoxGeometry(size, params);
+                }
+                else if (filename.compare("quad") == 0 || filename.compare("rect") == 0)
+                {
+                    ret = sgi::osg_helpers::createQuadGeometry(10.0f, 10.0f, params);
+                }
+                else if (filename.compare("tri") == 0 || filename.compare("triangle") == 0)
+                {
+                    ret = sgi::osg_helpers::createTriangleGeometry(10.0f, params);
+                }
+                else if (filename.compare("logo") == 0)
+                {
+                    params.useLogo = true;
+                    ret = sgi::osg_helpers::createBoxGeometry(size, params);
+                }
             }
         }
         else
@@ -893,6 +888,7 @@ private:
                     v.first = ext;
                 }
             }
+            std::cout << "buildNodeImpl ext=" << ext << " " << v.first << "->" << v.second << std::endl;
             props[v.first] = v.second;
             std::string name = osgDB::getStrippedName(filename);
             ret = buildNodeImpl(name, props);

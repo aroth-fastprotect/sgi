@@ -11,15 +11,60 @@ namespace sgi {
 
     namespace osg_helpers {
 
+GeometryParams::GeometryParams()
+    : color()
+    , image(nullptr)
+    , useDefaultColor(true)
+    , useMaterial(false)
+    , useTextureCoordinates(false)
+    , useLogo(false)
+    , _useCustomColor(false)
+{}
+bool GeometryParams::needTextureCoordinates() const
+{
+    return useTextureCoordinates || image != nullptr || useLogo;
+}
+
+bool GeometryParams::useCustomColor() const
+{
+    return _useCustomColor || (image == nullptr && !useLogo && !useDefaultColor);
+}
+
+void GeometryParams::setCustomColor(const osg::Vec4 & c)
+{
+    color = c;
+    _useCustomColor = true;
+}
+
+bool GeometryParams::useWhiteColorForTexture() const
+{
+    return (image != nullptr || useLogo) && useDefaultColor;
+}
+
+
 namespace  {
     void applyMaterialToGeometry(osg::Geometry * g, const GeometryParams & params)
     {
         if(params.useMaterial)
         {
             osg::Material * mat = new osg::Material;
-            mat->setDiffuse(osg::Material::FRONT, params.color);
-            mat->setDiffuse(osg::Material::FRONT_AND_BACK, params.color);
-            mat->setDiffuse(osg::Material::BACK, params.color);
+            osg::Vec4 diffuse;
+            if (params.useCustomColor())
+            {
+                diffuse = params.color;
+            }
+            else if(params.useWhiteColorForTexture())
+            {
+                diffuse.set(1.0f, 1.0f, 1.0f, 1.0f);
+            }
+            else
+            {
+                diffuse.set(0.8f, 0.8f, 0.8f, 1.0f);
+            }
+
+            mat->setDiffuse(osg::Material::FRONT, diffuse);
+            mat->setDiffuse(osg::Material::FRONT_AND_BACK, diffuse);
+            mat->setDiffuse(osg::Material::BACK, diffuse);
             osg::StateSet * stateSet = g->getOrCreateStateSet();
             stateSet->setAttribute(mat, osg::StateAttribute::ON);
         }
@@ -93,7 +138,17 @@ osg::Geometry * createQuadGeometry(float w,float h, const GeometryParams & param
     if(!params.useMaterial)
     {
         osg::Vec4Array* colours = new osg::Vec4Array(6);
-        if (params.useDefaultColor)
+        if (params.useCustomColor())
+        {
+            for (unsigned i = 0; i < colours->size(); ++i)
+                (*colours)[i] = params.color;
+        }
+        else if(params.useWhiteColorForTexture())
+        {
+            for (unsigned i = 0; i < colours->size(); ++i)
+                (*colours)[i].set(1.0f, 1.0f, 1.0f, 1.0f);
+        }
+        else
         {
             (*colours)[0].set(1.0f, 0.0f, 0.0f, 1.0f);
             (*colours)[1].set(0.0f, 1.0f, 0.0f, 1.0f);
@@ -101,11 +156,6 @@ osg::Geometry * createQuadGeometry(float w,float h, const GeometryParams & param
             (*colours)[3].set(1.0f, 0.0f, 0.0f, 1.0f);
             (*colours)[4].set(0.0f, 0.0f, 1.0f, 1.0f);
             (*colours)[5].set(1.0f, 0.0f, 1.0f, 1.0f);
-        }
-        else
-        {
-            for (unsigned i = 0; i < colours->size(); ++i)
-                (*colours)[i] = params.color;
         }
         geom->setColorArray(colours, osg::Array::BIND_PER_VERTEX);
     }
@@ -120,33 +170,38 @@ osg::Geometry * createTriangleGeometry(float s, const GeometryParams & params)
 {
     osg::Geometry * geom = new osg::Geometry;
     osg::Vec3Array* coords = new osg::Vec3Array(3);
-    (*coords)[0].set(-(s/0.5f), 0.0f, 0.0f);
-    (*coords)[1].set(+(s/0.5f), 0.0f, 0.0f);
-    (*coords)[2].set(     0.0f, 0.0f, s);
+    (*coords)[0].set(-(s*0.5f), 0.0f, 0.0f);
+    (*coords)[1].set(+(s*0.5f), 0.0f, 0.0f);
+    (*coords)[2].set(     0.0f, 0.0f, s * sqrt(0.75));
     geom->setVertexArray(coords);
 
     if(params.useTextureCoordinates || params.image || params.useLogo)
     {
         osg::Vec2Array* tcoords = new osg::Vec2Array(3);
-        (*tcoords)[0].set(0.0f, 1.0f);
-        (*tcoords)[1].set(1.0f, 1.0f);
-        (*tcoords)[2].set(0.5f, 0.0f);
+        (*tcoords)[0].set(0.0f, 0.0f);
+        (*tcoords)[1].set(1.0f, 0.0f);
+        (*tcoords)[2].set(0.5f, 1.0f);
         geom->setTexCoordArray(0, tcoords);
     }
 
     if(!params.useMaterial)
     {
         osg::Vec4Array* colours = new osg::Vec4Array(3);
-        if (params.useDefaultColor)
+        if (params.useCustomColor())
+        {
+            for (unsigned i = 0; i < colours->size(); ++i)
+                (*colours)[i] = params.color;
+        }
+        else if(params.useWhiteColorForTexture())
+        {
+            for (unsigned i = 0; i < colours->size(); ++i)
+                (*colours)[i].set(1.0f, 1.0f, 1.0f, 1.0f);
+        }
+        else
         {
             (*colours)[0].set(1.0f, 0.0f, 0.0f, 1.0f);
             (*colours)[1].set(0.0f, 1.0f, 0.0f, 1.0f);
             (*colours)[2].set(0.0f, 0.0f, 1.0f, 1.0f);
-        }
-        else
-        {
-            for (unsigned i = 0; i < colours->size(); ++i)
-                (*colours)[i] = params.color;
         }
         geom->setColorArray(colours, osg::Array::BIND_PER_VERTEX);
     }
@@ -178,26 +233,32 @@ osg::Geometry * createBoxGeometry(const osg::Vec3 & size, const GeometryParams &
 
     if(params.useTextureCoordinates || params.image || params.useLogo)
     {
-        float texcoord_y_b = 0.0f;
-        float texcoord_y_t = 1.0f;
-        float texcoord_x = 1.0f;
-
         osg::Vec2Array* tcoords = new osg::Vec2Array(8);
-        (*tcoords)[0].set(0.0f*texcoord_x, texcoord_y_t);
-        (*tcoords)[1].set(0.0f*texcoord_x, texcoord_y_b);
-        (*tcoords)[2].set(1.0f*texcoord_x, texcoord_y_b);
-        (*tcoords)[3].set(0.0f*texcoord_x, texcoord_y_t);
-        (*tcoords)[4].set(1.0f*texcoord_x, texcoord_y_b);
-        (*tcoords)[5].set(1.0f*texcoord_x, texcoord_y_t);
-        (*tcoords)[6].set(1.0f*texcoord_x, texcoord_y_t);
-        (*tcoords)[7].set(1.0f*texcoord_x, texcoord_y_t);
+        (*tcoords)[0].set(0.0f, 0.0f);
+        (*tcoords)[1].set(1.0f, 0.0f);
+        (*tcoords)[2].set(1.0f, 1.0f);
+        (*tcoords)[3].set(0.0f, 1.0f);
+        (*tcoords)[4].set(0.0f, 0.0f);
+        (*tcoords)[5].set(1.0f, 0.0f);
+        (*tcoords)[6].set(1.0f, 1.0f);
+        (*tcoords)[7].set(0.0f, 1.0f);
         geom->setTexCoordArray(0, tcoords);
     }
 
     if(!params.useMaterial)
     {
         osg::Vec4Array* colours = new osg::Vec4Array(8);
-        if (!params.useDefaultColor)
+        if (params.useCustomColor())
+        {
+            for (unsigned i = 0; i < colours->size(); ++i)
+                (*colours)[i] = params.color;
+        }
+        else if(params.useWhiteColorForTexture())
+        {
+            for (unsigned i = 0; i < colours->size(); ++i)
+                (*colours)[i].set(1.0f, 1.0f, 1.0f, 1.0f);
+        }
+        else
         {
             (*colours)[0].set(1.0f, 0.0f, 0.0f, 1.0f);
             (*colours)[1].set(0.0f, 1.0f, 0.0f, 1.0f);
@@ -207,11 +268,6 @@ osg::Geometry * createBoxGeometry(const osg::Vec3 & size, const GeometryParams &
             (*colours)[5].set(1.0f, 0.0f, 1.0f, 1.0f);
             (*colours)[6].set(0.5f, 0.0f, 0.0f, 1.0f);
             (*colours)[7].set(0.0f, 0.5f, 0.0f, 1.0f);
-        }
-        else
-        {
-            for (unsigned i = 0; i < colours->size(); ++i)
-                (*colours)[i] = params.color;
         }
         geom->setColorArray(colours, osg::Array::BIND_PER_VERTEX);
     }

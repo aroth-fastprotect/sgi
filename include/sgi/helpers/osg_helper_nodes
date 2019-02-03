@@ -100,21 +100,23 @@ inline osg::Node * createNodeForImage(osg::Image* image)
     return createNodeForImage(image,image->s(),image->t());
 }
 
-struct GeometryParams {
-    GeometryParams()
-        : color()
-        , image(nullptr)
-        , useDefaultColor(true)
-        , useMaterial(false)
-        , useTextureCoordinates(false)
-        , useLogo(false)
-    {}
+class SGI_OSG_HELPER_EXPORT GeometryParams
+{
+public:
+    GeometryParams();
+    bool needTextureCoordinates() const;
+    bool useCustomColor() const;
+    bool useWhiteColorForTexture() const;
+    void setCustomColor(const osg::Vec4 & c);
+
     osg::Vec4 color;
     osg::Image * image;
     bool useDefaultColor;
     bool useMaterial;
     bool useTextureCoordinates;
     bool useLogo;
+private:
+    bool _useCustomColor;
 };
 
 SGI_OSG_HELPER_EXPORT osg::Geometry * createQuadGeometry(float w,float h, const GeometryParams & params=GeometryParams());

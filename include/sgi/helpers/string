@@ -158,6 +158,7 @@ SGI_IMPL_EXPORT std::string trim( const std::string& in );
     */
 SGI_IMPL_EXPORT void trim2( std::string& str );
 
+SGI_IMPL_EXPORT bool string_to_bool(const std::string & s, bool * ok=nullptr, bool defaultValue=false);
 
 /**
     * Assembles and returns an inline string using a stream-like << operator.

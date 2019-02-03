@@ -155,6 +155,28 @@ std::string html_encode(const std::string & str)
     return ret;
 }
 
+bool string_to_bool(const std::string & s, bool * ok, bool defaultValue)
+{
+    if(s.compare("1") == 0 || s.compare("on") == 0 || s.compare("true") == 0 || s.compare("yes") == 0)
+    {
+        if(ok)
+            *ok = true;
+        return true;
+    }
+    else if(s.compare("0") == 0 || s.compare("off") == 0 || s.compare("false") == 0 || s.compare("no") == 0)
+    {
+        if(ok)
+            *ok = true;
+        return false;
+    }
+    else
+    {
+        if(ok)
+            *ok = false;
+        return defaultValue;
+    }
+}
+
 a_href::a_href(const std::string & url)
     : _url(url)
 {
