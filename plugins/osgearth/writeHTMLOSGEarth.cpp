@@ -1881,7 +1881,7 @@ bool writePrettyHTMLImpl<osgEarth::ElevationEnvelope>::process(std::basic_ostrea
 
 bool writePrettyHTMLImpl<osgEarth::PolyShader>::process(std::basic_ostream<char>& os)
 {
-    osgEarth::PolyShader * object = getObject<osgEarth::PolyShader,SGIItemOsg>();
+    PolyShaderAccessor * object = static_cast<PolyShaderAccessor*>(getObject<osgEarth::PolyShader, SGIItemOsg>());
     bool ret = false;
     switch (itemType())
     {
@@ -1895,11 +1895,18 @@ bool writePrettyHTMLImpl<osgEarth::PolyShader>::process(std::basic_ostream<char>
             os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
             os << "<tr><td>location</td><td>" << object->getLocation() << "</td></tr>" << std::endl;
             os << "<tr><td>source</td><td><pre>" << helpers::html_encode(object->getShaderSource()) << "</pre></td></tr>" << std::endl;
+            os << "<tr><td>nominalShader</td><td>" << getObjectNameAndType(object->getNominalShader()) << "</td></tr>" << std::endl;
+            os << "<tr><td>geometryShader</td><td>" << getObjectNameAndType(object->getGeometryShader()) << "</td></tr>" << std::endl;
+            os << "<tr><td>tessellationShader</td><td>" << getObjectNameAndType(object->getTessellationShader()) << "</td></tr>" << std::endl;
 
             if (_table)
                 os << "</table>" << std::endl;
             ret = true;
         }
+        break;
+    case SGIItemTypeShaderSource:
+        os << "<pre>" << helpers::html_encode(object->getShaderSource()) << "</pre>" << std::endl;
+        ret = true;
         break;
     default:
         ret = callNextHandler(os);

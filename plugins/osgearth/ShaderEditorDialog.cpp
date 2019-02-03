@@ -5,6 +5,7 @@
 #include <sgi/plugins/SGIItemOsg>
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/helpers/qt>
+#include <sgi/helpers/osg>
 
 #include <QPushButton>
 
@@ -52,6 +53,30 @@ namespace  {
 
 }
 
+namespace  {
+    class ShaderAccess : public osg::Shader {
+    public:
+        /** Query InfoLog from a glProgram */
+        bool getGlProgramInfoLog(unsigned int contextID, std::string& log) const
+        {
+            for (unsigned i = 0; i < _pcsList.size(); ++i)
+            {
+                const osg::Shader::ShaderObjects * obj = _pcsList[i].get();
+
+                if(obj && obj->_contextID == contextID)
+                {
+                    const osg::Shader::PerContextShader * pcs = obj->_perContextShaders[contextID].get();
+                    if(pcs)
+                        return pcs->getInfoLog(log);
+                    break;
+                }
+
+            }
+            return false;
+        }
+    };
+
+}
 #define AFM_ACTION(__def) { \
     QAction * a = new QAction(#__def, this); \
     a->setData(QVariant::fromValue((int)osgEarth::ShaderComp::__def)); \
@@ -67,6 +92,9 @@ ShaderEditorDialog::ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface 
     , _currentVPFunctionIndex(-1)
  {
     ui->setupUi( this );
+
+    for(int i = 0; i < ui->tabWidget->count(); ++i)
+        ui->tabWidget->widget(i)->setWindowTitle(ui->tabWidget->tabText(i));
 
     connect(ui->buttonBox->button(QDialogButtonBox::Close), &QPushButton::clicked, this, &ShaderEditorDialog::close);
     connect(ui->buttonBox->button(QDialogButtonBox::Apply), &QPushButton::clicked, this, &ShaderEditorDialog::apply);
@@ -284,6 +312,7 @@ void ShaderEditorDialog::apply()
             }
         }
     }
+    loadInfoLog();
 }
 
 void ShaderEditorDialog::reset()
@@ -305,6 +334,27 @@ void ShaderEditorDialog::reset()
     load();
 }
 
+namespace {
+    void showHideTab(QTabWidget * tab, QWidget * w, bool visible)
+    {
+        if(visible)
+        {
+            int index = tab->indexOf(w);
+            if (index < 0)
+                tab->addTab(w, w->windowTitle());
+        }
+        else {
+            tab->removeTab(tab->indexOf(w));
+        }
+    }
+    void setTabIcon(QTabWidget * tab, QWidget * w, const QIcon & ico)
+    {
+        int index = tab->indexOf(w);
+        if (index >= 0)
+            tab->setTabIcon(index, ico);
+    }
+}
+
 void ShaderEditorDialog::load()
 {
     bool foundShader = false;
@@ -316,12 +366,12 @@ void ShaderEditorDialog::load()
         ui->vpLog->setChecked(vp->getShaderLogging());
         ui->vpLogFile->setText(qt_helpers::fromLocal8Bit(vp->getShaderLogFile()));
 
-        int tab = ui->tabShaders->indexOf(ui->tabVirtualProgram);
-        if (tab < 0)
-            ui->tabShaders->addTab(ui->tabVirtualProgram, tr("Virtual Program"));
-        ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabFragment));
-        ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabVertex));
-        ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabNoShader));
+        showHideTab(ui->tabWidget,ui->tabVirtualProgram, true);
+        showHideTab(ui->tabWidget,ui->tabFragment, false);
+        showHideTab(ui->tabWidget,ui->tabVertex, false);
+        showHideTab(ui->tabWidget,ui->tabNoShader, false);
+        showHideTab(ui->tabWidget,ui->tabInfoLog, true);
+        ui->tabWidget->setCurrentWidget(ui->tabVirtualProgram);
 
         osgEarth::ShaderComp::FunctionLocationMap funcs;
         vp->getFunctions(funcs);
@@ -361,14 +411,15 @@ void ShaderEditorDialog::load()
     }
     else if(osg::Program * p = getProgram())
     {
-        ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabVirtualProgram));
-        int tab = ui->tabShaders->indexOf(ui->tabFragment);
-        if (tab < 0)
-            ui->tabShaders->addTab(ui->tabFragment, tr("Fragment"));
-        tab = ui->tabShaders->indexOf(ui->tabVertex);
-        if (tab < 0)
-            ui->tabShaders->addTab(ui->tabVertex, tr("Vertex"));
-        ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabNoShader));
+        showHideTab(ui->tabWidget,ui->tabVirtualProgram, false);
+        showHideTab(ui->tabWidget,ui->tabFragment, true);
+        showHideTab(ui->tabWidget,ui->tabVertex, true);
+        showHideTab(ui->tabWidget,ui->tabNoShader, false);
+        showHideTab(ui->tabWidget,ui->tabInfoLog, true);
+        ui->tabWidget->setCurrentWidget(ui->tabFragment);
+
+        unsigned contextID = osg_helpers::findContextID(p);
+
         for(unsigned i = 0; i < p->getNumShaders(); ++i)
         {
             osg::Shader * shader = p->getShader(i);
@@ -385,20 +436,63 @@ void ShaderEditorDialog::load()
                 }
             }
         }
+        std::string log;
+        p->getGlProgramInfoLog(contextID, log);
+        setInfoLog(log);
         foundShader = true;
     }
     _ready = true;
 
     if(!foundShader)
     {
-        int tab = ui->tabShaders->indexOf(ui->tabNoShader);
-        if (tab < 0)
-            ui->tabShaders->addTab(ui->tabNoShader, tr("No Shader"));
-        ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabFragment));
-        ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabVertex));
-        ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabVirtualProgram));
+        showHideTab(ui->tabWidget,ui->tabVirtualProgram, false);
+        showHideTab(ui->tabWidget,ui->tabFragment, false);
+        showHideTab(ui->tabWidget,ui->tabVertex, false);
+        showHideTab(ui->tabWidget,ui->tabNoShader, true);
+        showHideTab(ui->tabWidget,ui->tabInfoLog, false);
+        ui->tabWidget->setCurrentWidget(ui->tabNoShader);
     }
 
+}
+
+void ShaderEditorDialog::setInfoLog(const std::string & log)
+{
+    if(!log.empty())
+        setTabIcon(ui->tabWidget, ui->tabInfoLog, QIcon::fromTheme("dialog-warning"));
+    else
+        setTabIcon(ui->tabWidget, ui->tabInfoLog, QIcon());
+    ui->infoLog->setPlainText(QString::fromStdString(log));
+}
+
+void ShaderEditorDialog::loadInfoLog()
+{
+    VirtualProgramAccessor * vp = static_cast<VirtualProgramAccessor*>(getVirtualProgram(false));
+    if (vp)
+    {
+        VirtualProgramAccessor * vp = static_cast<VirtualProgramAccessor*>(getVirtualProgram(false));
+        unsigned contextID = osg_helpers::findContextID(vp);
+        osgEarth::PolyShader * sh = getPolyShader(_currentVPFunctionIndex);
+        std::string log;
+        if (sh)
+        {
+            osg::Shader * shader = sh->getNominalShader();
+            if(shader)
+            {
+                static_cast<ShaderAccess*>(shader)->getGlProgramInfoLog(contextID, log);
+            }
+            std::string src = sh->getShaderSource();
+            ui->shaderVP->setPlainText(qt_helpers::fromUtf8(src));
+        }
+        setInfoLog(log);
+
+    }
+    else if(osg::Program * p = getProgram())
+    {
+        unsigned contextID = osg_helpers::findContextID(p);
+        std::string log;
+        p->getGlProgramInfoLog(contextID, log);
+        setInfoLog(log);
+    }
 }
 
 void ShaderEditorDialog::vpInheritShaders(bool b)
@@ -430,12 +524,21 @@ void ShaderEditorDialog::vpFunctionChanged(int index)
         apply();
     }
 
+    VirtualProgramAccessor * vp = static_cast<VirtualProgramAccessor*>(getVirtualProgram(false));
+    unsigned contextID = osg_helpers::findContextID(vp);
     osgEarth::PolyShader * sh = getPolyShader(index);
+    std::string log;
     if (sh)
     {
+        osg::Shader * shader = sh->getNominalShader();
+        if(shader)
+        {
+            static_cast<ShaderAccess*>(shader)->getGlProgramInfoLog(contextID, log);
+        }
         std::string src = sh->getShaderSource();
         ui->shaderVP->setPlainText(qt_helpers::fromUtf8(src));
     }
+    setInfoLog(log);
     _currentVPFunctionIndex = index;
 }
 

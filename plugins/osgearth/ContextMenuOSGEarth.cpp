@@ -55,6 +55,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::Contro
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TileSource)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TileBlacklist)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::VirtualProgram)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::PolyShader)
 #ifdef SGI_USE_OSGEARTH_FAST
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LODScaleOverrideNode)
 #endif
@@ -838,6 +839,36 @@ bool contextMenuPopulateImpl<osgEarth::VirtualProgram>::populate(IContextMenuIte
                 inheritMenu->addModeAction("Enabled", VirtualProgramInheritModeEnabled);
                 inheritMenu->addModeAction("Disabled", VirtualProgramInheritModeDisabled);
             }
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osgEarth::PolyShader>::populate(IContextMenuItem * menuItem)
+{
+    PolyShaderAccessor * object = static_cast<PolyShaderAccessor*>(getObject<osgEarth::PolyShader, SGIItemOsg>());
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if(ret)
+        {
+            SGIHostItemOsg nominalShader(object->getNominalShader());
+            if (nominalShader.hasObject())
+                menuItem->addMenu("NominalShader", &nominalShader);
+
+            SGIHostItemOsg geometryShader(object->getGeometryShader());
+            if (nominalShader.hasObject())
+                menuItem->addMenu("GeometryShader", &geometryShader);
+
+            SGIHostItemOsg tessellationShader(object->getTessellationShader());
+            if (tessellationShader.hasObject())
+                menuItem->addMenu("TessellationShader", &tessellationShader);
         }
         break;
     default:

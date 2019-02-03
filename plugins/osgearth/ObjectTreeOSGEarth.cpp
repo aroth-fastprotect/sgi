@@ -1778,7 +1778,7 @@ bool objectTreeBuildImpl<osgEarth::CacheSettings>::build(IObjectTreeItem * treeI
 
 bool objectTreeBuildImpl<osgEarth::PolyShader>::build(IObjectTreeItem * treeItem)
 {
-    osgEarth::PolyShader * object = getObject<osgEarth::PolyShader, SGIItemOsg>();
+    PolyShaderAccessor * object = static_cast<PolyShaderAccessor*>(getObject<osgEarth::PolyShader, SGIItemOsg>());
     bool ret = false;
     switch (itemType())
     {
@@ -1786,28 +1786,22 @@ bool objectTreeBuildImpl<osgEarth::PolyShader>::build(IObjectTreeItem * treeItem
         ret = callNextHandler(treeItem);
         if (ret)
         {
+            treeItem->addChild("Source", cloneItem<SGIItemOsg>(SGIItemTypeShaderSource));
+
             SGIHostItemOsg nominalShader(object->getNominalShader());
             if (nominalShader.hasObject())
                 treeItem->addChild("NominalShader", &nominalShader);
 
-            osgEarth::ShaderComp::StageMaskValues stages[] = {
-                osgEarth::ShaderComp::STAGE_VERTEX,
-                osgEarth::ShaderComp::STAGE_TESSCONTROL,
-                osgEarth::ShaderComp::STAGE_TESSEVALUATION,
-                osgEarth::ShaderComp::STAGE_GEOMETRY,
-                osgEarth::ShaderComp::STAGE_FRAGMENT,
-                osgEarth::ShaderComp::STAGE_COMPUTE
-            };
+            SGIHostItemOsg geometryShader(object->getGeometryShader());
+            if (nominalShader.hasObject())
+                treeItem->addChild("GeometryShader", &geometryShader);
 
-            for (unsigned i = 0; i < sizeof(stages)/sizeof(stages[0]); ++i)
-            {
-                SGIHostItemOsg shader(object->getShader(stages[i]));
-                if (shader.hasObject())
-                    treeItem->addChild(helpers::str_plus_info("Shader", stages[i]), &shader);
-            }
+            SGIHostItemOsg tessellationShader(object->getTessellationShader());
+            if (tessellationShader.hasObject())
+                treeItem->addChild("TessellationShader", &tessellationShader);
         }
         break;
-    case SGIItemTypeConfig:
+    case SGIItemTypeShaderSource:
         ret = true;
         break;
     default:

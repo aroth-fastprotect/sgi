@@ -48,6 +48,8 @@ protected:
     osg::Program *          getProgram(bool create = false);
     osgEarth::PolyShader *  getPolyShader(int index);
     bool                    removeVPShader(int index);
+    void                    loadInfoLog();
+    void                    setInfoLog(const std::string & log);
 
 private:  // for now
     IHostCallbackPtr                _hostCallback;

@@ -217,6 +217,13 @@ namespace osgearth_plugin {
         double minimumRadius() const { return _rp; }
     };
 
+    class PolyShaderAccessor : public osgEarth::PolyShader
+    {
+    public:
+        osg::Shader* getGeometryShader() const { return _geomShader.get(); }
+        osg::Shader* getTessellationShader() const { return _tessevalShader.get(); }
+    };
+
     class VirtualProgramAccessor : public osgEarth::VirtualProgram
     {
     public:
