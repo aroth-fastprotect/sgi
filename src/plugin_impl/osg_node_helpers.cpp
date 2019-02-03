@@ -4,6 +4,7 @@
 #include <sgi/helpers/osg_helper_nodes>
 #include <osg/Material>
 #include <osgDB/Registry>
+#include <osg/TexEnv>
 
 #include "../../img/microscope64.c"
 
@@ -69,7 +70,7 @@ namespace  {
             stateSet->setAttribute(mat, osg::StateAttribute::ON);
         }
     }
-    void applyTextureToGeometry(osg::Geometry * g, osg::Image * image)
+    void applyTextureToGeometry(osg::Geometry * g, unsigned unit, osg::Image * image, bool modulate)
     {
         if(image)
         {
@@ -82,12 +83,17 @@ namespace  {
             osg::StateSet * stateSet = g->getOrCreateStateSet();
             stateSet->setMode(GL_CULL_FACE, osg::StateAttribute::OFF);
             stateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-            stateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
+            stateSet->setTextureAttributeAndModes(unit, texture, osg::StateAttribute::ON);
             //stateSet->setMode(GL_TEXTURE_2D, osg::StateAttribute::ON);
             if (image->isImageTranslucent())
             {
                 stateSet->setMode(GL_BLEND, osg::StateAttribute::ON);
                 stateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+            }
+            if(modulate)
+            {
+                osg::TexEnv * env = new osg::TexEnv(osg::TexEnv::MODULATE);
+                stateSet->setTextureAttributeAndModes(unit, env, osg::StateAttribute::ON);
             }
         }
     }
@@ -96,13 +102,17 @@ namespace  {
         if(params.useLogo)
         {
             osg::ref_ptr<osg::Image> logo = getSGILogoImage();
-            applyTextureToGeometry(g, logo.get());
+            unsigned unit = params.useMaterial ? 1 : 0;
+            bool modulate = params.useMaterial;
+            applyTextureToGeometry(g, unit, logo.get(), modulate);
         }
     }
     void applyGeometryParams(osg::Geometry * g, const GeometryParams & params)
     {
         applyMaterialToGeometry(g, params);
-        applyTextureToGeometry(g, params.image);
+        unsigned unit = params.useMaterial ? 1 : 0;
+        bool modulate = params.useMaterial;
+        applyTextureToGeometry(g, unit, params.image, modulate);
         applyLogoToGeometry(g, params);
     }
 }
