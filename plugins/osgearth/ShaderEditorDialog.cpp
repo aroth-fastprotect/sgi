@@ -105,8 +105,13 @@ ShaderEditorDialog::~ShaderEditorDialog()
 osg::StateSet * ShaderEditorDialog::getStateSet(bool create)
 {
     osg::StateSet * stateSet = getObject<osg::StateSet, SGIItemOsg, DynamicCaster>();
+    osg::StateAttribute * stateAttr = getObject<osg::StateAttribute, SGIItemOsg, DynamicCaster>();
     osg::Node * node = getObject<osg::Node, SGIItemOsg, DynamicCaster>();
-    if (!stateSet && node)
+    if(!stateSet && stateAttr)
+    {
+        stateSet = stateAttr->getParent(0);
+    }
+    else if (!stateSet && node)
     {
         if (create)
             stateSet = node->getOrCreateStateSet();
@@ -119,13 +124,49 @@ osg::StateSet * ShaderEditorDialog::getStateSet(bool create)
 osgEarth::VirtualProgram * ShaderEditorDialog::getVirtualProgram(bool create)
 {
     osgEarth::VirtualProgram * ret = nullptr;
-    osg::StateSet * stateSet = getStateSet(create);
-    if (stateSet)
+    osg::StateAttribute * stateAttr = getObject<osg::StateAttribute, SGIItemOsg, DynamicCaster>();
+    if(stateAttr)
     {
-        if(create)
-            ret = osgEarth::VirtualProgram::getOrCreate(stateSet);
-        else
-            ret = osgEarth::VirtualProgram::get(stateSet);
+        ret = dynamic_cast<osgEarth::VirtualProgram*>(stateAttr);
+    }
+    else
+    {
+        osg::StateSet * stateSet = getStateSet(create);
+        if (stateSet)
+        {
+            if(create)
+                ret = osgEarth::VirtualProgram::getOrCreate(stateSet);
+            else
+                ret = osgEarth::VirtualProgram::get(stateSet);
+        }
+    }
+    return ret;
+}
+
+osg::Program * ShaderEditorDialog::getProgram(bool create)
+{
+    osg::Program * ret = nullptr;
+    osg::StateAttribute * stateAttr = getObject<osg::StateAttribute, SGIItemOsg, DynamicCaster>();
+    if(stateAttr)
+    {
+        ret = dynamic_cast<osg::Program*>(stateAttr);
+    }
+    else
+    {
+        osg::StateSet * stateSet = getStateSet(create);
+        if (stateSet)
+        {
+            osg::StateAttribute * p = stateSet->getAttribute(osg::StateAttribute::PROGRAM);
+            ret = dynamic_cast<osg::Program*>(p);
+            if(create)
+            {
+                if(!p)
+                {
+                    ret = new osg::Program;
+                    stateSet->setAttribute(ret, osg::StateAttribute::ON);
+                }
+            }
+        }
     }
     return ret;
 }
@@ -267,90 +308,87 @@ void ShaderEditorDialog::reset()
 void ShaderEditorDialog::load()
 {
     bool foundShader = false;
-    osg::StateSet * stateSet = getStateSet();
-    if(stateSet)
+    _ready = false;
+    VirtualProgramAccessor* vp = static_cast<VirtualProgramAccessor*>(getVirtualProgram(false));
+    if(vp)
     {
-        _ready = false;
-        VirtualProgramAccessor* vp = static_cast<VirtualProgramAccessor*>(osgEarth::VirtualProgram::get(stateSet));
-        if(vp)
+        ui->vpInheritShaders->setChecked(vp->getInheritShaders());
+        ui->vpLog->setChecked(vp->getShaderLogging());
+        ui->vpLogFile->setText(qt_helpers::fromLocal8Bit(vp->getShaderLogFile()));
+
+        int tab = ui->tabShaders->indexOf(ui->tabVirtualProgram);
+        if (tab < 0)
+            ui->tabShaders->addTab(ui->tabVirtualProgram, tr("Virtual Program"));
+        ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabFragment));
+        ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabVertex));
+        ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabNoShader));
+
+        osgEarth::ShaderComp::FunctionLocationMap funcs;
+        vp->getFunctions(funcs);
+
+        ui->vpFunction->clear();
+        int index = -1;
+        int currentIndex = -1;
+        for(auto it = funcs.begin(); it != funcs.end(); ++it)
         {
-            ui->vpInheritShaders->setChecked(vp->getInheritShaders());
-            ui->vpLog->setChecked(vp->getShaderLogging());
-            ui->vpLogFile->setText(qt_helpers::fromLocal8Bit(vp->getShaderLogFile()));
-
-            int tab = ui->tabShaders->indexOf(ui->tabVirtualProgram);
-            if (tab < 0)
-                ui->tabShaders->addTab(ui->tabVirtualProgram, tr("Virtual Program"));
-            ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabFragment));
-            ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabVertex));
-            ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabNoShader));
-
-            osgEarth::ShaderComp::FunctionLocationMap funcs;
-            vp->getFunctions(funcs);
-
-            ui->vpFunction->clear();
-            int index = -1;
-            int currentIndex = -1;
-            for(auto it = funcs.begin(); it != funcs.end(); ++it)
+            const osgEarth::ShaderComp::FunctionLocation & loc = it->first;
+            const osgEarth::ShaderComp::OrderedFunctionMap & map = it->second;
+            for(auto it = map.begin(); it != map.end(); ++it)
             {
-                const osgEarth::ShaderComp::FunctionLocation & loc = it->first;
-                const osgEarth::ShaderComp::OrderedFunctionMap & map = it->second;
-                for(auto it = map.begin(); it != map.end(); ++it)
+                const float & order = it->first;
+                const osgEarth::ShaderComp::Function & func = it->second;
+                std::stringstream ss;
+                ss << loc << ':' << order << ' ' << func._name;
+                QString name = QString::fromStdString(ss.str());
+                ui->vpFunction->insertItem(++index, name, qHash(name));
+                switch (loc)
                 {
-                    const float & order = it->first;
-                    const osgEarth::ShaderComp::Function & func = it->second;
-                    std::stringstream ss;
-                    ss << loc << ':' << order << ' ' << func._name;
-                    QString name = QString::fromStdString(ss.str());
-                    ui->vpFunction->insertItem(++index, name, qHash(name));
-                    switch (loc)
-                    {
-                    case osgEarth::ShaderComp::LOCATION_FRAGMENT_COLORING:
-                    case osgEarth::ShaderComp::LOCATION_FRAGMENT_LIGHTING:
-                    case osgEarth::ShaderComp::LOCATION_FRAGMENT_OUTPUT:
+                case osgEarth::ShaderComp::LOCATION_FRAGMENT_COLORING:
+                case osgEarth::ShaderComp::LOCATION_FRAGMENT_LIGHTING:
+                case osgEarth::ShaderComp::LOCATION_FRAGMENT_OUTPUT:
+                    currentIndex = index;
+                    break;
+                default:
+                    if(currentIndex < 0)
                         currentIndex = index;
-                        break;
-                    default:
-                        if(currentIndex < 0)
-                            currentIndex = index;
-                        break;
-                    }
+                    break;
                 }
             }
-            ui->vpFunction->setCurrentIndex(index);
-            ui->vpFunction->blockSignals(false);
-            foundShader = true;
         }
-        else if(osg::Program * p = dynamic_cast<osg::Program*>(stateSet->getAttribute(osg::StateAttribute::PROGRAM)))
-        {
-            ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabVirtualProgram));
-            int tab = ui->tabShaders->indexOf(ui->tabFragment);
-            if (tab < 0)
-                ui->tabShaders->addTab(ui->tabFragment, tr("Fragment"));
-            tab = ui->tabShaders->indexOf(ui->tabVertex);
-            if (tab < 0)
-                ui->tabShaders->addTab(ui->tabVertex, tr("Vertex"));
-            ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabNoShader));
-            for(unsigned i = 0; i < p->getNumShaders(); ++i)
-            {
-                osg::Shader * shader = p->getShader(i);
-                if(shader)
-                {
-                    switch(shader->getType())
-                    {
-                    case osg::Shader::FRAGMENT:
-                        ui->shaderFragment->setText(QString::fromStdString(shader->getShaderSource()));
-                        break;
-                    case osg::Shader::VERTEX:
-                        ui->shaderVertex->setText(QString::fromStdString(shader->getShaderSource()));
-                        break;
-                    }
-                }
-            }
-            foundShader = true;
-        }
-        _ready = true;
+        ui->vpFunction->setCurrentIndex(index);
+        ui->vpFunction->blockSignals(false);
+        foundShader = true;
     }
+    else if(osg::Program * p = getProgram())
+    {
+        ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabVirtualProgram));
+        int tab = ui->tabShaders->indexOf(ui->tabFragment);
+        if (tab < 0)
+            ui->tabShaders->addTab(ui->tabFragment, tr("Fragment"));
+        tab = ui->tabShaders->indexOf(ui->tabVertex);
+        if (tab < 0)
+            ui->tabShaders->addTab(ui->tabVertex, tr("Vertex"));
+        ui->tabShaders->removeTab(ui->tabShaders->indexOf(ui->tabNoShader));
+        for(unsigned i = 0; i < p->getNumShaders(); ++i)
+        {
+            osg::Shader * shader = p->getShader(i);
+            if(shader)
+            {
+                switch(shader->getType())
+                {
+                case osg::Shader::FRAGMENT:
+                    ui->shaderFragment->setText(QString::fromStdString(shader->getShaderSource()));
+                    break;
+                case osg::Shader::VERTEX:
+                    ui->shaderVertex->setText(QString::fromStdString(shader->getShaderSource()));
+                    break;
+                }
+            }
+        }
+        foundShader = true;
+    }
+    _ready = true;
+
     if(!foundShader)
     {
         int tab = ui->tabShaders->indexOf(ui->tabNoShader);

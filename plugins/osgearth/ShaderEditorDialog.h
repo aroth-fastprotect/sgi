@@ -8,6 +8,7 @@ class Ui_ShaderEditorDialog;
 QT_END_NAMESPACE
 namespace osg {
     class StateSet;
+    class Program;
 }
 namespace osgEarth {
     class VirtualProgram;
@@ -44,6 +45,7 @@ protected slots:
 protected:
     osg::StateSet *         getStateSet(bool create = false);
     osgEarth::VirtualProgram * getVirtualProgram(bool create = false);
+    osg::Program *          getProgram(bool create = false);
     osgEarth::PolyShader *  getPolyShader(int index);
     bool                    removeVPShader(int index);
 
