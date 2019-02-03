@@ -357,18 +357,24 @@ osg::NotifySeverity severityFromString(const std::string & input)
 void initializeNotifyLevels(osg::ArgumentParser & arguments)
 {
     std::string osgnotifylevel;
+#ifdef SGI_USE_OSGEARTH
     std::string osgearthnotifylevel;
+#endif
     if (arguments.read("--debug"))
     {
         osgnotifylevel = "debug";
+#ifdef SGI_USE_OSGEARTH
         osgearthnotifylevel = "debug";
+#endif
     }
     else
     {
         if (!arguments.read("--osgdebug", osgnotifylevel))
             osgnotifylevel.clear();
+#ifdef SGI_USE_OSGEARTH
         if (!arguments.read("--earthdebug", osgearthnotifylevel))
             osgearthnotifylevel.clear();
+#endif
     }
     if (!osgnotifylevel.empty())
     {
@@ -376,15 +382,14 @@ void initializeNotifyLevels(osg::ArgumentParser & arguments)
         if (level >= 0)
             osg::setNotifyLevel(level);
     }
-
+#ifdef SGI_USE_OSGEARTH
     if (!osgearthnotifylevel.empty())
     {
         osg::NotifySeverity level = severityFromString(osgearthnotifylevel);
-#ifdef SGI_USE_OSGEARTH
         if (level >= 0)
             osgEarth::setNotifyLevel(level);
-#endif
     }
+#endif
 }
 
 bool KeyboardDumpHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa, osg::Object* obj, osg::NodeVisitor* nv)
@@ -872,8 +877,7 @@ osg::Group * sgi_MapNodeHelper::setupLight(osg::Group * root)
         sunLS->addChild(groupPhong);
         groupPhong->addChild(root);
 
-        // DO NOT run the shader generator because this would cause to model to go dark (again)!
-        //osgEarth::Registry::shaderGenerator().run(root);
+        osgEarth::Registry::shaderGenerator().run(root);
     }
 #endif
     return lights;
