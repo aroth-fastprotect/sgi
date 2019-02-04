@@ -142,6 +142,7 @@ SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osg::Object)
     osg::Callback,
     osg::StateSet,
+    osg::Shader,
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
     osgEarth::Map, 
     osgEarth::Layer,
@@ -158,6 +159,7 @@ SGI_OBJECT_INFO_BEGIN(osgDB::ReaderWriter)
     osgEarth::Features::FeatureSourceDriver
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osg::StateAttribute)
+    osg::Program,
     osgEarth::VirtualProgram
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osg::Node)

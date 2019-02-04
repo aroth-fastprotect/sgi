@@ -51,25 +51,64 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>4</number>
+      <number>1</number>
      </property>
-     <widget class="QWidget" name="tabVertex">
+     <widget class="QWidget" name="tabProgram">
       <attribute name="title">
-       <string>Vertex</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_3">
-       <item>
-        <widget class="QTextEdit" name="shaderVertex"/>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tabFragment">
-      <attribute name="title">
-       <string>Fragment</string>
+       <string>Program</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="QTextEdit" name="shaderFragment"/>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <widget class="QLabel" name="label_5">
+           <property name="text">
+            <string>Shader</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="progShader">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="progShaderAdd">
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset theme="list-add">
+             <normaloff>.</normaloff>.</iconset>
+           </property>
+           <property name="popupMode">
+            <enum>QToolButton::InstantPopup</enum>
+           </property>
+           <property name="arrowType">
+            <enum>Qt::RightArrow</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="progShaderRemove">
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset theme="list-remove">
+             <normaloff>.</normaloff>.</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="progShaderCode"/>
        </item>
       </layout>
      </widget>
@@ -168,7 +207,7 @@
         </layout>
        </item>
        <item>
-        <widget class="QTextEdit" name="shaderVP"/>
+        <widget class="QTextEdit" name="vpShaderCode"/>
        </item>
       </layout>
      </widget>
@@ -327,6 +366,54 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>progShader</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>progShaderChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>307</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>317</x>
+     <y>191</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>progShaderAdd</sender>
+   <signal>clicked()</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>progShaderAdd()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>572</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>317</x>
+     <y>191</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>progShaderRemove</sender>
+   <signal>clicked()</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>progShaderRemove()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>601</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>317</x>
+     <y>191</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>vpFunctionChanged(int)</slot>
@@ -337,5 +424,8 @@
   <slot>vpLogFile(QString)</slot>
   <slot>openItem()</slot>
   <slot>vpFunctionOrder()</slot>
+  <slot>progShaderChanged(int)</slot>
+  <slot>progShaderAdd()</slot>
+  <slot>progShaderRemove()</slot>
  </slots>
 </ui>

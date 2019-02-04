@@ -90,6 +90,7 @@ ShaderEditorDialog::ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface 
     , ui(new Ui_ShaderEditorDialog)
     , _ready(false)
     , _currentVPFunctionIndex(-1)
+    , _currentProgShaderIndex(-1)
  {
     ui->setupUi( this );
 
@@ -306,7 +307,7 @@ void ShaderEditorDialog::apply()
                     QString name = QString::fromStdString(ss.str());
                     if (qHash(name) == hash)
                     {
-                        std::string source = qt_helpers::toUtf8(ui->shaderVP->toPlainText());
+                        std::string source = qt_helpers::toUtf8(ui->vpShaderCode->toPlainText());
                         vp->setFunction(func._name, source, loc, order);
                         break;
                     }
@@ -369,8 +370,7 @@ void ShaderEditorDialog::load()
         ui->vpLogFile->setText(qt_helpers::fromLocal8Bit(vp->getShaderLogFile()));
 
         showHideTab(ui->tabWidget,ui->tabVirtualProgram, true);
-        showHideTab(ui->tabWidget,ui->tabFragment, false);
-        showHideTab(ui->tabWidget,ui->tabVertex, false);
+        showHideTab(ui->tabWidget,ui->tabProgram, false);
         showHideTab(ui->tabWidget,ui->tabNoShader, false);
         showHideTab(ui->tabWidget,ui->tabInfoLog, true);
         ui->tabWidget->setCurrentWidget(ui->tabVirtualProgram);
@@ -378,6 +378,7 @@ void ShaderEditorDialog::load()
         osgEarth::ShaderComp::FunctionLocationMap funcs;
         vp->getFunctions(funcs);
 
+        ui->vpFunction->blockSignals(true);
         ui->vpFunction->clear();
         int index = -1;
         int currentIndex = -1;
@@ -407,37 +408,51 @@ void ShaderEditorDialog::load()
                 }
             }
         }
-        ui->vpFunction->setCurrentIndex(index);
         ui->vpFunction->blockSignals(false);
+        ui->vpFunction->setCurrentIndex(currentIndex);
         foundShader = true;
     }
     else if(osg::Program * p = getProgram())
     {
         showHideTab(ui->tabWidget,ui->tabVirtualProgram, false);
-        showHideTab(ui->tabWidget,ui->tabFragment, true);
-        showHideTab(ui->tabWidget,ui->tabVertex, true);
+        showHideTab(ui->tabWidget,ui->tabProgram, true);
         showHideTab(ui->tabWidget,ui->tabNoShader, false);
         showHideTab(ui->tabWidget,ui->tabInfoLog, true);
-        ui->tabWidget->setCurrentWidget(ui->tabFragment);
+        ui->tabWidget->setCurrentWidget(ui->tabProgram);
 
         unsigned contextID = osg_helpers::findContextID(p);
+
+        ui->progShader->blockSignals(true);
+        ui->progShader->clear();
+
+        int index = -1;
+        int currentIndex = -1;
 
         for(unsigned i = 0; i < p->getNumShaders(); ++i)
         {
             osg::Shader * shader = p->getShader(i);
             if(shader)
             {
+                std::stringstream ss;
+                ss << shader->getTypename() << ':' << shader->getName();
+                QString name = QString::fromStdString(ss.str());
+                ui->progShader->insertItem(++index, name, i);
+
                 switch(shader->getType())
                 {
                 case osg::Shader::FRAGMENT:
-                    ui->shaderFragment->setText(QString::fromStdString(shader->getShaderSource()));
+                    currentIndex = index;
                     break;
-                case osg::Shader::VERTEX:
-                    ui->shaderVertex->setText(QString::fromStdString(shader->getShaderSource()));
+                default:
+                    if (currentIndex < 0)
+                        currentIndex = index;
                     break;
                 }
             }
         }
+        ui->progShader->blockSignals(false);
+        ui->progShader->setCurrentIndex(currentIndex);
+
         std::string log;
         p->getGlProgramInfoLog(contextID, log);
         setInfoLog(log);
@@ -448,8 +463,7 @@ void ShaderEditorDialog::load()
     if(!foundShader)
     {
         showHideTab(ui->tabWidget,ui->tabVirtualProgram, false);
-        showHideTab(ui->tabWidget,ui->tabFragment, false);
-        showHideTab(ui->tabWidget,ui->tabVertex, false);
+        showHideTab(ui->tabWidget,ui->tabProgram, false);
         showHideTab(ui->tabWidget,ui->tabNoShader, true);
         showHideTab(ui->tabWidget,ui->tabInfoLog, false);
         ui->tabWidget->setCurrentWidget(ui->tabNoShader);
@@ -492,7 +506,7 @@ void ShaderEditorDialog::loadInfoLog()
                 static_cast<ShaderAccess*>(shader)->getGlProgramInfoLog(contextID, log);
             }
             std::string src = sh->getShaderSource();
-            ui->shaderVP->setPlainText(qt_helpers::fromUtf8(src));
+            ui->vpShaderCode->setPlainText(qt_helpers::fromUtf8(src));
         }
         setInfoLog(log);
 
@@ -547,7 +561,7 @@ void ShaderEditorDialog::vpFunctionChanged(int index)
             static_cast<ShaderAccess*>(shader)->getGlProgramInfoLog(contextID, log);
         }
         std::string src = sh->getShaderSource();
-        ui->shaderVP->setPlainText(qt_helpers::fromUtf8(src));
+        ui->vpShaderCode->setPlainText(qt_helpers::fromUtf8(src));
     }
     setInfoLog(log);
     _currentVPFunctionIndex = index;
@@ -666,6 +680,39 @@ void ShaderEditorDialog::vpFunctionOrder()
         }
 
     }
+}
+
+void ShaderEditorDialog::progShaderChanged(int index)
+{
+    if (_ready)
+    {
+        // save current changes first
+        apply();
+    }
+
+    osg::Program * p = getProgram(false);
+    unsigned contextID = osg_helpers::findContextID(p);
+    osg::Shader * shader = p->getShader(index);
+    std::string log;
+    if (shader)
+    {
+        if (shader)
+        {
+            static_cast<ShaderAccess*>(shader)->getGlProgramInfoLog(contextID, log);
+        }
+        std::string src = shader->getShaderSource();
+        ui->progShaderCode->setPlainText(qt_helpers::fromUtf8(src));
+    }
+    setInfoLog(log);
+    _currentProgShaderIndex = index;
+}
+
+void ShaderEditorDialog::progShaderAdd()
+{
+}
+
+void ShaderEditorDialog::progShaderRemove()
+{
 }
 
 void ShaderEditorDialog::openItem()

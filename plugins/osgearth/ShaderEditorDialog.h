@@ -41,6 +41,10 @@ protected slots:
     void                    vpLogChanged(bool b);
     void                    vpLogFile(const QString & s);
 
+    void                    progShaderChanged(int index);
+    void                    progShaderAdd();
+    void                    progShaderRemove();
+
     void                    openItem();
 
 protected:
@@ -57,6 +61,7 @@ private:  // for now
     Ui_ShaderEditorDialog* ui;
     bool _ready;
     int _currentVPFunctionIndex;
+    int _currentProgShaderIndex;
 };
 
 } // namespace sgi

@@ -34,6 +34,8 @@ namespace osgearth_plugin {
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Node)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::StateSet)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Program)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Shader)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Registry)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Map)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNode)
@@ -95,6 +97,54 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
 bool contextMenuPopulateImpl<osg::StateSet>::populate(IContextMenuItem * menuItem)
 {
     osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+            {
+                manipulateMenu->addSimpleAction(MenuActionNodeEditShaders, "Edit shaders...", _item);
+            }
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::Program>::populate(IContextMenuItem * menuItem)
+{
+    osg::Program * object = getObject<osg::Program, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+            {
+                manipulateMenu->addSimpleAction(MenuActionNodeEditShaders, "Edit shaders...", _item);
+            }
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::Shader>::populate(IContextMenuItem * menuItem)
+{
+    osg::Shader * object = getObject<osg::Shader, SGIItemOsg>();
     bool ret = false;
     switch (itemType())
     {
