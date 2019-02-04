@@ -845,6 +845,7 @@ osg::Group * sgi_MapNodeHelper::setupLight(osg::Group * root)
         // remove GL_LIGHT0 from the stateSet to avoid GL errors about invalid enum
         sunLS->getStateSet()->removeMode(GL_LIGHT0 + lightNum);
 #endif
+        sunLS->getStateSet()->setDefine("OE_LIGHTING");
 
         osgEarth::Util::ShadowCaster* caster = osgEarth::findTopMostNodeOfType<osgEarth::Util::ShadowCaster>(root);
         if (caster)
