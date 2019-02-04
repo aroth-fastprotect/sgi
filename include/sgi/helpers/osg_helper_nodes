@@ -108,12 +108,15 @@ public:
     bool useCustomColor() const;
     bool useWhiteColorForTexture() const;
     void setCustomColor(const osg::Vec4 & c);
+    unsigned textureUnit() const;
+    bool useTextureModulate() const;
 
     osg::Vec4 color;
     osg::Image * image;
     bool useDefaultColor;
     bool useMaterial;
     bool useTextureCoordinates;
+    bool useNormals;
     bool useLogo;
 private:
     bool _useCustomColor;

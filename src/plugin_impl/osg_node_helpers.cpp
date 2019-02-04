@@ -18,6 +18,7 @@ GeometryParams::GeometryParams()
     , useDefaultColor(true)
     , useMaterial(false)
     , useTextureCoordinates(false)
+    , useNormals(true)
     , useLogo(false)
     , _useCustomColor(false)
 {}
@@ -42,6 +43,15 @@ bool GeometryParams::useWhiteColorForTexture() const
     return (image != nullptr || useLogo) && useDefaultColor;
 }
 
+unsigned GeometryParams::textureUnit() const
+{
+    return useMaterial ? 1 : 0;
+}
+
+bool GeometryParams::useTextureModulate() const
+{
+    return useMaterial;
+}
 
 namespace  {
     void applyMaterialToGeometry(osg::Geometry * g, const GeometryParams & params)
@@ -102,17 +112,14 @@ namespace  {
         if(params.useLogo)
         {
             osg::ref_ptr<osg::Image> logo = getSGILogoImage();
-            unsigned unit = params.useMaterial ? 1 : 0;
             bool modulate = params.useMaterial;
-            applyTextureToGeometry(g, unit, logo.get(), modulate);
+            applyTextureToGeometry(g, params.textureUnit(), logo.get(), params.useTextureModulate());
         }
     }
     void applyGeometryParams(osg::Geometry * g, const GeometryParams & params)
     {
         applyMaterialToGeometry(g, params);
-        unsigned unit = params.useMaterial ? 1 : 0;
-        bool modulate = params.useMaterial;
-        applyTextureToGeometry(g, unit, params.image, modulate);
+        applyTextureToGeometry(g, params.textureUnit(), params.image, params.useTextureModulate());
         applyLogoToGeometry(g, params);
     }
 }
@@ -142,9 +149,19 @@ osg::Geometry * createQuadGeometry(float w,float h, const GeometryParams & param
         (*tcoords)[3].set(0.0f*texcoord_x, texcoord_y_t);
         (*tcoords)[4].set(1.0f*texcoord_x, texcoord_y_b);
         (*tcoords)[5].set(1.0f*texcoord_x, texcoord_y_t);
-        geom->setTexCoordArray(0, tcoords);
+        geom->setTexCoordArray(params.textureUnit(), tcoords);
     }
-
+    if (params.useNormals)
+    {
+        osg::Vec3Array* normals = new osg::Vec3Array(6);
+        (*normals)[0].set(0.0f, 1.0f, 0.0f); // 0
+        (*normals)[1].set(0.0f, 1.0f, 0.0f); // 1
+        (*normals)[2].set(0.0f, 1.0f, 0.0f); // 2
+        (*normals)[3].set(0.0f, 1.0f, 0.0f); // 0
+        (*normals)[4].set(0.0f, 1.0f, 0.0f); // 2
+        (*normals)[5].set(0.0f, 1.0f, 0.0f); // 3
+        geom->setNormalArray(normals);
+    }
     if(!params.useMaterial)
     {
         osg::Vec4Array* colours = new osg::Vec4Array(6);
@@ -191,7 +208,15 @@ osg::Geometry * createTriangleGeometry(float s, const GeometryParams & params)
         (*tcoords)[0].set(0.0f, 0.0f);
         (*tcoords)[1].set(1.0f, 0.0f);
         (*tcoords)[2].set(0.5f, 1.0f);
-        geom->setTexCoordArray(0, tcoords);
+        geom->setTexCoordArray(params.textureUnit(), tcoords);
+    }
+    if (params.useNormals)
+    {
+        osg::Vec3Array* normals = new osg::Vec3Array(3);
+        (*normals)[0].set(0.0f, 1.0f, 0.0f); // 0
+        (*normals)[1].set(0.0f, 1.0f, 0.0f); // 1
+        (*normals)[2].set(0.0f, 1.0f, 0.0f); // 2
+        geom->setNormalArray(normals);
     }
 
     if(!params.useMaterial)
@@ -252,7 +277,20 @@ osg::Geometry * createBoxGeometry(const osg::Vec3 & size, const GeometryParams &
         (*tcoords)[5].set(1.0f, 0.0f);
         (*tcoords)[6].set(1.0f, 1.0f);
         (*tcoords)[7].set(0.0f, 1.0f);
-        geom->setTexCoordArray(0, tcoords);
+        geom->setTexCoordArray(params.textureUnit(), tcoords);
+    }
+    if (params.useNormals)
+    {
+        osg::Vec3Array* normals = new osg::Vec3Array(8);
+        (*normals)[0].set(0.0f, 0.0f,  1.0f);
+        (*normals)[1].set(0.0f, 0.0f,  1.0f);
+        (*normals)[2].set(0.0f, 0.0f,  1.0f);
+        (*normals)[3].set(0.0f, 0.0f,  1.0f);
+        (*normals)[4].set(0.0f, 0.0f, -1.0f);
+        (*normals)[5].set(0.0f, 0.0f, -1.0f);
+        (*normals)[6].set(0.0f, 0.0f, -1.0f);
+        (*normals)[7].set(0.0f, 0.0f, -1.0f);
+        geom->setNormalArray(normals);
     }
 
     if(!params.useMaterial)
