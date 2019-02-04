@@ -31,6 +31,7 @@ protected slots:
     void                    reset();
     void                    apply();
     void                    load();
+    void                    reload();
 
     void                    vpFunctionChanged(int index);
     void                    vpFunctionAdd(QAction * action);

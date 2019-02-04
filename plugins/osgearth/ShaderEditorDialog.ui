@@ -195,7 +195,7 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
-        <widget class="QPlainTextEdit" name="infoLog"/>
+        <widget class="QTextEdit" name="infoLog"/>
        </item>
       </layout>
      </widget>
@@ -207,7 +207,7 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Apply|QDialogButtonBox::Close|QDialogButtonBox::Reset</set>
+      <set>QDialogButtonBox::Apply|QDialogButtonBox::Close|QDialogButtonBox::Discard|QDialogButtonBox::Reset</set>
      </property>
     </widget>
    </item>

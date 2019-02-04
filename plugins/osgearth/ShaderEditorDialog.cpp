@@ -100,6 +100,8 @@ ShaderEditorDialog::ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface 
     connect(ui->buttonBox->button(QDialogButtonBox::Apply), &QPushButton::clicked, this, &ShaderEditorDialog::apply);
     connect(ui->buttonBox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, &ShaderEditorDialog::reset);
     ui->buttonBox->button(QDialogButtonBox::Reset)->setText(tr("Create Default"));
+    connect(ui->buttonBox->button(QDialogButtonBox::Discard), &QPushButton::clicked, this, &ShaderEditorDialog::reload);
+    ui->buttonBox->button(QDialogButtonBox::Discard)->setText(tr("Reload"));
 
     QMenu * addFunctionMenu = new QMenu(this);
     QActionGroup * addFunctionGroup = new QActionGroup(this);
@@ -452,16 +454,25 @@ void ShaderEditorDialog::load()
         showHideTab(ui->tabWidget,ui->tabInfoLog, false);
         ui->tabWidget->setCurrentWidget(ui->tabNoShader);
     }
+}
 
+void ShaderEditorDialog::reload()
+{
+    load();
 }
 
 void ShaderEditorDialog::setInfoLog(const std::string & log)
 {
-    if(!log.empty())
+    if (!log.empty())
+    {
         setTabIcon(ui->tabWidget, ui->tabInfoLog, QIcon::fromTheme("dialog-warning"));
+        ui->infoLog->setPlainText(QString::fromStdString(log));
+    }
     else
-        setTabIcon(ui->tabWidget, ui->tabInfoLog, QIcon());
-    ui->infoLog->setPlainText(QString::fromStdString(log));
+    {
+        setTabIcon(ui->tabWidget, ui->tabInfoLog, QIcon::fromTheme("dialog-ok"));
+        ui->infoLog->setHtml(QStringLiteral("<i>empty</i>"));
+    }
 }
 
 void ShaderEditorDialog::loadInfoLog()
