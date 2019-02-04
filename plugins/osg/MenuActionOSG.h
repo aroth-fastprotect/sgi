@@ -126,7 +126,6 @@ enum MenuAction {
 	MenuActionDrawableDirtyGLObjects,
     MenuActionDrawableUseVAO,
     MenuActionDrawableUseVBO,
-    MenuActionDrawableRenderInfoDrawCallback,
 	MenuActionShapeDrawableColor,
     MenuActionShapeDrawableBuild,
     MenuActionGeometryColor,

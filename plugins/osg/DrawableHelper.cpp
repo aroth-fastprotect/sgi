@@ -19,18 +19,7 @@ namespace osg_plugin {
 bool RenderInfo::isPresent(osg::Node * node)
 {
     bool ret = false;
-    osg::Group* group = node->asGroup();
-    osg::Geode* geode = node->asGeode();
-    if (geode)
-    {
-        unsigned numDrawables = geode->getNumDrawables();
-        for (unsigned n = 0; !ret && n < numDrawables; n++)
-        {
-            RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(geode->getDrawable(n));
-            ret = (renderInfoDrawable != nullptr);
-        }
-    }
-    else if (group)
+    if (osg::Group * group = node->asGroup())
     {
         unsigned numChilds = group->getNumChildren();
         for (unsigned n = 0; !ret && n < numChilds; n++)
@@ -39,30 +28,24 @@ bool RenderInfo::isPresent(osg::Node * node)
             ret = (renderInfoDrawable != nullptr);
         }
     }
+    else if (osg::Drawable * drawable = node->asDrawable())
+    {
+        RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(drawable);
+        ret = (renderInfoDrawable != nullptr);
+        if (!ret)
+        {
+            ret = hasDrawCallback(drawable);
+        }
+    }
     return ret;
 }
 
 bool RenderInfo::enable(osg::Node * node, bool enable)
 {
     bool ret = false;
-    osg::Group* group = node->asGroup();
-    osg::Geode* geode = node->asGeode();
     if (!enable)
     {
-        if (geode)
-        {
-            unsigned numDrawables = geode->getNumDrawables();
-            for (unsigned n = 0; !ret && n < numDrawables; n++)
-            {
-                RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(geode->getDrawable(n));
-                if (renderInfoDrawable)
-                {
-                    geode->removeDrawables(n, 1);
-                    ret = true;
-                }
-            }
-        }
-        else if(group)
+        if (osg::Group * group = node->asGroup())
         {
             unsigned numChilds = group->getNumChildren();
             for (unsigned n = 0; !ret && n < numChilds; n++)
@@ -75,19 +58,26 @@ bool RenderInfo::enable(osg::Node * node, bool enable)
                 }
             }
         }
+        else if (osg::Drawable * drawable = node->asDrawable())
+        {
+            RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(drawable);
+            if (renderInfoDrawable)
+            {
+                osg::Group * parent = renderInfoDrawable->getParent(0);
+                if (parent)
+                    parent->removeChild(renderInfoDrawable);
+            }
+            else
+            {
+                ret = installDrawCallback(drawable, false);
+            }
+        }
     }
     else
     {
-        if (geode)
-        {
-            unsigned numDrawables = geode->getNumDrawables();
-            for (unsigned n = 0; !ret && n < numDrawables; n++)
-            {
-                RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(geode->getDrawable(n));
-                ret = (renderInfoDrawable != nullptr);
-            }
-        }
-        else if (group)
+        osg::Group * group = node->asGroup();
+        osg::Drawable * drawable = node->asDrawable();
+        if (group)
         {
             unsigned numChilds = group->getNumChildren();
             for (unsigned n = 0; !ret && n < numChilds; n++)
@@ -96,13 +86,17 @@ bool RenderInfo::enable(osg::Node * node, bool enable)
                 ret = (renderInfoDrawable != nullptr);
             }
         }
+        else if (drawable)
+        {
+            RenderInfoDrawable * renderInfoDrawable = dynamic_cast<RenderInfoDrawable*>(drawable);
+            ret = (renderInfoDrawable != nullptr);
+        }
         if (!ret)
         {
-            if(geode)
-                geode->addDrawable(new RenderInfoDrawable());
-            else if(group)
+            if (group)
                 group->addChild(new RenderInfoDrawable());
-            ret = true;
+            else if (drawable)
+                ret = installDrawCallback(drawable, true);
         }
     }
     return ret;

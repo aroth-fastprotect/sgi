@@ -206,7 +206,6 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableSupportsDisplayList)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableDirtyGLObjects)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableUseVAO)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableUseVBO)
-ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDrawableRenderInfoDrawCallback)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionGeometryColor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionGeometryFixDeprecatedData)
@@ -2120,14 +2119,6 @@ bool actionHandlerImpl<MenuActionDrawableUseVBO>::execute()
 	object->setUseVertexBufferObjects(menuAction()->state());
 	triggerRepaint();
 	return true;
-}
-
-bool actionHandlerImpl<MenuActionDrawableRenderInfoDrawCallback>::execute()
-{
-    osg::Drawable * object = getObject<osg::Drawable, SGIItemOsg>();
-    RenderInfo::installDrawCallback(object, menuAction()->state());
-    triggerRepaint();
-    return true;
 }
 
 bool actionHandlerImpl<MenuActionGeometryColor>::execute()

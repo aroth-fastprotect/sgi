@@ -1642,7 +1642,6 @@ bool contextMenuPopulateImpl<osg::Drawable>::populate(IContextMenuItem * menuIte
 				manipulateMenu->addBoolAction(MenuActionDrawableSupportsDisplayList, "Supports display list", _item, object->getSupportsDisplayList());
                 manipulateMenu->addBoolAction(MenuActionDrawableUseVAO, "Use VAO", _item, object->getUseVertexArrayObject());
                 manipulateMenu->addBoolAction(MenuActionDrawableUseVBO, "Use VBO", _item, object->getUseVertexBufferObjects());
-                manipulateMenu->addBoolAction(MenuActionDrawableRenderInfoDrawCallback, "Render info draw callback", _item, RenderInfo::hasDrawCallback(object));
 			}
 
             SGIHostItemOsg shape(object->getShape());
