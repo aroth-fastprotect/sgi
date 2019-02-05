@@ -36,8 +36,8 @@ protected slots:
     void                    vpFunctionChanged(int index);
     void                    vpFunctionAdd(QAction * action);
     void                    vpFunctionRemove();
+    void                    vpFunctionDetails();
     void                    vpInheritShaders(bool b);
-    void                    vpFunctionOrder();
     void                    vpLogChanged(bool b);
     void                    vpLogFile(const QString & s);
 

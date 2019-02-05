@@ -15,6 +15,10 @@
 #include <osg/Node>
 #include "osgearth_accessor.h"
 
+#include "ShaderFunctionDetails.h"
+
+#include <QDebug>
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -75,8 +79,13 @@ namespace  {
             return false;
         }
     };
-
 }
+
+unsigned hashFunctionName(const osgEarth::ShaderComp::FunctionLocation & loc, float order, const std::string & name)
+{
+    return qHash((int)loc) ^ qHash(order) ^ qHashBits(name.c_str(), name.size());
+}
+
 #define AFM_ACTION(__def) { \
     QAction * a = new QAction(#__def, this); \
     a->setData(QVariant::fromValue((int)osgEarth::ShaderComp::__def)); \
@@ -221,10 +230,8 @@ osgEarth::PolyShader * ShaderEditorDialog::getPolyShader(int index)
             {
                 const float & order = it->first;
                 const osgEarth::ShaderComp::Function & func = it->second;
-                std::stringstream ss;
-                ss << loc << ':' << order << ' ' << func._name;
-                QString name = QString::fromStdString(ss.str());
-                if (qHash(name) == hash)
+                unsigned h = hashFunctionName(loc, order, func._name);
+                if (h == hash)
                 {
                     ret = vp->getPolyShader(func._name);
                 }
@@ -253,10 +260,8 @@ bool ShaderEditorDialog::removeVPShader(int index)
             {
                 const float & order = it->first;
                 const osgEarth::ShaderComp::Function & func = it->second;
-                std::stringstream ss;
-                ss << loc << ':' << order << ' ' << func._name;
-                QString name = QString::fromStdString(ss.str());
-                if (qHash(name) == hash)
+                unsigned h = hashFunctionName(loc, order, func._name);
+                if (h == hash)
                 {
                     vp->removeShader(func._name);
                     ret = true;
@@ -302,10 +307,8 @@ void ShaderEditorDialog::apply()
                 {
                     const float & order = it->first;
                     const osgEarth::ShaderComp::Function & func = it->second;
-                    std::stringstream ss;
-                    ss << loc << ':' << order << ' ' << func._name;
-                    QString name = QString::fromStdString(ss.str());
-                    if (qHash(name) == hash)
+                    unsigned h = hashFunctionName(loc, order, func._name);
+                    if (h == hash)
                     {
                         std::string source = qt_helpers::toUtf8(ui->vpShaderCode->toPlainText());
                         vp->setFunction(func._name, source, loc, order);
@@ -382,18 +385,20 @@ void ShaderEditorDialog::load()
         ui->vpFunction->clear();
         int index = -1;
         int currentIndex = -1;
-        for(auto it = funcs.begin(); it != funcs.end(); ++it)
+        for (auto itfunc = funcs.begin(); itfunc != funcs.end(); ++itfunc)
         {
-            const osgEarth::ShaderComp::FunctionLocation & loc = it->first;
-            const osgEarth::ShaderComp::OrderedFunctionMap & map = it->second;
-            for(auto it = map.begin(); it != map.end(); ++it)
+            const osgEarth::ShaderComp::FunctionLocation & loc = itfunc->first;
+            const osgEarth::ShaderComp::OrderedFunctionMap & map = itfunc->second;
+            for (auto itmap = map.begin(); itmap != map.end(); ++itmap)
             {
-                const float & order = it->first;
-                const osgEarth::ShaderComp::Function & func = it->second;
+                const float & order = itmap->first;
+                const osgEarth::ShaderComp::Function & func = itmap->second;
+                unsigned h = hashFunctionName(loc, order, func._name);
                 std::stringstream ss;
                 ss << loc << ':' << order << ' ' << func._name;
                 QString name = QString::fromStdString(ss.str());
-                ui->vpFunction->insertItem(++index, name, qHash(name));
+                qDebug() << loc << order << QString::fromStdString(func._name) << h;
+                ui->vpFunction->insertItem(++index, name, h);
                 switch (loc)
                 {
                 case osgEarth::ShaderComp::LOCATION_FRAGMENT_COLORING:
@@ -623,62 +628,25 @@ void ShaderEditorDialog::vpFunctionRemove()
 
 }
 
-void ShaderEditorDialog::vpFunctionOrder()
+void ShaderEditorDialog::vpFunctionDetails()
 {
     bool found = false;
-    double newOrder = 0;
     int index = ui->vpFunction->currentIndex();
+    if (index < 0)
+        return;
     uint hash = ui->vpFunction->itemData(index).toUInt();
+    qDebug() << __FUNCTION__ << hash;
     osgEarth::VirtualProgram * vp_ = getVirtualProgram(false);
     if (vp_)
     {
-        VirtualProgramAccessor * vp = static_cast<VirtualProgramAccessor*>(vp_);
-        osgEarth::ShaderComp::FunctionLocationMap funcs;
-        vp->getFunctions(funcs);
-
-        std::string functionName;
-        osgEarth::ShaderComp::FunctionLocation location = osgEarth::ShaderComp::LOCATION_UNDEFINED;
-        std::string source;
-
-        for (auto it = funcs.begin(); it != funcs.end(); ++it)
+        ShaderFunctionDetails * details = new ShaderFunctionDetails(vp_, hash, this);
+        details->exec();
+        if (details->hasModifications())
         {
-            const osgEarth::ShaderComp::FunctionLocation & loc = it->first;
-            const osgEarth::ShaderComp::OrderedFunctionMap & map = it->second;
-            for (auto it = map.begin(); it != map.end(); ++it)
-            {
-                const float & order = it->first;
-                const osgEarth::ShaderComp::Function & func = it->second;
-                std::stringstream ss;
-                ss << loc << ':' << order << ' ' << func._name;
-                QString name = QString::fromStdString(ss.str());
-                if (qHash(name) == hash)
-                {
-                    newOrder = order;
-                    functionName = func._name;
-                    location = loc;
-                    osgEarth::PolyShader * sh = vp->getPolyShader(functionName);
-                    if (sh)
-                        source = sh->getShaderSource();
-                    found = true;
-                }
-            }
+            // reload the shader because the function has changed
+            load();
         }
-        if (found)
-        {
-            vp->removeShader(functionName);
-            if (_hostInterface->inputDialogDouble(this, newOrder, "Order:", "Modify function order", 0.0, 100.0, 1, _item))
-            {
-                vp->setFunction(functionName, source, location, newOrder);
-
-                std::stringstream ss;
-                ss << location << ':' << newOrder << ' ' << functionName;
-                QString name = QString::fromStdString(ss.str());
-                ui->vpFunction->removeItem(index);
-                ui->vpFunction->insertItem(index, name, qHash(name));
-                ui->vpFunction->setCurrentIndex(index);
-            }
-        }
-
+        delete details;
     }
 }
 

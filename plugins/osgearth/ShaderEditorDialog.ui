@@ -166,7 +166,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="vpFunctionOrder">
+          <widget class="QToolButton" name="vpFunctionDetails">
            <property name="text">
             <string>...</string>
            </property>
@@ -351,10 +351,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>vpFunctionOrder</sender>
+   <sender>vpFunctionDetails</sender>
    <signal>clicked()</signal>
    <receiver>ShaderEditorDialog</receiver>
-   <slot>vpFunctionOrder()</slot>
+   <slot>vpFunctionDetails()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>304</x>
@@ -423,7 +423,7 @@
   <slot>vpLogChanged(bool)</slot>
   <slot>vpLogFile(QString)</slot>
   <slot>openItem()</slot>
-  <slot>vpFunctionOrder()</slot>
+  <slot>vpFunctionDetails()</slot>
   <slot>progShaderChanged(int)</slot>
   <slot>progShaderAdd()</slot>
   <slot>progShaderRemove()</slot>
