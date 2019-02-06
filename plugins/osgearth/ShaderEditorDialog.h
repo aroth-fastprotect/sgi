@@ -1,10 +1,12 @@
 #pragma once
 
 #include <QDialog>
+#include <QDockWidget>
 #include <sgi/plugins/SGISettingsWindowImpl>
 
 QT_BEGIN_NAMESPACE
 class Ui_ShaderEditorDialog;
+class QTextEdit;
 QT_END_NAMESPACE
 namespace osg {
     class StateSet;
@@ -16,6 +18,22 @@ namespace osgEarth {
 }
 
 namespace sgi {
+
+class ShaderEditorDialog;
+
+class InfoLogDock : public QDockWidget
+{
+    Q_OBJECT
+
+public:
+    InfoLogDock(ShaderEditorDialog * parent=nullptr);
+    ~InfoLogDock() override;
+
+    void setInfoLog(const std::string & log);
+
+private:
+    QTextEdit * _log;
+};
 
 class ShaderEditorDialog : public SettingsQMainWindowImpl
 {
@@ -54,11 +72,11 @@ protected:
     osgEarth::PolyShader *  getPolyShader(int index);
     bool                    removeVPShader(int index);
     void                    loadInfoLog();
-    void                    setInfoLog(const std::string & log);
 
 private:  // for now
     IHostCallbackPtr                _hostCallback;
     Ui_ShaderEditorDialog* ui;
+    InfoLogDock * _infoLogDock;
     bool _ready;
     int _currentVPFunctionIndex;
     int _currentProgShaderIndex;

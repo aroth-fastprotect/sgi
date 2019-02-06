@@ -31,6 +31,35 @@ extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const 
 
 using namespace osgearth_plugin;
 
+InfoLogDock::InfoLogDock(ShaderEditorDialog * parent)
+    : QDockWidget (parent)
+    , _log(nullptr)
+{
+    setWindowTitle(tr("Info log"));
+    _log = new QTextEdit(this);
+    setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    setWidget(_log);
+}
+
+InfoLogDock::~InfoLogDock()
+{
+}
+
+void InfoLogDock::setInfoLog(const std::string & log)
+{
+    if (!log.empty())
+    {
+        setWindowIcon(QIcon::fromTheme("dialog-warning"));
+        _log->setPlainText(QString::fromStdString(log));
+    }
+    else
+    {
+        setWindowIcon(QIcon::fromTheme("dialog-ok"));
+        _log->setHtml(QStringLiteral("<i>empty</i>"));
+    }
+}
+
+
 namespace  {
     static const char * default_vertex_shader =
             "#version " GLSL_VERSION_STR "\n"
@@ -97,6 +126,7 @@ ShaderEditorDialog::ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface 
     : SettingsQMainWindowImpl(parent, hostInterface, item, info)
     , _hostCallback(hostInterface->hostCallback())
     , ui(new Ui_ShaderEditorDialog)
+    , _infoLogDock(nullptr)
     , _ready(false)
     , _currentVPFunctionIndex(-1)
     , _currentProgShaderIndex(-1)
@@ -105,6 +135,9 @@ ShaderEditorDialog::ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface 
 
     for(int i = 0; i < ui->tabWidget->count(); ++i)
         ui->tabWidget->widget(i)->setWindowTitle(ui->tabWidget->tabText(i));
+
+    _infoLogDock = new InfoLogDock(this);
+    addDockWidget(Qt::RightDockWidgetArea, _infoLogDock);
 
     connect(ui->buttonBox->button(QDialogButtonBox::Close), &QPushButton::clicked, this, &ShaderEditorDialog::close);
     connect(ui->buttonBox->button(QDialogButtonBox::Apply), &QPushButton::clicked, this, &ShaderEditorDialog::apply);
@@ -375,7 +408,6 @@ void ShaderEditorDialog::load()
         showHideTab(ui->tabWidget,ui->tabVirtualProgram, true);
         showHideTab(ui->tabWidget,ui->tabProgram, false);
         showHideTab(ui->tabWidget,ui->tabNoShader, false);
-        showHideTab(ui->tabWidget,ui->tabInfoLog, true);
         ui->tabWidget->setCurrentWidget(ui->tabVirtualProgram);
 
         osgEarth::ShaderComp::FunctionLocationMap funcs;
@@ -422,7 +454,6 @@ void ShaderEditorDialog::load()
         showHideTab(ui->tabWidget,ui->tabVirtualProgram, false);
         showHideTab(ui->tabWidget,ui->tabProgram, true);
         showHideTab(ui->tabWidget,ui->tabNoShader, false);
-        showHideTab(ui->tabWidget,ui->tabInfoLog, true);
         ui->tabWidget->setCurrentWidget(ui->tabProgram);
 
         unsigned contextID = osg_helpers::findContextID(p);
@@ -460,7 +491,7 @@ void ShaderEditorDialog::load()
 
         std::string log;
         p->getGlProgramInfoLog(contextID, log);
-        setInfoLog(log);
+        _infoLogDock->setInfoLog(log);
         foundShader = true;
     }
     _ready = true;
@@ -470,7 +501,6 @@ void ShaderEditorDialog::load()
         showHideTab(ui->tabWidget,ui->tabVirtualProgram, false);
         showHideTab(ui->tabWidget,ui->tabProgram, false);
         showHideTab(ui->tabWidget,ui->tabNoShader, true);
-        showHideTab(ui->tabWidget,ui->tabInfoLog, false);
         ui->tabWidget->setCurrentWidget(ui->tabNoShader);
     }
 }
@@ -478,20 +508,6 @@ void ShaderEditorDialog::load()
 void ShaderEditorDialog::reload()
 {
     load();
-}
-
-void ShaderEditorDialog::setInfoLog(const std::string & log)
-{
-    if (!log.empty())
-    {
-        setTabIcon(ui->tabWidget, ui->tabInfoLog, QIcon::fromTheme("dialog-warning"));
-        ui->infoLog->setPlainText(QString::fromStdString(log));
-    }
-    else
-    {
-        setTabIcon(ui->tabWidget, ui->tabInfoLog, QIcon::fromTheme("dialog-ok"));
-        ui->infoLog->setHtml(QStringLiteral("<i>empty</i>"));
-    }
 }
 
 void ShaderEditorDialog::loadInfoLog()
@@ -513,7 +529,7 @@ void ShaderEditorDialog::loadInfoLog()
             std::string src = sh->getShaderSource();
             ui->vpShaderCode->setPlainText(qt_helpers::fromUtf8(src));
         }
-        setInfoLog(log);
+        _infoLogDock->setInfoLog(log);
 
     }
     else if(osg::Program * p = getProgram())
@@ -521,7 +537,7 @@ void ShaderEditorDialog::loadInfoLog()
         unsigned contextID = osg_helpers::findContextID(p);
         std::string log;
         p->getGlProgramInfoLog(contextID, log);
-        setInfoLog(log);
+        _infoLogDock->setInfoLog(log);
     }
 }
 
@@ -568,7 +584,7 @@ void ShaderEditorDialog::vpFunctionChanged(int index)
         std::string src = sh->getShaderSource();
         ui->vpShaderCode->setPlainText(qt_helpers::fromUtf8(src));
     }
-    setInfoLog(log);
+    _infoLogDock->setInfoLog(log);
     _currentVPFunctionIndex = index;
 }
 
@@ -671,7 +687,7 @@ void ShaderEditorDialog::progShaderChanged(int index)
         std::string src = shader->getShaderSource();
         ui->progShaderCode->setPlainText(qt_helpers::fromUtf8(src));
     }
-    setInfoLog(log);
+    _infoLogDock->setInfoLog(log);
     _currentProgShaderIndex = index;
 }
 
