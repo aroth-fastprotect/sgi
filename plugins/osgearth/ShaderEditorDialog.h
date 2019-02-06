@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QDialog>
-#include <sgi/plugins/SGISettingsDialogImpl>
+#include <sgi/plugins/SGISettingsWindowImpl>
 
 QT_BEGIN_NAMESPACE
 class Ui_ShaderEditorDialog;
@@ -17,7 +17,7 @@ namespace osgEarth {
 
 namespace sgi {
 
-class ShaderEditorDialog : public SettingsQDialogImpl
+class ShaderEditorDialog : public SettingsQMainWindowImpl
 {
     Q_OBJECT
 

@@ -92,7 +92,14 @@ class SettingsQDialogImplT : public DIALOG_CLASS, public details::functionImplBa
         void            show() override { _dialog->show(); }
         void            hide() override { _dialog->hide(); }
         bool            isVisible() override { return _dialog->isVisible(); }
-        int             showModal() override { return _dialog->exec(); }
+        int             showModal() override {
+            if(QDialog* dlg = qobject_cast<QDialog*>(_dialog))
+                return dlg->exec();
+            else {
+                _dialog->show();
+                return 0;
+            }
+        }
     };
 
 public:

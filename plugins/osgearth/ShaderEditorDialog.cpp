@@ -94,7 +94,7 @@ unsigned hashFunctionName(const osgEarth::ShaderComp::FunctionLocation & loc, fl
      }
 
 ShaderEditorDialog::ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface * hostInterface, SGIItemBase * item, ISettingsDialogInfo * info)
-    : SettingsQDialogImpl(parent, hostInterface, item, info)
+    : SettingsQMainWindowImpl(parent, hostInterface, item, info)
     , _hostCallback(hostInterface->hostCallback())
     , ui(new Ui_ShaderEditorDialog)
     , _ready(false)
