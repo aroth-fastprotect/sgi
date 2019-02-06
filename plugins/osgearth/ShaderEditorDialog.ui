@@ -53,14 +53,11 @@
      </layout>
     </item>
     <item>
-     <widget class="QTabWidget" name="tabWidget">
+     <widget class="QStackedWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tabProgram">
-       <attribute name="title">
-        <string>Program</string>
-       </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -83,18 +80,11 @@
           </item>
           <item>
            <widget class="QToolButton" name="progShaderAdd">
-            <property name="text">
-             <string>...</string>
-            </property>
             <property name="icon">
-             <iconset theme="list-add">
-              <normaloff>.</normaloff>.</iconset>
+             <iconset theme="list-add"/>
             </property>
             <property name="popupMode">
              <enum>QToolButton::InstantPopup</enum>
-            </property>
-            <property name="arrowType">
-             <enum>Qt::RightArrow</enum>
             </property>
            </widget>
           </item>
@@ -117,9 +107,6 @@
        </layout>
       </widget>
       <widget class="QWidget" name="tabVirtualProgram">
-       <attribute name="title">
-        <string>Virtual Program</string>
-       </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -182,18 +169,11 @@
           </item>
           <item>
            <widget class="QToolButton" name="vpFunctionAdd">
-            <property name="text">
-             <string>...</string>
-            </property>
             <property name="icon">
-             <iconset theme="list-add">
-              <normaloff>.</normaloff>.</iconset>
+             <iconset theme="list-add"/>
             </property>
             <property name="popupMode">
              <enum>QToolButton::InstantPopup</enum>
-            </property>
-            <property name="arrowType">
-             <enum>Qt::RightArrow</enum>
             </property>
            </widget>
           </item>
@@ -216,9 +196,6 @@
        </layout>
       </widget>
       <widget class="QWidget" name="tabNoShader">
-       <attribute name="title">
-        <string>No Shader</string>
-       </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_5">
         <item>
          <widget class="QLabel" name="label_2">

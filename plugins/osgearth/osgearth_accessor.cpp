@@ -193,6 +193,15 @@ void RTTPickerAccess::getPickContexts(PickContexts & contexts) const
     contexts = _pickContexts;
 }
 
+void PolyShaderAccessor::resetShaders()
+{
+    _nominalShader = nullptr;
+    _geomShader = nullptr;
+    _tessevalShader = nullptr;
+    _dirty = true;
+}
+
+
 #if 0
 void VirtualProgramAccessor::getProgramCache(ProgramMap & programCache)
 {

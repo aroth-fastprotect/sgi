@@ -8,6 +8,7 @@ QT_BEGIN_NAMESPACE
 class Ui_ShaderEditorDialog;
 class QTextEdit;
 class QTableView;
+class QTreeView;
 class QTemporaryFile;
 QT_END_NAMESPACE
 namespace osg {
@@ -47,6 +48,18 @@ private:
     std::string _infoLog;
     QString _logFilename;
     QByteArray _logFileData;
+};
+
+class UniformEditDock : public QDockWidget
+{
+    Q_OBJECT
+
+public:
+    UniformEditDock(ShaderEditorDialog * parent = nullptr);
+    ~UniformEditDock() override;
+
+private:
+    QTreeView * _tree;
 };
 
 class ShaderEditorDialog : public SettingsQMainWindowImpl
@@ -94,6 +107,7 @@ private:  // for now
     IHostCallbackPtr                _hostCallback;
     Ui_ShaderEditorDialog* ui;
     InfoLogDock * _infoLogDock;
+    UniformEditDock * _uniformEditDock;
     bool _ready;
     int _currentVPFunctionIndex;
     int _currentProgShaderIndex;

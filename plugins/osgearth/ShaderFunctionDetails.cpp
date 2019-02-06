@@ -4,10 +4,8 @@
 #include <ui_ShaderFunctionDetails.h>
 
 #include <QPushButton>
-#include <QDebug>
 
 #include <osgEarth/VirtualProgram>
-#include <sstream>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -106,7 +104,6 @@ void ShaderFunctionDetails::load()
                 const float & order = itmap->first;
                 const osgEarth::ShaderComp::Function & func = itmap->second;
                 unsigned h = hashFunctionName(loc, order, func._name);
-                qDebug() << loc << order << QString::fromStdString(func._name) << h;
                 if (h == d->_functionHash)
                 {
                     functionOrder = order;

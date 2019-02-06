@@ -10,6 +10,7 @@
 #include <QTemporaryFile>
 #include <QPushButton>
 #include <QTimer>
+#include <QTreeView>
 
 #include <ui_ShaderEditorDialog.h>
 
@@ -18,8 +19,6 @@
 #include "osgearth_accessor.h"
 
 #include "ShaderFunctionDetails.h"
-
-#include <QDebug>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -131,6 +130,19 @@ void InfoLogDock::setInfoLog(const std::string & log)
     }
 }
 
+UniformEditDock::UniformEditDock(ShaderEditorDialog * parent)
+    : QDockWidget(parent)
+    , _tree(nullptr)
+{
+    setWindowTitle(tr("Uniforms"));
+    _tree = new QTreeView(this);
+    setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    setWidget(_tree);
+}
+
+UniformEditDock::~UniformEditDock()
+{
+}
 
 namespace  {
     static const char * default_vertex_shader =
@@ -199,6 +211,7 @@ ShaderEditorDialog::ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface 
     , _hostCallback(hostInterface->hostCallback())
     , ui(new Ui_ShaderEditorDialog)
     , _infoLogDock(nullptr)
+    , _uniformEditDock(nullptr)
     , _ready(false)
     , _currentVPFunctionIndex(-1)
     , _currentProgShaderIndex(-1)
@@ -208,11 +221,11 @@ ShaderEditorDialog::ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface 
 {
     ui->setupUi( this );
 
-    for(int i = 0; i < ui->tabWidget->count(); ++i)
-        ui->tabWidget->widget(i)->setWindowTitle(ui->tabWidget->tabText(i));
-
     _infoLogDock = new InfoLogDock(this);
+    _uniformEditDock = new UniformEditDock(this);
     addDockWidget(Qt::RightDockWidgetArea, _infoLogDock);
+    addDockWidget(Qt::RightDockWidgetArea, _uniformEditDock);
+    tabifyDockWidget(_infoLogDock, _uniformEditDock);
 
     connect(ui->buttonBox->button(QDialogButtonBox::Close), &QPushButton::clicked, this, &ShaderEditorDialog::close);
     connect(ui->buttonBox->button(QDialogButtonBox::Apply), &QPushButton::clicked, this, &ShaderEditorDialog::apply);
@@ -412,18 +425,6 @@ bool ShaderEditorDialog::removeVPShader(int index)
     return ret;
 }
 
-class PolyShaderAccess : public osgEarth::PolyShader
-{
-public:
-    void resetShaders()
-    {
-        _nominalShader = nullptr;
-        _geomShader = nullptr;
-        _tessevalShader = nullptr;
-        _dirty = true;
-    }
-};
-
 void ShaderEditorDialog::apply()
 {
     if (!_ready)
@@ -480,27 +481,6 @@ void ShaderEditorDialog::reset()
     load();
 }
 
-namespace {
-    void showHideTab(QTabWidget * tab, QWidget * w, bool visible)
-    {
-        if(visible)
-        {
-            int index = tab->indexOf(w);
-            if (index < 0)
-                tab->addTab(w, w->windowTitle());
-        }
-        else {
-            tab->removeTab(tab->indexOf(w));
-        }
-    }
-    void setTabIcon(QTabWidget * tab, QWidget * w, const QIcon & ico)
-    {
-        int index = tab->indexOf(w);
-        if (index >= 0)
-            tab->setTabIcon(index, ico);
-    }
-}
-
 void ShaderEditorDialog::load()
 {
     bool foundShader = false;
@@ -512,9 +492,6 @@ void ShaderEditorDialog::load()
         ui->vpLog->setChecked(vp->getShaderLogging());
         ui->vpLogFile->setText(qt_helpers::fromLocal8Bit(vp->getShaderLogFile()));
 
-        showHideTab(ui->tabWidget,ui->tabVirtualProgram, true);
-        showHideTab(ui->tabWidget,ui->tabProgram, false);
-        showHideTab(ui->tabWidget,ui->tabNoShader, false);
         ui->tabWidget->setCurrentWidget(ui->tabVirtualProgram);
 
         osgEarth::ShaderComp::FunctionLocationMap funcs;
@@ -536,7 +513,6 @@ void ShaderEditorDialog::load()
                 std::stringstream ss;
                 ss << loc << ':' << order << ' ' << func._name;
                 QString name = QString::fromStdString(ss.str());
-                qDebug() << loc << order << QString::fromStdString(func._name) << h;
                 ui->vpFunction->insertItem(++index, name, h);
                 switch (loc)
                 {
@@ -558,9 +534,6 @@ void ShaderEditorDialog::load()
     }
     else if(osg::Program * p = getProgram())
     {
-        showHideTab(ui->tabWidget,ui->tabVirtualProgram, false);
-        showHideTab(ui->tabWidget,ui->tabProgram, true);
-        showHideTab(ui->tabWidget,ui->tabNoShader, false);
         ui->tabWidget->setCurrentWidget(ui->tabProgram);
 
         unsigned contextID = osg_helpers::findContextID(p);
@@ -605,9 +578,6 @@ void ShaderEditorDialog::load()
 
     if(!foundShader)
     {
-        showHideTab(ui->tabWidget,ui->tabVirtualProgram, false);
-        showHideTab(ui->tabWidget,ui->tabProgram, false);
-        showHideTab(ui->tabWidget,ui->tabNoShader, true);
         ui->tabWidget->setCurrentWidget(ui->tabNoShader);
     }
 }
@@ -758,7 +728,6 @@ void ShaderEditorDialog::vpFunctionDetails()
     if (index < 0)
         return;
     uint hash = ui->vpFunction->itemData(index).toUInt();
-    qDebug() << __FUNCTION__ << hash;
     osgEarth::VirtualProgram * vp_ = getVirtualProgram(false);
     if (vp_)
     {

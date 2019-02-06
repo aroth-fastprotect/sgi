@@ -222,6 +222,7 @@ namespace osgearth_plugin {
     public:
         osg::Shader* getGeometryShader() const { return _geomShader.get(); }
         osg::Shader* getTessellationShader() const { return _tessevalShader.get(); }
+        void resetShaders();
     };
 
     class VirtualProgramAccessor : public osgEarth::VirtualProgram
