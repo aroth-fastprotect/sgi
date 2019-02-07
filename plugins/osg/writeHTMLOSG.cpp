@@ -1794,56 +1794,6 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Un
     return os << osg::Uniform::getTypename(t);
 }
 
-#define writePrettyHTMLImpl_Uniform_Data(__gl_type, __c_type) \
-    case osg::Uniform::__gl_type: \
-        { \
-            os << std::setprecision(12); \
-            if( object->getNumElements() == 0) \
-                os << "<i>empty</i>"; \
-            else if( object->getNumElements() == 1) \
-            { \
-                __c_type val; \
-                object->getElement(0, val); \
-                os << "<li>" << val << "</li>" << std::endl; \
-            } \
-            else { \
-                os << "<ol>"; \
-                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
-                { \
-                    __c_type val; \
-                    object->getElement(n, val); \
-                    os << "<li>" << val << "</li>" << std::endl; \
-                } \
-                os << "</ol>"; \
-            } \
-        } \
-        break
-
-#define writePrettyHTMLImpl_Uniform_Sampler(__gl_type) \
-    case osg::Uniform::__gl_type: \
-        { \
-            os << std::setprecision(12); \
-            if( object->getNumElements() == 0) \
-                os << "<i>empty</i>"; \
-            else if( object->getNumElements() == 1) \
-            { \
-                int val; \
-                object->getElement(0, val); \
-                os << "<li>Id=" << val << "</li>" << std::endl; \
-            } \
-            else { \
-                os << "<ol>"; \
-                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
-                { \
-                    int val; \
-                    object->getElement(n, val); \
-                    os << "<li>Id=" << val << "</li>" << std::endl; \
-                } \
-                os << "</ol>"; \
-            } \
-        } \
-        break
-
 bool writePrettyHTMLImpl<osg::Uniform>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -1865,52 +1815,7 @@ bool writePrettyHTMLImpl<osg::Uniform>::process(std::basic_ostream<char>& os)
             os << "<tr><td>modifiedCount</td><td>" << object->getModifiedCount() << "</td></tr>" << std::endl;
             os << "<tr><td>nameID</td><td>" << object->getNameID() << "</td></tr>" << std::endl;
             
-            os << "<tr><td>data</td><td>";
-            switch(object->getType())
-            {
-            case osg::Uniform::UNDEFINED:
-                os << "undefined";
-                break;
-            writePrettyHTMLImpl_Uniform_Data(BOOL, bool);
-            writePrettyHTMLImpl_Uniform_Data(FLOAT, float);
-            writePrettyHTMLImpl_Uniform_Data(FLOAT_VEC2, osg::Vec2f);
-            writePrettyHTMLImpl_Uniform_Data(FLOAT_VEC3, osg::Vec3f);
-            writePrettyHTMLImpl_Uniform_Data(FLOAT_VEC4, osg::Vec4f);
-            writePrettyHTMLImpl_Uniform_Data(DOUBLE, double);
-            writePrettyHTMLImpl_Uniform_Data(DOUBLE_VEC2, osg::Vec2d);
-            writePrettyHTMLImpl_Uniform_Data(DOUBLE_VEC3, osg::Vec3d);
-            writePrettyHTMLImpl_Uniform_Data(DOUBLE_VEC4, osg::Vec4d);
-            writePrettyHTMLImpl_Uniform_Data(INT, int);
-            //writePrettyHTMLImpl_Uniform_Data(INT_VEC2, osg::Vec2i);
-            //writePrettyHTMLImpl_Uniform_Data(INT_VEC3, osg::Vec3i);
-            //writePrettyHTMLImpl_Uniform_Data(INT_VEC4, osg::Vec4i);
-            writePrettyHTMLImpl_Uniform_Data(UNSIGNED_INT, unsigned int);
-            //writePrettyHTMLImpl_Uniform_Data(UNSIGNED_INT_VEC2, osg::Vec2ui);
-            //writePrettyHTMLImpl_Uniform_Data(UNSIGNED_INT_VEC3, osg::Vec3ui);
-            //writePrettyHTMLImpl_Uniform_Data(UNSIGNED_INT_VEC4, osg::Vec4ui);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_1D);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_3D);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_CUBE);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_1D_SHADOW);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_SHADOW);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_1D_ARRAY);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_ARRAY);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_CUBE_MAP_ARRAY);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_1D_ARRAY_SHADOW);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_ARRAY_SHADOW);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_MULTISAMPLE);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_MULTISAMPLE_ARRAY);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_CUBE_SHADOW);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_CUBE_MAP_ARRAY_SHADOW);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_BUFFER);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_RECT);
-            writePrettyHTMLImpl_Uniform_Sampler(SAMPLER_2D_RECT_SHADOW);
-
-            default:
-                os << "<i>Type " << object->getType() << " not implemented.</i>";
-                break;
-            }
+            os << "<tr><td>data</td><td>" << osg_helpers::uniformToHTML(object) << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;

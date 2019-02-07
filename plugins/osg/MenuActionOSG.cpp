@@ -1359,22 +1359,6 @@ bool actionHandlerImpl<MenuActionUniformDirty>::execute()
     return true;
 }
 
-#define UNIFORM_EDIT_TYPE(__uniform_type, __element_type) \
-    case osg::Uniform::__uniform_type: { \
-        __element_type value; \
-        object->get(value); \
-        std::stringstream ss; \
-        ss << value; \
-        std::string str_value = ss.str(); \
-        bool ret = _hostInterface->inputDialogString(menu()->parentWidget(), str_value, "Value:", object->getName() + " Value", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item); \
-        if (ret) { \
-            std::stringstream in(str_value); \
-            in >> value; \
-            object->set(value); \
-        } \
-    } \
-    break; \
-
 bool actionHandlerImpl<MenuActionUniformEdit>::execute()
 {
     osg::Uniform * object = getObject<osg::Uniform, SGIItemOsg, DynamicCaster>();
@@ -1464,36 +1448,19 @@ bool actionHandlerImpl<MenuActionUniformEdit>::execute()
                 object->set(value);
         }
         break;
-    UNIFORM_EDIT_TYPE(FLOAT_VEC2, osg::Vec2);
-    UNIFORM_EDIT_TYPE(FLOAT_VEC3, osg::Vec3);
-    UNIFORM_EDIT_TYPE(FLOAT_VEC4, osg::Vec4);
-    UNIFORM_EDIT_TYPE(DOUBLE_VEC2, osg::Vec2d);
-    UNIFORM_EDIT_TYPE(DOUBLE_VEC3, osg::Vec3d);
-    UNIFORM_EDIT_TYPE(DOUBLE_VEC4, osg::Vec4d);
     default:
-        // Type not yet implemented
+        {
+            bool ok = false;
+            std::string str_value = osg_helpers::uniformToString(object, &ok);
+            bool ret = _hostInterface->inputDialogString(menu()->parentWidget(), str_value, "Value:", object->getName() + " Value", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
+            if (ret) {
+                osg_helpers::stringToUniform(str_value, object);
+            }
+        }
         break;
     }
     return true;
 }
-
-#define writeDrawElementsDataImpl(__elem_type) \
-    { \
-        const __elem_type * d = (const __elem_type*)object->getDataPointer(); \
-        for(unsigned n = 0; n < object->getNumElements(); n++) \
-            os << d[n] << std::endl; \
-    }
-
-#define readDrawElementsDataImpl(__elem_type) \
-    { \
-        unsigned d = (__elem_type*)object->getElement(); \
-        for(unsigned n = 0; n < tokens.size(); n++) \
-        { \
-            std::istringstream ss(tokens[n]); \
-            ss >> d[n]; \
-        } \
-    }
-
 
 bool actionHandlerImpl<MenuActionBufferDataEdit>::execute()
 {

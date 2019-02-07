@@ -11,7 +11,10 @@
 #include <QPushButton>
 #include <QTextStream>
 #include <QTimer>
-#include <QTreeView>
+#include <QTableView>
+#include <QVector2D>
+#include <QVector3D>
+#include <QVector4D>
 
 #include <ui_ShaderEditorDialog.h>
 
@@ -32,6 +35,33 @@ extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const 
 } // namespace osgearth_plugin
 
 using namespace osgearth_plugin;
+
+namespace {
+    QVector2D convertToQt(const osg::Vec2f & v)
+    {
+        return QVector2D(v.x(), v.y());
+    }
+    QVector2D convertToQt(const osg::Vec2d & v)
+    {
+        return QVector2D(v.x(), v.y());
+    }
+    QVector3D convertToQt(const osg::Vec3f & v)
+    {
+        return QVector3D(v.x(), v.y(), v.z());
+    }
+    QVector3D convertToQt(const osg::Vec3d & v)
+    {
+        return QVector3D(v.x(), v.y(), v.z());
+    }
+    QVector4D convertToQt(const osg::Vec4f & v)
+    {
+        return QVector4D(v.x(), v.y(), v.z(), v.w());
+    }
+    QVector4D convertToQt(const osg::Vec4d & v)
+    {
+        return QVector4D(v.x(), v.y(), v.z(), v.w());
+    }
+}
 
 InfoLogDock::InfoLogDock(ShaderEditorDialog * parent)
     : QDockWidget (parent)
@@ -132,18 +162,296 @@ void InfoLogDock::setInfoLog(const std::string & log)
     }
 }
 
+#define uniformToQVariant_Data(__gl_type, __c_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            __c_type value = __c_type(); \
+            if (object->get(value)) \
+                ret = value; \
+        } \
+        break
+
+#define uniformToQVariant_Vector(__gl_type, __c_type, __q_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            __c_type value = __c_type(); \
+            if (object->get(value)) { \
+                __q_type qvalue = convertToQt(value); \
+                ret = qvalue; \
+            }\
+        } \
+        break
+
+#define uniformToQVariant_Sampler(__gl_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+        } \
+        break
+
+namespace {
+    QVariant uniformToQVariant(const osg::Uniform * object)
+    {
+        QVariant ret;
+        switch (object->getType())
+        {
+        case osg::Uniform::UNDEFINED:
+            break;
+        uniformToQVariant_Data(BOOL, bool);
+        uniformToQVariant_Data(FLOAT, float);
+        uniformToQVariant_Vector(FLOAT_VEC2, osg::Vec2f, QVector2D);
+        uniformToQVariant_Vector(FLOAT_VEC3, osg::Vec3f, QVector3D);
+        uniformToQVariant_Vector(FLOAT_VEC4, osg::Vec4f, QVector4D);
+        uniformToQVariant_Data(DOUBLE, double);
+        uniformToQVariant_Vector(DOUBLE_VEC2, osg::Vec2d, QVector2D);
+        uniformToQVariant_Vector(DOUBLE_VEC3, osg::Vec3d, QVector3D);
+        uniformToQVariant_Vector(DOUBLE_VEC4, osg::Vec4d, QVector4D);
+        uniformToQVariant_Data(INT, int);
+        //uniformToQVariant_Data(INT_VEC2, osg::Vec2i);
+        //uniformToQVariant_Data(INT_VEC3, osg::Vec3i);
+        //uniformToQVariant_Data(INT_VEC4, osg::Vec4i);
+        uniformToQVariant_Data(UNSIGNED_INT, unsigned int);
+        //uniformToQVariant_Data(UNSIGNED_INT_VEC2, osg::Vec2ui);
+        //uniformToQVariant_Data(UNSIGNED_INT_VEC3, osg::Vec3ui);
+        //uniformToQVariant_Data(UNSIGNED_INT_VEC4, osg::Vec4ui);
+        uniformToQVariant_Sampler(SAMPLER_1D);
+        uniformToQVariant_Sampler(SAMPLER_2D);
+        uniformToQVariant_Sampler(SAMPLER_3D);
+        uniformToQVariant_Sampler(SAMPLER_CUBE);
+        uniformToQVariant_Sampler(SAMPLER_1D_SHADOW);
+        uniformToQVariant_Sampler(SAMPLER_2D_SHADOW);
+        uniformToQVariant_Sampler(SAMPLER_1D_ARRAY);
+        uniformToQVariant_Sampler(SAMPLER_2D_ARRAY);
+        uniformToQVariant_Sampler(SAMPLER_CUBE_MAP_ARRAY);
+        uniformToQVariant_Sampler(SAMPLER_1D_ARRAY_SHADOW);
+        uniformToQVariant_Sampler(SAMPLER_2D_ARRAY_SHADOW);
+        uniformToQVariant_Sampler(SAMPLER_2D_MULTISAMPLE);
+        uniformToQVariant_Sampler(SAMPLER_2D_MULTISAMPLE_ARRAY);
+        uniformToQVariant_Sampler(SAMPLER_CUBE_SHADOW);
+        uniformToQVariant_Sampler(SAMPLER_CUBE_MAP_ARRAY_SHADOW);
+        uniformToQVariant_Sampler(SAMPLER_BUFFER);
+        uniformToQVariant_Sampler(SAMPLER_2D_RECT);
+        uniformToQVariant_Sampler(SAMPLER_2D_RECT_SHADOW);
+        default:
+            break;
+        }
+        return ret;
+    }
+} // namespace
+
+class UniformModel::Private
+{
+public:
+    ShaderEditorDialog * dialog;
+    struct Item
+    {
+        Item()
+        {
+        }
+
+        unsigned index;
+        QString name;
+        QString type;
+        QString value;
+        osg::StateAttribute::OverrideValue overrideValue;
+        osg::observer_ptr<osg::Uniform> uniform;
+    };
+    std::vector<Item> items;
+    void add(unsigned i, const std::string & s, osg::StateSet::RefUniformPair & pair)
+    {
+        osg::Uniform * u = pair.first.get();
+        Item item;
+        item.index = i;
+        item.name = QString::fromStdString(s);
+        item.overrideValue = pair.second;
+        item.type = QString::fromStdString(osg::Uniform::getTypename(u->getType()));
+        item.value = QString::fromStdString(osg_helpers::uniformToString(u));
+        item.uniform = u;
+        items.push_back(item);
+    }
+    Private(ShaderEditorDialog * d)
+        : dialog(d) {}
+};
+
+UniformModel::UniformModel(ShaderEditorDialog * parent)
+    : QAbstractItemModel(parent)
+    , m_impl(new Private(parent))
+{
+}
+
+UniformModel::~UniformModel()
+{
+    delete m_impl;
+}
+
+void UniformModel::reload()
+{
+    beginResetModel();
+    m_impl->items.clear();
+    if (m_impl->dialog)
+    {
+        osg::StateSet * stateSet = m_impl->dialog->getStateSet();
+        if (stateSet)
+        {
+            osg_helpers::UniformList uniformList;
+            osg_helpers::collectUniformList(stateSet, uniformList);
+
+            unsigned index = 0;
+            for (auto it : uniformList)
+                m_impl->add(index++, it.first, it.second);
+        }
+    }
+    endResetModel();
+}
+
+Qt::ItemFlags UniformModel::flags(const QModelIndex &index) const
+{
+    if (!index.isValid())
+        return 0;
+
+    Qt::ItemFlags ret = 0;
+    switch ((Section)index.column())
+    {
+    case SectionName:
+    case SectionType:
+        ret = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+        break;
+    case SectionValue: 
+        ret = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
+        break;
+    }
+
+    return ret;
+}
+
+QModelIndex UniformModel::index(int row, int column, const QModelIndex &parent) const
+{
+    QModelIndex ret;
+    if (!parent.isValid())
+    {
+        const Private::Item * item = (row >= 0 && row < (int)m_impl->items.size()) ? &m_impl->items[row] : NULL;
+        if (item)
+            ret = createIndex(row, column, (void*)item);
+    }
+    return ret;
+}
+
+QModelIndex UniformModel::parent(const QModelIndex &index) const
+{
+    return QModelIndex();
+}
+
+int UniformModel::rowCount(const QModelIndex &parent) const
+{
+    int ret = 0;
+    if (parent.column() > 0)
+        ret = 0;
+    else if (!parent.isValid())
+        ret = m_impl->items.size();
+    else
+        ret = 0;
+    return ret;
+}
+
+int UniformModel::columnCount(const QModelIndex &parent) const
+{
+    return SectionCount + 1;
+}
+
+
+QVariant UniformModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    QVariant ret;
+    if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
+    {
+        switch (section)
+        {
+        case SectionName: ret = tr("Name"); break;
+        case SectionType: ret = tr("Type"); break;
+        case SectionValue: ret = tr("Value"); break;
+        }
+    }
+    return ret;
+}
+
+QVariant UniformModel::data(const QModelIndex &index, int role) const
+{
+    QVariant ret;
+    const Private::Item * item = (const Private::Item *)index.internalPointer();
+    if (item)
+    {
+        switch (role)
+        {
+        case Qt::DisplayRole:
+            switch ((Section)index.column())
+            {
+            case SectionName: ret = item->name; break;
+            case SectionValue: ret = item->value; break;
+            case SectionType: ret = item->type; break;
+            }
+            break;
+        case Qt::EditRole:
+            switch ((Section)index.column())
+            {
+            case SectionName: ret = item->name; break;
+            case SectionValue: ret = item->value; break;
+            case SectionType: ret = item->type; break;
+            }
+            break;
+        }
+    }
+    return ret;
+}
+
+bool UniformModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    bool ret = false;;
+    const Private::Item * item = (const Private::Item *)index.internalPointer();
+    if (item)
+    {
+        switch (role)
+        {
+        case Qt::EditRole:
+            switch ((Section)index.column())
+            {
+            case SectionValue: 
+                {
+                    osg::ref_ptr<osg::Uniform> uniform;
+                    if (item->uniform.lock(uniform))
+                    {
+                        std::string s = value.toString().toStdString();
+                        ret = osg_helpers::stringToUniform(s, uniform.get());
+                    }
+                }
+                break;
+            }
+            break;
+        }
+    }
+    return ret;
+}
+
 UniformEditDock::UniformEditDock(ShaderEditorDialog * parent)
     : QDockWidget(parent)
-    , _tree(nullptr)
+    , _table(nullptr)
+    , _model(nullptr)
 {
     setWindowTitle(tr("Uniforms"));
-    _tree = new QTreeView(this);
+    _model = new UniformModel(parent);
+    _table = new QTableView(this);
+    _table->setSortingEnabled(false);
+    _table->setModel(_model);
     setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    setWidget(_tree);
+    setWidget(_table);
 }
 
 UniformEditDock::~UniformEditDock()
 {
+}
+
+void UniformEditDock::reload()
+{
+    _model->reload();
+    _table->resizeColumnsToContents();
 }
 
 namespace  {
@@ -583,6 +891,7 @@ void ShaderEditorDialog::load()
         _infoLogDock->setInfoLog(log);
         foundShader = true;
     }
+    _uniformEditDock->reload();
     _ready = true;
 
     if(!foundShader)

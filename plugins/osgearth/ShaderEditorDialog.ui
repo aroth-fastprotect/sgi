@@ -81,7 +81,8 @@
           <item>
            <widget class="QToolButton" name="progShaderAdd">
             <property name="icon">
-             <iconset theme="list-add"/>
+             <iconset theme="list-add">
+              <normaloff>.</normaloff>.</iconset>
             </property>
             <property name="popupMode">
              <enum>QToolButton::InstantPopup</enum>
@@ -170,7 +171,8 @@
           <item>
            <widget class="QToolButton" name="vpFunctionAdd">
             <property name="icon">
-             <iconset theme="list-add"/>
+             <iconset theme="list-add">
+              <normaloff>.</normaloff>.</iconset>
             </property>
             <property name="popupMode">
              <enum>QToolButton::InstantPopup</enum>
@@ -210,9 +212,6 @@
        </layout>
       </widget>
       <widget class="QWidget" name="tabInfoLog">
-       <attribute name="title">
-        <string>Info log</string>
-       </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_6">
         <item>
          <widget class="QTextEdit" name="infoLog"/>
@@ -232,6 +231,17 @@
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
   </widget>
  </widget>
  <resources/>

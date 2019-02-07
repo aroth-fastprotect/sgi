@@ -938,6 +938,57 @@ osg::StateSet* buildEffectiveStateSet(const osg::NodePath & path, osg::StateSet*
     return ret;
 }
 
+bool collectStateSetList(const osg::NodePath & path, StateSetList & list)
+{
+    if (path.empty())
+        return false;
+
+    osg::StateSet* ret = new osg::StateSet;
+    for (osg::NodePath::const_iterator it = path.begin(); it != path.end(); ++it)
+    {
+        osg::Node * node = *it;
+        osg::StateSet * cur = node->getStateSet();
+        if (cur)
+            list.push_back(cur);
+    }
+    return true;
+}
+
+bool collectUniformList(const osg::NodePath & path, UniformList & list)
+{
+    if (path.empty())
+        return false;
+
+    osg::StateSet* ret = new osg::StateSet;
+    for (osg::NodePath::const_iterator it = path.begin(); it != path.end(); ++it)
+    {
+        osg::Node * node = *it;
+        osg::StateSet * cur = node->getStateSet();
+        if (cur)
+        {
+            const osg::StateSet::UniformList & curlist = cur->getUniformList();
+            for (auto itl : curlist)
+                list.insert(UniformList::value_type(itl.first, itl.second));
+        }
+    }
+    return true;
+}
+
+bool collectUniformList(const osg::StateSet * stateSet, UniformList & list)
+{
+    bool ret = false;
+    for (osg::Node * parent : stateSet->getParents())
+    {
+        for (const osg::NodePath & path : parent->getParentalNodePaths())
+        {
+            if (collectUniformList(path, list))
+                ret = true;
+        }
+    }
+    return ret;
+}
+
+
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxf & b)
 {
     return output << std::setprecision(12) << '[' << b._min << ',' << b._max << ']';
@@ -1069,6 +1120,307 @@ osg::Geometry * createGeometryForImage(osg::Image* image)
 osg::Geometry * createGeometryForTexture(osg::Texture* texture)
 {
     return createImageGeometry(texture->getTextureWidth(), texture->getTextureHeight(), osg::Image::BOTTOM_LEFT, texture);
+}
+
+#define uniformToString_Data(__gl_type, __c_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                (void(0)); \
+            else if( object->getNumElements() == 1) \
+            { \
+                __c_type val; \
+                object->getElement(0, val); \
+                os << val; \
+            } \
+            else { \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    if(n != 0) os << ','; \
+                    __c_type val; \
+                    object->getElement(n, val); \
+                    os << val; \
+                } \
+            } \
+        } \
+        break
+
+#define uniformToString_Sampler(__gl_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                (void(0)); \
+            else if( object->getNumElements() == 1) \
+            { \
+                int val; \
+                object->getElement(0, val); \
+                os << val; \
+            } \
+            else { \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    if(n != 0) os << ','; \
+                    int val; \
+                    object->getElement(n, val); \
+                    os << val; \
+                } \
+            } \
+        } \
+        break
+
+std::string uniformToString(const osg::Uniform * object, bool * ok)
+{
+    std::stringstream os;
+    if (ok)
+        *ok = true;
+    switch (object->getType())
+    {
+    case osg::Uniform::UNDEFINED:
+        os << "undefined";
+        break;
+        uniformToString_Data(BOOL, bool);
+        uniformToString_Data(FLOAT, float);
+        uniformToString_Data(FLOAT_VEC2, osg::Vec2f);
+        uniformToString_Data(FLOAT_VEC3, osg::Vec3f);
+        uniformToString_Data(FLOAT_VEC4, osg::Vec4f);
+        uniformToString_Data(DOUBLE, double);
+        uniformToString_Data(DOUBLE_VEC2, osg::Vec2d);
+        uniformToString_Data(DOUBLE_VEC3, osg::Vec3d);
+        uniformToString_Data(DOUBLE_VEC4, osg::Vec4d);
+        uniformToString_Data(INT, int);
+        //uniformToString_Data(INT_VEC2, osg::Vec2i);
+        //uniformToString_Data(INT_VEC3, osg::Vec3i);
+        //uniformToString_Data(INT_VEC4, osg::Vec4i);
+        uniformToString_Data(UNSIGNED_INT, unsigned int);
+        //uniformToString_Data(UNSIGNED_INT_VEC2, osg::Vec2ui);
+        //uniformToString_Data(UNSIGNED_INT_VEC3, osg::Vec3ui);
+        //uniformToString_Data(UNSIGNED_INT_VEC4, osg::Vec4ui);
+        uniformToString_Sampler(SAMPLER_1D);
+        uniformToString_Sampler(SAMPLER_2D);
+        uniformToString_Sampler(SAMPLER_3D);
+        uniformToString_Sampler(SAMPLER_CUBE);
+        uniformToString_Sampler(SAMPLER_1D_SHADOW);
+        uniformToString_Sampler(SAMPLER_2D_SHADOW);
+        uniformToString_Sampler(SAMPLER_1D_ARRAY);
+        uniformToString_Sampler(SAMPLER_2D_ARRAY);
+        uniformToString_Sampler(SAMPLER_CUBE_MAP_ARRAY);
+        uniformToString_Sampler(SAMPLER_1D_ARRAY_SHADOW);
+        uniformToString_Sampler(SAMPLER_2D_ARRAY_SHADOW);
+        uniformToString_Sampler(SAMPLER_2D_MULTISAMPLE);
+        uniformToString_Sampler(SAMPLER_2D_MULTISAMPLE_ARRAY);
+        uniformToString_Sampler(SAMPLER_CUBE_SHADOW);
+        uniformToString_Sampler(SAMPLER_CUBE_MAP_ARRAY_SHADOW);
+        uniformToString_Sampler(SAMPLER_BUFFER);
+        uniformToString_Sampler(SAMPLER_2D_RECT);
+        uniformToString_Sampler(SAMPLER_2D_RECT_SHADOW);
+    default:
+        os << "Type " << osg::Uniform::getTypename(object->getType()) << " not implemented";
+        if (ok)
+            *ok = false;
+        break;
+    }
+    return os.str();
+}
+
+
+#define stringToUniform_Data(__gl_type, __c_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            if( object->getNumElements() == 0) \
+                ret = true; \
+            else if( object->getNumElements() == 1) \
+            { \
+                __c_type val; \
+                is >> val; \
+                object->setElement(0, val); \
+            } \
+            else { \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    __c_type val; \
+                    is >> val; \
+                    object->setElement(n, val); \
+                } \
+            } \
+        } \
+        break
+
+#define stringToUniform_Sampler(__gl_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            if( object->getNumElements() == 0) \
+                ret = true; \
+            else if( object->getNumElements() == 1) \
+            { \
+                int val; \
+                is >> val; \
+                object->setElement(0, val); \
+            } \
+            else { \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    int val; \
+                    is >> val; \
+                    object->setElement(n, val); \
+                } \
+            } \
+        } \
+        break
+
+bool stringToUniform(const std::string & s, osg::Uniform * object)
+{
+    bool ret = false;
+    std::stringstream is(s);
+    switch (object->getType())
+    {
+    case osg::Uniform::UNDEFINED:
+        ret = true;
+        break;
+        stringToUniform_Data(BOOL, bool);
+        stringToUniform_Data(FLOAT, float);
+        stringToUniform_Data(FLOAT_VEC2, osg::Vec2f);
+        stringToUniform_Data(FLOAT_VEC3, osg::Vec3f);
+        stringToUniform_Data(FLOAT_VEC4, osg::Vec4f);
+        stringToUniform_Data(DOUBLE, double);
+        stringToUniform_Data(DOUBLE_VEC2, osg::Vec2d);
+        stringToUniform_Data(DOUBLE_VEC3, osg::Vec3d);
+        stringToUniform_Data(DOUBLE_VEC4, osg::Vec4d);
+        stringToUniform_Data(INT, int);
+        //stringToUniform_Data(INT_VEC2, osg::Vec2i);
+        //stringToUniform_Data(INT_VEC3, osg::Vec3i);
+        //stringToUniform_Data(INT_VEC4, osg::Vec4i);
+        stringToUniform_Data(UNSIGNED_INT, unsigned int);
+        //stringToUniform_Data(UNSIGNED_INT_VEC2, osg::Vec2ui);
+        //stringToUniform_Data(UNSIGNED_INT_VEC3, osg::Vec3ui);
+        //stringToUniform_Data(UNSIGNED_INT_VEC4, osg::Vec4ui);
+        stringToUniform_Sampler(SAMPLER_1D);
+        stringToUniform_Sampler(SAMPLER_2D);
+        stringToUniform_Sampler(SAMPLER_3D);
+        stringToUniform_Sampler(SAMPLER_CUBE);
+        stringToUniform_Sampler(SAMPLER_1D_SHADOW);
+        stringToUniform_Sampler(SAMPLER_2D_SHADOW);
+        stringToUniform_Sampler(SAMPLER_1D_ARRAY);
+        stringToUniform_Sampler(SAMPLER_2D_ARRAY);
+        stringToUniform_Sampler(SAMPLER_CUBE_MAP_ARRAY);
+        stringToUniform_Sampler(SAMPLER_1D_ARRAY_SHADOW);
+        stringToUniform_Sampler(SAMPLER_2D_ARRAY_SHADOW);
+        stringToUniform_Sampler(SAMPLER_2D_MULTISAMPLE);
+        stringToUniform_Sampler(SAMPLER_2D_MULTISAMPLE_ARRAY);
+        stringToUniform_Sampler(SAMPLER_CUBE_SHADOW);
+        stringToUniform_Sampler(SAMPLER_CUBE_MAP_ARRAY_SHADOW);
+        stringToUniform_Sampler(SAMPLER_BUFFER);
+        stringToUniform_Sampler(SAMPLER_2D_RECT);
+        stringToUniform_Sampler(SAMPLER_2D_RECT_SHADOW);
+    default:
+        break;
+    }
+    return false;
+}
+
+#define uniformToHTML_Data(__gl_type, __c_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                os << "<i>empty</i>"; \
+            else if( object->getNumElements() == 1) \
+            { \
+                __c_type val; \
+                object->getElement(0, val); \
+                os << "<li>" << val << "</li>" << std::endl; \
+            } \
+            else { \
+                os << "<ol>"; \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    __c_type val; \
+                    object->getElement(n, val); \
+                    os << "<li>" << val << "</li>" << std::endl; \
+                } \
+                os << "</ol>"; \
+            } \
+        } \
+        break
+
+#define uniformToHTML_Sampler(__gl_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                os << "<i>empty</i>"; \
+            else if( object->getNumElements() == 1) \
+            { \
+                int val; \
+                object->getElement(0, val); \
+                os << "<li>Id=" << val << "</li>" << std::endl; \
+            } \
+            else { \
+                os << "<ol>"; \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    int val; \
+                    object->getElement(n, val); \
+                    os << "<li>Id=" << val << "</li>" << std::endl; \
+                } \
+                os << "</ol>"; \
+            } \
+        } \
+        break
+
+std::string uniformToHTML(const osg::Uniform * object, bool * ok)
+{
+    std::stringstream os;
+    if (ok)
+        *ok = true;
+    switch (object->getType())
+    {
+    case osg::Uniform::UNDEFINED:
+        os << "<i>undefined</i>";
+        break;
+        uniformToHTML_Data(BOOL, bool);
+        uniformToHTML_Data(FLOAT, float);
+        uniformToHTML_Data(FLOAT_VEC2, osg::Vec2f);
+        uniformToHTML_Data(FLOAT_VEC3, osg::Vec3f);
+        uniformToHTML_Data(FLOAT_VEC4, osg::Vec4f);
+        uniformToHTML_Data(DOUBLE, double);
+        uniformToHTML_Data(DOUBLE_VEC2, osg::Vec2d);
+        uniformToHTML_Data(DOUBLE_VEC3, osg::Vec3d);
+        uniformToHTML_Data(DOUBLE_VEC4, osg::Vec4d);
+        uniformToHTML_Data(INT, int);
+        //uniformToHTML_Data(INT_VEC2, osg::Vec2i);
+        //uniformToHTML_Data(INT_VEC3, osg::Vec3i);
+        //uniformToHTML_Data(INT_VEC4, osg::Vec4i);
+        uniformToHTML_Data(UNSIGNED_INT, unsigned int);
+        //uniformToHTML_Data(UNSIGNED_INT_VEC2, osg::Vec2ui);
+        //uniformToHTML_Data(UNSIGNED_INT_VEC3, osg::Vec3ui);
+        //uniformToHTML_Data(UNSIGNED_INT_VEC4, osg::Vec4ui);
+        uniformToHTML_Sampler(SAMPLER_1D);
+        uniformToHTML_Sampler(SAMPLER_2D);
+        uniformToHTML_Sampler(SAMPLER_3D);
+        uniformToHTML_Sampler(SAMPLER_CUBE);
+        uniformToHTML_Sampler(SAMPLER_1D_SHADOW);
+        uniformToHTML_Sampler(SAMPLER_2D_SHADOW);
+        uniformToHTML_Sampler(SAMPLER_1D_ARRAY);
+        uniformToHTML_Sampler(SAMPLER_2D_ARRAY);
+        uniformToHTML_Sampler(SAMPLER_CUBE_MAP_ARRAY);
+        uniformToHTML_Sampler(SAMPLER_1D_ARRAY_SHADOW);
+        uniformToHTML_Sampler(SAMPLER_2D_ARRAY_SHADOW);
+        uniformToHTML_Sampler(SAMPLER_2D_MULTISAMPLE);
+        uniformToHTML_Sampler(SAMPLER_2D_MULTISAMPLE_ARRAY);
+        uniformToHTML_Sampler(SAMPLER_CUBE_SHADOW);
+        uniformToHTML_Sampler(SAMPLER_CUBE_MAP_ARRAY_SHADOW);
+        uniformToHTML_Sampler(SAMPLER_BUFFER);
+        uniformToHTML_Sampler(SAMPLER_2D_RECT);
+        uniformToHTML_Sampler(SAMPLER_2D_RECT_SHADOW);
+    default:
+        os << "<i>Type " << osg::Uniform::getTypename(object->getType()) << " not implemented.</i>";
+        if (ok)
+            *ok = false;
+        break;
+    }
+    return os.str();
 }
 
     } // namespace osg_helpers

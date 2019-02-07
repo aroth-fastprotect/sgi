@@ -2,6 +2,7 @@
 
 #include <QDialog>
 #include <QDockWidget>
+#include <QAbstractItemModel>
 #include <sgi/plugins/SGISettingsWindowImpl>
 
 QT_BEGIN_NAMESPACE
@@ -50,6 +51,38 @@ private:
     QByteArray _logFileData;
 };
 
+
+class UniformModel : public QAbstractItemModel
+{
+    Q_OBJECT
+
+public:
+    UniformModel(ShaderEditorDialog * parent=nullptr);
+    ~UniformModel() override;
+
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    QModelIndex index(int row, int column, const QModelIndex &parent) const override;
+    QModelIndex parent(const QModelIndex &index) const override;
+    int rowCount(const QModelIndex &parent) const override;
+    int columnCount(const QModelIndex &parent) const override;
+
+    enum Section {
+        SectionName = 0,
+        SectionValue,
+        SectionType,
+        SectionCount = SectionType
+    };
+
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+    QVariant data(const QModelIndex &index, int role) const override;
+    bool setData(const QModelIndex &index, const QVariant &value, int role /* = Qt::EditRole */) override;
+    void reload();
+
+private:
+    class Private;
+    Private * m_impl;
+};
+
 class UniformEditDock : public QDockWidget
 {
     Q_OBJECT
@@ -58,13 +91,17 @@ public:
     UniformEditDock(ShaderEditorDialog * parent = nullptr);
     ~UniformEditDock() override;
 
+    void reload();
+
 private:
-    QTreeView * _tree;
+    QTableView * _table;
+    UniformModel * _model;
 };
 
 class ShaderEditorDialog : public SettingsQMainWindowImpl
 {
     friend class InfoLogDock;
+    friend class UniformModel;
     Q_OBJECT
 
 public:
