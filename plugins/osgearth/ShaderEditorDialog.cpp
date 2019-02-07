@@ -8,10 +8,10 @@
 #include <sgi/helpers/osg>
 
 #include <QTemporaryFile>
-#include <QPushButton>
 #include <QTextStream>
 #include <QTimer>
 #include <QTableView>
+#include <QPushButton>
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
@@ -532,6 +532,8 @@ ShaderEditorDialog::ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface 
     , _originalLogFile()
     , _originalLogFileEnabled(false)
     , _tmpShaderLog(nullptr)
+    , _comboBoxPath(nullptr)
+    , _openItemButton(nullptr)
 {
     ui->setupUi( this );
 
@@ -541,12 +543,17 @@ ShaderEditorDialog::ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface 
     addDockWidget(Qt::RightDockWidgetArea, _uniformEditDock);
     tabifyDockWidget(_infoLogDock, _uniformEditDock);
 
-    connect(ui->buttonBox->button(QDialogButtonBox::Close), &QPushButton::clicked, this, &ShaderEditorDialog::close);
-    connect(ui->buttonBox->button(QDialogButtonBox::Apply), &QPushButton::clicked, this, &ShaderEditorDialog::apply);
-    connect(ui->buttonBox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, &ShaderEditorDialog::reset);
-    ui->buttonBox->button(QDialogButtonBox::Reset)->setText(tr("Create Default"));
-    connect(ui->buttonBox->button(QDialogButtonBox::Discard), &QPushButton::clicked, this, &ShaderEditorDialog::reload);
-    ui->buttonBox->button(QDialogButtonBox::Discard)->setText(tr("Reload"));
+    ui->actionSave->setIcon(QIcon::fromTheme("document-save"));
+    ui->actionCreateEmptyShader->setIcon(QIcon::fromTheme("document-new"));
+    ui->actionReload->setIcon(QIcon::fromTheme("document-revert"));
+
+    _comboBoxPath = new QComboBox(ui->toolBar);
+    connect(_comboBoxPath, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this, &ShaderEditorDialog::selectItemFromPath);
+    ui->toolBar->addWidget(_comboBoxPath);
+
+    _openItemButton = new QPushButton(ui->toolBar);
+    connect(_openItemButton, &QPushButton::clicked, this, &ShaderEditorDialog::openItem);
+    ui->toolBar->addWidget(_openItemButton);
 
     QMenu * addFunctionMenu = new QMenu(this);
     QActionGroup * addFunctionGroup = new QActionGroup(this);
@@ -565,7 +572,7 @@ ShaderEditorDialog::ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface 
     std::string name;
     _hostInterface->getObjectDisplayName(name, _item);
     qt_helpers::QtSGIItem data(_item.get());
-    ui->objectComboBox->addItem(qt_helpers::fromUtf8(name), QVariant::fromValue(data));
+    _comboBoxPath->addItem(qt_helpers::fromUtf8(name), QVariant::fromValue(data));
 
     VirtualProgramAccessor * vp = static_cast<VirtualProgramAccessor*>(getVirtualProgram());
     if(vp)
@@ -603,6 +610,10 @@ ShaderEditorDialog::~ShaderEditorDialog()
     delete _tmpShaderLog;
     delete ui;
     ui = nullptr;
+}
+
+void ShaderEditorDialog::selectItemFromPath()
+{
 }
 
 osg::StateSet * ShaderEditorDialog::getStateSet(bool create)
@@ -777,7 +788,7 @@ void ShaderEditorDialog::apply()
     loadInfoLog();
 }
 
-void ShaderEditorDialog::reset()
+void ShaderEditorDialog::createEmptyShader()
 {
     osg::StateSet * stateSet = getStateSet(true);
 

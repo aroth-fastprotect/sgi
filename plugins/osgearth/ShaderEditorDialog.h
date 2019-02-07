@@ -11,6 +11,8 @@ class QTextEdit;
 class QTableView;
 class QTreeView;
 class QTemporaryFile;
+class QComboBox;
+class QPushButton;
 QT_END_NAMESPACE
 namespace osg {
     class StateSet;
@@ -113,7 +115,7 @@ public:
 public slots:
 
 protected slots:
-    void                    reset();
+    void                    createEmptyShader();
     void                    apply();
     void                    load();
     void                    reload();
@@ -141,6 +143,7 @@ protected:
     void                    loadInfoLog();
 
     void                    dirty();
+    void                    selectItemFromPath();
 
 private:  // for now
     IHostCallbackPtr                _hostCallback;
@@ -154,6 +157,8 @@ private:  // for now
     bool _originalLogFileEnabled;
     QTemporaryFile * _tmpShaderLog;
     QString _shaderLogFile;
+    QComboBox * _comboBoxPath;
+    QPushButton * _openItemButton;
 };
 
 } // namespace sgi

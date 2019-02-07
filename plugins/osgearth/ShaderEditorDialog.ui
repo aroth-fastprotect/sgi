@@ -24,34 +24,18 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Object</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QComboBox" name="objectComboBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="openItemButton">
-        <property name="text">
-         <string>...</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
      <widget class="QStackedWidget" name="tabWidget">
       <property name="currentIndex">
@@ -220,16 +204,6 @@
       </widget>
      </widget>
     </item>
-    <item>
-     <widget class="QDialogButtonBox" name="buttonBox">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="standardButtons">
-       <set>QDialogButtonBox::Apply|QDialogButtonBox::Close|QDialogButtonBox::Discard|QDialogButtonBox::Reset</set>
-      </property>
-     </widget>
-    </item>
    </layout>
   </widget>
   <widget class="QToolBar" name="toolBar">
@@ -242,7 +216,34 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionCreateEmptyShader"/>
+   <addaction name="actionSave"/>
+   <addaction name="actionReload"/>
   </widget>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionCreateEmptyShader">
+   <property name="text">
+    <string>Create Empty Shader</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionReload">
+   <property name="text">
+    <string>Reload</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -327,22 +328,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>openItemButton</sender>
-   <signal>clicked()</signal>
-   <receiver>ShaderEditorDialog</receiver>
-   <slot>openItem()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>328</x>
-     <y>21</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>188</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>vpFunctionDetails</sender>
    <signal>clicked()</signal>
    <receiver>ShaderEditorDialog</receiver>
@@ -406,6 +391,54 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionSave</sender>
+   <signal>triggered()</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>apply()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>342</x>
+     <y>243</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionCreateEmptyShader</sender>
+   <signal>triggered()</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>createEmptyShader()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>342</x>
+     <y>243</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionReload</sender>
+   <signal>triggered()</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>reload()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>342</x>
+     <y>243</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>vpFunctionChanged(int)</slot>
@@ -419,5 +452,8 @@
   <slot>progShaderChanged(int)</slot>
   <slot>progShaderAdd()</slot>
   <slot>progShaderRemove()</slot>
+  <slot>apply()</slot>
+  <slot>createEmptyShader()</slot>
+  <slot>reload()</slot>
  </slots>
 </ui>
