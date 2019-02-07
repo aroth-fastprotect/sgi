@@ -87,7 +87,11 @@
          </layout>
         </item>
         <item>
-         <widget class="QTextEdit" name="progShaderCode"/>
+         <widget class="QTextEdit" name="progShaderCode">
+          <property name="lineWrapMode">
+           <enum>QTextEdit::NoWrap</enum>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
