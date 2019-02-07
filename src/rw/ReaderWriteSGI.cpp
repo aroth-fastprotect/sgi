@@ -890,7 +890,7 @@ private:
             }
             std::cout << "buildNodeImpl ext=" << ext << " " << v.first << "->" << v.second << std::endl;
             props[v.first] = v.second;
-            std::string name = osgDB::getStrippedName(filename);
+            std::string name = osgDB::getNameLessExtension(filename);
             ret = buildNodeImpl(name, props);
         }
         return ret;
