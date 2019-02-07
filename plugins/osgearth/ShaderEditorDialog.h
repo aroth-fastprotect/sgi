@@ -7,6 +7,8 @@
 QT_BEGIN_NAMESPACE
 class Ui_ShaderEditorDialog;
 class QTextEdit;
+class QTableView;
+class QTemporaryFile;
 QT_END_NAMESPACE
 namespace osg {
     class StateSet;
@@ -31,17 +33,32 @@ public:
 
     void setInfoLog(const std::string & log);
 
+protected:
+    void showEvent(QShowEvent * event) override;
+    void hideEvent(QHideEvent * event) override;
+
+    void onTimer();
+    void update();
+
 private:
+    ShaderEditorDialog * _shaderEditor;
     QTextEdit * _log;
+    QTimer * _timer;
+    std::string _infoLog;
+    QString _logFilename;
+    QByteArray _logFileData;
 };
 
 class ShaderEditorDialog : public SettingsQMainWindowImpl
 {
+    friend class InfoLogDock;
     Q_OBJECT
 
 public:
     ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface * hostInterface, SGIItemBase * item, ISettingsDialogInfo * info);
     ~ShaderEditorDialog() override;
+
+    const QString &         shaderLogFile() const;
 
 public slots:
 
@@ -80,6 +97,10 @@ private:  // for now
     bool _ready;
     int _currentVPFunctionIndex;
     int _currentProgShaderIndex;
+    std::string _originalLogFile;
+    bool _originalLogFileEnabled;
+    QTemporaryFile * _tmpShaderLog;
+    QString _shaderLogFile;
 };
 
 } // namespace sgi

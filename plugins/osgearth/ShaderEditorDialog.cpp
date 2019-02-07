@@ -7,7 +7,9 @@
 #include <sgi/helpers/qt>
 #include <sgi/helpers/osg>
 
+#include <QTemporaryFile>
 #include <QPushButton>
+#include <QTimer>
 
 #include <ui_ShaderEditorDialog.h>
 
@@ -33,29 +35,99 @@ using namespace osgearth_plugin;
 
 InfoLogDock::InfoLogDock(ShaderEditorDialog * parent)
     : QDockWidget (parent)
+    , _shaderEditor(parent)
     , _log(nullptr)
+    , _timer(nullptr)
 {
     setWindowTitle(tr("Info log"));
     _log = new QTextEdit(this);
+    _timer = new QTimer(this);
+    connect(_timer, &QTimer::timeout, this, &InfoLogDock::onTimer);
+    _timer->setInterval(2000);
     setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     setWidget(_log);
+    update();
 }
 
 InfoLogDock::~InfoLogDock()
 {
+    delete _timer;
+}
+
+void InfoLogDock::showEvent(QShowEvent * event)
+{
+    QDockWidget::showEvent(event);
+    _timer->start();
+}
+
+void InfoLogDock::hideEvent(QHideEvent * event)
+{
+    _timer->stop();
+    QDockWidget::hideEvent(event);
+}
+
+void InfoLogDock::update()
+{
+    QString str;
+    QTextStream ts(&str);
+    bool hasWarning = false;
+    ts << "Info log:<br/>";
+    if(!_infoLog.empty())
+    {
+        ts << "<pre>" << QString::fromStdString(_infoLog) << "</pre>";
+        hasWarning = true;
+    }
+    else
+        ts << QStringLiteral("<i>empty</i>");
+    ts << "Shader log file:&nbsp;" << _logFilename << "<br/>";
+    if(!_logFileData.isEmpty())
+    {
+        ts << "<pre>" << _logFileData << "</pre>";
+    }
+    else
+        ts << QStringLiteral("<i>empty</i>");
+    if(_logFileData.isEmpty() && _infoLog.empty())
+
+    setWindowIcon(hasWarning ? QIcon::fromTheme("dialog-warning") : QIcon::fromTheme("dialog-ok") );
+    _log->setHtml(str);
+}
+
+void InfoLogDock::onTimer()
+{
+    _logFilename = _shaderEditor->shaderLogFile();
+    bool hasUpdate = false;
+    if(_logFilename.isEmpty())
+    {
+        if(!_logFileData.isEmpty())
+        {
+            _logFileData.clear();
+            hasUpdate = true;
+        }
+    }
+    else
+    {
+        QFile f(_logFilename);
+        if(f.open(QFile::ReadOnly))
+        {
+            QByteArray data = f.readAll();
+            if(_logFileData.size() != data.size())
+            {
+                _logFileData = data;
+                hasUpdate = true;
+            }
+            f.close();
+        }
+    }
+    if(hasUpdate)
+        update();
 }
 
 void InfoLogDock::setInfoLog(const std::string & log)
 {
-    if (!log.empty())
+    if(_infoLog.size() != log.size())
     {
-        setWindowIcon(QIcon::fromTheme("dialog-warning"));
-        _log->setPlainText(QString::fromStdString(log));
-    }
-    else
-    {
-        setWindowIcon(QIcon::fromTheme("dialog-ok"));
-        _log->setHtml(QStringLiteral("<i>empty</i>"));
+        _infoLog = log;
+        update();
     }
 }
 
@@ -130,7 +202,10 @@ ShaderEditorDialog::ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface 
     , _ready(false)
     , _currentVPFunctionIndex(-1)
     , _currentProgShaderIndex(-1)
- {
+    , _originalLogFile()
+    , _originalLogFileEnabled(false)
+    , _tmpShaderLog(nullptr)
+{
     ui->setupUi( this );
 
     for(int i = 0; i < ui->tabWidget->count(); ++i)
@@ -165,12 +240,39 @@ ShaderEditorDialog::ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface 
     qt_helpers::QtSGIItem data(_item.get());
     ui->objectComboBox->addItem(qt_helpers::fromUtf8(name), QVariant::fromValue(data));
 
+    VirtualProgramAccessor * vp = static_cast<VirtualProgramAccessor*>(getVirtualProgram());
+    if(vp)
+    {
+        _originalLogFile = vp->getShaderLogFile();
+        _originalLogFileEnabled = vp->getShaderLogging();
+        if(!_originalLogFileEnabled || _originalLogFile.empty())
+        {
+            _tmpShaderLog = new QTemporaryFile();
+            // open and then close the temp file; it remains viable until the dtor of QTemporaryFile is called
+            if(_tmpShaderLog->open())
+            {
+                _shaderLogFile = _tmpShaderLog->fileName();
+                vp->setShaderLogging(true, _shaderLogFile.toStdString());
+                _tmpShaderLog->close();
+            }
+        }
+        else {
+            _shaderLogFile = QString::fromStdString(_originalLogFile);
+        }
+    }
+
     load();
     _ready = true;
 }
 
 ShaderEditorDialog::~ShaderEditorDialog()
 {
+    VirtualProgramAccessor * vp = static_cast<VirtualProgramAccessor*>(getVirtualProgram());
+    if(vp)
+    {
+        vp->setShaderLogging(_originalLogFileEnabled, _originalLogFile);
+    }
+    delete _tmpShaderLog;
     delete ui;
     ui = nullptr;
 }
@@ -272,6 +374,11 @@ osgEarth::PolyShader * ShaderEditorDialog::getPolyShader(int index)
         }
     }
     return ret;
+}
+
+const QString & ShaderEditorDialog::shaderLogFile() const
+{
+    return _shaderLogFile;
 }
 
 bool ShaderEditorDialog::removeVPShader(int index)
