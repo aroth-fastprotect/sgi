@@ -1228,20 +1228,23 @@ std::string uniformToString(const osg::Uniform * object, bool * ok)
 #define stringToUniform_Data(__gl_type, __c_type) \
     case osg::Uniform::__gl_type: \
         { \
-            if( object->getNumElements() == 0) \
+            unsigned num_elems = object->getNumElements(); \
+            if( num_elems == 0) \
                 ret = true; \
-            else if( object->getNumElements() == 1) \
+            else if( num_elems == 1) \
             { \
                 __c_type val; \
                 is >> val; \
-                object->setElement(0, val); \
+                ret = object->setElement(0, val); \
             } \
             else { \
-                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                ret = true; \
+                for(unsigned n = 0; n < num_elems; n++) \
                 { \
                     __c_type val; \
                     is >> val; \
-                    object->setElement(n, val); \
+                    if(!object->setElement(n, val)) \
+                        ret = false; \
                 } \
             } \
         } \
@@ -1250,20 +1253,23 @@ std::string uniformToString(const osg::Uniform * object, bool * ok)
 #define stringToUniform_Sampler(__gl_type) \
     case osg::Uniform::__gl_type: \
         { \
-            if( object->getNumElements() == 0) \
+            unsigned num_elems = object->getNumElements(); \
+            if( num_elems == 0) \
                 ret = true; \
-            else if( object->getNumElements() == 1) \
+            else if( num_elems == 1) \
             { \
                 int val; \
                 is >> val; \
-                object->setElement(0, val); \
+                ret = object->setElement(0, val); \
             } \
             else { \
-                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                ret = true; \
+                for(unsigned n = 0; n < num_elems; n++) \
                 { \
                     int val; \
                     is >> val; \
-                    object->setElement(n, val); \
+                    if(!object->setElement(n, val)) \
+                        ret = false; \
                 } \
             } \
         } \
@@ -1316,7 +1322,7 @@ bool stringToUniform(const std::string & s, osg::Uniform * object)
     default:
         break;
     }
-    return false;
+    return ret;
 }
 
 #define uniformToHTML_Data(__gl_type, __c_type) \

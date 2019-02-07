@@ -405,7 +405,7 @@ QVariant UniformModel::data(const QModelIndex &index, int role) const
 bool UniformModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     bool ret = false;;
-    const Private::Item * item = (const Private::Item *)index.internalPointer();
+    Private::Item * item = (Private::Item *)index.internalPointer();
     if (item)
     {
         switch (role)
@@ -420,6 +420,10 @@ bool UniformModel::setData(const QModelIndex &index, const QVariant &value, int 
                     {
                         std::string s = value.toString().toStdString();
                         ret = osg_helpers::stringToUniform(s, uniform.get());
+                        if (ret)
+                        {
+                            item->value = QString::fromStdString(osg_helpers::uniformToString(uniform.get()));
+                        }
                     }
                 }
                 break;
