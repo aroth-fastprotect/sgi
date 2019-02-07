@@ -7,10 +7,15 @@
 #endif
 #define MAPNODE_ACCESS_HACK
 #define ELEVATIONQUERY_ACCESS_HACK
+#define VIRTUALPROGRAMM_ACCESS_HACK
 #include "osgearth_accessor.h"
 
 #include <osgEarth/MapNodeOptions>
 #include <osgEarth/Extension>
+
+#define PREALLOCATE_APPLY_VARS
+
+#define USE_PROGRAM_REPO
 
 namespace sgi {
 
@@ -218,6 +223,31 @@ void VirtualProgramAccessor::getGLSLExtensions(ExtensionsSet & extensions)
     _dataModelMutex.unlock();
 }
 #endif
+
+class ProgramRepoAccessor : public osgEarth::ProgramRepo
+{
+public:
+    void remove(const osgEarth::ProgramKey & key)
+    {
+        osgEarth::ScopedMutexLock lock(_m);
+        ProgramMap::iterator i = _db.find(key);
+        if (i != _db.end())
+        {
+            _db.erase(i);
+        }
+    }
+};
+
+void VirtualProgramAccessor::dirty(unsigned contextID)
+{
+#ifdef USE_PROGRAM_REPO
+    ProgramRepoAccessor & programRepo = static_cast<ProgramRepoAccessor &>(osgEarth::Registry::programRepo());
+
+    // Access the resuable shader map for this context. Bypasses reallocation overhead.
+    ApplyVars& local = _apply[contextID];
+    programRepo.remove(local.programKey);
+#endif
+}
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 osgEarth::CacheSettings * LayerAccessor::getCacheSettings() const 

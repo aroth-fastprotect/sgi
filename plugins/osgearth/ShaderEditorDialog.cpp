@@ -9,6 +9,7 @@
 
 #include <QTemporaryFile>
 #include <QPushButton>
+#include <QTextStream>
 #include <QTimer>
 #include <QTreeView>
 
@@ -78,6 +79,7 @@ void InfoLogDock::update()
     }
     else
         ts << QStringLiteral("<i>empty</i>");
+    ts << "<br/>";
     ts << "Shader log file:&nbsp;" << _logFilename << "<br/>";
     if(!_logFileData.isEmpty())
     {
@@ -266,6 +268,7 @@ ShaderEditorDialog::ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface 
             {
                 _shaderLogFile = _tmpShaderLog->fileName();
                 vp->setShaderLogging(true, _shaderLogFile.toStdString());
+                dirty();
                 _tmpShaderLog->close();
             }
         }
@@ -488,9 +491,15 @@ void ShaderEditorDialog::load()
     VirtualProgramAccessor* vp = static_cast<VirtualProgramAccessor*>(getVirtualProgram(false));
     if(vp)
     {
+        ui->vpInheritShaders->blockSignals(true);
         ui->vpInheritShaders->setChecked(vp->getInheritShaders());
+        ui->vpInheritShaders->blockSignals(false);
+        ui->vpLog->blockSignals(true);
         ui->vpLog->setChecked(vp->getShaderLogging());
+        ui->vpLog->blockSignals(false);
+        ui->vpLogFile->blockSignals(true);
         ui->vpLogFile->setText(qt_helpers::fromLocal8Bit(vp->getShaderLogFile()));
+        ui->vpLogFile->blockSignals(false);
 
         ui->tabWidget->setCurrentWidget(ui->tabVirtualProgram);
 
@@ -592,7 +601,6 @@ void ShaderEditorDialog::loadInfoLog()
     VirtualProgramAccessor * vp = static_cast<VirtualProgramAccessor*>(getVirtualProgram(false));
     if (vp)
     {
-        VirtualProgramAccessor * vp = static_cast<VirtualProgramAccessor*>(getVirtualProgram(false));
         unsigned contextID = osg_helpers::findContextID(vp);
         osgEarth::PolyShader * sh = getPolyShader(_currentVPFunctionIndex);
         std::string log;
@@ -615,6 +623,17 @@ void ShaderEditorDialog::loadInfoLog()
         std::string log;
         p->getGlProgramInfoLog(contextID, log);
         _infoLogDock->setInfoLog(log);
+    }
+}
+
+void ShaderEditorDialog::dirty()
+{
+    VirtualProgramAccessor * vp = static_cast<VirtualProgramAccessor*>(getVirtualProgram(false));
+    if (vp)
+    {
+        VirtualProgramAccessor * vp = static_cast<VirtualProgramAccessor*>(getVirtualProgram(false));
+        unsigned contextID = osg_helpers::findContextID(vp);
+        vp->dirty(contextID);
     }
 }
 

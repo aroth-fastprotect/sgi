@@ -12,6 +12,13 @@
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 #include <osgEarth/MapFrame>
 #endif
+#ifdef VIRTUALPROGRAMM_ACCESS_HACK
+#define private protected
+#endif
+#include <osgEarth/VirtualProgram>
+#ifdef VIRTUALPROGRAMM_ACCESS_HACK
+#undef private
+#endif
 
 #include <osgEarthUtil/Controls>
 #include <osgEarthUtil/EarthManipulator>
@@ -19,7 +26,6 @@
 #include <osgEarthUtil/RTTPicker>
 #include <osgEarth/TerrainEngineNode>
 #include <osgEarth/Registry>
-#include <osgEarth/VirtualProgram>
 #ifdef ELEVATIONQUERY_ACCESS_HACK
 #define private protected
 #endif
@@ -244,6 +250,8 @@ namespace osgearth_plugin {
 
         bool                         getShaderLogging() const { return _logShaders; }
         const std::string &          getShaderLogFile() const { return _logPath; }
+
+        void                         dirty(unsigned contextID);
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
         void                         getGLSLExtensions(ExtensionsSet & extensions);

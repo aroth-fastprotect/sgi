@@ -103,6 +103,8 @@ protected:
     bool                    removeVPShader(int index);
     void                    loadInfoLog();
 
+    void                    dirty();
+
 private:  // for now
     IHostCallbackPtr                _hostCallback;
     Ui_ShaderEditorDialog* ui;
