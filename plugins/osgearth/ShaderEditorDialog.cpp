@@ -12,9 +12,6 @@
 #include <QTimer>
 #include <QTableView>
 #include <QPushButton>
-#include <QVector2D>
-#include <QVector3D>
-#include <QVector4D>
 
 #include <ui_ShaderEditorDialog.h>
 
@@ -35,33 +32,6 @@ extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const 
 } // namespace osgearth_plugin
 
 using namespace osgearth_plugin;
-
-namespace {
-    QVector2D convertToQt(const osg::Vec2f & v)
-    {
-        return QVector2D(v.x(), v.y());
-    }
-    QVector2D convertToQt(const osg::Vec2d & v)
-    {
-        return QVector2D(v.x(), v.y());
-    }
-    QVector3D convertToQt(const osg::Vec3f & v)
-    {
-        return QVector3D(v.x(), v.y(), v.z());
-    }
-    QVector3D convertToQt(const osg::Vec3d & v)
-    {
-        return QVector3D(v.x(), v.y(), v.z());
-    }
-    QVector4D convertToQt(const osg::Vec4f & v)
-    {
-        return QVector4D(v.x(), v.y(), v.z(), v.w());
-    }
-    QVector4D convertToQt(const osg::Vec4d & v)
-    {
-        return QVector4D(v.x(), v.y(), v.z(), v.w());
-    }
-}
 
 InfoLogDock::InfoLogDock(ShaderEditorDialog * parent)
     : QDockWidget (parent)
@@ -161,82 +131,6 @@ void InfoLogDock::setInfoLog(const std::string & log)
         update();
     }
 }
-
-#define uniformToQVariant_Data(__gl_type, __c_type) \
-    case osg::Uniform::__gl_type: \
-        { \
-            __c_type value = __c_type(); \
-            if (object->get(value)) \
-                ret = value; \
-        } \
-        break
-
-#define uniformToQVariant_Vector(__gl_type, __c_type, __q_type) \
-    case osg::Uniform::__gl_type: \
-        { \
-            __c_type value = __c_type(); \
-            if (object->get(value)) { \
-                __q_type qvalue = convertToQt(value); \
-                ret = qvalue; \
-            }\
-        } \
-        break
-
-#define uniformToQVariant_Sampler(__gl_type) \
-    case osg::Uniform::__gl_type: \
-        { \
-        } \
-        break
-
-namespace {
-    QVariant uniformToQVariant(const osg::Uniform * object)
-    {
-        QVariant ret;
-        switch (object->getType())
-        {
-        case osg::Uniform::UNDEFINED:
-            break;
-        uniformToQVariant_Data(BOOL, bool);
-        uniformToQVariant_Data(FLOAT, float);
-        uniformToQVariant_Vector(FLOAT_VEC2, osg::Vec2f, QVector2D);
-        uniformToQVariant_Vector(FLOAT_VEC3, osg::Vec3f, QVector3D);
-        uniformToQVariant_Vector(FLOAT_VEC4, osg::Vec4f, QVector4D);
-        uniformToQVariant_Data(DOUBLE, double);
-        uniformToQVariant_Vector(DOUBLE_VEC2, osg::Vec2d, QVector2D);
-        uniformToQVariant_Vector(DOUBLE_VEC3, osg::Vec3d, QVector3D);
-        uniformToQVariant_Vector(DOUBLE_VEC4, osg::Vec4d, QVector4D);
-        uniformToQVariant_Data(INT, int);
-        //uniformToQVariant_Data(INT_VEC2, osg::Vec2i);
-        //uniformToQVariant_Data(INT_VEC3, osg::Vec3i);
-        //uniformToQVariant_Data(INT_VEC4, osg::Vec4i);
-        uniformToQVariant_Data(UNSIGNED_INT, unsigned int);
-        //uniformToQVariant_Data(UNSIGNED_INT_VEC2, osg::Vec2ui);
-        //uniformToQVariant_Data(UNSIGNED_INT_VEC3, osg::Vec3ui);
-        //uniformToQVariant_Data(UNSIGNED_INT_VEC4, osg::Vec4ui);
-        uniformToQVariant_Sampler(SAMPLER_1D);
-        uniformToQVariant_Sampler(SAMPLER_2D);
-        uniformToQVariant_Sampler(SAMPLER_3D);
-        uniformToQVariant_Sampler(SAMPLER_CUBE);
-        uniformToQVariant_Sampler(SAMPLER_1D_SHADOW);
-        uniformToQVariant_Sampler(SAMPLER_2D_SHADOW);
-        uniformToQVariant_Sampler(SAMPLER_1D_ARRAY);
-        uniformToQVariant_Sampler(SAMPLER_2D_ARRAY);
-        uniformToQVariant_Sampler(SAMPLER_CUBE_MAP_ARRAY);
-        uniformToQVariant_Sampler(SAMPLER_1D_ARRAY_SHADOW);
-        uniformToQVariant_Sampler(SAMPLER_2D_ARRAY_SHADOW);
-        uniformToQVariant_Sampler(SAMPLER_2D_MULTISAMPLE);
-        uniformToQVariant_Sampler(SAMPLER_2D_MULTISAMPLE_ARRAY);
-        uniformToQVariant_Sampler(SAMPLER_CUBE_SHADOW);
-        uniformToQVariant_Sampler(SAMPLER_CUBE_MAP_ARRAY_SHADOW);
-        uniformToQVariant_Sampler(SAMPLER_BUFFER);
-        uniformToQVariant_Sampler(SAMPLER_2D_RECT);
-        uniformToQVariant_Sampler(SAMPLER_2D_RECT_SHADOW);
-        default:
-            break;
-        }
-        return ret;
-    }
-} // namespace
 
 class UniformModel::Private
 {
@@ -935,8 +829,6 @@ void ShaderEditorDialog::loadInfoLog()
             {
                 static_cast<ShaderAccess*>(shader)->getGlProgramInfoLog(contextID, log);
             }
-            std::string src = sh->getShaderSource();
-            ui->vpShaderCode->setPlainText(qt_helpers::fromUtf8(src));
         }
         _infoLogDock->setInfoLog(log);
 
