@@ -91,6 +91,15 @@
           <property name="lineWrapMode">
            <enum>QTextEdit::NoWrap</enum>
           </property>
+          <property name="tabStopWidth">
+           <number>40</number>
+          </property>
+          <property name="acceptRichText">
+           <bool>false</bool>
+          </property>
+          <property name="placeholderText">
+           <string>Enter your shader code here...</string>
+          </property>
          </widget>
         </item>
        </layout>
