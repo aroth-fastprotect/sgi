@@ -91,6 +91,7 @@ enum SGIItemType_osg
     SGIItemTypeStateTextureModeMapList,
     SGIItemTypeStateTextureAttributeMapList,
     SGIItemTypeStatisticsStateSets,
+    SGIItemTypeStatisticsStateAttributes,
 };
 
 

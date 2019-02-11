@@ -859,6 +859,7 @@ osg::Group * sgi_MapNodeHelper::setupLight(osg::Group * root)
         // Add phong lighting.
         osgEarth::PhongLightingEffect * phong = new osgEarth::PhongLightingEffect();
         phong->attach(groupPhong->getOrCreateStateSet());
+        groupPhong->setUserData(phong);
 
         // Generate the necessary uniforms for the shaders.
         osgEarth::GenerateGL3LightingUniforms gen;
@@ -878,7 +879,8 @@ osg::Group * sgi_MapNodeHelper::setupLight(osg::Group * root)
         sunLS->addChild(groupPhong);
         groupPhong->addChild(root);
 
-        osgEarth::Registry::shaderGenerator().run(root);
+        osg::ref_ptr<osgEarth::StateSetCache> cache = new osgEarth::StateSetCache();
+        osgEarth::Registry::shaderGenerator().run(root, cache.get());
     }
 #endif
     return lights;

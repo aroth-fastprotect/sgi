@@ -762,6 +762,7 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeStateTextureModeMapList);
         SGIITEMTYPE_NAME(SGIItemTypeStateTextureAttributeMapList);
         SGIITEMTYPE_NAME(SGIItemTypeStatisticsStateSets);
+        SGIITEMTYPE_NAME(SGIItemTypeStatisticsStateAttributes);
     }
     SGIPlugin_osg_Implementation(const SGIPlugin_osg_Implementation & rhs)
         : osg_plugin::SGIPluginImpl(rhs)

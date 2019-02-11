@@ -203,7 +203,6 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedLinePicker)
 using namespace sgi::osg_helpers;
 
 extern bool objectInfo_hasCallback(SGIPluginHostInterface * hostInterface, bool & result, const SGIItemBase * object);
-extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::StateAttribute::Type & t);
 extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg::Camera::BufferComponent t);
 
 bool objectTreeBuildImpl<osg::Referenced>::build(IObjectTreeItem * treeItem)
@@ -392,6 +391,7 @@ bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
     case SGIItemTypeStatistics:
         {
             treeItem->addChild("StateSets", cloneItem<SGIItemOsg>(SGIItemTypeStatisticsStateSets, ~0u));
+            treeItem->addChild("StateAttributes", cloneItem<SGIItemOsg>(SGIItemTypeStatisticsStateAttributes, ~0u));
             ret = true;
         }
         break;
@@ -411,6 +411,29 @@ bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
             ret = true;
         }
         break;
+    case SGIItemTypeStatisticsStateAttributes:
+        {
+            if (this->itemNumber() == ~0u)
+            {
+                for(unsigned n = 0; n < osg_helpers::StatisticsVisitor::MaxStateAttributeType; ++n)
+                    treeItem->addChild(getStateAttributeTypeName((osg::StateAttribute::Type)n), cloneItem<SGIItemOsg>(SGIItemTypeStatisticsStateAttributes, n));
+            }
+            else
+            {
+                osg::StateAttribute::Type type = (osg::StateAttribute::Type)itemNumber();
+                unsigned contextID = osg_helpers::findContextID(object);
+                osg_helpers::StatisticsVisitor sv(contextID);
+                object->accept(sv);
+                for (unsigned n = 0; n < sv.getNumberOfStateAttributes(type); ++n)
+                {
+                    SGIHostItemOsg item(sv.getStateAttribute(type, n));
+                    treeItem->addChild(std::string(), &item);
+                }
+            }
+            ret = true;
+        }
+        break;
+
     case SGIItemTypeCallbacks:
         {
             callNextHandler(treeItem);
@@ -923,7 +946,7 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
                 const osg::ref_ptr<osg::StateAttribute> & attr = attrpair.first;
                 SGIHostItemOsg attrItem(attr.get());
                 std::stringstream ss;
-                ss << '#' << member << ':' << type << ' ' << attr->getName();
+                ss << '#' << member << ':' << getStateAttributeTypeName(type) << ' ' << attr->getName();
                 treeItem->addChild(ss.str(), &attrItem);
             }
             ret = true;
@@ -950,7 +973,7 @@ bool objectTreeBuildImpl<osg::StateSet>::build(IObjectTreeItem * treeItem)
                         //const osg::StateAttribute::OverrideValue & overrideValue = attrpair.second;
 
                         std::stringstream ss;
-                        ss << helpers::str_plus_number("Texture", textureUnit) << '/' << member << ':' << type << ' ' << attr->getName();
+                        ss << helpers::str_plus_number("Texture", textureUnit) << '/' << member << ':' << getStateAttributeTypeName(type) << ' ' << attr->getName();
                         SGIHostItemOsg attrItem(attr.get());
                         treeItem->addChild(ss.str(), &attrItem);
                     }

@@ -1429,5 +1429,97 @@ std::string uniformToHTML(const osg::Uniform * object, bool * ok)
     return os.str();
 }
 
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::StateAttribute::Type & t)
+{
+    return os << getStateAttributeTypeName(t);
+}
+
+std::string getStateAttributeTypeName(const osg::StateAttribute::Type & t)
+{
+    std::string ret;
+    switch (t)
+    {
+    case osg::StateAttribute::TEXTURE: ret = "TEXTURE"; break;
+    case osg::StateAttribute::POLYGONMODE: ret = "POLYGONMODE"; break;
+    case osg::StateAttribute::POLYGONOFFSET: ret = "POLYGONOFFSET"; break;
+    case osg::StateAttribute::MATERIAL: ret = "MATERIAL"; break;
+    case osg::StateAttribute::ALPHAFUNC: ret = "ALPHAFUNC"; break;
+    case osg::StateAttribute::ANTIALIAS: ret = "ANTIALIAS"; break;
+    case osg::StateAttribute::COLORTABLE: ret = "COLORTABLE"; break;
+    case osg::StateAttribute::CULLFACE: ret = "CULLFACE"; break;
+    case osg::StateAttribute::FOG: ret = "FOG"; break;
+    case osg::StateAttribute::FRONTFACE: ret = "FRONTFACE"; break;
+    case osg::StateAttribute::LIGHT: ret = "LIGHT"; break;
+    case osg::StateAttribute::POINT: ret = "POINT"; break;
+    case osg::StateAttribute::LINEWIDTH: ret = "LINEWIDTH"; break;
+    case osg::StateAttribute::LINESTIPPLE: ret = "LINESTIPPLE"; break;
+    case osg::StateAttribute::POLYGONSTIPPLE: ret = "POLYGONSTIPPLE"; break;
+    case osg::StateAttribute::SHADEMODEL: ret = "SHADEMODEL"; break;
+    case osg::StateAttribute::TEXENV: ret = "TEXENV"; break;
+    case osg::StateAttribute::TEXENVFILTER: ret = "TEXENVFILTER"; break;
+    case osg::StateAttribute::TEXGEN: ret = "TEXGEN"; break;
+    case osg::StateAttribute::TEXMAT: ret = "TEXMAT"; break;
+    case osg::StateAttribute::LIGHTMODEL: ret = "LIGHTMODEL"; break;
+    case osg::StateAttribute::BLENDFUNC: ret = "BLENDFUNC"; break;
+    case osg::StateAttribute::BLENDEQUATION: ret = "BLENDEQUATION"; break;
+    case osg::StateAttribute::LOGICOP: ret = "LOGICOP"; break;
+    case osg::StateAttribute::STENCIL: ret = "STENCIL"; break;
+    case osg::StateAttribute::COLORMASK: ret = "COLORMASK"; break;
+    case osg::StateAttribute::DEPTH: ret = "DEPTH"; break;
+    case osg::StateAttribute::VIEWPORT: ret = "VIEWPORT"; break;
+    case osg::StateAttribute::SCISSOR: ret = "SCISSOR"; break;
+    case osg::StateAttribute::BLENDCOLOR: ret = "BLENDCOLOR"; break;
+    case osg::StateAttribute::MULTISAMPLE: ret = "MULTISAMPLE"; break;
+    case osg::StateAttribute::CLIPPLANE: ret = "CLIPPLANE"; break;
+    case osg::StateAttribute::COLORMATRIX: ret = "COLORMATRIX"; break;
+    case osg::StateAttribute::VERTEXPROGRAM: ret = "VERTEXPROGRAM"; break;
+    case osg::StateAttribute::FRAGMENTPROGRAM: ret = "FRAGMENTPROGRAM"; break;
+    case osg::StateAttribute::POINTSPRITE: ret = "POINTSPRITE"; break;
+    case osg::StateAttribute::PROGRAM: ret = "PROGRAM"; break;
+    case osg::StateAttribute::CLAMPCOLOR: ret = "CLAMPCOLOR"; break;
+    case osg::StateAttribute::HINT: ret = "HINT"; break;
+    case osg::StateAttribute::SAMPLEMASKI: ret = "SAMPLEMASKI"; break;
+    case osg::StateAttribute::PRIMITIVERESTARTINDEX: ret = "PRIMITIVERESTARTINDEX"; break;
+    case osg::StateAttribute::CLIPCONTROL: ret = "CLIPCONTROL"; break;
+
+        /// osgFX namespace
+    case osg::StateAttribute::VALIDATOR: ret = "VALIDATOR"; break;
+    case osg::StateAttribute::VIEWMATRIXEXTRACTOR: ret = "VIEWMATRIXEXTRACTOR"; break;
+        /// osgNV namespace
+    case osg::StateAttribute::OSGNV_PARAMETER_BLOCK: ret = "OSGNV_PARAMETER_BLOCK"; break;
+        // osgNVExt namespace
+    case osg::StateAttribute::OSGNVEXT_TEXTURE_SHADER: ret = "OSGNVEXT_TEXTURE_SHADER"; break;
+    case osg::StateAttribute::OSGNVEXT_VERTEX_PROGRAM: ret = "OSGNVEXT_VERTEX_PROGRAM"; break;
+    case osg::StateAttribute::OSGNVEXT_REGISTER_COMBINERS: ret = "OSGNVEXT_REGISTER_COMBINERS"; break;
+        /// osgNVCg namespace
+    case osg::StateAttribute::OSGNVCG_PROGRAM: ret = "OSGNVCG_PROGRAM"; break;
+        // osgNVSlang namespace
+    case osg::StateAttribute::OSGNVSLANG_PROGRAM: ret = "OSGNVSLANG_PROGRAM"; break;
+        // osgNVParse
+    case osg::StateAttribute::OSGNVPARSE_PROGRAM_PARSER: ret = "OSGNVPARSE_PROGRAM_PARSER"; break;
+
+    case osg::StateAttribute::UNIFORMBUFFERBINDING: ret = "UNIFORMBUFFERBINDING"; break;
+    case osg::StateAttribute::TRANSFORMFEEDBACKBUFFERBINDING: ret = "TRANSFORMFEEDBACKBUFFERBINDING"; break;
+    case osg::StateAttribute::ATOMICCOUNTERBUFFERBINDING: ret = "ATOMICCOUNTERBUFFERBINDING"; break;
+    case osg::StateAttribute::PATCH_PARAMETER: ret = "PATCH_PARAMETER"; break;
+    case osg::StateAttribute::FRAME_BUFFER_OBJECT: ret = "FRAME_BUFFER_OBJECT"; break;
+
+    case osg::StateAttribute::VERTEX_ATTRIB_DIVISOR: ret = "VERTEX_ATTRIB_DIVISOR"; break;
+    case osg::StateAttribute::SHADERSTORAGEBUFFERBINDING: ret = "SHADERSTORAGEBUFFERBINDING"; break;
+    case osg::StateAttribute::INDIRECTDRAWBUFFERBINDING: ret = "INDIRECTDRAWBUFFERBINDING"; break;
+    case osg::StateAttribute::VIEWPORTINDEXED: ret = "VIEWPORTINDEXED"; break;
+    case osg::StateAttribute::DEPTHRANGEINDEXED: ret = "DEPTHRANGEINDEXED"; break;
+    case osg::StateAttribute::SCISSORINDEXED: ret = "SCISSORINDEXED"; break;
+    case osg::StateAttribute::BINDIMAGETEXTURE: ret = "BINDIMAGETEXTURE"; break;
+    case osg::StateAttribute::SAMPLER: ret = "SAMPLER"; break;
+    default:
+        std::stringstream ss;
+        ss << (int)t; 
+        ret = ss.str();
+        break;
+    }
+    return ret;
+}
     } // namespace osg_helpers
 } // namespace sgi

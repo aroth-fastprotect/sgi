@@ -21,80 +21,6 @@
 namespace sgi {
 namespace osg_helpers {
 
-
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::StateAttribute::Type & t)
-    {
-        switch (t)
-        {
-        case osg::StateAttribute::TEXTURE: os << "TEXTURE"; break;
-        case osg::StateAttribute::POLYGONMODE: os << "POLYGONMODE"; break;
-        case osg::StateAttribute::POLYGONOFFSET: os << "POLYGONOFFSET"; break;
-        case osg::StateAttribute::MATERIAL: os << "MATERIAL"; break;
-        case osg::StateAttribute::ALPHAFUNC: os << "ALPHAFUNC"; break;
-        case osg::StateAttribute::ANTIALIAS: os << "ANTIALIAS"; break;
-        case osg::StateAttribute::COLORTABLE: os << "COLORTABLE"; break;
-        case osg::StateAttribute::CULLFACE: os << "CULLFACE"; break;
-        case osg::StateAttribute::FOG: os << "FOG"; break;
-        case osg::StateAttribute::FRONTFACE: os << "FRONTFACE"; break;
-        case osg::StateAttribute::LIGHT: os << "LIGHT"; break;
-        case osg::StateAttribute::POINT: os << "POINT"; break;
-        case osg::StateAttribute::LINEWIDTH: os << "LINEWIDTH"; break;
-        case osg::StateAttribute::LINESTIPPLE: os << "LINESTIPPLE"; break;
-        case osg::StateAttribute::POLYGONSTIPPLE: os << "POLYGONSTIPPLE"; break;
-        case osg::StateAttribute::SHADEMODEL: os << "SHADEMODEL"; break;
-        case osg::StateAttribute::TEXENV: os << "TEXENV"; break;
-        case osg::StateAttribute::TEXENVFILTER: os << "TEXENVFILTER"; break;
-        case osg::StateAttribute::TEXGEN: os << "TEXGEN"; break;
-        case osg::StateAttribute::TEXMAT: os << "TEXMAT"; break;
-        case osg::StateAttribute::LIGHTMODEL: os << "LIGHTMODEL"; break;
-        case osg::StateAttribute::BLENDFUNC: os << "BLENDFUNC"; break;
-        case osg::StateAttribute::BLENDEQUATION: os << "BLENDEQUATION"; break;
-        case osg::StateAttribute::LOGICOP: os << "LOGICOP"; break;
-        case osg::StateAttribute::STENCIL: os << "STENCIL"; break;
-        case osg::StateAttribute::COLORMASK: os << "COLORMASK"; break;
-        case osg::StateAttribute::DEPTH: os << "DEPTH"; break;
-        case osg::StateAttribute::VIEWPORT: os << "VIEWPORT"; break;
-        case osg::StateAttribute::SCISSOR: os << "SCISSOR"; break;
-        case osg::StateAttribute::BLENDCOLOR: os << "BLENDCOLOR"; break;
-        case osg::StateAttribute::MULTISAMPLE: os << "MULTISAMPLE"; break;
-        case osg::StateAttribute::CLIPPLANE: os << "CLIPPLANE"; break;
-        case osg::StateAttribute::COLORMATRIX: os << "COLORMATRIX"; break;
-        case osg::StateAttribute::VERTEXPROGRAM: os << "VERTEXPROGRAM"; break;
-        case osg::StateAttribute::FRAGMENTPROGRAM: os << "FRAGMENTPROGRAM"; break;
-        case osg::StateAttribute::POINTSPRITE: os << "POINTSPRITE"; break;
-        case osg::StateAttribute::PROGRAM: os << "PROGRAM"; break;
-        case osg::StateAttribute::CLAMPCOLOR: os << "CLAMPCOLOR"; break;
-        case osg::StateAttribute::HINT: os << "HINT"; break;
-        case osg::StateAttribute::SAMPLEMASKI: os << "SAMPLEMASKI"; break;
-        case osg::StateAttribute::PRIMITIVERESTARTINDEX: os << "PRIMITIVERESTARTINDEX"; break;
-        case osg::StateAttribute::CLIPCONTROL: os << "CLIPCONTROL"; break;
-
-            /// osgFX namespace
-        case osg::StateAttribute::VALIDATOR: os << "VALIDATOR"; break;
-        case osg::StateAttribute::VIEWMATRIXEXTRACTOR: os << "VIEWMATRIXEXTRACTOR"; break;
-            /// osgNV namespace
-        case osg::StateAttribute::OSGNV_PARAMETER_BLOCK: os << "OSGNV_PARAMETER_BLOCK"; break;
-            // osgNVExt namespace
-        case osg::StateAttribute::OSGNVEXT_TEXTURE_SHADER: os << "OSGNVEXT_TEXTURE_SHADER"; break;
-        case osg::StateAttribute::OSGNVEXT_VERTEX_PROGRAM: os << "OSGNVEXT_VERTEX_PROGRAM"; break;
-        case osg::StateAttribute::OSGNVEXT_REGISTER_COMBINERS: os << "OSGNVEXT_REGISTER_COMBINERS"; break;
-            /// osgNVCg namespace
-        case osg::StateAttribute::OSGNVCG_PROGRAM: os << "OSGNVCG_PROGRAM"; break;
-            // osgNVSlang namespace
-        case osg::StateAttribute::OSGNVSLANG_PROGRAM: os << "OSGNVSLANG_PROGRAM"; break;
-            // osgNVParse
-        case osg::StateAttribute::OSGNVPARSE_PROGRAM_PARSER: os << "OSGNVPARSE_PROGRAM_PARSER"; break;
-
-        case osg::StateAttribute::UNIFORMBUFFERBINDING: os << "UNIFORMBUFFERBINDING"; break;
-        case osg::StateAttribute::TRANSFORMFEEDBACKBUFFERBINDING: os << "TRANSFORMFEEDBACKBUFFERBINDING"; break;
-        case osg::StateAttribute::ATOMICCOUNTERBUFFERBINDING: os << "ATOMICCOUNTERBUFFERBINDING"; break;
-        case osg::StateAttribute::PATCH_PARAMETER: os << "PATCH_PARAMETER"; break;
-        case osg::StateAttribute::FRAME_BUFFER_OBJECT: os << "FRAME_BUFFER_OBJECT"; break;
-        default: os << (int)t; break;
-        }
-        return os;
-    }
-
 MemoryStatisticsVisitor::Numbers::Numbers()
     : totalSize(0)
     , textureMemorySize(0)
@@ -828,6 +754,28 @@ osg::ref_ptr<osg::StateSet> StatisticsVisitor::getStateSet(unsigned index) const
     }
     return nullptr;
 }
+
+unsigned StatisticsVisitor::getNumberOfStateAttributes(unsigned type) const
+{
+    if (type >= MaxStateAttributeType)
+        return 0;
+    return _stateAttributeSets[type].size();
+}
+
+osg::ref_ptr<osg::StateAttribute> StatisticsVisitor::getStateAttribute(unsigned type, unsigned index) const
+{
+    if (type >= MaxStateAttributeType || index >= _stateAttributeSets[type].size())
+        return nullptr;
+    unsigned i = 0;
+    for (StateAttributeSet::const_iterator it = _stateAttributeSets[type].begin(); it != _stateAttributeSets[type].end(); ++it, ++i)
+    {
+        osg::StateAttribute * sa = *it;
+        if (i == index)
+            return sa;
+    }
+    return nullptr;
+}
+
 
 void StatisticsVisitor::printHTML(std::ostream& out)
 {

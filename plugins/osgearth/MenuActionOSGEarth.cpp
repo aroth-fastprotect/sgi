@@ -308,7 +308,8 @@ bool actionHandlerImpl<MenuActionNodeRegenerateShaders>::execute()
 {
     osg::Node * object = getObject<osg::Node, SGIItemOsg>();
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
-    osgEarth::Registry::shaderGenerator().run(object, getObjectName(object));
+    osg::ref_ptr<osgEarth::StateSetCache> cache = new osgEarth::StateSetCache();
+    osgEarth::Registry::shaderGenerator().run(object, getObjectName(object), cache.get());
 #endif
     return true;
 }

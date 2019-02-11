@@ -52,6 +52,10 @@ public:
     typedef std::set<osg::StateAttribute*> StateAttributeSet;
     typedef std::set<osg::Uniform*> UniformSet;
 
+    enum {
+        MaxStateAttributeType = osg::StateAttribute::SAMPLER
+    };
+
 public:
     StatisticsVisitor(unsigned int contextID = ~0u);
     virtual ~StatisticsVisitor();
@@ -95,6 +99,9 @@ public:
     unsigned getNumberOfStateSets() const;
     osg::ref_ptr<osg::StateSet> getStateSet(unsigned index) const;
 
+    unsigned getNumberOfStateAttributes(unsigned type) const;
+    osg::ref_ptr<osg::StateAttribute> getStateAttribute(unsigned type, unsigned index) const;
+
 protected:
     virtual void            updateNodeStats(osg::Node & node);
 #if OSG_VERSION_GREATER_THAN(3,3,1)
@@ -129,8 +136,6 @@ protected:
     unsigned int _numDeprecatedDataGeometries;
     unsigned int _numInstancedVBODrawables;
     unsigned int _numInstancedDisplayListDrawables;
-
-    enum { MaxStateAttributeType = osg::StateAttribute::FRAME_BUFFER_OBJECT };
 
     unsigned int _numInstancedSA[MaxStateAttributeType + 1];
 

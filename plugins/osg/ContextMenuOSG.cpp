@@ -152,8 +152,6 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(sgi::ISceneGraphDialogToolsMenu)
 
 using namespace sgi::osg_helpers;
 
-extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::StateAttribute::Type & t);
-
 namespace {
     static void buildStateAttributeOverrideMenu(IContextMenuItem * childMenu)
     {
@@ -168,7 +166,7 @@ namespace {
                                              SGIItemBase * item, osg::StateAttribute * attr, const osg::StateAttribute::OverrideValue value)
     {
         std::stringstream ss;
-        ss << helpers::str_plus_number("Texture", textureUnit) << '/' << member << ':' << type;
+        ss << helpers::str_plus_number("Texture", textureUnit) << '/' << member << ':' << getStateAttributeTypeName(type);
 
         StateAttributeModeValue currentMode = getStateAttributeModeFromOverrideValue(value);
         IContextMenuItem * childMenu = menuItem->addModeMenu(MenuActionStateSetTextureAttributeSet, ss.str(), item, currentMode, new ReferencedDataTextureAttributePair(TextureAttributePair(textureUnit, attr)));
@@ -195,7 +193,7 @@ namespace {
                                              SGIItemBase * item, const osg::StateAttribute::OverrideValue value)
     {
         std::stringstream ss;
-        ss << '#' << member << ':' << type << ' ' << attr->getName();
+        ss << '#' << member << ':' << getStateAttributeTypeName(type) << ' ' << attr->getName();
 
         StateAttributeModeValue currentMode = getStateAttributeModeFromOverrideValue(value);
         IContextMenuItem * childMenu = menuItem->addModeMenu(MenuActionStateSetAttributeSet, ss.str(), item, currentMode, new SGIRefPtrOsg(attr));

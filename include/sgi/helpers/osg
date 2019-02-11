@@ -436,5 +436,8 @@ SGI_OSG_HELPER_EXPORT bool stringToUniform(const std::string & s, osg::Uniform *
     SGI_OSG_HELPER_EXPORT osg::Geometry * createGeometryForImage(osg::Image* image);
     SGI_OSG_HELPER_EXPORT osg::Geometry * createGeometryForTexture(osg::Texture* texture);
 
+    SGI_OSG_HELPER_EXPORT std::string getStateAttributeTypeName(const osg::StateAttribute::Type & t);
+    SGI_OSG_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::StateAttribute::Type & t);
+
     } // namespace osg_helpers
 } // namespace sgi
