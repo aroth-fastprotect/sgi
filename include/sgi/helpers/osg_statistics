@@ -89,7 +89,11 @@ public:
 
 public:
     void printHTML(std::ostream& out);
+    void printStateSetsHTML(std::ostream& out);
     void getMemoryInfo(MemoryStatisticsVisitor::Numbers & unique, MemoryStatisticsVisitor::Numbers & instanced);
+
+    unsigned getNumberOfStateSets() const;
+    osg::ref_ptr<osg::StateSet> getStateSet(unsigned index) const;
 
 protected:
     virtual void            updateNodeStats(osg::Node & node);

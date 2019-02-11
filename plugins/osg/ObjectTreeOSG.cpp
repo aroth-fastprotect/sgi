@@ -11,6 +11,7 @@
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/helpers/string>
 #include <sgi/helpers/osg_helper_nodes>
+#include <sgi/helpers/osg_statistics>
 
 #include <osg/UserDataContainer>
 #include <osg/ProxyNode>
@@ -390,7 +391,23 @@ bool objectTreeBuildImpl<osg::Node>::build(IObjectTreeItem * treeItem)
         break;
     case SGIItemTypeStatistics:
         {
-            // nothing to be done here
+            treeItem->addChild("StateSets", cloneItem<SGIItemOsg>(SGIItemTypeStatisticsStateSets, ~0u));
+            ret = true;
+        }
+        break;
+    case SGIItemTypeStatisticsStateSets:
+        {
+            if (this->itemNumber() == ~0u)
+            {
+                unsigned contextID = osg_helpers::findContextID(object);
+                osg_helpers::StatisticsVisitor sv(contextID);
+                object->accept(sv);
+                for (unsigned n = 0; n < sv.getNumberOfStateSets(); ++n)
+                {
+                    SGIHostItemOsg item(sv.getStateSet(n));
+                    treeItem->addChild(std::string(), &item);
+                }
+            }
             ret = true;
         }
         break;

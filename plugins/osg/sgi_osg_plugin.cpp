@@ -755,6 +755,13 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeCullingInfoBefore);
         SGIITEMTYPE_NAME(SGIItemTypeCullingInfoAfter);
         SGIITEMTYPE_NAME(SGIItemTypeBuildInfo);
+        SGIITEMTYPE_NAME(SGIItemTypeStateModeMap);
+        SGIITEMTYPE_NAME(SGIItemTypeStateAttributeMap);
+        SGIITEMTYPE_NAME(SGIItemTypeStateUniformMap);
+        SGIITEMTYPE_NAME(SGIItemTypeStateDefineMap);
+        SGIITEMTYPE_NAME(SGIItemTypeStateTextureModeMapList);
+        SGIITEMTYPE_NAME(SGIItemTypeStateTextureAttributeMapList);
+        SGIITEMTYPE_NAME(SGIItemTypeStatisticsStateSets);
     }
     SGIPlugin_osg_Implementation(const SGIPlugin_osg_Implementation & rhs)
         : osg_plugin::SGIPluginImpl(rhs)

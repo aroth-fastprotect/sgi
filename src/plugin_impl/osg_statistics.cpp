@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include <sgi/helpers/osg_statistics>
+#include <sgi/helpers/osg>
 
 #include <osg/PagedLOD>
 #include <osg/ProxyNode>
@@ -809,6 +810,25 @@ void StatisticsVisitor::getMemoryInfo(MemoryStatisticsVisitor::Numbers & unique,
         instanced = _instancedMemory->numbers();
 }
 
+unsigned StatisticsVisitor::getNumberOfStateSets() const
+{
+    return _statesetSet.size();
+}
+
+osg::ref_ptr<osg::StateSet> StatisticsVisitor::getStateSet(unsigned index) const
+{
+    if (index >= _statesetSet.size())
+        return nullptr;
+    unsigned i = 0;
+    for (StateSetSet::const_iterator it = _statesetSet.begin(); it != _statesetSet.end(); ++it, ++i)
+    {
+        osg::StateSet * stateSet = *it;
+        if (i == index)
+            return stateSet;
+    }
+    return nullptr;
+}
+
 void StatisticsVisitor::printHTML(std::ostream& out)
 {
     // automatically call the update to gets the unique vertices and primitives
@@ -879,6 +899,17 @@ void StatisticsVisitor::printHTML(std::ostream& out)
     out << "<tr><td>cull disabled</td><td>" << _numCullDisabled << "</td><td>" << _numCullDisabled << "</td></tr>" << std::endl;
 
     out << "</table>" << std::endl;
+}
+
+void StatisticsVisitor::printStateSetsHTML(std::ostream& out)
+{
+    out << "<ol>";
+    for (StateSetSet::const_iterator it = _statesetSet.begin(); it != _statesetSet.end(); ++it)
+    {
+        osg::StateSet * stateSet = *it;
+        out << "<li>" << osg_helpers::getObjectNameAndType(stateSet, true) << "</li>";
+    }
+    out << "</ol>";
 }
 
 } // namespace osg_helpers
