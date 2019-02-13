@@ -88,6 +88,7 @@ enum SGIItemType_osg
     SGIItemTypeStateAttributeMap,
     SGIItemTypeStateUniformMap,
     SGIItemTypeStateDefineMap,
+    SGIItemTypeStateMatrix,
     SGIItemTypeStateTextureModeMapList,
     SGIItemTypeStateTextureAttributeMapList,
     SGIItemTypeStatisticsStateSets,

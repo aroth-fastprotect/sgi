@@ -203,6 +203,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::GraphicsContext)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::GraphicsContext::Traits)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ShaderComposer)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ShaderComponent)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::VertexArrayState)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::StringValueObject)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BoolValueObject)
@@ -235,6 +236,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg_helpers::RenderInfoDrawable)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg_helpers::RenderInfoGeometry)
 #endif
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg_helpers::RenderInfoDrawCallback)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg_helpers::RenderInfoData::VertexArrayStateSnapshot)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(OpenThreads::Thread)
 
@@ -4592,7 +4594,7 @@ bool writePrettyHTMLImpl<osg::GraphicsContext>::process(std::basic_ostream<char>
             {
                 osg::Camera * camera = *it;
                 os << "<li>";
-                os << osg_helpers::getObjectName(camera) << " (" << osg_helpers::getObjectTypename(camera) << ")" << std::endl;
+                os << osg_helpers::getObjectNameAndType(camera) << std::endl;
                 os << "</li>" << std::endl;
             }
             os << "</ol>";
@@ -4931,6 +4933,11 @@ bool writePrettyHTMLImpl<osg::StateSet>::process(std::basic_ostream<char>& os)
             os << "<tr><td>renderBinNum</td><td>" << object->getBinNumber() << "</td></tr>" << std::endl;
             os << "<tr><td>renderBinName</td><td>" << object->getBinName() << "</td></tr>" << std::endl;
             os << "<tr><td>nested render bins</td><td>" << (object->getNestRenderBins()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>requiresUpdateTraversal</td><td>" << (object->requiresUpdateTraversal() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>numChildrenRequiringUpdateTraversal</td><td>" << object->getNumChildrenRequiringUpdateTraversal() << "</td></tr>" << std::endl;
+            os << "<tr><td>requiresEventTraversal</td><td>" << (object->requiresEventTraversal() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>numChildrenRequiringEventTraversal</td><td>" << object->getNumChildrenRequiringEventTraversal() << "</td></tr>" << std::endl;
+            
             os << "<tr><td>modes</td><td>" << std::endl;
             writePrettyHTMLStateSetModeList(os, item<SGIItemOsg>());
             os << "</td></tr>" << std::endl;
@@ -5120,6 +5127,10 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& fout, const osg::
     return fout;
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::VertexAttribAlias & u)
+{
+    return os << '[' << u._location << "]: " << u._declaration << " " << u._glName << "=" << u._osgName;
+}
 
 bool writePrettyHTMLImpl<osg::State>::process(std::basic_ostream<char>& os)
 {
@@ -5158,6 +5169,20 @@ bool writePrettyHTMLImpl<osg::State>::process(std::basic_ostream<char>& os)
             os << "<tr><td>Current VAO</td><td>" << object->getCurrentVertexArrayObject() << "</td></tr>" << std::endl;
             os << "<tr><td>active texture unit</td><td>" << object->getActiveTextureUnit() << "</td></tr>" << std::endl;
             os << "<tr><td>client active texture unit</td><td>" << object->getClientActiveTextureUnit() << "</td></tr>" << std::endl;
+
+            os << "<tr><td>vertexAlias</td><td>" << object->getVertexAlias() << "</td></tr>" << std::endl;
+            os << "<tr><td>normalAlias</td><td>" << object->getNormalAlias() << "</td></tr>" << std::endl;
+            os << "<tr><td>colorAlias</td><td>" << object->getColorAlias() << "</td></tr>" << std::endl;
+            os << "<tr><td>secondaryColorAlias</td><td>" << object->getSecondaryColorAlias() << "</td></tr>" << std::endl;
+            os << "<tr><td>fogCoordAlias</td><td>" << object->getFogCoordAlias() << "</td></tr>" << std::endl;
+            os << "<tr><td>texCoordAliasList</td><td><ol>";
+            for(auto t : object->getTexCoordAliasList())
+                os << "<li>" << t << "</li>";
+            os << "</ol></td></tr>" << std::endl;
+            os << "<tr><td>attributeBindingList</td><td>";
+            for (auto t : object->getAttributeBindingList())
+                os << "<li>" << t.first << "=" << t.second << "</li>";
+            os << "</td></tr>" << std::endl;
 
             os << "<tr><td>dyn object count</td><td>" << object->getDynamicObjectCount() << "</td></tr>" << std::endl;
             os << "<tr><td>max texture pool size</td><td>" << object->getMaxTexturePoolSize() << "</td></tr>" << std::endl;
@@ -5205,6 +5230,10 @@ bool writePrettyHTMLImpl<osg::State>::process(std::basic_ostream<char>& os)
         {
             const osg::State::UniformMap& uniformmap = object->getUniformMap();
             os << "<ul>";
+            os << "<li>ModelViewMatrixUniform=" << osg_helpers::getObjectNameAndType(object->getModelViewMatrixUniform()) << "</li>";
+            os << "<li>projectionMatrixUniform=" << osg_helpers::getObjectNameAndType(object->getProjectionMatrixUniform()) << "</li>";
+            os << "<li>modelViewProjectionMatrixUniform=" << osg_helpers::getObjectNameAndType(object->getModelViewProjectionMatrixUniform()) << "</li>";
+            os << "<li>normalMatrixUniform=" << osg_helpers::getObjectNameAndType(object->getNormalMatrixUniform()) << "</li>";
             for (auto it : uniformmap)
             {
                 os << "<li>" << it.first << "=" << it.second << "</li>";
@@ -6518,6 +6547,103 @@ bool writePrettyHTMLImpl<osg::ShaderComponent>::process(std::basic_ostream<char>
                 os << "<li>" << osg_helpers::getObjectNameAndType(object->getShader(n), true) << "</li>" << std::endl;
             }
             os << "</ol>";
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osg::VertexArrayState>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    osg::VertexArrayState * object = getObject<osg::VertexArrayState,SGIItemOsg>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add osg::VertexArrayState properties first
+            callNextHandler(os);
+            os << "<tr><td>EBO</td><td>" << osg_helpers::getObjectNameAndType(object->getCurrentElementBufferObject()) << "</td></tr>" << std::endl;
+            os << "<tr><td>VBO</td><td>" << osg_helpers::getObjectNameAndType(object->getCurrentVertexBufferObject()) << "</td></tr>" << std::endl;
+            os << "<tr><td>VAO</td><td>" << object->getVertexArrayObject() << "</td></tr>" << std::endl;
+            os << "<tr><td>requiresSetArrays</td><td>" << (object->getRequiresSetArrays() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>vertexArray</td><td>" << osg_helpers::getObjectNameAndType(object->_vertexArray) << "</td></tr>" << std::endl;
+            os << "<tr><td>normalArray</td><td>" << osg_helpers::getObjectNameAndType(object->_normalArray) << "</td></tr>" << std::endl;
+            os << "<tr><td>colorArray</td><td>" << osg_helpers::getObjectNameAndType(object->_colorArray) << "</td></tr>" << std::endl;
+            os << "<tr><td>secondaryColorArray</td><td>" << osg_helpers::getObjectNameAndType(object->_secondaryColorArray) << "</td></tr>" << std::endl;
+            os << "<tr><td>fogCoordArray</td><td>" << osg_helpers::getObjectNameAndType(object->_fogCoordArray) << "</td></tr>" << std::endl;
+            os << "<tr><td>texCoordArrays</td><td><ol>";
+            for (auto t : object->_texCoordArrays)
+                os << "<li>" << osg_helpers::getObjectNameAndType(t) << "</li>";
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>vertexAttribArrays</td><td><ol>";
+            for (auto t : object->_vertexAttribArrays)
+                os << "<li>" << osg_helpers::getObjectNameAndType(t) << "</li>";
+            os << "</td></tr>" << std::endl; 
+            os << "<tr><td>activeDispatchers</td><td><ol>";
+            for (auto t : object->_activeDispatchers)
+                os << "<li>" << osg_helpers::getObjectNameAndType(t) << "</li>";
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>previous_activeDispatchers</td><td><ol>";
+            for (auto t : object->_previous_activeDispatchers)
+                os << "<li>" << osg_helpers::getObjectNameAndType(t) << "</li>";
+            os << "</td></tr>" << std::endl; 
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, osg_helpers::RenderInfoData::VertexArrayStateSnapshot::ArraySnapshot & s)
+{
+    return os << osg_helpers::getObjectNameAndType(s.array.get()) << " active=" << (s.active ? "true" : "false") << " modified=" << s.modifiedCount;
+}
+
+bool writePrettyHTMLImpl<osg_helpers::RenderInfoData::VertexArrayStateSnapshot>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    osg_helpers::RenderInfoData::VertexArrayStateSnapshot * object = getObject<osg_helpers::RenderInfoData::VertexArrayStateSnapshot, SGIItemOsg>();
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add osg::VertexArrayState properties first
+            callNextHandler(os);
+
+            os << "<tr><td>vertexArraySnapshot</td><td>" << object->_vertexArraySnapshot << "</td></tr>" << std::endl;
+            os << "<tr><td>normalArraySnapshot</td><td>" << object->_normalArraySnapshot << "</td></tr>" << std::endl;
+            os << "<tr><td>colorArraySnapshot</td><td>" << object->_colorArraySnapshot << "</td></tr>" << std::endl;
+            os << "<tr><td>secondaryColorArraySnapshot</td><td>" << object->_secondaryColorArraySnapshot << "</td></tr>" << std::endl;
+            os << "<tr><td>fogCoordArraySnapshot</td><td>" << object->_fogCoordArraySnapshot << "</td></tr>" << std::endl;
+            os << "<tr><td>texCoordArraySnapshots</td><td><ol>";
+            for (auto t : object->_texCoordArrayShapshots)
+                os << "<li>" << t << "</li>";
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>vertexAttribArrays</td><td><ol>";
+            for (auto t : object->_vertexAttribArraySnapshots)
+                os << "<li>" << t << "</li>";
+            os << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
             ret = true;
         }
         break;

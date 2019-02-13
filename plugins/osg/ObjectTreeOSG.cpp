@@ -2131,6 +2131,10 @@ bool objectTreeBuildImpl<osg::State>::build(IObjectTreeItem * treeItem)
             if (pbo.hasObject())
                 treeItem->addChild("CurrentPBO", &pbo);
 
+            SGIHostItemOsg vas(object->getCurrentVertexArrayState());
+            if (vas.hasObject())
+                treeItem->addChild("VertexArrayState", &vas);
+
         }
         break;
     case SGIItemTypeStateModeMap:
@@ -4198,6 +4202,9 @@ bool objectTreeBuildImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, 
                 if(appliedProgam.hasObject())
                     treeItem->addChild("AppliedProgam", &appliedProgam);
 #endif
+                SGIHostItemOsg vas(state.vas, item);
+                if(vas.hasObject())
+                    treeItem->addChild("VertexArrayState", &vas);
             }
         }
         ret = true;

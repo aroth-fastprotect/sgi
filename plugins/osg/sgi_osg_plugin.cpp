@@ -65,6 +65,7 @@
 #include <osg/Shape>
 #include <osg/ClusterCullingCallback>
 #include <osg/ImageSequence>
+#include <osg/VertexArrayState>
 
 // osgDB headers
 #include <osgDB/Registry>
@@ -291,6 +292,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osg::GLBufferObject,
     osg::GLBufferObjectSet,
     osg::Stats,
+    osg::VertexArrayState,
     osg::Texture::TextureObject,
 #if OSG_MIN_VERSION_REQUIRED(3,5,0)
     osg::GraphicsObjectManager,
@@ -445,6 +447,9 @@ SGI_OBJECT_INFO_END()
 #endif
 SGI_OBJECT_INFO_BEGIN(osg::GraphicsContext)
     osgViewer::GraphicsWindow
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::VertexArrayState)
+    osg_helpers::RenderInfoData::VertexArrayStateSnapshot
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::Node)

@@ -109,6 +109,28 @@ public:
 
     typedef std::map<osg::StateAttribute::TypeMemberPair, AttributeStack> AttributeMap;
 
+    struct SGI_OSG_HELPER_EXPORT VertexArrayStateSnapshot : public osg::VertexArrayState
+    {
+    public:
+        struct ArraySnapshot
+        {
+            osg::ref_ptr<const osg::Array> array;
+            unsigned int        modifiedCount;
+            bool                active;
+        };
+        typedef std::vector<ArraySnapshot> ArraySnapshotList;
+        VertexArrayStateSnapshot(osg::VertexArrayState * vas);
+
+        ArraySnapshot     _vertexArraySnapshot;
+        ArraySnapshot     _normalArraySnapshot;
+        ArraySnapshot     _colorArraySnapshot;
+        ArraySnapshot     _secondaryColorArraySnapshot;
+        ArraySnapshot     _fogCoordArraySnapshot;
+        ArraySnapshotList _texCoordArrayShapshots;
+        ArraySnapshotList _vertexAttribArraySnapshots;
+
+    };
+
     struct State {
         osg::ref_ptr<osg::State> stateRef;
         osg::ref_ptr<osg::State> state;
@@ -122,6 +144,7 @@ public:
         osg::ref_ptr<osg::StateSet> capturedStateSet;
         osg::ref_ptr<osg::StateSet> combinedStateSet;
         osg::ref_ptr<osg::Referenced> userData;
+        osg::ref_ptr<VertexArrayStateSnapshot> vas;
     };
 
 #if defined(_M_X64) || defined(_M_AMD64) || defined(__x86_64__) || defined(__amd64__)
@@ -145,6 +168,7 @@ protected:
     static void copyStateSetStack(StateSetStack & dest, const std::vector<const osg::StateSet*> & src);
     static void copyRenderBinStack(RenderBinStack & dest, const std::vector<osgUtil::RenderBin*> & src);
     static void copyCameraStack(CameraStack & dest, const std::vector<osg::Camera*> & src);
+    static void copyVertexArrayState(osg::ref_ptr<VertexArrayStateSnapshot> & dest, osg::VertexArrayState * src);
     static void copyPerContextProgramSet(PerContextProgramSet & dest, const std::set<const osg::Program::PerContextProgram* > & src);
     static void captureCurrentState(osg::StateSet * dest, osg::State * src);
 

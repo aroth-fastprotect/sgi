@@ -174,6 +174,49 @@ void RenderInfoData::copyCameraStack(CameraStack & dest, const std::vector<osg::
 #endif
 }
 
+#define COPY_ARRAY_DISPATCH(dest, src) \
+    { if(src) { dest.array = src->array; dest.modifiedCount = src->modifiedCount; dest.active = src->active; } \
+      else { dest.array = nullptr; dest.modifiedCount = 0; dest.active = false; } }
+#define COPY_ARRAY_DISPATCH_LIST(dest, src) \
+    { unsigned num = src.size(); dest.resize(num); \
+        for(unsigned i = 0; i < num; ++i) { COPY_ARRAY_DISPATCH(dest[i], src[i]); } }
+
+RenderInfoData::VertexArrayStateSnapshot::VertexArrayStateSnapshot(osg::VertexArrayState * src)
+    : osg::VertexArrayState(src->_state)
+{
+    setVertexBufferObjectSupported(src->isVertexBufferObjectSupported());
+    _vertexArrayObject = src->_vertexArrayObject;
+    _vertexArray = src->_vertexArray;
+    _normalArray = src->_normalArray;
+    _colorArray = src->_colorArray;
+    _secondaryColorArray = src->_secondaryColorArray;
+    _fogCoordArray = src->_fogCoordArray;
+    _texCoordArrays = src->_texCoordArrays;
+    _vertexAttribArrays = src->_vertexAttribArrays;
+    _activeDispatchers = src->_activeDispatchers;
+    _previous_activeDispatchers = src->_previous_activeDispatchers;
+    _currentVBO = src->_currentVBO;
+    _currentEBO = src->_currentEBO;
+    _requiresSetArrays = src->_requiresSetArrays;
+
+    COPY_ARRAY_DISPATCH(_vertexArraySnapshot, src->_vertexArray);
+    COPY_ARRAY_DISPATCH(_normalArraySnapshot, src->_normalArray);
+    COPY_ARRAY_DISPATCH(_colorArraySnapshot, src->_colorArray);
+    COPY_ARRAY_DISPATCH(_secondaryColorArraySnapshot, src->_secondaryColorArray);
+    COPY_ARRAY_DISPATCH(_fogCoordArraySnapshot, src->_fogCoordArray);
+
+    COPY_ARRAY_DISPATCH_LIST(_texCoordArrayShapshots, src->_texCoordArrays);
+    COPY_ARRAY_DISPATCH_LIST(_vertexAttribArraySnapshots, src->_vertexAttribArrays);
+}
+
+void RenderInfoData::copyVertexArrayState(osg::ref_ptr<VertexArrayStateSnapshot> & dest, osg::VertexArrayState * src)
+{
+    if (src)
+        dest = new VertexArrayStateSnapshot(src);
+    else
+        dest = nullptr;
+}
+
 void RenderInfoData::copyPerContextProgramSet(PerContextProgramSet & dest, const std::set<const osg::Program::PerContextProgram* > & src)
 {
     dest.clear();
@@ -438,6 +481,7 @@ void RenderInfoData::copyRenderInfo(osg::RenderInfo& renderInfo)
         currentState.combinedStateSet->merge(*(*it));
     }
     currentState.view = renderInfo.getView();
+    RenderInfoData::copyVertexArrayState(currentState.vas, state->getCurrentVertexArrayState());
 
     /*
     copyStateSetStack(const_cast<RenderInfoDrawable*>(this)->_lastStateSetStack, stateSetStack);
