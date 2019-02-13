@@ -6,6 +6,7 @@
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/helpers/qt>
 #include <sgi/helpers/osg>
+#include <sgi/helpers/osg_drawable_helpers>
 
 #include <QTemporaryFile>
 #include <QTextStream>
@@ -521,12 +522,29 @@ osg::StateSet * ShaderEditorDialog::getStateSet(bool create)
             stateSet = stateAttr->getParent(0);
         else
         {
-            osg_plugin::ReferencedRefPtr * ref_ptr = _item->userData<osg_plugin::ReferencedRefPtr>();
-            if (ref_ptr)
+            SGIItemOsg * userdata = _item->userData<SGIItemOsg>();
+            if (userdata)
             {
-                osg::ref_ptr<osg::Referenced> ref = ref_ptr->data();
-                if (osg::State* state = dynamic_cast<osg::State*>(ref.get()))
+                unsigned number = userdata->number();
+                if (osg_helpers::RenderInfoDrawable * drawable = userdata->objectAs<osg_helpers::RenderInfoDrawable>())
                 {
+                    const osg_helpers::RenderInfoData::HashedState & hashedState = drawable->data().hashedState();
+                    osg_helpers::RenderInfoData::HashedState::const_iterator it = hashedState.find(number);
+                    if (it != hashedState.end())
+                    {
+                        const osg_helpers::RenderInfoData::State & state = it->second;
+                        stateSet = state.capturedStateSet.get();
+                    }
+                }
+                else if (osg_helpers::RenderInfoDrawCallback * callback = userdata->objectAs<osg_helpers::RenderInfoDrawCallback>())
+                {
+                    const osg_helpers::RenderInfoData::HashedState & hashedState = callback->data().hashedState();
+                    osg_helpers::RenderInfoData::HashedState::const_iterator it = hashedState.find(number);
+                    if (it != hashedState.end())
+                    {
+                        const osg_helpers::RenderInfoData::State & state = it->second;
+                        stateSet = state.capturedStateSet.get();
+                    }
                 }
             }
         }

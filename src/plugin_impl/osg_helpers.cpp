@@ -985,6 +985,10 @@ bool collectUniformList(const osg::StateSet * stateSet, UniformList & list)
                 ret = true;
         }
     }
+    const osg::StateSet::UniformList & curlist = stateSet->getUniformList();
+    for (auto itl : curlist)
+        list.insert(UniformList::value_type(itl.first, itl.second));
+
     return ret;
 }
 
