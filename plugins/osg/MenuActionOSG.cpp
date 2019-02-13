@@ -61,10 +61,10 @@
 #include "osgtext_accessor.h"
 #include "stateset_helpers.h"
 #include "SettingsDialogOSG.h"
-#include "DrawableHelper.h"
 #include "NodeHelper.h"
 #include "ObjectLoggerOSG.h"
 #include <sgi/helpers/osg_helper_nodes>
+#include <sgi/helpers/osg_drawable_helpers>
 
 #undef max
 #undef min
@@ -662,7 +662,7 @@ bool actionHandlerImpl<MenuActionNodeToggleCenterMarker>::execute()
 bool actionHandlerImpl<MenuActionNodeRenderInfo>::execute()
 {
     osg::Node * node = getObject<osg::Node, SGIItemOsg>();
-    RenderInfo::enable(node, menuAction()->state());
+    osg_helpers::RenderInfo::enable(node, menuAction()->state());
     return true;
 }
 
@@ -2156,7 +2156,7 @@ bool actionHandlerImpl<MenuActionImagePreview>::execute()
                     if (camera)
                     {
                         osg::ref_ptr<osg::Image> image;
-                        if (convertTextureToImage(camera, texture, image))
+                        if (osg_helpers::convertTextureToImage(camera, texture, image))
                             textureImage = osg_helpers::convertImage(image);
                     }
                 }
@@ -2174,7 +2174,7 @@ bool actionHandlerImpl<MenuActionImagePreview>::execute()
 bool actionHandlerImpl<MenuActionDrawableToggleDisabled>::execute()
 {
     osg::Drawable * object = getObject<osg::Drawable,SGIItemOsg>();
-    DisabledDrawCallback::disable(object, menuAction()->state());
+    osg_helpers::DisabledDrawCallback::disable(object, menuAction()->state());
     return true;
 }
 
@@ -4037,7 +4037,7 @@ bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
     osg::ref_ptr<osg::Image> image;
     if (camera && (!view || !viewerbase))
     {
-        captureCameraImage(camera, image, masterCamera);
+        osg_helpers::captureCameraImage(camera, image, masterCamera);
     }
     else if(viewerbase)
 	{
@@ -4048,7 +4048,7 @@ bool actionHandlerImpl<MenuActionViewCaptureScreenshot>::execute()
             if (!views.empty())
                 view = views.front();
         }
-        captureViewImage(view, image);
+        osg_helpers::captureViewImage(view, image);
 	}
     if (image.valid())
     {

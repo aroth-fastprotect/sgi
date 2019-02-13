@@ -117,8 +117,8 @@
 #include <osgAnimation/AnimationManagerBase>
 #include <osgAnimation/AnimationUpdateCallback>
 
-#include "DrawableHelper.h"
 #include <sgi/helpers/osg>
+#include <sgi/helpers/osg_drawable_helpers>
 
 #include <sgi/ReferencedPicker>
 
@@ -436,11 +436,11 @@ SGI_OBJECT_INFO_BEGIN(osg::BufferObject)
     osg::UniformBufferObject, osg::AtomicCounterBufferObject
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osg::Drawable)
-    osg::Geometry, osgText::TextBase, osg::ShapeDrawable, RenderInfoDrawable
+    osg::Geometry, osgText::TextBase, osg::ShapeDrawable, osg_helpers::RenderInfoDrawable
 SGI_OBJECT_INFO_END()
 #if OSG_VERSION_LESS_THAN(3,5,0)
 SGI_OBJECT_INFO_BEGIN(osg::Geometry)
-    RenderInfoGeometry
+    osg_helpers::RenderInfoGeometry
 SGI_OBJECT_INFO_END()
 #endif
 SGI_OBJECT_INFO_BEGIN(osg::GraphicsContext)
@@ -522,7 +522,7 @@ SGI_OBJECT_INFO_BEGIN(osg::NodeCallback)
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::Drawable::DrawCallback)
-    RenderInfoDrawCallback
+    osg_helpers::RenderInfoDrawCallback
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgAnimation::AnimationUpdateCallback<osg::NodeCallback>)

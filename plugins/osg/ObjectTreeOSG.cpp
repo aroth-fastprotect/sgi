@@ -55,9 +55,10 @@
 #include <osgAnimation/AnimationManagerBase>
 
 #include <sgi/ReferencedPicker>
+#include <sgi/helpers/osg_drawable_helpers>
 
 #include "osgdb_accessor.h"
-#include "DrawableHelper.h"
+
 #include "ObjectLoggerOSG.h"
 #include "osg_accessor.h"
 #include "osganimation_accessor.h"
@@ -188,11 +189,11 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgText::Text)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgAnimation::Animation)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgAnimation::AnimationManagerBase)
 
-OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawable)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg_helpers::RenderInfoDrawable)
 #if OSG_VERSION_LESS_THAN(3,5,0)
-OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(RenderInfoGeometry)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg_helpers::RenderInfoGeometry)
 #endif
-OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawCallback)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osg_helpers::RenderInfoDrawCallback)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(sgi::ReferencedPickerBase)
 #ifdef SGI_USE_OSGEARTH
@@ -4171,20 +4172,20 @@ bool objectTreeBuildImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, 
             {
                 const RenderInfoData::State & state = it->second;
 
-                SGIHostItemOsg osgstate(state.state);
+                SGIHostItemOsg osgstate(state.state, item);
                 treeItem->addChild("State", &osgstate);
 
-                SGIHostItemOsg view(state.view);
+                SGIHostItemOsg view(state.view, item);
                 treeItem->addChild("View", &view);
 
-                SGIHostItemOsg userData(state.userData);
+                SGIHostItemOsg userData(state.userData, item);
                 if(userData.hasObject())
                     treeItem->addChild("UserData", &userData);
 
-                SGIHostItemOsg capturedStateSet(state.capturedStateSet);
+                SGIHostItemOsg capturedStateSet(state.capturedStateSet, item);
                 treeItem->addChild("CapturedStateSet", &capturedStateSet);
 
-                SGIHostItemOsg combinedStateSet(state.combinedStateSet);
+                SGIHostItemOsg combinedStateSet(state.combinedStateSet, item);
                 treeItem->addChild("CombinedStateSet", &combinedStateSet);
 
                 treeItem->addChild(helpers::str_plus_count("StateSetStack", state.stateSetStack.size()), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoStateSetStack, item->number()));
@@ -4193,7 +4194,7 @@ bool objectTreeBuildImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, 
 #if OSG_VERSION_LESS_THAN(3,5,0)
                 treeItem->addChild(helpers::str_plus_count("AppliedProgramSet", state.appliedProgamSet.size()), item->clone<SGIItemOsg>((sgi::SGIItemType)SGIItemTypeRenderInfoAppliedProgramSet, item->number()));
 #else
-                SGIHostItemOsg appliedProgam(const_cast<osg::Program*>(state.appliedProgam.get()));
+                SGIHostItemOsg appliedProgam(const_cast<osg::Program*>(state.appliedProgam.get()), item);
                 if(appliedProgam.hasObject())
                     treeItem->addChild("AppliedProgam", &appliedProgam);
 #endif
@@ -4293,26 +4294,26 @@ bool objectTreeBuildImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, 
     return ret;
 }
 
-bool objectTreeBuildImpl<RenderInfoDrawCallback>::build(IObjectTreeItem * treeItem)
+bool objectTreeBuildImpl<osg_helpers::RenderInfoDrawCallback>::build(IObjectTreeItem * treeItem)
 {
-    RenderInfoDrawCallback * object = getObject<RenderInfoDrawCallback, SGIItemOsg, DynamicCaster>();
-    const RenderInfoData & data = object->data();
+    osg_helpers::RenderInfoDrawCallback * object = getObject<osg_helpers::RenderInfoDrawCallback, SGIItemOsg, DynamicCaster>();
+    const osg_helpers::RenderInfoData & data = object->data();
     bool ret = objectTreeBuildImpl_RenderInfoData(_hostInterface, treeItem, _item, data);
     return ret;
 }
 
-bool objectTreeBuildImpl<RenderInfoDrawable>::build(IObjectTreeItem * treeItem)
+bool objectTreeBuildImpl<osg_helpers::RenderInfoDrawable>::build(IObjectTreeItem * treeItem)
 {
-    RenderInfoDrawable * object = getObject<RenderInfoDrawable,SGIItemOsg>();
-    const RenderInfoData & data = object->data();
+    osg_helpers::RenderInfoDrawable * object = getObject<osg_helpers::RenderInfoDrawable,SGIItemOsg>();
+    const osg_helpers::RenderInfoData & data = object->data();
     bool ret = objectTreeBuildImpl_RenderInfoData(_hostInterface, treeItem, _item, data);
     return ret;
 }
 #if OSG_VERSION_LESS_THAN(3,5,0)
-bool objectTreeBuildImpl<RenderInfoGeometry>::build(IObjectTreeItem * treeItem)
+bool objectTreeBuildImpl<osg_helpers::RenderInfoGeometry>::build(IObjectTreeItem * treeItem)
 {
-    RenderInfoGeometry * object = getObject<RenderInfoGeometry, SGIItemOsg>();
-    const RenderInfoData & data = object->data();
+    osg_helpers::RenderInfoGeometry * object = getObject<osg_helpers::RenderInfoGeometry, SGIItemOsg>();
+    const osg_helpers::RenderInfoData & data = object->data();
     bool ret = objectTreeBuildImpl_RenderInfoData(_hostInterface, treeItem, _item, data);
     return ret;
 }

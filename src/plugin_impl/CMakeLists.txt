@@ -29,6 +29,7 @@ FAST_SHARED_LIBRARY(sgi-plugin-impl NO_MOC_INCLUDE)
 SET(TARGET_SRC
     osg_helpers.cpp
     osg_node_helpers.cpp
+    osg_drawable_helpers.cpp
 	osg_statistics.cpp
     osg_viewer.cpp
     SGIImageOsg.cpp
@@ -57,6 +58,11 @@ LIST(APPEND TARGET_LIBRARIES_VARS
     OSGGA_LIBRARY
 	OSGVIEWER_LIBRARY
     )
+if(OPENGL_opengl_LIBRARY)
+    list(APPEND TARGET_LIBRARIES_VARS OPENGL_opengl_LIBRARY)
+else()
+    list(APPEND TARGET_LIBRARIES_VARS OPENGL_gl_LIBRARY)
+endif()
 if(UNIX)
     LIST(APPEND TARGET_LIBRARIES_VARS
         OSGTEXT_LIBRARY

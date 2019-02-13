@@ -517,7 +517,19 @@ osg::StateSet * ShaderEditorDialog::getStateSet(bool create)
     osg::Node * node = getObject<osg::Node, SGIItemOsg, DynamicCaster>();
     if(!stateSet && stateAttr)
     {
-        stateSet = stateAttr->getParent(0);
+        if(stateAttr->getNumParents())
+            stateSet = stateAttr->getParent(0);
+        else
+        {
+            osg_plugin::ReferencedRefPtr * ref_ptr = _item->userData<osg_plugin::ReferencedRefPtr>();
+            if (ref_ptr)
+            {
+                osg::ref_ptr<osg::Referenced> ref = ref_ptr->data();
+                if (osg::State* state = dynamic_cast<osg::State*>(ref.get()))
+                {
+                }
+            }
+        }
     }
     else if (!stateSet && node)
     {

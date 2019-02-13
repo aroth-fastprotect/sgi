@@ -54,11 +54,13 @@
 #include <osgAnimation/AnimationManagerBase>
 #include <osgUtil/IncrementalCompileOperation>
 
+#include <sgi/helpers/osg_drawable_helpers>
+
 #include "MenuActionOSG.h"
 #include "stateset_helpers.h"
 #include "osg_accessor.h"
 #include "osgtext_accessor.h"
-#include "DrawableHelper.h"
+
 #include "osganimation_accessor.h"
 #include "ObjectLoggerOSG.h"
 
@@ -354,7 +356,7 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
                 manipulateMenu->addSimpleAction(MenuActionNodeStripTextures, "Strip textures", _item);
                 manipulateMenu->addSimpleAction(MenuActionNodeSmoothingVisitor, "Smoothing visitor", _item);
 
-                manipulateMenu->addBoolAction(MenuActionNodeRenderInfo, "Render info", _item, RenderInfo::isPresent(object));
+                manipulateMenu->addBoolAction(MenuActionNodeRenderInfo, "Render info", _item, osg_helpers::RenderInfo::isPresent(object));
                 HasDeprecatedDataVisitor hddv;
                 object->accept(hddv);
                 if(hddv.result)
@@ -1625,7 +1627,7 @@ bool contextMenuPopulateImpl<osg::Drawable>::populate(IContextMenuItem * menuIte
         ret = callNextHandler(menuItem);
         if(ret)
         {
-            menuItem->addBoolAction(MenuActionDrawableToggleDisabled, "Disabled", _item, DisabledDrawCallback::isDisabled(object));
+            menuItem->addBoolAction(MenuActionDrawableToggleDisabled, "Disabled", _item, osg_helpers::DisabledDrawCallback::isDisabled(object));
 #if OSG_VERSION_LESS_THAN(3,4,0)
             SGIHostItemOsg stateSet(object->getStateSet());
             if(stateSet.hasObject())

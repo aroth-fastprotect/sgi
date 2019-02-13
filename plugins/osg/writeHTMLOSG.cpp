@@ -72,13 +72,12 @@
 #include <osgUtil/RenderBin>
 
 #include <sgi/helpers/osg>
+#include <sgi/helpers/osg_drawable_helpers>
 #include <sgi/helpers/osg_statistics>
 #include <sgi/helpers/string>
 #include <sgi/helpers/rtti>
 #include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/ReferencedPicker>
-
-#include "DrawableHelper.h"
 
 #include "osg_accessor.h"
 
@@ -231,11 +230,11 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BoundingSpherefValueObject)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::BoundingSpheredValueObject)
 
 
-WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawable)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg_helpers::RenderInfoDrawable)
 #if OSG_VERSION_LESS_THAN(3,5,0)
-WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(RenderInfoGeometry)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg_helpers::RenderInfoGeometry)
 #endif
-WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(RenderInfoDrawCallback)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg_helpers::RenderInfoDrawCallback)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(OpenThreads::Thread)
 
@@ -6737,27 +6736,27 @@ bool writePrettyHTMLImpl_RenderInfoData(SGIPluginHostInterface * hostInterface, 
     return ret;
 }
 
-bool writePrettyHTMLImpl<RenderInfoDrawCallback>::process(std::basic_ostream<char>& os)
+bool writePrettyHTMLImpl<osg_helpers::RenderInfoDrawCallback>::process(std::basic_ostream<char>& os)
 {
-    RenderInfoDrawCallback * object = getObject<RenderInfoDrawCallback, SGIItemOsg, DynamicCaster>();
-    const RenderInfoData & data = object->data();
+    osg_helpers::RenderInfoDrawCallback * object = getObject<osg_helpers::RenderInfoDrawCallback, SGIItemOsg, DynamicCaster>();
+    const osg_helpers::RenderInfoData & data = object->data();
     bool ret = writePrettyHTMLImpl_RenderInfoData(_hostInterface, os, _table, _item, data);
     return ret;
 }
 
-bool writePrettyHTMLImpl<RenderInfoDrawable>::process(std::basic_ostream<char>& os)
+bool writePrettyHTMLImpl<osg_helpers::RenderInfoDrawable>::process(std::basic_ostream<char>& os)
 {
-    RenderInfoDrawable * object = getObject<RenderInfoDrawable, SGIItemOsg>();
-    const RenderInfoData & data = object->data();
+    osg_helpers::RenderInfoDrawable * object = getObject<osg_helpers::RenderInfoDrawable, SGIItemOsg>();
+    const osg_helpers::RenderInfoData & data = object->data();
     bool ret = writePrettyHTMLImpl_RenderInfoData(_hostInterface, os, _table, _item, data);
     return ret;
 }
 
 #if OSG_VERSION_LESS_THAN(3,5,0)
-bool writePrettyHTMLImpl<RenderInfoGeometry>::process(std::basic_ostream<char>& os)
+bool writePrettyHTMLImpl<osg_helpers::RenderInfoGeometry>::process(std::basic_ostream<char>& os)
 {
-    RenderInfoGeometry * object = getObject<RenderInfoGeometry, SGIItemOsg>();
-    const RenderInfoData & data = object->data();
+    osg_helpers::RenderInfoGeometry * object = getObject<osg_helpers::RenderInfoGeometry, SGIItemOsg>();
+    const osg_helpers::RenderInfoData & data = object->data();
     bool ret = writePrettyHTMLImpl_RenderInfoData(_hostInterface, os, _table, _item, data);
     return ret;
 }

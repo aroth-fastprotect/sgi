@@ -118,6 +118,8 @@ struct SetViewNodeLookAt
 };
 
 typedef details::ReferencedDataT<SetViewNodeLookAt, osg::Referenced> ReferencedSetViewNodeLookAt;
+typedef details::ReferencedDataT<osg::ref_ptr<osg::Referenced>> ReferencedRefPtr;
+
 } // namespace osg_plugin
 
 } // namespace sgi
