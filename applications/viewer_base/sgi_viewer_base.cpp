@@ -814,6 +814,18 @@ std::string sgi_MapNodeHelper::errorMessages() const
 {
     return m_errorMessages.str();
 }
+#ifdef SGI_USE_OSGEARTH
+namespace {
+    static const char * vert_defaultMaterial =
+        "#version " GLSL_VERSION_STR "\n"
+        "vec4 vp_Color; \n"
+        "void defaultMaterial(inout vec4 vert) { \n"
+        "    vp_Color = vec4(1,1,1,1); \n"
+        "}\n"
+        ;
+}
+#endif // SGI_USE_OSGEARTH
+
 
 osg::Group * sgi_MapNodeHelper::setupLight(osg::Group * root)
 {
@@ -871,7 +883,12 @@ osg::Group * sgi_MapNodeHelper::setupLight(osg::Group * root)
         osg::Material* defaultMaterial = new osgEarth::MaterialGL3();
         defaultMaterial->setDiffuse(defaultMaterial->FRONT, osg::Vec4(1, 1, 1, 1));
         defaultMaterial->setAmbient(defaultMaterial->FRONT, osg::Vec4(1, 1, 1, 1));
-        groupDefaultMaterial->getOrCreateStateSet()->setAttributeAndModes(defaultMaterial, 1);
+        osg::StateSet * groupDefaultMaterialStateSet = groupDefaultMaterial->getOrCreateStateSet();
+        groupDefaultMaterialStateSet->setAttributeAndModes(defaultMaterial, 1);
+        osgEarth::VirtualProgram * vp = new osgEarth::VirtualProgram;
+        vp->setInheritShaders(true);
+        vp->setFunction("defaultMaterial", vert_defaultMaterial, osgEarth::ShaderComp::LOCATION_VERTEX_CLIP, 0.1f);
+        groupDefaultMaterialStateSet->setAttribute(vp);
         osgEarth::MaterialCallback().operator()(defaultMaterial, nullptr);
 
         lights->addChild(groupDefaultMaterial);
