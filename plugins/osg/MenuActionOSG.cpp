@@ -554,7 +554,7 @@ namespace {
         }
 
         enum { MAX_NUM_TEXTURE_UNITS = 4 };
-        virtual void apply(osg::Node& node)
+        virtual void apply(osg::Node& node) override
         {
             osg::StateSet* ss = node.getStateSet();
             if(ss != NULL)
@@ -567,7 +567,7 @@ namespace {
             traverse(node);
         }
 
-        virtual void apply(osg::Geode& node)
+        virtual void apply(osg::Geode& node) override
         {
             for(unsigned int i = 0; i < node.getNumDrawables(); ++i)
             {
@@ -2092,17 +2092,22 @@ bool actionHandlerImpl<MenuActionGeometryColor>::execute()
 {
     osg::Geometry * object = getObject<osg::Geometry,SGIItemOsg>();
     osg::Vec4Array * colorArray = (osg::Vec4Array *)object->getColorArray();
+    sgi::Color color;
     if(colorArray && colorArray->size() > 0)
+        color = osgColor((*colorArray)[0]);
+    if(_hostInterface->inputDialogColor(menu()->parentWidget(), color, "Color", "Select geometry color", _item))
     {
-        sgi::Color color = osgColor((*colorArray)[0]);
-        if(_hostInterface->inputDialogColor(menu()->parentWidget(), color, "Color", "Select geometry color", _item))
+        if(!colorArray)
         {
-            for(unsigned i = 0; i < colorArray->size(); i++)
-                (*colorArray)[i] = osgColor(color);
-            object->dirtyGLObjects();
-            triggerRepaint();
+            colorArray = new osg::Vec4Array(osg::Array::BIND_OVERALL, 1);
+            object->setColorArray(colorArray);
         }
+        for(unsigned i = 0; i < colorArray->size(); i++)
+            (*colorArray)[i] = osgColor(color);
+        object->dirtyGLObjects();
+        triggerRepaint();
     }
+
     return true;
 }
 
