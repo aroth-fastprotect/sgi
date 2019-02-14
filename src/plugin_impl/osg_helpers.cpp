@@ -954,7 +954,7 @@ bool collectStateSetList(const osg::NodePath & path, StateSetList & list)
     return true;
 }
 
-bool collectUniformList(const osg::NodePath & path, UniformList & list)
+bool collectUniformList(const osg::NodePath & path, UniformList & list, bool & gotStateUniforms)
 {
     if (path.empty())
         return false;
@@ -963,6 +963,23 @@ bool collectUniformList(const osg::NodePath & path, UniformList & list)
     for (osg::NodePath::const_iterator it = path.begin(); it != path.end(); ++it)
     {
         osg::Node * node = *it;
+        if (!gotStateUniforms)
+        {
+            osg::Camera * camera = node->asCamera();
+            osg::GraphicsContext * ctx = camera ? camera->getGraphicsContext() : nullptr;
+            osg::State * state = ctx ? ctx->getState() : nullptr;
+            if (state)
+            {
+#define ADD_STATE_UNIFORM(get_func) \
+            { osg::Uniform * u = get_func(); list.insert(UniformList::value_type(u->getName(), RefUniformPair(u, osg::StateAttribute::ON) )); }
+                ADD_STATE_UNIFORM(state->getModelViewMatrixUniform);
+                ADD_STATE_UNIFORM(state->getProjectionMatrixUniform);
+                ADD_STATE_UNIFORM(state->getModelViewProjectionMatrixUniform);
+                ADD_STATE_UNIFORM(state->getNormalMatrixUniform);
+#undef ADD_STATE_UNIFORM
+            }
+            gotStateUniforms = true;
+        }
         osg::StateSet * cur = node->getStateSet();
         if (cur)
         {
@@ -974,14 +991,21 @@ bool collectUniformList(const osg::NodePath & path, UniformList & list)
     return true;
 }
 
+bool collectUniformList(const osg::NodePath & path, UniformList & list)
+{
+    bool gotStateUniforms = false;
+    return collectUniformList(path, list, gotStateUniforms);
+}
+
 bool collectUniformList(const osg::StateSet * stateSet, UniformList & list)
 {
     bool ret = false;
+    bool gotStateUniforms = false;
     for (osg::Node * parent : stateSet->getParents())
     {
         for (const osg::NodePath & path : parent->getParentalNodePaths())
         {
-            if (collectUniformList(path, list))
+            if (collectUniformList(path, list, gotStateUniforms))
                 ret = true;
         }
     }
@@ -1126,6 +1150,102 @@ osg::Geometry * createGeometryForTexture(osg::Texture* texture)
     return createImageGeometry(texture->getTextureWidth(), texture->getTextureHeight(), osg::Image::BOTTOM_LEFT, texture);
 }
 
+// see osg\io_utils
+template<int num_rows, int num_cols, typename T>
+inline std::ostream& matrix_out(std::ostream& os, const T& m)
+{
+    os << "{" << std::endl;
+    os << std::setprecision(12);
+    for (int row = 0; row < num_rows; ++row) {
+        os << "\t";
+        for (int col = 0; col < num_cols; ++col)
+            os << m(row, col) << " ";
+        os << std::endl;
+    }
+    os << "}" << std::endl;
+    return os;
+}
+
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix2 & m)
+{
+    return matrix_out<2,2>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix3 & m)
+{
+    return matrix_out<3, 3>(output, m);
+}
+#if 0
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrixf & m)
+{
+    return matrix_out<4, 4>(output, m);
+}
+#endif
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix2x3 & m)
+{
+    return matrix_out<2, 3>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix2x4 & m)
+{
+    return matrix_out<2, 4>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix3x2 & m)
+{
+    return matrix_out<3, 2>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix3x4 & m)
+{
+    return matrix_out<3, 4>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix4x2 & m)
+{
+    return matrix_out<4, 2>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix4x3 & m)
+{
+    return matrix_out<4, 3>(output, m);
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix2d & m)
+{
+    return matrix_out<2, 2>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix3d & m)
+{
+    return matrix_out<3, 3>(output, m);
+}
+#if 0
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrixd & m)
+{
+    return matrix_out<4, 4>(output, m);
+}
+#endif
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix2x3d & m)
+{
+    return matrix_out<2, 3>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix2x4d & m)
+{
+    return matrix_out<2, 4>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix3x2d & m)
+{
+    return matrix_out<3, 2>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix3x4d & m)
+{
+    return matrix_out<3, 4>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix4x2d & m)
+{
+    return matrix_out<4, 2>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix4x3d & m)
+{
+    return matrix_out<4, 3>(output, m);
+}
+
+
 #define uniformToString_Data(__gl_type, __c_type) \
     case osg::Uniform::__gl_type: \
         { \
@@ -1174,6 +1294,8 @@ osg::Geometry * createGeometryForTexture(osg::Texture* texture)
         } \
         break
 
+
+
 std::string uniformToString(const osg::Uniform * object, bool * ok)
 {
     std::stringstream os;
@@ -1201,6 +1323,27 @@ std::string uniformToString(const osg::Uniform * object, bool * ok)
         //uniformToString_Data(UNSIGNED_INT_VEC2, osg::Vec2ui);
         //uniformToString_Data(UNSIGNED_INT_VEC3, osg::Vec3ui);
         //uniformToString_Data(UNSIGNED_INT_VEC4, osg::Vec4ui);
+
+        uniformToString_Data(FLOAT_MAT2, osg::Matrix2);
+        uniformToString_Data(FLOAT_MAT3, osg::Matrix3);
+        uniformToString_Data(FLOAT_MAT4, osg::Matrixf);
+        uniformToString_Data(FLOAT_MAT2x3, osg::Matrix2x3);
+        uniformToString_Data(FLOAT_MAT2x4, osg::Matrix2x4);
+        uniformToString_Data(FLOAT_MAT3x2, osg::Matrix3x2);
+        uniformToString_Data(FLOAT_MAT3x4, osg::Matrix3x4);
+        uniformToString_Data(FLOAT_MAT4x2, osg::Matrix4x2);
+        uniformToString_Data(FLOAT_MAT4x3, osg::Matrix4x3);
+
+        uniformToString_Data(DOUBLE_MAT2, osg::Matrix2d);
+        uniformToString_Data(DOUBLE_MAT3, osg::Matrix3d);
+        uniformToString_Data(DOUBLE_MAT4, osg::Matrixd);
+        uniformToString_Data(DOUBLE_MAT2x3, osg::Matrix2x3d);
+        uniformToString_Data(DOUBLE_MAT2x4, osg::Matrix2x4d);
+        uniformToString_Data(DOUBLE_MAT3x2, osg::Matrix3x2d);
+        uniformToString_Data(DOUBLE_MAT3x4, osg::Matrix3x4d);
+        uniformToString_Data(DOUBLE_MAT4x2, osg::Matrix4x2d);
+        uniformToString_Data(DOUBLE_MAT4x3, osg::Matrix4x3d);
+
         uniformToString_Sampler(SAMPLER_1D);
         uniformToString_Sampler(SAMPLER_2D);
         uniformToString_Sampler(SAMPLER_3D);
@@ -1228,6 +1371,92 @@ std::string uniformToString(const osg::Uniform * object, bool * ok)
     return os.str();
 }
 
+
+// see osg\io_utils
+template<int num_rows, int num_cols, typename T>
+inline std::istream& matrix_in(std::istream& is, T& m)
+{
+    for (int row = 0; row < num_rows; ++row) {
+        for (int col = 0; col < num_cols; ++col)
+        {
+            is >> m(row, col);
+        }
+    }
+    return is;
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix2 & m)
+{
+    return matrix_in<2, 2>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix3 & m)
+{
+    return matrix_in<3, 3>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrixf & m)
+{
+    return matrix_in<4, 4>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix2x3 & m)
+{
+    return matrix_in<2, 3>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix2x4 & m)
+{
+    return matrix_in<2, 4>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix3x2 & m)
+{
+    return matrix_in<3, 2>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix3x4 & m)
+{
+    return matrix_in<3, 4>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix4x2 & m)
+{
+    return matrix_in<4, 2>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix4x3 & m)
+{
+    return matrix_in<4, 3>(input, m);
+}
+
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix2d & m)
+{
+    return matrix_in<2, 2>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix3d & m)
+{
+    return matrix_in<3, 3>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrixd & m)
+{
+    return matrix_in<4, 4>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix2x3d & m)
+{
+    return matrix_in<2, 3>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix2x4d & m)
+{
+    return matrix_in<2, 4>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix3x2d & m)
+{
+    return matrix_in<3, 2>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix3x4d & m)
+{
+    return matrix_in<3, 4>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix4x2d & m)
+{
+    return matrix_in<4, 2>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix4x3d & m)
+{
+    return matrix_in<4, 3>(input, m);
+}
 
 #define stringToUniform_Data(__gl_type, __c_type) \
     case osg::Uniform::__gl_type: \
@@ -1305,6 +1534,27 @@ bool stringToUniform(const std::string & s, osg::Uniform * object)
         //stringToUniform_Data(UNSIGNED_INT_VEC2, osg::Vec2ui);
         //stringToUniform_Data(UNSIGNED_INT_VEC3, osg::Vec3ui);
         //stringToUniform_Data(UNSIGNED_INT_VEC4, osg::Vec4ui);
+
+        stringToUniform_Data(FLOAT_MAT2, osg::Matrix2);
+        stringToUniform_Data(FLOAT_MAT3, osg::Matrix3);
+        stringToUniform_Data(FLOAT_MAT4, osg::Matrixf);
+        stringToUniform_Data(FLOAT_MAT2x3, osg::Matrix2x3);
+        stringToUniform_Data(FLOAT_MAT2x4, osg::Matrix2x4);
+        stringToUniform_Data(FLOAT_MAT3x2, osg::Matrix3x2);
+        stringToUniform_Data(FLOAT_MAT3x4, osg::Matrix3x4);
+        stringToUniform_Data(FLOAT_MAT4x2, osg::Matrix4x2);
+        stringToUniform_Data(FLOAT_MAT4x3, osg::Matrix4x3);
+
+        stringToUniform_Data(DOUBLE_MAT2, osg::Matrix2d);
+        stringToUniform_Data(DOUBLE_MAT3, osg::Matrix3d);
+        stringToUniform_Data(DOUBLE_MAT4, osg::Matrixd);
+        stringToUniform_Data(DOUBLE_MAT2x3, osg::Matrix2x3d);
+        stringToUniform_Data(DOUBLE_MAT2x4, osg::Matrix2x4d);
+        stringToUniform_Data(DOUBLE_MAT3x2, osg::Matrix3x2d);
+        stringToUniform_Data(DOUBLE_MAT3x4, osg::Matrix3x4d);
+        stringToUniform_Data(DOUBLE_MAT4x2, osg::Matrix4x2d);
+        stringToUniform_Data(DOUBLE_MAT4x3, osg::Matrix4x3d);
+
         stringToUniform_Sampler(SAMPLER_1D);
         stringToUniform_Sampler(SAMPLER_2D);
         stringToUniform_Sampler(SAMPLER_3D);
