@@ -140,6 +140,7 @@ protected:
     osg::Program *          getProgram(bool create = false);
     osgEarth::PolyShader *  getPolyShader(int index);
     bool                    removeVPShader(int index);
+    void                    setupShaderLogFile();
     void                    loadInfoLog();
 
     void                    dirty();

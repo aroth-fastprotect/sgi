@@ -469,28 +469,6 @@ ShaderEditorDialog::ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface 
     qt_helpers::QtSGIItem data(_item.get());
     _comboBoxPath->addItem(qt_helpers::fromUtf8(name), QVariant::fromValue(data));
 
-    VirtualProgramAccessor * vp = static_cast<VirtualProgramAccessor*>(getVirtualProgram());
-    if(vp)
-    {
-        _originalLogFile = vp->getShaderLogFile();
-        _originalLogFileEnabled = vp->getShaderLogging();
-        if(!_originalLogFileEnabled || _originalLogFile.empty())
-        {
-            _tmpShaderLog = new QTemporaryFile();
-            // open and then close the temp file; it remains viable until the dtor of QTemporaryFile is called
-            if(_tmpShaderLog->open())
-            {
-                _shaderLogFile = _tmpShaderLog->fileName();
-                vp->setShaderLogging(true, _shaderLogFile.toStdString());
-                dirty();
-                _tmpShaderLog->close();
-            }
-        }
-        else {
-            _shaderLogFile = QString::fromStdString(_originalLogFile);
-        }
-    }
-
     load();
     _ready = true;
 }
@@ -505,6 +483,31 @@ ShaderEditorDialog::~ShaderEditorDialog()
     delete _tmpShaderLog;
     delete ui;
     ui = nullptr;
+}
+
+void ShaderEditorDialog::setupShaderLogFile()
+{
+    VirtualProgramAccessor * vp = static_cast<VirtualProgramAccessor*>(getVirtualProgram());
+    if (vp)
+    {
+        _originalLogFile = vp->getShaderLogFile();
+        _originalLogFileEnabled = vp->getShaderLogging();
+        if (!_originalLogFileEnabled || _originalLogFile.empty())
+        {
+            _tmpShaderLog = new QTemporaryFile();
+            // open and then close the temp file; it remains viable until the dtor of QTemporaryFile is called
+            if (_tmpShaderLog->open())
+            {
+                _shaderLogFile = _tmpShaderLog->fileName();
+                vp->setShaderLogging(true, _shaderLogFile.toStdString());
+                dirty();
+                _tmpShaderLog->close();
+            }
+        }
+        else {
+            _shaderLogFile = QString::fromStdString(_originalLogFile);
+        }
+    }
 }
 
 void ShaderEditorDialog::selectItemFromPath()
@@ -735,6 +738,8 @@ void ShaderEditorDialog::load()
 {
     bool foundShader = false;
     _ready = false;
+    setupShaderLogFile();
+
     VirtualProgramAccessor* vp = static_cast<VirtualProgramAccessor*>(getVirtualProgram(false));
     if(vp)
     {
@@ -784,8 +789,9 @@ void ShaderEditorDialog::load()
                 }
             }
         }
-        ui->vpFunction->blockSignals(false);
         ui->vpFunction->setCurrentIndex(currentIndex);
+        ui->vpFunction->blockSignals(false);
+        vpFunctionChanged(currentIndex);
         foundShader = true;
     }
     else if(osg::Program * p = getProgram())
@@ -822,8 +828,9 @@ void ShaderEditorDialog::load()
                 }
             }
         }
-        ui->progShader->blockSignals(false);
         ui->progShader->setCurrentIndex(currentIndex);
+        ui->progShader->blockSignals(false);
+        progShaderChanged(currentIndex);
 
         std::string log;
         p->getGlProgramInfoLog(contextID, log);
