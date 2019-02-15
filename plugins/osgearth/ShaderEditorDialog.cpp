@@ -277,6 +277,7 @@ QVariant UniformModel::data(const QModelIndex &index, int role) const
         switch (role)
         {
         case Qt::DisplayRole:
+        case Qt::ToolTipRole:
             switch ((Section)index.column())
             {
             case SectionName: ret = item->name; break;
@@ -314,9 +315,11 @@ bool UniformModel::setData(const QModelIndex &index, const QVariant &value, int 
                     if (item->uniform.lock(uniform))
                     {
                         std::string s = value.toString().toStdString();
+                        // apply the new value to the uniform
                         ret = osg_helpers::stringToUniform(s, uniform.get());
                         if (ret)
                         {
+                            // update the current value of the uniform in the model data
                             item->value = QString::fromStdString(osg_helpers::uniformToString(uniform.get()));
                         }
                     }
