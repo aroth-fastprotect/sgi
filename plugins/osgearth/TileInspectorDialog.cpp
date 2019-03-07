@@ -356,7 +356,7 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIPluginHostInterfac
     ui->treeWidget->setHeaderHidden(true);
     _treeRoot = new ObjectTreeItem(ui->treeWidget, _treeImpl.get(), hostInterface);
 
-    osgEarth::Map * map = getMap(_item.get());
+    osgEarth::Map * map = getMap(static_cast<SGIItemOsg*>(_item.get()));
     if(map)
     {
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
@@ -410,14 +410,14 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIPluginHostInterfac
         }
 #endif
     }
-    else
+    else if(_item.valid())
     {
         std::string name;
         hostInterface->getObjectDisplayName(name, _item.get());
         ui->layer->addItem(fromUtf8(name), QVariant::fromValue(QtSGIItem(_item.get())));
     }
 
-	osgEarth::MapNode * mapnode = findMapNode(_item.get());
+	osgEarth::MapNode * mapnode = findMapNode(static_cast<SGIItemOsg*>(_item.get()));
 	if (!mapnode)
 	{
 		ui->actionCoordinateFromCamera->setEnabled(false);
