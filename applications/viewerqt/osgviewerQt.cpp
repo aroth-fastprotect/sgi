@@ -59,6 +59,8 @@
 
 #ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
+
+#include "GraphicsWindowQt5.hxx"
 #endif
 
 #ifdef _WIN32
@@ -203,7 +205,14 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
 
     _mainGW = createGraphicsWindow(0, 0, QMainWindow::width(), QMainWindow::height(), nullptr, glver, glprofile);
 
-    _viewWidget = getWidgetForGraphicsWindow(_mainGW.get());
+    flightgear::GraphicsWindowQt5* gwqt5 = dynamic_cast<flightgear::GraphicsWindowQt5*>(_mainGW.get());
+    if (gwqt5)
+    {
+        QWindow * w = gwqt5->getGLWindow();
+        _viewWidget = QWidget::createWindowContainer(w);
+    }
+    else
+        _viewWidget = getWidgetForGraphicsWindow(_mainGW.get());
     setCentralWidget(_viewWidget);
     if(_viewWidget)
         _viewWidget->setProperty("sgi_skip_object", true);
@@ -331,7 +340,8 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
 
     osgViewer::GraphicsWindow* ret = nullptr;
 #ifdef SGI_USE_OSGQT
-    ret = new osgQt::GraphicsWindowQt(traits.get());
+    //ret = new osgQt::GraphicsWindowQt(traits.get());
+    ret = new flightgear::GraphicsWindowQt5(traits.get());
 #else
     osg::GraphicsContext::WindowingSystemInterface* wsi = osg::GraphicsContext::getWindowingSystemInterface();
     if (!wsi)
