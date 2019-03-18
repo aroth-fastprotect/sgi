@@ -687,6 +687,7 @@ sgi_MapNodeHelper::sgi_MapNodeHelper()
 #ifdef SGI_USE_OSGEARTH
     , _mapNodeHelper(new osgEarth::Util::MapNodeHelper)
     , _useOELighting(true)
+    , _useOEDefaultMaterialShader(true)
 #endif
     , _usageMessage(nullptr)
     , _onlyImages(false)
@@ -885,10 +886,13 @@ osg::Group * sgi_MapNodeHelper::setupLight(osg::Group * root)
         defaultMaterial->setAmbient(defaultMaterial->FRONT, osg::Vec4(1, 1, 1, 1));
         osg::StateSet * groupDefaultMaterialStateSet = groupDefaultMaterial->getOrCreateStateSet();
         groupDefaultMaterialStateSet->setAttributeAndModes(defaultMaterial, 1);
-        osgEarth::VirtualProgram * vp = new osgEarth::VirtualProgram;
-        vp->setInheritShaders(true);
-        vp->setFunction("defaultMaterial", vert_defaultMaterial, osgEarth::ShaderComp::LOCATION_VERTEX_CLIP, 0.1f);
-        groupDefaultMaterialStateSet->setAttribute(vp);
+        if (_useOEDefaultMaterialShader)
+        {
+            osgEarth::VirtualProgram * vp = new osgEarth::VirtualProgram;
+            vp->setInheritShaders(true);
+            vp->setFunction("defaultMaterial", vert_defaultMaterial, osgEarth::ShaderComp::LOCATION_VERTEX_CLIP, 0.1f);
+            groupDefaultMaterialStateSet->setAttribute(vp);
+        }
         osgEarth::MaterialCallback().operator()(defaultMaterial, nullptr);
 
         lights->addChild(groupDefaultMaterial);
@@ -911,6 +915,27 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
 #endif
 )
 {
+
+    if (args.read("--keys"))
+        _addKeyDumper = true;
+    if (args.read("--mouse"))
+        _addMouseDumper = true;
+    if (args.read("--track-mouse"))
+        _movieTrackMouse = true;
+
+#ifdef SGI_USE_OSGEARTH
+    if (args.read("--no-oe-lighting"))
+        _useOELighting = false;
+    if (args.read("--no-oe-default-material-shader"))
+        _useOEDefaultMaterialShader = false;
+#endif
+
+    if (!args.read("--viewpoint", _viewpointNum))
+    {
+        _viewpointNum = -1;
+        if (!args.read("--viewpoint", _viewpointName))
+            _viewpointName.clear();
+    }
 
     _usageMessage = args.getApplicationUsage();
 
@@ -1117,20 +1142,6 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
         }
 
         root = setupLight(root);
-    }
-
-    if (args.read("--keys"))
-        _addKeyDumper = true;
-    if (args.read("--mouse"))
-        _addMouseDumper = true;
-    if (args.read("--track-mouse"))
-        _movieTrackMouse = true;
-
-    if (!args.read("--viewpoint", _viewpointNum))
-    {
-        _viewpointNum = -1;
-        if (!args.read("--viewpoint", _viewpointName))
-            _viewpointName.clear();
     }
 
     std::string device;

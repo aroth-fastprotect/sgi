@@ -302,7 +302,7 @@ int main(int argc, char** argv)
 
     initializeNotifyLevels(arguments);
     // construct the viewer.
-    osgViewer::CompositeViewer viewer(arguments);
+    osg::ref_ptr<osgViewer::CompositeViewer> viewer = new osgViewer::CompositeViewer(arguments);
 
     unsigned int helpType = 0;
     if ((helpType = arguments.readHelpType()))
@@ -324,9 +324,9 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    while (arguments.read("-s")) { viewer.setThreadingModel(osgViewer::CompositeViewer::SingleThreaded); }
-    while (arguments.read("-g")) { viewer.setThreadingModel(osgViewer::CompositeViewer::CullDrawThreadPerContext); }
-    while (arguments.read("-c")) { viewer.setThreadingModel(osgViewer::CompositeViewer::CullThreadPerCameraDrawThreadPerContext); }
+    while (arguments.read("-s")) { viewer->setThreadingModel(osgViewer::CompositeViewer::SingleThreaded); }
+    while (arguments.read("-g")) { viewer->setThreadingModel(osgViewer::CompositeViewer::CullDrawThreadPerContext); }
+    while (arguments.read("-c")) { viewer->setThreadingModel(osgViewer::CompositeViewer::CullThreadPerCameraDrawThreadPerContext); }
 
     int ret = 0;
     int screenNum = -1;
@@ -349,7 +349,7 @@ int main(int argc, char** argv)
     }
 
 #if defined(OSG_GL3_AVAILABLE) && defined(SGI_USE_OSGEARTH)
-    viewer.setRealizeOperation(new osgEarth::GL3RealizeOperation());
+    viewer->setRealizeOperation(new osgEarth::GL3RealizeOperation());
 #endif
 
     osgViewer::View* firstview = new osgViewer::View;
@@ -430,11 +430,11 @@ int main(int argc, char** argv)
 
         firstview->setSceneData(root);
 
-        viewer.addView(firstview);
+        viewer->addView(firstview);
 
 
-        viewer.realize();
-        auto run = new RunCompositeViewer(&viewer);
+        viewer->realize();
+        auto run = new RunCompositeViewer(viewer.get());
         ret = app.exec();
 
         delete run;
