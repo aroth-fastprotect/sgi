@@ -1160,8 +1160,17 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
     if (mapNode.valid())
         _mapNodeHelper->parse(mapNode.get(), args, view, root, userContainer);
 
+    // DO NOT call _mapNodeHelper->configureView because it creates the event handlers and
+    // this results in duplicated event handlers
+#if 0
     // configures the viewer with some stock goodies
     _mapNodeHelper->configureView(view);
+#else
+    // ... but still initialize the camera stateSet
+    // default uniform values:
+    osgEarth::GLUtils::setGlobalDefaults(view->getCamera()->getOrCreateStateSet());
+#endif
+
 #endif // SGI_USE_OSGEARTH
 
     setupEventHandlers(view, root);
