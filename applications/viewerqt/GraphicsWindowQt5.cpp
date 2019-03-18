@@ -811,10 +811,10 @@ bool GraphicsWindowQt5::checkEvents()
         _sendResizeOnEventCheck = false;
         _window->syncGeometryWithOSG();
     }
-
+#if 0
 // todo - only if not running inside QApplication::exec; can we check this?
     QCoreApplication::processEvents(QEventLoop::AllEvents);
-
+#endif
     return true;
 }
 
