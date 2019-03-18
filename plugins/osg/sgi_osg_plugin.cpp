@@ -97,6 +97,7 @@
 #if SGI_USE_OSGQT
 // osgQt headers
 #include <osgQt/GraphicsWindowQt>
+#include <osgQt/GraphicsWindowQt5>
 #include <osgQt/QObjectWrapper>
 #endif
 
@@ -580,11 +581,12 @@ SGI_OBJECT_INFO_END()
 
 #ifdef SGI_USE_OSGQT
 SGI_OBJECT_INFO_BEGIN(osgViewer::GraphicsWindow)
-    osgQt::GraphicsWindowQt
+    osgQt::GraphicsWindowQt,
+    osgQt::GraphicsWindowQt5
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(QObject)
-    QWidget
+    QWidget, QWindow
 SGI_OBJECT_INFO_END()
 
 #ifdef OSGQT_USE_QOPENGLWIDGET
@@ -602,6 +604,9 @@ SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(QGLWidget)
     osgQt::GLWidget
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(QWindow)
+    osgQt::GLWindow
 SGI_OBJECT_INFO_END()
 #endif
 #endif
@@ -633,6 +638,7 @@ bool objectInfo_hasCallback(SGIPluginHostInterface * hostInterface, bool & resul
 #ifdef SGI_USE_OSGQT
 GENERATE_IMPL_NO_ACCEPT(QObject);
 GENERATE_IMPL_NO_ACCEPT(QWidget);
+GENERATE_IMPL_NO_ACCEPT(QWindow);
 #ifdef OSGQT_USE_QOPENGLWIDGET
 GENERATE_IMPL_NO_ACCEPT(QOpenGLWidget);
 #else

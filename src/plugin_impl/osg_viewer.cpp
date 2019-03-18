@@ -22,6 +22,7 @@
 
 #ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
+#include <osgQt/GraphicsWindowQt5>
 #endif
 
 #include <QKeyEvent>
@@ -217,6 +218,11 @@ QWidget * getWidgetForGraphicsWindow(osgViewer::GraphicsWindow * gw, QWidget * p
     osgQt::GraphicsWindowQt* gwq = dynamic_cast<osgQt::GraphicsWindowQt*>(gw);
     if (gwq)
         ret = gwq->getGLWidget();
+    else if (osgQt::GraphicsWindowQt5* gwq = dynamic_cast<osgQt::GraphicsWindowQt5*>(gw))
+    {
+        if (gwq)
+            ret = gwq->getOrCreateGLWidget();
+    }
 #endif
     if (!ret)
     {

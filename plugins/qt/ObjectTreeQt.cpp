@@ -15,6 +15,7 @@
 #include <QDesktopWidget>
 #include <QOpenGLContext>
 #include <QOpenGLWidget>
+#include <QOpenGLWindow>
 #include <QOpenGLShaderProgram>
 #ifdef WITH_QTOPENGL
 #include <QGLWidget>
@@ -46,6 +47,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QApplication)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QPaintDevice)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QImage)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLContext)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLWindow)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLWidget)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLShaderProgram)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLShader)
@@ -444,6 +446,28 @@ bool objectTreeBuildImpl<QOpenGLContext>::build(IObjectTreeItem * treeItem)
         break;
     case SGIItemTypeSurface:
         ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<QOpenGLWindow>::build(IObjectTreeItem * treeItem)
+{
+    QOpenGLWindow * object = getObject<QOpenGLWindow, SGIItemQt>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemQt context(object->context());
+            if (context.hasObject())
+                treeItem->addChild("Context", &context);
+        }
         break;
     default:
         ret = callNextHandler(treeItem);

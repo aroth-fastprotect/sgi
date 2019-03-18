@@ -63,6 +63,7 @@ protected:
                                                      GLContextProfile profile=GLContextProfileNone,
                                                      const std::string& name=std::string(),
                                                      bool windowDecoration=false,
+        bool useQt5=false,
         bool useFlightgear=false);
 
 private:

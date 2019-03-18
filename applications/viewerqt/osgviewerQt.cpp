@@ -59,6 +59,7 @@
 
 #ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
+#include <osgQt/GraphicsWindowQt5>
 
 #include "GraphicsWindowQt5.hxx"
 #endif
@@ -154,6 +155,13 @@ ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared)
     osgQt::GraphicsWindowQt* gwq = dynamic_cast<osgQt::GraphicsWindowQt*>(_mainGW.get());
     if(gwq)
         setCentralWidget(gwq->getGLWidget());
+    else
+    {
+        osgQt::GraphicsWindowQt5* gwqt5 = dynamic_cast<osgQt::GraphicsWindowQt5*>(_mainGW.get());
+        if (gwqt5) {
+            setCentralWidget(gwqt5->getOrCreateGLWidget());
+        }
+    }
 #endif
 
     _view = new osgViewer::View;
@@ -201,16 +209,19 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     _viewer->setRealizeOperation(new osgEarth::GL3RealizeOperation());
 #endif
 
+    bool useQt5 = false;
+    if (arguments.read("--qt5"))
+        useQt5 = true;
     bool useFlightgear = false;
     if (arguments.read("--fg"))
         useFlightgear = true;
 
-    if(useFlightgear)
+    if(useFlightgear || useQt5)
         _viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::SingleThreaded);
     else
         _viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::DrawThreadPerContext);
 
-    _mainGW = createGraphicsWindow(0, 0, QMainWindow::width(), QMainWindow::height(), nullptr, glver, glprofile, std::string(), false, useFlightgear);
+    _mainGW = createGraphicsWindow(0, 0, QMainWindow::width(), QMainWindow::height(), nullptr, glver, glprofile, std::string(), false, useQt5, useFlightgear);
 
     flightgear::GraphicsWindowQt5* gwqt5 = dynamic_cast<flightgear::GraphicsWindowQt5*>(_mainGW.get());
     if (gwqt5)
@@ -252,7 +263,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     _viewer->addView(_view);
     _viewer->realize();
 
-    if (useMainThread)
+    if (useMainThread || useFlightgear || useQt5)
     {
         _timer = new QTimer(this);
         connect(_timer, &QTimer::timeout, this, &ViewerWidget::onTimer, Qt::DirectConnection);
@@ -310,6 +321,7 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
                                                                GLContextProfile profile,
                                                                const std::string& name,
                                                                bool windowDecoration, 
+    bool useQt5,
     bool useFlightgear)
 {
     osg::DisplaySettings* ds = osg::DisplaySettings::instance().get();
@@ -349,7 +361,13 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
 
     osgViewer::GraphicsWindow* ret = nullptr;
 #ifdef SGI_USE_OSGQT
-    if (useFlightgear)
+    if(useQt5)
+    {
+        auto wqt5 = new osgQt::GraphicsWindowQt5(traits.get());
+        wqt5->setViewer(_viewer);
+        ret = wqt5;
+    }
+    else if (useFlightgear)
     {
         auto wqt5 = new flightgear::GraphicsWindowQt5(traits.get());
         wqt5->setViewer(_viewer);
