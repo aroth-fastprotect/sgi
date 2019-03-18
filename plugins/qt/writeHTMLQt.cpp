@@ -173,7 +173,9 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
                     if(value.type() == QVariant::Palette)
                         value = QString("palette:%1").arg(value.value<QPalette>().cacheKey());
 
-                    os << "<tr><td>" << metaObject->className() << "::" << name << "(" << typeName << ")</td><td>" << value << "</td></tr>" << std::endl;
+                    os << "<tr><td>" << metaObject->className() << "::" << name << "(" << typeName << ")</td><td>";
+                    writeVariant(os, value, &metaproperty); 
+                    os << "</td></tr>" << std::endl;
                 }
                 metaObject = metaObject->superClass();
             }
