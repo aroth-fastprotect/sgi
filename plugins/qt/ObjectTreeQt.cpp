@@ -242,7 +242,8 @@ bool objectTreeBuildImpl<QWidget>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<QWindow>::build(IObjectTreeItem * treeItem)
 {
-    QWindow * object = getObjectMulti<QWindow, SGIItemQt, SGIItemQtSurface>();
+    QWindow * qobject = getObject<QWindow, SGIItemQt>();
+    QWindow * surface = getObject<QWindow, SGIItemQtSurface>();
     bool ret = false;
     switch(itemType())
     {
@@ -251,6 +252,17 @@ bool objectTreeBuildImpl<QWindow>::build(IObjectTreeItem * treeItem)
         if(ret)
         {
             treeItem->addChild("Format", cloneItem<SGIItemQt>(SGIItemTypeSurfaceFormat));
+
+            if (qobject)
+            {
+                SGIHostItemQtSurface surface(qobject);
+                treeItem->addChild("Surface", &surface);
+            }
+            else if (surface)
+            {
+                SGIHostItemQt qobject(surface);
+                treeItem->addChild("Object", &qobject);
+            }
         }
         break;
     default:

@@ -129,6 +129,29 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurfac
     return os;
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurface::SurfaceClass t)
+{
+    switch (t)
+    {
+    case QSurface::Window: os << "Window"; break;
+    case QSurface::Offscreen: os << "Offscreen"; break;
+    default: os << (int)t; break;
+    }
+    return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurface::SurfaceType t)
+{
+    switch (t)
+    {
+    case QSurface::RasterSurface: os << "RasterSurface"; break;
+    case QSurface::OpenGLSurface: os << "OpenGLSurface"; break;
+    case QSurface::RasterGLSurface: os << "RasterGLSurface"; break;
+    case QSurface::OpenVGSurface: os << "OpenVGSurface"; break;
+    default: os << (int)t; break;
+    }
+    return os;
+}
 
 bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
 {
@@ -398,6 +421,10 @@ bool writePrettyHTMLImpl<QSurface>::process(std::basic_ostream<char>& os)
 
             // add QSurface properties
             os << "<tr><td>this</td><td>" << std::hex << (void*)object << std::dec << "</td></tr>" << std::endl;
+            os << "<tr><td>surfaceClass</td><td>" << object->surfaceClass() << "</td></tr>" << std::endl;
+            os << "<tr><td>surfaceType</td><td>" << object->surfaceType() << "</td></tr>" << std::endl;
+            os << "<tr><td>supportsOpenGL</td><td>" << (object->supportsOpenGL() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>size</td><td>" << object->size() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -652,29 +679,6 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QGLCont
     return os;
 }
 #endif // WITH_QTOPENGL
-
-std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurface::SurfaceClass t)
-{
-    switch (t)
-    {
-        case QSurface::Window: os << "Window"; break;
-        case QSurface::Offscreen: os << "Offscreen"; break;
-        default: os << (int)t; break;
-    }
-    return os;
-}
-
-std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurface::SurfaceType t)
-{
-    switch (t)
-    {
-        case QSurface::RasterSurface: os << "RasterSurface"; break;
-        case QSurface::OpenGLSurface: os << "OpenGLSurface"; break;
-        case QSurface::RasterGLSurface: os << "RasterGLSurface"; break;
-        default: os << (int)t; break;
-    }
-    return os;
-}
 
 bool writePrettyHTMLImpl<QOpenGLContext>::process(std::basic_ostream<char>& os)
 {
