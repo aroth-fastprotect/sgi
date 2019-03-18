@@ -17,6 +17,12 @@
 
 #include <osg/DeleteHandler>
 #include <osg/Version>
+
+#include <osg/GL>
+#if defined(_WIN32) && defined(OSG_GL3_AVAILABLE)
+#define __GL_H__
+#endif
+
 #include "GraphicsWindowQt5.hxx"
 #include <osgViewer/ViewerBase>
 #include <QInputEvent>
@@ -683,7 +689,7 @@ void GraphicsWindowQt5::createGraphicsThread()
 {
 
     qWarning() << Q_FUNC_INFO << _graphicsThread;
-    return osgViewer::GraphicsWindow::createGraphicsThread();
+    //return osgViewer::GraphicsWindow::createGraphicsThread();
     if (!_graphicsThread)
     {
         setGraphicsThread(new GraphicsThreadQt5(this));
@@ -734,7 +740,7 @@ void GraphicsWindowQt5::closeImplementation()
 
 void GraphicsWindowQt5::runOperations()
 {
-    qWarning() << Q_FUNC_INFO << _updateContextNeeded << QOpenGLContext::currentContext() << _context.get();
+    //qWarning() << Q_FUNC_INFO << _updateContextNeeded << QOpenGLContext::currentContext() << _context.get();
 
     // While in graphics thread this is last chance to do something useful before
     // graphics thread will execute its operations.

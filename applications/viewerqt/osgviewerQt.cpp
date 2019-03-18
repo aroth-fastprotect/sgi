@@ -195,20 +195,28 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     if (arguments.read("--compat"))
         glprofile = GLContextProfileCompatibility;
 
-    _viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::DrawThreadPerContext);
-
     // disable the default setting of viewer.done() by pressing Escape.
     _viewer->setKeyEventSetsDone(0);
 #if defined(OSG_GL3_AVAILABLE) && defined(SGI_USE_OSGEARTH)
     _viewer->setRealizeOperation(new osgEarth::GL3RealizeOperation());
 #endif
 
-    _mainGW = createGraphicsWindow(0, 0, QMainWindow::width(), QMainWindow::height(), nullptr, glver, glprofile);
+    bool useFlightgear = false;
+    if (arguments.read("--fg"))
+        useFlightgear = true;
+
+    if(useFlightgear)
+        _viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::SingleThreaded);
+    else
+        _viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::DrawThreadPerContext);
+
+    _mainGW = createGraphicsWindow(0, 0, QMainWindow::width(), QMainWindow::height(), nullptr, glver, glprofile, std::string(), false, useFlightgear);
 
     flightgear::GraphicsWindowQt5* gwqt5 = dynamic_cast<flightgear::GraphicsWindowQt5*>(_mainGW.get());
     if (gwqt5)
     {
         QWindow * w = gwqt5->getGLWindow();
+        w->setProperty("sgi_skip_object", true);
         _viewWidget = QWidget::createWindowContainer(w);
     }
     else
@@ -262,7 +270,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
 ViewerWidget::~ViewerWidget()
 {
     delete _timer;
-    if (_thread->isRunning())
+    if (_thread && _thread->isRunning())
     {
         _thread->quit();
         _thread->wait();
@@ -301,7 +309,8 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
                                                                const std::string& glver,
                                                                GLContextProfile profile,
                                                                const std::string& name,
-                                                               bool windowDecoration)
+                                                               bool windowDecoration, 
+    bool useFlightgear)
 {
     osg::DisplaySettings* ds = osg::DisplaySettings::instance().get();
     osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
@@ -340,8 +349,14 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
 
     osgViewer::GraphicsWindow* ret = nullptr;
 #ifdef SGI_USE_OSGQT
-    //ret = new osgQt::GraphicsWindowQt(traits.get());
-    ret = new flightgear::GraphicsWindowQt5(traits.get());
+    if (useFlightgear)
+    {
+        auto wqt5 = new flightgear::GraphicsWindowQt5(traits.get());
+        wqt5->setViewer(_viewer);
+        ret = wqt5;
+    }
+    else
+        ret = new osgQt::GraphicsWindowQt(traits.get());
 #else
     osg::GraphicsContext::WindowingSystemInterface* wsi = osg::GraphicsContext::getWindowingSystemInterface();
     if (!wsi)

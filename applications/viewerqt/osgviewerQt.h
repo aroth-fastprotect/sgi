@@ -62,7 +62,8 @@ protected:
                                                      const std::string& glver=std::string(),
                                                      GLContextProfile profile=GLContextProfileNone,
                                                      const std::string& name=std::string(),
-                                                     bool windowDecoration=false );
+                                                     bool windowDecoration=false,
+        bool useFlightgear=false);
 
 private:
     void init();
