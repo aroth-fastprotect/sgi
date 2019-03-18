@@ -22,6 +22,7 @@
 
 #ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
+#include <osgQt/GraphicsWindowQt5>
 #endif
 #if defined(_WIN32)
 #include <osgViewer/api/win32/GraphicsWindowWin32>
@@ -547,6 +548,8 @@ public:
 #ifdef SGI_USE_OSGQT
                 if(osgQt::GraphicsWindowQt * gwqt = dynamic_cast<osgQt::GraphicsWindowQt*>(ctx))
                     _parent = gwqt->getGLWidget();
+                else if (osgQt::GraphicsWindowQt5 * gwqt5 = dynamic_cast<osgQt::GraphicsWindowQt5*>(ctx))
+                    _parent = gwqt5->getOrCreateGLWidget();
 #else
                 if(0)
                 {
