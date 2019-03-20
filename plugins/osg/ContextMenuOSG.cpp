@@ -1721,6 +1721,9 @@ bool contextMenuPopulateImpl<osg::Image>::populate(IContextMenuItem * menuItem)
         if(ret)
         {
             menuItem->addSimpleAction(MenuActionImagePreview, "Preview...", _item);
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+                manipulateMenu->addSimpleAction(MenuActionImageEditData, "Modify data...", _item);
         }
         break;
     default:

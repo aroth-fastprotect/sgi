@@ -56,6 +56,7 @@
 
 #include <QtCore/QMutex>
 #include <cassert>
+#include <cctype>
 
 #include "osg_accessor.h"
 #include "osgtext_accessor.h"
@@ -214,6 +215,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeCenter)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeRotation)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionShapeBoxHalfLength)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionImagePreview)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionImageEditData)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionBillboardMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTransformReferenceFrame)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMatrixTransformEdit)
@@ -2176,6 +2178,59 @@ bool actionHandlerImpl<MenuActionImagePreview>::execute()
     }
     return ret;
 }
+
+bool actionHandlerImpl<MenuActionImageEditData>::execute()
+{
+    osg::Image * object = getObject<osg::Image, SGIItemOsg>();
+    std::stringstream os;
+
+    static const char * hex_digits = "0123456789abcdef";
+    const char * ptr = (const char * )object->getDataPointer();
+    for (unsigned i = 0; i < object->getTotalDataSize(); ++i)
+    {
+        if (i && i % 16 == 0)
+            os << std::endl;
+        unsigned char c = *(ptr + i);
+        os << hex_digits[(c >> 4) & 0xF] << hex_digits[c & 0xF] << ' ';
+    }
+
+    std::string value = os.str();
+    bool ret;
+    ret = _hostInterface->inputDialogText(menu()->parentWidget(),
+        value,
+        "Data:", "Data",
+        SGIPluginHostInterface::InputDialogStringEncodingSystem,
+        _item
+    );
+    if (ret)
+    {
+        char * dest = const_cast<char*>(ptr);
+        const char * end = ptr + object->getTotalDataSize();
+        std::stringstream ss(value);
+        std::string item;
+        while (std::getline(ss, item)) {
+
+            for (std::string::const_iterator it = item.begin(); dest < end && it != item.end();)
+            {
+                if (std::isxdigit(*it) && std::isxdigit(*(it + 1)))
+                {
+                    char buf[3] = { *it, *(it + 1), 0 };
+                    int n;
+                    sscanf(buf, "%x", &n);
+                    *dest++ = (char)n;
+                    ++it;
+                    ++it;
+                }
+                else
+                    ++it;
+            }
+        }
+        object->dirty();
+    }
+
+    return true;
+}
+
 
 bool actionHandlerImpl<MenuActionDrawableToggleDisabled>::execute()
 {

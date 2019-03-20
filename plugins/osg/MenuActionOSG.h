@@ -131,6 +131,7 @@ enum MenuAction {
     MenuActionGeometryColor,
     MenuActionGeometryFixDeprecatedData,
     MenuActionImagePreview,
+    MenuActionImageEditData,
     MenuActionTextureBorderWidth,
     MenuActionTextureBorderColor,
     MenuActionTextureSetMinFilter,
