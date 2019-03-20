@@ -258,6 +258,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseAxisAlignment)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseSetMaximumWidth)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBaseSetMaximumHeight)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropEnableDepthWrites)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextUseDefaultFontAsFallback)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropType)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropImplementation)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTextBackdropHorizontalOffset)
@@ -2798,6 +2799,15 @@ bool actionHandlerImpl<MenuActionTextBackdropEnableDepthWrites>::execute()
 {
     osgText::Text * object = getObject<osgText::Text,SGIItemOsg>();
     object->setEnableDepthWrites(menuAction()->state());
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionTextUseDefaultFontAsFallback>::execute()
+{
+    osgText::Text * object = getObject<osgText::Text, SGIItemOsg>();
+#ifdef OSGTEXT_HAS_USEDEFAULTFONTASFALLBACK
+    object->setUseDefaultFontAsFallback(menuAction()->state());
+#endif
     return true;
 }
 

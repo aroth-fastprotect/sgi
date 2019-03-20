@@ -242,6 +242,9 @@ bool writePrettyHTMLImpl<osgText::Text>::process(std::basic_ostream<char>& os)
 			osg::Camera * camera = osg_helpers::findFirstParentOfType<osg::Camera>(object);
 
             os << "<tr><td>enableDepthWrites</td><td>" << (object->getEnableDepthWrites()?"true":"false") << "</td></tr>" << std::endl;
+#ifdef OSGTEXT_HAS_USEDEFAULTFONTASFALLBACK
+            os << "<tr><td>useDefaultFontAsFallback</td><td>" << (object->getUseDefaultFontAsFallback() ? "true" : "false") << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>backdropType</td><td>" << object->getBackdropType() << "</td></tr>" << std::endl;
 #if OSG_VERSION_LESS_THAN(3,5,8)
             os << "<tr><td>backdropImpl</td><td>" << object->getBackdropImplementation() << "</td></tr>" << std::endl;

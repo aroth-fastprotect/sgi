@@ -208,6 +208,7 @@ enum MenuAction {
     MenuActionTextBaseSetMaximumWidth,
     MenuActionTextBaseSetMaximumHeight,
     MenuActionTextBackdropEnableDepthWrites,
+    MenuActionTextUseDefaultFontAsFallback,
     MenuActionTextBackdropImplementation,
     MenuActionTextBackdropType,
 	MenuActionTextBackdropHorizontalOffset,

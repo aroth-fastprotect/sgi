@@ -2517,6 +2517,10 @@ bool contextMenuPopulateImpl<osgText::Text>::populate(IContextMenuItem * menuIte
         if(ret)
         {
             menuItem->addBoolAction(MenuActionTextBackdropEnableDepthWrites, "Depth Writes Enabled", _item, object->getEnableDepthWrites());
+#ifdef OSGTEXT_HAS_USEDEFAULTFONTASFALLBACK
+            menuItem->addBoolAction(MenuActionTextUseDefaultFontAsFallback, "Use Default Font as Fallback", _item, object->getUseDefaultFontAsFallback());
+#endif
+
             IContextMenuItem * backdropTypeMenu = menuItem->addModeMenu(MenuActionTextBackdropType, "Backdrop type", _item, object->getBackdropType());
             if(backdropTypeMenu)
             {
