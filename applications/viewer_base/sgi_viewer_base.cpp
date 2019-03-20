@@ -681,8 +681,39 @@ namespace {
 
 #endif
 
-sgi_MapNodeHelper::sgi_MapNodeHelper()
-    : m_errorMessages()
+sgi_CommonHelper::sgi_CommonHelper(osg::ArgumentParser& args)
+    : glprofile(GLContextProfileNone)
+    , glversion()
+    , addSceneGraphInspector(true)
+    , showSceneGraphInspector(true)
+{
+    args.read("--glver", glversion);
+    if (args.read("--core"))
+        glprofile = GLContextProfileCore;
+    if (args.read("--compat"))
+        glprofile = GLContextProfileCompatibility;
+
+    if (args.read("--nosgi"))
+        addSceneGraphInspector = false;
+    if (args.read("--hidesgi"))
+        showSceneGraphInspector = false;
+}
+
+sgi_CommonHelper::sgi_CommonHelper(const sgi_CommonHelper & rhs)
+    : glprofile(rhs.glprofile)
+    , glversion(rhs.glversion)
+    , addSceneGraphInspector(rhs.addSceneGraphInspector)
+    , showSceneGraphInspector(rhs.showSceneGraphInspector)
+{
+}
+
+sgi_CommonHelper::~sgi_CommonHelper()
+{
+}
+
+sgi_MapNodeHelper::sgi_MapNodeHelper(osg::ArgumentParser& args)
+    : sgi_CommonHelper(args)
+    , m_errorMessages()
     , m_files()
 #ifdef SGI_USE_OSGEARTH
     , _mapNodeHelper(new osgEarth::Util::MapNodeHelper)
@@ -704,6 +735,11 @@ sgi_MapNodeHelper::sgi_MapNodeHelper()
     libdirs.push_back(getOSGDBModuleDirectory());
     registry->setLibraryFilePathList(libdirs);
 #endif
+}
+
+sgi_MapNodeHelper::sgi_MapNodeHelper(const sgi_MapNodeHelper & rhs)
+    : sgi_CommonHelper(rhs)
+{
 }
 
 sgi_MapNodeHelper::~sgi_MapNodeHelper()
@@ -915,7 +951,6 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
 #endif
 )
 {
-
     if (args.read("--keys"))
         _addKeyDumper = true;
     if (args.read("--mouse"))

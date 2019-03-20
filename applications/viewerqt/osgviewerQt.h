@@ -3,6 +3,8 @@
 #include <QMainWindow>
 #include <osgViewer/CompositeViewer>
 
+#include <sgi_viewer_base.h>
+
 class QTimer;
 class QShowEvent;
 class QPaintEvent;
@@ -47,20 +49,17 @@ public:
     bool createCamera();
     void setData(osg::Node * node);
 
+    sgi_MapNodeHelper & helper() {
+        return _helper;
+    }
+
 protected:
     void showEvent( QShowEvent* event ) override;
     void paintEvent( QPaintEvent* event ) override;
     void resizeEvent(QResizeEvent * event) override;
 
-    enum GLContextProfile {
-        GLContextProfileNone,
-        GLContextProfileCore,
-        GLContextProfileCompatibility,
-    };
     osgViewer::GraphicsWindow* createGraphicsWindow( int x, int y, int w, int h,
                                                      osg::GraphicsContext * sharedContext,
-                                                     const std::string& glver=std::string(),
-                                                     GLContextProfile profile=GLContextProfileNone,
                                                      const std::string& name=std::string(),
                                                      bool windowDecoration=false,
         bool useQt5=false,
@@ -77,4 +76,5 @@ protected:
     osg::ref_ptr<osgViewer::View> _view;
     osg::ref_ptr<osgViewer::CompositeViewer> _viewer;
     QWidget * _viewWidget;
+    sgi_MapNodeHelper _helper;
 };

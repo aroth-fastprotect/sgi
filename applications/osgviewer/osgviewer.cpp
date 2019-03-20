@@ -281,6 +281,78 @@ public:
 
 };
 
+
+osgViewer::GraphicsWindow* createGraphicsWindow(int x, int y, int w, int h,
+    osg::GraphicsContext * sharedContext,
+    const std::string& name,
+    bool windowDecoration, const sgi_CommonHelper & helper)
+{
+    osg::DisplaySettings* ds = osg::DisplaySettings::instance().get();
+    osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
+    traits->windowName = name;
+    traits->windowDecoration = windowDecoration;
+    traits->x = x;
+    traits->y = y;
+    traits->width = w;
+    traits->height = h;
+    traits->doubleBuffer = true;
+    traits->alpha = ds->getMinimumNumAlphaBits();
+    traits->stencil = ds->getMinimumNumStencilBits();
+    traits->sampleBuffers = ds->getMultiSamples();
+    traits->samples = ds->getNumMultiSamples();
+    traits->sharedContext = sharedContext;
+    traits->screenNum = -1;
+
+    switch (helper.glprofile)
+    {
+    default:
+    case sgi_CommonHelper::GLContextProfileNone:
+        traits->glContextProfileMask = 0;
+        break;
+    case sgi_CommonHelper::GLContextProfileCore:
+        traits->glContextVersion = "3.3";
+        traits->glContextProfileMask = GL_CONTEXT_CORE_PROFILE_BIT_ARB;
+        traits->sampleBuffers = 1;
+        break;
+    case sgi_CommonHelper::GLContextProfileCompatibility:
+        traits->glContextVersion = "3.3";
+        traits->glContextProfileMask = GL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+        traits->sampleBuffers = 1;
+        break;
+    }
+    if (!helper.glversion.empty())
+        traits->glContextVersion = helper.glversion;
+
+    osgViewer::GraphicsWindow* ret = nullptr;
+    osg::GraphicsContext::WindowingSystemInterface* wsi = osg::GraphicsContext::getWindowingSystemInterface();
+    if (!wsi)
+    {
+        OSG_NOTICE << "SingleWindow::configure() : Error, no WindowSystemInterface available, cannot create windows." << std::endl;
+        return nullptr;
+    }
+    osg::GraphicsContext * gc = osg::GraphicsContext::createGraphicsContext(traits.get());
+    ret = dynamic_cast<osgViewer::GraphicsWindow*>(gc);
+    if (ret)
+    {
+        switch (helper.glprofile)
+        {
+        default:
+        case sgi_MapNodeHelper::GLContextProfileNone:
+            break;
+        case sgi_MapNodeHelper::GLContextProfileCore:
+        case sgi_MapNodeHelper::GLContextProfileCompatibility:
+
+            // for non GL3/GL4 and non GLES2 platforms we need enable the osg_ uniforms that the shaders will use,
+            // you don't need thse two lines on GL3/GL4 and GLES2 specific builds as these will be enable by default.
+            ret->getState()->setUseModelViewAndProjectionUniforms(true);
+            //ret->getState()->setUseVertexAttributeAliasing(true);
+            break;
+        }
+    }
+    return ret;
+}
+
+
 int main(int argc, char** argv)
 {
     QApplication app(argc, argv);
@@ -303,6 +375,8 @@ int main(int argc, char** argv)
     initializeNotifyLevels(arguments);
     // construct the viewer.
     osg::ref_ptr<osgViewer::CompositeViewer> viewer = new osgViewer::CompositeViewer(arguments);
+    // load the data
+    sgi_MapNodeHelper helper(arguments);
 
     unsigned int helpType = 0;
     if ((helpType = arguments.readHelpType()))
@@ -362,9 +436,14 @@ int main(int argc, char** argv)
 
     if (width > 0 && height > 0)
     {
+#if 1
         if (screenNum >= 0) firstview->setUpViewInWindow(x, y, width, height, screenNum);
         else firstview->setUpViewInWindow(x, y, width, height);
-
+#else
+        osgViewer::GraphicsWindow * gw = createGraphicsWindow(x, y, width, height, nullptr, firstview->getName(), true, helper);
+        if (gw)
+            firstview->getCamera()->setGraphicsContext(gw);
+#endif
     }
     else if (screenNum >= 0)
     {
@@ -384,8 +463,6 @@ int main(int argc, char** argv)
 
     firstview->addEventHandler(new CreateViewHandler);
 
-    // load the data
-    sgi_MapNodeHelper helper;
     // load an earth file, and support all or our example command-line options
     // and earth file <external> tags
     osg::Node* node = helper.load(arguments, firstview);

@@ -73,13 +73,6 @@
 
 #include <sgi_viewer_base.h>
 
-#define GL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
-#define GL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
-#define GL_CONTEXT_DEBUG_BIT_ARB               0x0001
-#define GL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB  0x0002
-
-
-
 void setupWidgetAutoCloseTimer(QWidget * widget, int milliseconds)
 {
     QTimer * closeTimer = new QTimer();
@@ -148,6 +141,7 @@ ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared)
     , _viewer(parent->_viewer)
     , _thread(nullptr)
     , _timer(nullptr)
+    , _helper(parent->_helper)
 {
     _mainGW = createGraphicsWindow(0,0,QMainWindow::width(),QMainWindow::height(), (shared)?parent->_mainGW.get():nullptr);
 
@@ -184,6 +178,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     , _thread(nullptr)
     , _timer(nullptr)
     , _viewWidget(nullptr)
+    , _helper(arguments)
 {
     int screenNum = -1;
     while (arguments.read("--screen", screenNum)) {}
@@ -194,14 +189,6 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     bool useMainThread = false;
     if (arguments.read("--use-main-thread"))
         useMainThread = true;
-
-    GLContextProfile glprofile = GLContextProfileNone;
-    std::string glver;
-    arguments.read("--glver", glver);
-    if (arguments.read("--core"))
-        glprofile = GLContextProfileCore;
-    if (arguments.read("--compat"))
-        glprofile = GLContextProfileCompatibility;
 
     // disable the default setting of viewer.done() by pressing Escape.
     _viewer->setKeyEventSetsDone(0);
@@ -221,7 +208,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     else
         _viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::DrawThreadPerContext);
 
-    _mainGW = createGraphicsWindow(0, 0, QMainWindow::width(), QMainWindow::height(), nullptr, glver, glprofile, std::string(), false, useQt5, useFlightgear);
+    _mainGW = createGraphicsWindow(0, 0, QMainWindow::width(), QMainWindow::height(), nullptr, std::string(), false, useQt5, useFlightgear);
 
     flightgear::GraphicsWindowQt5* gwqt5 = dynamic_cast<flightgear::GraphicsWindowQt5*>(_mainGW.get());
     if (gwqt5)
@@ -317,8 +304,6 @@ void ViewerWidget::setData(osg::Node * node)
 
 osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int w, int h,
                                                                osg::GraphicsContext * sharedContext,
-                                                               const std::string& glver,
-                                                               GLContextProfile profile,
                                                                const std::string& name,
                                                                bool windowDecoration, 
     bool useQt5,
@@ -339,25 +324,25 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
     traits->samples = ds->getNumMultiSamples();
     traits->sharedContext = sharedContext;
 
-    switch(profile)
+    switch(_helper.glprofile)
     {
     default:
-    case GLContextProfileNone:
+    case sgi_MapNodeHelper::GLContextProfileNone:
         traits->glContextProfileMask = 0;
         break;
-    case GLContextProfileCore:
+    case sgi_MapNodeHelper::GLContextProfileCore:
         traits->glContextVersion = "3.3";
         traits->glContextProfileMask = GL_CONTEXT_CORE_PROFILE_BIT_ARB;
         traits->sampleBuffers = 1;
         break;
-    case GLContextProfileCompatibility:
+    case sgi_MapNodeHelper::GLContextProfileCompatibility:
         traits->glContextVersion = "3.3";
         traits->glContextProfileMask = GL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
         traits->sampleBuffers = 1;
         break;
     }
-    if(!glver.empty())
-        traits->glContextVersion = glver;
+    if(!_helper.glversion.empty())
+        traits->glContextVersion = _helper.glversion;
 
     osgViewer::GraphicsWindow* ret = nullptr;
 #ifdef SGI_USE_OSGQT
@@ -387,13 +372,13 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
 #endif
     if(ret)
     {
-        switch(profile)
+        switch(_helper.glprofile)
         {
         default:
-        case GLContextProfileNone:
+        case sgi_MapNodeHelper::GLContextProfileNone:
             break;
-        case GLContextProfileCore:
-        case GLContextProfileCompatibility:
+        case sgi_MapNodeHelper::GLContextProfileCore:
+        case sgi_MapNodeHelper::GLContextProfileCompatibility:
 
             // for non GL3/GL4 and non GLES2 platforms we need enable the osg_ uniforms that the shaders will use,
             // you don't need thse two lines on GL3/GL4 and GLES2 specific builds as these will be enable by default.
@@ -568,7 +553,7 @@ main(int argc, char** argv)
     view->getCamera()->setNearFarRatio(0.00002);
     //view->getCamera()->setSmallFeatureCullingPixelSize(-1.0f);
 
-    sgi_MapNodeHelper helper;
+    sgi_MapNodeHelper & helper = myMainWindow->helper();
     // load an earth file, and support all or our example command-line options
     // and earth file <external> tags
     osg::Node* node = helper.load( arguments, view );
