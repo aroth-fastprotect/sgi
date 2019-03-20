@@ -227,6 +227,15 @@ public:
     }
     Pixel pixel(unsigned x, unsigned y, unsigned z = 0, unsigned plane = 0) const;
 
+    void * pixelDataPtr(unsigned x, unsigned y, unsigned z = 0, unsigned plane = 0);
+    template<typename PXTYPE>
+    PXTYPE * pixelData(unsigned x, unsigned y, unsigned z = 0, unsigned plane = 0)
+    {
+        return reinterpret_cast<PXTYPE*>(pixelDataPtr(x, y, z, plane));
+    }
+
+    void setPixel(unsigned x, unsigned y, const Pixel & px);
+
     float hscale() const;
     float vscale() const;
 
@@ -379,9 +388,9 @@ struct PixelVisitor : public T
     void accept( Image* image ) {
         PixelReader _reader( image );
         PixelWriter _writer( image );
-        for( int r=0; r<image->depth(); ++r ) {
-            for( int t=0; t<image->height(); ++t ) {
-                for( int s=0; s<image->width(); ++s ) {
+        for( unsigned r=0; r<image->depth(); ++r ) {
+            for(unsigned t=0; t<image->height(); ++t ) {
+                for(unsigned s=0; s<image->width(); ++s ) {
                     Image::Pixel pixel = _reader(s,t,r);
                     if ( (*this)(pixel) )
                         _writer(pixel,s,t,r);
@@ -402,9 +411,9 @@ struct PixelVisitor : public T
         PixelReader _readerSrc( src );
         PixelReader _readerDest( dest );
         PixelWriter _writerDest( dest );
-        for( int r=0; r<src->depth(); ++r ) {
-            for( int t=0; t<src->height(); ++t ) {
-                for( int s=0; s<src->width(); ++s ) {
+        for(unsigned r=0; r<src->depth(); ++r ) {
+            for(unsigned t=0; t<src->height(); ++t ) {
+                for(unsigned s=0; s<src->width(); ++s ) {
                     const Image::Pixel pixelSrc = _readerSrc(s,t,r);
                     Image::Pixel pixelDest = _readerDest(s,t,r);
                     if ( (*this)(pixelSrc, pixelDest) )
