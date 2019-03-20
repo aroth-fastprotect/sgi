@@ -233,9 +233,11 @@ QWidget * getWidgetForGraphicsWindow(osgViewer::GraphicsWindow * gw, QWidget * p
             HWND hwnd = gwin32->getHWND();
             QWindow * wnd = QWindow::fromWinId((WId)hwnd);
             wnd->setFlags(Qt::ForeignWindow | Qt::MSWindowsOwnDC);
+            QRect rect = wnd->geometry();
             ret = QWidget::createWindowContainer(wnd, parent);
             ret->setAttribute(Qt::WA_NativeWindow);
             ret->setFocusPolicy(Qt::WheelFocus);
+            ret->setGeometry(rect);
 
             gwin32->setUserValue("sgi_ctx_widget", (double)(qulonglong)(void*)ret);
             QCoreApplication::instance()->installEventFilter(new EventFilterWin32(gwin32, ret));
