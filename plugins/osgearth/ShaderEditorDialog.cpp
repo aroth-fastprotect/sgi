@@ -686,30 +686,43 @@ void ShaderEditorDialog::apply()
     if (!_ready)
         return;
 
-    osgEarth::VirtualProgram * vp_ = getVirtualProgram(true);
-    if (vp_ && _currentVPFunctionIndex >= 0)
+    osg::Program * p = getProgram(false);
+    if (p)
     {
-        VirtualProgramAccessor * vp = static_cast<VirtualProgramAccessor*>(vp_);
-        uint hash = ui->vpFunction->itemData(_currentVPFunctionIndex).toUInt();
-        if (vp_)
+        osg::Shader * shader = p->getShader(_currentProgShaderIndex);
+        if (shader)
         {
-            osgEarth::ShaderComp::FunctionLocationMap funcs;
-            vp->getFunctions(funcs);
-
-            for (auto it = funcs.begin(); it != funcs.end(); ++it)
+            std::string source = qt_helpers::toUtf8(ui->progShaderCode->toPlainText());
+            shader->setShaderSource(source);
+        }
+    }
+    else
+    {
+        osgEarth::VirtualProgram * vp_ = getVirtualProgram(true);
+        if (vp_ && _currentVPFunctionIndex >= 0)
+        {
+            VirtualProgramAccessor * vp = static_cast<VirtualProgramAccessor*>(vp_);
+            uint hash = ui->vpFunction->itemData(_currentVPFunctionIndex).toUInt();
+            if (vp_)
             {
-                const osgEarth::ShaderComp::FunctionLocation & loc = it->first;
-                const osgEarth::ShaderComp::OrderedFunctionMap & map = it->second;
-                for (auto it = map.begin(); it != map.end(); ++it)
+                osgEarth::ShaderComp::FunctionLocationMap funcs;
+                vp->getFunctions(funcs);
+
+                for (auto it = funcs.begin(); it != funcs.end(); ++it)
                 {
-                    const float & order = it->first;
-                    const osgEarth::ShaderComp::Function & func = it->second;
-                    unsigned h = hashFunctionName(loc, order, func._name);
-                    if (h == hash)
+                    const osgEarth::ShaderComp::FunctionLocation & loc = it->first;
+                    const osgEarth::ShaderComp::OrderedFunctionMap & map = it->second;
+                    for (auto it = map.begin(); it != map.end(); ++it)
                     {
-                        std::string source = qt_helpers::toUtf8(ui->vpShaderCode->toPlainText());
-                        vp->setFunction(func._name, source, loc, order);
-                        break;
+                        const float & order = it->first;
+                        const osgEarth::ShaderComp::Function & func = it->second;
+                        unsigned h = hashFunctionName(loc, order, func._name);
+                        if (h == hash)
+                        {
+                            std::string source = qt_helpers::toUtf8(ui->vpShaderCode->toPlainText());
+                            vp->setFunction(func._name, source, loc, order);
+                            break;
+                        }
                     }
                 }
             }
@@ -1026,8 +1039,8 @@ void ShaderEditorDialog::progShaderChanged(int index)
     }
 
     osg::Program * p = getProgram(false);
-    unsigned contextID = osg_helpers::findContextID(p);
-    osg::Shader * shader = p->getShader(index);
+    unsigned contextID = p ? osg_helpers::findContextID(p) : ~0u;
+    osg::Shader * shader = p ? p->getShader(index) : nullptr;
     std::string log;
     if (shader)
     {
