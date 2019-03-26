@@ -718,7 +718,6 @@ sgi_MapNodeHelper::sgi_MapNodeHelper(osg::ArgumentParser& args)
 #ifdef SGI_USE_OSGEARTH
     , _mapNodeHelper(new osgEarth::Util::MapNodeHelper)
     , _useOELighting(true)
-    , _useOEDefaultMaterialShader(true)
 #endif
     , _usageMessage(nullptr)
     , _onlyImages(false)
@@ -922,13 +921,6 @@ osg::Group * sgi_MapNodeHelper::setupLight(osg::Group * root)
         defaultMaterial->setAmbient(defaultMaterial->FRONT, osg::Vec4(1, 1, 1, 1));
         osg::StateSet * groupDefaultMaterialStateSet = groupDefaultMaterial->getOrCreateStateSet();
         groupDefaultMaterialStateSet->setAttributeAndModes(defaultMaterial, 1);
-        if (_useOEDefaultMaterialShader)
-        {
-            osgEarth::VirtualProgram * vp = new osgEarth::VirtualProgram;
-            vp->setInheritShaders(true);
-            vp->setFunction("defaultMaterial", vert_defaultMaterial, osgEarth::ShaderComp::LOCATION_VERTEX_CLIP, 0.1f);
-            groupDefaultMaterialStateSet->setAttribute(vp);
-        }
         osgEarth::MaterialCallback().operator()(defaultMaterial, nullptr);
 
         lights->addChild(groupDefaultMaterial);
@@ -961,8 +953,6 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
 #ifdef SGI_USE_OSGEARTH
     if (args.read("--no-oe-lighting"))
         _useOELighting = false;
-    if (args.read("--no-oe-default-material-shader"))
-        _useOEDefaultMaterialShader = false;
 #endif
 
     if (!args.read("--viewpoint", _viewpointNum))

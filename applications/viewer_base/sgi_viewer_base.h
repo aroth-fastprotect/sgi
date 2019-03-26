@@ -218,7 +218,6 @@ private:
 #ifdef SGI_USE_OSGEARTH
     osgEarth::Util::MapNodeHelper * _mapNodeHelper;
     bool _useOELighting;
-    bool _useOEDefaultMaterialShader;
 #endif
     osg::ApplicationUsage * _usageMessage;
     bool _onlyImages;
