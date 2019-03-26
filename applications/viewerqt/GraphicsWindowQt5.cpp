@@ -773,7 +773,11 @@ bool GraphicsWindowQt5::makeCurrentImplementation()
         }
 
         _context->makeCurrent(_window.get());
-        // allow derived classes to do work now the context is initalised
+
+        QOpenGLContext * ctx = QOpenGLContext::currentContext();
+        this->setDefaultFboId(ctx->defaultFramebufferObject());
+
+        // allow derived classes to do work now the context is initialised
         contextInitalised();
     }
 
