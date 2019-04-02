@@ -503,19 +503,57 @@ bool convertImageToQImage_RGBA32(const sgi::Image * image, QImage & qimage)
     switch (image->format())
     {
     case Image::ImageFormatARGB32:
-        memcpy(dest, src, image->width() * image->height() * 4);
+        switch (image->dataType())
+        {
+        case Image::DataTypeFloat32:
+            {
+                float * fsrc = reinterpret_cast<float*>(src);
+                for (unsigned n = 0; n < pixels; ++n)
+                {
+                    dest[0] = fsrc[0] * 255;
+                    dest[1] = fsrc[1] * 255;
+                    dest[2] = fsrc[2] * 255;
+                    dest[3] = fsrc[3] * 255;
+                    fsrc += 4;
+                    dest += 4;
+                }
+            }
+            break;
+        default:
+            memcpy(dest, src, image->width() * image->height() * 4);
+            break;
+        }
         ret = true;
         break;
     case Image::ImageFormatRGBA32:
     {
-        for (unsigned n = 0; n < pixels; ++n)
+        switch (image->dataType())
         {
-            dest[0] = src[2];
-            dest[1] = src[1];
-            dest[2] = src[0];
-            dest[3] = src[3];
-            src += 4;
-            dest += 4;
+        case Image::DataTypeFloat32:
+            {
+                float * fsrc = reinterpret_cast<float*>(src);
+                for (unsigned n = 0; n < pixels; ++n)
+                {
+                    dest[0] = fsrc[0] * 255;
+                    dest[1] = fsrc[1] * 255;
+                    dest[2] = fsrc[2] * 255;
+                    dest[3] = fsrc[3] * 255;
+                    fsrc += 4;
+                    dest += 4;
+                }
+            }
+            break;
+        default:
+            for (unsigned n = 0; n < pixels; ++n)
+            {
+                dest[0] = src[2];
+                dest[1] = src[1];
+                dest[2] = src[0];
+                dest[3] = src[3];
+                src += 4;
+                dest += 4;
+            }
+            break;
         }
         ret = true;
     }

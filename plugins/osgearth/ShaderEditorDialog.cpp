@@ -362,8 +362,10 @@ namespace  {
 #ifdef OSG_GLES2_AVAILABLE
             "precision mediump float; \n"
 #endif
+            "flat out vec4 dbgVec4;\n"
             "void my_vertex(inout vec4 VertexView) \n"
             "{ \n"
+            "    dbgVec4 = VertexView; \n"
             "} \n";
     static const char * default_fragment_shader =
             "#version " GLSL_VERSION_STR "\n"
@@ -404,6 +406,19 @@ namespace  {
             return false;
         }
     };
+
+
+    extern osg::Texture2D* createDebugTexture()
+    {
+        osg::ref_ptr<osg::Image> image = new osg::Image;
+        image->allocateImage(640, 480, 1, GL_RGBA32F_ARB, GL_FLOAT);
+        image->setColor(osg::Vec4(1.0, 1.0, 1.0, 1.0), 0, 0, 0);
+
+        osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D(image.get());
+        texture->setResizeNonPowerOfTwoHint(true);
+        return texture.release();
+    }
+
 }
 
 unsigned hashFunctionName(const osgEarth::ShaderComp::FunctionLocation & loc, float order, const std::string & name)
@@ -745,6 +760,12 @@ void ShaderEditorDialog::createEmptyShader()
         vp->setInheritShaders(true);
         vp->setFunction("my_vertex", default_vertex_shader, osgEarth::ShaderComp::LOCATION_VERTEX_MODEL);
         vp->setFunction("my_fragment", default_fragment_shader, osgEarth::ShaderComp::LOCATION_FRAGMENT_COLORING, 2.0f);
+
+        osg::StateSet::TextureAttributeList textureAttributes = stateSet->getTextureAttributeList();
+        unsigned unit = textureAttributes.size() + 1;
+
+        stateSet->setTextureAttribute(unit, createDebugTexture());
+        stateSet->addUniform(new osg::Uniform("dbgVec4", unit));
     }
 
     load();

@@ -46,6 +46,24 @@
 #define GL_ALL_ATTRIB_BITS                0x000fffff
 #endif
 
+#ifndef GL_EXT_texture_storage
+#define GL_EXT_texture_storage 1
+#define GL_TEXTURE_IMMUTABLE_FORMAT_EXT   0x912F
+#define GL_ALPHA8_EXT                     0x803C
+#define GL_LUMINANCE8_EXT                 0x8040
+#define GL_LUMINANCE8_ALPHA8_EXT          0x8045
+#define GL_RGBA32F_EXT                    0x8814
+#define GL_RGB32F_EXT                     0x8815
+#define GL_ALPHA32F_EXT                   0x8816
+#define GL_LUMINANCE32F_EXT               0x8818
+#define GL_LUMINANCE_ALPHA32F_EXT         0x8819
+#define GL_ALPHA16F_EXT                   0x881C
+#define GL_LUMINANCE16F_EXT               0x881E
+#define GL_LUMINANCE_ALPHA16F_EXT         0x881F
+#define GL_R32F_EXT                       0x822E
+#define GL_RG32F_EXT                      0x8230
+#endif
+
 namespace sgi {
 
     namespace osg_helpers {
@@ -746,6 +764,15 @@ const sgi::Image * convertImage(const osg::Image * image)
         case GL_LUMINANCE: imageFormat = sgi::Image::ImageFormatLuminance; break;
         default: imageFormat = sgi::Image::ImageFormatInvalid; break;
         }
+        break;
+    case GL_RGBA32F_EXT:imageFormat = sgi::Image::ImageFormatRGBA32; break;
+    case GL_RGB32F_EXT:imageFormat = sgi::Image::ImageFormatRGB32; break;
+    case GL_ALPHA32F_EXT:imageFormat = sgi::Image::ImageFormatAlpha; break;
+    case GL_LUMINANCE32F_EXT: imageFormat = sgi::Image::ImageFormatLuminance; break;
+    case GL_LUMINANCE_ALPHA32F_EXT: imageFormat = sgi::Image::ImageFormatLuminance; break;
+    case GL_ALPHA16F_EXT:imageFormat = sgi::Image::ImageFormatAlpha; break;
+    case GL_LUMINANCE16F_EXT: imageFormat = sgi::Image::ImageFormatLuminance; break;
+    case GL_LUMINANCE_ALPHA16F_EXT: imageFormat = sgi::Image::ImageFormatLuminance; break;
         break;
     default: imageFormat = sgi::Image::ImageFormatInvalid; break;
     }

@@ -102,6 +102,19 @@ public:
     };
     typedef std::vector<ImageSize> ImageSizeList;
 
+    struct SGI_IMPL_EXPORT ARGB_F32
+    {
+        float a;
+        float r;
+        float g;
+        float b;
+    };
+    struct SGI_IMPL_EXPORT RGB_F32
+    {
+        float r;
+        float g;
+        float b;
+    };
     struct SGI_IMPL_EXPORT ARGB
     {
         unsigned char a;

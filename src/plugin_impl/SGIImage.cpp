@@ -1376,45 +1376,114 @@ Image::Pixel Image::pixel(unsigned x, unsigned y, unsigned z, unsigned plane) co
     switch (_format)
     {
     case ImageFormatABGR32:
+        switch (_dataType)
+        {
+        case DataTypeFloat32:
+        {
+            const ARGB_F32 * px = pixelData<ARGB_F32>(x, y);
+            if (px)
+                ret.setFloat32(px->a, px->b, px->g, px->r);
+        }
+        break;
+        default:
         {
             const ARGB * px = pixelData<ARGB>(x, y);
-            if(px)
+            if (px)
                 ret.setARGB(px->a, px->b, px->g, px->r);
+        }
         }
         break;
     case ImageFormatARGB32:
+        switch (_dataType)
+        {
+        case DataTypeFloat32:
+        {
+            const ARGB_F32 * px = pixelData<ARGB_F32>(x, y);
+            if (px)
+                ret.setFloat32(px->a, px->r, px->g, px->b);
+        }
+        break;
+        default:
         {
             const ARGB * px = pixelData<ARGB>(x, y);
             if (px)
                 ret.setARGB(px->a, px->r, px->g, px->b);
         }
+        }
         break;
     case ImageFormatBGRA32:
+        switch (_dataType)
+        {
+        case DataTypeFloat32:
+        {
+            const ARGB_F32 * px = pixelData<ARGB_F32>(x, y);
+            if (px)
+                ret.setFloat32(px->b, px->a, px->r, px->g);
+        }
+        break;
+        default:
         {
             const ARGB * px = pixelData<ARGB>(x, y);
             if (px)
                 ret.setARGB(px->b, px->a, px->r, px->g);
         }
+        }
         break;
     case ImageFormatRGBA32:
+        switch (_dataType)
+        {
+        case DataTypeFloat32:
+        {
+            const ARGB_F32 * px = pixelData<ARGB_F32>(x, y);
+            if (px)
+                ret.setFloat32(px->b, px->g, px->r, px->a);
+        }
+        break;
+        default:
         {
             const ARGB * px = pixelData<ARGB>(x, y);
             if (px)
                 ret.setARGB(px->b, px->g, px->r, px->a);
         }
         break;
+        }
+        break;
     case ImageFormatBGR32:
+        switch (_dataType)
+        {
+        case DataTypeFloat32:
+        {
+            const ARGB_F32 * px = pixelData<ARGB_F32>(x, y);
+            if (px)
+                ret.setFloat32(0, px->b, px->g, px->r);
+        }
+        break;
+        default:
         {
             const ARGB * px = pixelData<ARGB>(x, y);
             if (px)
                 ret.setARGB(0, px->b, px->g, px->r);
         }
         break;
+        }
+        break;
     case ImageFormatRGB32:
+        switch (_dataType)
+        {
+        case DataTypeFloat32:
+        {
+            const ARGB_F32 * px = pixelData<ARGB_F32>(x, y);
+            if (px)
+                ret.setFloat32(0, px->r, px->g, px->b);
+        }
+        break;
+        default:
         {
             const ARGB * px = pixelData<ARGB>(x, y);
             if (px)
                 ret.setARGB(0, px->r, px->g, px->b);
+        }
+        break;
         }
         break;
 
