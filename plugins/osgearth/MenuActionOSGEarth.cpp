@@ -75,7 +75,6 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTileSourceUpdateMetaData)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTileBlacklistClear)
 
-ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionSkyNodeLightSettings)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionSkyNodeSetDateTime)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionSkyNodeSetSunVisible)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionSkyNodeSetStarsVisible)
@@ -117,7 +116,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetLineWidth)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetStipplePattern)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetStippleFactor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetColor)
-
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLightSettings)
 
 using namespace sgi::osg_helpers;
 
@@ -577,14 +576,6 @@ bool actionHandlerImpl<MenuActionTileBlacklistClear>::execute()
         }
 #endif
     }
-    return true;
-}
-
-bool actionHandlerImpl<MenuActionSkyNodeLightSettings>::execute()
-{
-    osgEarth::Util::SkyNode * object = getObject<osgEarth::Util::SkyNode, SGIItemOsg>();
-    /// @todo open settings dialog for sky/light
-    //object->clear();
     return true;
 }
 
@@ -1103,6 +1094,12 @@ bool actionHandlerImpl<MenuActionLineDrawableSetColor>::execute()
     return true;
 }
 #endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+
+
+bool actionHandlerImpl<MenuActionLightSettings>::execute()
+{
+    return openSettingsDialog(SettingsDialogLightSettings);
+}
 
 
 } // namespace osgearth_plugin

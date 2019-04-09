@@ -1,0 +1,814 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>LightSettings</class>
+ <widget class="QDialog" name="LightSettings">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>465</width>
+    <height>547</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Sky/Light settings</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QGroupBox" name="groupBoxLight">
+     <property name="title">
+      <string>Light</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Lighting mode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="lightingMode"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Diffuse Light Color</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLineEdit" name="diffuseLightColorText">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="diffuseLightColor">
+          <property name="text">
+           <string>...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Specular Light Color</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QLineEdit" name="specularLightColorText">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="specularLightColor">
+          <property name="text">
+           <string>...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Ambient Intensity</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <widget class="QSlider" name="ambientIntensity">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="ambientIntensitySpinBox">
+          <property name="suffix">
+           <string>f</string>
+          </property>
+          <property name="maximum">
+           <double>1.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.010000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Ambient brightness</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QSlider" name="ambientBrightness">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="ambientBrightnessSpinBox">
+          <property name="suffix">
+           <string>f</string>
+          </property>
+          <property name="maximum">
+           <double>1.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.010000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_18">
+        <property name="text">
+         <string>Daylight boost</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_11">
+        <item>
+         <widget class="QSlider" name="daytimeAmbientBoost">
+          <property name="maximum">
+           <number>1000</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="daytimeAmbientBoostSpinBox">
+          <property name="suffix">
+           <string>x</string>
+          </property>
+          <property name="maximum">
+           <double>10.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.010000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_15">
+        <property name="text">
+         <string>Exposure</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QSlider" name="exposure">
+          <property name="maximum">
+           <number>1000</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="exposureSpinBox">
+          <property name="suffix">
+           <string>f</string>
+          </property>
+          <property name="maximum">
+           <double>10.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.010000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="7" column="0">
+       <widget class="QLabel" name="label_16">
+        <property name="text">
+         <string>Atmospheric lighting</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="QCheckBox" name="atmosphericLighting">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QLabel" name="label_17">
+        <property name="text">
+         <string>Atmosphere visible</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QCheckBox" name="atmosphereVisible">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
+       <widget class="QLabel" name="label_9">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string>Sun visible</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="1">
+       <widget class="QCheckBox" name="sunVisible">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Moon visible</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="1">
+       <widget class="QCheckBox" name="moonVisible">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="0">
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>Stars visible</string>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="1">
+       <widget class="QCheckBox" name="starsVisible">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="0">
+       <widget class="QLabel" name="label_10">
+        <property name="text">
+         <string>Sky mode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="1">
+       <widget class="QComboBox" name="skyMode"/>
+      </item>
+      <item row="13" column="0">
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string>Sun position</string>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="1">
+       <widget class="QLineEdit" name="sunPosition"/>
+      </item>
+      <item row="14" column="0">
+       <widget class="QLabel" name="label_12">
+        <property name="text">
+         <string>Moon position</string>
+        </property>
+       </widget>
+      </item>
+      <item row="14" column="1">
+       <widget class="QLineEdit" name="moonPosition"/>
+      </item>
+      <item row="15" column="0">
+       <widget class="QLabel" name="label_13">
+        <property name="text">
+         <string>UTC Date</string>
+        </property>
+       </widget>
+      </item>
+      <item row="15" column="1">
+       <widget class="QDateEdit" name="dateEdit">
+        <property name="wrapping">
+         <bool>false</bool>
+        </property>
+        <property name="displayFormat">
+         <string>MM/dd/yyyy</string>
+        </property>
+        <property name="timeSpec">
+         <enum>Qt::UTC</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="16" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>UTC Time</string>
+        </property>
+       </widget>
+      </item>
+      <item row="16" column="1">
+       <widget class="QTimeEdit" name="timeEdit">
+        <property name="wrapping">
+         <bool>false</bool>
+        </property>
+        <property name="displayFormat">
+         <string>HH:mm:ss</string>
+        </property>
+        <property name="timeSpec">
+         <enum>Qt::UTC</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="17" column="0">
+       <widget class="QLabel" name="label_14">
+        <property name="text">
+         <string>Time factor</string>
+        </property>
+       </widget>
+      </item>
+      <item row="17" column="1">
+       <widget class="QDoubleSpinBox" name="timeFactor">
+        <property name="accelerated">
+         <bool>true</bool>
+        </property>
+        <property name="suffix">
+         <string>x</string>
+        </property>
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <double>10000.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Reset|QDialogButtonBox::RestoreDefaults|QDialogButtonBox::Save</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>groupBoxLight</tabstop>
+  <tabstop>lightingMode</tabstop>
+  <tabstop>diffuseLightColorText</tabstop>
+  <tabstop>diffuseLightColor</tabstop>
+  <tabstop>specularLightColorText</tabstop>
+  <tabstop>specularLightColor</tabstop>
+  <tabstop>ambientIntensity</tabstop>
+  <tabstop>ambientIntensitySpinBox</tabstop>
+  <tabstop>ambientBrightness</tabstop>
+  <tabstop>ambientBrightnessSpinBox</tabstop>
+  <tabstop>sunVisible</tabstop>
+  <tabstop>moonVisible</tabstop>
+  <tabstop>starsVisible</tabstop>
+  <tabstop>skyMode</tabstop>
+  <tabstop>sunPosition</tabstop>
+  <tabstop>moonPosition</tabstop>
+  <tabstop>buttonBox</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>diffuseLightColor</sender>
+   <signal>clicked()</signal>
+   <receiver>LightSettings</receiver>
+   <slot>changeDiffuseLightColor()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>250</x>
+     <y>50</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>specularLightColor</sender>
+   <signal>clicked()</signal>
+   <receiver>LightSettings</receiver>
+   <slot>changeSpecularLightColor()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>250</x>
+     <y>79</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lightingMode</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>lightingModeChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>41</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>217</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>groupBoxLight</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>globalLightingChanged(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>269</x>
+     <y>202</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>217</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>skyMode</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>skyModeChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>277</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>217</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ambientBrightness</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>ambientBrightnessChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>183</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>217</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>moonVisible</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>setMoonVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>230</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>217</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sunVisible</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>setSunVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>207</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>217</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>starsVisible</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>setStarsVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>253</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>217</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>moonPosition</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>setMoonPosition(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>329</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>217</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sunPosition</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>setSunPosition(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>303</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>217</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ambientIntensity</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>ambientIntensityChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>158</x>
+     <y>159</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>296</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ambientBrightnessSpinBox</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>ambientBrightnessChanged(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>228</x>
+     <y>192</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>296</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ambientIntensitySpinBox</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>ambientIntensityChanged(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>227</x>
+     <y>159</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>269</x>
+     <y>296</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>timeFactor</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>timeFactorChanged(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>251</x>
+     <y>377</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>200</x>
+     <y>217</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>timeEdit</sender>
+   <signal>dateTimeChanged(QDateTime)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>setDateTime(QDateTime)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>252</x>
+     <y>366</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>200</x>
+     <y>221</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>dateEdit</sender>
+   <signal>dateTimeChanged(QDateTime)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>setDateTime(QDateTime)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>252</x>
+     <y>340</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>200</x>
+     <y>221</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>exposure</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>exposureChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>257</x>
+     <y>188</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>232</x>
+     <y>236</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>exposureSpinBox</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>exposureChanged(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>426</x>
+     <y>187</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>232</x>
+     <y>236</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>atmosphericLighting</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>setAtmosphericLighting(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>132</x>
+     <y>195</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>232</x>
+     <y>236</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>atmosphereVisible</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>setAtmosphereVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>283</x>
+     <y>229</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>232</x>
+     <y>248</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>daytimeAmbientBoost</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>daytimeAmbientBoostChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>345</x>
+     <y>186</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>323</x>
+     <y>329</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>daytimeAmbientBoostSpinBox</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>LightSettings</receiver>
+   <slot>daytimeAmbientBoostChanged(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>601</x>
+     <y>186</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>323</x>
+     <y>329</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>changeDiffuseLightColor()</slot>
+  <slot>changeSpecularLightColor()</slot>
+  <slot>ambientIntensityChanged(int)</slot>
+  <slot>lightingModeChanged(int)</slot>
+  <slot>globalLightingChanged(bool)</slot>
+  <slot>skyModeChanged(int)</slot>
+  <slot>ambientBrightnessChanged(int)</slot>
+  <slot>setMoonVisible(bool)</slot>
+  <slot>setStarsVisible(bool)</slot>
+  <slot>setSunVisible(bool)</slot>
+  <slot>setSunPosition(QString)</slot>
+  <slot>setMoonPosition(QString)</slot>
+  <slot>setDateTime(QDateTime)</slot>
+  <slot>ambientIntensityChanged(double)</slot>
+  <slot>ambientBrightnessChanged(double)</slot>
+  <slot>timeFactorChanged(double)</slot>
+  <slot>exposureChanged(double)</slot>
+  <slot>exposureChanged(int)</slot>
+  <slot>setAtmosphericLighting(bool)</slot>
+  <slot>setAtmosphereVisible(bool)</slot>
+  <slot>daytimeAmbientBoostChanged(int)</slot>
+  <slot>daytimeAmbientBoostChanged(double)</slot>
+ </slots>
+</ui>

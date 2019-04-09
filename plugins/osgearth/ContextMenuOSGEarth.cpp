@@ -36,6 +36,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Node)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::StateSet)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Program)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Shader)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Camera)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Registry)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Map)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNode)
@@ -156,6 +157,30 @@ bool contextMenuPopulateImpl<osg::Shader>::populate(IContextMenuItem * menuItem)
             if (manipulateMenu)
             {
                 manipulateMenu->addSimpleAction(MenuActionNodeEditShaders, "Edit shaders...", _item);
+            }
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::Camera>::populate(IContextMenuItem * menuItem)
+{
+    osg::Camera * object = getObject<osg::Camera, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+            {
+                manipulateMenu->addSimpleAction(MenuActionLightSettings, "Light settings...", _item);
             }
         }
         break;
@@ -671,7 +696,7 @@ bool contextMenuPopulateImpl<osgEarth::Util::SkyNode>::populate(IContextMenuItem
         ret = callNextHandler(menuItem);
         if(ret)
         {
-            menuItem->addSimpleAction(MenuActionSkyNodeLightSettings, "Light settings...", _item);
+            menuItem->addSimpleAction(MenuActionLightSettings, "Light settings...", _item);
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             const osgEarth::DateTime & t = object->getDateTime();

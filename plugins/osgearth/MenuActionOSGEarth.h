@@ -35,7 +35,6 @@ enum MenuAction {
     MenuActionModelLayerVisible,
     MenuActionModelLayerLighting,
     MenuActionMaskLayerSetURL,
-    MenuActionSkyNodeLightSettings,
     MenuActionSkyNodeSetDateTime,
     MenuActionSkyNodeSetSunVisible,
     MenuActionSkyNodeSetStarsVisible,
@@ -84,6 +83,7 @@ enum MenuAction {
     MenuActionLineDrawableSetStipplePattern,
     MenuActionLineDrawableSetStippleFactor,
     MenuActionLineDrawableSetColor,
+    MenuActionLightSettings,
 };
 
 enum MapDebugImageLayer {

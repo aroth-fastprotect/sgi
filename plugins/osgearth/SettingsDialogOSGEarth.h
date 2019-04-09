@@ -11,7 +11,8 @@ enum SettingsDialog {
     SettingsDialogTileInspector,
     SettingsDialogRetrieveElevation,
     SettingsDialogLODScaleOverride,
-    SettingsDialogShaderEditor
+    SettingsDialogShaderEditor,
+    SettingsDialogLightSettings,
 };
 
 SETTINGS_DIALOG_CREATE_IMPL_TEMPLATE()

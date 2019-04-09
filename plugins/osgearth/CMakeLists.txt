@@ -17,6 +17,7 @@ SET(TARGET_SRC
 	LODScaleOverrideDialog.cpp
     ShaderEditorDialog.cpp
     ShaderFunctionDetails.cpp
+    LightSettings.cpp
     geo_helpers.cpp
 	osgearth_accessor.cpp
     )
@@ -50,6 +51,7 @@ SET(TARGET_MOC_H
 	LODScaleOverrideDialog.h
     ShaderEditorDialog.h
     ShaderFunctionDetails.h
+    LightSettings.h
     )
 SET(TARGET_UI
     AutoClipPlaneCullCallbackDialog.ui
@@ -58,6 +60,7 @@ SET(TARGET_UI
 	LODScaleOverrideDialog.ui
     ShaderEditorDialog.ui
     ShaderFunctionDetails.ui
+    LightSettings.ui
     )
 
 SET(TARGET_LIBRARIES_VARS
