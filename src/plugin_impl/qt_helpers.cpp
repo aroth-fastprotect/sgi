@@ -327,10 +327,24 @@ namespace std {
         if(!property)
             os << v;
         else {
-            if(property->isFlagType())
-                os << property->enumerator().valueToKeys(v.toInt()).constData();
-            else if(property->isEnumType())
-                os << property->enumerator().valueToKey(v.toInt());
+            if (property->isFlagType())
+            {
+                QMetaEnum enumerator = property->enumerator();
+                QByteArray keys = enumerator.valueToKeys(v.toInt());
+                if (keys.isNull())
+                    os << v.toInt();
+                else
+                    os << keys.constData();
+            }
+            else if (property->isEnumType())
+            {
+                QMetaEnum enumerator = property->enumerator();
+                const char * key = enumerator.valueToKey(v.toInt());
+                if (key)
+                    os << key;
+                else
+                    os << v.toInt();
+            }
             else
                 os << v;
         }
