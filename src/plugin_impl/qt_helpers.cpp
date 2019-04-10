@@ -317,7 +317,8 @@ namespace std {
         case QVariant::Quaternion: os << v.value<QQuaternion>(); break;
         case QVariant::PolygonF: os << v.value<QPolygonF>(); break;
         case QVariant::Icon: os << v.value<QIcon>(); break;
-        default: os << v.toString(); break;
+        case QVariant::SizePolicy: os << v.value<QSizePolicy>(); break;
+        default: os << QString("Unknown type %1: %2").arg(v.type()).arg(v.toString()); break;
         }
         return os;
     }
@@ -490,7 +491,16 @@ namespace std {
     QENUM_OSTREAM(QSizePolicy::Policy);
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSizePolicy & sp)
     {
-        return os << "(" << sp.horizontalPolicy() << ", " << sp.verticalPolicy() << ")";
+        os << "(" << sp.horizontalPolicy() << '/' << sp.horizontalStretch()
+            << ", " << sp.verticalPolicy() << '/' << sp.verticalStretch();
+        if(sp.retainSizeWhenHidden())
+            os << ", retainSizeWhenHidden";
+        if (sp.hasHeightForWidth())
+            os << ", hasHeightForWidth";
+        if (sp.hasWidthForHeight())
+            os << ", hasWidthForHeight";
+        os << ")";
+        return os;
     }
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, QImage::Format t)
