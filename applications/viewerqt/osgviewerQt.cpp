@@ -610,10 +610,12 @@ main(int argc, char** argv)
     }
     else
     {
-        delete myMainWindow;
-
         QString msg;
         msg = QString::fromStdString(helper.errorMessages());
+
+        // delete main window after taking the error message
+        delete myMainWindow;
+
         msg += "\r\nCmdline: ";
         for(int i = 0; i < argc; i++)
         {
