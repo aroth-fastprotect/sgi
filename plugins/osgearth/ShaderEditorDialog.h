@@ -116,6 +116,7 @@ public slots:
 
 protected slots:
     void                    createEmptyShader();
+    void                    debugTools(bool on);
     void                    apply();
     void                    load();
     void                    reload();
@@ -145,6 +146,7 @@ protected:
 
     void                    dirty();
     void                    selectItemFromPath();
+    void                    activateDebugTools(bool on);
 
 private:  // for now
     IHostCallbackPtr                _hostCallback;

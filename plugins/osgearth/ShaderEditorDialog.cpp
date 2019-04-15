@@ -413,6 +413,7 @@ namespace  {
         osg::ref_ptr<osg::Image> image = new osg::Image;
         image->allocateImage(640, 480, 1, GL_RGBA32F_ARB, GL_FLOAT);
         image->setColor(osg::Vec4(1.0, 1.0, 1.0, 1.0), 0, 0, 0);
+        memset(image->data(), 0, image->getTotalDataSize());
 
         osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D(image.get());
         texture->setResizeNonPowerOfTwoHint(true);
@@ -459,6 +460,7 @@ ShaderEditorDialog::ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface 
     ui->actionSave->setIcon(QIcon::fromTheme("document-save"));
     ui->actionCreateEmptyShader->setIcon(QIcon::fromTheme("document-new"));
     ui->actionReload->setIcon(QIcon::fromTheme("document-revert"));
+    ui->actionDebugTools->setIcon(QIcon::fromTheme("tools-report-bug"));
 
     _comboBoxPath = new QComboBox(ui->toolBar);
     connect(_comboBoxPath, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this, &ShaderEditorDialog::selectItemFromPath);
@@ -760,15 +762,97 @@ void ShaderEditorDialog::createEmptyShader()
         vp->setInheritShaders(true);
         vp->setFunction("my_vertex", default_vertex_shader, osgEarth::ShaderComp::LOCATION_VERTEX_MODEL);
         vp->setFunction("my_fragment", default_fragment_shader, osgEarth::ShaderComp::LOCATION_FRAGMENT_COLORING, 2.0f);
-
-        osg::StateSet::TextureAttributeList textureAttributes = stateSet->getTextureAttributeList();
-        unsigned unit = textureAttributes.size() + 1;
-
-        stateSet->setTextureAttribute(unit, createDebugTexture());
-        stateSet->addUniform(new osg::Uniform("dbgVec4", unit));
     }
 
+    activateDebugTools(ui->actionDebugTools->isChecked());
+
     load();
+}
+
+
+void ShaderEditorDialog::debugTools(bool on)
+{
+    activateDebugTools(on);
+    load();
+}
+
+void ShaderEditorDialog::activateDebugTools(bool on)
+{
+    osg::StateSet * stateSet = getStateSet(false);
+    if (stateSet)
+    {
+        if (on)
+        {
+            osg::StateSet::TextureAttributeList textureAttributes = stateSet->getTextureAttributeList();
+            unsigned unit = 0;
+            for (unsigned i = 0; i < textureAttributes.size(); ++i)
+            {
+                osg::StateAttribute * sa = stateSet->getTextureAttribute(i, osg::StateAttribute::TEXTURE);
+                if (sa)
+                    unit++;
+            }
+            // skip baseTexture
+            if (unit == 0)
+                ++unit;
+            stateSet->setTextureAttribute(unit, createDebugTexture(), osg::StateAttribute::ON);
+
+            stateSet->addUniform(new osg::Uniform("dbgVec4", unit));
+        }
+        else
+        {
+            osg::Uniform * dbgVec4 = stateSet->getUniform("dbgVec4");
+            if (dbgVec4)
+            {
+                unsigned unit;
+                if (dbgVec4->get(unit))
+                    stateSet->removeTextureAttribute(unit, osg::StateAttribute::TEXTURE);
+                stateSet->removeUniform(dbgVec4);
+            }
+        }
+    }
+    VirtualProgramAccessor* vp = static_cast<VirtualProgramAccessor*>(getVirtualProgram(false));
+    if (vp)
+    {
+        osgEarth::ShaderComp::FunctionLocationMap funcs;
+        vp->getFunctions(funcs);
+
+        for (auto itfunc = funcs.begin(); itfunc != funcs.end(); ++itfunc)
+        {
+            const osgEarth::ShaderComp::FunctionLocation & loc = itfunc->first;
+            const osgEarth::ShaderComp::OrderedFunctionMap & map = itfunc->second;
+            for (auto itmap = map.begin(); itmap != map.end(); ++itmap)
+            {
+                const float & order = itmap->first;
+                const osgEarth::ShaderComp::Function & func = itmap->second;
+             
+                osgEarth::PolyShader * shader = vp->getPolyShader(func._name);
+                if (shader)
+                {
+                    std::string source = shader->getShaderSource();
+                    std::stringstream is(source);
+                    std::stringstream os;
+                    std::string line;
+                    bool gotHeader = false;
+                    while (std::getline(is, line)) {
+                        if (!line.empty() && line.at(0) != '#' && !gotHeader)
+                        {
+                            gotHeader = true;
+                            if (on)
+                            {
+                                os << "flat out vec4 dbgVec4;" << std::endl;
+                            }
+                        }
+                        bool skip = false;
+                        if (line.find("vec4 dbgVec4") != std::string::npos)
+                            skip = true;
+                        if(!skip)
+                            os << line << std::endl;
+                    }
+                    vp->setFunction(func._name, os.str(), loc, order);
+                }
+            }
+        }
+    }
 }
 
 void ShaderEditorDialog::load()

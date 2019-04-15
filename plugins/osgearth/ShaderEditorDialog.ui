@@ -230,6 +230,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionCreateEmptyShader"/>
+   <addaction name="actionDebugTools"/>
    <addaction name="actionSave"/>
    <addaction name="actionReload"/>
   </widget>
@@ -255,6 +256,14 @@
    </property>
    <property name="shortcut">
     <string>F5</string>
+   </property>
+  </action>
+  <action name="actionDebugTools">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Debug</string>
    </property>
   </action>
  </widget>
@@ -452,6 +461,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionDebugTools</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>debugTools(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>342</x>
+     <y>243</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>vpFunctionChanged(int)</slot>
@@ -468,5 +493,6 @@
   <slot>apply()</slot>
   <slot>createEmptyShader()</slot>
   <slot>reload()</slot>
+  <slot>debugTools(bool)</slot>
  </slots>
 </ui>
