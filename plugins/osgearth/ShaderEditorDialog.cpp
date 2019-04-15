@@ -1,12 +1,15 @@
 #include "stdafx.h"
+#define SGI_NO_HOSTITEM_GENERATOR
 #include "ShaderEditorDialog.h"
 
 #include <sgi/plugins/SGISettingsDialogImpl>
 #include <sgi/plugins/SGIItemOsg>
+#include <sgi/plugins/SGIHostItemOsg.h>
 #include <sgi/plugins/SceneGraphDialog>
 #include <sgi/helpers/qt>
 #include <sgi/helpers/osg>
 #include <sgi/helpers/osg_drawable_helpers>
+#include <sgi/ContextMenu>
 
 #include <QTemporaryFile>
 #include <QTextStream>
@@ -198,6 +201,7 @@ void UniformModel::reload()
     endResetModel();
 }
 
+
 Qt::ItemFlags UniformModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
@@ -228,6 +232,15 @@ QModelIndex UniformModel::index(int row, int column, const QModelIndex &parent) 
             ret = createIndex(row, column, (void*)item);
     }
     return ret;
+}
+
+osg::Uniform * UniformModel::getUniform(const QModelIndex &index) const
+{
+    const Private::Item * item = (const Private::Item *)index.internalPointer();
+    if (item)
+        return item->uniform.get();
+    else
+        return nullptr;
 }
 
 QModelIndex UniformModel::parent(const QModelIndex &index) const
@@ -332,16 +345,19 @@ bool UniformModel::setData(const QModelIndex &index, const QVariant &value, int 
     return ret;
 }
 
-UniformEditDock::UniformEditDock(ShaderEditorDialog * parent)
+UniformEditDock::UniformEditDock(ISettingsDialogInfo * info, ShaderEditorDialog * parent)
     : QDockWidget(parent)
     , _table(nullptr)
     , _model(nullptr)
+    , _info(info)
 {
     setWindowTitle(tr("Uniforms"));
     _model = new UniformModel(parent);
     _table = new QTableView(this);
     _table->setSortingEnabled(false);
     _table->setModel(_model);
+    _table->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(_table, &QTableView::customContextMenuRequested, this, &UniformEditDock::onContextMenuRequested);
     setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     setWidget(_table);
 }
@@ -356,16 +372,41 @@ void UniformEditDock::reload()
     _table->resizeColumnsToContents();
 }
 
+void UniformEditDock::onContextMenuRequested(const QPoint &pos)
+{
+    QModelIndex index = _table->indexAt(pos);
+    if (!index.isValid())
+        return;
+
+    QPoint pt = pos;
+    osg::Uniform * uniform = _model->getUniform(index);
+    sgi::SGIHostItemOsg item(uniform);
+
+    if (item.hasObject())
+    {
+        QMenu * contextMenu = nullptr;
+        if (_contextMenu.valid())
+            _contextMenu->setObject(&item);
+        else
+            _contextMenu = _info->contextMenu(this, &item);
+        contextMenu = _contextMenu.valid() ? _contextMenu->getMenu() : nullptr;
+        if (contextMenu)
+        {
+            //pt.ry() += _table->horizontalHeader()->height();
+            QPoint globalPos = _table->viewport()->mapToGlobal(pt);
+            contextMenu->popup(globalPos);
+        }
+    }
+}
+
 namespace  {
     static const char * default_vertex_shader =
             "#version " GLSL_VERSION_STR "\n"
 #ifdef OSG_GLES2_AVAILABLE
             "precision mediump float; \n"
 #endif
-            "flat out vec4 dbgVec4;\n"
             "void my_vertex(inout vec4 VertexView) \n"
             "{ \n"
-            "    dbgVec4 = VertexView; \n"
             "} \n";
     static const char * default_fragment_shader =
             "#version " GLSL_VERSION_STR "\n"
@@ -410,13 +451,19 @@ namespace  {
 
     extern osg::Texture2D* createDebugTexture()
     {
+        const int size = 512;
         osg::ref_ptr<osg::Image> image = new osg::Image;
-        image->allocateImage(640, 480, 1, GL_RGBA32F_ARB, GL_FLOAT);
+        //image->allocateImage(size, size, 1, GL_RGBA32F_ARB, GL_FLOAT);
+        image->allocateImage(size, size, 1, GL_RGBA, GL_UNSIGNED_BYTE);
         image->setColor(osg::Vec4(1.0, 1.0, 1.0, 1.0), 0, 0, 0);
         memset(image->data(), 0, image->getTotalDataSize());
 
         osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D(image.get());
         texture->setResizeNonPowerOfTwoHint(true);
+        texture->setUnRefImageDataAfterApply(false);
+        texture->setFilter(osg::Texture2D::MIN_FILTER, osg::Texture2D::NEAREST); // no filtering
+        texture->setFilter(osg::Texture2D::MAG_FILTER, osg::Texture2D::NEAREST); // no filtering
+        texture->setMaxAnisotropy(1.0f); // no filtering
         return texture.release();
     }
 
@@ -452,7 +499,7 @@ ShaderEditorDialog::ShaderEditorDialog(QWidget * parent, SGIPluginHostInterface 
     ui->setupUi( this );
 
     _infoLogDock = new InfoLogDock(this);
-    _uniformEditDock = new UniformEditDock(this);
+    _uniformEditDock = new UniformEditDock(info, this);
     addDockWidget(Qt::RightDockWidgetArea, _infoLogDock);
     addDockWidget(Qt::RightDockWidgetArea, _uniformEditDock);
     tabifyDockWidget(_infoLogDock, _uniformEditDock);
@@ -776,11 +823,28 @@ void ShaderEditorDialog::debugTools(bool on)
     load();
 }
 
+namespace
+{
+    struct MyUpdateSlave : public osg::View::Slave::UpdateSlaveCallback
+    {
+        void updateSlave(osg::View& view, osg::View::Slave& slave)
+        {
+            osg::Camera* cam = slave._camera.get();
+            cam->setProjectionResizePolicy(view.getCamera()->getProjectionResizePolicy());
+            cam->setProjectionMatrix(view.getCamera()->getProjectionMatrix());
+            cam->setViewMatrix(view.getCamera()->getViewMatrix());
+            cam->inheritCullSettings(*(view.getCamera()), cam->getInheritanceMask());
+        }
+    };
+}
+
 void ShaderEditorDialog::activateDebugTools(bool on)
 {
     osg::StateSet * stateSet = getStateSet(false);
     if (stateSet)
     {
+        osg::Camera * camera = osg_helpers::findCamera(stateSet);
+
         if (on)
         {
             osg::StateSet::TextureAttributeList textureAttributes = stateSet->getTextureAttributeList();
@@ -794,12 +858,59 @@ void ShaderEditorDialog::activateDebugTools(bool on)
             // skip baseTexture
             if (unit == 0)
                 ++unit;
-            stateSet->setTextureAttribute(unit, createDebugTexture(), osg::StateAttribute::ON);
+            if (!_dbgVec4.valid())
+                _dbgVec4 = createDebugTexture();
+            stateSet->setTextureAttribute(unit, _dbgVec4.get(), osg::StateAttribute::ON);
 
             stateSet->addUniform(new osg::Uniform("dbgVec4", unit));
+
+            if (!_dbgCamera.valid())
+            {
+                _dbgCamera = new osg::Camera;
+                _dbgCamera->setName("ShaderEditorDialog");
+                _dbgCamera->getOrCreateStateSet()->setDefine("DEBUG_CAMERA");
+            }
+            if(_dbgCamera->getNumChildren())
+                _dbgCamera->setChild(0, camera->getChild(0));
+            else
+                _dbgCamera->addChild(camera->getChild(0));
+            _dbgCamera->setClearColor(osg::Vec4(0, 0, 0, 0));
+            _dbgCamera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            _dbgCamera->setViewport(0, 0, _dbgVec4->getImage(0)->s(), _dbgVec4->getImage(0)->t());
+            _dbgCamera->setRenderOrder(osg::Camera::NESTED_RENDER);
+            _dbgCamera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);
+            _dbgCamera->attach(osg::Camera::COLOR_BUFFER0, _dbgVec4->getImage(0));
+            _dbgCamera->setSmallFeatureCullingPixelSize(-1.0f);
+            _dbgCamera->setCullMask(camera->getCullMask());
+
+            // Necessary to connect the slave to the master (why is this not automatic?)
+            _dbgCamera->setGraphicsContext(camera->getGraphicsContext());
+
+            osg::View * view = camera->getView();
+            if (view)
+            {
+                osg::View::Slave * slave = view->findSlaveForCamera(_dbgCamera.get());
+                if (!slave)
+                {
+                    unsigned slaveIndex = view->findSlaveIndexForCamera(_dbgCamera.get());
+                    // install the pick camera as a slave of the view's camera so it will
+                    // duplicate the view matrix and projection matrix during the update traversal
+                    // The "false" means the pick camera has its own separate subgraph.
+                    view->addSlave(_dbgCamera.get(), false);
+                    osg::View::Slave& slave = view->getSlave(view->getNumSlaves() - 1);
+                    slave._updateSlaveCallback = new MyUpdateSlave();
+                }
+            }
         }
         else
         {
+            osg::View * view = camera->getView();
+            if (view)
+            {
+                unsigned slaveIndex = view->findSlaveIndexForCamera(_dbgCamera.get());
+                view->removeSlave(slaveIndex);
+            }
+
             osg::Uniform * dbgVec4 = stateSet->getUniform("dbgVec4");
             if (dbgVec4)
             {
@@ -839,7 +950,20 @@ void ShaderEditorDialog::activateDebugTools(bool on)
                             gotHeader = true;
                             if (on)
                             {
-                                os << "flat out vec4 dbgVec4;" << std::endl;
+                                switch (loc)
+                                {
+                                case osgEarth::ShaderComp::LOCATION_FRAGMENT_COLORING:
+                                case osgEarth::ShaderComp::LOCATION_FRAGMENT_LIGHTING:
+                                case osgEarth::ShaderComp::LOCATION_FRAGMENT_OUTPUT:
+                                    os << "flat in vec4 dbgVec4_vertex;" << std::endl;
+                                    os << "out vec4 dbgVec4;" << std::endl;
+                                    break;
+                                case osgEarth::ShaderComp::LOCATION_VERTEX_MODEL:
+                                case osgEarth::ShaderComp::LOCATION_VERTEX_VIEW:
+                                case osgEarth::ShaderComp::LOCATION_VERTEX_CLIP:
+                                    os << "flat out vec4 dbgVec4_vertex;" << std::endl;
+                                    break;
+                                }
                             }
                         }
                         bool skip = false;
@@ -1044,6 +1168,7 @@ void ShaderEditorDialog::vpFunctionChanged(int index)
     unsigned contextID = osg_helpers::findContextID(vp);
     osgEarth::PolyShader * sh = getPolyShader(index);
     std::string log;
+    std::string src;
     if (sh)
     {
         osg::Shader * shader = sh->getNominalShader();
@@ -1051,9 +1176,9 @@ void ShaderEditorDialog::vpFunctionChanged(int index)
         {
             static_cast<ShaderAccess*>(shader)->getGlProgramInfoLog(contextID, log);
         }
-        std::string src = sh->getShaderSource();
-        ui->vpShaderCode->setPlainText(qt_helpers::fromUtf8(src));
+        src = sh->getShaderSource();
     }
+    ui->vpShaderCode->setPlainText(qt_helpers::fromUtf8(src));
     _infoLogDock->setInfoLog(log);
     _currentVPFunctionIndex = index;
 }
@@ -1109,9 +1234,8 @@ void ShaderEditorDialog::vpFunctionRemove()
 {
     int index = ui->vpFunction->currentIndex();
     removeVPShader(index);
-    ui->vpFunction->removeItem(index);
     _currentVPFunctionIndex = -1;
-
+    ui->vpFunction->removeItem(index);
 }
 
 void ShaderEditorDialog::vpFunctionDetails()

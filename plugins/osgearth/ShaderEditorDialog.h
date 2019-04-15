@@ -4,6 +4,7 @@
 #include <QDockWidget>
 #include <QAbstractItemModel>
 #include <sgi/plugins/SGISettingsWindowImpl>
+#include <osg/ref_ptr>
 
 QT_BEGIN_NAMESPACE
 class Ui_ShaderEditorDialog;
@@ -17,6 +18,9 @@ QT_END_NAMESPACE
 namespace osg {
     class StateSet;
     class Program;
+    class Uniform;
+    class Texture;
+    class Camera;
 }
 namespace osgEarth {
     class VirtualProgram;
@@ -24,6 +28,9 @@ namespace osgEarth {
 }
 
 namespace sgi {
+
+class IContextMenu;
+typedef sgi::details::ref_ptr<IContextMenu> IContextMenuPtr;
 
 class ShaderEditorDialog;
 
@@ -80,6 +87,8 @@ public:
     bool setData(const QModelIndex &index, const QVariant &value, int role /* = Qt::EditRole */) override;
     void reload();
 
+    osg::Uniform * getUniform(const QModelIndex &index) const;
+
 private:
     class Private;
     Private * m_impl;
@@ -90,14 +99,18 @@ class UniformEditDock : public QDockWidget
     Q_OBJECT
 
 public:
-    UniformEditDock(ShaderEditorDialog * parent = nullptr);
+    UniformEditDock(ISettingsDialogInfo * info, ShaderEditorDialog * parent = nullptr);
     ~UniformEditDock() override;
 
     void reload();
 
+    void onContextMenuRequested(const QPoint &pos);
+
 private:
     QTableView * _table;
     UniformModel * _model;
+    IContextMenuPtr _contextMenu;
+    ISettingsDialogInfo * _info;
 };
 
 class ShaderEditorDialog : public SettingsQMainWindowImpl
@@ -162,6 +175,8 @@ private:  // for now
     QString _shaderLogFile;
     QComboBox * _comboBoxPath;
     QPushButton * _openItemButton;
+    osg::ref_ptr<osg::Texture> _dbgVec4;
+    osg::ref_ptr<osg::Camera> _dbgCamera;
 };
 
 } // namespace sgi
