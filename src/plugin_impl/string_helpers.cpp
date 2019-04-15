@@ -14,12 +14,14 @@ QDebug & operator<<(QDebug & d, const std::string & s)
 namespace sgi {
     namespace helpers {
 
-void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size)
+void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size, size_t maximumSize)
 {
     unsigned w = 4;
     if(size > 65535)
         w = 6;
-    for(unsigned offset = 0; offset < size; offset += 16)
+    size_t offset_max = std::min(size, maximumSize);
+    bool truncated = size > maximumSize;
+    for(unsigned offset = 0; offset < offset_max; offset += 16)
     {
         const unsigned char * pData = (const unsigned char*)data + offset;
         size_t max_row = std::min((size_t)16u, size - (size_t)offset);
@@ -46,6 +48,8 @@ void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size)
         os << ssAscii.str();
         os << std::endl;
     }
+    if (truncated)
+        os << "truncated after " << maximumSize << " of " << size << " bytes" << endl;
 }
 
 std::string joinStrings(const std::vector<std::string>& input, char delim)
