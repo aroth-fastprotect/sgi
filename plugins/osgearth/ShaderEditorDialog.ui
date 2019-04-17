@@ -39,7 +39,7 @@
     <item>
      <widget class="QStackedWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tabProgram">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -205,13 +205,6 @@
            <set>Qt::AlignCenter</set>
           </property>
          </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="tabInfoLog">
-       <layout class="QVBoxLayout" name="verticalLayout_6">
-        <item>
-         <widget class="QTextEdit" name="infoLog"/>
         </item>
        </layout>
       </widget>

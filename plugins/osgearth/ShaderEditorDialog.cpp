@@ -48,6 +48,9 @@ InfoLogDock::InfoLogDock(ShaderEditorDialog * parent)
     _timer = new QTimer(this);
     connect(_timer, &QTimer::timeout, this, &InfoLogDock::onTimer);
     _timer->setInterval(2000);
+    _log->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(_log, &QTextEdit::customContextMenuRequested, this, &InfoLogDock::onContextMenuRequested);
+
     setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     setWidget(_log);
     update();
@@ -97,6 +100,25 @@ void InfoLogDock::update()
     _log->setHtml(str);
 }
 
+void InfoLogDock::onContextMenuRequested(const QPoint &pos)
+{
+    QMenu * menu = _log->createStandardContextMenu();
+    menu->addSeparator();
+    QAction * actionRefresh = new QAction(tr("Refresh"));
+    actionRefresh->setIcon(QIcon::fromTheme("view-refresh"));
+    connect(actionRefresh, &QAction::triggered, this, &InfoLogDock::onRefresh);
+    menu->addAction(actionRefresh);
+
+    QPoint pt = _log->mapToGlobal(pos);
+    menu->popup(pt);
+}
+
+void InfoLogDock::onRefresh()
+{
+    _logFileData.clear();
+    onTimer();
+}
+
 void InfoLogDock::onTimer()
 {
     _logFilename = _shaderEditor->shaderLogFile();
@@ -111,16 +133,17 @@ void InfoLogDock::onTimer()
     }
     else
     {
+        QByteArray data;
         QFile f(_logFilename);
         if(f.open(QFile::ReadOnly))
         {
-            QByteArray data = f.readAll();
-            if(_logFileData.size() != data.size())
-            {
-                _logFileData = data;
-                hasUpdate = true;
-            }
+            data = f.readAll();
             f.close();
+        }
+        if (_logFileData.size() != data.size())
+        {
+            _logFileData = data;
+            hasUpdate = true;
         }
     }
     if(hasUpdate)
@@ -466,7 +489,6 @@ namespace  {
         texture->setMaxAnisotropy(1.0f); // no filtering
         return texture.release();
     }
-
 }
 
 unsigned hashFunctionName(const osgEarth::ShaderComp::FunctionLocation & loc, float order, const std::string & name)
@@ -1094,6 +1116,7 @@ void ShaderEditorDialog::load()
 void ShaderEditorDialog::reload()
 {
     load();
+    loadInfoLog();
 }
 
 void ShaderEditorDialog::loadInfoLog()

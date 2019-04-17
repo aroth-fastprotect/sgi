@@ -50,6 +50,8 @@ protected:
 
     void onTimer();
     void update();
+    void onContextMenuRequested(const QPoint &pos);
+    void onRefresh();
 
 private:
     ShaderEditorDialog * _shaderEditor;
