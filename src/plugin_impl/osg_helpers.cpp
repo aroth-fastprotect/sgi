@@ -1620,6 +1620,30 @@ bool stringToUniform(const std::string & s, osg::Uniform * object)
     return ret;
 }
 
+#define uniformToHTML_Data_pre(__gl_type, __c_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                os << "<i>empty</i>"; \
+            else if( object->getNumElements() == 1) \
+            { \
+                __c_type val; \
+                object->getElement(0, val); \
+                os << "<li><pre>" << val << "</pre></li>" << std::endl; \
+            } \
+            else { \
+                os << "<ol>"; \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    __c_type val; \
+                    object->getElement(n, val); \
+                    os << "<li><pre>" << val << "</pre></li>" << std::endl; \
+                } \
+                os << "</ol>"; \
+            } \
+        } \
+        break
 #define uniformToHTML_Data(__gl_type, __c_type) \
     case osg::Uniform::__gl_type: \
         { \
@@ -1644,7 +1668,78 @@ bool stringToUniform(const std::string & s, osg::Uniform * object)
             } \
         } \
         break
-
+#define uniformToHTML_Data2(__gl_type, __c_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                os << "<i>empty</i>"; \
+            else if( object->getNumElements() == 1) \
+            { \
+                __c_type val0, val1; \
+                object->getElement(0, val0, val1); \
+                os << "<li>" << val0 << ',' << val1 << "</li>" << std::endl; \
+            } \
+            else { \
+                os << "<ol>"; \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    __c_type val0, val1; \
+                    object->getElement(n, val0, val1); \
+                    os << "<li>" << val0 << ',' << val1 << "</li>" << std::endl; \
+                } \
+                os << "</ol>"; \
+            } \
+        } \
+        break
+#define uniformToHTML_Data3(__gl_type, __c_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                os << "<i>empty</i>"; \
+            else if( object->getNumElements() == 1) \
+            { \
+                __c_type val0, val1, val2; \
+                object->getElement(0, val0, val1, val2); \
+                os << "<li>" << val0 << ',' << val1 << ',' << val2 << "</li>" << std::endl; \
+            } \
+            else { \
+                os << "<ol>"; \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    __c_type val0, val1, val2; \
+                    object->getElement(n, val0, val1, val2); \
+                    os << "<li>" << val0 << ',' << val1 << ',' << val2 << "</li>" << std::endl; \
+                } \
+                os << "</ol>"; \
+            } \
+        } \
+        break
+#define uniformToHTML_Data4(__gl_type, __c_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                os << "<i>empty</i>"; \
+            else if( object->getNumElements() == 1) \
+            { \
+                __c_type val0, val1, val2, val3; \
+                object->getElement(0, val0, val1, val2, val3); \
+                os << "<li>" << val0 << ',' << val1 << ',' << val2 << ',' << val3 << "</li>" << std::endl; \
+            } \
+            else { \
+                os << "<ol>"; \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    __c_type val0, val1, val2, val3; \
+                    object->getElement(n, val0, val1, val2, val3); \
+                    os << "<li>" << val0 << ',' << val1 << ',' << val2 << ',' << val3 << "</li>" << std::endl; \
+                } \
+                os << "</ol>"; \
+            } \
+        } \
+        break
 #define uniformToHTML_Sampler(__gl_type) \
     case osg::Uniform::__gl_type: \
         { \
@@ -1681,6 +1776,9 @@ std::string uniformToHTML(const osg::Uniform * object, bool * ok)
         os << "<i>undefined</i>";
         break;
         uniformToHTML_Data(BOOL, bool);
+        uniformToHTML_Data2(BOOL_VEC2, bool);
+        uniformToHTML_Data3(BOOL_VEC3, bool);
+        uniformToHTML_Data4(BOOL_VEC4, bool);
         uniformToHTML_Data(FLOAT, float);
         uniformToHTML_Data(FLOAT_VEC2, osg::Vec2f);
         uniformToHTML_Data(FLOAT_VEC3, osg::Vec3f);
@@ -1690,13 +1788,32 @@ std::string uniformToHTML(const osg::Uniform * object, bool * ok)
         uniformToHTML_Data(DOUBLE_VEC3, osg::Vec3d);
         uniformToHTML_Data(DOUBLE_VEC4, osg::Vec4d);
         uniformToHTML_Data(INT, int);
-        //uniformToHTML_Data(INT_VEC2, osg::Vec2i);
-        //uniformToHTML_Data(INT_VEC3, osg::Vec3i);
-        //uniformToHTML_Data(INT_VEC4, osg::Vec4i);
+        uniformToHTML_Data2(INT_VEC2, int);
+        uniformToHTML_Data3(INT_VEC3, int);
+        uniformToHTML_Data4(INT_VEC4, int);
         uniformToHTML_Data(UNSIGNED_INT, unsigned int);
-        //uniformToHTML_Data(UNSIGNED_INT_VEC2, osg::Vec2ui);
-        //uniformToHTML_Data(UNSIGNED_INT_VEC3, osg::Vec3ui);
-        //uniformToHTML_Data(UNSIGNED_INT_VEC4, osg::Vec4ui);
+        uniformToHTML_Data2(UNSIGNED_INT_VEC2, unsigned int);
+        uniformToHTML_Data3(UNSIGNED_INT_VEC3, unsigned int);
+        uniformToHTML_Data4(UNSIGNED_INT_VEC4, unsigned int);
+        uniformToHTML_Data_pre(FLOAT_MAT2, osg::Matrix2);
+        uniformToHTML_Data_pre(FLOAT_MAT3, osg::Matrix3);
+        uniformToHTML_Data_pre(FLOAT_MAT4, osg::Matrix);
+        uniformToHTML_Data_pre(FLOAT_MAT2x3, osg::Matrix2x3);
+        uniformToHTML_Data_pre(FLOAT_MAT2x4, osg::Matrix2x4);
+        uniformToHTML_Data_pre(FLOAT_MAT3x2, osg::Matrix3x2);
+        uniformToHTML_Data_pre(FLOAT_MAT3x4, osg::Matrix3x4);
+        uniformToHTML_Data_pre(FLOAT_MAT4x2, osg::Matrix4x2);
+        uniformToHTML_Data_pre(FLOAT_MAT4x3, osg::Matrix4x3);
+        uniformToHTML_Data_pre(DOUBLE_MAT2, osg::Matrix2d);
+        uniformToHTML_Data_pre(DOUBLE_MAT3, osg::Matrix3d);
+        uniformToHTML_Data_pre(DOUBLE_MAT4, osg::Matrixd);
+        uniformToHTML_Data_pre(DOUBLE_MAT2x3, osg::Matrix2x3d);
+        uniformToHTML_Data_pre(DOUBLE_MAT2x4, osg::Matrix2x4d);
+        uniformToHTML_Data_pre(DOUBLE_MAT3x2, osg::Matrix3x2d);
+        uniformToHTML_Data_pre(DOUBLE_MAT3x4, osg::Matrix3x4d);
+        uniformToHTML_Data_pre(DOUBLE_MAT4x2, osg::Matrix4x2d);
+        uniformToHTML_Data_pre(DOUBLE_MAT4x3, osg::Matrix4x3d);
+
         uniformToHTML_Sampler(SAMPLER_1D);
         uniformToHTML_Sampler(SAMPLER_2D);
         uniformToHTML_Sampler(SAMPLER_3D);
