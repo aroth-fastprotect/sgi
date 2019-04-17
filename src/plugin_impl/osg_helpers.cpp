@@ -10,6 +10,9 @@
 #include <osg/Shape>
 #include <osg/CullingSet>
 
+#include <osgUtil/SceneView>
+#include <osgViewer/Renderer>
+
 #include <osg/GL>
 
 #include <sgi/plugins/SGIItemBase.h>
@@ -986,7 +989,6 @@ bool collectUniformList(const osg::NodePath & path, UniformList & list, bool & g
     if (path.empty())
         return false;
 
-    osg::StateSet* ret = new osg::StateSet;
     for (osg::NodePath::const_iterator it = path.begin(); it != path.end(); ++it)
     {
         osg::Node * node = *it;
@@ -1004,6 +1006,18 @@ bool collectUniformList(const osg::NodePath & path, UniformList & list, bool & g
                 ADD_STATE_UNIFORM(state->getModelViewProjectionMatrixUniform);
                 ADD_STATE_UNIFORM(state->getNormalMatrixUniform);
 #undef ADD_STATE_UNIFORM
+            }
+            osgViewer::Renderer * renderer = camera ? dynamic_cast<osgViewer::Renderer *>(camera->getRenderer()) : nullptr;
+            osgUtil::SceneView * sceneview = renderer ? renderer->getSceneView(0) : nullptr;
+            if (sceneview)
+            {
+                osg::StateSet * localStateSet = sceneview->getLocalStateSet();
+                if (localStateSet)
+                {
+                    const osg::StateSet::UniformList & curlist = localStateSet->getUniformList();
+                    for (auto itl : curlist)
+                        list.insert(UniformList::value_type(itl.first, itl.second));
+                }
             }
             gotStateUniforms = true;
         }
