@@ -15,6 +15,11 @@
 #include <osgEarth/GeoData>
 #include <osgEarth/Cache>
 #include <osgEarth/CacheBin>
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+#define protected public
+#include <osgEarth/ElevationPool>
+#undef protected
+#endif
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
 #include <osgEarth/OverlayDecorator>
@@ -111,6 +116,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Extension)
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationPool)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationPool::Tile)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationEnvelope)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::PolyShader)
 #endif
@@ -499,7 +505,7 @@ bool writePrettyHTMLImpl<osgEarth::CacheBin>::process(std::basic_ostream<char>& 
 
 bool writePrettyHTMLImpl<osgEarth::Cache>::process(std::basic_ostream<char>& os)
 {
-    osgEarth::Cache * object = static_cast<osgEarth::Cache*>(item<SGIItemOsg>()->object());
+    CacheAccess * object = static_cast<CacheAccess*>(item<SGIItemOsg>()->object());
     bool ret = false;
     switch(itemType())
     {
@@ -509,23 +515,10 @@ bool writePrettyHTMLImpl<osgEarth::Cache>::process(std::basic_ostream<char>& os)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
             callNextHandler(os);
-            CacheAccess * access = (CacheAccess *)object;
-
             os << "<tr><td>ok</td><td>" << (object->isOK()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>options</td><td>";
-            /*
-            if(access->getCacheOptions().getDriver() == "filesystem")
-            {
-                osgEarth::Drivers::FileSystemCacheOptions fsopt(access->getCacheOptions());
-                writePrettyHTML(os, fsopt);
-            }
-            else
-                writePrettyHTML(os, access->getCacheOptions());
-            */
-            os << "</td></tr>" << std::endl;
-            os << "<tr><td>default cache bin</td><td>" << getObjectNameAndType(access->getDefaultBin()) << "</td></tr>" << std::endl;
+            os << "<tr><td>default cache bin</td><td>" << getObjectNameAndType(object->getDefaultBin()) << "</td></tr>" << std::endl;
             os << "<tr><td>cache bins</td><td><ul>";
-            const ThreadSafeCacheBinMapAccessor::MAP & cacheBinMap = ((const ThreadSafeCacheBinMapAccessor&)access->getCacheBinMap())._data;
+            const ThreadSafeCacheBinMapAccessor::MAP & cacheBinMap = ((const ThreadSafeCacheBinMapAccessor&)object->getCacheBinMap())._data;
             for(ThreadSafeCacheBinMapAccessor::MAP::const_iterator it = cacheBinMap.begin(); it != cacheBinMap.end(); it++)
             {
                 const std::string & name = it->first;
@@ -546,7 +539,7 @@ bool writePrettyHTMLImpl<osgEarth::Cache>::process(std::basic_ostream<char>& os)
     case SGIItemTypeChilds:
         {
             os << "<ul>";
-            const ThreadSafeCacheBinMapAccessor::MAP & cacheBinMap = ((const ThreadSafeCacheBinMapAccessor&)((CacheAccess*)object)->getCacheBinMap())._data;
+            const ThreadSafeCacheBinMapAccessor::MAP & cacheBinMap = ((const ThreadSafeCacheBinMapAccessor&)object->getCacheBinMap())._data;
             for(ThreadSafeCacheBinMapAccessor::MAP::const_iterator it = cacheBinMap.begin(); it != cacheBinMap.end(); it++)
             {
                 const std::string & name = it->first;
@@ -596,7 +589,9 @@ bool writePrettyHTMLImpl<osgEarth::SpatialReference>::process(std::basic_ostream
             os << "<tr><td>isContiguous</td><td>" << (object->isContiguous()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>isCube</td><td>" << (object->isCube()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>isLTP</td><td>" << (object->isLTP()?"true":"false") << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(2,10,0)
             os << "<tr><td>isPlateCarre</td><td>" << (object->isPlateCarre()?"true":"false") << "</td></tr>" << std::endl;
+#endif
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -696,6 +691,16 @@ bool writePrettyHTMLImpl<osgEarth::Profile>::process(std::basic_ostream<char>& o
             else
                 os << "(null)";
             os << "</td></tr>" << std::endl;
+            std::vector<osgEarth::TileKey> root_keys;
+            object->getRootKeys(root_keys);
+            os << "<tr><td>root keys</td><td><ul>";
+            for(const osgEarth::TileKey & key : root_keys)
+                os << "<li>" << key.str() << "</li>";
+            os << "</ul></td></tr>" << std::endl;
+
+            unsigned x_tiles_at_lod0 = 0, y_tiles_at_lod0 = 0;
+            object->getNumTiles(0, x_tiles_at_lod0, y_tiles_at_lod0);
+            os << "<tr><td>tiles at LOD0</td><td>" << x_tiles_at_lod0 << '/' << y_tiles_at_lod0 << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -1730,7 +1735,7 @@ bool writePrettyHTMLImpl<osgEarth::Extension>::process(std::basic_ostream<char>&
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 bool writePrettyHTMLImpl<osgEarth::ElevationPool>::process(std::basic_ostream<char>& os)
 {
-    osgEarth::ElevationPool * object = getObject<osgEarth::ElevationPool,SGIItemOsg>();
+    ElevationPoolAccess * object = static_cast<ElevationPoolAccess*>(getObject<osgEarth::ElevationPool, SGIItemOsg>());
     bool ret = false;
     switch (itemType())
     {
@@ -1744,8 +1749,97 @@ bool writePrettyHTMLImpl<osgEarth::ElevationPool>::process(std::basic_ostream<ch
             os << "<tr><td>tileSize</td><td>" << object->getTileSize() << "</td></tr>" << std::endl;
             os << "<tr><td>maxEntries</td><td>" << object->getMaxEntries() << "</td></tr>" << std::endl;
 
+            const osgEarth::ElevationLayerVector & layers = object->getElevationLayers();
+            os << "<tr><td>elevationLayers</td><td><ol>";
+            for(osgEarth::ElevationLayerVector::const_iterator it = layers.begin(); it != layers.end(); it++)
+            {
+                const osgEarth::Layer * layer = *it;
+                os << "<li>" << layer->getName() << "&lt;&gt;" << getObjectNameAndType(layer) << "</li>" << std::endl;
+            }
+            os << "</ol></td></tr>" << std::endl;
+
             if (_table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeElevationLayers:
+        {
+            os << "<ol>";
+            const osgEarth::ElevationLayerVector & elevationLayers = object->getElevationLayers();
+            for(osgEarth::ElevationLayerVector::const_iterator it = elevationLayers.begin(); it != elevationLayers.end(); it++)
+            {
+                const osg::ref_ptr<osgEarth::ElevationLayer> & layer = *it;
+                os << "<li>" << layer->getName() << "&lt;&gt;" << getObjectNameAndType(layer) << "</li>" << std::endl;
+            }
+            os << "</ol>";
+            ret = true;
+        }
+        break;
+    case SGIItemTypeTileCache:
+        {
+            os << "<ol>";
+            ElevationPoolAccess::Tiles tiles;
+            object->getTiles(tiles);
+            for(ElevationPoolAccess::Tiles::const_iterator it = tiles.begin(); it != tiles.end(); it++)
+            {
+                const osgEarth::TileKey & key = it->first;
+                const osg::observer_ptr<osgEarth::ElevationPool::Tile> & tile = it->second;
+                os << "<li>" << key.str() << "&lt;&gt;" << getObjectNameAndType(tile.get()) << "</li>" << std::endl;
+            }
+            os << "</ol>";
+            ret = true;
+        }
+        break;
+    case SGIItemTypeTileCacheLRU:
+        {
+            os << "<ol>";
+            ElevationPoolAccess::MRU mru;
+            object->getMRU(mru);
+            for(ElevationPoolAccess::MRU::const_iterator it = mru.begin(); it != mru.end(); it++)
+            {
+                const osg::ref_ptr<osgEarth::ElevationPool::Tile> & tile = *it;
+                os << "<li>" << tile->_key.str() << "&lt;&gt;" << getObjectNameAndType(tile.get()) << "</li>" << std::endl;
+            }
+            os << "</ol>";
+            ret = true;
+        }
+        break;
+
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::ElevationPool::Tile>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::ElevationPool::Tile * object = getObject<osgEarth::ElevationPool::Tile,SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>key</td><td>" << object->_key.str() << "</td></tr>" << std::endl;
+            os << "<tr><td>bounds</td><td>" << object->_bounds << "</td></tr>" << std::endl;
+            //os << "<tr><td>hf</td><td>" << object->_hf << "</td></tr>" << std::endl;
+            os << "<tr><td>status</td><td>" << object->_status << "</td></tr>" << std::endl;
+            os << "<tr><td>loadTime</td><td>" << object->_loadTime << "</td></tr>" << std::endl;
+
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeGeoHeightfield:
+        {
             ret = true;
         }
         break;
@@ -1787,7 +1881,7 @@ bool writePrettyHTMLImpl<osgEarth::ElevationEnvelope>::process(std::basic_ostrea
 
 bool writePrettyHTMLImpl<osgEarth::PolyShader>::process(std::basic_ostream<char>& os)
 {
-    osgEarth::PolyShader * object = getObject<osgEarth::PolyShader,SGIItemOsg>();
+    PolyShaderAccessor * object = static_cast<PolyShaderAccessor*>(getObject<osgEarth::PolyShader, SGIItemOsg>());
     bool ret = false;
     switch (itemType())
     {
@@ -1801,11 +1895,18 @@ bool writePrettyHTMLImpl<osgEarth::PolyShader>::process(std::basic_ostream<char>
             os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
             os << "<tr><td>location</td><td>" << object->getLocation() << "</td></tr>" << std::endl;
             os << "<tr><td>source</td><td><pre>" << helpers::html_encode(object->getShaderSource()) << "</pre></td></tr>" << std::endl;
+            os << "<tr><td>nominalShader</td><td>" << getObjectNameAndType(object->getNominalShader()) << "</td></tr>" << std::endl;
+            os << "<tr><td>geometryShader</td><td>" << getObjectNameAndType(object->getGeometryShader()) << "</td></tr>" << std::endl;
+            os << "<tr><td>tessellationShader</td><td>" << getObjectNameAndType(object->getTessellationShader()) << "</td></tr>" << std::endl;
 
             if (_table)
                 os << "</table>" << std::endl;
             ret = true;
         }
+        break;
+    case SGIItemTypeShaderSource:
+        os << "<pre>" << helpers::html_encode(object->getShaderSource()) << "</pre>" << std::endl;
+        ret = true;
         break;
     default:
         ret = callNextHandler(os);
@@ -2283,7 +2384,13 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     return os;
 }
 
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::Function & f)
+{
+    os << f._name << " accept=" << getObjectNameAndType(f._accept.get());
+    return os;
+}
+#elif OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::Function & f)
 {
     os << f._name << " min=" << f._minRange << " max=" << f._maxRange << " accept=" << getObjectNameAndType(f._accept.get());
@@ -2339,6 +2446,7 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
             }
             os << "</td></tr>" << std::endl;
 
+#if 0
             osgEarth::VirtualProgram::ProgramMap programCache;
             object->getProgramCache(programCache);
             os << "<tr><td>programCache</td><td>";
@@ -2371,6 +2479,7 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
                 os << "</ul>";
             }
             os << "</td></tr>" << std::endl;
+#endif
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
             osgEarth::VirtualProgram::ExtensionsSet extensions;
@@ -2445,10 +2554,12 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
                         const osgEarth::ShaderComp::Function & function = it->second;
                         os << "<li>order " << order << " function " << function._name;
+#if OSGEARTH_VERSION_LESS_THAN(2,10,0)
                         if (function._minRange.isSet())
                             os << " min=" << function._minRange.value();
                         if (function._maxRange.isSet())
                             os << " max=" << function._maxRange.value();
+#endif
                         if (function._accept.valid())
                             os << " accept=" << getObjectNameAndType(function._accept.get());
                         os << "</li>";
@@ -2576,6 +2687,7 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
         break;
     case SGIItemTypeVirtualProgramCache:
         {
+#if 0
             osgEarth::VirtualProgram::ProgramMap programCache;
             object->getProgramCache(programCache);
             if (programCache.empty())
@@ -2606,6 +2718,7 @@ bool writePrettyHTMLImpl<osgEarth::VirtualProgram>::process(std::basic_ostream<c
                 }
                 os << "</ul>";
             }
+#endif
             ret = true;
         }
         break;

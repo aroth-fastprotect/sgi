@@ -6,6 +6,7 @@
 namespace osgEarth {
     class TileSource;
     class DateTime;
+    class URI;
 }
 
 class QLineEdit;

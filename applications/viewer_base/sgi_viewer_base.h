@@ -1,7 +1,14 @@
+#pragma once
+
 #include <osgGA/GUIEventAdapter>
 #include <osgGA/GUIActionAdapter>
 #include <osgGA/GUIEventHandler>
 #include <sstream>
+
+#define GL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
+#define GL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+#define GL_CONTEXT_DEBUG_BIT_ARB               0x0001
+#define GL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB  0x0002
 
 namespace osg {
     class ImageStream;
@@ -108,14 +115,37 @@ protected:
 };
 
 
+class sgi_CommonHelper
+{
+public:
+    sgi_CommonHelper(osg::ArgumentParser& args);
+    sgi_CommonHelper(const sgi_CommonHelper & rhs);
+    ~sgi_CommonHelper();
+
+
+    enum GLContextProfile {
+        GLContextProfileNone,
+        GLContextProfileCore,
+        GLContextProfileCompatibility,
+    };
+
+public:
+    GLContextProfile glprofile;
+    std::string glversion;
+    bool addSceneGraphInspector;
+    bool showSceneGraphInspector;
+
+};
+
 /**
 * Parses a set of built-in example arguments. Any Controls created by parsing
 * command-line parameters will appear in the lower-left corner of the display.
 */
-class sgi_MapNodeHelper
+class sgi_MapNodeHelper : public sgi_CommonHelper
 {
 public:
-    sgi_MapNodeHelper();
+    sgi_MapNodeHelper(osg::ArgumentParser& args);
+    sgi_MapNodeHelper(const sgi_MapNodeHelper & rhs);
     ~sgi_MapNodeHelper();
 
     /**

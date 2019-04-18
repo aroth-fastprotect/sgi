@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ShaderFunctionDetails</class>
+ <widget class="QDialog" name="ShaderFunctionDetails">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>327</width>
+    <height>119</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QFormLayout" name="formLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Function</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="functionName">
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Location</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QComboBox" name="location"/>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Order</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QDoubleSpinBox" name="orderSpinBox">
+     <property name="decimals">
+      <number>1</number>
+     </property>
+     <property name="singleStep">
+      <double>0.100000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0" colspan="2">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Close|QDialogButtonBox::Reset</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>location</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>ShaderFunctionDetails</receiver>
+   <slot>locationChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>186</x>
+     <y>44</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>163</x>
+     <y>59</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>orderSpinBox</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>ShaderFunctionDetails</receiver>
+   <slot>orderChanged(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>186</x>
+     <y>70</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>163</x>
+     <y>59</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>orderChanged(double)</slot>
+  <slot>locationChanged(int)</slot>
+ </slots>
+</ui>

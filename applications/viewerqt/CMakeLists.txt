@@ -2,10 +2,12 @@ include_directories(../viewer_base)
 
 SET( TARGET_SRC
     osgviewerQt.cpp
+    GraphicsWindowQt5.cpp
 )
 
 SET(TARGET_MOC_H
     osgviewerQt.h
+    GraphicsWindowQt5.hxx
 )
 SET(TARGET_H
 )

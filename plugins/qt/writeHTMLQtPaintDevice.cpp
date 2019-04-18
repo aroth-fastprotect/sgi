@@ -109,6 +109,7 @@ bool writePrettyHTMLImpl<QIcon>::process(std::basic_ostream<char>& os)
             os << "<tr><td>typename</td><td>" << helpers::getRTTITypename_html(object) << "</td></tr>" << std::endl;
             os << "<tr><td>name</td><td>" << object->name() << "</td></tr>" << std::endl;
             os << "<tr><td>isNull</td><td>" << (object->isNull()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>isMask</td><td>" << (object->isMask() ? "true" : "false") << "</td></tr>" << std::endl;
             os << "<tr><td>isDetached</td><td>" << (object->isDetached()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>cacheKey</td><td>" << object->cacheKey() << "</td></tr>" << std::endl;
 
@@ -119,15 +120,33 @@ bool writePrettyHTMLImpl<QIcon>::process(std::basic_ostream<char>& os)
             }
             os << "</ul></td></tr>" << std::endl;
 
+            if(_table)
+                os << "</table>" << std::endl;
+        }
+        break;
+    case SGIItemTypeTheme:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
             os << "<tr><td>themeSearchPaths</td><td><ul>";
-            for(const QString & s : object->themeSearchPaths())
+            for (const QString & s : object->themeSearchPaths())
             {
                 os << "<li>" << s << "</li>";
             }
             os << "</ul></td></tr>" << std::endl;
             os << "<tr><td>themeName</td><td>" << object->themeName() << "</td></tr>" << std::endl;
 
-            if(_table)
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+            os << "<tr><td>fallbackSearchPaths</td><td><ul>";
+            for (const QString & s : object->fallbackSearchPaths())
+            {
+                os << "<li>" << s << "</li>";
+            }
+            os << "</ul></td></tr>" << std::endl;
+#endif
+
+            if (_table)
                 os << "</table>" << std::endl;
         }
         break;

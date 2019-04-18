@@ -7,10 +7,15 @@
 #endif
 #define MAPNODE_ACCESS_HACK
 #define ELEVATIONQUERY_ACCESS_HACK
+#define VIRTUALPROGRAMM_ACCESS_HACK
 #include "osgearth_accessor.h"
 
 #include <osgEarth/MapNodeOptions>
 #include <osgEarth/Extension>
+
+#define PREALLOCATE_APPLY_VARS
+
+#define USE_PROGRAM_REPO
 
 namespace sgi {
 
@@ -165,6 +170,20 @@ const osgEarth::Map* ElevationQueryAccess::getMap() const
 }
 #endif
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+void ElevationPoolAccess::getTiles(Tiles & tiles)
+{
+    osgEarth::Threading::ScopedMutexLock lock(_tilesMutex);
+    reinterpret_cast<ElevationPool::Tiles&>(tiles) = _tiles;
+}
+
+void ElevationPoolAccess::getMRU(MRU & mru)
+{
+    osgEarth::Threading::ScopedMutexLock lock(_tilesMutex);
+    reinterpret_cast<ElevationPool::MRU&>(mru) = _mru;
+}
+#endif
+
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 void LayerAccessor::getLayerCallbacks(LayerCallbackList & callbacks) const
@@ -179,11 +198,22 @@ void RTTPickerAccess::getPickContexts(PickContexts & contexts) const
     contexts = _pickContexts;
 }
 
+void PolyShaderAccessor::resetShaders()
+{
+    _nominalShader = nullptr;
+    _geomShader = nullptr;
+    _tessevalShader = nullptr;
+    _dirty = true;
+}
+
+
+#if 0
 void VirtualProgramAccessor::getProgramCache(ProgramMap & programCache)
 {
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_programCacheMutex);
     programCache = _programCache;
 }
+#endif
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 void VirtualProgramAccessor::getGLSLExtensions(ExtensionsSet & extensions)
@@ -193,6 +223,31 @@ void VirtualProgramAccessor::getGLSLExtensions(ExtensionsSet & extensions)
     _dataModelMutex.unlock();
 }
 #endif
+
+class ProgramRepoAccessor : public osgEarth::ProgramRepo
+{
+public:
+    void remove(const osgEarth::ProgramKey & key)
+    {
+        osgEarth::ScopedMutexLock lock(_m);
+        ProgramMap::iterator i = _db.find(key);
+        if (i != _db.end())
+        {
+            _db.erase(i);
+        }
+    }
+};
+
+void VirtualProgramAccessor::dirty(unsigned contextID)
+{
+#ifdef USE_PROGRAM_REPO
+    ProgramRepoAccessor & programRepo = static_cast<ProgramRepoAccessor &>(osgEarth::Registry::programRepo());
+
+    // Access the resuable shader map for this context. Bypasses reallocation overhead.
+    ApplyVars& local = _apply[contextID];
+    programRepo.remove(local.programKey);
+#endif
+}
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 osgEarth::CacheSettings * LayerAccessor::getCacheSettings() const 

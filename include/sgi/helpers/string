@@ -131,7 +131,7 @@ inline void str_append(std::string & str, const INT_TYPE & n, const char seperat
     str = buf.str();
 }
 
-SGI_IMPL_EXPORT void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size);
+SGI_IMPL_EXPORT void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size, size_t maximumSize = 256 * 1024);
 SGI_IMPL_EXPORT std::string joinStrings(const std::vector<std::string>& input, char delim);
 SGI_IMPL_EXPORT std::vector<std::string> & split(const std::string &s, char delim, std::vector<std::string> &elems);
 SGI_IMPL_EXPORT std::vector<std::string> split(const std::string &s, char delim);
@@ -158,6 +158,7 @@ SGI_IMPL_EXPORT std::string trim( const std::string& in );
     */
 SGI_IMPL_EXPORT void trim2( std::string& str );
 
+SGI_IMPL_EXPORT bool string_to_bool(const std::string & s, bool * ok=nullptr, bool defaultValue=false);
 
 /**
     * Assembles and returns an inline string using a stream-like << operator.

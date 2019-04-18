@@ -65,6 +65,7 @@
 #include <osg/Shape>
 #include <osg/ClusterCullingCallback>
 #include <osg/ImageSequence>
+#include <osg/VertexArrayState>
 
 // osgDB headers
 #include <osgDB/Registry>
@@ -96,6 +97,7 @@
 #if SGI_USE_OSGQT
 // osgQt headers
 #include <osgQt/GraphicsWindowQt>
+#include <osgQt/GraphicsWindowQt5>
 #include <osgQt/QObjectWrapper>
 #endif
 
@@ -117,8 +119,8 @@
 #include <osgAnimation/AnimationManagerBase>
 #include <osgAnimation/AnimationUpdateCallback>
 
-#include "DrawableHelper.h"
 #include <sgi/helpers/osg>
+#include <sgi/helpers/osg_drawable_helpers>
 
 #include <sgi/ReferencedPicker>
 
@@ -291,6 +293,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osg::GLBufferObject,
     osg::GLBufferObjectSet,
     osg::Stats,
+    osg::VertexArrayState,
     osg::Texture::TextureObject,
 #if OSG_MIN_VERSION_REQUIRED(3,5,0)
     osg::GraphicsObjectManager,
@@ -340,6 +343,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Object)
     osg::RefMatrixd, osg::RefMatrixf, osg::Callback,
     osg::Drawable::DrawCallback,
     osg::ValueObject,
+    osg::Program::ProgramBinary,
     osgAnimation::Animation,
     osgAnimation::AnimationUpdateCallbackBase,
     osgDB::Options, osgDB::ReaderWriter, osgDB::DatabaseRevision, osgDB::DatabaseRevisions, osgDB::FileList,
@@ -435,13 +439,18 @@ SGI_OBJECT_INFO_BEGIN(osg::BufferObject)
     osg::UniformBufferObject, osg::AtomicCounterBufferObject
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osg::Drawable)
-    osg::Geometry, osgText::TextBase, osg::ShapeDrawable, RenderInfoDrawable
+    osg::Geometry, osgText::TextBase, osg::ShapeDrawable, osg_helpers::RenderInfoDrawable
 SGI_OBJECT_INFO_END()
+#if OSG_VERSION_LESS_THAN(3,5,0)
 SGI_OBJECT_INFO_BEGIN(osg::Geometry)
-    RenderInfoGeometry
+    osg_helpers::RenderInfoGeometry
 SGI_OBJECT_INFO_END()
+#endif
 SGI_OBJECT_INFO_BEGIN(osg::GraphicsContext)
     osgViewer::GraphicsWindow
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osg::VertexArrayState)
+    osg_helpers::RenderInfoData::VertexArrayStateSnapshot
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::Node)
@@ -519,7 +528,7 @@ SGI_OBJECT_INFO_BEGIN(osg::NodeCallback)
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::Drawable::DrawCallback)
-    RenderInfoDrawCallback
+    osg_helpers::RenderInfoDrawCallback
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgAnimation::AnimationUpdateCallback<osg::NodeCallback>)
@@ -572,11 +581,12 @@ SGI_OBJECT_INFO_END()
 
 #ifdef SGI_USE_OSGQT
 SGI_OBJECT_INFO_BEGIN(osgViewer::GraphicsWindow)
-    osgQt::GraphicsWindowQt
+    osgQt::GraphicsWindowQt,
+    osgQt::GraphicsWindowQt5
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(QObject)
-    QWidget
+    QWidget, QWindow
 SGI_OBJECT_INFO_END()
 
 #ifdef OSGQT_USE_QOPENGLWIDGET
@@ -594,6 +604,9 @@ SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(QGLWidget)
     osgQt::GLWidget
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(QWindow)
+    osgQt::GLWindow
 SGI_OBJECT_INFO_END()
 #endif
 #endif
@@ -625,6 +638,7 @@ bool objectInfo_hasCallback(SGIPluginHostInterface * hostInterface, bool & resul
 #ifdef SGI_USE_OSGQT
 GENERATE_IMPL_NO_ACCEPT(QObject);
 GENERATE_IMPL_NO_ACCEPT(QWidget);
+GENERATE_IMPL_NO_ACCEPT(QWindow);
 #ifdef OSGQT_USE_QOPENGLWIDGET
 GENERATE_IMPL_NO_ACCEPT(QOpenGLWidget);
 #else
@@ -752,6 +766,14 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeCullingInfoBefore);
         SGIITEMTYPE_NAME(SGIItemTypeCullingInfoAfter);
         SGIITEMTYPE_NAME(SGIItemTypeBuildInfo);
+        SGIITEMTYPE_NAME(SGIItemTypeStateModeMap);
+        SGIITEMTYPE_NAME(SGIItemTypeStateAttributeMap);
+        SGIITEMTYPE_NAME(SGIItemTypeStateUniformMap);
+        SGIITEMTYPE_NAME(SGIItemTypeStateDefineMap);
+        SGIITEMTYPE_NAME(SGIItemTypeStateTextureModeMapList);
+        SGIITEMTYPE_NAME(SGIItemTypeStateTextureAttributeMapList);
+        SGIITEMTYPE_NAME(SGIItemTypeStatisticsStateSets);
+        SGIITEMTYPE_NAME(SGIItemTypeStatisticsStateAttributes);
     }
     SGIPlugin_osg_Implementation(const SGIPlugin_osg_Implementation & rhs)
         : osg_plugin::SGIPluginImpl(rhs)

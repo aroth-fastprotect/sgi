@@ -5,11 +5,19 @@
 #endif
 #include <osgEarth/MapNode>
 #include <osgEarth/Map>
+#include <osgEarth/Version>
 #ifdef MAPNODE_ACCESS_HACK
 #undef private
 #endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 #include <osgEarth/MapFrame>
+#endif
+#ifdef VIRTUALPROGRAMM_ACCESS_HACK
+#define private protected
+#endif
+#include <osgEarth/VirtualProgram>
+#ifdef VIRTUALPROGRAMM_ACCESS_HACK
+#undef private
 #endif
 
 #include <osgEarthUtil/Controls>
@@ -18,7 +26,6 @@
 #include <osgEarthUtil/RTTPicker>
 #include <osgEarth/TerrainEngineNode>
 #include <osgEarth/Registry>
-#include <osgEarth/VirtualProgram>
 #ifdef ELEVATIONQUERY_ACCESS_HACK
 #define private protected
 #endif
@@ -216,13 +223,19 @@ namespace osgearth_plugin {
         double minimumRadius() const { return _rp; }
     };
 
+    class PolyShaderAccessor : public osgEarth::PolyShader
+    {
+    public:
+        osg::Shader* getGeometryShader() const { return _geomShader.get(); }
+        osg::Shader* getTessellationShader() const { return _tessevalShader.get(); }
+        void resetShaders();
+    };
+
     class VirtualProgramAccessor : public osgEarth::VirtualProgram
     {
     public:
         typedef osgEarth::VirtualProgram::ShaderEntry ShaderEntry;
-        typedef osgEarth::VirtualProgram::ProgramMap ProgramMap;
 
-        void getProgramCache(ProgramMap & programCache);
 #if OSGEARTH_VERSION_LESS_OR_EQUAL(2,7,0)
         void getShaderMap( ShaderMap& out ) const { osgEarth::VirtualProgram::getShaderMap(out); }
         void getFunctions( osgEarth::ShaderComp::FunctionLocationMap& out ) const { osgEarth::VirtualProgram::getFunctions(out); }
@@ -238,6 +251,8 @@ namespace osgearth_plugin {
         bool                         getShaderLogging() const { return _logShaders; }
         const std::string &          getShaderLogFile() const { return _logPath; }
 
+        void                         dirty(unsigned contextID);
+
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
         void                         getGLSLExtensions(ExtensionsSet & extensions);
 #endif
@@ -252,9 +267,6 @@ namespace osgearth_plugin {
 #if OSGEARTH_VERSION_LESS_THAN(2,7,0)
                     osgEarth::Threading::ScopedWriteLock exclusive(_programCacheMutex);
                     _programCache.clear();
-#else
-					osgEarth::Threading::ScopedMutexLock exclusive(_programCacheMutex);
-					_programCache.clear();
 #endif
                 }
 
@@ -320,6 +332,18 @@ namespace osgearth_plugin {
         const osgEarth::Map* getMap() const;
 #endif
     };
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+    class ElevationPoolAccess : public osgEarth::ElevationPool
+    {
+    public:
+        typedef std::list<osg::ref_ptr<Tile> > MRU;
+        typedef std::map<osgEarth::TileKey, osg::observer_ptr<Tile> > Tiles;
+
+        void getTiles(Tiles & tiles);
+        void getMRU(MRU & mru);
+    };
+#endif
 
     class TileBlacklistAccess : public osgEarth::TileBlacklist
     {

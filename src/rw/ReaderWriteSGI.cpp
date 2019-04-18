@@ -1,5 +1,5 @@
 // kate: syntax C++;
-// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
+// SGI - Copyright (C) 2012-2019 FAST Protect, Andreas Roth
 
 #include <osg/Notify>
 #include <osgDB/FileNameUtils>
@@ -8,6 +8,8 @@
 #include <osgUtil/CullVisitor>
 #include <osgViewer/View>
 #include <osg/ValueObject>
+#include <osg/Material>
+#include <osg/io_utils>
 
 #if defined(_WIN32) && defined(OSG_GL3_AVAILABLE)
 #define __GL_H__
@@ -20,6 +22,7 @@
 
 #ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
+#include <osgQt/GraphicsWindowQt5>
 #endif
 #if defined(_WIN32)
 #include <osgViewer/api/win32/GraphicsWindowWin32>
@@ -54,6 +57,7 @@
 #include <sgi/plugins/SGIHostItemInternal.h>
 #include <sgi/SGIItemInternal>
 #include <sgi/helpers/osg_helper_nodes>
+#include <sgi/helpers/string>
 
 #if defined(_DEBUG)
 #if defined(_MSC_VER)
@@ -83,6 +87,7 @@ namespace {
 #elif defined(__linux__)
     static void x11_app_timer_signal(int sig, siginfo_t*, void*)
     {
+        Q_UNUSED(sig);
         //std::cout << "x11_app_timer_signal" << std::endl;
         QCoreApplication::instance()->processEvents();
     }
@@ -149,15 +154,6 @@ namespace {
 
 struct SGIOptions
 {
-    static bool string_to_bool(const std::string & s, bool defaultValue=false)
-    {
-        if(s.compare("1") == 0 || s.compare("on") == 0 || s.compare("true") == 0)
-            return true;
-        else if(s.compare("0") == 0 || s.compare("off") == 0 || s.compare("false") == 0)
-            return false;
-        else
-            return defaultValue;
-    }
     template<typename T>
     static T * getObjectOption(const osgDB::Options * options, const std::string & key, T * defaultValue=nullptr, bool * gotOption=nullptr)
     {
@@ -245,7 +241,7 @@ bool SGIOptions::getOption<bool>(const osgDB::Options * options, const std::stri
     }
     if (gotOption)
         *gotOption = true;
-    return string_to_bool(val, defaultValue);
+    return helpers::string_to_bool(val, nullptr, defaultValue);
 }
 
 SGIOptions::SGIOptions(const std::string & filename_, const osgDB::Options * options)
@@ -552,6 +548,8 @@ public:
 #ifdef SGI_USE_OSGQT
                 if(osgQt::GraphicsWindowQt * gwqt = dynamic_cast<osgQt::GraphicsWindowQt*>(ctx))
                     _parent = gwqt->getGLWidget();
+                else if (osgQt::GraphicsWindowQt5 * gwqt5 = dynamic_cast<osgQt::GraphicsWindowQt5*>(ctx))
+                    _parent = gwqt5->getOrCreateGLWidget();
 #else
                 if(0)
                 {
@@ -782,28 +780,132 @@ private:
 };
 } // namespace sgi
 
+namespace {
+    typedef std::map<std::string, std::string> stringmap;
+    typedef std::pair<std::string, std::string> stringpair;
+    typedef std::map<std::string, stringpair> stringpairmap;
+
+    static stringpairmap propertiesAliases = {
+        std::make_pair("red", std::make_pair("color", "1 0 0 1")),
+        std::make_pair("green", std::make_pair("color", "0 1 0 1")),
+        std::make_pair("blue", std::make_pair("color", "0 0 1 1")),
+        std::make_pair("black", std::make_pair("color", "0 0 0 1")),
+        std::make_pair("white", std::make_pair("color", "1 1 1 1")),
+        std::make_pair("gray", std::make_pair("color", "0.75 0.75 0.75 1")),
+        std::make_pair("mat", std::make_pair("material", "1")),
+        std::make_pair("logo", std::make_pair("logo", "1")),
+    };
+    template<typename T>
+    static bool getPropertyAs(const stringmap & props, const std::string & key, T & v)
+    {
+        auto it = props.find(key);
+        bool ret = (it != props.end());
+        if (ret)
+        {
+            std::stringstream ss(it->second);
+            ss >> v;
+            ret = ss.good() || ss.eof();
+        }
+        return ret;
+    }
+    template<>
+    bool getPropertyAs<bool>(const stringmap & props, const std::string & key, bool & v)
+    {
+        auto it = props.find(key);
+        bool ret = (it != props.end());
+        if (ret)
+            v = sgi::helpers::string_to_bool(it->second, &ret, false);
+        return ret;
+    }
+}
+
 class SGIInstallNode : public osg::Group
 {
 private:
+    static bool parseProperty(const std::string & s, stringpair & out)
+    {
+        bool ret = false;
+        auto it = propertiesAliases.find(s);
+        if (it != propertiesAliases.end())
+        {
+            out.first = it->second.first;
+            out.second = it->second.second;
+            ret = true;
+        }
+        return ret;
+    }
+    static osg::Node * buildNodeImpl(const std::string & filename, stringmap & props)
+    {
+        osg::Node * ret = nullptr;
+        std::string ext = osgDB::getFileExtension(filename);
+        if (ext.empty())
+        {
+            if(!filename.empty())
+            {
+                std::cout << "buildNodeImpl " << filename << std::endl;
+
+                osg::Vec3 size;
+                osg::Vec4 color;
+                sgi::osg_helpers::GeometryParams params;
+                if (getPropertyAs(props, "color", color))
+                    params.setCustomColor(color);
+                if (!getPropertyAs(props, "size", size))
+                    size.set(10.0f, 10.0f, 10.0f);
+                if (!getPropertyAs(props, "material", params.useMaterial))
+                    params.useMaterial = false;
+                if (!getPropertyAs(props, "logo", params.useLogo))
+                    params.useLogo = false;
+
+                if (filename.compare("box") == 0 || filename.compare("cube") == 0)
+                {
+                    ret = sgi::osg_helpers::createBoxGeometry(size, params);
+                }
+                else if (filename.compare("quad") == 0 || filename.compare("rect") == 0)
+                {
+                    ret = sgi::osg_helpers::createQuadGeometry(10.0f, 10.0f, params);
+                }
+                else if (filename.compare("tri") == 0 || filename.compare("triangle") == 0)
+                {
+                    ret = sgi::osg_helpers::createTriangleGeometry(10.0f, params);
+                }
+                else if (filename.compare("logo") == 0)
+                {
+                    params.useLogo = true;
+                    ret = sgi::osg_helpers::createBoxGeometry(size, params);
+                }
+            }
+        }
+        else
+        {
+            std::string::size_type i = ext.find('=');
+            stringpair v;
+            if (i != std::string::npos)
+            {
+                v.first = ext.substr(0, i);
+                v.second = ext.substr(i + 1);
+            }
+            else
+            {
+                if (!parseProperty(ext, v))
+                {
+                    v.first = ext;
+                }
+            }
+            std::cout << "buildNodeImpl ext=" << ext << " " << v.first << "->" << v.second << std::endl;
+            props[v.first] = v.second;
+            std::string name = osgDB::getNameLessExtension(filename);
+            ret = buildNodeImpl(name, props);
+        }
+        return ret;
+
+    }
+
     static osg::Node * buildNode(const std::string & filename)
     {
         if(filename.empty())
             return nullptr;
-        osg::Node * ret = nullptr;
-        std::string name = osgDB::getStrippedName(filename);
-        if(name.compare("box") == 0)
-        {
-            ret = sgi::osg_helpers::createBoxGeometry(10.0f, 10.0f, 10.0f);
-        }
-        else if(name.compare("quad") == 0)
-        {
-            ret = sgi::osg_helpers::createQuadGeometry(10.0f, 10.0f);
-        }
-        else if(name.compare("tri") == 0 || name.compare("triangle") == 0)
-        {
-            ret = sgi::osg_helpers::createTriangleGeometry(10.0f);
-        }
-        return ret;
+        stringmap props;
+        return buildNodeImpl(filename, props);
     }
 public:
     SGIInstallNode(const std::string & filename=std::string(), const osgDB::Options * options=nullptr)
@@ -852,7 +954,7 @@ public:
     osg::Object* clone(const osg::CopyOp& copyop) const override { return new SGIInstallNode (*this,copyop); }
     bool isSameKindAs(const osg::Object* obj) const override { return dynamic_cast<const SGIInstallNode *>(obj)!=nullptr; }
     const char* className() const override { return "SGIInstallNode"; }
-    const char* libraryName() const override { return "osgdb_sgi"; }
+    const char* libraryName() const override { return "osgdb_sgi_loader"; }
     void accept(osg::NodeVisitor& nv) override
     {
         if (nv.validNodeMask(*this))

@@ -357,18 +357,24 @@ osg::NotifySeverity severityFromString(const std::string & input)
 void initializeNotifyLevels(osg::ArgumentParser & arguments)
 {
     std::string osgnotifylevel;
+#ifdef SGI_USE_OSGEARTH
     std::string osgearthnotifylevel;
+#endif
     if (arguments.read("--debug"))
     {
         osgnotifylevel = "debug";
+#ifdef SGI_USE_OSGEARTH
         osgearthnotifylevel = "debug";
+#endif
     }
     else
     {
         if (!arguments.read("--osgdebug", osgnotifylevel))
             osgnotifylevel.clear();
+#ifdef SGI_USE_OSGEARTH
         if (!arguments.read("--earthdebug", osgearthnotifylevel))
             osgearthnotifylevel.clear();
+#endif
     }
     if (!osgnotifylevel.empty())
     {
@@ -376,15 +382,14 @@ void initializeNotifyLevels(osg::ArgumentParser & arguments)
         if (level >= 0)
             osg::setNotifyLevel(level);
     }
-
+#ifdef SGI_USE_OSGEARTH
     if (!osgearthnotifylevel.empty())
     {
         osg::NotifySeverity level = severityFromString(osgearthnotifylevel);
-#ifdef SGI_USE_OSGEARTH
         if (level >= 0)
             osgEarth::setNotifyLevel(level);
-#endif
     }
+#endif
 }
 
 bool KeyboardDumpHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa, osg::Object* obj, osg::NodeVisitor* nv)
@@ -676,8 +681,39 @@ namespace {
 
 #endif
 
-sgi_MapNodeHelper::sgi_MapNodeHelper()
-    : m_errorMessages()
+sgi_CommonHelper::sgi_CommonHelper(osg::ArgumentParser& args)
+    : glprofile(GLContextProfileNone)
+    , glversion()
+    , addSceneGraphInspector(true)
+    , showSceneGraphInspector(true)
+{
+    args.read("--glver", glversion);
+    if (args.read("--core"))
+        glprofile = GLContextProfileCore;
+    if (args.read("--compat"))
+        glprofile = GLContextProfileCompatibility;
+
+    if (args.read("--nosgi"))
+        addSceneGraphInspector = false;
+    if (args.read("--hidesgi"))
+        showSceneGraphInspector = false;
+}
+
+sgi_CommonHelper::sgi_CommonHelper(const sgi_CommonHelper & rhs)
+    : glprofile(rhs.glprofile)
+    , glversion(rhs.glversion)
+    , addSceneGraphInspector(rhs.addSceneGraphInspector)
+    , showSceneGraphInspector(rhs.showSceneGraphInspector)
+{
+}
+
+sgi_CommonHelper::~sgi_CommonHelper()
+{
+}
+
+sgi_MapNodeHelper::sgi_MapNodeHelper(osg::ArgumentParser& args)
+    : sgi_CommonHelper(args)
+    , m_errorMessages()
     , m_files()
 #ifdef SGI_USE_OSGEARTH
     , _mapNodeHelper(new osgEarth::Util::MapNodeHelper)
@@ -698,6 +734,11 @@ sgi_MapNodeHelper::sgi_MapNodeHelper()
     libdirs.push_back(getOSGDBModuleDirectory());
     registry->setLibraryFilePathList(libdirs);
 #endif
+}
+
+sgi_MapNodeHelper::sgi_MapNodeHelper(const sgi_MapNodeHelper & rhs)
+    : sgi_CommonHelper(rhs)
+{
 }
 
 sgi_MapNodeHelper::~sgi_MapNodeHelper()
@@ -809,6 +850,18 @@ std::string sgi_MapNodeHelper::errorMessages() const
 {
     return m_errorMessages.str();
 }
+#ifdef SGI_USE_OSGEARTH
+namespace {
+    static const char * vert_defaultMaterial =
+        "#version " GLSL_VERSION_STR "\n"
+        "vec4 vp_Color; \n"
+        "void defaultMaterial(inout vec4 vert) { \n"
+        "    vp_Color = vec4(1,1,1,1); \n"
+        "}\n"
+        ;
+}
+#endif // SGI_USE_OSGEARTH
+
 
 osg::Group * sgi_MapNodeHelper::setupLight(osg::Group * root)
 {
@@ -840,6 +893,7 @@ osg::Group * sgi_MapNodeHelper::setupLight(osg::Group * root)
         // remove GL_LIGHT0 from the stateSet to avoid GL errors about invalid enum
         sunLS->getStateSet()->removeMode(GL_LIGHT0 + lightNum);
 #endif
+        sunLS->getStateSet()->setDefine("OE_LIGHTING");
 
         osgEarth::Util::ShadowCaster* caster = osgEarth::findTopMostNodeOfType<osgEarth::Util::ShadowCaster>(root);
         if (caster)
@@ -853,6 +907,7 @@ osg::Group * sgi_MapNodeHelper::setupLight(osg::Group * root)
         // Add phong lighting.
         osgEarth::PhongLightingEffect * phong = new osgEarth::PhongLightingEffect();
         phong->attach(groupPhong->getOrCreateStateSet());
+        groupPhong->setUserData(phong);
 
         // Generate the necessary uniforms for the shaders.
         osgEarth::GenerateGL3LightingUniforms gen;
@@ -864,7 +919,8 @@ osg::Group * sgi_MapNodeHelper::setupLight(osg::Group * root)
         osg::Material* defaultMaterial = new osgEarth::MaterialGL3();
         defaultMaterial->setDiffuse(defaultMaterial->FRONT, osg::Vec4(1, 1, 1, 1));
         defaultMaterial->setAmbient(defaultMaterial->FRONT, osg::Vec4(1, 1, 1, 1));
-        groupDefaultMaterial->getOrCreateStateSet()->setAttributeAndModes(defaultMaterial, 1);
+        osg::StateSet * groupDefaultMaterialStateSet = groupDefaultMaterial->getOrCreateStateSet();
+        groupDefaultMaterialStateSet->setAttributeAndModes(defaultMaterial, 1);
         osgEarth::MaterialCallback().operator()(defaultMaterial, nullptr);
 
         lights->addChild(groupDefaultMaterial);
@@ -872,8 +928,8 @@ osg::Group * sgi_MapNodeHelper::setupLight(osg::Group * root)
         sunLS->addChild(groupPhong);
         groupPhong->addChild(root);
 
-        // DO NOT run the shader generator because this would cause to model to go dark (again)!
-        //osgEarth::Registry::shaderGenerator().run(root);
+        osg::ref_ptr<osgEarth::StateSetCache> cache = new osgEarth::StateSetCache();
+        osgEarth::Registry::shaderGenerator().run(root, cache.get());
     }
 #endif
     return lights;
@@ -887,6 +943,24 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
 #endif
 )
 {
+    if (args.read("--keys"))
+        _addKeyDumper = true;
+    if (args.read("--mouse"))
+        _addMouseDumper = true;
+    if (args.read("--track-mouse"))
+        _movieTrackMouse = true;
+
+#ifdef SGI_USE_OSGEARTH
+    if (args.read("--no-oe-lighting"))
+        _useOELighting = false;
+#endif
+
+    if (!args.read("--viewpoint", _viewpointNum))
+    {
+        _viewpointNum = -1;
+        if (!args.read("--viewpoint", _viewpointName))
+            _viewpointName.clear();
+    }
 
     _usageMessage = args.getApplicationUsage();
 
@@ -1095,20 +1169,6 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
         root = setupLight(root);
     }
 
-    if (args.read("--keys"))
-        _addKeyDumper = true;
-    if (args.read("--mouse"))
-        _addMouseDumper = true;
-    if (args.read("--track-mouse"))
-        _movieTrackMouse = true;
-
-    if (!args.read("--viewpoint", _viewpointNum))
-    {
-        _viewpointNum = -1;
-        if (!args.read("--viewpoint", _viewpointName))
-            _viewpointName.clear();
-    }
-
     std::string device;
     while (args.read("--device", device))
     {
@@ -1125,8 +1185,17 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
     if (mapNode.valid())
         _mapNodeHelper->parse(mapNode.get(), args, view, root, userContainer);
 
+    // DO NOT call _mapNodeHelper->configureView because it creates the event handlers and
+    // this results in duplicated event handlers
+#if 0
     // configures the viewer with some stock goodies
     _mapNodeHelper->configureView(view);
+#else
+    // ... but still initialize the camera stateSet
+    // default uniform values:
+    osgEarth::GLUtils::setGlobalDefaults(view->getCamera()->getOrCreateStateSet());
+#endif
+
 #endif // SGI_USE_OSGEARTH
 
     setupEventHandlers(view, root);

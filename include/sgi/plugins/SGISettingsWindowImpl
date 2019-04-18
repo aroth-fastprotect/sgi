@@ -1,0 +1,13 @@
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2019 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include "SGISettingsDialogImpl"
+#include <QMainWindow>
+
+namespace sgi {
+
+typedef SettingsQDialogImplT<QMainWindow, details::IgnoreSetObjectPolicy> SettingsQMainWindowImpl;
+
+} // namespace sgi

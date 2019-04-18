@@ -17,14 +17,15 @@ typedef SGIItemInfoPlainPtr<QObject> SGIItemInfoQt;
 typedef SGIItemInfoPlainPtr<QMetaObject> SGIItemInfoQtMeta;
 typedef SGIItemInfoSharedPtrQt<QPaintDevice, QSharedPointer<QPaintDevice> > SGIItemInfoQtPaintDevice;
 typedef SGIItemInfoSharedPtrQt<QSurface, QSharedPointer<QSurface> > SGIItemInfoQtSurface;
-typedef SGIItemInfoPlainPtr<QIcon> SGIItemInfoQtIcon;
+typedef SGIItemInfoPlainPtr<QIcon, QIcon*, details::copy_object, details::delete_operator, details::copy_object> SGIItemInfoQtIcon;
 
 typedef SGIHostItemImpl<SGIItemInfoQt> SGIHostItemQt;
 typedef SGIHostItemImpl<SGIItemInfoQtMeta> SGIHostItemQtMeta;
 typedef SGIHostItemImpl<SGIItemInfoQtPaintDevice> SGIHostItemQtPaintDevice;
 typedef SGIHostItemImpl<SGIItemInfoQtSurface> SGIHostItemQtSurface;
-//typedef SGIHostItemImpl<QIcon> SGIHostItemQtIcon;
+typedef SGIHostItemImpl<SGIItemInfoQtIcon> SGIHostItemQtIcon;
 
+/*
 class SGIHostItemQtIcon : public SGIHostItemImpl<SGIItemInfoQtIcon>
 {
 public:
@@ -38,5 +39,5 @@ public:
         : SGIHostItemImpl<SGIItemInfoQtIcon>(const_cast<QIcon*>(&object), userData, flags)
         {}
 };
-
+*/
 } // namespace sgi

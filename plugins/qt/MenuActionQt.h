@@ -18,6 +18,7 @@ enum MenuAction {
     MenuActionObjectMethodInvoke,
     MenuActionObjectModifyProperty,
     MenuActionImagePreview,
+    MenuActionIconFromTheme,
 };
 
 ACTION_HANDLER_IMPL_TEMPLATE()

@@ -36,6 +36,8 @@ enum SGIItemType_osg
     SGIItemTypeShaders,
     SGIItemTypeShaderSource,
     SGIItemTypeShaderCodeInjectionMap,
+    SGIItemTypeShaderDefines,
+    SGIItemTypeProgramLog,
     SGIItemTypeArrayData,
     SGIItemTypeEventHandlers,
     SGIItemTypeDevices,
@@ -73,6 +75,7 @@ enum SGIItemType_osg
     SGIItemTypeColorLayers,
     SGIItemTypeCameaBufferAttachments,
 	SGIItemTypeFontTextureList,
+    SGIItemTypeFontCachedStateSets,
     SGIItemTypeStatsFrame,
     SGIItemTypeCachedObjects,
     SGIItemTypeTextureObjects,
@@ -81,6 +84,15 @@ enum SGIItemType_osg
     SGIItemTypeCullingInfoBefore,
     SGIItemTypeCullingInfoAfter,
     SGIItemTypeBuildInfo,
+    SGIItemTypeStateModeMap,
+    SGIItemTypeStateAttributeMap,
+    SGIItemTypeStateUniformMap,
+    SGIItemTypeStateDefineMap,
+    SGIItemTypeStateMatrix,
+    SGIItemTypeStateTextureModeMapList,
+    SGIItemTypeStateTextureAttributeMapList,
+    SGIItemTypeStatisticsStateSets,
+    SGIItemTypeStatisticsStateAttributes,
 };
 
 
@@ -107,6 +119,8 @@ struct SetViewNodeLookAt
 };
 
 typedef details::ReferencedDataT<SetViewNodeLookAt, osg::Referenced> ReferencedSetViewNodeLookAt;
+typedef details::ReferencedDataT<osg::ref_ptr<osg::Referenced>> ReferencedRefPtr;
+
 } // namespace osg_plugin
 
 } // namespace sgi

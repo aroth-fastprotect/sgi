@@ -22,6 +22,7 @@
 
 #ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
+#include <osgQt/GraphicsWindowQt5>
 #endif
 
 #include <QKeyEvent>
@@ -217,6 +218,11 @@ QWidget * getWidgetForGraphicsWindow(osgViewer::GraphicsWindow * gw, QWidget * p
     osgQt::GraphicsWindowQt* gwq = dynamic_cast<osgQt::GraphicsWindowQt*>(gw);
     if (gwq)
         ret = gwq->getGLWidget();
+    else if (osgQt::GraphicsWindowQt5* gwq = dynamic_cast<osgQt::GraphicsWindowQt5*>(gw))
+    {
+        if (gwq)
+            ret = gwq->getOrCreateGLWidget();
+    }
 #endif
     if (!ret)
     {
@@ -227,9 +233,11 @@ QWidget * getWidgetForGraphicsWindow(osgViewer::GraphicsWindow * gw, QWidget * p
             HWND hwnd = gwin32->getHWND();
             QWindow * wnd = QWindow::fromWinId((WId)hwnd);
             wnd->setFlags(Qt::ForeignWindow | Qt::MSWindowsOwnDC);
+            QRect rect = wnd->geometry();
             ret = QWidget::createWindowContainer(wnd, parent);
             ret->setAttribute(Qt::WA_NativeWindow);
             ret->setFocusPolicy(Qt::WheelFocus);
+            ret->setGeometry(rect);
 
             gwin32->setUserValue("sgi_ctx_widget", (double)(qulonglong)(void*)ret);
             QCoreApplication::instance()->installEventFilter(new EventFilterWin32(gwin32, ret));

@@ -59,7 +59,8 @@ void ViewOSG::setCamera(osgViewer::CompositeViewer * viewer, osg::Camera * camer
 
         _view = new osgViewer::View;
         _view->setCamera(_viewCamera.get());
-        _viewer->addView(_view);
+        if(_viewer)
+            _viewer->addView(_view);
 
         updateCamera();
     }
@@ -233,17 +234,22 @@ ExtraViewDialog::ExtraViewDialog(QWidget * parent, SGIPluginHostInterface * host
 
     connect(_timer, &QTimer::timeout, this, &ExtraViewDialog::load);
 
-    osgViewer::CompositeViewer * viewer = nullptr;
+    osgViewer::CompositeViewer * compositeviewer = nullptr;
+    osgViewer::ViewerBase * viewerbase = nullptr;
     osgViewer::View * view = nullptr;
     osg::Camera * masterCamera = nullptr;
     osg::Referenced * object = getObject<osg::Referenced,SGIItemOsg>();
-    _camera = dynamic_cast<osg::Node*>(object)->asCamera();
+    osg::Node * node = dynamic_cast<osg::Node*>(object);
+    _camera = node ? node->asCamera() : nullptr;
 
     if (_camera.valid())
     {
         view = dynamic_cast<osgViewer::View*>(_camera->getView());
         if (view)
-            viewer = dynamic_cast<osgViewer::CompositeViewer*>(view->getViewerBase());
+        {
+            viewerbase = view->getViewerBase();
+            compositeviewer = dynamic_cast<osgViewer::CompositeViewer*>(viewerbase);
+        }
         else
         {
             for (auto * parent : _camera->getParents())
@@ -255,14 +261,15 @@ ExtraViewDialog::ExtraViewDialog(QWidget * parent, SGIPluginHostInterface * host
                     if (view)
                     {
                         masterCamera = nextCamera;
-                        viewer = dynamic_cast<osgViewer::CompositeViewer*>(view->getViewerBase());
+                        viewerbase = view->getViewerBase();
+                        compositeviewer = dynamic_cast<osgViewer::CompositeViewer*>(viewerbase);
                         break;
                     }
                 }
             }
         }
 
-        ui->widget->setCamera(viewer, _camera);
+        ui->widget->setCamera(compositeviewer, _camera);
     }
     else
     {
@@ -280,17 +287,18 @@ ExtraViewDialog::ExtraViewDialog(QWidget * parent, SGIPluginHostInterface * host
                         if (view)
                         {
                             masterCamera = nextCamera;
-                            viewer = dynamic_cast<osgViewer::CompositeViewer*>(view->getViewerBase());
+                            viewerbase = view->getViewerBase();
+                            compositeviewer = dynamic_cast<osgViewer::CompositeViewer*>(viewerbase);
                             break;
                         }
                     }
                 }
-                if (viewer)
+                if (compositeviewer)
                     break;
             }
 
-            if (viewer)
-                ui->widget->setRTTCamera(viewer, txt);
+            if (compositeviewer)
+                ui->widget->setRTTCamera(compositeviewer, txt);
         }
     }
 

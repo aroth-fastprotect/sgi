@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include <ostream>
 #include <QThread>
-#include <QCoreApplication>
+#include <QApplication>
 #include <QProcessEnvironment>
 #include <QDialog>
 #ifdef WITH_QTOPENGL
@@ -38,6 +38,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QSurface)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QDialog)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QThread)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QCoreApplication)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QApplication)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLContext)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLWidget)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLShaderProgram)
@@ -128,6 +129,29 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurfac
     return os;
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurface::SurfaceClass t)
+{
+    switch (t)
+    {
+    case QSurface::Window: os << "Window"; break;
+    case QSurface::Offscreen: os << "Offscreen"; break;
+    default: os << (int)t; break;
+    }
+    return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurface::SurfaceType t)
+{
+    switch (t)
+    {
+    case QSurface::RasterSurface: os << "RasterSurface"; break;
+    case QSurface::OpenGLSurface: os << "OpenGLSurface"; break;
+    case QSurface::RasterGLSurface: os << "RasterGLSurface"; break;
+    case QSurface::OpenVGSurface: os << "OpenVGSurface"; break;
+    default: os << (int)t; break;
+    }
+    return os;
+}
 
 bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
 {
@@ -172,7 +196,9 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
                     if(value.type() == QVariant::Palette)
                         value = QString("palette:%1").arg(value.value<QPalette>().cacheKey());
 
-                    os << "<tr><td>" << metaObject->className() << "::" << name << "(" << typeName << ")</td><td>" << value << "</td></tr>" << std::endl;
+                    os << "<tr><td>" << metaObject->className() << "::" << name << "(" << typeName << ")</td><td>";
+                    writeVariant(os, value, &metaproperty); 
+                    os << "</td></tr>" << std::endl;
                 }
                 metaObject = metaObject->superClass();
             }
@@ -214,7 +240,9 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
                     if(value.type() == QVariant::Palette)
                         value = QString("palette:%1").arg(value.value<QPalette>().cacheKey());
 
-                    os << "<tr><td>" << metaObject->className() << "::" << name << "(" << typeName << ")</td><td>" << value << "</td></tr>" << std::endl;
+                    os << "<tr><td>" << metaObject->className() << "::" << name << "(" << typeName << ")</td><td>";
+                    writeVariant(os, value, &metaproperty);
+                    os << "</td></tr>" << std::endl;
                 }
                 metaObject = metaObject->superClass();
             }
@@ -393,6 +421,10 @@ bool writePrettyHTMLImpl<QSurface>::process(std::basic_ostream<char>& os)
 
             // add QSurface properties
             os << "<tr><td>this</td><td>" << std::hex << (void*)object << std::dec << "</td></tr>" << std::endl;
+            os << "<tr><td>surfaceClass</td><td>" << object->surfaceClass() << "</td></tr>" << std::endl;
+            os << "<tr><td>surfaceType</td><td>" << object->surfaceType() << "</td></tr>" << std::endl;
+            os << "<tr><td>supportsOpenGL</td><td>" << (object->supportsOpenGL() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>size</td><td>" << object->size() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -526,6 +558,40 @@ bool writePrettyHTMLImpl<QCoreApplication>::process(std::basic_ostream<char>& os
     return ret;
 }
 
+
+bool writePrettyHTMLImpl<QApplication>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    QApplication * object = getObject<QApplication, SGIItemQt>();
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add QObject properties first
+            callNextHandler(os);
+
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypePalette:
+        {
+            os << object->palette(static_cast<const char*>(nullptr));
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
 #ifdef WITH_QTOPENGL
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QGLFormat::OpenGLContextProfile t)
 {
@@ -613,29 +679,6 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QGLCont
     return os;
 }
 #endif // WITH_QTOPENGL
-
-std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurface::SurfaceClass t)
-{
-    switch (t)
-    {
-        case QSurface::Window: os << "Window"; break;
-        case QSurface::Offscreen: os << "Offscreen"; break;
-        default: os << (int)t; break;
-    }
-    return os;
-}
-
-std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSurface::SurfaceType t)
-{
-    switch (t)
-    {
-        case QSurface::RasterSurface: os << "RasterSurface"; break;
-        case QSurface::OpenGLSurface: os << "OpenGLSurface"; break;
-        case QSurface::RasterGLSurface: os << "RasterGLSurface"; break;
-        default: os << (int)t; break;
-    }
-    return os;
-}
 
 bool writePrettyHTMLImpl<QOpenGLContext>::process(std::basic_ostream<char>& os)
 {

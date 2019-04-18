@@ -13,37 +13,47 @@ typedef details::ReferencedDataT<std::string> ReferencedDataString;
 namespace details {
     template<typename TYPE>
     struct copy_object {
-        static TYPE * copyObject(TYPE * obj)
+        static TYPE * execute(TYPE * obj)
         {
             return new TYPE(*obj);
         }
     };
     template<>
     struct copy_object<void> {
-        static void * copyObject(void * obj)
+        static void * execute(void * obj)
         {
             return nullptr;
+        }
+    };
+    template<typename TYPE>
+    struct assign_object {
+        static TYPE * execute(TYPE * obj)
+        {
+            return obj;
         }
     };
 
     template<typename TYPE>
     struct delete_operator {
-        static void deleteObject(TYPE * obj)
+        static void execute(TYPE * obj)
         {
             delete obj;
         }
     };
     template<typename TYPE>
     struct do_not_delete {
-        static void deleteObject(TYPE *)
+        static void execute(TYPE *)
         {
         }
     };
 }
 
-template<typename OBJECT_TYPE, typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*, 
+template<typename OBJECT_TYPE, 
+            typename OBJECT_STORAGE_TYPE=OBJECT_TYPE*, 
             template<typename> class OBJECT_COPY=details::copy_object,
-            template<typename> class OBJECT_DELETER=details::delete_operator >
+            template<typename> class OBJECT_DELETER=details::delete_operator,
+            template<typename> class OBJECT_ASSIGN = details::assign_object
+    >
 struct SGIItemInfoPlainPtr {
     typedef OBJECT_TYPE ObjectType;
     typedef OBJECT_STORAGE_TYPE ObjectStorageType;
@@ -52,13 +62,17 @@ struct SGIItemInfoPlainPtr {
     {
         return static_cast<ObjectType *>(item);
     }
+    static ObjectType * assignObject(ObjectType * rhs)
+    {
+        return OBJECT_ASSIGN<ObjectType>::execute(rhs);
+    }
     static ObjectType * copyObject(const ObjectType & rhs)
     {
-        return OBJECT_COPY<ObjectType>::copyObject(rhs);
+        return OBJECT_COPY<ObjectType>::execute(rhs);
     }
     static void deleteObject(const ObjectStorageType & item)
     {
-        OBJECT_DELETER<ObjectType>::deleteObject(static_cast<ObjectType *>(item));
+        OBJECT_DELETER<ObjectType>::execute(static_cast<ObjectType *>(item));
     }
 };
 
@@ -70,6 +84,10 @@ struct SGIItemInfoSharedPtr {
     static ObjectType * objectPtr(const ObjectStorageType & item)
     {
         return static_cast<ObjectType *>(item.get());
+    }
+    static ObjectType * assignObject(ObjectType * rhs)
+    {
+        return rhs;
     }
     static ObjectType * copyObject(const ObjectType & rhs)
     {
@@ -88,6 +106,10 @@ struct SGIItemInfoSharedPtrQt {
     static ObjectType * objectPtr(const ObjectStorageType & item)
     {
         return static_cast<ObjectType *>(item.data());
+    }
+    static ObjectType * assignObject(ObjectType * rhs)
+    {
+        return rhs;
     }
     static ObjectType * copyObject(const ObjectType & rhs)
     {

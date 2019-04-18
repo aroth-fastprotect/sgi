@@ -11,6 +11,7 @@
 #include "RetrieveElevationDialog.h"
 #include "LODScaleOverrideDialog.h"
 #include "ShaderEditorDialog.h"
+#include "LightSettings.h"
 
 namespace sgi {
 namespace osgearth_plugin {
@@ -20,6 +21,7 @@ SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogTileInspector)
 SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogRetrieveElevation)
 SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogLODScaleOverride)
 SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogShaderEditor)
+SETTINGS_DIALOG_CREATE_IMPL_DECLARE_AND_REGISTER(SettingsDialogLightSettings)
 
 bool settingsDialogCreateImpl<SettingsDialogAutoClipPlaneCullCallback>::execute(ISettingsDialogPtr & dialog)
 {
@@ -44,6 +46,11 @@ bool settingsDialogCreateImpl<SettingsDialogLODScaleOverride>::execute(ISettings
 bool settingsDialogCreateImpl<SettingsDialogShaderEditor>::execute(ISettingsDialogPtr & dialog)
 {
     return openDialog<ShaderEditorDialog>(dialog);
+}
+
+bool settingsDialogCreateImpl<SettingsDialogLightSettings>::execute(ISettingsDialogPtr & dialog)
+{
+    return openDialog<LightSettings>(dialog);
 }
 
 } // namespace osgearth_plugin

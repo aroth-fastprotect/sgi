@@ -4,15 +4,24 @@
 #include <cctype>
 #include <algorithm>
 
+#include <QtCore/QDebug>
+
+QDebug & operator<<(QDebug & d, const std::string & s)
+{
+    return d << s.c_str();
+}
+
 namespace sgi {
     namespace helpers {
 
-void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size)
+void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size, size_t maximumSize)
 {
     unsigned w = 4;
     if(size > 65535)
         w = 6;
-    for(unsigned offset = 0; offset < size; offset += 16)
+    size_t offset_max = std::min(size, maximumSize);
+    bool truncated = size > maximumSize;
+    for(unsigned offset = 0; offset < offset_max; offset += 16)
     {
         const unsigned char * pData = (const unsigned char*)data + offset;
         size_t max_row = std::min((size_t)16u, size - (size_t)offset);
@@ -39,6 +48,8 @@ void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size)
         os << ssAscii.str();
         os << std::endl;
     }
+    if (truncated)
+        os << "truncated after " << maximumSize << " of " << size << " bytes" << endl;
 }
 
 std::string joinStrings(const std::vector<std::string>& input, char delim)
@@ -146,6 +157,28 @@ std::string html_encode(const std::string & str)
     replaceIn(ret, ">", "&gt;");
     replaceIn(ret, "\"", "&quot;");
     return ret;
+}
+
+bool string_to_bool(const std::string & s, bool * ok, bool defaultValue)
+{
+    if(s.compare("1") == 0 || s.compare("on") == 0 || s.compare("true") == 0 || s.compare("yes") == 0)
+    {
+        if(ok)
+            *ok = true;
+        return true;
+    }
+    else if(s.compare("0") == 0 || s.compare("off") == 0 || s.compare("false") == 0 || s.compare("no") == 0)
+    {
+        if(ok)
+            *ok = true;
+        return false;
+    }
+    else
+    {
+        if(ok)
+            *ok = false;
+        return defaultValue;
+    }
 }
 
 a_href::a_href(const std::string & url)

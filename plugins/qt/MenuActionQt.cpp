@@ -35,6 +35,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionWidgetHighlight)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectMethodInvoke)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectModifyProperty)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionImagePreview)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionIconFromTheme)
 
 using namespace sgi::qt_helpers;
 
@@ -597,5 +598,17 @@ bool actionHandlerImpl<MenuActionImagePreview>::execute()
     return true;
 }
 
+bool actionHandlerImpl<MenuActionIconFromTheme>::execute()
+{
+    QIcon* object = getObject<QIcon,SGIItemQtIcon>();
+    std::string name = toUtf8(object->name());
+    if(_hostInterface->inputDialogString(menuAction()->menu()->parentWidget(),
+        name, "Icon", "Load from theme",
+        SGIPluginHostInterface::InputDialogStringEncodingUTF8, _item))
+    {
+        *object = QIcon::fromTheme(fromUtf8(name));
+    }
+    return true;
+}
 } // namespace qt_plugin
 } // namespace sgi

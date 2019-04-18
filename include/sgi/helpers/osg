@@ -36,6 +36,7 @@ namespace osg {
     class StateAttribute;
     class Image;
     class GraphicsContext;
+    class Uniform;
 
     typedef std::vector< Node* > NodePath;
 
@@ -202,6 +203,10 @@ SGI_OSG_HELPER_EXPORT const sgi::Image * convertImage(const osg::HeightField * h
 
 SGI_OSG_HELPER_EXPORT void heightFieldDumpHTML(std::basic_ostream<char>& os, const osg::HeightField * hf);
 SGI_OSG_HELPER_EXPORT void heightFieldDumpPlainText(std::basic_ostream<char>& os, const osg::HeightField * hf);
+
+SGI_OSG_HELPER_EXPORT std::string uniformToString(const osg::Uniform * uniform, bool * ok=nullptr);
+SGI_OSG_HELPER_EXPORT std::string uniformToHTML(const osg::Uniform * uniform, bool * ok = nullptr);
+SGI_OSG_HELPER_EXPORT bool stringToUniform(const std::string & s, osg::Uniform * uniform);
 
     /**
      * Visitor that locates a node by its type
@@ -410,6 +415,12 @@ SGI_OSG_HELPER_EXPORT void heightFieldDumpPlainText(std::basic_ostream<char>& os
     SGI_OSG_HELPER_EXPORT unsigned findContextID(const osg::StateAttribute * sa);
 
     SGI_OSG_HELPER_EXPORT osg::StateSet* buildEffectiveStateSet(const osg::NodePath & path, osg::StateSet* top=nullptr);
+    typedef std::vector<osg::ref_ptr<osg::StateSet>> StateSetList;
+    SGI_OSG_HELPER_EXPORT bool collectStateSetList(const osg::NodePath & path, StateSetList & list);
+    typedef std::pair<osg::ref_ptr<osg::Uniform>, osg::StateAttribute::OverrideValue>  RefUniformPair;
+    typedef std::map<std::string, RefUniformPair> UniformList;
+    SGI_OSG_HELPER_EXPORT bool collectUniformList(const osg::NodePath & path, UniformList & list);
+    SGI_OSG_HELPER_EXPORT bool collectUniformList(const osg::StateSet * stateSet, UniformList & list);
 
 #if !defined(BUILD_SGI_VIEWER_BASE)
     SGI_OSG_HELPER_EXPORT 
@@ -424,6 +435,9 @@ SGI_OSG_HELPER_EXPORT void heightFieldDumpPlainText(std::basic_ostream<char>& os
     SGI_OSG_HELPER_EXPORT osg::Geometry * createGeometryForImage(osg::Image* image,float s,float t);
     SGI_OSG_HELPER_EXPORT osg::Geometry * createGeometryForImage(osg::Image* image);
     SGI_OSG_HELPER_EXPORT osg::Geometry * createGeometryForTexture(osg::Texture* texture);
+
+    SGI_OSG_HELPER_EXPORT std::string getStateAttributeTypeName(const osg::StateAttribute::Type & t);
+    SGI_OSG_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::StateAttribute::Type & t);
 
     } // namespace osg_helpers
 } // namespace sgi

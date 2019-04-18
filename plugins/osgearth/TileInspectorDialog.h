@@ -95,7 +95,6 @@ private:
     IObjectTreeImplPtr              _treeImpl;
     IContextMenuPtr                 _contextMenu;
     IContextMenuPtr                 _layerContextMenu;
-    details::ref_ptr<SGIItemOsg>    _item;
     SGIItemBasePtrVector            _tiles;
 };
 

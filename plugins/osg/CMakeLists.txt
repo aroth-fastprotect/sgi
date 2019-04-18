@@ -26,7 +26,6 @@ SET(TARGET_SRC
 
     stateset_helpers.cpp
     std_ostream_osgtext.cpp
-    DrawableHelper.cpp
 	NodeHelper.cpp
 
     SettingsDialogOSG.cpp
@@ -57,7 +56,6 @@ SET(TARGET_H
     SettingsDialogOSG.h
     GUIAdapterOSG.h
 
-    DrawableHelper.h
 	NodeHelper.h
     )
 SGI_CREATE_SYMLINK(SGIItemOsg ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemOsg)

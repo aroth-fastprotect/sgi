@@ -75,7 +75,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
     # ... and keep C++ extensions on (which is the CMake default, but to be safe)
     set(CMAKE_CXX_EXTENSIONS ON)
 	IF(CLANG)
-		add_compile_options(-Wno-deprecated-register -Wno-switch -Wno-inconsistent-missing-override)
+		add_compile_options(-Wno-deprecated-register -Wno-switch -Wno-inconsistent-missing-override -Wno-enum-compare-switch)
 	ENDIF()
 
 	# Make the headers visible to everything
