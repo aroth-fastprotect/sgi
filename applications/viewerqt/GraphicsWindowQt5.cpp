@@ -566,9 +566,10 @@ bool GraphicsWindowQt5::setWindowRectangleImplementation( int x, int y, int widt
 {
     if (!_window)
         return false;
-
+#if 0
     qDebug() << "setWRI window geometry to " << x << "," << y <<
       " w=" << width << " h=" << height;
+#endif
     _window->setGeometry( x, y, width, height );
     return true;
 }

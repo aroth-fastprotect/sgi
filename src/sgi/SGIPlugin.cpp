@@ -105,7 +105,7 @@ public:
         _pluginDirectories.push_back(s.toStdString());
 
         loadInternalPlugin();
-#if 1
+#if 0
         PluginFileNameList pluginFiles = listAllAvailablePlugins();
         for(PluginFileNameList::const_iterator it = pluginFiles.begin(); it != pluginFiles.end(); it++)
         {
@@ -749,7 +749,7 @@ public:
         for(const std::string & pluginDir : _pluginDirectories)
         {
             QString path = QString::fromStdString(pluginDir);
-            qDebug() << __FUNCTION__ << path << postfix;
+            //qDebug() << __FUNCTION__ << path << postfix;
             QDir directory(path);
             for(const QFileInfo & fi : directory.entryInfoList(QDir::Files))
             {
@@ -836,7 +836,9 @@ public:
                             impl->loadPlugin(pluginName, pluginFilename);
                         }
                         else
+                        {
                             qDebug() << "Ignore plugin " << pluginName;
+                        }
                     }
                 }
                 break;

@@ -77,10 +77,12 @@ ApplicationEventFilter::ApplicationEventFilter(QCoreApplication * parent)
     , _inspectorContextMenuMouseModifier(Qt::ControlModifier|Qt::ShiftModifier)
 {
     s_instance = this;
+#ifdef _DEBUG
 #ifdef SGI_USE_GAMMARAY
     qDebug() << "ApplicationEventFilter ctor" << this << "gammaray";
 #else
     qDebug() << "ApplicationEventFilter ctor" << this;
+#endif
 #endif
 
     connect(parent, &QCoreApplication::aboutToQuit, this, &ApplicationEventFilter::uninstall);
@@ -90,7 +92,9 @@ ApplicationEventFilter::ApplicationEventFilter(QCoreApplication * parent)
 
 ApplicationEventFilter::~ApplicationEventFilter()
 {
+#ifdef _DEBUG
     qDebug() << "ApplicationEventFilter dtor" << this;
+#endif
 }
 
 void ApplicationEventFilter::install()
@@ -108,7 +112,9 @@ void ApplicationEventFilter::postEvent(QEvent * ev)
 
 void ApplicationEventFilter::uninstall()
 {
+#ifdef _DEBUG
     qDebug() << "ApplicationEventFilter uninstall" << this;
+#endif
 	if (!_contextMenu.isNull())
 		delete _contextMenu;
     _hostCallback = nullptr;
@@ -271,7 +277,7 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
 					}
 					if (!sgi_skip_object)
 					{
-						qDebug() << "ApplicationEventFilter" << widget << obj;
+						//qDebug() << "ApplicationEventFilter" << widget << obj;
 						contextMenu(widget, obj, x, y);
 						ret = true;
 					}
