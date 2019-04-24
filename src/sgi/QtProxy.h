@@ -31,6 +31,11 @@ public:
     IContextMenuQt *        createContextMenu(QWidget *parent, QObject * item, bool onlyRootItem, IHostCallback * callback);
     IImagePreviewDialog *   showImagePreviewDialog(QWidget *parent, SGIItemBase * item, IHostCallback * callback);
 
+    struct ThreadOp {
+        virtual bool run() { return false; }
+    };
+    bool                    runInMainThread(ThreadOp & op);
+
 private:
     struct JobShowSceneGraphDialog;
     struct JobShowObjectLoggerDialog;
@@ -38,6 +43,7 @@ private:
     struct JobCreateContextMenu;
     struct JobCreateContextMenuQt;
     struct JobShowImagePreviewDialog;
+    struct JobThreadOp;
 
 signals:
     void triggerShowSceneGraphDialog(JobShowSceneGraphDialog * job);
@@ -46,6 +52,7 @@ signals:
     void triggerCreateContextMenu(JobCreateContextMenu * job);
     void triggerCreateContextMenuQt(JobCreateContextMenuQt * job);
     void triggerShowImagePreviewDialog(JobShowImagePreviewDialog * job);
+    void triggerThreadOp(JobThreadOp * job);
 
 protected slots:
     void implShowSceneGraphDialog(JobShowSceneGraphDialog * job);
@@ -54,6 +61,7 @@ protected slots:
     void implCreateContextMenu(JobCreateContextMenu * job);
     void implCreateContextMenuQt(JobCreateContextMenuQt * job);
     void implShowImagePreviewDialog(JobShowImagePreviewDialog * job);
+    void implThreadOp(JobThreadOp * job);
 };
 
 } // namespace sgi

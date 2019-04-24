@@ -864,7 +864,19 @@ public:
         bool ret = false;
         if(!_pluginsLoaded)
         {
-            AutoPluginLoader loader(this, nullptr, AutoPluginLoader::PluginMatchAll );
+            QtProxy * proxy = QtProxy::instance();
+            Q_ASSERT(proxy != nullptr);
+            struct loader : QtProxy::ThreadOp
+            {
+                SGIPluginsImpl * _this;
+                loader(SGIPluginsImpl * p) : _this(p) {}
+                bool run() override
+                {
+                    AutoPluginLoader loader(_this, nullptr, AutoPluginLoader::PluginMatchAll);
+                    return true;
+                }
+            } op(this);
+            proxy->runInMainThread(op);
             _pluginsLoaded = true;
         }
         for(PluginMap::const_iterator it = _plugins.begin(); it != _plugins.end(); it++)
