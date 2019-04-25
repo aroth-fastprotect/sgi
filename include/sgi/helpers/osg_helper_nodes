@@ -130,8 +130,7 @@ SGI_OSG_HELPER_EXPORT osg::Image * getSGILogoImage();
 class SGI_OSG_HELPER_EXPORT FindTreeItemNodeVisitor : public osg::NodeVisitor
 {
 public:
-    FindTreeItemNodeVisitor(TraversalMode tm = TRAVERSE_ALL_CHILDREN)
-        : osg::NodeVisitor(tm) {}
+    FindTreeItemNodeVisitor(TraversalMode tm=TRAVERSE_ALL_CHILDREN);
     struct SGI_OSG_HELPER_EXPORT NodeItem
     {
         osg::ref_ptr<osg::Node> node;
