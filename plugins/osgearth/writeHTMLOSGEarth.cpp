@@ -25,6 +25,8 @@
 #include <osgEarth/OverlayDecorator>
 #include <osgEarth/ScreenSpaceLayout>
 
+#include <osg/ProxyNode>
+
 #include <osgEarth/ImageLayer>
 #include <osgEarth/ElevationLayer>
 #include <osgEarth/ModelLayer>
@@ -184,6 +186,8 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Annotation::RectangleNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Annotation::ModelNode)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Image)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::PagedLOD)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::ProxyNode)
 
 using namespace osg_helpers;
 
@@ -4180,6 +4184,67 @@ bool writePrettyHTMLImpl<osg::Image>::process(std::basic_ostream<char>& os)
             ret = true;
         }
         break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osg::PagedLOD>::process(std::basic_ostream<char>& os)
+{
+    osg::PagedLOD * object = getObject<osg::PagedLOD, SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>cacheKeys</td><td><ol>";
+            for(unsigned i = 0; i < object->getNumFileNames(); ++i)
+                os << "<li>" << osgEarth::Cache::makeCacheKey(object->getFileName(0), "uri") << "</li>";
+            os << "<ol></td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+
+bool writePrettyHTMLImpl<osg::ProxyNode>::process(std::basic_ostream<char>& os)
+{
+    osg::ProxyNode * object = getObject<osg::ProxyNode, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        callNextHandler(os);
+
+        os << "<tr><td>cacheKeys</td><td><ol>";
+        for (unsigned i = 0; i < object->getNumFileNames(); ++i)
+            os << "<li>" << osgEarth::Cache::makeCacheKey(object->getFileName(0), "uri") << "</li>";
+        os << "<ol></td></tr>" << std::endl;
+
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
     default:
         ret = callNextHandler(os);
         break;

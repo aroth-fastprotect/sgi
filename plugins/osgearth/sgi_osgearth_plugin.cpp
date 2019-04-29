@@ -63,6 +63,9 @@
 #include <osgEarth/LineDrawable>
 #endif
 
+#include <osg/PagedLOD>
+#include <osg/ProxyNode>
+
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 #include <osgEarthUtil/Sky>
 #else
@@ -180,6 +183,8 @@ SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::Group)
     osg::CoordinateSystemNode,
+    osg::ProxyNode,
+    osg::LOD,
     osgEarth::MapNode,
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::TerrainDecorator,
@@ -200,6 +205,10 @@ SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::CoordinateSystemNode)
     osgEarth::TerrainEngineNode
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osg::LOD)
+    osg::PagedLOD
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osg::Callback)
@@ -449,7 +458,7 @@ GENERATE_IMPL_NO_ACCEPT(osgGA::CameraManipulator)
 GENERATE_IMPL_NO_ACCEPT(osg::StateAttribute)
 GENERATE_IMPL_NO_ACCEPT(osg::Group)
 GENERATE_IMPL_NO_ACCEPT(osg::LOD)
-GENERATE_IMPL_NO_ACCEPT(osg::PagedLOD)
+//GENERATE_IMPL_NO_ACCEPT(osg::PagedLOD)
 GENERATE_IMPL_NO_ACCEPT(osg::CoordinateSystemNode)
 GENERATE_IMPL_NO_ACCEPT(osg::Transform)
 GENERATE_IMPL_NO_ACCEPT(osg::MatrixTransform)
