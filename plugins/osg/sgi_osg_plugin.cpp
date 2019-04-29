@@ -672,11 +672,34 @@ typedef SGIPluginImplementationT<       generateItemImpl,
                                         convertToImageConvertImpl
                                         >
     SGIPluginImpl;
+
+    extern void registerNodeHelpers();
 } // namespace osg_plugin
 
 
 #define REGISTER_GLENUM(c) \
     registerNamedEnumValue<osg_helpers::GLEnum>(c, #c)
+
+
+
+#ifndef OSGDB_PLUGIN_EXPORT
+#ifdef _MSC_VER
+#define OSGDB_PLUGIN_EXPORT __declspec(dllexport)
+#elif defined(__GNUC__)
+#define OSGDB_PLUGIN_EXPORT __attribute__ ((visibility ("default")))
+#else
+#define OSGDB_PLUGIN_EXPORT
+#endif
+
+#endif
+
+#define REGISTER_OSGPLUGIN_EX(ext, classname, proxyname) \
+    extern "C" OSGDB_PLUGIN_EXPORT void osgdb_##ext(void) {}
+
+#define IMPL_OSGPLUGIN_EX(ext, classname, proxyname) \
+    static osgDB::RegisterReaderWriterProxy<classname> g_proxy_##proxyname;
+
+
 
 class SGIPlugin_osg_Implementation : public osg_plugin::SGIPluginImpl
 {
@@ -774,6 +797,8 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeStateTextureAttributeMapList);
         SGIITEMTYPE_NAME(SGIItemTypeStatisticsStateSets);
         SGIITEMTYPE_NAME(SGIItemTypeStatisticsStateAttributes);
+
+        registerNodeHelpers();
     }
     SGIPlugin_osg_Implementation(const SGIPlugin_osg_Implementation & rhs)
         : osg_plugin::SGIPluginImpl(rhs)

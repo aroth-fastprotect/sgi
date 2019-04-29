@@ -864,6 +864,7 @@ public:
         bool ret = false;
         if(!_pluginsLoaded)
         {
+            _pluginsLoaded = true;
             QtProxy * proxy = QtProxy::instance();
             Q_ASSERT(proxy != nullptr);
             struct loader : QtProxy::ThreadOp
@@ -877,7 +878,6 @@ public:
                 }
             } op(this);
             proxy->runInMainThread(op);
-            _pluginsLoaded = true;
         }
         for(PluginMap::const_iterator it = _plugins.begin(); it != _plugins.end(); it++)
         {
