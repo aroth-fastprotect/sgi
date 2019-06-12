@@ -24,7 +24,7 @@ DoubleInputDialog::DoubleInputDialog(QWidget *parent, Qt::WindowFlags f)
     double steps = pow(0.1, ui->doubleSpinBox->decimals());
     ui->doubleSpinBox->setSingleStep(steps);
 
-    connect(ui->buttonBox->button(QDialogButtonBox::Reset), SIGNAL(clicked()), this, SLOT(reset()));
+    connect(ui->buttonBox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, &DoubleInputDialog::reset);
 }
 
 DoubleInputDialog::~DoubleInputDialog()

@@ -1429,7 +1429,7 @@ bool actionHandlerImpl<MenuActionUniformEdit>::execute()
             ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
                                                     value,
                                                     "Value:", object->getName() + " Value",
-                                                    std::numeric_limits<float>::min(), std::numeric_limits<float>::max(), 1,
+                                                    std::numeric_limits<float>::min(), std::numeric_limits<float>::max(), 3,
                                                     _item
                                                     );
             if(ret)
@@ -1444,7 +1444,7 @@ bool actionHandlerImpl<MenuActionUniformEdit>::execute()
             ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
                                                     value,
                                                     "Value:", object->getName() + " Value",
-                                                    std::numeric_limits<double>::min(), std::numeric_limits<double>::max(), 1,
+                                                    std::numeric_limits<double>::min(), std::numeric_limits<double>::max(), 3,
                                                     _item
                                                     );
             if(ret)
