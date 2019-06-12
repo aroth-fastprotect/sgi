@@ -1793,7 +1793,7 @@ bool objectTreeBuildImpl<osgEarth::PolyShader>::build(IObjectTreeItem * treeItem
                 treeItem->addChild("NominalShader", &nominalShader);
 
             SGIHostItemOsg geometryShader(object->getGeometryShader());
-            if (nominalShader.hasObject())
+            if (geometryShader.hasObject())
                 treeItem->addChild("GeometryShader", &geometryShader);
 
             SGIHostItemOsg tessellationShader(object->getTessellationShader());
