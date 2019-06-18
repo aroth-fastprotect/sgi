@@ -60,7 +60,9 @@ enum SGIItemType_osgearth
     SGIItemTypeProfiles,
     SGIItemTypeProgramSharedRepo,
     SGIItemTypePickerContext,
-    SGIItemTypeGeoHeightfield
+    SGIItemTypeGeoHeightfield,
+    SGIItemTypeFeatureSourceFeatures,
+    SGIItemTypeStyle,
 };
 
 typedef SGIItemInfoPlainPtr<osgEarth::Config> SGIItemInfoOsgEarthConfig;

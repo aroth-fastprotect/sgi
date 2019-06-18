@@ -155,6 +155,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Object)
     osgEarth::ModelSource,
     osgEarth::Extension,
     osgEarth::Features::FeatureSource,
+    osgEarth::Features::Feature,
     osg::Node, osg::StateAttribute, osg::BufferData
 SGI_OBJECT_INFO_END()
 
@@ -533,6 +534,9 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeProfiles);
         SGIITEMTYPE_NAME(SGIItemTypeProgramSharedRepo);
         SGIITEMTYPE_NAME(SGIItemTypePickerContext);
+        SGIITEMTYPE_NAME(SGIItemTypeGeoHeightfield);
+        SGIITEMTYPE_NAME(SGIItemTypeFeatureSourceFeatures);
+        SGIITEMTYPE_NAME(SGIItemTypeStyle);
     }
     SGIPlugin_osgearth_Implementation(const SGIPlugin_osgearth_Implementation & rhs)
         : osgearth_plugin::SGIPluginImpl(rhs)

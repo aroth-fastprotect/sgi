@@ -117,6 +117,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::RTTPicker)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureProfile)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSource)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::Feature)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSource)
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSourceLayer)
@@ -2052,17 +2053,67 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureSource>::build(IObjectTreeIt
 
 			SGIHostItemOsgEarthConfigOptions featureSourceOptions(object->getFeatureSourceOptions());
 			treeItem->addChild("FeatureSourceOptions", &featureSourceOptions);
+
+            treeItem->addChild(helpers::str_plus_count("Features", object->getFeatureCount()), cloneItem<SGIItemOsg>(SGIItemTypeFeatureSourceFeatures));
 		}
 		break;
 	case SGIItemTypeConfig:
 		ret = true;
 		break;
+    case SGIItemTypeFeatureSourceFeatures:
+        {
+            osgEarth::Features::FeatureCursor* cursor = object->createFeatureCursor(nullptr);
+            if (cursor)
+            {
+                while (cursor->hasMore())
+                {
+                    osgEarth::Features::Feature * feature = cursor->nextFeature();
+                    if (feature)
+                    {
+                        SGIHostItemOsg item(feature);
+                        treeItem->addChild(helpers::str_plus_number("Feature", feature->getFID()), &item);
+                    }
+                }
+            }
+            ret = true;
+        }
+        break;
 	default:
 		ret = callNextHandler(treeItem);
 		break;
 	}
 	return ret;
 }
+
+bool objectTreeBuildImpl<osgEarth::Features::Feature>::build(IObjectTreeItem * treeItem)
+{
+    osgEarth::Features::Feature * object = getObject<osgEarth::Features::Feature, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            treeItem->addChild("Config", cloneItem<SGIItemOsg>(SGIItemTypeConfig));
+            auto style = object->style();
+            if(style.isSet())
+                treeItem->addChild("Style", cloneItem<SGIItemOsg>(SGIItemTypeStyle));
+        }
+        break;
+    case SGIItemTypeConfig:
+        ret = true;
+        break;
+    case SGIItemTypeStyle:
+        ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
 
 bool objectTreeBuildImpl<osgEarth::Features::FeatureModelSource>::build(IObjectTreeItem * treeItem)
 {

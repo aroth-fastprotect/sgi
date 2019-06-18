@@ -169,6 +169,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::RTTPicker)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureProfile)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSource)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::Feature)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Annotation::AnnotationNode)
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
@@ -218,6 +219,10 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     return os;
 }
 #endif
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Geometry::Type & t)
+{
+    return os << osgEarth::Geometry::toString(t);
+}
 
 bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& os)
 {
@@ -3763,6 +3768,25 @@ bool writePrettyHTMLImpl<osgEarth::Features::FeatureSource>::process(std::basic_
 		ret = true;
 	}
 	break;
+    case SGIItemTypeFeatureSourceFeatures:
+        {
+            os << "<ol>";
+            osgEarth::Features::FeatureCursor* cursor = object->createFeatureCursor(nullptr);
+            if (cursor)
+            {
+                while (cursor->hasMore())
+                {
+                    osgEarth::Features::Feature * feature = cursor->nextFeature();
+                    if (feature)
+                    {
+                        os << "<li>" << feature->getFID() << ": " << getObjectNameAndType(feature) << "</li>" << std::endl;
+                    }
+                }
+            }
+            os << "</ol>";
+            ret = true;
+        }
+        break;
 	default:
 		ret = callNextHandler(os);
 		break;
@@ -3770,6 +3794,84 @@ bool writePrettyHTMLImpl<osgEarth::Features::FeatureSource>::process(std::basic_
 	return ret;
 }
 
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Features::AttributeValue & t)
+{
+    const osgEarth::Features::AttributeType & type = t.first;
+    const osgEarth::Features::AttributeValueUnion & value_union = t.second;
+    if (value_union.set)
+    {
+        switch (type)
+        {
+        case osgEarth::Features::ATTRTYPE_UNSPECIFIED: os << "unspecified:" << t.getString(); break;
+        case osgEarth::Features::ATTRTYPE_STRING: os << "str:" << t.getString(); break;
+        case osgEarth::Features::ATTRTYPE_INT: os << "int:" << t.getString(); break;
+        case osgEarth::Features::ATTRTYPE_DOUBLE: os << "dbl:" << t.getString(); break;
+        case osgEarth::Features::ATTRTYPE_BOOL: os << "bool:" << t.getString(); break;
+        default: os << "unknown" << (int)type << ":" << t.getString(); break;
+        }
+    }
+    else
+        os << "(null)";
+    return os;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Features::Feature>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Features::Feature * object = getObject<osgEarth::Features::Feature, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>feature id</td><td>" << object->getFID() << "</td></tr>" << std::endl;
+            os << "<tr><td>extent</td><td>" << object->getExtent() << "</td></tr>" << std::endl;
+            os << "<tr><td>srs</td><td>";
+            const osgEarth::SpatialReference * srs = object->getSRS();
+            if (srs)
+                os << srs->getName();
+            else
+                os << "(null)";
+            os << "</td></tr>" << std::endl;
+
+            os << "<tr><td>attributes</td><td><table border=\'1\' align=\'left\'><tr><th>Key</th><th>Value</th></tr>";
+            const osgEarth::Features::AttributeTable & attrs = object->getAttrs();
+            for (auto it = attrs.begin(); it != attrs.end(); ++it)
+            {
+                os << "<tr><td>" << it->first << "</td><td>" << it->second << "</td></tr>" << std::endl;
+            }
+            os << "</table></td></tr>" << std::endl;
+
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeConfig:
+        {
+            os << "<pre>" << object->getGeoJSON() << "</pre>";
+            ret = true;
+        }
+        break;
+    case SGIItemTypeStyle:
+        {
+            const osgEarth::Features::Style & style = object->style().value();
+            os << "<pre>" << style.getConfig().toJSON(true) << "</pre>";
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
 bool writePrettyHTMLImpl<osgEarth::Features::FeatureModelSource>::process(std::basic_ostream<char>& os)
 {
     osgEarth::Features::FeatureModelSource * object = getObject<osgEarth::Features::FeatureModelSource, SGIItemOsg>();
