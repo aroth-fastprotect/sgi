@@ -2039,7 +2039,7 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureProfile>::build(IObjectTreeI
 
 bool objectTreeBuildImpl<osgEarth::Features::FeatureSource>::build(IObjectTreeItem * treeItem)
 {
-	osgEarth::Features::FeatureSource * object = getObject<osgEarth::Features::FeatureSource, SGIItemOsg>();
+    FeatureSourceAccess * object = static_cast<FeatureSourceAccess*>(getObject<osgEarth::Features::FeatureSource, SGIItemOsg>());
 	bool ret = false;
 	switch (itemType())
 	{
@@ -2047,6 +2047,10 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureSource>::build(IObjectTreeIt
 		ret = callNextHandler(treeItem);
 		if (ret)
 		{
+            SGIHostItemOsg readOptions(object->getReadOptions());
+            if (readOptions.hasObject())
+                treeItem->addChild("Read options", &readOptions);
+
 			SGIHostItemOsg featureProfile(object->getFeatureProfile());
 			if (featureProfile.hasObject())
 				treeItem->addChild("FeatureProfile", &featureProfile);
@@ -2054,7 +2058,9 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureSource>::build(IObjectTreeIt
 			SGIHostItemOsgEarthConfigOptions featureSourceOptions(object->getFeatureSourceOptions());
 			treeItem->addChild("FeatureSourceOptions", &featureSourceOptions);
 
-            treeItem->addChild(helpers::str_plus_count("Features", object->getFeatureCount()), cloneItem<SGIItemOsg>(SGIItemTypeFeatureSourceFeatures));
+            int numFeatures = object->getFeatureCount();
+            std::string name = numFeatures > 0 ? helpers::str_plus_count("Features", object->getFeatureCount()) : std::string("Features");
+            treeItem->addChild(name, cloneItem<SGIItemOsg>(SGIItemTypeFeatureSourceFeatures));
 		}
 		break;
 	case SGIItemTypeConfig:

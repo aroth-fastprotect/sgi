@@ -391,6 +391,11 @@ namespace osgearth_plugin {
         const osgDB::Options * getDBOptions() { return _dbOptions.get(); }
 #endif
     };
+    class FeatureSourceAccess : public osgEarth::Features::FeatureSource
+    {
+    public:
+        const osgDB::Options* getReadOptions() const { return FeatureSource::getReadOptions(); }
+    };
 
     class RTTPickerAccess : public osgEarth::Util::RTTPicker 
     {

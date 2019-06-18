@@ -3756,6 +3756,7 @@ bool writePrettyHTMLImpl<osgEarth::Features::FeatureSource>::process(std::basic_
 
 		callNextHandler(os);
 
+        os << "<tr><td>status</td><td>" << object->getStatus() << "</td></tr>" << std::endl;
 		os << "<tr><td>feature profile</td><td>" << getObjectNameAndType(object->getFeatureProfile()) << "</td></tr>" << std::endl;
 		os << "<tr><td>isWritable</td><td>" << (object->isWritable() ? "true" : "false") << "</td></tr>" << std::endl;
 		os << "<tr><td>feature count</td><td>" << object->getFeatureCount() << "</td></tr>" << std::endl;
