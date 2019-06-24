@@ -538,9 +538,12 @@ namespace std {
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPalette & palette)
     {
         os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
-        os << "<tr><td>cacheKey</td><td>" << palette.cacheKey() << "</td></tr>" << std::endl;
-
         QMetaEnum colorGroupEnum = QMetaEnum::fromType<QPalette::ColorGroup>();
+
+        os << "<tr><td>cacheKey</td><td>" << hex << palette.cacheKey() << "</td></tr>" << std::endl;
+        os << "<tr><td>currentColorGroup</td><td>" << colorGroupEnum.key(palette.currentColorGroup()) << "</td></tr>" << std::endl;
+        os << "<tr><td>resolve</td><td>" << palette.resolve() << "</td></tr>" << std::endl;
+
         QMetaEnum colorRoleEnum = QMetaEnum::fromType<QPalette::ColorRole>();
         for(int cg = 0; cg < QPalette::NColorGroups; ++cg)
         {
