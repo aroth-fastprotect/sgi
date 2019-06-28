@@ -300,6 +300,8 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
     return ret;
 }
 
+extern void writePrettyHTMLImpl_QPaintDevice_process(std::basic_ostream<char>& os, QPaintDevice* object);
+
 bool writePrettyHTMLImpl<QWidget>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -313,6 +315,8 @@ bool writePrettyHTMLImpl<QWidget>::process(std::basic_ostream<char>& os)
 
             // add QObject properties first
             callNextHandler(os);
+
+            writePrettyHTMLImpl_QPaintDevice_process(os, dynamic_cast<QPaintDevice*>(object));
 
             // add QWidget properties
             // DO NOT call winId() here, because this would trigger the widget to change
