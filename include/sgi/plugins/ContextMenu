@@ -3,6 +3,7 @@
 
 #pragma once
 #include "HostCallback"
+#include <string>
 
 class QWidget;
 class QMenu;
