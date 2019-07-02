@@ -166,6 +166,7 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::GLWidget)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::GLWindow)
 #endif
 
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgGA::EventQueue)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgGA::GUIEventHandler)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgGA::GUIEventAdapter)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgGA::CameraManipulator)
@@ -2618,6 +2619,41 @@ bool objectTreeBuildImpl<osgQt::GLWindow>::build(IObjectTreeItem * treeItem)
     return ret;
 }
 #endif // SGI_USE_OSGQT
+
+bool objectTreeBuildImpl<osgGA::EventQueue>::build(IObjectTreeItem* treeItem)
+{
+    osgGA::EventQueue* object = getObject<osgGA::EventQueue, SGIItemOsg, DynamicCaster>();
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            treeItem->addChild("Events", cloneItem<SGIItemOsg>(SGIItemTypeEventQueueEvents, ~0u));
+        }
+        break;
+    case SGIItemTypeEventQueueEvents:
+        if(itemNumber() == ~0u)
+        {
+            unsigned i = 0;
+            osgGA::EventQueue::Events events;
+            object->copyEvents(events);
+            for (auto ev : events)
+            {
+                SGIHostItemOsg item(ev);
+                if (item.hasObject())
+                    treeItem->addChild(helpers::str_plus_count("Event", i), &item);
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
 
 bool objectTreeBuildImpl<osgGA::GUIEventHandler>::build(IObjectTreeItem * treeItem)
 {

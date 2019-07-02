@@ -40,6 +40,7 @@ enum SGIItemType_osg
     SGIItemTypeProgramLog,
     SGIItemTypeArrayData,
     SGIItemTypeEventHandlers,
+    SGIItemTypeEventQueueEvents,
     SGIItemTypeDevices,
     SGIItemTypePickerHits,
     SGIItemTypePickerHit,

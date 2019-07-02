@@ -321,6 +321,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osgDB::FileLocationCallback,
     osgUtil::StateGraph, 
     osgUtil::RenderLeaf,
+    osgGA::EventQueue,
     osgViewer::Scene,
     osgText::Font::FontImplementation,
     osgText::Glyph3D,
@@ -348,6 +349,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Object)
     osgAnimation::AnimationUpdateCallbackBase,
     osgDB::Options, osgDB::ReaderWriter, osgDB::DatabaseRevision, osgDB::DatabaseRevisions, osgDB::FileList,
     osgViewer::ViewerBase, osgViewer::GraphicsWindow,
+    osgGA::Event, 
     osgGA::EventHandler, osgGA::GUIEventAdapter,
     osgText::Font,
     osgUtil::SceneView, osgUtil::RenderBin,
@@ -748,6 +750,7 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeSlaves);
 
         SGIITEMTYPE_NAME(SGIItemTypeArrayData);
+        SGIITEMTYPE_NAME(SGIItemTypeEventQueueEvents);
         SGIITEMTYPE_NAME(SGIItemTypeEventHandlers);
         SGIITEMTYPE_NAME(SGIItemTypeDevices);
         SGIITEMTYPE_NAME(SGIItemTypeActivePagedLODs);
