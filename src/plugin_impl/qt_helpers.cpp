@@ -265,10 +265,17 @@ namespace std {
         case QVariant::Bool: os << (v.toBool()?"true":"false"); break;
         case QVariant::Int: os << v.toInt(); break;
         case QVariant::UInt: os << v.toUInt(); break;
+        case (QVariant::Type)QMetaType::Long: os << v.toInt(); break;
+        case (QVariant::Type)QMetaType::ULong: os << (void*)v.toUInt(); break;
+        case (QVariant::Type)QMetaType::Short: os << v.toInt(); break;
+        case (QVariant::Type)QMetaType::UShort: os << (void*)v.toUInt(); break;
         case QVariant::LongLong: os << v.toLongLong(); break;
         case QVariant::ULongLong: os << v.toULongLong(); break;
         case QVariant::Double: os << v.toDouble(); break;
+        case (QVariant::Type)QMetaType::Float: os << v.toFloat(); break;
         case QVariant::Char: os << v.toChar(); break;
+        case (QVariant::Type)QMetaType::UChar: os << v.toChar(); break;
+        case (QVariant::Type)QMetaType::VoidStar: os << (void*)v.toULongLong(); break;
         case QVariant::Map: os << v.toMap(); break;
         case QVariant::List: os << v.toList(); break;
         case QVariant::String: os << v.toString(); break;
