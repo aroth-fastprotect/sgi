@@ -256,7 +256,7 @@ template<> struct registry<A> {
     registry<A>()
         : Reflection("A", sizeof(A),
                     {
-        { "name", 0, TypeResolver<decltype(&A::name)>::get(), reinterpret_cast<void*>(A::name)},
+        { "name", 0, TypeResolver<decltype(&A::name)>::get(), reinterpret_cast<void*>(&A::name)},
 }
                      )
     {

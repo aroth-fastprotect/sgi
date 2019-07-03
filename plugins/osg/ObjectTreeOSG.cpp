@@ -2645,8 +2645,8 @@ bool objectTreeBuildImpl<osgGA::EventQueue>::build(IObjectTreeItem* treeItem)
                 if (item.hasObject())
                     treeItem->addChild(helpers::str_plus_count("Event", i), &item);
             }
-            ret = true;
         }
+        ret = true;
         break;
     default:
         ret = callNextHandler(treeItem);
