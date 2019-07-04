@@ -1,5 +1,6 @@
 include_directories(${Qt5Widgets_INCLUDE_DIRS} ${Qt5Widgets_PRIVATE_INCLUDE_DIRS})
 
+
 SET(TARGET_SRC
     stdafx.cpp
     sgi_qtquick_plugin.cpp
@@ -23,6 +24,12 @@ SET(TARGET_H
     )
 
 SGI_CREATE_SYMLINK(SGIItemQtQuick ${SGI_INCLUDE_DIR}/sgi/plugins/SGIItemQtQuick)
+
+list(APPEND TARGET_INCLUDE_DIRS
+    QT_QTQML_INCLUDE_DIR
+    QT_QTQUICK_INCLUDE_DIR
+    QT_QTQUICKWIDGETS_INCLUDE_DIR
+    )
 
 LIST(APPEND TARGET_LIBRARIES_VARS
     SGI_QT_HELPER_LIBRARY
