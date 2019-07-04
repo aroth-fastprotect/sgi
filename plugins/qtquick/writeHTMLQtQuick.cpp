@@ -20,6 +20,7 @@
 namespace sgi {
 namespace qtquick_plugin {
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QQmlContext)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QQmlEngine)
 
 bool writePrettyHTMLImpl<QQmlContext>::process(std::basic_ostream<char>& os)
 {
@@ -53,5 +54,55 @@ bool writePrettyHTMLImpl<QQmlContext>::process(std::basic_ostream<char>& os)
     }
     return ret;
 }
+
+bool writePrettyHTMLImpl<QQmlEngine>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    QQmlEngine* object = getObject<QQmlEngine, SGIItemQt>();
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add QObject properties first
+            callNextHandler(os);
+
+            os << "<tr><td>baseUrl</td><td>" << object->baseUrl() << std::endl;
+            os << "<tr><td>offlineStoragePath</td><td>" << object->offlineStoragePath() << std::endl;
+
+            os << "<tr><td>importPathList</td><td><ol>";
+            for (const QString& s : object->importPathList())
+                os << "<li>" << s << "</li>";
+            os << "</ol></td></tr>" << std::endl;
+
+            os << "<tr><td>pluginPathList</td><td><ol>";
+            for (const QString& s : object->pluginPathList())
+                os << "<li>" << s << "</li>";
+            os << "</ol></td></tr>" << std::endl;
+
+#if QT_CONFIG(qml_network)
+            os << "<tr><td>networkAccessManager</td><td>" << qt_helpers::getObjectNameAndType((QObject*)object->networkAccessManager()) << "</td></tr>" << std::endl;
+            os << "<tr><td>networkAccessManagerFactory</td><td>" << qt_helpers::getObjectNameAndType((QObject*)object->networkAccessManagerFactory()) << "</td></tr>" << std::endl;
+#endif
+
+            os << "<tr><td>urlInterceptor</td><td>" << qt_helpers::getObjectNameAndType((QObject*)object->urlInterceptor()) << "</td></tr>" << std::endl;
+            os << "<tr><td>incubationController</td><td>" << qt_helpers::getObjectNameAndType((QObject*)object->incubationController()) << "</td></tr>" << std::endl;
+
+            os << "<tr><td>outputWarningsToStandardError</td><td>" << (object->outputWarningsToStandardError() ? "true" : "false") << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
 } // namespace qtquick_plugin
 } // namespace sgi
