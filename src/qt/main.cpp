@@ -232,7 +232,7 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
         {
             QMouseEvent * mouseEvent = static_cast<QMouseEvent *>(event);
             if(mouseEvent->button() == _inspectorContextMenuMouseButton &&
-                (mouseEvent->modifiers() & _inspectorContextMenuMouseModifier) != 0)
+                (mouseEvent->modifiers() & _inspectorContextMenuMouseModifier) == _inspectorContextMenuMouseModifier)
             {
 				bool sgi_skip_object = obj->property("sgi_skip_object").toBool();
 				if (!sgi_skip_object)
@@ -289,7 +289,7 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
         {
             QMouseEvent * mouseEvent = static_cast<QMouseEvent *>(event);
             if(mouseEvent->button() == _inspectorContextMenuMouseButton &&
-                (mouseEvent->modifiers() & _inspectorContextMenuMouseModifier) != 0)
+                (mouseEvent->modifiers() & _inspectorContextMenuMouseModifier) == _inspectorContextMenuMouseModifier)
             {
 				bool sgi_skip_object = obj->property("sgi_skip_object").toBool();
 				if (!sgi_skip_object)
