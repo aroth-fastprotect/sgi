@@ -58,6 +58,7 @@
 #include <osgEarthUtil/SkyNode>
 #endif
 #include <osgEarthFeatures/FeatureModelSource>
+#include <osgEarthFeatures/FeatureModelLayer>
 
 #include <osgEarthAnnotation/CircleNode>
 #include <osgEarthAnnotation/RectangleNode>
@@ -170,6 +171,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureProfile)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::Feature)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelLayer)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Annotation::AnnotationNode)
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
@@ -1145,6 +1147,35 @@ bool writePrettyHTMLImpl<osgEarth::VideoLayer>::process(std::basic_ostream<char>
             callNextHandler(os);
 
             os << "<tr><td>texture</td><td>" << getObjectNameAndType(object->getTexture()) << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Features::FeatureModelLayer>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Features::FeatureModelLayer* object = getObject<osgEarth::Features::FeatureModelLayer, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add terrain layer properties first
+            callNextHandler(os);
+
+            os << "<tr><td>node</td><td>" << getObjectNameAndType(object->getNode()) << "</td></tr>" << std::endl;
+            os << "<tr><td>featureSource</td><td>" << getObjectNameAndType(object->getFeatureSource()) << "</td></tr>" << std::endl;
 
             if (_table)
                 os << "</table>" << std::endl;

@@ -2206,6 +2206,10 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureModelLayer>::build(IObjectTr
             SGIHostItemOsg node(object->getNode());
             if(node.hasObject())
                 treeItem->addChild("Node", &node);
+
+            SGIHostItemOsg featureSource(object->getFeatureSource());
+            if (featureSource.hasObject())
+                treeItem->addChild("FeatureSource", &featureSource);
         }
         break;
     default:
