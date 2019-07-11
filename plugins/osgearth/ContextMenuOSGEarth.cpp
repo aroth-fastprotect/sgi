@@ -21,6 +21,8 @@
 #include <osgEarth/LineDrawable>
 #endif
 
+#include <osgEarthFeatures/FeatureModelLayer>
+
 //#include <osgEarth/TimeControl>
 #include "SGIItemOsgEarth"
 
@@ -69,6 +71,8 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(TileKeyReferenced)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::RTTPicker)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::EarthManipulator)
+
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelLayer)
 
 bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
 {
@@ -1146,6 +1150,30 @@ bool contextMenuPopulateImpl<osgEarth::Util::EarthManipulator>::populate(IContex
         ret = callNextHandler(menuItem);
         if (ret)
         {
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osgEarth::Features::FeatureModelLayer>::populate(IContextMenuItem* menuItem)
+{
+    osgEarth::Features::FeatureModelLayer* object = getObject<osgEarth::Features::FeatureModelLayer, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            SGIHostItemOsg featureSource(object->getFeatureSource());
+            if (featureSource.hasObject())
+                menuItem->addMenu("FeatureSource", &featureSource);
+
+            menuItem->addSimpleAction(MenuActionFeatureModelLayerDirty, "Dirty", _item);
         }
         break;
     default:

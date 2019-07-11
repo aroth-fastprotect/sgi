@@ -388,11 +388,20 @@ SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::ConfigOptions)
     osgEarth::TerrainLayerOptions, osgEarth::ModelLayerOptions, osgEarth::MapOptions,
-    osgEarth::MapNodeOptions, osgEarth::ProfileOptions, osgEarth::DriverConfigOptions
+    osgEarth::MapNodeOptions, osgEarth::ProfileOptions, osgEarth::DriverConfigOptions,
+    osgEarth::LayerOptions
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     , osgEarth::Features::GeometryCompilerOptions
     , osgEarth::ScreenSpaceLayoutOptions
 #endif
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::LayerOptions)
+    osgEarth::VisibleLayerOptions
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::VisibleLayerOptions)
+    osgEarth::TerrainLayerOptions
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::TerrainLayerOptions)

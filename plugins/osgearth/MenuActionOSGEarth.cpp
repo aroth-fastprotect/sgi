@@ -30,6 +30,8 @@
 #include <osgEarth/LineDrawable>
 #endif
 
+#include <osgEarthFeatures/FeatureModelLayer>
+
 #include "SGIItemOsgEarth"
 #include "osgearth_accessor.h"
 #include "SettingsDialogOSGEarth.h"
@@ -117,6 +119,8 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetStipplePattern
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetStippleFactor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetColor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLightSettings)
+
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionFeatureModelLayerDirty)
 
 using namespace sgi::osg_helpers;
 
@@ -1101,6 +1105,13 @@ bool actionHandlerImpl<MenuActionLightSettings>::execute()
     return openSettingsDialog(SettingsDialogLightSettings);
 }
 
+
+bool actionHandlerImpl<MenuActionFeatureModelLayerDirty>::execute()
+{
+    osgEarth::Features::FeatureModelLayer * object = getObject<osgEarth::Features::FeatureModelLayer, SGIItemOsg>();
+    object->dirty();
+    return true;
+}
 
 } // namespace osgearth_plugin
 } // namespace sgi

@@ -2210,6 +2210,19 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureModelLayer>::build(IObjectTr
             SGIHostItemOsg featureSource(object->getFeatureSource());
             if (featureSource.hasObject())
                 treeItem->addChild("FeatureSource", &featureSource);
+
+            SGIHostItemOsg createFeatureNodeFactoryCallback(object->getCreateFeatureNodeFactoryCallback());
+            if (createFeatureNodeFactoryCallback.hasObject())
+                treeItem->addChild("CreateFeatureNodeFactoryCallback", &createFeatureNodeFactoryCallback);
+        }
+        break;
+    case SGIItemTypeCallbacks:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            SGIHostItemOsg createFeatureNodeFactoryCallback(object->getCreateFeatureNodeFactoryCallback());
+            if (createFeatureNodeFactoryCallback.hasObject())
+                treeItem->addChild("CreateFeatureNodeFactoryCallback", &createFeatureNodeFactoryCallback);
         }
         break;
     default:

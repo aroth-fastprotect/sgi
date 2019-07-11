@@ -1176,6 +1176,7 @@ bool writePrettyHTMLImpl<osgEarth::Features::FeatureModelLayer>::process(std::ba
 
             os << "<tr><td>node</td><td>" << getObjectNameAndType(object->getNode()) << "</td></tr>" << std::endl;
             os << "<tr><td>featureSource</td><td>" << getObjectNameAndType(object->getFeatureSource()) << "</td></tr>" << std::endl;
+            os << "<tr><td>createFeatureNodeFactoryCallback</td><td>" << getObjectNameAndType(object->getCreateFeatureNodeFactoryCallback()) << "</td></tr>" << std::endl;
 
             if (_table)
                 os << "</table>" << std::endl;
