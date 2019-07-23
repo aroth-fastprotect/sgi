@@ -126,33 +126,37 @@ bool objectTreeBuildImpl<QObject>::build(IObjectTreeItem * treeItem)
                     const char *typeName = metaproperty.typeName();
                     QVariant value = object->property(name);
 
-                    if(value.canConvert<QObject*>())
+                    if(value.type() == QMetaType::QObjectStar)
                     {
                         std::stringstream ss;
                         ss << metaObject->className() << "::" << name;
                         SGIHostItemQt item(value.value<QObject*>());
-                        treeItem->addChild(ss.str(), &item);
+                        if(item.hasObject())
+                            treeItem->addChild(ss.str(), &item);
                     }
                     else if(value.canConvert<QIcon>())
                     {
                         std::stringstream ss;
                         ss << metaObject->className() << "::" << name;
                         SGIHostItemQtIcon item(value.value<QIcon>());
-                        treeItem->addChild(ss.str(), &item);
+                        if (item.hasObject())
+                            treeItem->addChild(ss.str(), &item);
                     }
                     else if(value.canConvert<QBitmap>())
                     {
                         std::stringstream ss;
                         ss << metaObject->className() << "::" << name;
                         SGIHostItemQtPaintDevice item(value.value<QBitmap>());
-                        treeItem->addChild(ss.str(), &item);
+                        if (item.hasObject())
+                            treeItem->addChild(ss.str(), &item);
                     }
                     else if(value.canConvert<QImage>())
                     {
                         std::stringstream ss;
                         ss << metaObject->className() << "::" << name;
                         SGIHostItemQtPaintDevice item(value.value<QImage>());
-                        treeItem->addChild(ss.str(), &item);
+                        if (item.hasObject())
+                            treeItem->addChild(ss.str(), &item);
                     }
                 }
                 metaObject = metaObject->superClass();

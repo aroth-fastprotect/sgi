@@ -325,6 +325,8 @@ namespace std {
         case QVariant::PolygonF: os << v.value<QPolygonF>(); break;
         case QVariant::Icon: os << v.value<QIcon>(); break;
         case QVariant::SizePolicy: os << v.value<QSizePolicy>(); break;
+        case (QVariant::Type)QMetaType::QObjectStar: os << v.value<QObject*>(); break;
+        case QVariant::UserType: os << QString("Unknown user type %1: %2").arg(v.userType()).arg(v.toString()); break;
         default: os << QString("Unknown type %1: %2").arg(v.type()).arg(v.toString()); break;
         }
         return os;
