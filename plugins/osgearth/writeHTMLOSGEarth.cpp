@@ -4466,6 +4466,15 @@ bool writePrettyHTMLImpl<osgEarth::Symbology::InstanceSymbol>::process(std::basi
 
         callNextHandler(os);
 
+        os << "<tr><td>url</td><td>" << object->url() << "</td></tr>" << std::endl;
+        os << "<tr><td>library</td><td>" << object->library() << "</td></tr>" << std::endl;
+        os << "<tr><td>placement</td><td>" << object->placement() << "</td></tr>" << std::endl;
+        os << "<tr><td>density</td><td>" << object->density() << "</td></tr>" << std::endl;
+        os << "<tr><td>scale</td><td>" << object->scale() << "</td></tr>" << std::endl;
+        os << "<tr><td>randomSeed</td><td>" << object->randomSeed() << "</td></tr>" << std::endl;
+        //os << "<tr><td>uriAliasMap</td><td>" << object->uriAliasMap() << "</td></tr>" << std::endl;
+        os << "<tr><td>script</td><td>" << object->script() << "</td></tr>" << std::endl;
+
         if (_table)
             os << "</table>" << std::endl;
         ret = true;
@@ -4490,6 +4499,13 @@ bool writePrettyHTMLImpl<osgEarth::Symbology::AltitudeSymbol>::process(std::basi
             os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
         callNextHandler(os);
+
+        os << "<tr><td>clamping</td><td>" << object->clamping() << "</td></tr>" << std::endl;
+        os << "<tr><td>technique</td><td>" << object->technique() << "</td></tr>" << std::endl;
+        os << "<tr><td>clampingResolution</td><td>" << object->clampingResolution() << "</td></tr>" << std::endl;
+        os << "<tr><td>binding</td><td>" << object->binding() << "</td></tr>" << std::endl;
+        os << "<tr><td>verticalOffset</td><td>" << object->verticalOffset() << "</td></tr>" << std::endl;
+        os << "<tr><td>verticalScale</td><td>" << object->verticalScale() << "</td></tr>" << std::endl;
 
         if (_table)
             os << "</table>" << std::endl;
