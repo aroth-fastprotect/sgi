@@ -60,6 +60,16 @@
 #include <osgEarthFeatures/FeatureModelSource>
 #include <osgEarthFeatures/FeatureModelLayer>
 
+#include <osgEarthSymbology/Style>
+
+#include <osgEarthSymbology/BillboardSymbol>
+#include <osgEarthSymbology/AltitudeSymbol>
+#include <osgEarthSymbology/IconSymbol>
+#include <osgEarthSymbology/TextSymbol>
+
+#include <osgEarthSymbology/IconResource>
+#include <osgEarthSymbology/BillboardResource>
+
 #include <osgEarthAnnotation/CircleNode>
 #include <osgEarthAnnotation/RectangleNode>
 #include <osgEarthAnnotation/EllipseNode>
@@ -187,6 +197,16 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Annotation::CircleNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Annotation::EllipseNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Annotation::RectangleNode)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Annotation::ModelNode)
+
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::Style)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::StyleSelector)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::StyleSheet)
+
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::InstanceSymbol)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::AltitudeSymbol)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::TextSymbol)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::IconSymbol)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::BillboardSymbol)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Image)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::PagedLOD)
@@ -750,7 +770,7 @@ bool writePrettyHTMLImpl<osgEarth::Layer>::process(std::basic_ostream<char>& os)
             if (cfg.empty())
                 os << "<i>empty</i>";
             else
-                os << "<pre>" << helpers::html_encode(cfg.toJSON(true)) << "</pre>";
+                os << "<pre>See Config item</pre>";
             os << "</td></tr>" << std::endl;
             os << "<tr><td>readOptions</td><td>" << getObjectNameAndType(object->getReadOptions()) << "</td></tr>" << std::endl;
             os << "<tr><td>cacheSettings</td><td>" << getObjectNameAndType(object->getCacheSettings()) << "</td></tr>" << std::endl;
@@ -4289,6 +4309,298 @@ bool writePrettyHTMLImpl<osgEarth::Annotation::ModelNode>::process(std::basic_os
             ret = true;
         }
         break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Symbology::Style>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Symbology::Style* object = getObject<osgEarth::Symbology::Style, SGIItemEarthStyle>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
+            os << "<tr><td>empty</td><td>" << (object->empty() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>config</td><td>";
+            osgEarth::Config cfg = object->getConfig();
+            if (cfg.empty())
+                os << "<i>empty</i>";
+            else
+                os << "<pre>See Config item</pre>";
+            os << "</td></tr>";
+
+            os << "<tr><td>symbols</td><td><ul>";
+            for (const auto symbol : object->symbols())
+            {
+                os << "<li>" << getObjectNameAndType(symbol.get()) << "</li>" << std::endl;
+            }
+            os << "</ul></td></tr>";
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeConfig:
+        {
+            osgEarth::Config config = object->getConfig();
+            if (config.empty())
+                os << "<i>empty</i>";
+            else
+                os << "<pre>" << helpers::html_encode(config.toJSON(true)) << "</pre>";
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Symbology::StyleSelector>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Symbology::StyleSelector* object = getObject<osgEarth::Symbology::StyleSelector, SGIItemEarthStyleSelector>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>name</td><td>" << object->name() << "</td></tr>" << std::endl;
+            os << "<tr><td>styleName</td><td>" << object->styleName() << "</td></tr>" << std::endl;
+            os << "<tr><td>styleExpression</td><td>" << object->styleExpression() << "</td></tr>" << std::endl;
+            os << "<tr><td>query</td><td>" << object->query() << "</td></tr>" << std::endl;
+            os << "<tr><td>selectedStyleName</td><td>" << object->getSelectedStyleName() << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeConfig:
+        {
+            osgEarth::Config config = object->getConfig();
+            if (config.empty())
+                os << "<i>empty</i>";
+            else
+                os << "<pre>" << helpers::html_encode(config.toJSON(true)) << "</pre>";
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Symbology::StyleSheet>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Symbology::StyleSheet* object = getObject<osgEarth::Symbology::StyleSheet, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            callNextHandler(os);
+
+            os << "<tr><td>name</td><td>" << object->name() << "</td></tr>" << std::endl;
+            os << "<tr><td>uriContext</td><td>" << object->uriContext() << "</td></tr>" << std::endl;
+            os << "<tr><td>styles</td><td><ul>";
+            for (const auto & style : object->styles())
+            {
+                os << "<li>" << style.first << "=" << (void*)&style.second << "</li>" << std::endl;
+            }
+            os << "</ul></td></tr>";
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeChilds:
+        {
+            os << "<ul>";
+            for (const auto & style : object->styles())
+            {
+                os << "<li>" << style.first << "=" << (void*)& style.second << "</li>" << std::endl;
+            }
+            os << "</ul>";
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Symbology::InstanceSymbol>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Symbology::InstanceSymbol* object = getObject<osgEarth::Symbology::InstanceSymbol, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        callNextHandler(os);
+
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Symbology::AltitudeSymbol>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Symbology::AltitudeSymbol* object = getObject<osgEarth::Symbology::AltitudeSymbol, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        callNextHandler(os);
+
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Symbology::TextSymbol>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Symbology::TextSymbol* object = getObject<osgEarth::Symbology::TextSymbol, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        callNextHandler(os);
+
+        //os << "<tr><td>fill</td><td>" << (int)object->fill() << "</td></tr>" << std::endl;
+        //os << "<tr><td>halo</td><td>" << object->halo() << "</td></tr>" << std::endl;
+        os << "<tr><td>haloOffset</td><td>" << object->haloOffset() << "</td></tr>" << std::endl;
+        os << "<tr><td>haloBackdropType</td><td>" << object->haloBackdropType() << "</td></tr>" << std::endl;
+        os << "<tr><td>haloImplementation</td><td>" << object->haloImplementation() << "</td></tr>" << std::endl;
+        os << "<tr><td>font</td><td>" << object->font() << "</td></tr>" << std::endl;
+        os << "<tr><td>content</td><td>" << object->content() << "</td></tr>" << std::endl;
+        os << "<tr><td>priority</td><td>" << object->priority() << "</td></tr>" << std::endl;
+        os << "<tr><td>size</td><td>" << object->size() << "</td></tr>" << std::endl;
+        os << "<tr><td>pixelOffset</td><td>" << object->pixelOffset() << "</td></tr>" << std::endl;
+        os << "<tr><td>onScreenRotation</td><td>" << object->onScreenRotation() << "</td></tr>" << std::endl;
+        os << "<tr><td>geographicCourse</td><td>" << object->geographicCourse() << "</td></tr>" << std::endl;
+        os << "<tr><td>alignment</td><td>" << object->alignment() << "</td></tr>" << std::endl;
+        os << "<tr><td>layout</td><td>" << object->layout() << "</td></tr>" << std::endl;
+        os << "<tr><td>declutter</td><td>" << object->declutter() << "</td></tr>" << std::endl;
+        os << "<tr><td>occlusionCull</td><td>" << object->occlusionCull() << "</td></tr>" << std::endl;
+        os << "<tr><td>occlusionCullAltitude</td><td>" << object->occlusionCullAltitude() << "</td></tr>" << std::endl;
+        os << "<tr><td>provider</td><td>" << object->provider() << "</td></tr>" << std::endl;
+        os << "<tr><td>encoding</td><td>" << object->encoding() << "</td></tr>" << std::endl;
+
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Symbology::IconSymbol>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Symbology::IconSymbol* object = getObject<osgEarth::Symbology::IconSymbol, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        callNextHandler(os);
+
+        os << "<tr><td>alignment</td><td>" << object->alignment() << "</td></tr>" << std::endl;
+        os << "<tr><td>heading</td><td>" << object->heading() << "</td></tr>" << std::endl;
+        os << "<tr><td>declutter</td><td>" << object->declutter() << "</td></tr>" << std::endl;
+        os << "<tr><td>occlusionCull</td><td>" << object->occlusionCull() << "</td></tr>" << std::endl;
+        os << "<tr><td>occlusionCullAltitude</td><td>" << object->occlusionCullAltitude() << "</td></tr>" << std::endl;
+
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Symbology::BillboardSymbol>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Symbology::BillboardSymbol* object = getObject<osgEarth::Symbology::BillboardSymbol, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        callNextHandler(os);
+
+        os << "<tr><td>topURL</td><td>" << object->topURL() << "</td></tr>" << std::endl;
+        os << "<tr><td>width</td><td>" << object->width() << "</td></tr>" << std::endl;
+        os << "<tr><td>height</td><td>" << object->height() << "</td></tr>" << std::endl;
+
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
     default:
         ret = callNextHandler(os);
         break;

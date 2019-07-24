@@ -49,6 +49,9 @@
 #include <osgEarthFeatures/FeatureSourceLayer>
 #include <osgEarthFeatures/FeatureModelLayer>
 #endif
+#include <osgEarthFeatures/FeatureModelGraph>
+
+#include <osgEarthSymbology/Style>
 
 #include <osgEarthDrivers/cache_filesystem/FileSystemCache>
 #include <osgEarthDrivers/tms/TMSOptions>
@@ -123,6 +126,11 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSour
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSourceLayer)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelLayer)
 #endif
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelGraph)
+
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::Style)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::StyleSelector)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::StyleSheet)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Config)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ConfigOptions)
@@ -2233,6 +2241,33 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureModelLayer>::build(IObjectTr
 }
 #endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 
+bool objectTreeBuildImpl<osgEarth::Features::FeatureModelGraph>::build(IObjectTreeItem* treeItem)
+{
+    osgEarth::Features::FeatureModelGraph* object = getObject<osgEarth::Features::FeatureModelGraph, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+
+            SGIHostItemOsg session(object->getSession());
+            if (session.hasObject())
+                treeItem->addChild("Session", &session);
+
+            SGIHostItemOsg styles(object->getStyles());
+            if (styles.hasObject())
+                treeItem->addChild("Styles", &styles);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
 bool objectTreeBuildImpl<osgEarth::Config>::build(IObjectTreeItem * treeItem)
 {
     osgEarth::Config * object = getObject<osgEarth::Config,SGIItemEarthConfig>();
@@ -2351,6 +2386,108 @@ bool objectTreeBuildImpl<osgEarth::Drivers::FeatureGeomModelOptions>::build(IObj
     return ret;
 }
 
+bool objectTreeBuildImpl<osgEarth::Symbology::Style>::build(IObjectTreeItem* treeItem)
+{
+    osgEarth::Symbology::Style* object = getObject<osgEarth::Symbology::Style, SGIItemEarthStyle>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            treeItem->addChild("Config", cloneItem<SGIItemOsg>(SGIItemTypeConfig));
+            for(const auto symbol : object->symbols())
+            {
+                SGIHostItemOsg item(symbol.get());
+                if (item.hasObject())
+                    treeItem->addChild(std::string(), &item);
+            }
+            ret = true;
+        }
+        break;
+    case SGIItemTypeConfig:
+        ret = true;
+        break;
+    default:
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osgEarth::Symbology::StyleSelector>::build(IObjectTreeItem* treeItem)
+{
+    osgEarth::Symbology::StyleSelector* object = getObject<osgEarth::Symbology::StyleSelector, SGIItemEarthStyleSelector>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            treeItem->addChild("Config", cloneItem<SGIItemOsg>(SGIItemTypeConfig));
+            ret = true;
+        }
+        break;
+    case SGIItemTypeConfig:
+        ret = true;
+        break;
+    default:
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osgEarth::Symbology::StyleSheet>::build(IObjectTreeItem* treeItem)
+{
+    osgEarth::Symbology::StyleSheet* object = getObject<osgEarth::Symbology::StyleSheet, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsgEarthStyle defaultStyle(object->getDefaultStyle());
+            if (defaultStyle.hasObject())
+                treeItem->addChild("DefaultStyle", &defaultStyle);
+
+            SGIHostItemOsg defaultResourceLibrary(object->getDefaultResourceLibrary());
+            if (defaultResourceLibrary.hasObject())
+                treeItem->addChild("DefaultResourceLibrary", &defaultResourceLibrary);
+
+            const auto & styles = object->styles();
+            treeItem->addChild(helpers::str_plus_count("Styles", styles.size()), cloneItem<SGIItemOsg>(SGIItemTypeChilds));
+
+            const auto & selectors = object->selectors();
+            treeItem->addChild(helpers::str_plus_count("Selectors", selectors.size()), cloneItem<SGIItemOsg>(SGIItemTypeSelectors));
+
+        }
+        break;
+    case SGIItemTypeChilds:
+        {
+            for(const auto & style : object->styles())
+            {
+                SGIHostItemOsgEarthStyle item(&style.second);
+                if (item.hasObject())
+                    treeItem->addChild(style.first, &item);
+            }
+            ret = true;
+        }
+        break;
+    case SGIItemTypeSelectors:
+        {
+            for(const auto & selector : object->selectors())
+            {
+                SGIHostItemOsgEarthStyleSelector item(&selector);
+                if (item.hasObject())
+                    treeItem->addChild(std::string(), &item);
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
 OBJECT_TREE_BUILD_ROOT_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 
 struct RegistrySingleton

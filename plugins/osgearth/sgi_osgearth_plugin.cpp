@@ -39,6 +39,7 @@
 #include <osgEarth/PatchLayer>
 #include <osgEarth/VideoLayer>
 #include <osgEarthFeatures/FeatureModelLayer>
+#include <osgEarthFeatures/FeatureModelGraph>
 #include <osgEarthFeatures/FeatureMaskLayer>
 #include <osgEarthFeatures/ImageToFeatureLayer>
 //#include <osgEarthUtil/FlatteningLayer>
@@ -77,6 +78,14 @@
 
 #include <osgEarthFeatures/FeatureModelSource>
 #include <osgEarthFeatures/FeatureTileSource>
+
+#include <osgEarthSymbology/BillboardSymbol>
+#include <osgEarthSymbology/AltitudeSymbol>
+#include <osgEarthSymbology/IconSymbol>
+#include <osgEarthSymbology/TextSymbol>
+
+#include <osgEarthSymbology/IconResource>
+#include <osgEarthSymbology/BillboardResource>
 
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 #include <osgEarthAnnotation/Decoration>
@@ -125,6 +134,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osgEarth::StateSetCache,
     osgEarth::NodeOperation,
     osgEarth::Features::FeatureCursor, osgEarth::Features::FeatureProfile,
+    osgEarth::Symbology::StyleSheet,
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::Annotation::Decoration,
 #endif
@@ -156,6 +166,9 @@ SGI_OBJECT_INFO_BEGIN(osg::Object)
     osgEarth::Extension,
     osgEarth::Features::FeatureSource,
     osgEarth::Features::Feature,
+    osgEarth::Symbology::Symbol,
+    osgEarth::Symbology::Taggable<osg::Object>,
+    osgEarth::Symbology::Symbol,
     osg::Node, osg::StateAttribute, osg::BufferData
 SGI_OBJECT_INFO_END()
 
@@ -195,6 +208,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Group)
     osgEarth::Util::SkyNode,
     osgEarth::Util::Controls::Control, osgEarth::Util::Controls::ControlCanvas,
     osgEarth::Util::Controls::ControlNodeBin,
+    osgEarth::Features::FeatureModelGraph,
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::Annotation::AnnotationNode,
 #endif
@@ -453,6 +467,35 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::InjectionDecoration)
 SGI_OBJECT_INFO_END()
 #endif
 
+SGI_OBJECT_INFO_BEGIN(osgEarth::Symbology::Style)
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::Symbology::StyleSelector)
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::Symbology::Taggable<osg::Object>)
+    osgEarth::Symbology::Resource
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::Symbology::Resource)
+    osgEarth::Symbology::InstanceResource
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::Symbology::InstanceResource)
+    osgEarth::Symbology::IconResource,
+    osgEarth::Symbology::BillboardResource
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::Symbology::Symbol)
+    osgEarth::Symbology::InstanceSymbol,
+    osgEarth::Symbology::AltitudeSymbol,
+    osgEarth::Symbology::TextSymbol
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(osgEarth::Symbology::InstanceSymbol)
+    osgEarth::Symbology::IconSymbol,
+    osgEarth::Symbology::BillboardSymbol
+SGI_OBJECT_INFO_END()
+
 namespace sgi {
 namespace osgearth_plugin {
 
@@ -479,7 +522,7 @@ GENERATE_IMPL_NO_ACCEPT(osg::Image)
 GENERATE_IMPL_NO_ACCEPT(osgDB::ReaderWriter)
 
 
-typedef generateItemImplT<generateItemAcceptImpl, SGIItemOsg, SGIItemEarthConfig, SGIItemEarthConfigOptions, SGIItemInternal> generateItemImpl;
+typedef generateItemImplT<generateItemAcceptImpl, SGIItemOsg, SGIItemEarthConfig, SGIItemEarthConfigOptions, SGIItemEarthStyle, SGIItemEarthStyleSelector, SGIItemInternal> generateItemImpl;
 
 typedef SGIPluginImplementationT<       generateItemImpl,
                                         writePrettyHTMLImpl,
@@ -546,6 +589,8 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeGeoHeightfield);
         SGIITEMTYPE_NAME(SGIItemTypeFeatureSourceFeatures);
         SGIITEMTYPE_NAME(SGIItemTypeStyle);
+        SGIITEMTYPE_NAME(SGIItemTypeSelectors);
+        SGIITEMTYPE_NAME(SGIItemTypeResourceLibraries);
     }
     SGIPlugin_osgearth_Implementation(const SGIPlugin_osgearth_Implementation & rhs)
         : osgearth_plugin::SGIPluginImpl(rhs)
