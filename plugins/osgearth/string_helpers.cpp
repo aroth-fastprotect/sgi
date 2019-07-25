@@ -177,6 +177,25 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     return os;
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Units& t)
+{
+    return os << t.getAbbr();
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::Fill& t)
+{
+    return os << t.color();
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::Stroke& t)
+{
+    /// @todo add remaining stroke parameters 
+    return os << '{' << t.color() << ',' << t.width() << t.widthUnits() << '}';
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::DepthOffsetOptions& opts)
+{
+    return os << opts.enabled() << " auto=" << opts.automatic() << " bias=" << opts.minBias() << '/' << opts.maxBias() << " range=" << opts.minRange() << '/' << opts.maxRange();
+}
+
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::FadeOptions & opts)
 {
     return os << std::setprecision(12) << "duration=" << opts.duration() << " maxRange=" << opts.maxRange() << " attenuationDistance=" << opts.attenuationDistance();;

@@ -34,6 +34,8 @@ namespace osgEarth {
     class URI;
     class URIContext;
     class GeoPoint;
+    class Units;
+    class DepthOffsetOptions;
 
     class ProfileOptions;
     class CacheOptions;
@@ -46,6 +48,8 @@ namespace osgEarth {
         class NumericExpression;
         class StringExpression;
         class Query;
+        class Fill;
+        class Stroke;
     }
     class FadeOptions;
 
@@ -118,7 +122,11 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::NumericExpression & expr);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::StringExpression & expr);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::Query& query);
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Units& t);
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::Fill& t);
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::Stroke& t);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::FadeOptions & opts);
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::DepthOffsetOptions& opts);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Features::FeatureSourceIndexOptions & opts);
 
 } // namespace std

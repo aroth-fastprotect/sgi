@@ -83,6 +83,7 @@
 #include <osgEarthSymbology/AltitudeSymbol>
 #include <osgEarthSymbology/IconSymbol>
 #include <osgEarthSymbology/TextSymbol>
+#include <osgEarthSymbology/RenderSymbol>
 
 #include <osgEarthSymbology/IconResource>
 #include <osgEarthSymbology/BillboardResource>
@@ -489,10 +490,16 @@ SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osgEarth::Symbology::Symbol)
     osgEarth::Symbology::InstanceSymbol,
     osgEarth::Symbology::AltitudeSymbol,
-    osgEarth::Symbology::TextSymbol
+    osgEarth::Symbology::TextSymbol,
+    osgEarth::Symbology::RenderSymbol,
+    osgEarth::Symbology::ExtrusionSymbol,
+    osgEarth::Symbology::LineSymbol,
+    osgEarth::Symbology::PointSymbol,
+    osgEarth::Symbology::PolygonSymbol
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osgEarth::Symbology::InstanceSymbol)
     osgEarth::Symbology::IconSymbol,
+    osgEarth::Symbology::ModelSymbol,
     osgEarth::Symbology::BillboardSymbol
 SGI_OBJECT_INFO_END()
 
