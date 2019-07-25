@@ -135,6 +135,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osgEarth::StateSetCache,
     osgEarth::NodeOperation,
     osgEarth::Features::FeatureCursor, osgEarth::Features::FeatureProfile,
+    osgEarth::Features::FeatureDisplayLayout,
     osgEarth::Symbology::StyleSheet,
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::Annotation::Decoration,

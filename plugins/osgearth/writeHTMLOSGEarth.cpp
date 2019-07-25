@@ -59,6 +59,8 @@
 #endif
 #include <osgEarthFeatures/FeatureModelSource>
 #include <osgEarthFeatures/FeatureModelLayer>
+#include <osgEarthFeatures/FeatureModelGraph>
+#include <osgEarthFeatures/FeatureDisplayLayout>
 
 #include <osgEarthSymbology/Style>
 
@@ -183,6 +185,8 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSour
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::Feature)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelLayer)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelGraph)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureDisplayLayout)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Annotation::AnnotationNode)
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
@@ -1208,6 +1212,125 @@ bool writePrettyHTMLImpl<osgEarth::Features::FeatureModelLayer>::process(std::ba
 
             if (_table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Features::FeatureModelGraph>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Features::FeatureModelGraph* object = getObject<osgEarth::Features::FeatureModelGraph, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add terrain layer properties first
+            callNextHandler(os);
+
+            os << "<tr><td>session</td><td>" << getObjectNameAndType(object->getSession()) << "</td></tr>" << std::endl;
+            os << "<tr><td>styles</td><td>" << getObjectNameAndType(object->getStyles()) << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeChilds:
+        {
+            const auto& levels = object->getLevels();
+            if(itemNumber() == ~0u)
+            {
+                os << "<ol>";
+                for(unsigned i = 0; i < levels.size(); ++i)
+                {
+                    const auto * level = levels[i];
+                    if (level)
+                        os << "<li>" << level->styleName() << " range=" << level->minRange() << '/' << level->maxRange() << "</li>";
+                    else
+                        os << "<li><i>null</i></li>";
+                }
+                os << "</ol>";
+            }
+            else if(itemNumber() << levels.size())
+            {
+                const auto* level = levels[itemNumber()];
+                if (level)
+                    os << level->styleName() << " range=" << level->minRange() << '/' << level->maxRange();
+                else
+                    os << "<i>null</i>";
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Features::FeatureDisplayLayout>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Features::FeatureDisplayLayout* object = getObject<osgEarth::Features::FeatureDisplayLayout, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add terrain layer properties first
+            callNextHandler(os);
+
+            os << "<tr><td>tileSize</td><td>" << object->tileSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>tileSizeFactor</td><td>" << object->tileSizeFactor() << "</td></tr>" << std::endl;
+            os << "<tr><td>maxRange</td><td>" << object->maxRange() << "</td></tr>" << std::endl;
+            os << "<tr><td>minRange</td><td>" << object->minRange() << "</td></tr>" << std::endl;
+            os << "<tr><td>cropFeatures</td><td>" << object->cropFeatures() << "</td></tr>" << std::endl;
+            os << "<tr><td>priorityOffset</td><td>" << object->priorityOffset() << "</td></tr>" << std::endl;
+            os << "<tr><td>priorityScale</td><td>" << object->priorityScale() << "</td></tr>" << std::endl;
+            os << "<tr><td>minExpiryTime</td><td>" << object->minExpiryTime() << "</td></tr>" << std::endl;
+            os << "<tr><td>paged</td><td>" << object->paged() << "</td></tr>" << std::endl;
+
+            if (_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeChilds:
+        {
+            unsigned numLevels = object->getNumLevels();
+            if(itemNumber() == ~0u)
+            {
+                os << "<ol>";
+                for(unsigned i = 0; i < numLevels; ++i)
+                {
+                    const auto * level = object->getLevel(i);
+                    if(level)
+                        os << "<li>" << level->styleName() << " range=" << level->minRange() << '/' << level->maxRange() << "</li>";
+                    else
+                        os << "<li><i>null</i></li>";
+                }
+                os << "</ol>";
+            }
+            else if(itemNumber() << numLevels)
+            {
+                const auto* level = object->getLevel(itemNumber());
+                if (level)
+                    os << level->styleName() << " range=" << level->minRange() << '/' << level->maxRange();
+                else
+                    os << "<i>null</i>";
+            }
             ret = true;
         }
         break;
