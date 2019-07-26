@@ -423,7 +423,7 @@ void SceneGraphDialog::showBesideParent()
 
 void SceneGraphDialog::onObjectChanged(int tabIndex, SGIItemBase * item)
 {
-    if (uiPage->item.get() == item)
+    if (uiPage && uiPage->item.get() == item)
         return;
     int existingTabIndex = tabIndex;
     for (int index = 0; item && existingTabIndex < 0 && index < (int)ui->tabs.size(); ++index)
@@ -986,6 +986,8 @@ void SceneGraphDialog::closeTab()
 {
     int index = ui->tabWidget->currentIndex();
     Ui_TabPage * page = ui->tabs[index];
+    if (uiPage == page)
+        uiPage = nullptr;
     delete page;
     ui->tabs.erase(ui->tabs.begin() + index);
     ui->tabWidget->removeTab(index);
