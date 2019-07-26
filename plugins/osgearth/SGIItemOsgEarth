@@ -68,7 +68,8 @@ enum SGIItemType_osgearth
     SGIItemTypeFeatureSourceFeatures,
     SGIItemTypeStyle,
     SGIItemTypeSelectors,
-    SGIItemTypeResourceLibraries
+    SGIItemTypeResourceLibraries,
+    SGIItemTypeLevels,
 };
 
 typedef SGIItemInfoPlainPtr<osgEarth::Config> SGIItemInfoOsgEarthConfig;

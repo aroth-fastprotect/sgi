@@ -2271,10 +2271,10 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureModelGraph>::build(IObjectTr
                 treeItem->addChild("Styles", &styles);
 
             const auto & levels = object->getLevels();
-            treeItem->addChild(helpers::str_plus_count("Levels", levels.size()), cloneItem<SGIItemOsg>(SGIItemTypeChilds, ~0u));
+            treeItem->addChild(helpers::str_plus_count("Levels", levels.size()), cloneItem<SGIItemOsg>(SGIItemTypeLevels, ~0u));
         }
         break;
-    case SGIItemTypeChilds:
+    case SGIItemTypeLevels:
         {
             if(itemNumber() == ~0u)
             {
@@ -2283,7 +2283,7 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureModelGraph>::build(IObjectTr
                 {
                     const auto * level = levels[i];
                     if(level)
-                        treeItem->addChild(helpers::str_plus_number("Level", i) + std::string(":") + level->styleName().value(), cloneItem<SGIItemOsg>(SGIItemTypeChilds, i));
+                        treeItem->addChild(helpers::str_plus_number("Level", i) + std::string(":") + level->styleName().value(), cloneItem<SGIItemOsg>(SGIItemTypeLevels, i));
                 }
             }
             ret = true;

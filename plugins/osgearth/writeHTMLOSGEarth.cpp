@@ -1244,7 +1244,7 @@ bool writePrettyHTMLImpl<osgEarth::Features::FeatureModelGraph>::process(std::ba
             ret = true;
         }
         break;
-    case SGIItemTypeChilds:
+    case SGIItemTypeLevels:
         {
             const auto& levels = object->getLevels();
             if(itemNumber() == ~0u)
