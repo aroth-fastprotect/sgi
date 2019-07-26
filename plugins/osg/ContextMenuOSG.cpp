@@ -1472,6 +1472,18 @@ bool contextMenuPopulateImpl<osgViewer::View>::populate(IContextMenuItem * menuI
             SGIHostItemOsg scene(object->getScene());
             if(scene.hasObject())
                 menuItem->addMenu("Scene", &scene);
+
+            SGIHostItemOsg databasePager(object->getDatabasePager());
+            if (databasePager.hasObject())
+                menuItem->addMenu("DatabasePager", &databasePager);
+
+            SGIHostItemOsg imagePager(object->getImagePager());
+            if (imagePager.hasObject())
+                menuItem->addMenu("ImagePager", &imagePager);
+
+            SGIHostItemOsg eventQueue(object->getEventQueue());
+            if (eventQueue.hasObject())
+                menuItem->addMenu("EventQueue", &eventQueue);
         }
         break;
     default:
