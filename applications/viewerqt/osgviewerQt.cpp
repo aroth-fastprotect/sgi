@@ -14,6 +14,7 @@
 #include <QThread>
 #include <QWindow>
 #include <QWidget>
+#include <QResizeEvent>
 #include <QDebug>
 
 #include <osg/ValueObject>
@@ -42,6 +43,7 @@
 #include <osgEarth/MapFrame>
 #include <osgEarth/Registry>
 #include <osgEarth/TerrainEngineNode>
+#include <osgEarth/GLUtils>
 
 #include <osgEarthUtil/ExampleResources>
 #include <osgEarthUtil/EarthManipulator>
@@ -57,6 +59,9 @@
 
 #ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
+#include <osgQt/GraphicsWindowQt5>
+
+#include "GraphicsWindowQt5.hxx"
 #endif
 
 #ifdef _WIN32
@@ -67,13 +72,6 @@
 #endif
 
 #include <sgi_viewer_base.h>
-
-#define GL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
-#define GL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
-#define GL_CONTEXT_DEBUG_BIT_ARB               0x0001
-#define GL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB  0x0002
-
-
 
 void setupWidgetAutoCloseTimer(QWidget * widget, int milliseconds)
 {
@@ -143,6 +141,7 @@ ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared)
     , _viewer(parent->_viewer)
     , _thread(nullptr)
     , _timer(nullptr)
+    , _helper(parent->_helper)
 {
     _mainGW = createGraphicsWindow(0,0,QMainWindow::width(),QMainWindow::height(), (shared)?parent->_mainGW.get():nullptr);
 
@@ -150,6 +149,13 @@ ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared)
     osgQt::GraphicsWindowQt* gwq = dynamic_cast<osgQt::GraphicsWindowQt*>(_mainGW.get());
     if(gwq)
         setCentralWidget(gwq->getGLWidget());
+    else
+    {
+        osgQt::GraphicsWindowQt5* gwqt5 = dynamic_cast<osgQt::GraphicsWindowQt5*>(_mainGW.get());
+        if (gwqt5) {
+            setCentralWidget(gwqt5->getOrCreateGLWidget());
+        }
+    }
 #endif
 
     _view = new osgViewer::View;
@@ -172,6 +178,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     , _thread(nullptr)
     , _timer(nullptr)
     , _viewWidget(nullptr)
+    , _helper(arguments)
 {
     int screenNum = -1;
     while (arguments.read("--screen", screenNum)) {}
@@ -183,22 +190,35 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     if (arguments.read("--use-main-thread"))
         useMainThread = true;
 
-    GLContextProfile glprofile = GLContextProfileNone;
-    std::string glver;
-    arguments.read("--glver", glver);
-    if (arguments.read("--core"))
-        glprofile = GLContextProfileCore;
-    if (arguments.read("--compat"))
-        glprofile = GLContextProfileCompatibility;
-
-    _viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::DrawThreadPerContext);
-
     // disable the default setting of viewer.done() by pressing Escape.
     _viewer->setKeyEventSetsDone(0);
+#if defined(OSG_GL3_AVAILABLE) && defined(SGI_USE_OSGEARTH)
+    _viewer->setRealizeOperation(new osgEarth::GL3RealizeOperation());
+#endif
 
-    _mainGW = createGraphicsWindow(0, 0, QMainWindow::width(), QMainWindow::height(), nullptr, glver, glprofile);
+    bool useQt5 = false;
+    if (arguments.read("--qt5"))
+        useQt5 = true;
+    bool useFlightgear = false;
+    if (arguments.read("--fg"))
+        useFlightgear = true;
 
-    _viewWidget = getWidgetForGraphicsWindow(_mainGW.get());
+    if(useFlightgear || useQt5)
+        _viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::SingleThreaded);
+    else
+        _viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::DrawThreadPerContext);
+
+    _mainGW = createGraphicsWindow(0, 0, QMainWindow::width(), QMainWindow::height(), nullptr, std::string(), false, useQt5, useFlightgear);
+
+    flightgear::GraphicsWindowQt5* gwqt5 = dynamic_cast<flightgear::GraphicsWindowQt5*>(_mainGW.get());
+    if (gwqt5)
+    {
+        QWindow * w = gwqt5->getGLWindow();
+        w->setProperty("sgi_skip_object", true);
+        _viewWidget = QWidget::createWindowContainer(w);
+    }
+    else
+        _viewWidget = getWidgetForGraphicsWindow(_mainGW.get());
     setCentralWidget(_viewWidget);
     if(_viewWidget)
         _viewWidget->setProperty("sgi_skip_object", true);
@@ -209,8 +229,8 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     camera->setGraphicsContext(_mainGW);
 
     const osg::GraphicsContext::Traits* traits = _mainGW ? _mainGW->getTraits() : nullptr;
-    int widget_width = traits ? traits->width : 100;
-    int widget_height = traits ? traits->height : 100;
+    int widget_width = traits ? traits->width : QMainWindow::width();
+    int widget_height = traits ? traits->height : QMainWindow::height();
     camera->setClearColor(osg::Vec4(0.2f, 0.2f, 0.6f, 1.0f));
     camera->setViewport(new osg::Viewport(0, 0, widget_width, widget_height));
     camera->setProjectionMatrixAsPerspective(30.0, static_cast<double>(widget_width) / static_cast<double>(widget_height), 1.0, 10000.0);
@@ -218,6 +238,10 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     camera->setDrawBuffer(buffer);
     camera->setReadBuffer(buffer);
 
+#if defined(SGI_USE_OSGEARTH)
+    // Sets up global default uniform values needed by osgEarth
+    osgEarth::GLUtils::setGlobalDefaults(camera->getOrCreateStateSet());
+#endif
 
     if (x >= 0 && y >= 0 && width >= 0 && height >= 0)
     {
@@ -226,7 +250,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     _viewer->addView(_view);
     _viewer->realize();
 
-    if (useMainThread)
+    if (useMainThread || useFlightgear || useQt5)
     {
         _timer = new QTimer(this);
         connect(_timer, &QTimer::timeout, this, &ViewerWidget::onTimer, Qt::DirectConnection);
@@ -244,7 +268,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
 ViewerWidget::~ViewerWidget()
 {
     delete _timer;
-    if (_thread->isRunning())
+    if (_thread && _thread->isRunning())
     {
         _thread->quit();
         _thread->wait();
@@ -280,10 +304,10 @@ void ViewerWidget::setData(osg::Node * node)
 
 osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int w, int h,
                                                                osg::GraphicsContext * sharedContext,
-                                                               const std::string& glver,
-                                                               GLContextProfile profile,
                                                                const std::string& name,
-                                                               bool windowDecoration)
+                                                               bool windowDecoration, 
+    bool useQt5,
+    bool useFlightgear)
 {
     osg::DisplaySettings* ds = osg::DisplaySettings::instance().get();
     osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
@@ -300,29 +324,42 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
     traits->samples = ds->getNumMultiSamples();
     traits->sharedContext = sharedContext;
 
-    switch(profile)
+    switch(_helper.glprofile)
     {
     default:
-    case GLContextProfileNone:
+    case sgi_MapNodeHelper::GLContextProfileNone:
         traits->glContextProfileMask = 0;
         break;
-    case GLContextProfileCore:
+    case sgi_MapNodeHelper::GLContextProfileCore:
         traits->glContextVersion = "3.3";
         traits->glContextProfileMask = GL_CONTEXT_CORE_PROFILE_BIT_ARB;
         traits->sampleBuffers = 1;
         break;
-    case GLContextProfileCompatibility:
+    case sgi_MapNodeHelper::GLContextProfileCompatibility:
         traits->glContextVersion = "3.3";
         traits->glContextProfileMask = GL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
         traits->sampleBuffers = 1;
         break;
     }
-    if(!glver.empty())
-        traits->glContextVersion = glver;
+    if(!_helper.glversion.empty())
+        traits->glContextVersion = _helper.glversion;
 
     osgViewer::GraphicsWindow* ret = nullptr;
 #ifdef SGI_USE_OSGQT
-    ret = new osgQt::GraphicsWindowQt(traits.get());
+    if(useQt5)
+    {
+        auto wqt5 = new osgQt::GraphicsWindowQt5(traits.get());
+        wqt5->setViewer(_viewer);
+        ret = wqt5;
+    }
+    else if (useFlightgear)
+    {
+        auto wqt5 = new flightgear::GraphicsWindowQt5(traits.get());
+        wqt5->setViewer(_viewer);
+        ret = wqt5;
+    }
+    else
+        ret = new osgQt::GraphicsWindowQt(traits.get());
 #else
     osg::GraphicsContext::WindowingSystemInterface* wsi = osg::GraphicsContext::getWindowingSystemInterface();
     if (!wsi)
@@ -335,13 +372,13 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
 #endif
     if(ret)
     {
-        switch(profile)
+        switch(_helper.glprofile)
         {
         default:
-        case GLContextProfileNone:
+        case sgi_MapNodeHelper::GLContextProfileNone:
             break;
-        case GLContextProfileCore:
-        case GLContextProfileCompatibility:
+        case sgi_MapNodeHelper::GLContextProfileCore:
+        case sgi_MapNodeHelper::GLContextProfileCompatibility:
 
             // for non GL3/GL4 and non GLES2 platforms we need enable the osg_ uniforms that the shaders will use,
             // you don't need thse two lines on GL3/GL4 and GLES2 specific builds as these will be enable by default.
@@ -353,10 +390,22 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
     return ret;
 }
 
+void ViewerWidget::showEvent(QShowEvent * event)
+{
+    QMainWindow::showEvent(event);
+    _viewWidget->updateGeometry();
+}
+
 void ViewerWidget::paintEvent( QPaintEvent* event )
 {
     QMainWindow::paintEvent(event);
     _viewer->frame();
+}
+
+void ViewerWidget::resizeEvent(QResizeEvent * event)
+{
+    QMainWindow::resizeEvent(event);
+    _viewWidget->updateGeometry();
 }
 
 CreateViewHandlerProxy::CreateViewHandlerProxy(CreateViewHandler * handler, QObject * parent)
@@ -504,7 +553,7 @@ main(int argc, char** argv)
     view->getCamera()->setNearFarRatio(0.00002);
     //view->getCamera()->setSmallFeatureCullingPixelSize(-1.0f);
 
-    sgi_MapNodeHelper helper;
+    sgi_MapNodeHelper & helper = myMainWindow->helper();
     // load an earth file, and support all or our example command-line options
     // and earth file <external> tags
     osg::Node* node = helper.load( arguments, view );
@@ -561,10 +610,12 @@ main(int argc, char** argv)
     }
     else
     {
-        delete myMainWindow;
-
         QString msg;
         msg = QString::fromStdString(helper.errorMessages());
+
+        // delete main window after taking the error message
+        delete myMainWindow;
+
         msg += "\r\nCmdline: ";
         for(int i = 0; i < argc; i++)
         {

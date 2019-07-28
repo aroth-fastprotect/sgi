@@ -192,6 +192,7 @@ SGI_QT_HELPER_EXPORT bool convertImageToQImage(const sgi::Image * image, sgi::Im
 
 namespace std {
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVariant & v);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& writeVariant(std::basic_ostream<char>& os, const QVariant & v, const QMetaProperty * property=nullptr);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QString& str);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QStringRef& str);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QBitArray& v);
@@ -201,6 +202,17 @@ namespace std {
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QTime& t);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QDateTime& date);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QLocale& l);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& colorBox(std::basic_ostream<char>& os, const QColor & color);
+
+    template<typename _CharT>
+    struct _QtColorBox
+    {
+        const QColor & _color;
+    };
+
+    template<typename _CharT> inline _QtColorBox<_CharT> colorBox(const QColor & color)
+        { return {color}; }
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const _QtColorBox<char>& color);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QColor& color);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSize & size);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSizeF & size);
@@ -225,6 +237,16 @@ namespace std {
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QCursor & c);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QKeySequence & k);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPen & p);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QTextLength & t);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QTextFormat & t);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMatrix & t);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QTransform & t);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMatrix4x4 & t);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVector2D & t);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVector3D & t);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVector4D & t);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPolygonF & p);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QIcon & i);
 
     template<typename T>
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QList<T> & list)

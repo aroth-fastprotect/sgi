@@ -50,6 +50,7 @@ namespace osgearth_plugin {
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionObjectInfo)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNotifyLevel)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeRegenerateShaders)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionNodeEditShaders)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMapCachePolicyUsage)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMapDebugImageLayer)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMapInspector)
@@ -74,7 +75,6 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTileSourceUpdateMetaData)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTileBlacklistClear)
 
-ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionSkyNodeLightSettings)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionSkyNodeSetDateTime)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionSkyNodeSetSunVisible)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionSkyNodeSetStarsVisible)
@@ -116,7 +116,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetLineWidth)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetStipplePattern)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetStippleFactor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetColor)
-
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLightSettings)
 
 using namespace sgi::osg_helpers;
 
@@ -298,11 +298,17 @@ bool actionHandlerImpl<MenuActionNotifyLevel>::execute()
     return true;
 }
 
+bool actionHandlerImpl<MenuActionNodeEditShaders>::execute()
+{
+    return openSettingsDialog(SettingsDialogShaderEditor);
+}
+
 bool actionHandlerImpl<MenuActionNodeRegenerateShaders>::execute()
 {
     osg::Node * object = getObject<osg::Node, SGIItemOsg>();
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
-    osgEarth::Registry::shaderGenerator().run(object, getObjectName(object));
+    osg::ref_ptr<osgEarth::StateSetCache> cache = new osgEarth::StateSetCache();
+    osgEarth::Registry::shaderGenerator().run(object, getObjectName(object), cache.get());
 #endif
     return true;
 }
@@ -373,16 +379,7 @@ bool actionHandlerImpl<MenuActionTerrainProfile>::execute()
 
 bool actionHandlerImpl<MenuActionTileInspector>::execute()
 {
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogTileInspector, menu()->parentWidget(), hostCallback());
-    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-    if(ret)
-    {
-        if(dialog.valid())
-            dialog->show();
-    }
-    return ret;
+    return openSettingsDialog(SettingsDialogTileInspector);
 }
 
 bool actionHandlerImpl<MenuActionImageLayerOpacity>::execute()
@@ -582,14 +579,6 @@ bool actionHandlerImpl<MenuActionTileBlacklistClear>::execute()
     return true;
 }
 
-bool actionHandlerImpl<MenuActionSkyNodeLightSettings>::execute()
-{
-    osgEarth::Util::SkyNode * object = getObject<osgEarth::Util::SkyNode, SGIItemOsg>();
-    /// @todo open settings dialog for sky/light
-    //object->clear();
-    return true;
-}
-
 bool actionHandlerImpl<MenuActionSkyNodeSetDateTime>::execute()
 {
     osgEarth::Util::SkyNode * object = getObject<osgEarth::Util::SkyNode, SGIItemOsg>();
@@ -621,16 +610,7 @@ bool actionHandlerImpl<MenuActionSkyNodeSetMoonVisible>::execute()
 
 bool actionHandlerImpl<MenuActionAutoClipPlaneCullCallbackSetup>::execute()
 {
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogAutoClipPlaneCullCallback, menu()->parentWidget(), hostCallback());
-    ret = _hostInterface->openSettingsDialog(dialog, _item, info);
-    if(ret)
-    {
-        if(dialog.valid())
-            dialog->show();
-    }
-    return ret;
+    return openSettingsDialog(SettingsDialogAutoClipPlaneCullCallback);
 }
 
 bool actionHandlerImpl<MenuActionAutoClipPlaneCullCallbackMinNearFarRatio>::execute()
@@ -739,16 +719,7 @@ bool actionHandlerImpl<MenuActionVirtualProgramLoggingFile>::execute()
 
 bool actionHandlerImpl<MenuActionElevationQueryCustom>::execute()
 {
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogRetrieveElevation, menu()->parentWidget(), hostCallback());
-    ret = _hostInterface->openSettingsDialog(dialog, _item.get(), info);
-    if(ret)
-    {
-        if(dialog.valid())
-            dialog->show();
-    }
-    return true;
+    return openSettingsDialog(SettingsDialogRetrieveElevation);
 }
 
 bool actionHandlerImpl<MenuActionControlDirty>::execute()
@@ -861,16 +832,7 @@ bool actionHandlerImpl<MenuActionTileKeyAdd>::execute()
 
 bool actionHandlerImpl<MenuActionLODScaleOverrideNodeLODScale>::execute()
 {
-    ISettingsDialogPtr dialog;
-    bool ret;
-    ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(SettingsDialogLODScaleOverride, menu()->parentWidget(), hostCallback());
-    ret = _hostInterface->openSettingsDialog(dialog, _item.get(), info);
-    if (ret)
-    {
-        if (dialog.valid())
-            dialog->show();
-    }
-    return true;
+    return openSettingsDialog(SettingsDialogLODScaleOverride);
 }
 
 namespace {
@@ -1132,6 +1094,12 @@ bool actionHandlerImpl<MenuActionLineDrawableSetColor>::execute()
     return true;
 }
 #endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+
+
+bool actionHandlerImpl<MenuActionLightSettings>::execute()
+{
+    return openSettingsDialog(SettingsDialogLightSettings);
+}
 
 
 } // namespace osgearth_plugin

@@ -1,0 +1,491 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ShaderEditorDialog</class>
+ <widget class="QMainWindow" name="ShaderEditorDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>685</width>
+    <height>487</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Edit Shader</string>
+  </property>
+  <property name="dockNestingEnabled">
+   <bool>true</bool>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QStackedWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>2</number>
+      </property>
+      <widget class="QWidget" name="tabProgram">
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Shader</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="progShader">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="progShaderAdd">
+            <property name="icon">
+             <iconset theme="list-add">
+              <normaloff>.</normaloff>.</iconset>
+            </property>
+            <property name="popupMode">
+             <enum>QToolButton::InstantPopup</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="progShaderRemove">
+            <property name="text">
+             <string>...</string>
+            </property>
+            <property name="icon">
+             <iconset theme="list-remove">
+              <normaloff>.</normaloff>.</iconset>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QTextEdit" name="progShaderCode">
+          <property name="lineWrapMode">
+           <enum>QTextEdit::NoWrap</enum>
+          </property>
+          <property name="tabStopWidth">
+           <number>40</number>
+          </property>
+          <property name="acceptRichText">
+           <bool>false</bool>
+          </property>
+          <property name="placeholderText">
+           <string>Enter your shader code here...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tabVirtualProgram">
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QCheckBox" name="vpInheritShaders">
+            <property name="text">
+             <string>Inherit from parent</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QCheckBox" name="vpLog">
+              <property name="text">
+               <string>Log</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="vpLogFile">
+              <property name="placeholderText">
+               <string>Log file</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Function</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="vpFunction">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="vpFunctionDetails">
+            <property name="text">
+             <string>...</string>
+            </property>
+            <property name="icon">
+             <iconset theme="view-list-details">
+              <normaloff>.</normaloff>.</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="vpFunctionAdd">
+            <property name="icon">
+             <iconset theme="list-add">
+              <normaloff>.</normaloff>.</iconset>
+            </property>
+            <property name="popupMode">
+             <enum>QToolButton::InstantPopup</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="vpFunctionRemove">
+            <property name="text">
+             <string>...</string>
+            </property>
+            <property name="icon">
+             <iconset theme="list-remove">
+              <normaloff>.</normaloff>.</iconset>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QTextEdit" name="vpShaderCode"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tabNoShader">
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Selected item does not use a shader.</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionCreateEmptyShader"/>
+   <addaction name="actionDebugTools"/>
+   <addaction name="actionSave"/>
+   <addaction name="actionReload"/>
+  </widget>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionCreateEmptyShader">
+   <property name="text">
+    <string>Create Empty Shader</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionReload">
+   <property name="text">
+    <string>Reload</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
+   </property>
+  </action>
+  <action name="actionDebugTools">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Debug</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>vpFunction</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>vpFunctionChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>198</x>
+     <y>90</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>185</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>vpFunctionRemove</sender>
+   <signal>clicked()</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>vpFunctionRemove()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>369</x>
+     <y>89</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>185</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>vpInheritShaders</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>vpInheritShaders(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>88</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>185</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>vpLog</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>vpLogChanged(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>162</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>vpLogFile</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>vpLogFile(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>282</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>vpFunctionDetails</sender>
+   <signal>clicked()</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>vpFunctionDetails()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>304</x>
+     <y>112</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>progShader</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>progShaderChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>307</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>317</x>
+     <y>191</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>progShaderAdd</sender>
+   <signal>clicked()</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>progShaderAdd()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>572</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>317</x>
+     <y>191</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>progShaderRemove</sender>
+   <signal>clicked()</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>progShaderRemove()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>601</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>317</x>
+     <y>191</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSave</sender>
+   <signal>triggered()</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>apply()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>342</x>
+     <y>243</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionCreateEmptyShader</sender>
+   <signal>triggered()</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>createEmptyShader()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>342</x>
+     <y>243</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionReload</sender>
+   <signal>triggered()</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>reload()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>342</x>
+     <y>243</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionDebugTools</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ShaderEditorDialog</receiver>
+   <slot>debugTools(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>342</x>
+     <y>243</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>vpFunctionChanged(int)</slot>
+  <slot>vpFunctionAdd()</slot>
+  <slot>vpFunctionRemove()</slot>
+  <slot>vpInheritShaders(bool)</slot>
+  <slot>vpLogChanged(bool)</slot>
+  <slot>vpLogFile(QString)</slot>
+  <slot>openItem()</slot>
+  <slot>vpFunctionDetails()</slot>
+  <slot>progShaderChanged(int)</slot>
+  <slot>progShaderAdd()</slot>
+  <slot>progShaderRemove()</slot>
+  <slot>apply()</slot>
+  <slot>createEmptyShader()</slot>
+  <slot>reload()</slot>
+  <slot>debugTools(bool)</slot>
+ </slots>
+</ui>

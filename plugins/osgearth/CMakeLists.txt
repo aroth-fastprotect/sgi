@@ -15,6 +15,9 @@ SET(TARGET_SRC
     TileInspectorDialog.cpp
     RetrieveElevationDialog.cpp
 	LODScaleOverrideDialog.cpp
+    ShaderEditorDialog.cpp
+    ShaderFunctionDetails.cpp
+    LightSettings.cpp
     geo_helpers.cpp
 	osgearth_accessor.cpp
     )
@@ -46,12 +49,18 @@ SET(TARGET_MOC_H
     TileInspectorDialog.h
     RetrieveElevationDialog.h
 	LODScaleOverrideDialog.h
+    ShaderEditorDialog.h
+    ShaderFunctionDetails.h
+    LightSettings.h
     )
 SET(TARGET_UI
     AutoClipPlaneCullCallbackDialog.ui
     TileInspectorDialog.ui
     RetrieveElevationDialog.ui
 	LODScaleOverrideDialog.ui
+    ShaderEditorDialog.ui
+    ShaderFunctionDetails.ui
+    LightSettings.ui
     )
 
 SET(TARGET_LIBRARIES_VARS

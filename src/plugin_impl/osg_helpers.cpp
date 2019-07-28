@@ -1,5 +1,5 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2019 FAST Protect, Andreas Roth
 
 #include <osg/StateAttribute>
 #include <osg/Texture>
@@ -9,6 +9,9 @@
 #include <osg/io_utils>
 #include <osg/Shape>
 #include <osg/CullingSet>
+
+#include <osgUtil/SceneView>
+#include <osgViewer/Renderer>
 
 #include <osg/GL>
 
@@ -44,6 +47,24 @@
 #define GL_TEXTURE_BIT                    0x00040000
 #define GL_SCISSOR_BIT                    0x00080000
 #define GL_ALL_ATTRIB_BITS                0x000fffff
+#endif
+
+#ifndef GL_EXT_texture_storage
+#define GL_EXT_texture_storage 1
+#define GL_TEXTURE_IMMUTABLE_FORMAT_EXT   0x912F
+#define GL_ALPHA8_EXT                     0x803C
+#define GL_LUMINANCE8_EXT                 0x8040
+#define GL_LUMINANCE8_ALPHA8_EXT          0x8045
+#define GL_RGBA32F_EXT                    0x8814
+#define GL_RGB32F_EXT                     0x8815
+#define GL_ALPHA32F_EXT                   0x8816
+#define GL_LUMINANCE32F_EXT               0x8818
+#define GL_LUMINANCE_ALPHA32F_EXT         0x8819
+#define GL_ALPHA16F_EXT                   0x881C
+#define GL_LUMINANCE16F_EXT               0x881E
+#define GL_LUMINANCE_ALPHA16F_EXT         0x881F
+#define GL_R32F_EXT                       0x822E
+#define GL_RG32F_EXT                      0x8230
 #endif
 
 namespace sgi {
@@ -747,6 +768,15 @@ const sgi::Image * convertImage(const osg::Image * image)
         default: imageFormat = sgi::Image::ImageFormatInvalid; break;
         }
         break;
+    case GL_RGBA32F_EXT:imageFormat = sgi::Image::ImageFormatRGBA32; break;
+    case GL_RGB32F_EXT:imageFormat = sgi::Image::ImageFormatRGB32; break;
+    case GL_ALPHA32F_EXT:imageFormat = sgi::Image::ImageFormatAlpha; break;
+    case GL_LUMINANCE32F_EXT: imageFormat = sgi::Image::ImageFormatLuminance; break;
+    case GL_LUMINANCE_ALPHA32F_EXT: imageFormat = sgi::Image::ImageFormatLuminance; break;
+    case GL_ALPHA16F_EXT:imageFormat = sgi::Image::ImageFormatAlpha; break;
+    case GL_LUMINANCE16F_EXT: imageFormat = sgi::Image::ImageFormatLuminance; break;
+    case GL_LUMINANCE_ALPHA16F_EXT: imageFormat = sgi::Image::ImageFormatLuminance; break;
+        break;
     default: imageFormat = sgi::Image::ImageFormatInvalid; break;
     }
     switch (image->getDataType())
@@ -920,6 +950,114 @@ unsigned findContextID(const osg::StateAttribute * sa)
     return findContextID(camera);
 }
 
+osg::StateSet* buildEffectiveStateSet(const osg::NodePath & path, osg::StateSet* top)
+{
+    if(path.empty())
+        return nullptr;
+    
+    osg::StateSet* ret = new osg::StateSet;
+    for(osg::NodePath::const_iterator it = path.begin(); it != path.end(); ++it)
+    {
+        osg::Node * node = *it;
+        osg::StateSet * cur = node->getStateSet();
+        if(cur)
+            ret->merge(*cur);
+    }
+    if(top)
+        ret->merge(*top);
+    return ret;
+}
+
+bool collectStateSetList(const osg::NodePath & path, StateSetList & list)
+{
+    if (path.empty())
+        return false;
+
+    osg::StateSet* ret = new osg::StateSet;
+    for (osg::NodePath::const_iterator it = path.begin(); it != path.end(); ++it)
+    {
+        osg::Node * node = *it;
+        osg::StateSet * cur = node->getStateSet();
+        if (cur)
+            list.push_back(cur);
+    }
+    return true;
+}
+
+bool collectUniformList(const osg::NodePath & path, UniformList & list, bool & gotStateUniforms)
+{
+    if (path.empty())
+        return false;
+
+    for (osg::NodePath::const_iterator it = path.begin(); it != path.end(); ++it)
+    {
+        osg::Node * node = *it;
+        if (!gotStateUniforms)
+        {
+            osg::Camera * camera = node->asCamera();
+            osg::GraphicsContext * ctx = camera ? camera->getGraphicsContext() : nullptr;
+            osg::State * state = ctx ? ctx->getState() : nullptr;
+            if (state)
+            {
+#define ADD_STATE_UNIFORM(get_func) \
+            { osg::Uniform * u = get_func(); list.insert(UniformList::value_type(u->getName(), RefUniformPair(u, osg::StateAttribute::ON) )); }
+                ADD_STATE_UNIFORM(state->getModelViewMatrixUniform);
+                ADD_STATE_UNIFORM(state->getProjectionMatrixUniform);
+                ADD_STATE_UNIFORM(state->getModelViewProjectionMatrixUniform);
+                ADD_STATE_UNIFORM(state->getNormalMatrixUniform);
+#undef ADD_STATE_UNIFORM
+            }
+            osgViewer::Renderer * renderer = camera ? dynamic_cast<osgViewer::Renderer *>(camera->getRenderer()) : nullptr;
+            osgUtil::SceneView * sceneview = renderer ? renderer->getSceneView(0) : nullptr;
+            if (sceneview)
+            {
+                osg::StateSet * localStateSet = sceneview->getLocalStateSet();
+                if (localStateSet)
+                {
+                    const osg::StateSet::UniformList & curlist = localStateSet->getUniformList();
+                    for (auto itl : curlist)
+                        list.insert(UniformList::value_type(itl.first, itl.second));
+                }
+            }
+            gotStateUniforms = true;
+        }
+        osg::StateSet * cur = node->getStateSet();
+        if (cur)
+        {
+            const osg::StateSet::UniformList & curlist = cur->getUniformList();
+            for (auto itl : curlist)
+                list.insert(UniformList::value_type(itl.first, itl.second));
+        }
+    }
+    return true;
+}
+
+bool collectUniformList(const osg::NodePath & path, UniformList & list)
+{
+    bool gotStateUniforms = false;
+    return collectUniformList(path, list, gotStateUniforms);
+}
+
+bool collectUniformList(const osg::StateSet * stateSet, UniformList & list)
+{
+    bool ret = false;
+    bool gotStateUniforms = false;
+    for (osg::Node * parent : stateSet->getParents())
+    {
+        for (const osg::NodePath & path : parent->getParentalNodePaths())
+        {
+            if (collectUniformList(path, list, gotStateUniforms))
+                ret = true;
+        }
+    }
+    const osg::StateSet::UniformList & curlist = stateSet->getUniformList();
+    for (auto itl : curlist)
+        list.insert(UniformList::value_type(itl.first, itl.second));
+
+    return ret;
+}
+
+
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxf & b)
 {
     return output << std::setprecision(12) << '[' << b._min << ',' << b._max << ']';
@@ -988,5 +1126,812 @@ void FindTreeItemNodeVisitor::apply(osg::Node& node)
 }
 
 
+osg::Geometry* createImageGeometry(float s, float t, osg::Image::Origin origin, osg::Texture * texture)
+{
+    osg::Geometry* geom = nullptr;
+    float y = 1.0;
+    float x = y * (s / t);
+
+    float texcoord_y_b = (origin == osg::Image::BOTTOM_LEFT) ? 0.0f : 1.0f;
+    float texcoord_y_t = (origin == osg::Image::BOTTOM_LEFT) ? 1.0f : 0.0f;
+    float texcoord_x = 1.0f;
+
+    // set up the drawstate.
+    osg::StateSet* dstate = new osg::StateSet;
+    dstate->setMode(GL_CULL_FACE, osg::StateAttribute::OFF);
+    dstate->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+    dstate->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
+
+    geom = new osg::Geometry;
+    geom->setStateSet(dstate);
+
+    osg::Vec3Array* coords = new osg::Vec3Array(4);
+    (*coords)[0].set(-x, 0.0f, y);
+    (*coords)[1].set(-x, 0.0f, -y);
+    (*coords)[2].set(x, 0.0f, -y);
+    (*coords)[3].set(x, 0.0f, y);
+    geom->setVertexArray(coords);
+
+    osg::Vec2Array* tcoords = new osg::Vec2Array(4);
+    (*tcoords)[0].set(0.0f*texcoord_x, texcoord_y_t);
+    (*tcoords)[1].set(0.0f*texcoord_x, texcoord_y_b);
+    (*tcoords)[2].set(1.0f*texcoord_x, texcoord_y_b);
+    (*tcoords)[3].set(1.0f*texcoord_x, texcoord_y_t);
+    geom->setTexCoordArray(0, tcoords);
+
+    osg::Vec4Array* colours = new osg::Vec4Array(1);
+    (*colours)[0].set(1.0f, 1.0f, 1.0, 1.0f);
+    geom->setColorArray(colours, osg::Array::BIND_OVERALL);
+
+    geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS, 0, 4));
+
+    return geom;
+}
+
+osg::Geometry* createGeometryForImage(osg::Image* image, float s, float t)
+{
+    osg::Geometry* geom = nullptr;
+    if (image && s > 0 && t > 0)
+    {
+        osg::Texture2D* texture = new osg::Texture2D;
+        texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR);
+        texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+        texture->setResizeNonPowerOfTwoHint(false);
+        geom = createImageGeometry(s, t, image->getOrigin(), texture);
+    }
+    return geom;
+}
+osg::Geometry * createGeometryForImage(osg::Image* image)
+{
+    return createGeometryForImage(image, image->s(), image->t());
+}
+
+osg::Geometry * createGeometryForTexture(osg::Texture* texture)
+{
+    return createImageGeometry(texture->getTextureWidth(), texture->getTextureHeight(), osg::Image::BOTTOM_LEFT, texture);
+}
+
+// see osg\io_utils
+template<int num_rows, int num_cols, typename T>
+inline std::ostream& matrix_out(std::ostream& os, const T& m)
+{
+    os << "{" << std::endl;
+    os << std::setprecision(12);
+    for (int row = 0; row < num_rows; ++row) {
+        os << "\t";
+        for (int col = 0; col < num_cols; ++col)
+            os << m(row, col) << " ";
+        os << std::endl;
+    }
+    os << "}" << std::endl;
+    return os;
+}
+
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix2 & m)
+{
+    return matrix_out<2,2>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix3 & m)
+{
+    return matrix_out<3, 3>(output, m);
+}
+#if 0
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrixf & m)
+{
+    return matrix_out<4, 4>(output, m);
+}
+#endif
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix2x3 & m)
+{
+    return matrix_out<2, 3>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix2x4 & m)
+{
+    return matrix_out<2, 4>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix3x2 & m)
+{
+    return matrix_out<3, 2>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix3x4 & m)
+{
+    return matrix_out<3, 4>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix4x2 & m)
+{
+    return matrix_out<4, 2>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix4x3 & m)
+{
+    return matrix_out<4, 3>(output, m);
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix2d & m)
+{
+    return matrix_out<2, 2>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix3d & m)
+{
+    return matrix_out<3, 3>(output, m);
+}
+#if 0
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrixd & m)
+{
+    return matrix_out<4, 4>(output, m);
+}
+#endif
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix2x3d & m)
+{
+    return matrix_out<2, 3>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix2x4d & m)
+{
+    return matrix_out<2, 4>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix3x2d & m)
+{
+    return matrix_out<3, 2>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix3x4d & m)
+{
+    return matrix_out<3, 4>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix4x2d & m)
+{
+    return matrix_out<4, 2>(output, m);
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::Matrix4x3d & m)
+{
+    return matrix_out<4, 3>(output, m);
+}
+
+
+#define uniformToString_Data(__gl_type, __c_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                (void(0)); \
+            else if( object->getNumElements() == 1) \
+            { \
+                __c_type val; \
+                object->getElement(0, val); \
+                os << val; \
+            } \
+            else { \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    if(n != 0) os << ','; \
+                    __c_type val; \
+                    object->getElement(n, val); \
+                    os << val; \
+                } \
+            } \
+        } \
+        break
+
+#define uniformToString_Sampler(__gl_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                (void(0)); \
+            else if( object->getNumElements() == 1) \
+            { \
+                int val; \
+                object->getElement(0, val); \
+                os << val; \
+            } \
+            else { \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    if(n != 0) os << ','; \
+                    int val; \
+                    object->getElement(n, val); \
+                    os << val; \
+                } \
+            } \
+        } \
+        break
+
+
+
+std::string uniformToString(const osg::Uniform * object, bool * ok)
+{
+    std::stringstream os;
+    if (ok)
+        *ok = true;
+    switch (object->getType())
+    {
+    case osg::Uniform::UNDEFINED:
+        os << "undefined";
+        break;
+        uniformToString_Data(BOOL, bool);
+        uniformToString_Data(FLOAT, float);
+        uniformToString_Data(FLOAT_VEC2, osg::Vec2f);
+        uniformToString_Data(FLOAT_VEC3, osg::Vec3f);
+        uniformToString_Data(FLOAT_VEC4, osg::Vec4f);
+        uniformToString_Data(DOUBLE, double);
+        uniformToString_Data(DOUBLE_VEC2, osg::Vec2d);
+        uniformToString_Data(DOUBLE_VEC3, osg::Vec3d);
+        uniformToString_Data(DOUBLE_VEC4, osg::Vec4d);
+        uniformToString_Data(INT, int);
+        //uniformToString_Data(INT_VEC2, osg::Vec2i);
+        //uniformToString_Data(INT_VEC3, osg::Vec3i);
+        //uniformToString_Data(INT_VEC4, osg::Vec4i);
+        uniformToString_Data(UNSIGNED_INT, unsigned int);
+        //uniformToString_Data(UNSIGNED_INT_VEC2, osg::Vec2ui);
+        //uniformToString_Data(UNSIGNED_INT_VEC3, osg::Vec3ui);
+        //uniformToString_Data(UNSIGNED_INT_VEC4, osg::Vec4ui);
+
+        uniformToString_Data(FLOAT_MAT2, osg::Matrix2);
+        uniformToString_Data(FLOAT_MAT3, osg::Matrix3);
+        uniformToString_Data(FLOAT_MAT4, osg::Matrixf);
+        uniformToString_Data(FLOAT_MAT2x3, osg::Matrix2x3);
+        uniformToString_Data(FLOAT_MAT2x4, osg::Matrix2x4);
+        uniformToString_Data(FLOAT_MAT3x2, osg::Matrix3x2);
+        uniformToString_Data(FLOAT_MAT3x4, osg::Matrix3x4);
+        uniformToString_Data(FLOAT_MAT4x2, osg::Matrix4x2);
+        uniformToString_Data(FLOAT_MAT4x3, osg::Matrix4x3);
+
+        uniformToString_Data(DOUBLE_MAT2, osg::Matrix2d);
+        uniformToString_Data(DOUBLE_MAT3, osg::Matrix3d);
+        uniformToString_Data(DOUBLE_MAT4, osg::Matrixd);
+        uniformToString_Data(DOUBLE_MAT2x3, osg::Matrix2x3d);
+        uniformToString_Data(DOUBLE_MAT2x4, osg::Matrix2x4d);
+        uniformToString_Data(DOUBLE_MAT3x2, osg::Matrix3x2d);
+        uniformToString_Data(DOUBLE_MAT3x4, osg::Matrix3x4d);
+        uniformToString_Data(DOUBLE_MAT4x2, osg::Matrix4x2d);
+        uniformToString_Data(DOUBLE_MAT4x3, osg::Matrix4x3d);
+
+        uniformToString_Sampler(SAMPLER_1D);
+        uniformToString_Sampler(SAMPLER_2D);
+        uniformToString_Sampler(SAMPLER_3D);
+        uniformToString_Sampler(SAMPLER_CUBE);
+        uniformToString_Sampler(SAMPLER_1D_SHADOW);
+        uniformToString_Sampler(SAMPLER_2D_SHADOW);
+        uniformToString_Sampler(SAMPLER_1D_ARRAY);
+        uniformToString_Sampler(SAMPLER_2D_ARRAY);
+        uniformToString_Sampler(SAMPLER_CUBE_MAP_ARRAY);
+        uniformToString_Sampler(SAMPLER_1D_ARRAY_SHADOW);
+        uniformToString_Sampler(SAMPLER_2D_ARRAY_SHADOW);
+        uniformToString_Sampler(SAMPLER_2D_MULTISAMPLE);
+        uniformToString_Sampler(SAMPLER_2D_MULTISAMPLE_ARRAY);
+        uniformToString_Sampler(SAMPLER_CUBE_SHADOW);
+        uniformToString_Sampler(SAMPLER_CUBE_MAP_ARRAY_SHADOW);
+        uniformToString_Sampler(SAMPLER_BUFFER);
+        uniformToString_Sampler(SAMPLER_2D_RECT);
+        uniformToString_Sampler(SAMPLER_2D_RECT_SHADOW);
+    default:
+        os << "Type " << osg::Uniform::getTypename(object->getType()) << " not implemented";
+        if (ok)
+            *ok = false;
+        break;
+    }
+    return os.str();
+}
+
+
+// see osg\io_utils
+template<int num_rows, int num_cols, typename T>
+inline std::istream& matrix_in(std::istream& is, T& m)
+{
+    for (int row = 0; row < num_rows; ++row) {
+        for (int col = 0; col < num_cols; ++col)
+        {
+            is >> m(row, col);
+        }
+    }
+    return is;
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix2 & m)
+{
+    return matrix_in<2, 2>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix3 & m)
+{
+    return matrix_in<3, 3>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrixf & m)
+{
+    return matrix_in<4, 4>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix2x3 & m)
+{
+    return matrix_in<2, 3>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix2x4 & m)
+{
+    return matrix_in<2, 4>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix3x2 & m)
+{
+    return matrix_in<3, 2>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix3x4 & m)
+{
+    return matrix_in<3, 4>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix4x2 & m)
+{
+    return matrix_in<4, 2>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix4x3 & m)
+{
+    return matrix_in<4, 3>(input, m);
+}
+
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix2d & m)
+{
+    return matrix_in<2, 2>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix3d & m)
+{
+    return matrix_in<3, 3>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrixd & m)
+{
+    return matrix_in<4, 4>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix2x3d & m)
+{
+    return matrix_in<2, 3>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix2x4d & m)
+{
+    return matrix_in<2, 4>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix3x2d & m)
+{
+    return matrix_in<3, 2>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix3x4d & m)
+{
+    return matrix_in<3, 4>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix4x2d & m)
+{
+    return matrix_in<4, 2>(input, m);
+}
+std::basic_istream<char>& operator>>(std::basic_istream<char>& input, osg::Matrix4x3d & m)
+{
+    return matrix_in<4, 3>(input, m);
+}
+
+#define stringToUniform_Data(__gl_type, __c_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            unsigned num_elems = object->getNumElements(); \
+            if( num_elems == 0) \
+                ret = true; \
+            else if( num_elems == 1) \
+            { \
+                __c_type val; \
+                is >> val; \
+                ret = object->setElement(0, val); \
+            } \
+            else { \
+                ret = true; \
+                for(unsigned n = 0; n < num_elems; n++) \
+                { \
+                    __c_type val; \
+                    is >> val; \
+                    if(!object->setElement(n, val)) \
+                        ret = false; \
+                } \
+            } \
+        } \
+        break
+
+#define stringToUniform_Sampler(__gl_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            unsigned num_elems = object->getNumElements(); \
+            if( num_elems == 0) \
+                ret = true; \
+            else if( num_elems == 1) \
+            { \
+                int val; \
+                is >> val; \
+                ret = object->setElement(0, val); \
+            } \
+            else { \
+                ret = true; \
+                for(unsigned n = 0; n < num_elems; n++) \
+                { \
+                    int val; \
+                    is >> val; \
+                    if(!object->setElement(n, val)) \
+                        ret = false; \
+                } \
+            } \
+        } \
+        break
+
+bool stringToUniform(const std::string & s, osg::Uniform * object)
+{
+    bool ret = false;
+    std::stringstream is(s);
+    switch (object->getType())
+    {
+    case osg::Uniform::UNDEFINED:
+        ret = true;
+        break;
+        stringToUniform_Data(BOOL, bool);
+        stringToUniform_Data(FLOAT, float);
+        stringToUniform_Data(FLOAT_VEC2, osg::Vec2f);
+        stringToUniform_Data(FLOAT_VEC3, osg::Vec3f);
+        stringToUniform_Data(FLOAT_VEC4, osg::Vec4f);
+        stringToUniform_Data(DOUBLE, double);
+        stringToUniform_Data(DOUBLE_VEC2, osg::Vec2d);
+        stringToUniform_Data(DOUBLE_VEC3, osg::Vec3d);
+        stringToUniform_Data(DOUBLE_VEC4, osg::Vec4d);
+        stringToUniform_Data(INT, int);
+        //stringToUniform_Data(INT_VEC2, osg::Vec2i);
+        //stringToUniform_Data(INT_VEC3, osg::Vec3i);
+        //stringToUniform_Data(INT_VEC4, osg::Vec4i);
+        stringToUniform_Data(UNSIGNED_INT, unsigned int);
+        //stringToUniform_Data(UNSIGNED_INT_VEC2, osg::Vec2ui);
+        //stringToUniform_Data(UNSIGNED_INT_VEC3, osg::Vec3ui);
+        //stringToUniform_Data(UNSIGNED_INT_VEC4, osg::Vec4ui);
+
+        stringToUniform_Data(FLOAT_MAT2, osg::Matrix2);
+        stringToUniform_Data(FLOAT_MAT3, osg::Matrix3);
+        stringToUniform_Data(FLOAT_MAT4, osg::Matrixf);
+        stringToUniform_Data(FLOAT_MAT2x3, osg::Matrix2x3);
+        stringToUniform_Data(FLOAT_MAT2x4, osg::Matrix2x4);
+        stringToUniform_Data(FLOAT_MAT3x2, osg::Matrix3x2);
+        stringToUniform_Data(FLOAT_MAT3x4, osg::Matrix3x4);
+        stringToUniform_Data(FLOAT_MAT4x2, osg::Matrix4x2);
+        stringToUniform_Data(FLOAT_MAT4x3, osg::Matrix4x3);
+
+        stringToUniform_Data(DOUBLE_MAT2, osg::Matrix2d);
+        stringToUniform_Data(DOUBLE_MAT3, osg::Matrix3d);
+        stringToUniform_Data(DOUBLE_MAT4, osg::Matrixd);
+        stringToUniform_Data(DOUBLE_MAT2x3, osg::Matrix2x3d);
+        stringToUniform_Data(DOUBLE_MAT2x4, osg::Matrix2x4d);
+        stringToUniform_Data(DOUBLE_MAT3x2, osg::Matrix3x2d);
+        stringToUniform_Data(DOUBLE_MAT3x4, osg::Matrix3x4d);
+        stringToUniform_Data(DOUBLE_MAT4x2, osg::Matrix4x2d);
+        stringToUniform_Data(DOUBLE_MAT4x3, osg::Matrix4x3d);
+
+        stringToUniform_Sampler(SAMPLER_1D);
+        stringToUniform_Sampler(SAMPLER_2D);
+        stringToUniform_Sampler(SAMPLER_3D);
+        stringToUniform_Sampler(SAMPLER_CUBE);
+        stringToUniform_Sampler(SAMPLER_1D_SHADOW);
+        stringToUniform_Sampler(SAMPLER_2D_SHADOW);
+        stringToUniform_Sampler(SAMPLER_1D_ARRAY);
+        stringToUniform_Sampler(SAMPLER_2D_ARRAY);
+        stringToUniform_Sampler(SAMPLER_CUBE_MAP_ARRAY);
+        stringToUniform_Sampler(SAMPLER_1D_ARRAY_SHADOW);
+        stringToUniform_Sampler(SAMPLER_2D_ARRAY_SHADOW);
+        stringToUniform_Sampler(SAMPLER_2D_MULTISAMPLE);
+        stringToUniform_Sampler(SAMPLER_2D_MULTISAMPLE_ARRAY);
+        stringToUniform_Sampler(SAMPLER_CUBE_SHADOW);
+        stringToUniform_Sampler(SAMPLER_CUBE_MAP_ARRAY_SHADOW);
+        stringToUniform_Sampler(SAMPLER_BUFFER);
+        stringToUniform_Sampler(SAMPLER_2D_RECT);
+        stringToUniform_Sampler(SAMPLER_2D_RECT_SHADOW);
+    default:
+        break;
+    }
+    return ret;
+}
+
+#define uniformToHTML_Data_pre(__gl_type, __c_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                os << "<i>empty</i>"; \
+            else if( object->getNumElements() == 1) \
+            { \
+                __c_type val; \
+                object->getElement(0, val); \
+                os << "<li><pre>" << val << "</pre></li>" << std::endl; \
+            } \
+            else { \
+                os << "<ol>"; \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    __c_type val; \
+                    object->getElement(n, val); \
+                    os << "<li><pre>" << val << "</pre></li>" << std::endl; \
+                } \
+                os << "</ol>"; \
+            } \
+        } \
+        break
+#define uniformToHTML_Data(__gl_type, __c_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                os << "<i>empty</i>"; \
+            else if( object->getNumElements() == 1) \
+            { \
+                __c_type val; \
+                object->getElement(0, val); \
+                os << "<li>" << val << "</li>" << std::endl; \
+            } \
+            else { \
+                os << "<ol>"; \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    __c_type val; \
+                    object->getElement(n, val); \
+                    os << "<li>" << val << "</li>" << std::endl; \
+                } \
+                os << "</ol>"; \
+            } \
+        } \
+        break
+#define uniformToHTML_Data2(__gl_type, __c_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                os << "<i>empty</i>"; \
+            else if( object->getNumElements() == 1) \
+            { \
+                __c_type val0, val1; \
+                object->getElement(0, val0, val1); \
+                os << "<li>" << val0 << ',' << val1 << "</li>" << std::endl; \
+            } \
+            else { \
+                os << "<ol>"; \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    __c_type val0, val1; \
+                    object->getElement(n, val0, val1); \
+                    os << "<li>" << val0 << ',' << val1 << "</li>" << std::endl; \
+                } \
+                os << "</ol>"; \
+            } \
+        } \
+        break
+#define uniformToHTML_Data3(__gl_type, __c_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                os << "<i>empty</i>"; \
+            else if( object->getNumElements() == 1) \
+            { \
+                __c_type val0, val1, val2; \
+                object->getElement(0, val0, val1, val2); \
+                os << "<li>" << val0 << ',' << val1 << ',' << val2 << "</li>" << std::endl; \
+            } \
+            else { \
+                os << "<ol>"; \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    __c_type val0, val1, val2; \
+                    object->getElement(n, val0, val1, val2); \
+                    os << "<li>" << val0 << ',' << val1 << ',' << val2 << "</li>" << std::endl; \
+                } \
+                os << "</ol>"; \
+            } \
+        } \
+        break
+#define uniformToHTML_Data4(__gl_type, __c_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                os << "<i>empty</i>"; \
+            else if( object->getNumElements() == 1) \
+            { \
+                __c_type val0, val1, val2, val3; \
+                object->getElement(0, val0, val1, val2, val3); \
+                os << "<li>" << val0 << ',' << val1 << ',' << val2 << ',' << val3 << "</li>" << std::endl; \
+            } \
+            else { \
+                os << "<ol>"; \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    __c_type val0, val1, val2, val3; \
+                    object->getElement(n, val0, val1, val2, val3); \
+                    os << "<li>" << val0 << ',' << val1 << ',' << val2 << ',' << val3 << "</li>" << std::endl; \
+                } \
+                os << "</ol>"; \
+            } \
+        } \
+        break
+#define uniformToHTML_Sampler(__gl_type) \
+    case osg::Uniform::__gl_type: \
+        { \
+            os << std::setprecision(12); \
+            if( object->getNumElements() == 0) \
+                os << "<i>empty</i>"; \
+            else if( object->getNumElements() == 1) \
+            { \
+                int val; \
+                object->getElement(0, val); \
+                os << "<li>Id=" << val << "</li>" << std::endl; \
+            } \
+            else { \
+                os << "<ol>"; \
+                for(unsigned n = 0, maxnum = object->getNumElements(); n < maxnum; n++) \
+                { \
+                    int val; \
+                    object->getElement(n, val); \
+                    os << "<li>Id=" << val << "</li>" << std::endl; \
+                } \
+                os << "</ol>"; \
+            } \
+        } \
+        break
+
+std::string uniformToHTML(const osg::Uniform * object, bool * ok)
+{
+    std::stringstream os;
+    if (ok)
+        *ok = true;
+    switch (object->getType())
+    {
+    case osg::Uniform::UNDEFINED:
+        os << "<i>undefined</i>";
+        break;
+        uniformToHTML_Data(BOOL, bool);
+        uniformToHTML_Data2(BOOL_VEC2, bool);
+        uniformToHTML_Data3(BOOL_VEC3, bool);
+        uniformToHTML_Data4(BOOL_VEC4, bool);
+        uniformToHTML_Data(FLOAT, float);
+        uniformToHTML_Data(FLOAT_VEC2, osg::Vec2f);
+        uniformToHTML_Data(FLOAT_VEC3, osg::Vec3f);
+        uniformToHTML_Data(FLOAT_VEC4, osg::Vec4f);
+        uniformToHTML_Data(DOUBLE, double);
+        uniformToHTML_Data(DOUBLE_VEC2, osg::Vec2d);
+        uniformToHTML_Data(DOUBLE_VEC3, osg::Vec3d);
+        uniformToHTML_Data(DOUBLE_VEC4, osg::Vec4d);
+        uniformToHTML_Data(INT, int);
+        uniformToHTML_Data2(INT_VEC2, int);
+        uniformToHTML_Data3(INT_VEC3, int);
+        uniformToHTML_Data4(INT_VEC4, int);
+        uniformToHTML_Data(UNSIGNED_INT, unsigned int);
+        uniformToHTML_Data2(UNSIGNED_INT_VEC2, unsigned int);
+        uniformToHTML_Data3(UNSIGNED_INT_VEC3, unsigned int);
+        uniformToHTML_Data4(UNSIGNED_INT_VEC4, unsigned int);
+        uniformToHTML_Data_pre(FLOAT_MAT2, osg::Matrix2);
+        uniformToHTML_Data_pre(FLOAT_MAT3, osg::Matrix3);
+        uniformToHTML_Data_pre(FLOAT_MAT4, osg::Matrix);
+        uniformToHTML_Data_pre(FLOAT_MAT2x3, osg::Matrix2x3);
+        uniformToHTML_Data_pre(FLOAT_MAT2x4, osg::Matrix2x4);
+        uniformToHTML_Data_pre(FLOAT_MAT3x2, osg::Matrix3x2);
+        uniformToHTML_Data_pre(FLOAT_MAT3x4, osg::Matrix3x4);
+        uniformToHTML_Data_pre(FLOAT_MAT4x2, osg::Matrix4x2);
+        uniformToHTML_Data_pre(FLOAT_MAT4x3, osg::Matrix4x3);
+        uniformToHTML_Data_pre(DOUBLE_MAT2, osg::Matrix2d);
+        uniformToHTML_Data_pre(DOUBLE_MAT3, osg::Matrix3d);
+        uniformToHTML_Data_pre(DOUBLE_MAT4, osg::Matrixd);
+        uniformToHTML_Data_pre(DOUBLE_MAT2x3, osg::Matrix2x3d);
+        uniformToHTML_Data_pre(DOUBLE_MAT2x4, osg::Matrix2x4d);
+        uniformToHTML_Data_pre(DOUBLE_MAT3x2, osg::Matrix3x2d);
+        uniformToHTML_Data_pre(DOUBLE_MAT3x4, osg::Matrix3x4d);
+        uniformToHTML_Data_pre(DOUBLE_MAT4x2, osg::Matrix4x2d);
+        uniformToHTML_Data_pre(DOUBLE_MAT4x3, osg::Matrix4x3d);
+
+        uniformToHTML_Sampler(SAMPLER_1D);
+        uniformToHTML_Sampler(SAMPLER_2D);
+        uniformToHTML_Sampler(SAMPLER_3D);
+        uniformToHTML_Sampler(SAMPLER_CUBE);
+        uniformToHTML_Sampler(SAMPLER_1D_SHADOW);
+        uniformToHTML_Sampler(SAMPLER_2D_SHADOW);
+        uniformToHTML_Sampler(SAMPLER_1D_ARRAY);
+        uniformToHTML_Sampler(SAMPLER_2D_ARRAY);
+        uniformToHTML_Sampler(SAMPLER_CUBE_MAP_ARRAY);
+        uniformToHTML_Sampler(SAMPLER_1D_ARRAY_SHADOW);
+        uniformToHTML_Sampler(SAMPLER_2D_ARRAY_SHADOW);
+        uniformToHTML_Sampler(SAMPLER_2D_MULTISAMPLE);
+        uniformToHTML_Sampler(SAMPLER_2D_MULTISAMPLE_ARRAY);
+        uniformToHTML_Sampler(SAMPLER_CUBE_SHADOW);
+        uniformToHTML_Sampler(SAMPLER_CUBE_MAP_ARRAY_SHADOW);
+        uniformToHTML_Sampler(SAMPLER_BUFFER);
+        uniformToHTML_Sampler(SAMPLER_2D_RECT);
+        uniformToHTML_Sampler(SAMPLER_2D_RECT_SHADOW);
+    default:
+        os << "<i>Type " << osg::Uniform::getTypename(object->getType()) << " not implemented.</i>";
+        if (ok)
+            *ok = false;
+        break;
+    }
+    return os.str();
+}
+
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::StateAttribute::Type & t)
+{
+    return os << getStateAttributeTypeName(t);
+}
+
+std::string getStateAttributeTypeName(const osg::StateAttribute::Type & t)
+{
+    std::string ret;
+    switch (t)
+    {
+    case osg::StateAttribute::TEXTURE: ret = "TEXTURE"; break;
+    case osg::StateAttribute::POLYGONMODE: ret = "POLYGONMODE"; break;
+    case osg::StateAttribute::POLYGONOFFSET: ret = "POLYGONOFFSET"; break;
+    case osg::StateAttribute::MATERIAL: ret = "MATERIAL"; break;
+    case osg::StateAttribute::ALPHAFUNC: ret = "ALPHAFUNC"; break;
+    case osg::StateAttribute::ANTIALIAS: ret = "ANTIALIAS"; break;
+    case osg::StateAttribute::COLORTABLE: ret = "COLORTABLE"; break;
+    case osg::StateAttribute::CULLFACE: ret = "CULLFACE"; break;
+    case osg::StateAttribute::FOG: ret = "FOG"; break;
+    case osg::StateAttribute::FRONTFACE: ret = "FRONTFACE"; break;
+    case osg::StateAttribute::LIGHT: ret = "LIGHT"; break;
+    case osg::StateAttribute::POINT: ret = "POINT"; break;
+    case osg::StateAttribute::LINEWIDTH: ret = "LINEWIDTH"; break;
+    case osg::StateAttribute::LINESTIPPLE: ret = "LINESTIPPLE"; break;
+    case osg::StateAttribute::POLYGONSTIPPLE: ret = "POLYGONSTIPPLE"; break;
+    case osg::StateAttribute::SHADEMODEL: ret = "SHADEMODEL"; break;
+    case osg::StateAttribute::TEXENV: ret = "TEXENV"; break;
+    case osg::StateAttribute::TEXENVFILTER: ret = "TEXENVFILTER"; break;
+    case osg::StateAttribute::TEXGEN: ret = "TEXGEN"; break;
+    case osg::StateAttribute::TEXMAT: ret = "TEXMAT"; break;
+    case osg::StateAttribute::LIGHTMODEL: ret = "LIGHTMODEL"; break;
+    case osg::StateAttribute::BLENDFUNC: ret = "BLENDFUNC"; break;
+    case osg::StateAttribute::BLENDEQUATION: ret = "BLENDEQUATION"; break;
+    case osg::StateAttribute::LOGICOP: ret = "LOGICOP"; break;
+    case osg::StateAttribute::STENCIL: ret = "STENCIL"; break;
+    case osg::StateAttribute::COLORMASK: ret = "COLORMASK"; break;
+    case osg::StateAttribute::DEPTH: ret = "DEPTH"; break;
+    case osg::StateAttribute::VIEWPORT: ret = "VIEWPORT"; break;
+    case osg::StateAttribute::SCISSOR: ret = "SCISSOR"; break;
+    case osg::StateAttribute::BLENDCOLOR: ret = "BLENDCOLOR"; break;
+    case osg::StateAttribute::MULTISAMPLE: ret = "MULTISAMPLE"; break;
+    case osg::StateAttribute::CLIPPLANE: ret = "CLIPPLANE"; break;
+    case osg::StateAttribute::COLORMATRIX: ret = "COLORMATRIX"; break;
+    case osg::StateAttribute::VERTEXPROGRAM: ret = "VERTEXPROGRAM"; break;
+    case osg::StateAttribute::FRAGMENTPROGRAM: ret = "FRAGMENTPROGRAM"; break;
+    case osg::StateAttribute::POINTSPRITE: ret = "POINTSPRITE"; break;
+    case osg::StateAttribute::PROGRAM: ret = "PROGRAM"; break;
+    case osg::StateAttribute::CLAMPCOLOR: ret = "CLAMPCOLOR"; break;
+    case osg::StateAttribute::HINT: ret = "HINT"; break;
+    case osg::StateAttribute::SAMPLEMASKI: ret = "SAMPLEMASKI"; break;
+    case osg::StateAttribute::PRIMITIVERESTARTINDEX: ret = "PRIMITIVERESTARTINDEX"; break;
+    case osg::StateAttribute::CLIPCONTROL: ret = "CLIPCONTROL"; break;
+
+        /// osgFX namespace
+    case osg::StateAttribute::VALIDATOR: ret = "VALIDATOR"; break;
+    case osg::StateAttribute::VIEWMATRIXEXTRACTOR: ret = "VIEWMATRIXEXTRACTOR"; break;
+        /// osgNV namespace
+    case osg::StateAttribute::OSGNV_PARAMETER_BLOCK: ret = "OSGNV_PARAMETER_BLOCK"; break;
+        // osgNVExt namespace
+    case osg::StateAttribute::OSGNVEXT_TEXTURE_SHADER: ret = "OSGNVEXT_TEXTURE_SHADER"; break;
+    case osg::StateAttribute::OSGNVEXT_VERTEX_PROGRAM: ret = "OSGNVEXT_VERTEX_PROGRAM"; break;
+    case osg::StateAttribute::OSGNVEXT_REGISTER_COMBINERS: ret = "OSGNVEXT_REGISTER_COMBINERS"; break;
+        /// osgNVCg namespace
+    case osg::StateAttribute::OSGNVCG_PROGRAM: ret = "OSGNVCG_PROGRAM"; break;
+        // osgNVSlang namespace
+    case osg::StateAttribute::OSGNVSLANG_PROGRAM: ret = "OSGNVSLANG_PROGRAM"; break;
+        // osgNVParse
+    case osg::StateAttribute::OSGNVPARSE_PROGRAM_PARSER: ret = "OSGNVPARSE_PROGRAM_PARSER"; break;
+
+    case osg::StateAttribute::UNIFORMBUFFERBINDING: ret = "UNIFORMBUFFERBINDING"; break;
+    case osg::StateAttribute::TRANSFORMFEEDBACKBUFFERBINDING: ret = "TRANSFORMFEEDBACKBUFFERBINDING"; break;
+    case osg::StateAttribute::ATOMICCOUNTERBUFFERBINDING: ret = "ATOMICCOUNTERBUFFERBINDING"; break;
+    case osg::StateAttribute::PATCH_PARAMETER: ret = "PATCH_PARAMETER"; break;
+    case osg::StateAttribute::FRAME_BUFFER_OBJECT: ret = "FRAME_BUFFER_OBJECT"; break;
+
+    case osg::StateAttribute::VERTEX_ATTRIB_DIVISOR: ret = "VERTEX_ATTRIB_DIVISOR"; break;
+    case osg::StateAttribute::SHADERSTORAGEBUFFERBINDING: ret = "SHADERSTORAGEBUFFERBINDING"; break;
+    case osg::StateAttribute::INDIRECTDRAWBUFFERBINDING: ret = "INDIRECTDRAWBUFFERBINDING"; break;
+    case osg::StateAttribute::VIEWPORTINDEXED: ret = "VIEWPORTINDEXED"; break;
+    case osg::StateAttribute::DEPTHRANGEINDEXED: ret = "DEPTHRANGEINDEXED"; break;
+    case osg::StateAttribute::SCISSORINDEXED: ret = "SCISSORINDEXED"; break;
+    case osg::StateAttribute::BINDIMAGETEXTURE: ret = "BINDIMAGETEXTURE"; break;
+    case osg::StateAttribute::SAMPLER: ret = "SAMPLER"; break;
+    default:
+        std::stringstream ss;
+        ss << (int)t; 
+        ret = ss.str();
+        break;
+    }
+    return ret;
+}
     } // namespace osg_helpers
 } // namespace sgi

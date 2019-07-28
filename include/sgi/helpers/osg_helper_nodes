@@ -1,5 +1,5 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2019 FAST Protect, Andreas Roth
 
 #pragma once
 
@@ -100,6 +100,32 @@ inline osg::Node * createNodeForImage(osg::Image* image)
     return createNodeForImage(image,image->s(),image->t());
 }
 
+class SGI_OSG_HELPER_EXPORT GeometryParams
+{
+public:
+    GeometryParams();
+    bool needTextureCoordinates() const;
+    bool useCustomColor() const;
+    bool useWhiteColorForTexture() const;
+    void setCustomColor(const osg::Vec4 & c);
+    unsigned textureUnit() const;
+    bool useTextureModulate() const;
+
+    osg::Vec4 color;
+    osg::Image * image;
+    bool useDefaultColor;
+    bool useMaterial;
+    bool useTextureCoordinates;
+    bool useNormals;
+    bool useLogo;
+private:
+    bool _useCustomColor;
+};
+
+SGI_OSG_HELPER_EXPORT osg::Geometry * createQuadGeometry(float w,float h, const GeometryParams & params=GeometryParams());
+SGI_OSG_HELPER_EXPORT osg::Geometry * createTriangleGeometry(float s, const GeometryParams & params=GeometryParams());
+SGI_OSG_HELPER_EXPORT osg::Geometry * createBoxGeometry(const osg::Vec3 & size, const GeometryParams & params=GeometryParams());
+SGI_OSG_HELPER_EXPORT osg::Image * getSGILogoImage();
 
 class SGI_OSG_HELPER_EXPORT FindTreeItemNodeVisitor : public osg::NodeVisitor
 {

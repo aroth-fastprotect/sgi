@@ -33,6 +33,10 @@ namespace sgi {
 namespace osgearth_plugin {
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Node)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::StateSet)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Program)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Shader)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osg::Camera)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Registry)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Map)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNode)
@@ -54,6 +58,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::Contro
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TileSource)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TileBlacklist)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::VirtualProgram)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::PolyShader)
 #ifdef SGI_USE_OSGEARTH_FAST
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LODScaleOverrideNode)
 #endif
@@ -67,7 +72,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::EarthManipulator
 
 bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
 {
-    osg::Node * object = static_cast<osg::Node*>(item<SGIItemOsg>()->object());
+    osg::Node * object = getObject<osg::Node,SGIItemOsg>();
     bool ret = false;
     switch(itemType())
     {
@@ -79,6 +84,103 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
             if(manipulateMenu)
             {
                 manipulateMenu->addSimpleAction(MenuActionNodeRegenerateShaders, "Re-generate shaders", _item);
+                manipulateMenu->addSimpleAction(MenuActionNodeEditShaders, "Edit shaders...", _item);
+            }
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::StateSet>::populate(IContextMenuItem * menuItem)
+{
+    osg::StateSet * object = getObject<osg::StateSet, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+            {
+                manipulateMenu->addSimpleAction(MenuActionNodeEditShaders, "Edit shaders...", _item);
+            }
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::Program>::populate(IContextMenuItem * menuItem)
+{
+    osg::Program * object = getObject<osg::Program, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+            {
+                manipulateMenu->addSimpleAction(MenuActionNodeEditShaders, "Edit shaders...", _item);
+            }
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::Shader>::populate(IContextMenuItem * menuItem)
+{
+    osg::Shader * object = getObject<osg::Shader, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+            {
+                manipulateMenu->addSimpleAction(MenuActionNodeEditShaders, "Edit shaders...", _item);
+            }
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osg::Camera>::populate(IContextMenuItem * menuItem)
+{
+    osg::Camera * object = getObject<osg::Camera, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+            {
+                manipulateMenu->addSimpleAction(MenuActionLightSettings, "Light settings...", _item);
             }
         }
         break;
@@ -594,7 +696,7 @@ bool contextMenuPopulateImpl<osgEarth::Util::SkyNode>::populate(IContextMenuItem
         ret = callNextHandler(menuItem);
         if(ret)
         {
-            menuItem->addSimpleAction(MenuActionSkyNodeLightSettings, "Light settings...", _item);
+            menuItem->addSimpleAction(MenuActionLightSettings, "Light settings...", _item);
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             const osgEarth::DateTime & t = object->getDateTime();
@@ -793,6 +895,7 @@ bool contextMenuPopulateImpl<osgEarth::VirtualProgram>::populate(IContextMenuIte
         ret = callNextHandler(menuItem);
         if(ret)
         {
+            menuItem->addSimpleAction(MenuActionNodeEditShaders, "Edit shaders...", _item);
             menuItem->addSimpleAction(MenuActionVirtualProgramMask, helpers::str_plus_hex("Mask", object->mask()), _item);
             menuItem->addBoolAction(MenuActionVirtualProgramLogging, "Logging", _item, object->getShaderLogging());
             menuItem->addSimpleAction(MenuActionVirtualProgramLoggingFile, helpers::str_plus_info("Logfile", object->getShaderLogFile()), _item);
@@ -811,6 +914,36 @@ bool contextMenuPopulateImpl<osgEarth::VirtualProgram>::populate(IContextMenuIte
                 inheritMenu->addModeAction("Enabled", VirtualProgramInheritModeEnabled);
                 inheritMenu->addModeAction("Disabled", VirtualProgramInheritModeDisabled);
             }
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osgEarth::PolyShader>::populate(IContextMenuItem * menuItem)
+{
+    PolyShaderAccessor * object = static_cast<PolyShaderAccessor*>(getObject<osgEarth::PolyShader, SGIItemOsg>());
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if(ret)
+        {
+            SGIHostItemOsg nominalShader(object->getNominalShader());
+            if (nominalShader.hasObject())
+                menuItem->addMenu("NominalShader", &nominalShader);
+
+            SGIHostItemOsg geometryShader(object->getGeometryShader());
+            if (nominalShader.hasObject())
+                menuItem->addMenu("GeometryShader", &geometryShader);
+
+            SGIHostItemOsg tessellationShader(object->getTessellationShader());
+            if (tessellationShader.hasObject())
+                menuItem->addMenu("TessellationShader", &tessellationShader);
         }
         break;
     default:

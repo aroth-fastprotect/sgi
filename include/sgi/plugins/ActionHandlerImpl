@@ -1,9 +1,10 @@
-// kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// kate: syntax C++;
+// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
 
 #pragma once
 
 #include "ContextMenu"
+#include "SettingsDialogImpl"
 #include <sgi/details/functionImplBase>
 
 namespace sgi {
@@ -103,6 +104,22 @@ public:
     {
         return dynamic_cast<const USER_DATA_TYPE *>(_menuAction->modeUserData());
     }
+
+    bool openSettingsDialog(unsigned id)
+    {
+        bool ret;
+        IHostCallback * cb = hostCallback();
+        ISettingsDialogInfoPtr info = new SettingsDialogInfoBase(id, menu()->parentWidget(), cb);
+        ISettingsDialogPtr dialog;
+        ret = cb->openSettingsDialog(dialog, _item, info);
+        if (ret)
+        {
+            if (dialog.valid())
+                dialog->show();
+        }
+        return ret;
+    }
+
 
 protected:
     IContextMenuActionPtr _menuAction;

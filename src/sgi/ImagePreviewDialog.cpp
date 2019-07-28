@@ -240,6 +240,7 @@ public:
     void flipHorizontal();
     void flipVertical();
     void selectBackgroundColor();
+    void setColor();
     void imageWidthChanged(int index);
     void imageHeightChanged(int index);
     void imageFormatChanged(int index);
@@ -280,6 +281,7 @@ public:
     QAction *                       flipHorizontalAction;
     QAction *                       flipVerticalAction;
     QAction *                       selectBackgroundColorAction;
+    QAction *                       setColorAction;
     QSpinBox *                      spinBoxRefreshTime;
     QComboBox *                     imageWidth;
     QComboBox *                     imageHeight;
@@ -309,6 +311,7 @@ ImagePreviewDialog::ImagePreviewDialogImpl::ImagePreviewDialogImpl(ImagePreviewD
     , flipHorizontalAction(nullptr)
     , flipVerticalAction(nullptr)
     , selectBackgroundColorAction(nullptr)
+    , setColorAction(nullptr)
     , imageWidth(nullptr)
     , imageHeight(nullptr)
     , imageFormat(nullptr)
@@ -484,6 +487,12 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 	selectBackgroundColorAction->setIcon(QIcon::fromTheme("color-fill"));
 	connect(selectBackgroundColorAction, &QAction::triggered, this, &ImagePreviewDialogImpl::selectBackgroundColor);
 
+    setColorAction = new QAction(tr("Set &Color"), _dialog);
+    setColorAction->setIcon(QIcon::fromTheme("color-fill"));
+    connect(setColorAction, &QAction::triggered, this, &ImagePreviewDialogImpl::setColor);
+
+    
+
     QMenu * saveMenu = new QMenu(_dialog);
     for(const auto & it : ImageFormatDisplayText)
     {
@@ -591,6 +600,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::createToolbar()
 	toolBar->addAction(flipVerticalAction);
     toolBar->addSeparator();
     toolBar->addAction(selectBackgroundColorAction);
+    toolBar->addAction(setColorAction);
     toolBar->addWidget(spinBoxRefreshTime);
 
     // do the connects at the end to avoid trouble when new items are added and signals fired
@@ -651,6 +661,34 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::selectBackgroundColor()
     {
         ui->scrollAreaImageQt->setBackgroundColor(color);
         ui->scrollAreaImageGL->setBackgroundColor(color);
+    }
+}
+
+void ImagePreviewDialog::ImagePreviewDialogImpl::setColor()
+{
+    QColor oldColor;
+    QColor color = QColorDialog::getColor(oldColor, _dialog, tr("Select color"));
+    if (color.isValid())
+    {
+        // get image from the item if no image has been explicitly specified by the caller
+        if (_dialog->_image.valid())
+        {
+            struct SetColor {
+                Image::Pixel _color;
+                bool operator()(Image::Pixel & pixel)
+                {
+                    pixel = _color;
+                    return true;
+                }
+            };
+            PixelVisitor<SetColor> pv;
+            pv._color = Image::Pixel(sgi::Image::DataTypeUnsignedByte, color.rgba());
+            const sgi::Image * image = _dialog->_image.get();
+            pv.accept(const_cast<sgi::Image*>(image));
+        }
+
+        _dialog->_workImage = nullptr;
+        refresh();
     }
 }
 

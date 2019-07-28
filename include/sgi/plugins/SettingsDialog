@@ -11,6 +11,9 @@ class QDialog;
 namespace sgi {
 
 class SGIHostItemBase;
+class SGIItemBase;
+typedef details::ref_ptr<SGIItemBase> SGIItemBasePtr;
+class SGIPluginHostInterface;
 
 class ISettingsDialogInfo : public IHostCallback
 {
@@ -26,8 +29,8 @@ public:
     SettingsDialogInfoBase(unsigned dialogId, QWidget * parent, IHostCallback * callback)
         : _dialogId(dialogId), _parent(parent), _hostCallback(callback) {}
 
-    virtual unsigned dialogId() { return _dialogId; }
-    virtual QWidget * parent() { return _parent; }
+    unsigned dialogId() override { return _dialogId; }
+    QWidget * parent() override { return _parent; }
     IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) override
     {
         return _hostCallback->contextMenu(parent, item);
@@ -64,7 +67,16 @@ public:
     {
         return _hostCallback->showImagePreviewDialog(parent, item);
     }
-    virtual ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
+    bool openSettingsDialog(ISettingsDialogPtr & dialog, const SGIHostItemBase * item, ISettingsDialogInfo * info) override
+    {
+        return _hostCallback->openSettingsDialog(dialog, item, info);
+    }
+    bool openSettingsDialog(ISettingsDialogPtr & dialog, SGIItemBase * item, ISettingsDialogInfo * info) override
+    {
+        return _hostCallback->openSettingsDialog(dialog, item, info);
+    }
+
+    ReferencedPickerBase *  createPicker(PickerType type, float x, float y) override
     {
         return _hostCallback->createPicker(type, x, y);
     }
@@ -76,11 +88,11 @@ public:
     {
         return _hostCallback->getView();
     }
-    virtual QWidget * getFallbackParentWidget() override
+    QWidget * getFallbackParentWidget() override
     {
         return _parent;
     }
-	virtual void shutdown() override
+    void shutdown() override
 	{
 		_hostCallback->shutdown();
 	}

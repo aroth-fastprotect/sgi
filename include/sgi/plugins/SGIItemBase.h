@@ -92,7 +92,7 @@ public:
     typedef typename TYPE::ObjectStorageType ObjectStorageType;
 
     SGIItemHolderT(ObjectType * object)
-        : SGIItemHolder(), _object(object), _copied(false)
+        : SGIItemHolder(), _object(TYPE::assignObject(object)), _copied(false)
     {
     }
     SGIItemHolderT(const ObjectType & object)

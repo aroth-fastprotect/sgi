@@ -9,9 +9,13 @@
 #include <QWidget>
 #include <QWindow>
 #include <QSurface>
+#include <QStyle>
+#include <QBitmap>
+#include <QSystemTrayIcon>
 #include <QDesktopWidget>
 #include <QOpenGLContext>
 #include <QOpenGLWidget>
+#include <QOpenGLWindow>
 #include <QOpenGLShaderProgram>
 #ifdef WITH_QTOPENGL
 #include <QGLWidget>
@@ -43,9 +47,12 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QApplication)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QPaintDevice)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QImage)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLContext)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLWindow)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLWidget)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLShaderProgram)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QOpenGLShader)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QIcon)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QSystemTrayIcon)
 
 #ifdef WITH_QTOPENGL
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QGLWidget)
@@ -119,12 +126,32 @@ bool objectTreeBuildImpl<QObject>::build(IObjectTreeItem * treeItem)
                     const char *typeName = metaproperty.typeName();
                     QVariant value = object->property(name);
 
-                    bool isQObject = value.canConvert<QObject*>();
-                    if(isQObject)
+                    if(value.canConvert<QObject*>())
                     {
                         std::stringstream ss;
                         ss << metaObject->className() << "::" << name;
                         SGIHostItemQt item(value.value<QObject*>());
+                        treeItem->addChild(ss.str(), &item);
+                    }
+                    else if(value.canConvert<QIcon>())
+                    {
+                        std::stringstream ss;
+                        ss << metaObject->className() << "::" << name;
+                        SGIHostItemQtIcon item(value.value<QIcon>());
+                        treeItem->addChild(ss.str(), &item);
+                    }
+                    else if(value.canConvert<QBitmap>())
+                    {
+                        std::stringstream ss;
+                        ss << metaObject->className() << "::" << name;
+                        SGIHostItemQtPaintDevice item(value.value<QBitmap>());
+                        treeItem->addChild(ss.str(), &item);
+                    }
+                    else if(value.canConvert<QImage>())
+                    {
+                        std::stringstream ss;
+                        ss << metaObject->className() << "::" << name;
+                        SGIHostItemQtPaintDevice item(value.value<QImage>());
                         treeItem->addChild(ss.str(), &item);
                     }
                 }
@@ -145,6 +172,9 @@ bool objectTreeBuildImpl<QObject>::build(IObjectTreeItem * treeItem)
             }
             ret = true;
         }
+        break;
+    case SGIItemTypeProperties:
+        ret = true;
         break;
     case SGIItemTypeMethods:
         {
@@ -195,6 +225,9 @@ bool objectTreeBuildImpl<QWidget>::build(IObjectTreeItem * treeItem)
             if(windowHandle.hasObject())
                 treeItem->addChild("WindowHandle", &windowHandle);
             treeItem->addChild("Palette", cloneItemMulti<SGIItemQt, SGIItemQtPaintDevice>(SGIItemTypePalette, ~0u));
+            SGIHostItemQt style(object->style());
+            if(style.hasObject())
+                treeItem->addChild("Style", &style);
         }
         break;
     case SGIItemTypePalette:
@@ -209,7 +242,8 @@ bool objectTreeBuildImpl<QWidget>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<QWindow>::build(IObjectTreeItem * treeItem)
 {
-    QWindow * object = getObjectMulti<QWindow, SGIItemQt, SGIItemQtSurface>();
+    QWindow * qobject = getObject<QWindow, SGIItemQt>();
+    QWindow * surface = getObject<QWindow, SGIItemQtSurface>();
     bool ret = false;
     switch(itemType())
     {
@@ -218,6 +252,17 @@ bool objectTreeBuildImpl<QWindow>::build(IObjectTreeItem * treeItem)
         if(ret)
         {
             treeItem->addChild("Format", cloneItem<SGIItemQt>(SGIItemTypeSurfaceFormat));
+
+            if (qobject)
+            {
+                SGIHostItemQtSurface surface(qobject);
+                treeItem->addChild("Surface", &surface);
+            }
+            else if (surface)
+            {
+                SGIHostItemQt qobject(surface);
+                treeItem->addChild("Object", &qobject);
+            }
         }
         break;
     default:
@@ -319,6 +364,10 @@ bool objectTreeBuildImpl<QApplication>::build(IObjectTreeItem * treeItem)
             if(desktop.hasObject())
                 treeItem->addChild("Desktop", &desktop);
 
+            SGIHostItemQt style(object->style());
+            if (style.hasObject())
+                treeItem->addChild("Style", &style);
+
             SGIHostItemQt clipboard(object->clipboard());
             if(clipboard.hasObject())
                 treeItem->addChild("Clipboard", &clipboard);
@@ -326,6 +375,8 @@ bool objectTreeBuildImpl<QApplication>::build(IObjectTreeItem * treeItem)
             QWidgetList allWidgets = object->allWidgets();
             if(!allWidgets.isEmpty())
                 treeItem->addChild(helpers::str_plus_count("Widgets", allWidgets.size()), cloneItem<SGIItemQt>(SGIItemTypeWidgets));
+
+            treeItem->addChild("Palette", cloneItem<SGIItemQt>(SGIItemTypePalette));
         }
         break;
     case SGIItemTypeWidgets:
@@ -338,6 +389,9 @@ bool objectTreeBuildImpl<QApplication>::build(IObjectTreeItem * treeItem)
             }
             ret = true;
         }
+        break;
+    case SGIItemTypePalette:
+        ret = true;
         break;
     default:
         ret = callNextHandler(treeItem);
@@ -404,6 +458,28 @@ bool objectTreeBuildImpl<QOpenGLContext>::build(IObjectTreeItem * treeItem)
         break;
     case SGIItemTypeSurface:
         ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<QOpenGLWindow>::build(IObjectTreeItem * treeItem)
+{
+    QOpenGLWindow * object = getObject<QOpenGLWindow, SGIItemQt>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemQt context(object->context());
+            if (context.hasObject())
+                treeItem->addChild("Context", &context);
+        }
         break;
     default:
         ret = callNextHandler(treeItem);
@@ -486,6 +562,49 @@ bool objectTreeBuildImpl<QOpenGLShader>::build(IObjectTreeItem * treeItem)
         break;
     case SGIItemTypeShaderLog:
         ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<QIcon>::build(IObjectTreeItem * treeItem)
+{
+    QIcon * object = getObject<QIcon, SGIItemQtIcon>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        treeItem->addChild("Theme", cloneItem<SGIItemQtIcon>(SGIItemTypeTheme));
+        ret = true;
+        break;
+    case SGIItemTypeTheme:
+        ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<QSystemTrayIcon>::build(IObjectTreeItem * treeItem)
+{
+    QSystemTrayIcon * object = getObject<QSystemTrayIcon, SGIItemQt>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemQt contextMenu(object->contextMenu());
+            if (contextMenu.hasObject())
+                treeItem->addChild("ContextMenu", &contextMenu);
+            ret = true;
+        }
         break;
     default:
         ret = callNextHandler(treeItem);

@@ -2,10 +2,6 @@
 
 #include <sgi/plugins/SettingsDialogImpl>
 
-namespace osg {
-    class Camera;
-}
-
 namespace sgi {
 namespace osgearth_plugin {
 
@@ -14,7 +10,9 @@ enum SettingsDialog {
     SettingsDialogAutoClipPlaneCullCallback,
     SettingsDialogTileInspector,
     SettingsDialogRetrieveElevation,
-    SettingsDialogLODScaleOverride
+    SettingsDialogLODScaleOverride,
+    SettingsDialogShaderEditor,
+    SettingsDialogLightSettings,
 };
 
 SETTINGS_DIALOG_CREATE_IMPL_TEMPLATE()

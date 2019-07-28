@@ -54,11 +54,13 @@
 #include <osgAnimation/AnimationManagerBase>
 #include <osgUtil/IncrementalCompileOperation>
 
+#include <sgi/helpers/osg_drawable_helpers>
+
 #include "MenuActionOSG.h"
 #include "stateset_helpers.h"
 #include "osg_accessor.h"
 #include "osgtext_accessor.h"
-#include "DrawableHelper.h"
+
 #include "osganimation_accessor.h"
 #include "ObjectLoggerOSG.h"
 
@@ -142,6 +144,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgQt::GraphicsWindowQt)
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgText::TextBase)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgText::Text)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgText::Font)
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgUtil::IncrementalCompileOperation)
 
@@ -150,8 +153,6 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgAnimation::AnimationManagerBa
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(sgi::ISceneGraphDialogToolsMenu)
 
 using namespace sgi::osg_helpers;
-
-extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::StateAttribute::Type & t);
 
 namespace {
     static void buildStateAttributeOverrideMenu(IContextMenuItem * childMenu)
@@ -167,7 +168,7 @@ namespace {
                                              SGIItemBase * item, osg::StateAttribute * attr, const osg::StateAttribute::OverrideValue value)
     {
         std::stringstream ss;
-        ss << helpers::str_plus_number("Texture", textureUnit) << '/' << member << ':' << type;
+        ss << helpers::str_plus_number("Texture", textureUnit) << '/' << member << ':' << getStateAttributeTypeName(type);
 
         StateAttributeModeValue currentMode = getStateAttributeModeFromOverrideValue(value);
         IContextMenuItem * childMenu = menuItem->addModeMenu(MenuActionStateSetTextureAttributeSet, ss.str(), item, currentMode, new ReferencedDataTextureAttributePair(TextureAttributePair(textureUnit, attr)));
@@ -194,7 +195,7 @@ namespace {
                                              SGIItemBase * item, const osg::StateAttribute::OverrideValue value)
     {
         std::stringstream ss;
-        ss << '#' << member << ':' << type << ' ' << attr->getName();
+        ss << '#' << member << ':' << getStateAttributeTypeName(type) << ' ' << attr->getName();
 
         StateAttributeModeValue currentMode = getStateAttributeModeFromOverrideValue(value);
         IContextMenuItem * childMenu = menuItem->addModeMenu(MenuActionStateSetAttributeSet, ss.str(), item, currentMode, new SGIRefPtrOsg(attr));
@@ -211,6 +212,8 @@ namespace {
         std::stringstream ss;
         ss << osg::Uniform::getTypename(uniform->getType()) << ' ' << uniform->getName();
         IContextMenuItem * childMenu = menuItem->addModeMenu(MenuActionStateSetUniformSet, ss.str(), item, currentMode, new SGIRefPtrOsg(uniform));
+        childMenu->addSimpleAction(MenuActionUniformEdit, "Edit...", item, new ReferencedDataString(uniform->getName()));
+        childMenu->addSeparator();
         buildStateAttributeOverrideMenu(childMenu);
         childMenu->addSeparator();
         childMenu->addSimpleAction(MenuActionStateSetUniformRemove, "Remove", item, new ReferencedDataString(uniform->getName()));
@@ -353,7 +356,7 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
                 manipulateMenu->addSimpleAction(MenuActionNodeStripTextures, "Strip textures", _item);
                 manipulateMenu->addSimpleAction(MenuActionNodeSmoothingVisitor, "Smoothing visitor", _item);
 
-                manipulateMenu->addBoolAction(MenuActionNodeRenderInfo, "Render info", _item, RenderInfo::isPresent(object));
+                manipulateMenu->addBoolAction(MenuActionNodeRenderInfo, "Render info", _item, osg_helpers::RenderInfo::isPresent(object));
                 HasDeprecatedDataVisitor hddv;
                 object->accept(hddv);
                 if(hddv.result)
@@ -394,8 +397,12 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
                 menuItem->addMenu("CullCallback", &cullCallback);
 
             SGIHostItemOsg stateSet(object->getStateSet());
-            if(stateSet.hasObject())
+            if (stateSet.hasObject())
+            {
                 menuItem->addMenu("StateSet", &stateSet);
+                manipulateMenu->addSimpleAction(MenuActionNodeRemoveStateSet, "Remove StateSet", _item);
+                manipulateMenu->addSimpleAction(MenuActionNodeRemoveAllStateSets, "Remove all StateSets", _item);
+            }
             else
                 manipulateMenu->addSimpleAction(MenuActionNodeCreateStateSet, "Create StateSet", _item);
         }
@@ -1620,7 +1627,7 @@ bool contextMenuPopulateImpl<osg::Drawable>::populate(IContextMenuItem * menuIte
         ret = callNextHandler(menuItem);
         if(ret)
         {
-            menuItem->addBoolAction(MenuActionDrawableToggleDisabled, "Disabled", _item, DisabledDrawCallback::isDisabled(object));
+            menuItem->addBoolAction(MenuActionDrawableToggleDisabled, "Disabled", _item, osg_helpers::DisabledDrawCallback::isDisabled(object));
 #if OSG_VERSION_LESS_THAN(3,4,0)
             SGIHostItemOsg stateSet(object->getStateSet());
             if(stateSet.hasObject())
@@ -1635,7 +1642,6 @@ bool contextMenuPopulateImpl<osg::Drawable>::populate(IContextMenuItem * menuIte
 				manipulateMenu->addBoolAction(MenuActionDrawableSupportsDisplayList, "Supports display list", _item, object->getSupportsDisplayList());
                 manipulateMenu->addBoolAction(MenuActionDrawableUseVAO, "Use VAO", _item, object->getUseVertexArrayObject());
                 manipulateMenu->addBoolAction(MenuActionDrawableUseVBO, "Use VBO", _item, object->getUseVertexBufferObjects());
-                manipulateMenu->addBoolAction(MenuActionDrawableRenderInfoDrawCallback, "Render info draw callback", _item, RenderInfo::hasDrawCallback(object));
 			}
 
             SGIHostItemOsg shape(object->getShape());
@@ -1715,6 +1721,9 @@ bool contextMenuPopulateImpl<osg::Image>::populate(IContextMenuItem * menuItem)
         if(ret)
         {
             menuItem->addSimpleAction(MenuActionImagePreview, "Preview...", _item);
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+                manipulateMenu->addSimpleAction(MenuActionImageEditData, "Modify data...", _item);
         }
         break;
     default:
@@ -2403,6 +2412,7 @@ bool contextMenuPopulateImpl<osgGA::CameraManipulator>::populate(IContextMenuIte
         ret = callNextHandler(menuItem);
         if(ret)
         {
+            menuItem->addSimpleAction(MenuActionCameraManipulatorHome, "Home", _item);
             menuItem->addBoolAction(MenuActionCameraManipulatorAutoComputeHome, "Auto compute home", _item, object->getAutoComputeHomePosition());
 
             SGIHostItemOsg node(object->getNode());
@@ -2510,6 +2520,10 @@ bool contextMenuPopulateImpl<osgText::Text>::populate(IContextMenuItem * menuIte
         if(ret)
         {
             menuItem->addBoolAction(MenuActionTextBackdropEnableDepthWrites, "Depth Writes Enabled", _item, object->getEnableDepthWrites());
+#ifdef OSGTEXT_HAS_USEDEFAULTFONTASFALLBACK
+            menuItem->addBoolAction(MenuActionTextUseDefaultFontAsFallback, "Use Default Font as Fallback", _item, object->getUseDefaultFontAsFallback());
+#endif
+
             IContextMenuItem * backdropTypeMenu = menuItem->addModeMenu(MenuActionTextBackdropType, "Backdrop type", _item, object->getBackdropType());
             if(backdropTypeMenu)
             {
@@ -2538,6 +2552,25 @@ bool contextMenuPopulateImpl<osgText::Text>::populate(IContextMenuItem * menuIte
             menuItem->addSimpleAction(MenuActionTextBackdropHorizontalOffset, helpers::str_plus_info("Backdrop Horz. Offset", object->getBackdropHorizontalOffset()), _item);
             menuItem->addSimpleAction(MenuActionTextBackdropVerticalOffset, helpers::str_plus_info("Backdrop Vert. Offset", object->getBackdropVerticalOffset()), _item);
             menuItem->addSimpleAction(MenuActionTextBackdropColor, "Backdrop color...", _item);
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<osgText::Font>::populate(IContextMenuItem * menuItem)
+{
+    osgText::Font * object = getObject<osgText::Font, SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if(ret)
+        {
         }
         break;
     default:

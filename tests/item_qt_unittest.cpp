@@ -13,6 +13,7 @@
 #include <sgi/Shutdown>
 #include <sgi/AutoLoadQt>
 #include <sgi/plugins/SGIHostItemQt.h>
+#include <sgi/plugins/SGIItemQt>
 
 using namespace std;
 using namespace sgi;
@@ -62,6 +63,33 @@ void item_qt_unittest::qImage()
     SGIItemBasePtr item;
     QVERIFY(sgi::generateItem<autoload::Qt>(item, &hostitem));
     QVERIFY(item.valid());
+
+    item = nullptr;
+    QVERIFY(!item.valid());
+
+}
+
+void item_qt_unittest::qIcon()
+{
+    SGIItemBasePtr item;
+    {
+        QPixmap pixmap(32, 32);
+        QIcon icon(pixmap);
+        auto sizes = icon.availableSizes();
+        QVERIFY(!sizes.empty());
+        SGIHostItemQtIcon hostitem(icon);
+        QVERIFY(hostitem.hasObject());
+        QVERIFY(sgi::generateItem<autoload::Qt>(item, &hostitem));
+    }
+
+    QVERIFY(item.valid());
+
+    SGIItemQtIcon* qitem = dynamic_cast<SGIItemQtIcon*>(item.get());
+    QVERIFY(qitem != nullptr);
+
+    QIcon * icon = qitem->objectAs<QIcon>();
+    auto sizes = icon->availableSizes();
+    QVERIFY(!sizes.empty());
 
     item = nullptr;
     QVERIFY(!item.valid());

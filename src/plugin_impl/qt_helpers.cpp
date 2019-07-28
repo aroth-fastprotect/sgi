@@ -1,5 +1,5 @@
 // kate: syntax C++11;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// SGI - Copyright (C) 2012-2019 FAST Protect, Andreas Roth
 
 #include <sgi/helpers/qt>
 
@@ -34,6 +34,15 @@
 #include <QFont>
 #include <QModelIndex>
 #include <QPersistentModelIndex>
+#include <QTextLength>
+#include <QTextFormat>
+#include <QVector2D>
+#include <QVector3D>
+#include <QVector4D>
+#include <QQuaternion>
+#include <QMatrix4x4>
+#include <QPolygonF>
+#include <QIcon>
 #include <sgi/helpers/rtti>
 
 namespace std {
@@ -46,6 +55,103 @@ namespace sgi {
 const static int metaTypeQtSGIItemType = qRegisterMetaType<sgi::qt_helpers::QtSGIItem>("sgi::qt_helpers::QtSGIItem");
 const static int metaTypeQtMenuSGIItemType = qRegisterMetaType<sgi::qt_helpers::QtMenuSGIItem>("sgi::qt_helpers::QtMenuSGIItem");
 const static int metaTypeQtTableSGIItemType = qRegisterMetaType<sgi::qt_helpers::QtTableSGIItem>("sgi::qt_helpers::QtTableSGIItem");
+
+#define QENUM_OSTREAM(__enum_name) \
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const __enum_name & c) { \
+        auto metaEnum = QMetaEnum::fromType<__enum_name>(); \
+        return os << metaEnum.valueToKey(c); \
+    }
+#define QFLAG_OSTREAM(__enum_name) \
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const __enum_name & c) { \
+        auto metaEnum = QMetaEnum::fromType<__enum_name>(); \
+        return os << metaEnum.valueToKey(c); \
+    }
+
+// NOTE: Generally, do not add QT_Q_ENUM if a corresponding Q_Q_FLAG exists.
+QENUM_OSTREAM(Qt::ScrollBarPolicy)
+QENUM_OSTREAM(Qt::FocusPolicy)
+QENUM_OSTREAM(Qt::ContextMenuPolicy)
+QENUM_OSTREAM(Qt::ArrowType)
+QENUM_OSTREAM(Qt::ToolButtonStyle)
+QENUM_OSTREAM(Qt::PenStyle)
+QENUM_OSTREAM(Qt::PenCapStyle)
+QENUM_OSTREAM(Qt::PenJoinStyle)
+QENUM_OSTREAM(Qt::BrushStyle)
+QENUM_OSTREAM(Qt::FillRule)
+QENUM_OSTREAM(Qt::MaskMode)
+QENUM_OSTREAM(Qt::BGMode)
+QENUM_OSTREAM(Qt::ClipOperation)
+QENUM_OSTREAM(Qt::SizeMode)
+QENUM_OSTREAM(Qt::Axis)
+QENUM_OSTREAM(Qt::Corner)
+QENUM_OSTREAM(Qt::Edge)
+QENUM_OSTREAM(Qt::LayoutDirection)
+QENUM_OSTREAM(Qt::SizeHint)
+QENUM_OSTREAM(Qt::Orientation)
+QENUM_OSTREAM(Qt::DropAction)
+QENUM_OSTREAM(Qt::Alignment)
+QENUM_OSTREAM(Qt::TextFlag)
+QENUM_OSTREAM(Qt::Orientations)
+QENUM_OSTREAM(Qt::DropActions)
+QENUM_OSTREAM(Qt::Edges)
+QENUM_OSTREAM(Qt::DockWidgetAreas)
+QENUM_OSTREAM(Qt::ToolBarAreas)
+QENUM_OSTREAM(Qt::DockWidgetArea)
+QENUM_OSTREAM(Qt::ToolBarArea)
+QENUM_OSTREAM(Qt::TextFormat)
+QENUM_OSTREAM(Qt::TextElideMode)
+QENUM_OSTREAM(Qt::DateFormat)
+QENUM_OSTREAM(Qt::TimeSpec)
+QENUM_OSTREAM(Qt::DayOfWeek)
+QENUM_OSTREAM(Qt::CursorShape)
+QENUM_OSTREAM(Qt::GlobalColor)
+QENUM_OSTREAM(Qt::AspectRatioMode)
+QENUM_OSTREAM(Qt::TransformationMode)
+QENUM_OSTREAM(Qt::ImageConversionFlags)
+QENUM_OSTREAM(Qt::Key)
+QENUM_OSTREAM(Qt::ShortcutContext)
+QENUM_OSTREAM(Qt::TextInteractionFlag)
+QENUM_OSTREAM(Qt::TextInteractionFlags)
+QENUM_OSTREAM(Qt::ItemSelectionMode)
+QENUM_OSTREAM(Qt::ItemSelectionOperation)
+QENUM_OSTREAM(Qt::ItemFlags)
+QENUM_OSTREAM(Qt::CheckState)
+QENUM_OSTREAM(Qt::ItemDataRole)
+QENUM_OSTREAM(Qt::SortOrder)
+QENUM_OSTREAM(Qt::CaseSensitivity)
+QENUM_OSTREAM(Qt::MatchFlags)
+QENUM_OSTREAM(Qt::KeyboardModifiers)
+QENUM_OSTREAM(Qt::MouseButtons)
+QENUM_OSTREAM(Qt::WindowType)
+QENUM_OSTREAM(Qt::WindowState)
+QENUM_OSTREAM(Qt::WindowModality)
+QENUM_OSTREAM(Qt::WidgetAttribute)
+QENUM_OSTREAM(Qt::ApplicationAttribute)
+QENUM_OSTREAM(Qt::WindowFlags)
+QENUM_OSTREAM(Qt::WindowStates)
+QENUM_OSTREAM(Qt::FocusReason)
+QENUM_OSTREAM(Qt::InputMethodHint)
+QENUM_OSTREAM(Qt::InputMethodQuery)
+QENUM_OSTREAM(Qt::InputMethodHints)
+QENUM_OSTREAM(Qt::EnterKeyType)
+QENUM_OSTREAM(Qt::InputMethodQueries)
+QENUM_OSTREAM(Qt::TouchPointStates)
+QENUM_OSTREAM(Qt::ScreenOrientation)
+QENUM_OSTREAM(Qt::ScreenOrientations)
+QENUM_OSTREAM(Qt::ConnectionType)
+QENUM_OSTREAM(Qt::ApplicationState)
+#ifndef QT_NO_GESTURES
+QENUM_OSTREAM(Qt::GestureState)
+QENUM_OSTREAM(Qt::GestureType)
+QENUM_OSTREAM(Qt::NativeGestureType)
+#endif
+QENUM_OSTREAM(Qt::CursorMoveStyle)
+QENUM_OSTREAM(Qt::TimerType)
+QENUM_OSTREAM(Qt::ScrollPhase)
+QENUM_OSTREAM(Qt::MouseEventSource)
+QENUM_OSTREAM(Qt::MouseEventFlag)
+QENUM_OSTREAM(Qt::ChecksumType)
+QENUM_OSTREAM(Qt::TabFocusBehavior)
 
 QString fromLocal8Bit(const std::string & str)
 {
@@ -71,7 +177,7 @@ std::string toUtf8(const QString & str)
 
 std::string getObjectTypename(const QObject * object)
 {
-    const QMetaObject * meta = object?object->metaObject():NULL;
+    const QMetaObject * meta = object?object->metaObject():nullptr;
     return meta?std::string(meta->className()):"(null)";
 }
 
@@ -200,8 +306,48 @@ namespace std {
         case QVariant::Cursor: os << v.value<QCursor>(); break;
         case QVariant::KeySequence: os << v.value<QKeySequence>(); break;
         case QVariant::Pen: os << v.value<QPen>(); break;
+        case QVariant::TextLength: os << v.value<QTextLength>(); break;
+        case QVariant::TextFormat: os << v.value<QTextFormat>(); break;
+        case QVariant::Matrix: os << v.value<QMatrix>(); break;
+        case QVariant::Transform: os << v.value<QTransform>(); break;
+        case QVariant::Matrix4x4: os << v.value<QMatrix4x4>(); break;
+        case QVariant::Vector2D: os << v.value<QVector2D>(); break;
+        case QVariant::Vector3D: os << v.value<QVector3D>(); break;
+        case QVariant::Vector4D: os << v.value<QVector4D>(); break;
+        case QVariant::Quaternion: os << v.value<QQuaternion>(); break;
+        case QVariant::PolygonF: os << v.value<QPolygonF>(); break;
+        case QVariant::Icon: os << v.value<QIcon>(); break;
+        case QVariant::SizePolicy: os << v.value<QSizePolicy>(); break;
+        default: os << QString("Unknown type %1: %2").arg(v.type()).arg(v.toString()); break;
+        }
+        return os;
+    }
 
-        default: os << v.toString(); break;
+    std::basic_ostream<char>& writeVariant(std::basic_ostream<char>& os, const QVariant & v, const QMetaProperty * property)
+    {
+        if(!property)
+            os << v;
+        else {
+            if (property->isFlagType())
+            {
+                QMetaEnum enumerator = property->enumerator();
+                QByteArray keys = enumerator.valueToKeys(v.toInt());
+                if (keys.isNull())
+                    os << v.toInt();
+                else
+                    os << keys.constData();
+            }
+            else if (property->isEnumType())
+            {
+                QMetaEnum enumerator = property->enumerator();
+                const char * key = enumerator.valueToKey(v.toInt());
+                if (key)
+                    os << key;
+                else
+                    os << v.toInt();
+            }
+            else
+                os << v;
         }
         return os;
     }
@@ -268,6 +414,24 @@ namespace std {
         return os << l.name();
     }
 
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const _QtColorBox<char>& color)
+    {
+        if(color._color.isValid())
+        {
+            std::stringstream buf;
+            buf << "#";
+            buf << std::hex << std::setw(2) << std::setfill('0') << color._color.red();
+            buf << std::hex << std::setw(2) << std::setfill('0') << color._color.green();
+            buf << std::hex << std::setw(2) << std::setfill('0') << color._color.blue();
+            if ( color._color.alpha() < 255)
+                buf << std::hex << std::setw(2) << std::setfill('0') << color._color.alpha();
+            os << "<div style=\"width: 16px; height: 16px; background: " << buf.str() << ";\">&nbsp;</div>";
+        }
+        else
+            os << "invalid";
+        return os;
+    }
+
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QColor& color)
     {
         if(color.isValid())
@@ -287,32 +451,32 @@ namespace std {
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSize & size)
     {
-        return os << "(" << size.width() << ", " << size.height() << ")" << std::endl;
+        return os << "(" << size.width() << ", " << size.height() << ")";
     }
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSizeF & size)
     {
-        return os << "(" << size.width() << ", " << size.height() << ")" << std::endl;
+        return os << "(" << size.width() << ", " << size.height() << ")";
     }
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QRect & r)
     {
-        return os << "(" << r.left() << ", " << r.top() << " x " << r.width() << ", " << r.height() << ")" << std::endl;
+        return os << "(" << r.left() << ", " << r.top() << " x " << r.width() << ", " << r.height() << ")";
     }
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QRectF & r)
     {
-        return os << "(" << r.left() << ", " << r.top() << " x " << r.width() << ", " << r.height() << ")" << std::endl;
+        return os << "(" << r.left() << ", " << r.top() << " x " << r.width() << ", " << r.height() << ")";
     }
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPoint & p)
     {
-        return os << "(" << p.x() << ", " << p.y() << ")" << std::endl;
+        return os << "(" << p.x() << ", " << p.y() << ")";
     }
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPointF & p)
     {
-        return os << "(" << p.x() << ", " << p.y() << ")" << std::endl;
+        return os << "(" << p.x() << ", " << p.y() << ")";
     }
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QChar & c)
@@ -324,24 +488,19 @@ namespace std {
     {
         return os << url.toString();
     }
-    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSizePolicy::Policy & p)
-    {
-        switch(p)
-        {
-        case QSizePolicy::Fixed: os << "Fixed"; break;
-        case QSizePolicy::Minimum: os << "Minimum"; break;
-        case QSizePolicy::Maximum: os << "Maximum"; break;
-        case QSizePolicy::Preferred: os << "Preferred"; break;
-        case QSizePolicy::MinimumExpanding: os << "MinimumExpanding"; break;
-        case QSizePolicy::Expanding: os << "Expanding"; break;
-        case QSizePolicy::Ignored: os << "Ignored"; break;
-        default: os << (int)p; break;
-        }
-        return os;
-    }
+    QENUM_OSTREAM(QSizePolicy::Policy);
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QSizePolicy & sp)
     {
-        return os << "(" << sp.horizontalPolicy() << ", " << sp.verticalPolicy() << ")";
+        os << "(" << sp.horizontalPolicy() << '/' << sp.horizontalStretch()
+            << ", " << sp.verticalPolicy() << '/' << sp.verticalStretch();
+        if(sp.retainSizeWhenHidden())
+            os << ", retainSizeWhenHidden";
+        if (sp.hasHeightForWidth())
+            os << ", hasHeightForWidth";
+        if (sp.hasWidthForHeight())
+            os << ", hasWidthForHeight";
+        os << ")";
+        return os;
     }
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, QImage::Format t)
@@ -392,7 +551,7 @@ namespace std {
                    << colorGroupEnum.key(cg)
                    << '/' << colorRoleEnum.key(cr)
                    << "</td><td>"
-                   << c
+                   << c << std::colorBox<char>(c)
                    << "</td></tr>"
                    << std::endl;
             }
@@ -410,7 +569,7 @@ namespace std {
     {
         return os << '(' << p.size() << ',' << p.devType() << ')';
     }
-
+    QENUM_OSTREAM(Qt::BrushStyle);
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QBrush & b)
     {
         return os << '(' << b.color() << ',' << b.style() << ')';
@@ -454,6 +613,7 @@ namespace std {
         return os;
     }
 
+    QENUM_OSTREAM(Qt::CursorShape);
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QCursor & c)
     {
         return os << '(' << c.shape() << ',' << c.hotSpot() << ')';
@@ -463,9 +623,71 @@ namespace std {
     {
         return os << k.toString();
     }
-
+    QENUM_OSTREAM(Qt::PenStyle);
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPen & p)
     {
         return os << '(' << p.color() << ',' << p.style() << ')';
     }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QTextLength & t)
+    {
+        return os << '(' << t.type() << ',' << t.rawValue() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QTextFormat & t)
+    {
+        return os << '(' << t.type() << ',' << t.objectIndex() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMatrix & t)
+    {
+        return os << '(' << t.m11() << ',' << t.m12() << '/' << t.m21() << ',' << t.m22() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QTransform & t)
+    {
+        return os << '(' << t.type() << '=' << t.m11() << ',' << t.m12() << '/' << t.m21() << ',' << t.m22() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMatrix4x4 & t)
+    {
+        return os;
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVector2D & t)
+    {
+        return os << '(' << t.x() << ',' << t.y() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVector3D & t)
+    {
+        return os << '(' << t.x() << ',' << t.y() << ',' << t.z() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVector4D & t)
+    {
+        return os << '(' << t.x() << ',' << t.y() << ',' << t.z() << ',' << t.w() << ')';
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPolygonF & p)
+    {
+        return os << p.toPolygon();
+    }
+
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QIcon & i)
+    {
+        if(i.isNull())
+            return os << "(null)";
+        else
+        {
+            os << '(' << i.name() << ";cache=" << i.cacheKey();
+            if(i.isMask())
+                os << ";mask=1";
+            for(const QSize & s : i.availableSizes())
+                os << ";size=" << s;
+            os << ')';
+        }
+        return os;
+    }
+
 }

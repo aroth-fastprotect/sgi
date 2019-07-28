@@ -33,6 +33,7 @@
 #include <QOffscreenSurface>
 #include <QPagedPaintDevice>
 #include <QRasterWindow>
+#include <QSystemTrayIcon>
 
 #ifdef __APPLE__
 typedef void * GLDEBUGPROC;
@@ -59,6 +60,7 @@ typedef void * GLDEBUGPROC;
 SGI_OBJECT_INFO_BEGIN(QObject)
     QWindow, QWidget, QThread,
     QCoreApplication,
+    QSystemTrayIcon,
     QOpenGLContext,
     QOpenGLShaderProgram,
     QOpenGLShader,
@@ -163,6 +165,7 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeShaderSourceCode);
         SGIITEMTYPE_NAME(SGIItemTypeShaderLog);
         SGIITEMTYPE_NAME(SGIItemTypePalette);
+        SGIITEMTYPE_NAME(SGIItemTypeTheme);
     }
     SGIPlugin_qt_Implementation(const SGIPlugin_qt_Implementation & rhs)
         : qt_plugin::SGIPluginImpl(rhs)
