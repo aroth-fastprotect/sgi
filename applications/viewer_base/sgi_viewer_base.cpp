@@ -675,7 +675,8 @@ namespace {
     std::string getOSGDBModuleDirectory()
     {
         std::string modulefilename = getOSGDBModuleFilename();
-        return std::string(modulefilename, 0, modulefilename.find_last_of('/'));
+        std::string ret(modulefilename, 0, modulefilename.find_last_of('/'));
+        return ret;
     }
 }
 

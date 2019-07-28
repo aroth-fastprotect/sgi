@@ -31,7 +31,6 @@
 #include <sgi/plugins/SGIProxyItem.h>
 #include <sgi/helpers/string>
 #include <sgi/helpers/qt>
-#include <sgi/helpers/qt_widgetwindow>
 
 namespace sgi {
 namespace qt_plugin {
@@ -40,7 +39,6 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QMetaObject)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QObject)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QWidget)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QWindow)
-OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QWidgetWindow)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QSurface)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QCoreApplication)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QApplication)
@@ -123,7 +121,6 @@ bool objectTreeBuildImpl<QObject>::build(IObjectTreeItem * treeItem)
                 {
                     QMetaProperty metaproperty = metaObject->property(i);
                     const char *name = metaproperty.name();
-                    const char *typeName = metaproperty.typeName();
                     QVariant value = object->property(name);
 
                     if(value.canConvert<QObject*>())
@@ -270,28 +267,6 @@ bool objectTreeBuildImpl<QWindow>::build(IObjectTreeItem * treeItem)
         break;
     }
     return ret;
-}
-
-bool objectTreeBuildImpl<QWidgetWindow>::build(IObjectTreeItem * treeItem)
-{
-	QWidgetWindow * object = getObjectMulti<QWidgetWindow, SGIItemQt, SGIItemQtSurface>();
-	bool ret = false;
-	switch (itemType())
-	{
-	case SGIItemTypeObject:
-		ret = callNextHandler(treeItem);
-		if (ret)
-		{
-			SGIHostItemQt widget(object->widget());
-			if (widget.hasObject())
-				treeItem->addChild("Widget", &widget);
-		}
-		break;
-	default:
-		ret = callNextHandler(treeItem);
-		break;
-	}
-	return ret;
 }
 
 bool objectTreeBuildImpl<QSurface>::build(IObjectTreeItem * treeItem)

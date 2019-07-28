@@ -27,7 +27,6 @@
 #include <QColorDialog>
 #include <QPicture>
 #include <QWindow>
-#include <QtWidgets/private/qwidgetwindow_p.h>
 #include <QPaintDeviceWindow>
 #include <QSurface>
 #include <QOffscreenSurface>
@@ -67,7 +66,7 @@ SGI_OBJECT_INFO_BEGIN(QObject)
     QOpenGLVertexArrayObject
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(QWindow)
-    QPaintDeviceWindow, QWidgetWindow
+    QPaintDeviceWindow
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(QPaintDeviceWindow)
     QOpenGLWindow, QRasterWindow

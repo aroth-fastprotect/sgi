@@ -1,10 +1,11 @@
-// kate: syntax C++11;
+// kate: syntax C++;
 // SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
 
 #include "main.h"
 #include <QApplication>
 #include <QMouseEvent>
 #include <QWidget>
+#include <QWindow>
 #include <QMainWindow>
 #include <QJsonDocument>
 
@@ -15,7 +16,6 @@
 #include <sgi/ImagePreviewDialog>
 #include <sgi/SceneGraphDialog>
 #include <sgi/LibraryInfo>
-#include <sgi/helpers/qt_widgetwindow>
 #include <sgi/plugins/SGIHostItemQt.h>
 
 #include <QImage>
@@ -225,7 +225,7 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
     case QEvent::MouseButtonRelease:
         {
             QMouseEvent * mouseEvent = static_cast<QMouseEvent *>(event);
-            if(mouseEvent->button() == _inspectorContextMenuMouseButton &&
+            if( (int)mouseEvent->button() == _inspectorContextMenuMouseButton &&
                 (mouseEvent->modifiers() & _inspectorContextMenuMouseModifier) != 0)
             {
 				bool sgi_skip_object = obj->property("sgi_skip_object").toBool();
@@ -236,9 +236,9 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
 					QWidget* widget = dynamic_cast<QWidget*>(obj);
 					if (!widget)
 					{
-						QWidgetWindow* w = dynamic_cast<QWidgetWindow*>(obj);
-						if (w)
-							widget = w->widget();
+						QWindow* win = dynamic_cast<QWindow*>(obj);
+						if (win)
+                            widget = QWidget::find(win->winId());
 					}
 					if (widget)
 					{
@@ -282,7 +282,7 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
     case QEvent::MouseButtonPress:
         {
             QMouseEvent * mouseEvent = static_cast<QMouseEvent *>(event);
-            if(mouseEvent->button() == _inspectorContextMenuMouseButton &&
+            if( (int)mouseEvent->button() == _inspectorContextMenuMouseButton &&
                 (mouseEvent->modifiers() & _inspectorContextMenuMouseModifier) != 0)
             {
 				bool sgi_skip_object = obj->property("sgi_skip_object").toBool();
@@ -291,9 +291,9 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
 					QWidget* widget = dynamic_cast<QWidget*>(obj);
 					if (!widget)
 					{
-						QWidgetWindow* w = dynamic_cast<QWidgetWindow*>(obj);
-						if (w)
-							widget = w->widget();
+						QWindow* win = dynamic_cast<QWindow*>(obj);
+						if (win)
+                            widget = QWidget::find(win->winId());
 					}
 					if (widget)
 					{
@@ -326,6 +326,7 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
 
 QImageIOPlugin::Capabilities sgi_loader_plugin::capabilities(QIODevice *device, const QByteArray &format) const
 {
+    Q_UNUSED(device);
     if (format == "sgi_loader")
         return CanRead;
     else

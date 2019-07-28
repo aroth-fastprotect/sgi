@@ -20,7 +20,6 @@
 #include "SGIItemQt"
 
 #include <sgi/helpers/qt>
-#include <sgi/helpers/qt_widgetwindow>
 #include <sgi/helpers/html>
 #include <sgi/helpers/rtti>
 
@@ -33,7 +32,6 @@ namespace qt_plugin {
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QObject)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QWidget)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QWindow)
-WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QWidgetWindow)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QSurface)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QDialog)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QThread)
@@ -377,35 +375,6 @@ bool writePrettyHTMLImpl<QWindow>::process(std::basic_ostream<char>& os)
         break;
     }
     return ret;
-}
-
-bool writePrettyHTMLImpl<QWidgetWindow>::process(std::basic_ostream<char>& os)
-{
-	bool ret = false;
-	QWidgetWindow * object = getObjectMulti<QWidgetWindow, SGIItemQt, SGIItemQtSurface>();
-	switch (itemType())
-	{
-	case SGIItemTypeObject:
-		{
-			if (_table)
-				os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
-
-			// add QWindow properties first
-			callNextHandler(os);
-
-			// add properties
-			os << "<tr><td>widget</td><td>" << qt_helpers::getObjectNameAndType((const QObject*)object->widget(), true) << "</td></tr>" << std::endl;
-
-			if (_table)
-				os << "</table>" << std::endl;
-			ret = true;
-		}
-		break;
-	default:
-		ret = callNextHandler(os);
-		break;
-	}
-	return ret;
 }
 
 bool writePrettyHTMLImpl<QSurface>::process(std::basic_ostream<char>& os)

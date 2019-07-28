@@ -70,7 +70,6 @@ LIST(APPEND TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/helpers/osg_statistics
     ${SGI_INCLUDE_DIR}/sgi/helpers/qt
     ${SGI_INCLUDE_DIR}/sgi/helpers/qt_widgets
-    ${SGI_INCLUDE_DIR}/sgi/helpers/qt_widgetwindow
     ${SGI_INCLUDE_DIR}/sgi/helpers/rtti
     ${SGI_INCLUDE_DIR}/sgi/helpers/singleton
     ${SGI_INCLUDE_DIR}/sgi/helpers/string

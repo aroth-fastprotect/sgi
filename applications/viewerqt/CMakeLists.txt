@@ -2,15 +2,22 @@ include_directories(../viewer_base)
 
 SET( TARGET_SRC
     osgviewerQt.cpp
-    GraphicsWindowQt5.cpp
 )
 
 SET(TARGET_MOC_H
     osgviewerQt.h
-    GraphicsWindowQt5.hxx
 )
 SET(TARGET_H
 )
+if(SGI_USE_FLIGHTGEAR_GW)
+    list(APPEND TARGET_SRC
+        GraphicsWindowQt5.cpp
+        )
+    list(APPEND TARGET_MOC_H
+        GraphicsWindowQt5.hxx
+        )
+    add_compile_definitions(-DSGI_USE_FLIGHTGEAR_GW=1)
+endif()
 
 SET(TARGET_LIBRARIES_VARS
     OPENTHREADS_LIBRARY

@@ -31,7 +31,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 	SET(SGI_VERSION_PATCH 0)
 	SET(SGI_VERSION_BUILD 0)
 	SET(SGI_SOVERSION     0)
-	SET(SGI_COPYRIGHT_TEXT "Copyright (C) 2012-2018")
+    SET(SGI_COPYRIGHT_TEXT "Copyright (C) 2012-2019")
 
     SET(SGI_PLUGIN_PREFIX "")
 
@@ -118,6 +118,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 		SET(SGI_SWSCALE_LIBRARYNAME "swscale" CACHE STRING "name of the swscale library")
 	ENDIF()
     OPTION(SGI_USE_GAMMARAY "Use gammary framework" OFF)
+    OPTION(SGI_USE_FLIGHTGEAR_GW "Use flightgear graphicswindow" OFF)
 
 	SET(SGI_PLUGIN_IMPL_LIBRARY sgi-plugin-impl)
     set(SGI_OSG_HELPER_LIBRARY sgi-osg-helper)

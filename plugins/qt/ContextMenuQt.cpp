@@ -5,10 +5,10 @@
 #include "MenuActionQt.h"
 #include <QMetaClassInfo>
 #include <QWidget>
+#include <QWindow>
 #include <QSystemTrayIcon>
 #include <sgi/helpers/string>
 #include <sgi/helpers/qt>
-#include <sgi/helpers/qt_widgetwindow>
 
 namespace sgi {
 
@@ -16,7 +16,7 @@ namespace qt_plugin {
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QObject)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QWidget)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QWidgetWindow)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QWindow)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QMetaObject)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QPaintDevice)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QImage)
@@ -160,9 +160,9 @@ bool contextMenuPopulateImpl<QWidget>::populate(IContextMenuItem * menuItem)
     return ret;
 }
 
-bool contextMenuPopulateImpl<QWidgetWindow>::populate(IContextMenuItem * menuItem)
+bool contextMenuPopulateImpl<QWindow>::populate(IContextMenuItem * menuItem)
 {
-	QWidgetWindow * object = getObjectMulti<QWidgetWindow, SGIItemQt, SGIItemQtSurface>();
+    QWindow * object = getObjectMulti<QWindow, SGIItemQt, SGIItemQtSurface>();
 	bool ret = false;
 	switch (itemType())
 	{
@@ -170,9 +170,6 @@ bool contextMenuPopulateImpl<QWidgetWindow>::populate(IContextMenuItem * menuIte
 		ret = callNextHandler(menuItem);
 		if (ret)
 		{
-			SGIHostItemQt widget(object->widget());
-			if(widget.hasObject())
-				menuItem->addMenu("Widget", &widget);
 		}
 		break;
 	default:

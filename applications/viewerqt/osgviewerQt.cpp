@@ -210,6 +210,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
 
     _mainGW = createGraphicsWindow(0, 0, QMainWindow::width(), QMainWindow::height(), nullptr, std::string(), false, useQt5, useFlightgear);
 
+#ifdef SGI_USE_FLIGHTGEAR_GW
     flightgear::GraphicsWindowQt5* gwqt5 = dynamic_cast<flightgear::GraphicsWindowQt5*>(_mainGW.get());
     if (gwqt5)
     {
@@ -218,7 +219,10 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
         _viewWidget = QWidget::createWindowContainer(w);
     }
     else
+#endif
+    {
         _viewWidget = getWidgetForGraphicsWindow(_mainGW.get());
+    }
     setCentralWidget(_viewWidget);
     if(_viewWidget)
         _viewWidget->setProperty("sgi_skip_object", true);
@@ -411,6 +415,7 @@ void ViewerWidget::resizeEvent(QResizeEvent * event)
 CreateViewHandlerProxy::CreateViewHandlerProxy(CreateViewHandler * handler, QObject * parent)
     : QObject(parent)
 {
+    Q_UNUSED(handler);
     connect(this, &CreateViewHandlerProxy::triggerClone, this, &CreateViewHandlerProxy::viewCloneImpl);
 }
 
