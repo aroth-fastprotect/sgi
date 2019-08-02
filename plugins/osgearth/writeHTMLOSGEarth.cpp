@@ -857,6 +857,9 @@ bool writePrettyHTMLImpl<osgEarth::VisibleLayer>::process(std::basic_ostream<cha
 
             os << "<tr><td>visible</td><td>" << (object->getVisible()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>opacity</td><td>" << object->getOpacity() << "</td></tr>" << std::endl;
+            os << "<tr><td>minVisibleRange</td><td>" << object->getMinVisibleRange() << "</td></tr>" << std::endl;
+            os << "<tr><td>maxVisibleRange</td><td>" << object->getMaxVisibleRange() << "</td></tr>" << std::endl;
+            os << "<tr><td>attenuationRange</td><td>" << object->getAttenuationRange() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -874,7 +877,7 @@ bool writePrettyHTMLImpl<osgEarth::VisibleLayer>::process(std::basic_ostream<cha
 
 bool writePrettyHTMLImpl<osgEarth::TerrainLayer>::process(std::basic_ostream<char>& os)
 {
-    osgEarth::TerrainLayer * object = getObject<osgEarth::TerrainLayer,SGIItemOsg>();
+    TerrainLayerAccessor* object = static_cast<TerrainLayerAccessor*>(getObject<osgEarth::TerrainLayer, SGIItemOsg>());
     bool ret = false;
     switch(itemType())
     {
@@ -887,21 +890,20 @@ bool writePrettyHTMLImpl<osgEarth::TerrainLayer>::process(std::basic_ostream<cha
             callNextHandler(os);
 
             // add terrain layer properties
-            TerrainLayerAccessor * access = (TerrainLayerAccessor*)object;
-            const osgEarth::Profile * profile = access->profileNoInit();
-            const osgEarth::Profile * targetProfileHint = access->targetProfileHintNoInit();
+            const osgEarth::Profile * profile = object->profileNoInit();
+            const osgEarth::Profile * targetProfileHint = object->targetProfileHintNoInit();
 
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>enabled</td><td>" << (object->getEnabled()?"true":"false") << "</td></tr>" << std::endl;
 #endif
 #if OSGEARTH_VERSION_LESS_THAN(2,8,0)
-            os << "<tr><td>tileSourceInitAttempted</td><td>" << (access->tileSourceInitAttempted()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>tileSourceInitAttempted</td><td>" << (object->tileSourceInitAttempted()?"true":"false") << "</td></tr>" << std::endl;
 #endif
 #if OSGEARTH_VERSION_LESS_THAN(2,7,0)
-            os << "<tr><td>tileSourceInitFailed</td><td>" << (access->tileSourceInitFailed()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>tileSourceInitFailed</td><td>" << (object->tileSourceInitFailed()?"true":"false") << "</td></tr>" << std::endl;
 #endif
             os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
-            os << "<tr><td>tileSize</td><td>" << access->tileSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>tileSize</td><td>" << object->tileSize() << "</td></tr>" << std::endl;
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>visible</td><td>" << (object->getVisible()?"true":"false") << "</td></tr>" << std::endl;
 #endif
@@ -917,7 +919,11 @@ bool writePrettyHTMLImpl<osgEarth::TerrainLayer>::process(std::basic_ostream<cha
             else
                 os << "(null)";
             os << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_GREATER_THAN(2,9,0)
+            os << "<tr><td>getSequenceControl</td><td>" << (void*)object->getSequenceControl() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>dynamic</td><td>" << (object->isDynamic()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>attribution</td><td>" << object->getAttribution() << "</td></tr>" << std::endl;
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>cacheOnly</td><td>" <<  (object->isCacheOnly()?"true":"false") << "</td></tr>" << std::endl;
 #else
@@ -974,8 +980,6 @@ bool writePrettyHTMLImpl<osgEarth::ImageLayer>::process(std::basic_ostream<char>
 #if OSGEARTH_VERSION_LESS_THAN(2,7,0)
             os << "<tr><td>LOD blending</td><td>" <<  (object->isLODBlendingEnabled()?"true":"false") << "</td></tr>" << std::endl;
 #endif
-            os << "<tr><td>minVisibleRange</td><td>" << object->getMinVisibleRange() << "</td></tr>" << std::endl;
-            os << "<tr><td>maxVisibleRange</td><td>" << object->getMaxVisibleRange() << "</td></tr>" << std::endl;
             os << "<tr><td>isShared</td><td>" <<  (object->isShared()?"true":"false") << "</td></tr>" << std::endl;
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
             os << "<tr><td>isCoverage</td><td>" <<  (object->isCoverage()?"true":"false") << "</td></tr>" << std::endl;
