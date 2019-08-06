@@ -50,6 +50,7 @@ enum SGIItemType_qt
     SGIItemTypeShaderLog,
     SGIItemTypePalette,
     SGIItemTypeTheme,
+    SGIItemTypeLayoutItem,
 };
 
 } // namespace sgi

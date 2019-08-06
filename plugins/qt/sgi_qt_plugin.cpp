@@ -35,6 +35,12 @@
 #include <QRasterWindow>
 #include <QSystemTrayIcon>
 
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QStackedLayout>
+#include <QGridLayout>
+#include <QFormLayout>
+
 #ifdef __APPLE__
 typedef void * GLDEBUGPROC;
 #endif
@@ -61,6 +67,7 @@ SGI_OBJECT_INFO_BEGIN(QObject)
     QWindow, QWidget, QThread,
     QCoreApplication,
     QSystemTrayIcon,
+    QLayout,
     QOpenGLContext,
     QOpenGLShaderProgram,
     QOpenGLShader,
@@ -106,6 +113,13 @@ SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(QMetaObject)
 SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(QIcon)
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(QLayout)
+    QBoxLayout, QFormLayout, QGridLayout, QStackedLayout
+SGI_OBJECT_INFO_END()
+SGI_OBJECT_INFO_BEGIN(QBoxLayout)
+    QHBoxLayout, QVBoxLayout
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(sgi::details::Referenced)
@@ -166,6 +180,7 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeShaderLog);
         SGIITEMTYPE_NAME(SGIItemTypePalette);
         SGIITEMTYPE_NAME(SGIItemTypeTheme);
+        SGIITEMTYPE_NAME(SGIItemTypeLayoutItem);
     }
     SGIPlugin_qt_Implementation(const SGIPlugin_qt_Implementation & rhs)
         : qt_plugin::SGIPluginImpl(rhs)

@@ -20,6 +20,7 @@
 #ifdef WITH_QTOPENGL
 #include <QGLWidget>
 #endif // WITH_QTOPENGL
+#include <QLayout>
 
 #include "ObjectTreeQt.h"
 #include "SGIItemQt"
@@ -57,6 +58,8 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QSystemTrayIcon)
 #ifdef WITH_QTOPENGL
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QGLWidget)
 #endif // WITH_QTOPENGL
+
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QLayout)
 
 using namespace sgi::qt_helpers;
 
@@ -638,6 +641,61 @@ bool objectTreeBuildImpl<QGLWidget>::build(IObjectTreeItem * treeItem)
     return ret;
 }
 #endif // WITH_QTOPENGL
+
+bool objectTreeBuildImpl<QLayout>::build(IObjectTreeItem* treeItem)
+{
+    QLayout* object = getObject<QLayout, SGIItemQt>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            treeItem->addChild(helpers::str_plus_count("Items", object->count()), cloneItem<SGIItemQt>(SGIItemTypeLayoutItem, ~0u));
+        }
+        break;
+    case SGIItemTypeLayoutItem:
+        {
+            if (itemNumber() == ~0u)
+            {
+                for (int n = 0; n < object->count(); ++n)
+                {
+                    treeItem->addChild(helpers::str_plus_number("Item", n), cloneItem<SGIItemQt>(SGIItemTypeLayoutItem, n));
+                }
+            }
+            else
+            {
+                auto* item = object->itemAt(itemNumber());
+                if(item)
+                {
+                    if(QWidget * w = item->widget())
+                    {
+                        SGIHostItemQt item(w);
+                        treeItem->addChild(std::string(), &item);
+                    }
+                    else if (QLayout * l = item->layout())
+                    {
+                        SGIHostItemQt item(l);
+                        treeItem->addChild(std::string(), &item);
+                    }
+                    else if (QSpacerItem * s = item->spacerItem())
+                    {
+                        //SGIHostItemQt item(s);
+                        //treeItem->addChild(std::string(), &item);
+                    }
+                }
+
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
 
 
 OBJECT_TREE_BUILD_ROOT_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
