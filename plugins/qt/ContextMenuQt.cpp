@@ -6,6 +6,7 @@
 #include <QMetaClassInfo>
 #include <QWidget>
 #include <QSystemTrayIcon>
+#include <QLayout>
 #include <sgi/helpers/string>
 #include <sgi/helpers/qt>
 #include <sgi/helpers/qt_widgetwindow>
@@ -22,6 +23,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QPaintDevice)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QImage)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QIcon)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QSystemTrayIcon)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QLayout)
 
 using namespace sgi::qt_helpers;
 
@@ -143,6 +145,9 @@ bool contextMenuPopulateImpl<QWidget>::populate(IContextMenuItem * menuItem)
             menuItem->addBoolAction(MenuActionWidgetSetAcceptDrops, "Accept drops", _item, object->acceptDrops());
             menuItem->addBoolAction(MenuActionWidgetSetAutoFillBackground, "Auto fill background", _item, object->autoFillBackground());
 
+            SGIHostItemQt layout(object->layout());
+            if(layout.hasObject())
+                menuItem->addMenu("Layout", &layout);
 
 /*
             if(object->parentWidget() != object->parent())
@@ -268,6 +273,62 @@ bool contextMenuPopulateImpl<QSystemTrayIcon>::populate(IContextMenuItem * menuI
             SGIHostItemQt contextMenu(object->contextMenu());
             if (contextMenu.hasObject())
                 menuItem->addMenu("ContextMenu", &contextMenu);
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<QLayout>::populate(IContextMenuItem * menuItem)
+{
+    QLayout * object = getObject<QLayout,SGIItemQt>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            menuItem->addMenu(helpers::str_plus_count("Items", object->count()), cloneItem<SGIItemQt>(SGIItemTypeLayoutItem, ~0u));
+        }
+        break;
+    case SGIItemTypeLayoutItem:
+        {
+            if (itemNumber() == ~0u)
+            {
+                for (int n = 0; n < object->count(); ++n)
+                {
+                    auto* item = object->itemAt(n);
+                    menuItem->addMenu(qt_helpers::getObjectNameAndType(item), cloneItem<SGIItemQt>(SGIItemTypeLayoutItem, n));
+                }
+            }
+            else
+            {
+                auto* item = object->itemAt(itemNumber());
+                if(item)
+                {
+                    if(QWidget * w = item->widget())
+                    {
+                        SGIHostItemQt item(w);
+                        menuItem->addMenu(std::string(), &item);
+                    }
+                    else if (QLayout * l = item->layout())
+                    {
+                        SGIHostItemQt item(l);
+                        menuItem->addMenu(std::string(), &item);
+                    }
+                    else if (QSpacerItem * s = item->spacerItem())
+                    {
+                        //SGIHostItemQt item(s);
+                        //treeItem->addChild(std::string(), &item);
+                    }
+                }
+
+            }
             ret = true;
         }
         break;

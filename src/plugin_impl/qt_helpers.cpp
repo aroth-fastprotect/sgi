@@ -1,4 +1,4 @@
-// kate: syntax C++11;
+// kate: syntax C++;
 // SGI - Copyright (C) 2012-2019 FAST Protect, Andreas Roth
 
 #include <sgi/helpers/qt>
@@ -43,6 +43,7 @@
 #include <QMatrix4x4>
 #include <QPolygonF>
 #include <QIcon>
+#include <QLayout>
 #include <sgi/helpers/rtti>
 
 namespace std {
@@ -152,6 +153,7 @@ QENUM_OSTREAM(Qt::MouseEventSource)
 QENUM_OSTREAM(Qt::MouseEventFlag)
 QENUM_OSTREAM(Qt::ChecksumType)
 QENUM_OSTREAM(Qt::TabFocusBehavior)
+QENUM_OSTREAM(QSizePolicy::ControlTypes)
 
 QString fromLocal8Bit(const std::string & str)
 {
@@ -230,6 +232,7 @@ std::string getObjectTypename(const QPaintDevice * object)
 
 std::string getObjectName(const QPaintDevice * object, bool includeAddr)
 {
+    Q_UNUSED(includeAddr);
     std::string ret;
     std::stringstream buf;
     buf << (void*)object;
@@ -244,6 +247,35 @@ std::string getObjectNameAndType(const QPaintDevice * object, bool includeAddr)
     {
         std::stringstream buf;
         buf << getObjectName(object, includeAddr) << " (" << getObjectTypename(object) << ")";
+        ret = buf.str();
+    }
+    else
+        ret = "(null)";
+    return ret;
+}
+
+std::string getObjectNameAndType(const QLayoutItem * object, bool includeAddr)
+{
+    std::string ret;
+    if(object)
+    {
+        std::stringstream buf;
+        if(QWidget * w = const_cast<QLayoutItem*>(object)->widget())
+        {
+            buf << "Widget:" << getObjectNameAndType((const QObject*)w, includeAddr);
+        }
+        else if(QLayoutItem * l = const_cast<QLayoutItem*>(object)->layout())
+        {
+            buf << "Layout:" << getObjectNameAndType((const QObject*)w, includeAddr);
+        }
+        else if(QSpacerItem * s = const_cast<QLayoutItem*>(object)->spacerItem())
+        {
+            buf << "Spacer:" << (void*)object;;
+        }
+        else
+        {
+            buf << (void*)object;
+        }
         ret = buf.str();
     }
     else
@@ -702,4 +734,37 @@ namespace std {
         return os;
     }
 
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QLayoutItem & object_)
+    {
+        QLayoutItem * object = const_cast<QLayoutItem*>(&object_);
+        if (object)
+        {
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            if (QWidget * w = object->widget())
+            {
+                os << "<tr><td>widget</td><td>" << sgi::qt_helpers::getObjectNameAndType((QObject*)w) << "</td></tr>" << std::endl;
+            }
+            else if (QLayout * l = object->layout())
+            {
+                os << "<tr><td>widget</td><td>" << sgi::qt_helpers::getObjectNameAndType((QObject*)l) << "</td></tr>" << std::endl;
+            }
+            else if (QSpacerItem * s = object->spacerItem())
+            {
+                os << "<tr><td>widget</td><td>" << (void*)s << "</td></tr>" << std::endl;
+            }
+            os << "<tr><td>isEmpty</td><td>" << (object->isEmpty() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>minimumSize</td><td>" << object->minimumSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>maximumSize</td><td>" << object->maximumSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>geometry</td><td>" << object->geometry() << "</td></tr>" << std::endl;
+            os << "<tr><td>hasHeightForWidth</td><td>" << (object->hasHeightForWidth() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>alignment</td><td>" << object->alignment() << "</td></tr>" << std::endl;
+            os << "<tr><td>controlTypes</td><td>" << object->controlTypes() << "</td></tr>" << std::endl;
+            os << "<tr><td>expandingDirections</td><td>" << object->expandingDirections() << "</td></tr>" << std::endl;
+            os << "</table>" << std::endl;
+        }
+        else
+            os << "(null)";
+        return os;
+    }
 }

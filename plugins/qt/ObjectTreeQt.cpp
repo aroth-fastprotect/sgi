@@ -129,7 +129,7 @@ bool objectTreeBuildImpl<QObject>::build(IObjectTreeItem * treeItem)
                     const char *typeName = metaproperty.typeName();
                     QVariant value = object->property(name);
 
-                    if(value.type() == QMetaType::QObjectStar)
+                    if((QMetaType::Type)value.type() == QMetaType::QObjectStar)
                     {
                         std::stringstream ss;
                         ss << metaObject->className() << "::" << name;
@@ -232,6 +232,9 @@ bool objectTreeBuildImpl<QWidget>::build(IObjectTreeItem * treeItem)
             if(windowHandle.hasObject())
                 treeItem->addChild("WindowHandle", &windowHandle);
             treeItem->addChild("Palette", cloneItemMulti<SGIItemQt, SGIItemQtPaintDevice>(SGIItemTypePalette, ~0u));
+            SGIHostItemQt layout(object->layout());
+            if(layout.hasObject())
+                treeItem->addChild("Layout", &layout);
             SGIHostItemQt style(object->style());
             if(style.hasObject())
                 treeItem->addChild("Style", &style);
@@ -661,7 +664,8 @@ bool objectTreeBuildImpl<QLayout>::build(IObjectTreeItem* treeItem)
             {
                 for (int n = 0; n < object->count(); ++n)
                 {
-                    treeItem->addChild(helpers::str_plus_number("Item", n), cloneItem<SGIItemQt>(SGIItemTypeLayoutItem, n));
+                    auto* item = object->itemAt(n);
+                    treeItem->addChild(qt_helpers::getObjectNameAndType(item), cloneItem<SGIItemQt>(SGIItemTypeLayoutItem, n));
                 }
             }
             else

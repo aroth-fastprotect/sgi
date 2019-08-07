@@ -1,4 +1,4 @@
-// kate: syntax C++11;
+// kate: syntax C++;
 
 #pragma once
 
@@ -52,6 +52,7 @@ class QRegion;
 class QCursor;
 class QKeySequence;
 class QPen;
+class QLayoutItem;
 
 namespace sgi {
 
@@ -169,6 +170,7 @@ SGI_QT_HELPER_EXPORT std::string getObjectNameAndType(const QObject * object, bo
 SGI_QT_HELPER_EXPORT std::string getObjectTypename(const QPaintDevice * object);
 SGI_QT_HELPER_EXPORT std::string getObjectName(const QPaintDevice * object, bool includeAddr=true);
 SGI_QT_HELPER_EXPORT std::string getObjectNameAndType(const QPaintDevice * object, bool includeAddr=true);
+SGI_QT_HELPER_EXPORT std::string getObjectNameAndType(const QLayoutItem * object, bool includeAddr=true);
 
 inline sgi::Color qtColor(const QColor & c)
 {
@@ -247,6 +249,7 @@ namespace std {
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVector4D & t);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPolygonF & p);
     SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QIcon & i);
+    SGI_QT_HELPER_EXPORT std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QLayoutItem & object);
 
     template<typename T>
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QList<T> & list)
