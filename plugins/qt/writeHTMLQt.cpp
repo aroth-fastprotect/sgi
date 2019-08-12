@@ -1150,27 +1150,39 @@ bool writePrettyHTMLImpl<QGridLayout>::process(std::basic_ostream<char>& os)
                 std::sort(items.begin(), items.end(), GridItemSort());
 
                 auto it = items.begin();
-                const GridItem & currentItem = *it;
-                int lastRow = -1;
+                const GridItem * currentItem = items.empty() ? nullptr : &*it;
+                const GridItem* lastItem = nullptr;
                 os << "<table border=\'1\' align=\'left\'>";
                 for (int row = 0; row < object->rowCount(); ++row)
                 {
-                    if(currentItem.row == row && lastRow != row)
+                    if(currentItem && currentItem->row == row && lastItem != currentItem)
                     {
-                        if(lastRow >= 0)
+                        if(lastItem)
                             os << "</tr>";
-                        os << "<tr rowspan=\"" << currentItem.rowspan << "\">";
+                        os << "<tr rowspan=\"" << currentItem->rowspan << "\">";
+                        lastItem = currentItem;
                     }
                     for (int col = 0; col < object->columnCount(); ++col)
                     {
-                        if(currentItem.row == row && currentItem.column == col)
+                        if(currentItem && currentItem->row == row && currentItem->column == col)
                         {
-                            os << "<td colspan=\"" << currentItem.colspan << "\">" << col << ',' << row << "</td>";
+                            os << "<td colspan=\"" << currentItem->colspan << "\">";
+                            os << col << ',' << row;
+                            if(currentItem->colspan > 1 || currentItem->rowspan > 1)
+                            {
+                                os << '(' << currentItem->colspan << '/' << currentItem->rowspan << ')';
+                            }
+                            if (it != items.end())
+                            {
+                                ++it;
+                                currentItem = (it == items.end()) ? nullptr : &*it;
+                            }
+                            os << "</td>";
                         }
                     }
                     os << "</tr>";
                 }
-                if(lastRow >= 0)
+                if(lastItem)
                     os << "</tr>";
                 os << "</table>" << std::endl;
             }

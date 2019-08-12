@@ -264,9 +264,9 @@ std::string getObjectNameAndType(const QLayoutItem * object, bool includeAddr)
         {
             buf << "Widget:" << getObjectNameAndType((const QObject*)w, includeAddr);
         }
-        else if(QLayoutItem * l = const_cast<QLayoutItem*>(object)->layout())
+        else if(QLayout * l = const_cast<QLayoutItem*>(object)->layout())
         {
-            buf << "Layout:" << getObjectNameAndType((const QObject*)w, includeAddr);
+            buf << "Layout:" << getObjectNameAndType((const QObject*)l, includeAddr);
         }
         else if(QSpacerItem * s = const_cast<QLayoutItem*>(object)->spacerItem())
         {
