@@ -2365,7 +2365,7 @@ bool objectTreeBuildImpl<osgEarth::ConfigOptions>::build(IObjectTreeItem * treeI
     {
     case SGIItemTypeObject:
         {
-            SGIHostItemOsgEarthConfig configItem(object->getConfig());
+            SGIHostItemOsgEarthConfig configItem(new osgEarth::Config(object->getConfig()));
             treeItem->addChild("Config", &configItem);
 
             ret = true;

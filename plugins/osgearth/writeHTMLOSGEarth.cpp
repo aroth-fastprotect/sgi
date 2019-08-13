@@ -3958,20 +3958,26 @@ bool writePrettyHTMLImpl<osgEarth::Features::FeatureSource>::process(std::basic_
 	break;
     case SGIItemTypeFeatureSourceFeatures:
         {
-            os << "<ol>";
-            osgEarth::Features::FeatureCursor* cursor = object->createFeatureCursor(nullptr);
-            if (cursor)
+            osg::ref_ptr<osgEarth::Features::FeatureCursor> cursor = object->createFeatureCursor(nullptr);
+            if (cursor.valid())
             {
+                unsigned numFeatures = 0;
+                os << "<ol>";
                 while (cursor->hasMore())
                 {
-                    osgEarth::Features::Feature * feature = cursor->nextFeature();
+                    osgEarth::Features::Feature* feature = cursor->nextFeature();
                     if (feature)
                     {
+                        ++numFeatures;
                         os << "<li>" << feature->getFID() << ": " << getObjectNameAndType(feature) << "</li>" << std::endl;
                     }
                 }
+                os << "</ol>";
+                if (!numFeatures)
+                    os << "<i>No features</i>";
             }
-            os << "</ol>";
+            else
+                os << "<b>Unable to create feature cursor</b>";
             ret = true;
         }
         break;
