@@ -75,6 +75,7 @@ enum SGIItemType_osg
     SGIItemTypeDBPagerDataToMerge,
     SGIItemTypeColorLayers,
     SGIItemTypeCameaBufferAttachments,
+    SGIItemTypeCullSettings,
 	SGIItemTypeFontTextureList,
     SGIItemTypeFontCachedStateSets,
     SGIItemTypeStatsFrame,

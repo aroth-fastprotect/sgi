@@ -1017,6 +1017,7 @@ bool objectTreeBuildImpl<osg::Camera>::build(IObjectTreeItem * treeItem)
             {
                 treeItem->addChildIfNotExists("Callbacks", cloneItem<SGIItemOsg>(SGIItemTypeCallbacks));
             }
+            treeItem->addChild("CullSettings", cloneItem<SGIItemOsg>(SGIItemTypeCullSettings));
 
             SGIHostItemOsg view(object->getView());
             if(view.hasObject())
@@ -1098,6 +1099,9 @@ bool objectTreeBuildImpl<osg::Camera>::build(IObjectTreeItem * treeItem)
             }
 			ret = true;
         }
+        break;
+    case SGIItemTypeCullSettings:
+        ret = true;
         break;
     default:
         ret = callNextHandler(treeItem);

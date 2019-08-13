@@ -5529,7 +5529,6 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::Camera::Attachment
     os << "<tr><td>multisampleColorSamples</td><td>" << attachment._multisampleColorSamples << "</td></tr>" << std::endl;
 }
 
-
 bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -5661,6 +5660,17 @@ bool writePrettyHTMLImpl<osg::Camera>::process(std::basic_ostream<char>& os)
 
             if(_table)
                 os << "</table>" << std::endl;
+        }
+        break;
+    case SGIItemTypeCullSettings:
+        {
+            if (_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+            writePrettyHTML(os, static_cast<osg::CullSettings*>(object));
+            if (_table)
+                os << "</table>" << std::endl;
+
+            ret = true;
         }
         break;
     default:

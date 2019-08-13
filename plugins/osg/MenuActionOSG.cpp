@@ -129,6 +129,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionProgramAddShader)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraCullSettings)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraClearColor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraComputeNearFarMode)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraNearFarRatio)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraProjectionResizePolicy)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraCullMask)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraViewMatrix)
@@ -1325,6 +1326,23 @@ bool actionHandlerImpl<MenuActionCameraCullMask>::execute()
     );
     if (ret)
         object->setCullMask(cullMask);
+    return true;
+}
+
+bool actionHandlerImpl<MenuActionCameraNearFarRatio>::execute()
+{
+    osg::Camera* object = getObject<osg::Camera, SGIItemOsg>();
+
+    double value = object->getNearFarRatio();
+    bool ret;
+    ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+        value,
+        "Ratio:", object->getName() + " near/far ratio",
+        0.0000001, 10000.0, 6,
+        _item
+    );
+    if (ret)
+        object->setNearFarRatio(value);
     return true;
 }
 

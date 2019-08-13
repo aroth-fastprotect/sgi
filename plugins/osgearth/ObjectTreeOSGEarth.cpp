@@ -53,6 +53,8 @@
 
 #include <osgEarthSymbology/Style>
 
+#include <osgEarthAnnotation/LabelNode>
+
 #include <osgEarthDrivers/cache_filesystem/FileSystemCache>
 #include <osgEarthDrivers/tms/TMSOptions>
 #include <osgEarthDrivers/arcgis/ArcGISOptions>
@@ -138,6 +140,8 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ConfigOptions)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelLayerOptions)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSourceOptions)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::FeatureGeomModelOptions)
+
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Annotation::AnnotationNode)
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::FunctionLocation & t);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::StageMaskValues & t);
@@ -2552,6 +2556,40 @@ bool objectTreeBuildImpl<osgEarth::Symbology::StyleSheet>::build(IObjectTreeItem
     }
     return ret;
 }
+
+bool objectTreeBuildImpl<osgEarth::Annotation::AnnotationNode>::build(IObjectTreeItem* treeItem)
+{
+    osgEarth::Annotation::AnnotationNode* object = getObject<osgEarth::Annotation::AnnotationNode, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            treeItem->addChild("Config", cloneItem<SGIItemOsg>(SGIItemTypeConfig));
+            treeItem->addChild("Style", cloneItem<SGIItemOsg>(SGIItemTypeStyle));
+            
+
+            SGIHostItemOsg mapNode(object->getMapNode());
+            if (mapNode.hasObject())
+                treeItem->addChild("MapNode", &mapNode);
+
+            ret = true;
+        }
+        break;
+    case SGIItemTypeConfig:
+        ret = true;
+        break;
+    case SGIItemTypeStyle:
+        ret = true;
+        break;
+    default:
+        break;
+    }
+    return ret;
+}
+
 OBJECT_TREE_BUILD_ROOT_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 
 struct RegistrySingleton

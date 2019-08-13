@@ -105,6 +105,7 @@ enum MenuAction {
     MenuActionCameraClearColor,
     MenuActionCameraCullSettings,
     MenuActionCameraComputeNearFarMode,
+    MenuActionCameraNearFarRatio,
     MenuActionCameraProjectionResizePolicy,
     MenuActionCameraCullMask,
     MenuActionCameraViewMatrix, 

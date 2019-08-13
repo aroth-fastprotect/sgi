@@ -1362,6 +1362,7 @@ bool contextMenuPopulateImpl<osg::Camera>::populate(IContextMenuItem * menuItem)
             if (manipulateMenu)
             {
                 manipulateMenu->addSimpleAction(MenuActionCameraCullMask, helpers::str_plus_hex("Cull mask", object->getCullMask()), _item);
+                manipulateMenu->addSimpleAction(MenuActionCameraNearFarRatio, helpers::str_plus_number("Near/far ratio", object->getNearFarRatio()), _item);
                 manipulateMenu->addSimpleAction(MenuActionCameraViewMatrix, "View matrix", _item);
                 manipulateMenu->addSimpleAction(MenuActionCameraProjectionMatrix, "Projection matrix", _item);
 
@@ -1403,7 +1404,15 @@ bool contextMenuPopulateImpl<osg::Camera>::populate(IContextMenuItem * menuItem)
             ret = true;
         }
         break;
-
+    case SGIItemTypeCullSettings:
+        {
+            ret = true;
+            menuItem->addSimpleAction(MenuActionCameraCullMask, helpers::str_plus_hex("Cull mask", object->getCullMask()), _item);
+            menuItem->addSimpleAction(MenuActionCameraViewMatrix, "View matrix", _item);
+            menuItem->addSimpleAction(MenuActionCameraProjectionMatrix, "Projection matrix", _item);
+            menuItem->addSimpleAction(MenuActionCameraNearFarRatio, helpers::str_plus_number("Near/far ratio", object->getNearFarRatio()), _item);
+    }
+        break;
     default:
         ret = callNextHandler(menuItem);
         break;

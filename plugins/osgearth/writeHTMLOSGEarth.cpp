@@ -4124,10 +4124,30 @@ bool writePrettyHTMLImpl<osgEarth::Annotation::AnnotationNode>::process(std::bas
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>decoration</td><td>" << object->getDecoration() << "</td></tr>" << std::endl;
 #endif
-            os << "<tr><td>style</td><td>" << object->getStyle() << "</td></tr>" << std::endl;
+            os << "<tr><td>style</td><td>" << object->getStyle().getName() << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeConfig:
+        {
+            osgEarth::Config config = object->getConfig();
+            if (config.empty())
+                os << "<i>empty</i>";
+            else
+                os << "<pre>" << helpers::html_encode(config.toJSON(true)) << "</pre>";
+            ret = true;
+        }
+        break;
+    case SGIItemTypeStyle:
+        {
+            osgEarth::Config config = object->getStyle().getConfig();
+            if (config.empty())
+                os << "<i>empty</i>";
+            else
+                os << "<pre>" << helpers::html_encode(config.toJSON(true)) << "</pre>";
             ret = true;
         }
         break;

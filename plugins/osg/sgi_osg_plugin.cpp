@@ -783,6 +783,7 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeDBPagerDataToMerge);
         SGIITEMTYPE_NAME(SGIItemTypeColorLayers);
         SGIITEMTYPE_NAME(SGIItemTypeCameaBufferAttachments);
+        SGIITEMTYPE_NAME(SGIItemTypeCullSettings);
         SGIITEMTYPE_NAME(SGIItemTypeFontTextureList);
         SGIITEMTYPE_NAME(SGIItemTypeStatsFrame);
         SGIITEMTYPE_NAME(SGIItemTypeCachedObjects);

@@ -211,9 +211,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Group)
     osgEarth::Util::Controls::Control, osgEarth::Util::Controls::ControlCanvas,
     osgEarth::Util::Controls::ControlNodeBin,
     osgEarth::Features::FeatureModelGraph,
-#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::Annotation::AnnotationNode,
-#endif
 #ifdef SGI_USE_OSGEARTH_FAST
 	osgEarth::LODScaleOverrideNode,
 #endif
