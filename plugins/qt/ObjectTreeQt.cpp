@@ -129,7 +129,7 @@ bool objectTreeBuildImpl<QObject>::build(IObjectTreeItem * treeItem)
                     const char *typeName = metaproperty.typeName();
                     QVariant value = object->property(name);
 
-                    if((QMetaType::Type)value.type() == QMetaType::QObjectStar)
+                    if((QMetaType::Type)value.type() == QMetaType::QObjectStar || value.canConvert<QObject*>())
                     {
                         std::stringstream ss;
                         ss << metaObject->className() << "::" << name;
