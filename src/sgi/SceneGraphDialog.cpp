@@ -946,22 +946,23 @@ void SceneGraphDialog::refreshTimerExpired()
 
 IObjectTreeItem * SceneGraphDialog::selectedItem()
 {
-    return uiPage->selectedTreeItem.get();
+	return uiPage ? uiPage->selectedTreeItem.get() : nullptr;
 }
 
 IObjectTreeItem * SceneGraphDialog::rootItem()
 {
-    return uiPage->rootTreeItem.get();
+	return uiPage ? uiPage->rootTreeItem.get() : nullptr;
 }
 
 SGIItemBase * SceneGraphDialog::item() const
 {
-	return uiPage->item.get();
+	return uiPage ? uiPage->item.get() : nullptr;
 }
 
 const SGIItemBasePtrPath & SceneGraphDialog::itemPath() const
 {
-	return uiPage->itemPath;
+	static SGIItemBasePtrPath s_empty;
+	return uiPage ? uiPage->itemPath : s_empty;
 }
 
 void SceneGraphDialog::setInfoText(const std::string & text)

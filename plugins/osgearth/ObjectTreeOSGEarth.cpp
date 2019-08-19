@@ -2610,7 +2610,8 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
 	SGIHostItemInternal hostItem(new SGIProxyItemT<RegistrySingleton>(_hostInterface, "osgEarth::Registry"));
 	treeItem->addChild(std::string(), &hostItem);
 
-	SGIItemOsg * osgitem = dynamic_cast<SGIItemOsg *>(object->item());
+	SGIItemBase* item = object->item();
+	SGIItemOsg * osgitem = dynamic_cast<SGIItemOsg *>(item);
 	if (osgitem)
 	{
         osg::Node * node = NULL;

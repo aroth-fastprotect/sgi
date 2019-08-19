@@ -248,7 +248,7 @@ SGIOptions::SGIOptions(const std::string & filename_, const osgDB::Options * opt
         : qtObject(nullptr), filename(filename_), usePickerNodeMask(false), pickerNodeMask(~0u)
 {
     hostCallback = getObjectOption<sgi::IHostCallback>(options, "sgi_host_callback");
-    if(filename == "sgi-info")
+    if(filename == "sgi-info" || filename == "dialog")
     {
         showSceneGraphDialog = true;
         showImagePreviewDialog = false;

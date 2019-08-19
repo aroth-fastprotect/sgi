@@ -291,6 +291,22 @@ inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, co
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::PrimitiveSet::Mode & t);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::PrimitiveSet::Type & t);
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Polytope& p)
+{
+	if (p.empty())
+		os << "(empty)";
+	else
+	{
+		os << "{";
+		os << " resmask=" << p.getResultMask();
+		os << " planes=" << p.getPlaneList();
+		os << "}";
+
+		
+	}
+	return os;
+}
+
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osg::Transform::ReferenceFrame & t)
 {
     switch(t)
@@ -5462,7 +5478,26 @@ namespace {
         float getFrustumVolumeNoCompute() const {
             return _frustumVolume;
         }
+		bool isCullingStackAvailable() const {
+			return _back_modelviewCullingStack != nullptr;
+		}
     };
+}
+
+void writePrettyHTML(std::basic_ostream<char>& os, const osg::CullingSet* object)
+{
+	os << "<tr><td>cullingMask</td><td>" << object->getCullingMask() << "</td></tr>" << std::endl;
+	os << "<tr><td>frustum</td><td>" << object->getFrustum() << "</td></tr>" << std::endl;
+	os << "<tr><td>_stateFrustumList</td><td><ol>";
+	for (const auto& it : const_cast<osg::CullingSet*>(object)->getStateFrustumList())
+	{
+		const auto& state = it.first;
+		const auto& frustum = it.second;
+		os << "<li>" << state.get() << "=" << frustum << "</li>";
+	}
+	os << "</ol></td></tr>" << std::endl;
+	os << "<tr><td>pixelSizeVector</td><td>" << object->getPixelSizeVector() << "</td></tr>" << std::endl;
+	os << "<tr><td>mmallFeatureCullingPixelSize</td><td>" << object->getSmallFeatureCullingPixelSize() << "</td></tr>" << std::endl;
 }
 
 void writePrettyHTML(std::basic_ostream<char>& os, const osg::CullStack * object_)
@@ -5491,6 +5526,13 @@ void writePrettyHTML(std::basic_ostream<char>& os, const osg::CullStack * object
     os << "<tr><td>windowMatrix</td><td>";
     writePrettyHTML(os, object->getWindowMatrix(), MatrixUsageTypeWindow);
     os << "</td></tr>" << std::endl;
+
+	os << "<tr><td>currentCullingSet</td><td>";
+	if (object->isCullingStackAvailable())
+		writePrettyHTML(os, &object->getCurrentCullingSet());
+	else
+		os << "N/A";
+	os << "</td></tr>" << std::endl;
 }
 
 void writePrettyHTML(std::basic_ostream<char>& os, const osg::CullSettings * object)
