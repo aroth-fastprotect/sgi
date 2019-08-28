@@ -460,7 +460,7 @@ public:
 
 		IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) override
 		{
-            if (_contextMenu.valid() && _contextMenu->parentWidget() == parent)
+			if (_contextMenu.valid() && _contextMenu->getMenu() && _contextMenu->parentWidget() == parent)
 			{
 				_contextMenu->setObject(const_cast<SGIItemBase*>(item));
 			}
@@ -470,7 +470,7 @@ public:
 		}
 		IContextMenu *          contextMenu(QWidget * parent, const SGIHostItemBase * item) override
 		{
-			if (_contextMenu.valid() && _contextMenu->parentWidget() == parent)
+			if (_contextMenu.valid() && _contextMenu->getMenu() && _contextMenu->parentWidget() == parent)
 			{
 				_contextMenu->setObject(item);
 			}
