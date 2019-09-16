@@ -238,6 +238,9 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
                 int propertyCount = metaObject->propertyCount();
                 for (int i = propertyOffset; i < propertyCount; ++i)
                 {
+					if (_item->number() != ~0u && i != _item->number())
+						continue;
+
                     QMetaProperty metaproperty = metaObject->property(i);
                     const char *name = metaproperty.name();
                     const char *typeName = metaproperty.typeName();

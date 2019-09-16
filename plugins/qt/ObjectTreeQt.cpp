@@ -110,7 +110,8 @@ bool objectTreeBuildImpl<QObject>::build(IObjectTreeItem * treeItem)
             unsigned numChild = children.size();
             if(numChild)
                 treeItem->addChild(helpers::str_plus_count("Childs", numChild), cloneItem<SGIItemQt>(SGIItemTypeChilds));
-            treeItem->addChild("Methods", cloneItem<SGIItemQt>(SGIItemTypeMethods, ~0u));
+            treeItem->addChild("Properties", cloneItem<SGIItemQt>(SGIItemTypeProperties, ~0u));
+			treeItem->addChild("Methods", cloneItem<SGIItemQt>(SGIItemTypeMethods, ~0u));
             const QThread * thread = object->thread();
             if(thread && object != thread)
             {
@@ -181,7 +182,27 @@ bool objectTreeBuildImpl<QObject>::build(IObjectTreeItem * treeItem)
         }
         break;
     case SGIItemTypeProperties:
-        ret = true;
+        {
+            if (_item->number() == ~0u)
+            {
+                const QMetaObject * metaObject = object->metaObject();
+                while (metaObject)
+                {
+                    int offset = metaObject->propertyOffset();
+                    int count = metaObject->propertyCount();
+                    for (int i = offset; i < count; ++i)
+                    {
+                        QMetaProperty prop = metaObject->property(i);
+                        treeItem->addChild(prop.name(), cloneItem<SGIItemQt>(SGIItemTypeProperties, i));
+                    }
+                    metaObject = metaObject->superClass();
+                }
+            }
+            else
+            {
+            }
+            ret = true;
+        }
         break;
     case SGIItemTypeMethods:
         {

@@ -43,8 +43,8 @@ bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
             if(metaObject.hasObject())
                 menuItem->addMenu("Meta object", &metaObject); 
 
-            menuItem->addMenu("Properties", cloneItem<SGIItemQt>(SGIItemTypeProperties));
-            menuItem->addMenu("Methods", cloneItem<SGIItemQt>(SGIItemTypeMethods));
+            menuItem->addMenu("Properties", cloneItem<SGIItemQt>(SGIItemTypeProperties, ~0u));
+            menuItem->addMenu("Methods", cloneItem<SGIItemQt>(SGIItemTypeMethods, ~0u));
 
             SGIHostItemQt parent(object->parent());
             if(parent.hasObject())
@@ -69,32 +69,36 @@ bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
         break;
     case SGIItemTypeProperties:
         {
+			const QMetaObject * metaObject = object->metaObject();
+			while (metaObject)
+			{
+				int propertyOffset = metaObject->propertyOffset();
+				int propertyCount = metaObject->propertyCount();
+				std::vector<std::pair<int, const char*> > properties(propertyCount - propertyOffset);
+				for (int i = propertyOffset; i < propertyCount; ++i)
+				{
+					QMetaProperty metaproperty = metaObject->property(i);
+					properties[i - propertyOffset] = std::make_pair(i, metaproperty.name());
+				}
+				std::sort(properties.begin(), properties.end(), [](std::pair<int, const char*> const & lhs, std::pair<int, const char*> const & rhs) { return qstricmp(lhs.second, rhs.second) < -1; });
+				for(const std::pair<int, const char*> & prop : properties)
+				{
+					if(_item->number() != ~0u && prop.first != _item->number())
+						continue;
+					QMetaProperty metaproperty = metaObject->property(prop.first);
+					QVariant value = object->property(prop.second);
 
-            const QMetaObject * metaObject = object->metaObject();
-            while (metaObject)
-            {
-                int propertyOffset = metaObject->propertyOffset();
-                int propertyCount = metaObject->propertyCount();
-                std::vector<std::pair<int, const char*> > properties(propertyCount - propertyOffset);
-                for (int i = propertyOffset; i < propertyCount; ++i)
-                {
-                    QMetaProperty metaproperty = metaObject->property(i);
-                    properties[i - propertyOffset] = std::make_pair(i, metaproperty.name());
-                }
-                std::sort(properties.begin(), properties.end(), [](std::pair<int, const char*> const & lhs, std::pair<int, const char*> const & rhs) { return qstricmp(lhs.second, rhs.second) < -1; });
-                for(const std::pair<int, const char*> & prop : properties)
-                {
-                    QMetaProperty metaproperty = metaObject->property(prop.first);
-                    QVariant value = object->property(prop.second);
+					std::stringstream ss;
+					ss << metaObject->className() << "::" << prop.second << "=";
+					if (value.type() == QVariant::Icon)
+						ss << "QIcon()";
+					else
+						writeVariant(ss, value, &metaproperty);
 
-                    std::stringstream ss;
-                    ss << metaObject->className() << "::" << prop.second << "=";
-                    writeVariant(ss, value, &metaproperty);
-
-                    menuItem->addSimpleAction(MenuActionObjectModifyProperty, ss.str(), _item, new ReferencedDataString(prop.second));
-                }
-                metaObject = metaObject->superClass();
-            }
+					menuItem->addSimpleAction(MenuActionObjectModifyProperty, ss.str(), _item, new ReferencedDataString(prop.second));
+				}
+				metaObject = metaObject->superClass();
+			}
 
             ret = true;
         }
