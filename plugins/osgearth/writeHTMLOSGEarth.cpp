@@ -253,9 +253,9 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     return os;
 }
 #endif
-std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Geometry::Type & t)
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::Geometry::Type & t)
 {
-    return os << osgEarth::Geometry::toString(t);
+    return os << osgEarth::Symbology::Geometry::toString(t);
 }
 
 bool writePrettyHTMLImpl<osgEarth::Registry>::process(std::basic_ostream<char>& os)
