@@ -3,7 +3,8 @@
 #include <sstream>
 #include <iostream>
 #include <typeindex>
-
+#include <type_traits>
+#include <functional>
 
 using namespace std;
 
@@ -87,17 +88,19 @@ void run(Base & b)
     map[typeid(b)](b);
 }
 
-struct variant {
-    enum Type { String, Int, Float } _type;
+struct myvariant {
+    enum Type { Invalid, String, Int, Float } _type;
     std::string _s;
     int _i;
     float _f;
-    variant(const std::string & s) : _type(String), _s(s) {}
+    myvariant() : _type(Invalid), _s(), _i(), _f() {}
+    myvariant(const std::string & s) : _type(String), _s(s) {}
+    myvariant(const int & s) : _type(Int), _i(s) {}
 
     template <typename T>
-    static variant fromValue(const T & f)
+    static myvariant fromValue(const T & f)
     {
-        return variant(f());
+        return myvariant(f());
     }
 };
 
@@ -113,13 +116,13 @@ void outValue(const std::string & (*f)())
     std::cout << f() << std::endl;
 }
 
-std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const variant & v)
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const myvariant & v)
 {
     switch(v._type)
     {
-    case variant::String: os << v._s; break;
-    case variant::Int: os << v._i; break;
-    case variant::Float: os << v._f; break;
+    case myvariant::String: os << v._s; break;
+    case myvariant::Int: os << v._i; break;
+    case myvariant::Float: os << v._f; break;
     }
     return os;
 }
@@ -176,20 +179,31 @@ struct getter_type {
 struct TypeDescriptor_Struct : TypeDescriptor {
 
     struct Member {
+        Member(const char* n, size_t o, TypeDescriptor* t)
+            : name(n), offset(o), type(t) {}
         const char* name;
         size_t offset;
         TypeDescriptor* type;
-        void * func;
+        virtual myvariant get(void * p) const = 0;
     };
-    template<typename T>
+    template<typename M, typename T>
     struct MemberT : public Member
     {
+        MemberT(const char* n, size_t o, TypeDescriptor* t, M T::* f)
+            : Member(n, o, t), func(f) {}
         typedef T type;
+        M T::* func;
+        myvariant get(void * p) const override {
+            T * o = reinterpret_cast<T*>(p);
+            auto x = std::bind(func, o);
+            return x();
+        }
     };
 
-    std::vector<Member> members;
-    TypeDescriptor_Struct(const char* name, size_t size, const std::initializer_list<Member>& init)
-        : TypeDescriptor{name, size}, members{init} {
+    const Member** members;
+    size_t numMembers;
+    TypeDescriptor_Struct(const char* name, size_t size, const Member** init, size_t num)
+        : TypeDescriptor{name, size}, members{init}, numMembers{num} {
     }
 };
 
@@ -250,15 +264,16 @@ struct TypeResolver {
     }
 };
 
+static const TypeDescriptor_Struct::MemberT a_members_name("name", 0, TypeResolver<decltype(&A::name)>::get(), &A::name);
+static const TypeDescriptor_Struct::Member * a_members[] = {
+    &a_members_name,
+    };
+
 
 template<> struct registry<A> {
     TypeDescriptor_Struct Reflection;
     registry<A>()
-        : Reflection("A", sizeof(A),
-                    {
-        { "name", 0, TypeResolver<decltype(&A::name)>::get(), reinterpret_cast<void*>(&A::name)},
-}
-                     )
+        : Reflection("A", sizeof(A), a_members, sizeof(a_members)/sizeof(a_members[0]))
     {
     }
 };
@@ -268,14 +283,58 @@ template<> struct registry<A> {
 //REG_MEMBER(name)
 //REG_END()
 
+template<typename T>
+//struct use_property_getter_helper : std::false_type {};
+struct use_property_getter_helper : std::true_type {};
+
+template<typename T>
+struct use_property_getter : use_property_getter_helper<typename std::remove_cv<T>::type> {};
+
+template<typename T, bool>
+class get_property_impl {
+public:
+    static myvariant get(const T & t)
+    {
+        return myvariant();
+    }
+};
+
+template<typename T>
+class get_property_impl<T, false> {
+public:
+    static myvariant get(const T & t)
+    {
+        return myvariant(t);
+    }
+};
+
+template<typename T>
+class get_property_impl<T, true> {
+public:
+    static myvariant get(const T & t)
+    {
+        return myvariant(t());
+    }
+};
+
+template<typename T>
+inline myvariant get_property(const T & t)
+{
+    return get_property_impl<T, use_property_getter<T>::value>::get(t);
+}
+
+
+
+
 void props_unittest::registerProps()
 {
     A a;
 
     registry<A> aa;
-    for(auto & m : aa.Reflection.members)
+    for(size_t i = 0; i < aa.Reflection.numMembers; ++i)
     {
-        auto x = std::bind(&a, m);
+        const auto & m = *aa.Reflection.members[i];
+        //auto x = std::bind(&a, m);
         //decltype(x);
     }
 
@@ -283,11 +342,24 @@ void props_unittest::registerProps()
     //props.push_back(new prop_entry(&A::name));
 
 
-    typedef std::function<variant(void)> obj_func;
+    typedef std::function<myvariant(void)> obj_func;
     std::vector<obj_func> list_of_getters;
 
-#if 0
+    for(size_t i = 0; i < aa.Reflection.numMembers; ++i)
+    {
+        const auto & m = *aa.Reflection.members[i];
+        std::cout << "m: " << m.name << "=" << m.get(&a) << std::endl;
+        //auto x = std::bind(&a, m.func);
+        //decltype(x);
+    }
+
     auto nnn = std::bind(&A::name, &a);
+    auto v = get_property(nnn);
+    std::cout << v << endl;
+    //list_of_getters.push_back();
+
+#if 0
+
     std::cout << nnn() << std::endl;
     std::cout << typeid(nnn).name() << std::endl;
 
