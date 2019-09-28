@@ -229,7 +229,7 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
         break;
     case SGIItemTypeProperties:
         {
-            os << "<table border=\'1\' align=\'left\'><tr><th>Property</th><th>Value</th></tr>" << std::endl;
+            os << "<table border=\'1\' align=\'left\'><tr><th>Property</th><th>Type</th><th>Value</th></tr>" << std::endl;
 
             const QMetaObject * metaObject = object->metaObject();
             while (metaObject)
@@ -249,7 +249,7 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
                     if(value.type() == QVariant::Palette)
                         value = QString("palette:%1").arg(value.value<QPalette>().cacheKey());
 
-                    os << "<tr><td>" << metaObject->className() << "::" << name << "(" << typeName << ")</td><td>";
+                    os << "<tr><td>" << metaObject->className() << "::" << name << "</td><td>" << typeName << "</td><td>";
                     writeVariant(os, value, &metaproperty);
                     os << "</td></tr>" << std::endl;
                 }

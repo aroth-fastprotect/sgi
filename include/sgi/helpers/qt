@@ -189,6 +189,13 @@ SGI_QT_HELPER_EXPORT bool convertImageToQImage_BGR32(const sgi::Image * image, Q
 SGI_QT_HELPER_EXPORT bool convertImageToQImage_RGBA32(const sgi::Image * image, QImage & qimage);
 SGI_QT_HELPER_EXPORT bool convertImageToQImage(const sgi::Image * image, sgi::Image::ImageFormat destFormat, QImage & qimage);
 
+struct QVariantUserTypeHandler {
+    virtual void writePrettyHTML(std::basic_ostream<char>& os, const QVariant & v) = 0;
+};
+SGI_QT_HELPER_EXPORT void registerQVariantUserType(int userType, QVariantUserTypeHandler * handler);
+SGI_QT_HELPER_EXPORT void registerQVariantType(int type, QVariantUserTypeHandler * handler);
+SGI_QT_HELPER_EXPORT void writePrettyHTML(std::basic_ostream<char>& os, const QVariant & v);
+
     } // namespace qt_helpers
 } // namespace sgi
 

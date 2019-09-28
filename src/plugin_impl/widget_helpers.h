@@ -1,4 +1,4 @@
-// kate: syntax C++11;
+// kate: syntax C++;
 
 #pragma once
 
