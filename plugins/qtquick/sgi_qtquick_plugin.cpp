@@ -83,7 +83,7 @@ public:
     SGIPlugin_qtquick_Implementation(SGIPluginHostInterface * hostInterface=nullptr)
         : qtquick_plugin::SGIPluginImpl(hostInterface)
     {
-
+		SGIITEMTYPE_NAME(SGIItemTypeContextProperties);
     }
     SGIPlugin_qtquick_Implementation(const SGIPlugin_qtquick_Implementation& rhs)
         : qtquick_plugin::SGIPluginImpl(rhs)

@@ -10,6 +10,7 @@ namespace sgi {
 enum SGIItemType_qtquick
 {
     SGIItemType_plugin_qtquick = SGIItemTypePluginBaseQtQuick,
+	SGIItemTypeContextProperties,
 };
 
 } // namespace sgi

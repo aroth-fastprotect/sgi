@@ -48,6 +48,14 @@ bool writePrettyHTMLImpl<QQmlContext>::process(std::basic_ostream<char>& os)
             ret = true;
         }
         break;
+	case SGIItemTypeContextProperties:
+		{
+			if (_item->number() == ~0u)
+			{
+			}
+			ret = true;
+		}
+		break;
     default:
         ret = callNextHandler(os);
         break;

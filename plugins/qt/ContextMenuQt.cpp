@@ -92,6 +92,8 @@ bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
 					ss << metaObject->className() << "::" << prop.second << "=";
 					if (value.type() == QVariant::Icon)
 						ss << "QIcon()";
+					else if(value.type() == QVariant::Palette)
+						ss << "QPalette()";
 					else
 						writeVariant(ss, value, &metaproperty);
 

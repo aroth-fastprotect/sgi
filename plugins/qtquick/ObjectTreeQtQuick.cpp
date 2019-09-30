@@ -35,6 +35,8 @@ bool objectTreeBuildImpl<QQmlContext>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
+			treeItem->addChild("Context Properties", cloneItem<SGIItemQt>(SGIItemTypeContextProperties, ~0u));
+
             SGIHostItemQt parentContext(object->parentContext());
             if (parentContext.hasObject())
                 treeItem->addChild("ParentContext", &parentContext);
@@ -49,6 +51,14 @@ bool objectTreeBuildImpl<QQmlContext>::build(IObjectTreeItem * treeItem)
 
         }
         break;
+	case SGIItemTypeContextProperties:
+		{
+			if (_item->number() == ~0u)
+			{
+			}
+			ret = true;
+		}
+		break;
     default:
         ret = callNextHandler(treeItem);
         break;
