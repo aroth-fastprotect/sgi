@@ -193,7 +193,21 @@ bool objectTreeBuildImpl<QObject>::build(IObjectTreeItem * treeItem)
                     for (int i = offset; i < count; ++i)
                     {
                         QMetaProperty prop = metaObject->property(i);
-                        treeItem->addChild(prop.name(), cloneItem<SGIItemQt>(SGIItemTypeProperties, i));
+						QVariant value = object->property(prop.name());
+						bool isSubItem = false;
+						if ((QMetaType::Type)value.type() == QMetaType::QObjectStar || value.canConvert<QObject*>())
+						{
+							QObject* o = value.value<QObject*>();
+							if (o)
+							{
+								SGIHostItemQt item(o);
+								treeItem->addChild(prop.name(), &item);
+								isSubItem = true;
+							}
+						}
+
+						if(!isSubItem)
+							treeItem->addChild(prop.name(), cloneItem<SGIItemQt>(SGIItemTypeProperties, i));
                     }
                     metaObject = metaObject->superClass();
                 }

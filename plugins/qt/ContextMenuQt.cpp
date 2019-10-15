@@ -87,17 +87,32 @@ bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
 						continue;
 					QMetaProperty metaproperty = metaObject->property(prop.first);
 					QVariant value = object->property(prop.second);
+					bool isSubMenu = false;
 
 					std::stringstream ss;
 					ss << metaObject->className() << "::" << prop.second << "=";
-					if (value.type() == QVariant::Icon)
+
+					if ((QMetaType::Type)value.type() == QMetaType::QObjectStar || value.canConvert<QObject*>())
+					{
+						QObject* o = value.value<QObject*>();
+						if (o)
+						{
+							SGIHostItemQt item(o);
+							menuItem->addMenu(std::string(), &item);
+							isSubMenu = true;
+						}
+						else
+							ss << "QObject*(nullptr)";
+					}
+					else if (value.type() == QVariant::Icon)
 						ss << "QIcon()";
 					else if(value.type() == QVariant::Palette)
 						ss << "QPalette()";
 					else
 						writeVariant(ss, value, &metaproperty);
 
-					menuItem->addSimpleAction(MenuActionObjectModifyProperty, ss.str(), _item, new ReferencedDataString(prop.second));
+					if(!isSubMenu)
+						menuItem->addSimpleAction(MenuActionObjectModifyProperty, ss.str(), _item, new ReferencedDataString(prop.second));
 				}
 				metaObject = metaObject->superClass();
 			}
