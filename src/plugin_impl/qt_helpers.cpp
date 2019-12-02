@@ -385,11 +385,27 @@ namespace  {
                         auto it = m_userTypeMap.find(v.userType());
                         if(it != m_userTypeMap.end())
                             it->second->writePrettyHTML(os, v);
-                        else
-                            os << QString("Unknown user type %1: %2").arg(v.userType()).arg(v.toString());
+						else
+						{
+							bool ok = false;
+							int num = v.toInt(&ok);
+							if(ok)
+								os << QString("Unknown user type %1: %2").arg(v.userType()).arg(num);
+							else
+								os << QString("Unknown user type %1: %2").arg(v.userType()).arg(v.toString());
+						}
                     }
                     break;
-                default: os << QString("Unknown type %1: %2").arg(v.type()).arg(v.toString()); break;
+                default: 
+					{
+						bool ok = false;
+						int num = v.toInt(&ok);
+						if (ok)
+							os << QString("Unknown user type %1: %2").arg(v.userType()).arg(num);
+						else
+							os << QString("Unknown user type %1: %2").arg(v.userType()).arg(v.toString());
+					}
+					break;
                 }
             }
         }
