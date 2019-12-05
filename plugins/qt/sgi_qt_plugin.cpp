@@ -181,6 +181,7 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypePalette);
         SGIITEMTYPE_NAME(SGIItemTypeTheme);
         SGIITEMTYPE_NAME(SGIItemTypeLayoutItem);
+		SGIITEMTYPE_NAME(SGIItemTypeOverlayContext);
     }
     SGIPlugin_qt_Implementation(const SGIPlugin_qt_Implementation & rhs)
         : qt_plugin::SGIPluginImpl(rhs)

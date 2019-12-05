@@ -436,6 +436,7 @@ bool writePrettyHTMLImpl<QSurface>::process(std::basic_ostream<char>& os)
             os << "<tr><td>this</td><td>" << std::hex << (void*)object << std::dec << "</td></tr>" << std::endl;
             os << "<tr><td>surfaceClass</td><td>" << object->surfaceClass() << "</td></tr>" << std::endl;
             os << "<tr><td>surfaceType</td><td>" << object->surfaceType() << "</td></tr>" << std::endl;
+			os << "<tr><td>surfaceHandle</td><td>" << object->surfaceHandle() << "</td></tr>" << std::endl;
             os << "<tr><td>supportsOpenGL</td><td>" << (object->supportsOpenGL() ? "true" : "false") << "</td></tr>" << std::endl;
             os << "<tr><td>size</td><td>" << object->size() << "</td></tr>" << std::endl;
 
@@ -683,6 +684,10 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QGLCont
         os << "<tr><td>isSharing</td><td>" << (object->isSharing()?"true":"false") << "</td></tr>" << std::endl;
 
         os << "<tr><td>format</td><td>" << object->format() << "</td></tr>" << std::endl;
+		os << "<tr><td>requestedFormat</td><td>" << object->requestedFormat() << "</td></tr>" << std::endl;
+
+		os << "<tr><td>overlayTransparentColor</td><td>" << object->overlayTransparentColor() << "</td></tr>" << std::endl;
+
         os << "<tr><td>device</td><td>" << qt_helpers::getObjectNameAndType(object->device(), true) << "</td></tr>" << std::endl;
         //os << "<tr><td>functions</td><td>" << (void*)object->functions() << "</td></tr>" << std::endl;
         os << "</table>" << std::endl;
@@ -986,6 +991,12 @@ bool writePrettyHTMLImpl<QGLWidget>::process(std::basic_ostream<char>& os)
     case SGIItemTypeContext:
         {
             os << object->context();
+            ret = true;
+        }
+        break;
+    case SGIItemTypeOverlayContext:
+        {
+            os << object->overlayContext();
             ret = true;
         }
         break;

@@ -51,6 +51,7 @@ enum SGIItemType_qt
     SGIItemTypePalette,
     SGIItemTypeTheme,
     SGIItemTypeLayoutItem,
+	SGIItemTypeOverlayContext,
 };
 
 } // namespace sgi

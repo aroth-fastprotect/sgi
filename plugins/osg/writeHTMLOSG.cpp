@@ -4575,10 +4575,9 @@ bool writePrettyHTMLImpl<osg::GraphicsContext>::process(std::basic_ostream<char>
                 os << "<li>" << osg_helpers::getObjectNameAndType(camera, true) << "</li>" << std::endl;
             }
             os << "<ul></td></tr>" << std::endl;
+			os << "<tr><td>default FBO Id</td><td>" << object->getDefaultFboId() << "</td></tr>" << std::endl;
             os << "<tr><td>traits</td><td>" << osg_helpers::getObjectNameAndType(object->getTraits()) << "</td></tr>" << std::endl;
             os << "<tr><td>thread</td><td>" << osg_helpers::getObjectNameAndType(object->getGraphicsThread()) << "</td></tr>" << std::endl;
-
-            
 
             if(_table)
                 os << "</table>" << std::endl;

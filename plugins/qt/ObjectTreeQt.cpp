@@ -669,9 +669,38 @@ bool objectTreeBuildImpl<QGLWidget>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            treeItem->addChild("Context", cloneItem<SGIItemQt>(SGIItemTypeContext));
-        }
+			if(object->context())
+				treeItem->addChild("Context", cloneItem<SGIItemQt>(SGIItemTypeContext));
+			if (object->overlayContext())
+				treeItem->addChild("OverlayContext", cloneItem<SGIItemQt>(SGIItemTypeOverlayContext));
+		}
         break;
+	case SGIItemTypeContext:
+		{
+			auto ctx = object->context();
+			if (ctx)
+			{
+				SGIHostItemQtPaintDevice device(ctx->device());
+				treeItem->addChild("Device", &device);
+				SGIHostItemQt contextHandle(ctx->contextHandle());
+				treeItem->addChild("ContextHandle", &contextHandle);
+			}
+			ret = true;
+		}
+		break;
+	case SGIItemTypeOverlayContext:
+		{
+			auto ctx = object->overlayContext();
+			if (ctx)
+			{
+				SGIHostItemQtPaintDevice device(ctx->device());
+				treeItem->addChild("Device", &device);
+				SGIHostItemQt contextHandle(ctx->contextHandle());
+				treeItem->addChild("ContextHandle", &contextHandle);
+			}
+			ret = true;
+		}
+		break;
     default:
         ret = callNextHandler(treeItem);
         break;
