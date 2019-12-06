@@ -41,8 +41,16 @@ class ViewerWidget : public QMainWindow
 {
     Q_OBJECT
 public:
-    ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent=0);
-    ViewerWidget(ViewerWidget * parent, bool shared);
+
+	enum GLContextImpl {
+		GLContextImplDefault = 0,
+		GLContextImplFlightgear,
+		GLContextImplQt5,
+		GLContextImplOSGQOpenGL
+	};
+	
+	ViewerWidget(osg::ArgumentParser& arguments, QWidget* parent = 0);
+    ViewerWidget(ViewerWidget * parent, bool shared, GLContextImpl impl);
     virtual ~ViewerWidget();
 
     osgViewer::View * view();
@@ -53,17 +61,18 @@ public:
         return _helper;
     }
 
+	GLContextImpl glContextImpl() const {
+		return _impl;
+	}
+
 protected:
     void showEvent( QShowEvent* event ) override;
     void paintEvent( QPaintEvent* event ) override;
     void resizeEvent(QResizeEvent * event) override;
 
-    osgViewer::GraphicsWindow* createGraphicsWindow( int x, int y, int w, int h,
-                                                     osg::GraphicsContext * sharedContext,
-                                                     const std::string& name=std::string(),
-                                                     bool windowDecoration=false,
-        bool useQt5=false,
-        bool useFlightgear=false);
+	osgViewer::GraphicsWindow* createGraphicsWindow(int x, int y, int w, int h,
+		osg::GraphicsContext* sharedContext,
+		GLContextImpl impl);
 
 private:
     void init();
@@ -77,4 +86,5 @@ protected:
     osg::ref_ptr<osgViewer::CompositeViewer> _viewer;
     QWidget * _viewWidget;
     sgi_MapNodeHelper _helper;
+	GLContextImpl _impl;
 };

@@ -62,7 +62,8 @@ public:
     inline bool getForwardKeyEvents() const { return _forwardKeyEvents; }
     virtual void setForwardKeyEvents( bool f ) { _forwardKeyEvents = f; }
 
-    void setKeyboardModifiers(const Qt::KeyboardModifiers qtMods);
+    void setKeyboardModifiers(QKeyEvent* event);
+    void setKeyboardModifiers(QInputEvent* event);
 
     virtual void keyPressEvent( QKeyEvent* event );
     virtual void keyReleaseEvent( QKeyEvent* event );
@@ -130,6 +131,9 @@ public:
     inline GLWindow* getGLWindow() { return _window.get(); }
     inline const GLWindow* getGLWindow() const { return _window.get(); }
 
+    QWidget* getOrCreateGLWidget();
+    inline const QWidget* getGLWidget() const { return _widget.get(); }
+
     struct WindowData : public osg::Referenced
     {
         WindowData( GLWindow* win = NULL ): _window(win) {}
@@ -195,6 +199,7 @@ protected:
 
     friend class GLWindow;
     std::unique_ptr<GLWindow> _window;
+    std::unique_ptr<QWidget> _widget;
     std::unique_ptr<QOpenGLContext> _context;
     QOpenGLContext* _shareContext = nullptr;
     bool _ownsWidget;

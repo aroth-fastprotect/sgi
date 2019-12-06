@@ -136,14 +136,14 @@ private:
 };
 
 
-ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared)
+ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared, GLContextImpl impl)
     : QMainWindow(parent)
     , _viewer(parent->_viewer)
     , _thread(nullptr)
     , _timer(nullptr)
     , _helper(parent->_helper)
 {
-    _mainGW = createGraphicsWindow(0,0,QMainWindow::width(),QMainWindow::height(), (shared)?parent->_mainGW.get():nullptr);
+    _mainGW = createGraphicsWindow(0,0,QMainWindow::width(),QMainWindow::height(), (shared)?parent->_mainGW.get():nullptr, impl);
 
 #ifdef SGI_USE_OSGQT
     osgQt::GraphicsWindowQt* gwq = dynamic_cast<osgQt::GraphicsWindowQt*>(_mainGW.get());
@@ -179,6 +179,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     , _timer(nullptr)
     , _viewWidget(nullptr)
     , _helper(arguments)
+	, _impl(GLContextImplDefault)
 {
     int screenNum = -1;
     while (arguments.read("--screen", screenNum)) {}
@@ -196,29 +197,42 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     _viewer->setRealizeOperation(new osgEarth::GL3RealizeOperation());
 #endif
 
-    bool useQt5 = false;
-    if (arguments.read("--qt5"))
-        useQt5 = true;
-    bool useFlightgear = false;
-    if (arguments.read("--fg"))
-        useFlightgear = true;
+	if (arguments.read("--qt5"))
+		_impl = GLContextImplQt5;
+    else if (arguments.read("--fg"))
+		_impl = GLContextImplFlightgear;
 
-    if(useFlightgear || useQt5)
-        _viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::SingleThreaded);
-    else
-        _viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::DrawThreadPerContext);
+	switch (_impl)
+	{
+// 	case GLContextImplFlightgear:
+// 		_viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::SingleThreaded);
+// 		useMainThread = true;
+// 		break;
+	default:
+		_viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::DrawThreadPerContext);
+		break;
+	}
 
-    _mainGW = createGraphicsWindow(0, 0, QMainWindow::width(), QMainWindow::height(), nullptr, std::string(), false, useQt5, useFlightgear);
+	QRect rc = childrenRect();
+	int w = rc.width();
+	int h = rc.height();
+	if (w == 0)
+		w = QMainWindow::width();
+	if (h == 0)
+		h = QMainWindow::height();
+
+    _mainGW = createGraphicsWindow(0, 0, w, h, nullptr, _impl);
 
     flightgear::GraphicsWindowQt5* gwqt5 = dynamic_cast<flightgear::GraphicsWindowQt5*>(_mainGW.get());
     if (gwqt5)
     {
-        QWindow * w = gwqt5->getGLWindow();
-        w->setProperty("sgi_skip_object", true);
-        _viewWidget = QWidget::createWindowContainer(w);
+        QWindow * glw = gwqt5->getGLWindow();
+        glw->setProperty("sgi_skip_object", true);
+        _viewWidget = QWidget::createWindowContainer(glw);
     }
     else
         _viewWidget = getWidgetForGraphicsWindow(_mainGW.get());
+
     setCentralWidget(_viewWidget);
     if(_viewWidget)
         _viewWidget->setProperty("sgi_skip_object", true);
@@ -228,12 +242,11 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     osg::Camera* camera = _view->getCamera();
     camera->setGraphicsContext(_mainGW);
 
-    const osg::GraphicsContext::Traits* traits = _mainGW ? _mainGW->getTraits() : nullptr;
-    int widget_width = traits ? traits->width : QMainWindow::width();
-    int widget_height = traits ? traits->height : QMainWindow::height();
+	const osg::GraphicsContext::Traits* traits = _mainGW->getTraits();
+	Q_ASSERT(traits != nullptr);
     camera->setClearColor(osg::Vec4(0.2f, 0.2f, 0.6f, 1.0f));
-    camera->setViewport(new osg::Viewport(0, 0, widget_width, widget_height));
-    camera->setProjectionMatrixAsPerspective(30.0, static_cast<double>(widget_width) / static_cast<double>(widget_height), 1.0, 10000.0);
+    camera->setViewport(new osg::Viewport(0, 0, w, h));
+    camera->setProjectionMatrixAsPerspective(30.0, h != 0 ? static_cast<double>(w) / static_cast<double>(h) : 1.0, 1.0, 10000.0);
     GLenum buffer = traits->doubleBuffer ? GL_BACK : GL_FRONT;
     camera->setDrawBuffer(buffer);
     camera->setReadBuffer(buffer);
@@ -250,7 +263,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     _viewer->addView(_view);
     _viewer->realize();
 
-    if (useMainThread || useFlightgear || useQt5)
+    if (useMainThread)
     {
         _timer = new QTimer(this);
         connect(_timer, &QTimer::timeout, this, &ViewerWidget::onTimer, Qt::DirectConnection);
@@ -304,15 +317,11 @@ void ViewerWidget::setData(osg::Node * node)
 
 osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int w, int h,
                                                                osg::GraphicsContext * sharedContext,
-                                                               const std::string& name,
-                                                               bool windowDecoration, 
-    bool useQt5,
-    bool useFlightgear)
+                                                               GLContextImpl impl)
 {
     osg::DisplaySettings* ds = osg::DisplaySettings::instance().get();
     osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
-    traits->windowName = name;
-    traits->windowDecoration = windowDecoration;
+    traits->windowDecoration = false;
     traits->x = x;
     traits->y = y;
     traits->width = w;
@@ -346,20 +355,32 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
 
     osgViewer::GraphicsWindow* ret = nullptr;
 #ifdef SGI_USE_OSGQT
-    if(useQt5)
-    {
-        auto wqt5 = new osgQt::GraphicsWindowQt5(traits.get());
-        wqt5->setViewer(_viewer);
-        ret = wqt5;
-    }
-    else if (useFlightgear)
-    {
-        auto wqt5 = new flightgear::GraphicsWindowQt5(traits.get());
-        wqt5->setViewer(_viewer);
-        ret = wqt5;
-    }
-    else
-        ret = new osgQt::GraphicsWindowQt(traits.get());
+	switch (impl)
+	{
+	case GLContextImplQt5:
+	{
+		auto wqt5 = new osgQt::GraphicsWindowQt5(traits.get());
+		wqt5->setViewer(_viewer);
+		ret = wqt5;
+	}
+	break;
+	case GLContextImplFlightgear:
+	{
+		auto wqt5 = new flightgear::GraphicsWindowQt5(traits.get());
+		wqt5->setViewer(_viewer);
+		ret = wqt5;
+	}
+	break;
+	case GLContextImplOSGQOpenGL:
+	{
+		//auto wqt5 = new osgQOpenGLWidget;
+		//ret = wqt5;
+	}
+	break;
+	default:
+		ret = new osgQt::GraphicsWindowQt(traits.get());
+		break;
+	}
 #else
     osg::GraphicsContext::WindowingSystemInterface* wsi = osg::GraphicsContext::getWindowingSystemInterface();
     if (!wsi)
@@ -381,7 +402,7 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
         case sgi_MapNodeHelper::GLContextProfileCompatibility:
 
             // for non GL3/GL4 and non GLES2 platforms we need enable the osg_ uniforms that the shaders will use,
-            // you don't need thse two lines on GL3/GL4 and GLES2 specific builds as these will be enable by default.
+            // you don't need those two lines on GL3/GL4 and GLES2 specific builds as these will be enable by default.
             ret->getState()->setUseModelViewAndProjectionUniforms(true);
             //ret->getState()->setUseVertexAttributeAliasing(true);
             break;
@@ -405,6 +426,20 @@ void ViewerWidget::paintEvent( QPaintEvent* event )
 void ViewerWidget::resizeEvent(QResizeEvent * event)
 {
     QMainWindow::resizeEvent(event);
+
+	int w = width() * devicePixelRatio();
+	int h = height() * devicePixelRatio();
+
+	osg::Camera * camera = _view->getCamera();
+
+	double old_fovy, old_aspect_ratio, old_near, old_far;
+	camera->getProjectionMatrixAsPerspective(old_fovy, old_aspect_ratio, old_near, old_far);
+
+	const double defaultFovY = osg::RadiansToDegrees(2.0 * atan2(35.0, 2.0 * 40)); // 47.258755461313640
+
+	camera->setViewport(0, 0, w, h);
+	camera->setProjectionMatrixAsPerspective(defaultFovY, (h != 0) ? static_cast<double>(w) / static_cast<double>(h) : 1.0, old_near, old_far);
+
     _viewWidget->updateGeometry();
 }
 
@@ -430,7 +465,7 @@ void CreateViewHandlerProxy::viewCloneImpl(osgViewer::View * source, bool shared
     }
 #endif
 
-    ViewerWidget * nextwidget = new ViewerWidget(sourceWidget, shared);
+    ViewerWidget * nextwidget = new ViewerWidget(sourceWidget, shared, sourceWidget->glContextImpl());
     nextwidget->createCamera();
     osgViewer::View* nextview = nextwidget->view();
 
