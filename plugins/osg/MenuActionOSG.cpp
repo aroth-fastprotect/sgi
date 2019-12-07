@@ -277,6 +277,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerDoPreCompile)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerDeleteSubgraphsInDBThread)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerTargetPageLODNumber)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerIncrementalCompileOperation)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerResetStats)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAnimationManagerBaseAutomaticLink)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAnimationManagerBaseDirty)
@@ -2607,6 +2608,13 @@ bool actionHandlerImpl<MenuActionDatabasePagerIncrementalCompileOperation>::exec
 {
 	osgDB::DatabasePager * object = getObject<osgDB::DatabasePager, SGIItemOsg>();
 	object->setIncrementalCompileOperation(new osgUtil::IncrementalCompileOperation);
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionDatabasePagerResetStats>::execute()
+{
+	osgDB::DatabasePager * object = getObject<osgDB::DatabasePager, SGIItemOsg>();
+	object->resetStats();
 	return true;
 }
 

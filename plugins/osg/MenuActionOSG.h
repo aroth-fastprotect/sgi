@@ -154,6 +154,7 @@ enum MenuAction {
     MenuActionDatabasePagerDeleteSubgraphsInDBThread,
     MenuActionDatabasePagerTargetPageLODNumber,
 	MenuActionDatabasePagerIncrementalCompileOperation,
+    MenuActionDatabasePagerResetStats,
     MenuActionEventAdapterHitTest,
     MenuActionEventHandlerIgnoreHandledEventsMask,
     MenuActionCameraManipulatorAutoComputeHome,

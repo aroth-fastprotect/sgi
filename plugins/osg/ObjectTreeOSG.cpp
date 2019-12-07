@@ -3085,6 +3085,10 @@ bool objectTreeBuildImpl<osgDB::DatabasePager>::build(IObjectTreeItem * treeItem
             treeItem->addChild(helpers::str_plus_count("HTTP requests", object->getHttpRequestListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerHttpRequests));
             treeItem->addChild(helpers::str_plus_count("Data to compile", object->getDataToCompileListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerDataToCompile));
             treeItem->addChild(helpers::str_plus_count("Data to merge", object->getDataToMergeListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerDataToMerge));
+
+            SGIHostItemOsg markerObject(object->getMarkerObject());
+            if(markerObject.hasObject())
+                treeItem->addChild("MarkerObject", &markerObject);
         }
         break;
     case SGIItemTypeThreads:
