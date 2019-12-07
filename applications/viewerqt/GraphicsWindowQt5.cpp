@@ -944,6 +944,9 @@ bool GraphicsWindowQt5::releaseContextImplementation()
 
 void GraphicsWindowQt5::swapBuffersImplementation()
 {
+    if (!_window->isExposed())
+        return;
+
     _context->swapBuffers(_window.get());
 }
 
