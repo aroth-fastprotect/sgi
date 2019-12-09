@@ -486,7 +486,11 @@ bool writePrettyHTMLImpl<osgEarth::CacheSettings>::process(std::basic_ostream<ch
             os << "<tr><td>enabled</td><td>" << (object->isCacheEnabled() ? "true" : "false") << "</td></tr>" << std::endl;
             os << "<tr><td>cachePolicy</td><td>" << object->cachePolicy() << "</td></tr>" << std::endl;
             os << "<tr><td>cache</td><td>" << getObjectNameAndType(object->getCache()) << "</td></tr>" << std::endl;
-            os << "<tr><td>cacheBin</td><td>" << getObjectNameAndType(object->getCacheBin()) << "</td></tr>" << std::endl;
+			osgEarth::CacheBin* bin = object->getCacheBin();
+			os << "<tr><td>cacheBin</td><td>";
+			if (bin)
+				os << "id=" << bin->getID() << "; ";
+			os << getObjectNameAndType(bin) << "</td></tr>" << std::endl;
             os << "<tr><td>string</td><td><pre>" << object->toString() << "</pre></td></tr>" << std::endl;
 
             if (_table)
