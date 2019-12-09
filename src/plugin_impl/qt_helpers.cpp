@@ -586,6 +586,10 @@ namespace std {
     {
         return os << "(" << r.left() << ", " << r.top() << " x " << r.width() << ", " << r.height() << ")";
     }
+	std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMargins& r)
+	{
+		return os << "(" << r.left() << ", " << r.top() << " x " << r.right() << ", " << r.bottom() << ")";
+	}
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPoint & p)
     {

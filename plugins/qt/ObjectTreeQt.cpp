@@ -22,6 +22,8 @@
 #endif // WITH_QTOPENGL
 #include <QLayout>
 
+#include <qpa/qplatformwindow.h>
+
 #include "ObjectTreeQt.h"
 #include "SGIItemQt"
 #include <sgi/plugins/SGIHostItemQt.h>
@@ -60,6 +62,8 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QGLWidget)
 #endif // WITH_QTOPENGL
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QLayout)
+
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QPlatformSurface)
 
 using namespace sgi::qt_helpers;
 
@@ -287,8 +291,8 @@ bool objectTreeBuildImpl<QWidget>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<QWindow>::build(IObjectTreeItem * treeItem)
 {
-    QWindow * qobject = getObject<QWindow, SGIItemQt>();
-    QWindow * surface = getObject<QWindow, SGIItemQtSurface>();
+    QWindow * qobject = getObject<QWindow, SGIItemQt, DynamicCaster>();
+    QSurface * surface = getObject<QSurface, SGIItemQtSurface, DynamicCaster>();
     bool ret = false;
     switch(itemType())
     {
@@ -298,18 +302,27 @@ bool objectTreeBuildImpl<QWindow>::build(IObjectTreeItem * treeItem)
         {
             treeItem->addChild("Format", cloneItem<SGIItemQt>(SGIItemTypeSurfaceFormat));
 
-            if (qobject)
-            {
-                SGIHostItemQtSurface surface(qobject);
-                treeItem->addChild("Surface", &surface);
-            }
+			// add the opposite base-type to the tree
+			if (qobject)
+			{
+				QSurface* s = dynamic_cast<QSurface*>(qobject);
+				SGIHostItemQtSurface item(s);
+				if(item.hasObject())
+					treeItem->addChild("Surface", &item);
+			}
+#if 0
             else if (surface)
             {
-                SGIHostItemQt qobject(surface);
-                treeItem->addChild("Object", &qobject);
-            }
+				SGIHostItemQt item(surface);
+				if (item.hasObject())
+					treeItem->addChild("Object", &item);
+			}
+#endif
         }
         break;
+	case SGIItemTypeSurfaceFormat:
+		ret = true;
+		break;
     default:
         ret = callNextHandler(treeItem);
         break;
@@ -346,12 +359,19 @@ bool objectTreeBuildImpl<QSurface>::build(IObjectTreeItem * treeItem)
     switch(itemType())
     {
     case SGIItemTypeObject:
-        ret = callNextHandler(treeItem);
-        if(ret)
-        {
-            treeItem->addChild("Format", cloneItem<SGIItemQt>(SGIItemTypeSurfaceFormat));
+		{
+			callNextHandler(treeItem);
+            treeItem->addChild("Format", cloneItem<SGIItemQtSurface>(SGIItemTypeSurfaceFormat));
+
+			SGIHostItemQtPlatformSurface platform(object->surfaceHandle());
+			if(platform.hasObject())
+				treeItem->addChild("SurfaceHandle", &platform);
+			ret = true;
         }
         break;
+	case SGIItemTypeSurfaceFormat:
+		ret = true;
+		break;
     default:
         ret = callNextHandler(treeItem);
         break;
@@ -765,6 +785,18 @@ bool objectTreeBuildImpl<QLayout>::build(IObjectTreeItem* treeItem)
     return ret;
 }
 
+bool objectTreeBuildImpl<QPlatformSurface>::build(IObjectTreeItem* treeItem)
+{
+	QPlatformSurface* object = getObject<QPlatformSurface, SGIItemQtPlatformSurface>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = true;
+		break;
+	}
+	return ret;
+}
 
 OBJECT_TREE_BUILD_ROOT_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 

@@ -155,6 +155,13 @@ ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared, GLContextImpl imp
         if (gwqt5) {
             setCentralWidget(gwqt5->getOrCreateGLWidget());
         }
+		else 
+		{
+			flightgear::GraphicsWindowQt5* gwfg = dynamic_cast<flightgear::GraphicsWindowQt5*>(_mainGW.get());
+			if (gwfg) {
+				setCentralWidget(gwfg->getOrCreateGLWidget(this));
+			}
+		}
     }
 #endif
 

@@ -13,26 +13,31 @@ namespace sgi {
 typedef SGIItemInfoPlainPtr<QObject> SGIItemInfoQt;
 typedef SGIItemInfoPlainPtr<QMetaObject> SGIItemInfoQtMeta;
 typedef SGIItemInfoSharedPtrQt<QPaintDevice, QSharedPointer<QPaintDevice> > SGIItemInfoQtPaintDevice;
-typedef SGIItemInfoSharedPtrQt<QSurface, QSharedPointer<QSurface> > SGIItemInfoQtSurface;
+typedef SGIItemInfoPlainPtr<QSurface> SGIItemInfoQtSurface;
 typedef SGIItemInfoPlainPtr<QIcon, QIcon*, details::copy_object, details::delete_operator, details::copy_object> SGIItemInfoQtIcon;
+typedef SGIItemInfoPlainPtr<QPlatformSurface> SGIItemInfoQtPlatformSurface;
 
 typedef SGIHostItemImpl<SGIItemInfoQt> SGIHostItemQt;
 typedef SGIHostItemImpl<SGIItemInfoQtMeta> SGIHostItemQtMeta;
 typedef SGIHostItemImpl<SGIItemInfoQtPaintDevice> SGIHostItemQtPaintDevice;
 typedef SGIHostItemImpl<SGIItemInfoQtSurface> SGIHostItemQtSurface;
 typedef SGIHostItemImpl<SGIItemInfoQtIcon> SGIHostItemQtIcon;
+typedef SGIHostItemImpl<SGIItemInfoQtPlatformSurface> SGIHostItemQtPlatformSurface;
 
 typedef SGIItemHolderT<SGIItemInfoQt> SGIItemHolderQt;
 typedef SGIItemHolderT<SGIItemInfoQtMeta> SGIItemHolderQtMeta;
 typedef SGIItemHolderT<SGIItemInfoQtPaintDevice> SGIItemHolderQtPaintDevice;
 typedef SGIItemHolderT<SGIItemInfoQtSurface> SGIItemHolderQtSurface;
 typedef SGIItemHolderT<SGIItemInfoQtIcon> SGIItemHolderQtIcon;
+typedef SGIItemHolderT<SGIItemInfoQtPlatformSurface> SGIItemHolderQtPlatformSurface;
 
 typedef SGIItemT<SGIHostItemQt, SGIItemHolderQt> SGIItemQt;
 typedef SGIItemT<SGIHostItemQtMeta, SGIItemHolderQtMeta> SGIItemQtMeta;
 typedef SGIItemT<SGIHostItemQtPaintDevice, SGIItemHolderQtPaintDevice> SGIItemQtPaintDevice;
 typedef SGIItemT<SGIHostItemQtSurface, SGIItemHolderQtSurface> SGIItemQtSurface;
 typedef SGIItemT<SGIHostItemQtIcon, SGIItemHolderQtIcon> SGIItemQtIcon;
+typedef SGIItemT<SGIHostItemQtPlatformSurface, SGIItemHolderQtPlatformSurface> SGIItemQtPlatformSurface;
+
 
 enum SGIItemType_qt
 {

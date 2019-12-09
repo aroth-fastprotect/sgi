@@ -6,6 +6,7 @@ SET(TARGET_SRC
     writeHTMLQt.cpp
     writeHTMLQtMeta.cpp
     writeHTMLQtPaintDevice.cpp
+    writeHTMLQtQPA.cpp
     getObjectInfoQt.cpp
     ObjectTreeQt.cpp
     ContextMenuQt.cpp

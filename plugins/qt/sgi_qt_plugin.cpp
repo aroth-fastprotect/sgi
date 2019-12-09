@@ -41,6 +41,8 @@
 #include <QGridLayout>
 #include <QFormLayout>
 
+#include <qpa/qplatformwindow.h>
+
 #ifdef __APPLE__
 typedef void * GLDEBUGPROC;
 #endif
@@ -122,6 +124,10 @@ SGI_OBJECT_INFO_BEGIN(QBoxLayout)
     QHBoxLayout, QVBoxLayout
 SGI_OBJECT_INFO_END()
 
+SGI_OBJECT_INFO_BEGIN(QPlatformSurface)
+	QPlatformWindow
+SGI_OBJECT_INFO_END()
+
 SGI_OBJECT_INFO_BEGIN(sgi::details::Referenced)
     ISceneGraphDialog
 SGI_OBJECT_INFO_END()
@@ -134,7 +140,8 @@ GENERATE_IMPL_TEMPLATE()
 GENERATE_IMPL_NO_ACCEPT(sgi::details::Referenced)
 
 
-typedef generateItemImplT<generateItemAcceptImpl, SGIItemInternal, SGIItemQt, SGIItemQtMeta, SGIItemQtPaintDevice, SGIItemQtSurface, SGIItemQtIcon > generateItemImpl;
+typedef generateItemImplT<generateItemAcceptImpl, SGIItemInternal, 
+	SGIItemQt, SGIItemQtMeta, SGIItemQtPaintDevice, SGIItemQtSurface, SGIItemQtIcon, SGIItemQtPlatformSurface > generateItemImpl;
 
 typedef SGIPluginImplementationT<       generateItemImpl,
                                         writePrettyHTMLImpl,
