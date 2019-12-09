@@ -852,9 +852,11 @@ void writePrettyHTMLImpl_DatabaseRequestList(std::basic_ostream<char>& os, const
     {
         if(brief)
             os << "<ul>";
-        else
-            os << "<table border=\'1\' align=\'left\'><tr><th>object</th><th>filename</th><th>frame</th><th>time</th><th>prio</th><th>numReq</th></tr>" << std::endl;
-
+		else
+		{
+			os << requestList.size() << "&nbsp;requests<br/>";
+			os << "<table border=\'1\' align=\'left\'><tr><th>object</th><th>filename</th><th>frame</th><th>time</th><th>prio</th><th>numReq</th></tr>" << std::endl;
+		}
         for(auto it = requestList.begin(); it != requestList.end(); it++)
         {
             const DatabasePagerAccessor::DatabaseRequestAccess * req = static_cast<const DatabasePagerAccessor::DatabaseRequestAccess*>((*it).get());
