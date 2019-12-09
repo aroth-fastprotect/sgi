@@ -36,7 +36,6 @@
 #include <QOpenGLContext>
 #include <QSurfaceFormat>
 #include <QTimer>
-
 #include <QWidget>
 
 #include <sstream>
@@ -210,8 +209,8 @@ static QtKeyboardMap s_QtKeyboardMap;
 
 
 
-GLWindow::GLWindow()
-    : QWindow()
+GLWindow::GLWindow(QWindow* parent)
+    : QWindow(parent)
     , _graphicsThreadActive(false)
 {
     _devicePixelRatio = 1.0;
@@ -243,8 +242,10 @@ void GLWindow::syncGeometryWithOSG()
     int scaled_height = static_cast<int>(h*_devicePixelRatio);
 
     if (_gw) {
-        _gw->resized( x(), y(), scaled_width,  scaled_height);
-        _gw->getEventQueue()->windowResize( x(), y(), scaled_width, scaled_height );
+		const int cx = x();
+		const int cy = y();
+        _gw->resized( cx, cy, scaled_width,  scaled_height);
+        _gw->getEventQueue()->windowResize(cx, cy, scaled_width, scaled_height );
         _gw->requestRedraw();
         _gw->_updateContextNeeded = true;
     }
@@ -277,10 +278,6 @@ bool GLWindow::event( QEvent* event )
         }
 #endif
     }
-    else if (event->type() == QEvent::UpdateRequest)
-    {
-        processUpdateEvent();
-    }
     else if (event->type() == QEvent::Close) {
         // spin an 'are you sure'? dialog here
         // need to decide immediately unfortunately.
@@ -291,19 +288,21 @@ bool GLWindow::event( QEvent* event )
     return QWindow::event( event );
 }
 
-void GLWindow::processUpdateEvent()
+void GLWindow::processDeferredEvents()
 {
-    osg::ref_ptr<osgViewer::ViewerBase> v;
-    if (_gw->_viewer.lock(v)) {
-        v->frame();
-    }
+	QQueue<QEvent::Type> deferredEventQueueCopy;
+	{
+		QMutexLocker lock(&_deferredEventQueueMutex);
+		deferredEventQueueCopy = _deferredEventQueue;
+		_eventCompressor.clear();
+		_deferredEventQueue.clear();
+	}
 
-    // see discussion of QWindow::requestUpdate to see
-    // why this is good behavior
-    if (_gw->_continousUpdate) {
-        requestUpdate();
-    }
-
+	while (!deferredEventQueueCopy.isEmpty())
+	{
+		QEvent event(deferredEventQueueCopy.dequeue());
+		GLWindow::event(&event);
+	}
 }
 
 #ifdef _WIN32
@@ -528,7 +527,7 @@ bool GraphicsWindowQt5::init( Qt::WindowFlags f )
     _ownsWidget = true;
 
     // WindowFlags
-    Qt::WindowFlags flags = f | Qt::Window | Qt::CustomizeWindowHint;
+    Qt::WindowFlags flags = f | Qt::Window | Qt::CustomizeWindowHint | Qt::FramelessWindowHint;
     if ( _traits->windowDecoration ) {
         flags |= Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint;
         flags |= Qt::WindowFullscreenButtonHint;
@@ -538,7 +537,7 @@ bool GraphicsWindowQt5::init( Qt::WindowFlags f )
     }
 
     // create window
-    _window.reset(new GLWindow);
+	_window.reset(new GLWindow(windowData ? windowData->_parent : nullptr));
     _window->setFlags(flags);
     _window->setSurfaceType(QSurface::OpenGLSurface);
     _window->setFormat(traits2qSurfaceFormat(_traits.get()));
@@ -906,12 +905,16 @@ void GraphicsWindowQt5::runOperations()
 bool GraphicsWindowQt5::makeCurrentImplementation()
 {
     if (!_context) {
+		QOpenGLContext* shareContext = nullptr;
         if ( _traits->sharedContext.valid() ) {
-            qWarning() << Q_FUNC_INFO << "share contexts not supported";
+			GraphicsWindowQt5 * gw = dynamic_cast<GraphicsWindowQt5*>(_traits->sharedContext.get());
+			if (gw)
+				shareContext = gw->_context.get();
         }
 
         _context.reset(new QOpenGLContext());
-        _context->setFormat(_window->format());
+		_context->setShareContext(shareContext);
+		_context->setFormat(_window->format());
         bool result = _context->create();
         if (!result)
         {
@@ -947,7 +950,16 @@ void GraphicsWindowQt5::swapBuffersImplementation()
     if (!_window->isExposed())
         return;
 
+	_context->makeCurrent(_window.get());
+
     _context->swapBuffers(_window.get());
+
+	// FIXME: the processDeferredEvents should really be executed in a GUI (main) thread context but
+	// I couln't find any reliable way to do this. For now, lets hope non of *GUI thread only operations* will
+	// be executed in a QGLWidget::event handler. On the other hand, calling GUI only operations in the
+	// QGLWidget event handler is an indication of a Qt bug.
+	if (_window->getNumDeferredEvents() > 0)
+		_window->processDeferredEvents();
 }
 
 void GraphicsWindowQt5::requestWarpPointer( float x, float y )
@@ -1007,10 +1019,10 @@ void GraphicsWindowQt5::setFullscreen(bool isFullscreen)
     }
 }
 
-QWidget* GraphicsWindowQt5::getOrCreateGLWidget()
+QWidget* GraphicsWindowQt5::getOrCreateGLWidget(QWidget* parent)
 {
     if (!_widget.get() && _window.get())
-        _widget.reset(QWidget::createWindowContainer(_window.get()));
+        _widget.reset(QWidget::createWindowContainer(_window.get(), parent));
     return _widget.get();
 }
 

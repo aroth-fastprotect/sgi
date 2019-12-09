@@ -51,7 +51,7 @@ class GLWindow : public QWindow
     typedef QWindow inherited;
 
 public:
-    GLWindow();
+    GLWindow(QWindow* parent=nullptr);
 
     virtual ~GLWindow();
 
@@ -85,13 +85,34 @@ signals:
 private slots:
     void onScreenChanged();
     
-    void processUpdateEvent();
+
+protected:
+
+	int getNumDeferredEvents()
+	{
+		QMutexLocker lock(&_deferredEventQueueMutex);
+		return _deferredEventQueue.count();
+	}
+	void enqueueDeferredEvent(QEvent::Type eventType, QEvent::Type removeEventType = QEvent::None)
+	{
+		QMutexLocker lock(&_deferredEventQueueMutex);
+
+		if (removeEventType != QEvent::None)
+		{
+			if (_deferredEventQueue.removeOne(removeEventType))
+				_eventCompressor.remove(eventType);
+		}
+
+		if (_eventCompressor.find(eventType) == _eventCompressor.end())
+		{
+			_deferredEventQueue.enqueue(eventType);
+			_eventCompressor.insert(eventType);
+		}
+	}
+	void processDeferredEvents();
     
 protected:
     void syncGeometryWithOSG();
-    
-    void updateEventQueueModifiers(QKeyEvent* event);
-    
   
     friend class GraphicsWindowQt5;
     GraphicsWindowQt5* _gw = nullptr; // back-pointer
@@ -102,6 +123,10 @@ protected:
     // is this the primary (GUI) window
     bool _isPrimaryWindow = false;
     bool _graphicsThreadActive;
+
+	QMutex _deferredEventQueueMutex;
+	QQueue<QEvent::Type> _deferredEventQueue;
+	QSet<QEvent::Type> _eventCompressor;
 
     virtual void resizeEvent( QResizeEvent* event );
     virtual void moveEvent( QMoveEvent* event );
@@ -131,19 +156,22 @@ public:
     inline GLWindow* getGLWindow() { return _window.get(); }
     inline const GLWindow* getGLWindow() const { return _window.get(); }
 
-    QWidget* getOrCreateGLWidget();
+    QWidget* getOrCreateGLWidget(QWidget* parent=nullptr);
     inline const QWidget* getGLWidget() const { return _widget.get(); }
 
     struct WindowData : public osg::Referenced
     {
-        WindowData( GLWindow* win = NULL ): _window(win) {}
+        WindowData( GLWindow* win = nullptr, QWindow* parent=nullptr)
+			: _window(win), _parent(parent), createFullscreen(false), isPrimaryWindow(false)
+		{
+		}
         GLWindow* _window;
-        
-        bool createFullscreen = false;
+		QWindow* _parent;
+        bool createFullscreen;
         
         // is this the main window, corresponding to the /sim/startup
         // properties? If so we will drive them in some cases.
-        bool isPrimaryWindow = false;
+        bool isPrimaryWindow;
     };
 
     bool init( Qt::WindowFlags f );
