@@ -37,7 +37,9 @@ bool writePrettyHTMLImpl<QPlatformSurface>::process(std::basic_ostream<char>& os
             os << "<tr><td>this</td><td>" << std::hex << (void*)object << std::dec << "</td></tr>" << std::endl;
             os << "<tr><td>typename</td><td>" << helpers::getRTTITypename_html(object) << "</td></tr>" << std::endl;
 			os << "<tr><td>surface</td><td>" << helpers::getRTTIObjectNameAndType(object->surface()) << "</td></tr>" << std::endl;
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
 			os << "<tr><td>screen</td><td>" << helpers::getRTTIObjectNameAndType(object->screen()) << "</td></tr>" << std::endl;
+#endif
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -79,7 +81,9 @@ bool writePrettyHTMLImpl<QPlatformWindow>::process(std::basic_ostream<char>& os)
 			os << "<tr><td>isExposed</td><td>" << (object->isExposed() ? "true" : "false") << "</td></tr>" << std::endl;
 			os << "<tr><td>isActive</td><td>" << (object->isActive() ? "true" : "false") << "</td></tr>" << std::endl;
 			os << "<tr><td>isEmbedded</td><td>" << (object->isEmbedded() ? "true" : "false") << "</td></tr>" << std::endl;
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 12, 0))
 			os << "<tr><td>hasPendingUpdateRequest</td><td>" << (object->hasPendingUpdateRequest() ? "true" : "false") << "</td></tr>" << std::endl;
+#endif
 
 			os << "<tr><td>winId</td><td>" << object->winId() << "</td></tr>" << std::endl;
 			os << "<tr><td>devicePixelRatio</td><td>" << object->devicePixelRatio() << "</td></tr>" << std::endl;
