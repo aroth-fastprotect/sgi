@@ -49,6 +49,7 @@
 
 #ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
+#include <osgQt/GraphicsWindowQt5>
 #endif
 #include <osgText/Text>
 #include <osgAnimation/AnimationManagerBase>
@@ -139,7 +140,10 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgViewer::ViewerBase)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgViewer::GraphicsWindow)
 
 #ifdef SGI_USE_OSGQT
+#ifdef OSGQT_ENABLE_QGLWIDGET
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgQt::GraphicsWindowQt)
+#endif
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgQt::GraphicsWindowQt5)
 #endif
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgText::TextBase)
@@ -2266,6 +2270,7 @@ bool contextMenuPopulateImpl<osgViewer::GraphicsWindow>::populate(IContextMenuIt
 }
 
 #ifdef SGI_USE_OSGQT
+#ifdef OSGQT_ENABLE_QGLWIDGET
 bool contextMenuPopulateImpl<osgQt::GraphicsWindowQt>::populate(IContextMenuItem * menuItem)
 {
     osgQt::GraphicsWindowQt * object = static_cast<osgQt::GraphicsWindowQt*>(item<SGIItemOsg>()->object());
@@ -2287,6 +2292,33 @@ bool contextMenuPopulateImpl<osgQt::GraphicsWindowQt>::populate(IContextMenuItem
     }
     return ret;
 }
+#endif // OSGQT_ENABLE_QGLWIDGET
+
+bool contextMenuPopulateImpl<osgQt::GraphicsWindowQt5>::populate(IContextMenuItem* menuItem)
+{
+	osgQt::GraphicsWindowQt5* object = getObject<osgQt::GraphicsWindowQt5,SGIItemOsg>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(menuItem);
+		if (ret)
+		{
+			SGIHostItemQt widget(object->getGLWidget());
+			if (widget.hasObject())
+				menuItem->addMenu("GLWidget", &widget);
+			SGIHostItemQt window(object->getGLWindow());
+			if (window.hasObject())
+				menuItem->addMenu("GLWindow", &window);
+		}
+		break;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
+}
+
 #endif // SGI_USE_OSGQT
 
 bool contextMenuPopulateImpl<osgDB::Registry>::populate(IContextMenuItem * menuItem)

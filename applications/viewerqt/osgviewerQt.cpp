@@ -146,10 +146,12 @@ ViewerWidget::ViewerWidget(ViewerWidget * parent, bool shared, GLContextImpl imp
     _mainGW = createGraphicsWindow(0,0,QMainWindow::width(),QMainWindow::height(), (shared)?parent->_mainGW.get():nullptr, impl);
 
 #ifdef SGI_USE_OSGQT
+#ifdef OSGQT_ENABLE_QGLWIDGET
     osgQt::GraphicsWindowQt* gwq = dynamic_cast<osgQt::GraphicsWindowQt*>(_mainGW.get());
     if(gwq)
         setCentralWidget(gwq->getGLWidget());
     else
+#endif // OSGQT_ENABLE_QGLWIDGET
     {
         osgQt::GraphicsWindowQt5* gwqt5 = dynamic_cast<osgQt::GraphicsWindowQt5*>(_mainGW.get());
         if (gwqt5) {
@@ -209,16 +211,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
     else if (arguments.read("--fg"))
 		_impl = GLContextImplFlightgear;
 
-	switch (_impl)
-	{
-// 	case GLContextImplFlightgear:
-// 		_viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::SingleThreaded);
-// 		useMainThread = true;
-// 		break;
-	default:
-		_viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::DrawThreadPerContext);
-		break;
-	}
+	_viewer->setThreadingModel(osgViewer::CompositeViewer::ThreadingModel::DrawThreadPerContext);
 
 	QRect rc = childrenRect();
 	int w = rc.width();
@@ -385,7 +378,15 @@ osgViewer::GraphicsWindow* ViewerWidget::createGraphicsWindow( int x, int y, int
 	}
 	break;
 	default:
+#ifdef OSGQT_ENABLE_QGLWIDGET
 		ret = new osgQt::GraphicsWindowQt(traits.get());
+#else
+		{
+			auto wqt5 = new osgQt::GraphicsWindowQt5(traits.get());
+			wqt5->setViewer(_viewer);
+			ret = wqt5;
+		}
+#endif
 		break;
 	}
 #else
@@ -463,13 +464,22 @@ void CreateViewHandlerProxy::viewCloneImpl(osgViewer::View * source, bool shared
 
 
 #ifdef SGI_USE_OSGQT
-    osgQt::GraphicsWindowQt* ctx = dynamic_cast<osgQt::GraphicsWindowQt*>(sourceCamera->getGraphicsContext());
+#ifdef OSGQT_ENABLE_QGLWIDGET
+	osgQt::GraphicsWindowQt* ctx = dynamic_cast<osgQt::GraphicsWindowQt*>(sourceCamera->getGraphicsContext());
     if (ctx)
     {
         QWidget * w = ctx->getGLWidget();
         if (w)
             sourceWidget = dynamic_cast<ViewerWidget*>(w->parentWidget());
     }
+	else
+#endif
+	if (osgQt::GraphicsWindowQt5* ctx = dynamic_cast<osgQt::GraphicsWindowQt5*>(sourceCamera->getGraphicsContext()))
+	{
+		const QWidget* w = ctx->getGLWidget();
+		if (w)
+			sourceWidget = dynamic_cast<ViewerWidget*>(w->parentWidget());
+	}
 #endif
 
     ViewerWidget * nextwidget = new ViewerWidget(sourceWidget, shared, sourceWidget->glContextImpl());

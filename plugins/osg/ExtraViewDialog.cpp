@@ -20,6 +20,7 @@
 
 #ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
+#include <osgQt/GraphicsWindowQt5>
 #endif
 
 #ifdef _DEBUG
@@ -198,7 +199,11 @@ osgViewer::GraphicsWindow* ViewOSG::createGraphicsWindow(int x, int y, int w, in
     traits->samples = ds->getNumMultiSamples();
 
 #ifdef SGI_USE_OSGQT
+#ifdef OSGQT_ENABLE_QGLWIDGET
     return new osgQt::GraphicsWindowQt(traits.get());
+#else
+	return new osgQt::GraphicsWindowQt5(traits.get());
+#endif
 #else
     return nullptr;
 #endif

@@ -648,7 +648,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::DatabaseThread
 bool writePrettyHTMLImpl<osgDB::DatabasePager::DatabaseThread>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osgDB::DatabasePager::DatabaseThread * object = getObject<osgDB::DatabasePager::DatabaseThread,SGIItemOsg>();
+	DatabaseThreadAccess* object = static_cast<DatabaseThreadAccess*>(getObject<osgDB::DatabasePager::DatabaseThread, SGIItemOsg>());
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -656,15 +656,14 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager::DatabaseThread>::process(std::bas
             if(_table)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
-            const DatabaseThreadAccess * access = (const DatabaseThreadAccess *)object;
-
             // add object properties first
             callNextHandler(os);
 
             writePrettyHTMLImpl_OpenThreads_Thread(os, object);
 
             os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
-            os << "<tr><td>mode</td><td>" << access->getMode() << "</td></tr>" << std::endl;
+            os << "<tr><td>mode</td><td>" << object->getMode() << "</td></tr>" << std::endl;
+			os << "<tr><td>pager</td><td>" << osg_helpers::getObjectNameAndType(object->getPager(), true) << "</td></tr>" << std::endl;
             os << "<tr><td>active</td><td>" << (object->getActive()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>done</td><td>" << (object->getDone()?"true":"false") << "</td></tr>" << std::endl;
 
@@ -902,6 +901,12 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
             os << "<tr><td>num http requests</td><td>" << object->getHttpRequestListSize() << "</td></tr>" << std::endl;
             os << "<tr><td>num compiles</td><td>" << object->getDataToCompileListSize() << "</td></tr>" << std::endl;
             os << "<tr><td>num merges</td><td>" << object->getDataToMergeListSize() << "</td></tr>" << std::endl;
+
+			os << "<tr><td>file requests</td><td>" << osg_helpers::getObjectNameAndType(object->getLocalFileRequestList()) << "</td></tr>" << std::endl;
+			os << "<tr><td>http requests</td><td>" << osg_helpers::getObjectNameAndType(object->getHttpRequestList()) << "</td></tr>" << std::endl;
+			os << "<tr><td>compiles</td><td>" << osg_helpers::getObjectNameAndType(object->getDataToCompileList()) << "</td></tr>" << std::endl;
+			os << "<tr><td>merges</td><td>" << osg_helpers::getObjectNameAndType(object->getDataToMergeList()) << "</td></tr>" << std::endl;
+
             os << "<tr><td>requestsInProgress</td><td>" << (object->getRequestsInProgress()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>requiresRedraw</td><td>" << (object->requiresRedraw()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>min/max time to merge tile</td><td>" << object->getMinimumTimeToMergeTile() << "/" << object->getMaximumTimeToMergeTile() << "</td></tr>" << std::endl;

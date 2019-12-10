@@ -583,7 +583,9 @@ SGI_OBJECT_INFO_END()
 
 #ifdef SGI_USE_OSGQT
 SGI_OBJECT_INFO_BEGIN(osgViewer::GraphicsWindow)
+#ifdef OSGQT_ENABLE_QGLWIDGET
     osgQt::GraphicsWindowQt,
+#endif
     osgQt::GraphicsWindowQt5
 SGI_OBJECT_INFO_END()
 
@@ -600,13 +602,15 @@ SGI_OBJECT_INFO_BEGIN(QOpenGLWidget)
     osgQt::GLWidget
 SGI_OBJECT_INFO_END()
 #else
+#ifdef OSGQT_ENABLE_QGLWIDGET
 SGI_OBJECT_INFO_BEGIN(QWidget)
     QGLWidget
 SGI_OBJECT_INFO_END()
-
 SGI_OBJECT_INFO_BEGIN(QGLWidget)
     osgQt::GLWidget
 SGI_OBJECT_INFO_END()
+#endif
+
 SGI_OBJECT_INFO_BEGIN(QWindow)
     osgQt::GLWindow
 SGI_OBJECT_INFO_END()

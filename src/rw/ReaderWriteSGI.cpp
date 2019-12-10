@@ -543,19 +543,24 @@ public:
 
             if(_options.parentWidget)
                 _parent = _options.parentWidget;
-            else
-            {
+			else
+			{
 #ifdef SGI_USE_OSGQT
-                if(osgQt::GraphicsWindowQt * gwqt = dynamic_cast<osgQt::GraphicsWindowQt*>(ctx))
-                    _parent = gwqt->getGLWidget();
-                else if (osgQt::GraphicsWindowQt5 * gwqt5 = dynamic_cast<osgQt::GraphicsWindowQt5*>(ctx))
-                    _parent = gwqt5->getOrCreateGLWidget();
-#else
+#ifdef OSGQT_ENABLE_QGLWIDGET
+				if (osgQt::GraphicsWindowQt* gwqt = dynamic_cast<osgQt::GraphicsWindowQt*>(ctx))
+					_parent = gwqt->getGLWidget();
+				else
+#endif
+				if (osgQt::GraphicsWindowQt5* gwqt5 = dynamic_cast<osgQt::GraphicsWindowQt5*>(ctx))
+				{
+					_parent = gwqt5->getOrCreateGLWidget();
+				}
+#else // SGI_USE_OSGQT
                 if(0)
                 {
                     void(0);
                 }
-#endif
+#endif // SGI_USE_OSGQT
 #if defined(_WIN32)
                 else if(osgViewer::GraphicsWindowWin32 * gwwin = dynamic_cast<osgViewer::GraphicsWindowWin32*>(ctx))
                 {

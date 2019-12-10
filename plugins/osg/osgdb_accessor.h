@@ -19,6 +19,8 @@ class DatabasePagerAccessor : public osgDB::DatabasePager
 {
 public:
 	typedef DatabaseRequest DatabaseRequestAccess;
+	typedef osgDB::DatabasePager::RequestQueue RequestQueue;
+	typedef osgDB::DatabasePager::ReadQueue ReadQueue;
 
     unsigned int numberOfPagedLODs() const
     {
@@ -32,7 +34,7 @@ public:
     { 
         return _httpRequestQueue->size();
     }
-    unsigned int getDataToCompileListSize() const
+	unsigned int getDataToCompileListSize() const
     {
         return _dataToCompileList->size();
     }
@@ -40,7 +42,23 @@ public:
     {
         return _dataToMergeList->size();
     }
-    class SetBasedPagedLODList : public osgDB::DatabasePager::PagedLODList
+	ReadQueue* getLocalFileRequestList() const
+	{
+		return _fileRequestQueue.get();
+	}
+	ReadQueue* getHttpRequestList() const
+	{
+		return _httpRequestQueue.get();
+	}
+	RequestQueue* getDataToCompileList() const
+	{
+		return _dataToCompileList.get();
+	}
+	RequestQueue* getDataToMergeList() const
+	{
+		return _dataToMergeList.get();
+	}
+	class SetBasedPagedLODList : public osgDB::DatabasePager::PagedLODList
     {
     public:
 
@@ -90,6 +108,7 @@ class DatabaseThreadAccess : public osgDB::DatabasePager::DatabaseThread
 {
 public:
     Mode                getMode() const { return _mode; }
+	osgDB::DatabasePager* getPager() const { return _pager;  }
 };
 
 class OptionsAccess : public osgDB::Options
