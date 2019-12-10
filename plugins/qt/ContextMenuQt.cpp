@@ -24,6 +24,7 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QImage)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QIcon)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QSystemTrayIcon)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QLayout)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QWindow)
 
 using namespace sgi::qt_helpers;
 
@@ -360,5 +361,36 @@ bool contextMenuPopulateImpl<QLayout>::populate(IContextMenuItem * menuItem)
     return ret;
 }
 
+bool contextMenuPopulateImpl<QWindow>::populate(IContextMenuItem* menuItem)
+{
+	QWindow* qobject = getObject<QWindow, SGIItemQt, DynamicCaster>();
+	QSurface* surface = getObject<QSurface, SGIItemQtSurface, DynamicCaster>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(menuItem);
+		if (ret)
+		{
+			SGIHostItemQt parent(qobject ? qobject->parent() : nullptr);
+			if (parent.hasObject())
+				menuItem->addMenu("Parent", &parent);
+
+			// add the opposite base-type to the tree
+			if (qobject)
+			{
+				QSurface* s = dynamic_cast<QSurface*>(qobject);
+				SGIHostItemQtSurface item(s);
+				if (item.hasObject())
+					menuItem->addMenu("Surface", &item);
+			}
+		}
+		break;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
+}
 } // namespace qt_plugin
 } // namespace sgi

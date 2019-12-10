@@ -102,6 +102,17 @@ public:
     {
         ((RequestQueueAccess*)_dataToMergeList.get())->copy(requestList);
     }
+	void fileRequestsUpdateBlock()
+	{
+		OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_fileRequestQueue->_requestMutex);
+		_fileRequestQueue->updateBlock();
+	}
+	void httpRequestsUpdateBlock()
+	{
+		OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_httpRequestQueue->_requestMutex);
+		_httpRequestQueue->updateBlock();
+	}
+
 };
 
 class DatabaseThreadAccess : public osgDB::DatabasePager::DatabaseThread

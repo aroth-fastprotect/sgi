@@ -868,6 +868,38 @@ void writePrettyHTMLImpl_DatabaseRequestList(std::basic_ostream<char>& os, const
     }
 }
 
+void writePrettyHTMLImpl_DatabasePagerThreads(std::basic_ostream<char>& os, DatabasePagerAccessor* object, bool brief = true)
+{
+	if (brief)
+	{
+		os << "<ul>";
+		for (unsigned n = 0; n < object->getNumDatabaseThreads(); n++)
+		{
+			DatabaseThreadAccess* th = static_cast<DatabaseThreadAccess*>(object->getDatabaseThread(n));
+			os << "<li>" << osg_helpers::getObjectNameAndType(th) << "</li>";
+		}
+		os << "</ul>" << std::endl;
+	}
+	else
+	{
+		os << "<table border=\'1\' align=\'left\'><tr><th>Id</th><th>Name</th><th>Mode</th><th>State</th></tr>" << std::endl;
+		for (unsigned n = 0; n < object->getNumDatabaseThreads(); n++)
+		{
+			DatabaseThreadAccess* th = static_cast<DatabaseThreadAccess*>(object->getDatabaseThread(n));
+			os << "<tr><td>#" << n << "/" << th->getThreadId() << "</td>";
+			os << "<td>" << th->getName() << "</td>";
+			os << "<td>" << th->getMode() << "</td>";
+			os << "<td>"
+				<< (th->getActive() ? "active" : "inactive") << ", "
+				<< (th->isRunning() ? "running" : "not running") << ", "
+				<< (th->getDone() ? "done" : "not done")
+				<< "</td>";
+			os << "</tr>";
+		}
+		os << "</table>" << std::endl;
+	}
+}
+
 bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -883,13 +915,9 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
             callNextHandler(os);
 
             os << "<tr><td>num threads</td><td>" << object->getNumDatabaseThreads() << "</td></tr>" << std::endl;
-            os << "<tr><td>threads</td><td><ul>";
-            for(unsigned num = 0; num < object->getNumDatabaseThreads(); num++)
-            {
-                osg::ref_ptr<const osgDB::DatabasePager::DatabaseThread> thread = object->getDatabaseThread(num);
-                os << "<li>" << osg_helpers::getObjectNameAndType(thread.get()) << "</li>";
-            }
-            os << "</ul></td></tr>" << std::endl;
+            os << "<tr><td>threads</td><td>";
+			writePrettyHTMLImpl_DatabasePagerThreads(os, object, true);
+            os << "</td></tr>" << std::endl;
 
             os << "<tr><td>paused</td><td>" << (object->getDatabasePagerThreadPause()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>pre-compile</td><td>" << (object->getDoPreCompile()?"true":"false") << "</td></tr>" << std::endl;
@@ -932,26 +960,8 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
         }
         break;
     case SGIItemTypeThreads:
-        {
-            if(_table)
-                os << "<table border=\'1\' align=\'left\'><tr><th>Id</th><th>Name</th><th>Mode</th><th>State</th></tr>" << std::endl;
-            for(unsigned n = 0; n < object->getNumDatabaseThreads(); n++)
-            {
-                DatabaseThreadAccess * th = static_cast<DatabaseThreadAccess*>(object->getDatabaseThread(n));
-                os << "<tr><td>#" << n << "/" << th->getThreadId() << "</td>";
-                os << "<td>" << th->getName() << "</td>";
-                os << "<td>" << th->getMode() << "</td>";
-                os << "<td>"
-                    << (th->getActive()?"active":"inactive") << ", "
-                    << (th->isRunning()?"running":"not running") << ", "
-                    << (th->getDone()?"done":"not done")
-                    << "</td>";
-                os << "</tr>";
-            }
-            if(_table)
-                os << "</table>" << std::endl;
-            ret = true;
-        }
+		writePrettyHTMLImpl_DatabasePagerThreads(os, object, false);
+        ret = true;
         break;
     case SGIItemTypeActivePagedLODs:
         {

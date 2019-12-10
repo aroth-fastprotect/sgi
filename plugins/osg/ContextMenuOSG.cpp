@@ -1367,6 +1367,9 @@ bool contextMenuPopulateImpl<osg::Camera>::populate(IContextMenuItem * menuItem)
             {
                 manipulateMenu->addSimpleAction(MenuActionCameraCullMask, helpers::str_plus_hex("Cull mask", object->getCullMask()), _item);
                 manipulateMenu->addSimpleAction(MenuActionCameraNearFarRatio, helpers::str_plus_number("Near/far ratio", object->getNearFarRatio()), _item);
+				double fovy, aspectRatio, zNear, zFar;
+				object->getProjectionMatrixAsPerspective(fovy, aspectRatio, zNear, zFar);
+				manipulateMenu->addSimpleAction(MenuActionCameraAspectRatio, helpers::str_plus_number("Aspect ratio", aspectRatio), _item);
                 manipulateMenu->addSimpleAction(MenuActionCameraViewMatrix, "View matrix", _item);
                 manipulateMenu->addSimpleAction(MenuActionCameraProjectionMatrix, "Projection matrix", _item);
 
@@ -2403,6 +2406,9 @@ bool contextMenuPopulateImpl<osgDB::DatabasePager>::populate(IContextMenuItem * 
 
         }
         break;
+	case SGIItemTypeDBPagerFileRequests:
+		menuItem->addSimpleAction(MenuActionDatabasePagerRequestsClear, "Clear", _item);
+		break;
     default:
         ret = callNextHandler(menuItem);
         break;

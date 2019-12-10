@@ -59,6 +59,7 @@
 #include <cctype>
 
 #include "osg_accessor.h"
+#include "osgdb_accessor.h"
 #include "osgtext_accessor.h"
 #include "stateset_helpers.h"
 #include "SettingsDialogOSG.h"
@@ -130,6 +131,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraCullSettings)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraClearColor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraComputeNearFarMode)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraNearFarRatio)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraAspectRatio)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraProjectionResizePolicy)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraCullMask)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionCameraViewMatrix)
@@ -278,6 +280,8 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerDeleteSubgraphsI
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerTargetPageLODNumber)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerIncrementalCompileOperation)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerResetStats)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerRequestsClear)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionDatabasePagerRequestsUpdate)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAnimationManagerBaseAutomaticLink)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionAnimationManagerBaseDirty)
@@ -1345,6 +1349,24 @@ bool actionHandlerImpl<MenuActionCameraNearFarRatio>::execute()
     if (ret)
         object->setNearFarRatio(value);
     return true;
+}
+
+bool actionHandlerImpl<MenuActionCameraAspectRatio>::execute()
+{
+	osg::Camera* object = getObject<osg::Camera, SGIItemOsg>();
+
+	double fovy, aspectRatio, zNear, zFar;
+	object->getProjectionMatrixAsPerspective(fovy, aspectRatio, zNear, zFar);
+	bool ret;
+	ret = _hostInterface->inputDialogDouble(menu()->parentWidget(),
+		aspectRatio,
+		"Ratio:", object->getName() + " aspect ratio",
+		0.0000001, 10000.0, 6,
+		_item
+	);
+	if (ret)
+		object->setProjectionMatrixAsPerspective(fovy, aspectRatio, zNear, zFar);
+	return true;
 }
 
 bool actionHandlerImpl<MenuActionCameraViewMatrix>::execute()
@@ -2615,6 +2637,35 @@ bool actionHandlerImpl<MenuActionDatabasePagerResetStats>::execute()
 {
 	osgDB::DatabasePager * object = getObject<osgDB::DatabasePager, SGIItemOsg>();
 	object->resetStats();
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionDatabasePagerRequestsClear>::execute()
+{
+	DatabasePagerAccessor* object = static_cast<DatabasePagerAccessor*>(getObject<osgDB::DatabasePager, SGIItemOsg>());
+
+	switch (_item->type())
+	{
+	case SGIItemTypeDBPagerFileRequests:
+		object->getLocalFileRequestList()->clear();
+		break;
+	}
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionDatabasePagerRequestsUpdate>::execute()
+{
+	DatabasePagerAccessor* object = static_cast<DatabasePagerAccessor*>(getObject<osgDB::DatabasePager, SGIItemOsg>());
+
+	switch (_item->type())
+	{
+	case SGIItemTypeDBPagerFileRequests:
+		object->fileRequestsUpdateBlock();
+		break;
+	case SGIItemTypeDBPagerHttpRequests:
+		object->httpRequestsUpdateBlock();
+		break;
+	}
 	return true;
 }
 
