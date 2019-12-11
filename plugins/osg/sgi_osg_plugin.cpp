@@ -648,7 +648,9 @@ GENERATE_IMPL_NO_ACCEPT(QWindow);
 #ifdef OSGQT_USE_QOPENGLWIDGET
 GENERATE_IMPL_NO_ACCEPT(QOpenGLWidget);
 #else
+#ifdef OSGQT_ENABLE_QGLWIDGET
 GENERATE_IMPL_NO_ACCEPT(QGLWidget);
+#endif
 #endif
 
 typedef generateItemImplT<generateItemAcceptImpl, SGIItemOsg, SGIItemQt, SGIItemInternal> generateItemImpl;
