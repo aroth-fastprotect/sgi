@@ -52,6 +52,8 @@ void TileKeySet::addTileKeyChilds(const osgEarth::TileKey & tilekey)
 }
 
 TileKeyList::TileKeyList()
+	: _minimum_lod_level(MINIMUM_LOD_LEVEL)
+	, _maximum_lod_level(MAXIMUM_LOD_LEVEL)
 {
 }
 
@@ -140,7 +142,7 @@ void TileKeyList::addTilesForGeoExtent(const osgEarth::GeoExtent & ext, const os
 
     if (selected_lod < 0)
     {
-        for (unsigned lod = 0; lod < 21; lod++)
+        for (unsigned lod = _minimum_lod_level; (int)lod <= _maximum_lod_level; lod++)
         {
             addTileForGeoPoint(center, profile, lod, numNeighbors);
             addTileForGeoPoint(nw, profile, lod, numNeighbors);
@@ -182,14 +184,13 @@ bool TileKeyList::fromCoordinateResult(const CoordinateResult & result, const os
 {
     bool ret = false;
     const osgEarth::Profile * used_profile = profile ? profile : osgEarth::Registry::instance()->getGlobalGeodeticProfile();
-    const unsigned maximum_lod = 21;
     if (result.geoPoint.isValid())
     {
         osgEarth::GeoPoint geoptProfile = result.geoPoint.transform(used_profile->getSRS());
 
         if (selectedLod == -1)
         {
-            for (unsigned lod = 0; lod < maximum_lod; lod++)
+            for (unsigned lod = _minimum_lod_level; (int)lod <= _maximum_lod_level; lod++)
             {
                 osgEarth::TileKey tilekey = used_profile->createTileKey(geoptProfile.x(), geoptProfile.y(), lod);
                 addTileKeyAndNeighbors(tilekey, (numNeighbors == NUM_NEIGHBORS_PARENTAL || numNeighbors == NUM_NEIGHBORS_PARENTAL_AND_CHILDS) ? NUM_NEIGHBORS_NONE : numNeighbors);

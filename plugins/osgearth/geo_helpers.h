@@ -30,6 +30,10 @@ public:
     TileKeyList();
 
 public:
+	enum {
+		MINIMUM_LOD_LEVEL = 0,
+		MAXIMUM_LOD_LEVEL = 23
+	};
     enum NUM_NEIGHBORS
     {
         NUM_NEIGHBORS_NONE = 0,
@@ -49,8 +53,14 @@ public:
     bool fromCoordinateResult(const CoordinateResult & result, const osgEarth::Profile * profile, int selectedLod = -1, NUM_NEIGHBORS numNeighbors = NUM_NEIGHBORS_NONE);
     bool fromText(const std::string & s, const osgEarth::Profile * profile, int selectedLod = -1, NUM_NEIGHBORS numNeighbors = NUM_NEIGHBORS_NONE);
 
-protected:
+	void setMinimumLOD(int n) { _minimum_lod_level = n; }
+	int minimumLOD() const { return _minimum_lod_level; }
+	void setMaximumLOD(int n) { _maximum_lod_level = n; }
+	int maximumLOD() const { return _maximum_lod_level; }
 
+protected:
+	int _maximum_lod_level;
+	int _minimum_lod_level;
 
 };
 
