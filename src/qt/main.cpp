@@ -20,6 +20,7 @@
 
 #include <QImage>
 #include <QtCore/QDebug>
+#include <QtCore/QLoggingCategory>
 
 #if defined(_DEBUG)
 #if defined(_MSC_VER)
@@ -40,6 +41,7 @@
 namespace sgi {
     namespace qt_loader {
 
+Q_LOGGING_CATEGORY(logging_sgi, "sgi");
 
 ApplicationEventFilter * ApplicationEventFilter::s_instance = nullptr;
 
@@ -79,9 +81,9 @@ ApplicationEventFilter::ApplicationEventFilter(QCoreApplication * parent)
     s_instance = this;
 #ifdef _DEBUG
 #ifdef SGI_USE_GAMMARAY
-    qDebug() << "ApplicationEventFilter ctor" << this << "gammaray";
+    qDebug(logging_sgi) << "ApplicationEventFilter ctor" << this << "gammaray";
 #else
-    qDebug() << "ApplicationEventFilter ctor" << this;
+    qDebug(logging_sgi) << "ApplicationEventFilter ctor" << this;
 #endif
 #endif
 
@@ -93,7 +95,7 @@ ApplicationEventFilter::ApplicationEventFilter(QCoreApplication * parent)
 ApplicationEventFilter::~ApplicationEventFilter()
 {
 #ifdef _DEBUG
-    qDebug() << "ApplicationEventFilter dtor" << this;
+    qDebug(logging_sgi) << "ApplicationEventFilter dtor" << this;
 #endif
 }
 
@@ -113,7 +115,7 @@ void ApplicationEventFilter::postEvent(QEvent * ev)
 void ApplicationEventFilter::uninstall()
 {
 #ifdef _DEBUG
-    qDebug() << "ApplicationEventFilter uninstall" << this;
+    qDebug(logging_sgi) << "ApplicationEventFilter uninstall" << this;
 #endif
 	if (!_contextMenu.isNull())
 		delete _contextMenu;
@@ -178,7 +180,7 @@ bool ApplicationEventFilter::handleEvent(SGIEvent * ev)
 
             QWidget * widget = QApplication::activeWindow();
             QImage * image = new QImage(ev->filename(), ev->format().toLocal8Bit().constData());
-            qWarning() << "Open" << ev->filename() << "as" << ev->format() << "loaded" << image->format();
+            qWarning(logging_sgi) << "Open" << ev->filename() << "as" << ev->format() << "loaded" << image->format();
 
             imagePreviewDialog(widget, image);
             ret = true;
@@ -186,12 +188,12 @@ bool ApplicationEventFilter::handleEvent(SGIEvent * ev)
         break;
     case SGIEvent::CommandListPlugins:
         {
-            qWarning() << "List plugins";
+            qWarning(logging_sgi) << "List plugins";
         }
         break;
     case SGIEvent::CommandObject:
         {
-            qWarning() << "Show dialog for object" << ev->filename();
+            qWarning(logging_sgi) << "Show dialog for object" << ev->filename();
             QWidget * widget = QApplication::activeWindow();
             QObject * obj = nullptr;
             if (ev->filename() == "app")
@@ -213,7 +215,7 @@ bool ApplicationEventFilter::handleEvent(SGIEvent * ev)
         }
         break;
     default:
-        qCritical() << "Command" << ev->command() << "is not implemented.";
+        qCritical(logging_sgi) << "Command" << ev->command() << "is not implemented.";
         break;
     }
     return ret;
