@@ -428,7 +428,7 @@ void ViewerWidget::showEvent(QShowEvent * event)
 void ViewerWidget::paintEvent( QPaintEvent* event )
 {
     QMainWindow::paintEvent(event);
-    _viewer->frame();
+    //_viewer->frame();
 }
 
 void ViewerWidget::resizeEvent(QResizeEvent * event)
