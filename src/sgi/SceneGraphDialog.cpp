@@ -285,7 +285,7 @@ SceneGraphDialog::SceneGraphDialog(SGIItemBase * item, IHostCallback * callback,
     QToolButton * toolsMenuButton = new QToolButton(this);
     toolsMenuButton->setMenu(_toolsMenu);
     toolsMenuButton->setText(tr("Tools"));
-    toolsMenuButton->setIcon(QIcon::fromTheme("tool-measure"));
+    toolsMenuButton->setIcon(QIcon::fromTheme("list-settings"));
     toolsMenuButton->setPopupMode(QToolButton::InstantPopup);
 
     ui->toolBar->addWidget(toolsMenuButton);
