@@ -172,8 +172,7 @@ public:
     QComboBox * comboBoxPath;
     QSpinBox * spinBoxRefreshTime;
 
-    QAction * actionAddTab;
-    QAction * actionCloseTab;
+    QToolButton* toolButtonAddTab;
     QAction * actionReload;
     QAction * actionReloadSelected;
     QAction * actionItemPrevious;
@@ -191,7 +190,9 @@ public:
 
         tabWidget = new QTabWidget(dlg);
         tabWidget->setObjectName(QStringLiteral("tabWidget"));
+        tabWidget->setTabsClosable(true);
         connect(tabWidget, &QTabWidget::currentChanged, dlg, &SceneGraphDialog::tabChanged);
+        connect(tabWidget, &QTabWidget::tabCloseRequested, dlg, &SceneGraphDialog::tabCloseRequest);
 
         toolBar = new QToolBar;
         verticalLayout->addWidget(toolBar);
@@ -200,15 +201,11 @@ public:
         comboBoxPath = new QComboBox(toolBar);
         connect(comboBoxPath, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), dlg, &SceneGraphDialog::selectItemFromPath);
 
-        actionAddTab = new QAction(tr("Add tab"), dlg);
-        actionAddTab->setToolTip(tr("Add a new tab"));
-        actionAddTab->setIcon(QIcon::fromTheme("tab-new"));
-        connect(actionAddTab, &QAction::triggered, dlg, &SceneGraphDialog::addNewTab);
-
-        actionCloseTab = new QAction(tr("Close tab"), dlg);
-        actionCloseTab->setToolTip(tr("Close current tab"));
-        actionCloseTab->setIcon(QIcon::fromTheme("tab-close"));
-        connect(actionCloseTab, &QAction::triggered, dlg, &SceneGraphDialog::closeTab);
+        toolButtonAddTab = new QToolButton(dlg);
+        toolButtonAddTab->setToolTip(tr("Add a new tab"));
+        toolButtonAddTab->setIcon(QIcon::fromTheme("window-new"));
+		connect(toolButtonAddTab, &QToolButton::triggered, dlg, &SceneGraphDialog::addNewTab);
+        tabWidget->setCornerWidget(toolButtonAddTab);
 
         actionReloadSelected = new QAction(tr("Reload"), dlg);
         actionReloadSelected->setToolTip(tr("Reload only the selected item and its childs"));
@@ -217,7 +214,7 @@ public:
 
         actionReload = new QAction(tr("Reload All"), dlg);
         actionReload->setToolTip(tr("Reload all items in the tree and all their children"));
-        actionReload->setIcon(QIcon::fromTheme("system-reboot"));
+        actionReload->setIcon(QIcon::fromTheme("view-refresh"));
         connect(actionReload, &QAction::triggered, dlg, &SceneGraphDialog::reload);
 
         actionItemPrevious = new QAction(tr("Previous"), dlg);
@@ -238,8 +235,6 @@ public:
         spinBoxRefreshTime->setSuffix("ms");
         connect(spinBoxRefreshTime, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), dlg, &SceneGraphDialog::refreshTimeChanged);
 
-        toolBar->addAction(actionAddTab);
-        toolBar->addAction(actionCloseTab);
         toolBar->addAction(actionReloadSelected);
         toolBar->addAction(actionReload);
         toolBar->addAction(actionItemPrevious);
@@ -974,25 +969,28 @@ void SceneGraphDialog::setInfoText(const std::string & text)
 
 void SceneGraphDialog::tabChanged(int index)
 {
-    uiPage = ui->tabs[index];
+    if (index >= 0 && index < (int)ui->tabs.size())
+        uiPage = ui->tabs[index];
+    else
+        uiPage = nullptr;
 }
 
 void SceneGraphDialog::addNewTab()
 {
     uiPage = ui->addTabPage(this);
-    ui->actionCloseTab->setEnabled(ui->tabs.size() > 1);
+    //ui->actionCloseTab->setEnabled(ui->tabs.size() > 1);
 }
 
-void SceneGraphDialog::closeTab()
+void SceneGraphDialog::tabCloseRequest(int index)
 {
-    int index = ui->tabWidget->currentIndex();
     Ui_TabPage * page = ui->tabs[index];
-    if (uiPage == page)
-        uiPage = nullptr;
-    delete page;
+    bool closeCurrent = (uiPage == page);
     ui->tabs.erase(ui->tabs.begin() + index);
     ui->tabWidget->removeTab(index);
-    ui->actionCloseTab->setEnabled(ui->tabs.size() > 1);
+	delete page;
+    if(closeCurrent)
+	    uiPage = nullptr;
+    //ui->actionCloseTab->setEnabled(ui->tabs.size() > 1);
 }
 
 } // namespace sgi

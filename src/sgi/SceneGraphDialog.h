@@ -70,7 +70,7 @@ protected slots:
 
     void                    tabChanged(int index);
     void                    addNewTab();
-    void                    closeTab();
+    void                    tabCloseRequest(int index);
 
     void                    showBesideParent();
 
