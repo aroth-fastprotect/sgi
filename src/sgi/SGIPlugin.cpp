@@ -480,7 +480,7 @@ public:
 		}
 		ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, SGIItemBase * item) override
 		{
-            if (_dialog.valid())
+            if (_dialog.valid() && _dialog->getDialog())
                 _dialog->setObject(item);
             else
                 _dialog = _impl->showSceneGraphDialog(parent, item, this);
@@ -490,7 +490,7 @@ public:
 		}
 		ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, const SGIHostItemBase * item) override
 		{
-            if (_dialog.valid())
+            if (_dialog.valid() && _dialog->getDialog())
                 _dialog->setObject(item);
             else
                 _dialog = _impl->showSceneGraphDialog(parent, item, this);
@@ -524,7 +524,7 @@ public:
         }
 		IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, SGIItemBase * item) override
 		{
-            if (_imagePreviewDialog.valid())
+            if (_imagePreviewDialog.valid() && _imagePreviewDialog->getDialog())
                 _imagePreviewDialog->setObject(item);
             else
                 _imagePreviewDialog = _impl->showImagePreviewDialog(parent, item, this);
@@ -534,7 +534,7 @@ public:
 		}
 		IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, const SGIHostItemBase * item) override
 		{
-			if (_imagePreviewDialog.valid())
+            if (_imagePreviewDialog.valid() && _imagePreviewDialog->getDialog())
 				_imagePreviewDialog->setObject(item);
 			else
 				_imagePreviewDialog = _impl->showImagePreviewDialog(parent, item, this);
