@@ -611,6 +611,12 @@ bool contextMenuPopulateImpl<osgEarth::LineDrawable>::populate(IContextMenuItem 
         ret = callNextHandler(menuItem);
         if(ret)
         {
+			IContextMenuItem* manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+            {
+                manipulateMenu->addSimpleAction(MenuActionLineDrawableDirty, "Dirty", _item);
+            }
+
             menuItem->addSimpleAction(MenuActionLineDrawableSetLineWidth, helpers::str_plus_number("Line Width", object->getLineWidth()), _item);
             menuItem->addSimpleAction(MenuActionLineDrawableSetStipplePattern, helpers::str_plus_number("Stipple Pattern", object->getStipplePattern()), _item);
             menuItem->addSimpleAction(MenuActionLineDrawableSetStippleFactor, helpers::str_plus_number("Stipple Factor", object->getStippleFactor()), _item);

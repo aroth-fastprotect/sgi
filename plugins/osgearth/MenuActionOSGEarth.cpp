@@ -118,6 +118,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetLineWidth)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetStipplePattern)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetStippleFactor)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableSetColor)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableDirty)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLightSettings)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionFeatureModelLayerDirty)
@@ -1097,6 +1098,14 @@ bool actionHandlerImpl<MenuActionLineDrawableSetColor>::execute()
     }
     return true;
 }
+
+bool actionHandlerImpl<MenuActionLineDrawableDirty>::execute()
+{
+	osgEarth::LineDrawable* object = getObject<osgEarth::LineDrawable, SGIItemOsg>();
+    runMethodInUpdateCallback(object, &osgEarth::LineDrawable::dirty);
+	return true;
+}
+
 #endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
 
 

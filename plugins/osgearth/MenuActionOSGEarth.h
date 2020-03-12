@@ -83,6 +83,7 @@ enum MenuAction {
     MenuActionLineDrawableSetStipplePattern,
     MenuActionLineDrawableSetStippleFactor,
     MenuActionLineDrawableSetColor,
+    MenuActionLineDrawableDirty,
     MenuActionLightSettings,
 
     MenuActionFeatureModelLayerDirty,
