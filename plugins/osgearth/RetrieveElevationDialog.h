@@ -44,6 +44,7 @@ private:
 
 private:
 	Ui_RetrieveElevationDialog *    ui;
+    QString                     _api_key;
 };
 
 } // namespace osgearth_plugin
