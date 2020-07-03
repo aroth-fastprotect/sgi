@@ -2346,7 +2346,7 @@ void tileSourceMode(std::basic_ostream<char>& os, const osgEarth::TileSource::Mo
 
 bool writePrettyHTMLImpl<osgEarth::TileSource>::process(std::basic_ostream<char>& os)
 {
-    osgEarth::TileSource * object = dynamic_cast<osgEarth::TileSource*>(item<SGIItemOsg>()->object());
+    TileSourceAccessor* object = static_cast<TileSourceAccessor*>(getObject<osgEarth::TileSource, SGIItemOsg, DynamicCaster>());
     bool ret = false;
     switch(itemType())
     {
@@ -2364,9 +2364,7 @@ bool writePrettyHTMLImpl<osgEarth::TileSource>::process(std::basic_ostream<char>
 			os << "<tr><td>mode</td><td>";
 			tileSourceMode(os, object->getMode());
 			os << "</td></tr>" << std::endl;
-#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             os << "<tr><td>status</td><td>" << object->getStatus() << "</td></tr>" << std::endl;
-#endif
             os << "<tr><td>isOk</td><td>" << (object->isOK()?"true":"false") << "</td></tr>" << std::endl;
 
             os << "<tr><td>pixels/tile</td><td>" << object->getPixelsPerTile() << "</td></tr>" << std::endl;
