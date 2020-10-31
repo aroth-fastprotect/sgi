@@ -1,9 +1,10 @@
 // kate: syntax C++;
-// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
+// SGI - Copyright (C) 2012-2020 FAST Protect, Andreas Roth
 
 #pragma once
 
 #include <sgi/plugins/SGIHostItemOsgEarth.h>
+#include <osgEarth/Version>
 #include <osgEarth/Config>
 #include <osgEarth/TileKey>
 #include <sgi/plugins/SGIItemOsg>
@@ -82,6 +83,7 @@ typedef SGIHostItemImpl<SGIItemInfoOsgEarthConfigOptions> SGIHostItemOsgEarthCon
 typedef SGIItemHolderT<SGIItemInfoOsgEarthConfigOptions> SGIItemHolderOsgEarthConfigOptions;
 typedef SGIItemT<SGIHostItemOsgEarthConfigOptions, SGIItemHolderOsgEarthConfigOptions> SGIItemEarthConfigOptions;
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 typedef SGIItemInfoPlainPtr<osgEarth::Symbology::Style> SGIItemInfoOsgEarthStyle;
 typedef SGIHostItemImpl<SGIItemInfoOsgEarthStyle> SGIHostItemOsgEarthStyle;
 typedef SGIItemHolderT<SGIItemInfoOsgEarthStyle> SGIItemHolderOsgEarthStyle;
@@ -91,6 +93,8 @@ typedef SGIItemInfoPlainPtr<osgEarth::Symbology::StyleSelector> SGIItemInfoOsgEa
 typedef SGIHostItemImpl<SGIItemInfoOsgEarthStyleSelector> SGIHostItemOsgEarthStyleSelector;
 typedef SGIItemHolderT<SGIItemInfoOsgEarthStyleSelector> SGIItemHolderOsgEarthStyleSelector;
 typedef SGIItemT<SGIHostItemOsgEarthStyleSelector, SGIItemHolderOsgEarthStyleSelector> SGIItemEarthStyleSelector;
+#endif
+
 namespace osgearth_plugin {
 
 struct TileSourceTileKeyData

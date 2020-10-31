@@ -30,14 +30,18 @@
 #endif
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
+
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 #include <osgEarth/MaskSource>
 #include <osgEarth/MaskLayer>
+#endif
 #include <osgEarth/ModelLayer>
 #include <osgEarth/ScreenSpaceLayout>
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 #include <osgEarth/LandCoverLayer>
 #include <osgEarth/PatchLayer>
 #include <osgEarth/VideoLayer>
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 #include <osgEarthFeatures/FeatureModelLayer>
 #include <osgEarthFeatures/FeatureModelGraph>
 #include <osgEarthFeatures/FeatureMaskLayer>
@@ -50,8 +54,14 @@
 #include <osgEarthUtil/UTMGraticule>
 #include <osgEarthUtil/MultiElevationLayer>
 #include <osgEarthUtil/SimpleOceanLayer>
-#endif
+#endif // OSGEARTH_VERSION_LESS_THAN(3,0,0)
+#endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+#include <osgEarth/EarthManipulator>
+#include <osgEarth/TileSource>
+#else
 #include <osgEarthUtil/EarthManipulator>
+#endif
 #include <osgEarth/Registry>
 #include <osgEarth/Capabilities>
 #include <osgEarth/OverlayDecorator>
@@ -67,11 +77,25 @@
 #include <osg/PagedLOD>
 #include <osg/ProxyNode>
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+#include <osgEarth/Sky>
+#include <osgEarth/AutoClipPlaneHandler>
+#include <osgEarth/Controls>
+#include <osgEarth/RTTPicker>
+
+#include <osgEarth/FeatureModelSource>
+#include <osgEarth/FeatureModelGraph>
+#include <osgEarth/FeatureCursor>
+
+#include <osgEarth/AnnotationNode>
+
+#else // OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 #include <osgEarthUtil/Sky>
-#else
+#else // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 #include <osgEarthUtil/SkyNode>
-#endif
+#endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+
 #include <osgEarthUtil/AutoClipPlaneHandler>
 #include <osgEarthUtil/Controls>
 #include <osgEarthUtil/RTTPicker>
@@ -115,6 +139,8 @@
 #include <osgEarthDrivers/feature_ogr/OGRFeatureOptions>
 #include <osgEarthDrivers/gdal/GDALOptions>
 
+#endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+
 #include "geo_helpers.h"
 
 using namespace sgi::osgearth_plugin;
@@ -131,20 +157,30 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
 #endif
     osgEarth::Registry, osgEarth::Capabilities, osgEarth::CacheBin,
     osgEarth::SpatialReference, osgEarth::Profile, osgEarth::Terrain,
-    osgEarth::TileBlacklist, osgEarth::Util::Controls::ControlEventHandler,
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
+    osgEarth::TileBlacklist,
+    osgEarth::Util::Controls::ControlEventHandler,
+#endif
     osgEarth::StateSetCache,
     osgEarth::NodeOperation,
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    osgEarth::FeatureCursor, osgEarth::FeatureProfile,
+    osgEarth::FeatureDisplayLayout,
+#else
     osgEarth::Features::FeatureCursor, osgEarth::Features::FeatureProfile,
     osgEarth::Features::FeatureDisplayLayout,
     osgEarth::Symbology::StyleSheet,
+#endif
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::Annotation::Decoration,
 #endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
     osgEarth::ShaderFactory,
     osgEarth::ElevationPool,
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
     osgEarth::ElevationPool::Tile,
     osgEarth::ElevationEnvelope,
+#endif
     osgEarth::PolyShader,
     osgEarth::ScreenSpaceLayoutData,
 #endif
@@ -163,20 +199,33 @@ SGI_OBJECT_INFO_BEGIN(osg::Object)
     osgEarth::Layer,
     osgEarth::CacheSettings,
 #endif
-    osgEarth::Cache, osgEarth::TileSource,
+    osgEarth::Cache,
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    osgEarth::Contrib::TileSource,
+#else
+    osgEarth::TileSource,
+#endif
     osgEarth::ModelSource,
     osgEarth::Extension,
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    osgEarth::FeatureSource,
+    osgEarth::Feature,
+    osgEarth::Symbol,
+#else
     osgEarth::Features::FeatureSource,
     osgEarth::Features::Feature,
-    osgEarth::Symbology::Symbol,
     osgEarth::Symbology::Taggable<osg::Object>,
     osgEarth::Symbology::Symbol,
+#endif
     osg::Node, osg::StateAttribute, osg::BufferData
 SGI_OBJECT_INFO_END()
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 SGI_OBJECT_INFO_BEGIN(osgDB::ReaderWriter)
     osgEarth::Features::FeatureSourceDriver
 SGI_OBJECT_INFO_END()
+#endif // OSGEARTH_VERSION_LESS_THAN(3,0,0)
+
 SGI_OBJECT_INFO_BEGIN(osg::StateAttribute)
     osg::Program,
     osgEarth::VirtualProgram
@@ -207,11 +256,17 @@ SGI_OBJECT_INFO_BEGIN(osg::Group)
 #else
     osgEarth::OverlayDecorator,
 #endif
-    osgEarth::Util::SkyNode,
     osgEarth::Util::Controls::Control, osgEarth::Util::Controls::ControlCanvas,
     osgEarth::Util::Controls::ControlNodeBin,
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    osgEarth::FeatureModelGraph,
+    osgEarth::AnnotationNode,
+    osgEarth::SkyNode,
+#else
     osgEarth::Features::FeatureModelGraph,
     osgEarth::Annotation::AnnotationNode,
+    osgEarth::Util::SkyNode,
+#endif
 #ifdef SGI_USE_OSGEARTH_FAST
 	osgEarth::LODScaleOverrideNode,
 #endif
@@ -252,6 +307,7 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::Picker)
     osgEarth::Util::RTTPicker
 SGI_OBJECT_INFO_END()
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::AnnotationNode)
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::Annotation::PositionedAnnotationNode,
@@ -260,6 +316,7 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::AnnotationNode)
 #endif
     osgEarth::Annotation::FeatureNode
 SGI_OBJECT_INFO_END()
+#endif // OSGEARTH_VERSION_LESS_THAN(3,0,0)
 
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::PositionedAnnotationNode)
@@ -280,7 +337,7 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::LocalizedNode)
     osgEarth::Annotation::ModelNode
 SGI_OBJECT_INFO_END()
 
-#else // OSGEARTH_VERSION_LESS_THAN(2,9,0)
+#elif OSGEARTH_VERSION_LESS_THAN(3,0,0)
 SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::GeoPositionNode)
     osgEarth::Annotation::CircleNode,
     osgEarth::Annotation::EllipseNode,
@@ -291,12 +348,17 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::GeoPositionNode)
     osgEarth::Annotation::LabelNode,
     osgEarth::Annotation::TrackNode
 SGI_OBJECT_INFO_END()
-#endif // OSGEARTH_VERSION_LESS_THAN(2,9,0)
+#endif // OSGEARTH_VERSION_LESS_THAN(3,0,0)
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    SGI_OBJECT_INFO_BEGIN(osgEarth::FeatureCursor)
+        osgEarth::FeatureListCursor, osgEarth::GeometryFeatureCursor
+    SGI_OBJECT_INFO_END()
+#else // OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
 SGI_OBJECT_INFO_BEGIN(osgEarth::Features::FeatureCursor)
     osgEarth::Features::FeatureListCursor, osgEarth::Features::GeometryFeatureCursor
 SGI_OBJECT_INFO_END()
-
+#endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
 
 SGI_OBJECT_INFO_BEGIN(osg::BufferData)
     osg::Image
@@ -343,48 +405,69 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::Layer)
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::TerrainLayer, osgEarth::ModelLayer,
 #else
-    osgEarth::VisibleLayer,
-    osgEarth::Features::FeatureSourceLayer,
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
+            osgEarth::Features::FeatureSourceLayer,
+    osgEarth::MaskLayer,
+#endif // OSGEARTH_VERSION_LESS_THAN(3,0,0)
+    osgEarth::VisibleLayer
 #endif
-    osgEarth::MaskLayer
 SGI_OBJECT_INFO_END()
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 SGI_OBJECT_INFO_BEGIN(osgEarth::VisibleLayer)
-    osgEarth::TerrainLayer, osgEarth::ModelLayer, osgEarth::PatchLayer,
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
     osgEarth::Features::FeatureModelLayer,
     osgEarth::Util::SimpleOceanLayer,
     osgEarth::Util::GeodeticGraticule,
     osgEarth::Util::GARSGraticule,
     osgEarth::Util::MGRSGraticule,
-    osgEarth::Util::UTMGraticule
+    osgEarth::Util::UTMGraticule,
+    osgEarth::TerrainLayer,
+#else
+    osgEarth::TileLayer,
+#endif // OSGEARTH_VERSION_LESS_THAN(3,0,0)
+    osgEarth::ModelLayer,
+    osgEarth::PatchLayer
 SGI_OBJECT_INFO_END()
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 SGI_OBJECT_INFO_BEGIN(osgEarth::MaskLayer)
     osgEarth::Features::FeatureMaskLayer
 SGI_OBJECT_INFO_END()
-
 SGI_OBJECT_INFO_BEGIN(osgEarth::Features::FeatureSourceLayer)
     osgEarth::Features::ImageToFeatureLayer
 SGI_OBJECT_INFO_END()
+#endif // OSGEARTH_VERSION_LESS_THAN(3,0,0)
+
 
 #endif
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+SGI_OBJECT_INFO_BEGIN(osgEarth::TileLayer)
+    osgEarth::ImageLayer, osgEarth::ElevationLayer
+SGI_OBJECT_INFO_END()
+#else
 SGI_OBJECT_INFO_BEGIN(osgEarth::TerrainLayer)
     osgEarth::ImageLayer, osgEarth::ElevationLayer
 SGI_OBJECT_INFO_END()
+#endif
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 SGI_OBJECT_INFO_BEGIN(osgEarth::ImageLayer)
     osgEarth::LandCoverLayer, osgEarth::VideoLayer
 SGI_OBJECT_INFO_END()
+
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 SGI_OBJECT_INFO_BEGIN(osgEarth::ElevationLayer)
     //osgEarth::Util::FlatteningLayer,
     osgEarth::Util::FractalElevationLayer,
     osgEarth::Util::MultiElevationLayer
 SGI_OBJECT_INFO_END()
+#endif // OSGEARTH_VERSION_LESS_THAN(3,0,0)
+
 #endif
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 SGI_OBJECT_INFO_BEGIN(osgEarth::ModelSource)
     osgEarth::Features::FeatureModelSource
 SGI_OBJECT_INFO_END()
@@ -396,20 +479,29 @@ SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osgEarth::TileSource)
     osgEarth::Features::FeatureTileSource
 SGI_OBJECT_INFO_END()
+#endif
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::Config)
 SGI_OBJECT_INFO_END()
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::ConfigOptions)
-    osgEarth::TerrainLayerOptions, osgEarth::ModelLayerOptions, osgEarth::MapOptions,
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    osgEarth::Map::Options,
+    osgEarth::MapNode::Options
+#else
+    osgEarth::MapOptions
+    osgEarth::ModelLayerOptions,
     osgEarth::MapNodeOptions, osgEarth::ProfileOptions, osgEarth::DriverConfigOptions,
+    osgEarth::TerrainLayerOptions,
     osgEarth::LayerOptions
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     , osgEarth::Features::GeometryCompilerOptions
     , osgEarth::ScreenSpaceLayoutOptions
 #endif
+#endif
 SGI_OBJECT_INFO_END()
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 SGI_OBJECT_INFO_BEGIN(osgEarth::LayerOptions)
     osgEarth::VisibleLayerOptions
 SGI_OBJECT_INFO_END()
@@ -440,6 +532,7 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::TileSourceOptions)
     osgEarth::Drivers::VPBOptions,
     osgEarth::Drivers::GDALOptions
 SGI_OBJECT_INFO_END()
+#endif // OSGEARTH_VERSION_LESS_THAN(3,0,0)
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::CacheOptions)
     osgEarth::Drivers::FileSystemCacheOptions
@@ -467,6 +560,7 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::Annotation::InjectionDecoration)
 SGI_OBJECT_INFO_END()
 #endif
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 SGI_OBJECT_INFO_BEGIN(osgEarth::Symbology::Style)
 SGI_OBJECT_INFO_END()
 
@@ -501,6 +595,7 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::Symbology::InstanceSymbol)
     osgEarth::Symbology::ModelSymbol,
     osgEarth::Symbology::BillboardSymbol
 SGI_OBJECT_INFO_END()
+#endif // OSGEARTH_VERSION_LESS_THAN(3,0,0)
 
 namespace sgi {
 namespace osgearth_plugin {
@@ -528,7 +623,16 @@ GENERATE_IMPL_NO_ACCEPT(osg::Image)
 GENERATE_IMPL_NO_ACCEPT(osgDB::ReaderWriter)
 
 
-typedef generateItemImplT<generateItemAcceptImpl, SGIItemOsg, SGIItemEarthConfig, SGIItemEarthConfigOptions, SGIItemEarthStyle, SGIItemEarthStyleSelector, SGIItemInternal> generateItemImpl;
+typedef generateItemImplT<generateItemAcceptImpl,
+                          SGIItemOsg,
+                          SGIItemEarthConfig,
+                          SGIItemEarthConfigOptions,
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
+                          SGIItemEarthStyle,
+                          SGIItemEarthStyleSelector,
+#endif
+                          SGIItemInternal>
+        generateItemImpl;
 
 typedef SGIPluginImplementationT<       generateItemImpl,
                                         writePrettyHTMLImpl,

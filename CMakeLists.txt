@@ -64,6 +64,24 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 	fast_package_osg()
     fast_package_log4cplus()
 
+    if(OSGEARTH_FOUND AND EXISTS ${OSGEARTH_INCLUDE_DIR}/osgEarth/Version)
+        file (READ ${OSGEARTH_INCLUDE_DIR}/osgEarth/Version _osgearth_version_header_contents)
+        IF(_osgearth_version_header_contents)
+            string (REGEX MATCH "OSGEARTH_MAJOR_VERSION[ \t]+([0-9]+)" OSGEARTH_MAJOR_VERSION ${_osgearth_version_header_contents})
+            string (REGEX MATCH "([0-9]+)" OSGEARTH_MAJOR_VERSION ${OSGEARTH_MAJOR_VERSION})
+
+            string (REGEX MATCH "OSGEARTH_MINOR_VERSION[ \t]+([0-9]+)" OSGEARTH_MINOR_VERSION ${_osgearth_version_header_contents})
+            string (REGEX MATCH "([0-9]+)" OSGEARTH_MINOR_VERSION ${OSGEARTH_MINOR_VERSION})
+
+            string (REGEX MATCH "OSGEARTH_PATCH_VERSION[ \t]+([0-9]+)" OSGEARTH_PATCH_VERSION ${_osgearth_version_header_contents})
+            string (REGEX MATCH "([0-9]+)" OSGEARTH_PATCH_VERSION ${OSGEARTH_PATCH_VERSION})
+
+            string (REGEX MATCH "OSGEARTH_SOVERSION[ \t]+([0-9]+)" OSGEARTH_SOVERSION ${_osgearth_version_header_contents})
+            string (REGEX MATCH "([0-9]+)" OSGEARTH_SOVERSION ${OSGEARTH_SOVERSION})
+            SET(OSGEARTH_VERSION ${OSGEARTH_MAJOR_VERSION}.${OSGEARTH_MINOR_VERSION}.${OSGEARTH_PATCH_VERSION})
+        endif()
+    endif()
+
 	IF(WIN32)
         # More MSVC specific compilation flags
         ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -DNOMINMAX)

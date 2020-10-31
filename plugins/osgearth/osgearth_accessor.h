@@ -11,21 +11,33 @@
 #ifdef MAPNODE_ACCESS_HACK
 #undef private
 #endif
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0) && OSGEARTH_VERSION_LESS_THAN(3,0,0)
 #include <osgEarth/MapFrame>
 #endif
 #ifdef VIRTUALPROGRAMM_ACCESS_HACK
 #define private protected
+#define final
 #endif
 #include <osgEarth/VirtualProgram>
 #ifdef VIRTUALPROGRAMM_ACCESS_HACK
 #undef private
+#undef final
 #endif
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+#include <osgEarth/Controls>
+#include <osgEarth/EarthManipulator>
+#include <osgEarth/AutoClipPlaneHandler>
+#include <osgEarth/RTTPicker>
+#include <osgEarth/FeatureModelSource>
+#else
 #include <osgEarthUtil/Controls>
 #include <osgEarthUtil/EarthManipulator>
 #include <osgEarthUtil/AutoClipPlaneHandler>
 #include <osgEarthUtil/RTTPicker>
+#include <osgEarthFeatures/FeatureModelSource>
+#endif
+
 #include <osgEarth/TerrainEngineNode>
 #include <osgEarth/Registry>
 #ifdef ELEVATIONQUERY_ACCESS_HACK
@@ -35,7 +47,6 @@
 #ifdef ELEVATIONQUERY_ACCESS_HACK
 #undef private
 #endif
-#include <osgEarthFeatures/FeatureModelSource>
 #include <osg/io_utils>
 
 class QWidget;
@@ -55,7 +66,8 @@ namespace osgearth_plugin {
 	class RegistryAccess : public osgEarth::Registry
 	{
 	public:
-		unsigned numBlacklistFilenames()
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
+        unsigned numBlacklistFilenames()
 		{
 			unsigned ret;
 			_blacklistMutex.readLock();
@@ -69,6 +81,7 @@ namespace osgearth_plugin {
 			filenames = _blacklistedFilenames;
 			_blacklistMutex.readUnlock();
 		}
+#endif // OSGEARTH_VERSION_LESS_THAN(3,0,0)
 	};
     class MapAccess : public osgEarth::Map
     {
@@ -158,13 +171,19 @@ namespace osgearth_plugin {
 #endif
     };
 
-	class TileSourceAccessor : public osgEarth::TileSource
+    class TileSourceAccessor
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+        : public osgEarth::Contrib::TileSource
+#else
+        : public osgEarth::TileSource
+#endif
 	{
 	public:
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
         const osgEarth::Status& getStatus() const;
 #endif
     };
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
     class TerrainLayerAccessor : public osgEarth::TerrainLayer
     {
     public:
@@ -205,6 +224,7 @@ namespace osgearth_plugin {
         inline osgDB::Options * dbOptions() { return _dbOptions.get(); }
 #endif
     };
+#endif // OSGEARTH_VERSION_LESS_THAN(3,0,0)
     class ElevationLayerAccessor : public osgEarth::ElevationLayer
     {
     public:
@@ -302,7 +322,12 @@ namespace osgearth_plugin {
         const lru_type & lru() const { return osgEarth::LRUCache<K, T, COMPARE>::_lru; }
     };
 
-    class ElevationQueryAccess : public osgEarth::ElevationQuery
+    class ElevationQueryAccess
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+        : public osgEarth::Util::ElevationQuery
+#else
+        : public osgEarth::ElevationQuery
+#endif
     {
     public:
         typedef LRUCacheAccess< osgEarth::TileKey, osg::ref_ptr<osg::HeightField> > TileCache;
@@ -346,15 +371,23 @@ namespace osgearth_plugin {
     class ElevationPoolAccess : public osgEarth::ElevationPool
     {
     public:
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+#else
         typedef std::list<osg::ref_ptr<Tile> > MRU;
         typedef std::map<osgEarth::TileKey, osg::observer_ptr<Tile> > Tiles;
 
         void getTiles(Tiles & tiles);
         void getMRU(MRU & mru);
+#endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
     };
 #endif
 
-    class TileBlacklistAccess : public osgEarth::TileBlacklist
+    class TileBlacklistAccess
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+        : public osgEarth::Contrib::TileBlacklist
+#else
+        : public osgEarth::TileBlacklist
+#endif
     {
     public:
         typedef std::set<osgEarth::TileKey> TileKeySet;
@@ -391,7 +424,9 @@ namespace osgearth_plugin {
 #endif
     typedef PerObjectRefMapAccessor<std::string, osgEarth::CacheBin> ThreadSafeCacheBinMapAccessor;
 
-    class FeatureModelSourceAccess : public osgEarth::Features::FeatureModelSource
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
+    class FeatureModelSourceAccess
+        : public osgEarth::Features::FeatureModelSource
     {
     public:
         bool getMap(osg::ref_ptr<const osgEarth::Map> & map) const { return _map.lock(map); }
@@ -400,7 +435,13 @@ namespace osgearth_plugin {
         const osgDB::Options * getDBOptions() { return _dbOptions.get(); }
 #endif
     };
-    class FeatureSourceAccess : public osgEarth::Features::FeatureSource
+#endif // OSGEARTH_VERSION_LESS_THAN(3,0,0)
+    class FeatureSourceAccess
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+        : public osgEarth::FeatureSource
+#else
+        : public osgEarth::Features::FeatureSource
+#endif
     {
     public:
         const osgDB::Options* getReadOptions() const { return FeatureSource::getReadOptions(); }
