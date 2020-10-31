@@ -2,6 +2,7 @@
 
 #include "SceneGraphDialog.h"
 
+#include <QtGui/QScreen>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QDialog>
@@ -388,7 +389,8 @@ void SceneGraphDialog::showBesideParent()
         QWidget * parent = parentWidget();
         if(parent)
         {
-            int numScreens = dw->screenCount();
+            QList<QScreen*> screens = QGuiApplication::screens();
+            int numScreens = screens.size();
             int parentScreen = dw->screenNumber(parent);
             int currentScreen = dw->screenNumber(this);
 
@@ -398,8 +400,8 @@ void SceneGraphDialog::showBesideParent()
                 if(targetScreen != currentScreen)
                 {
                     QRect geom = frameGeometry();
-                    QRect currentScreenRect = dw->screenGeometry(currentScreen);
-                    QRect targetScreenRect = dw->screenGeometry(targetScreen);
+                    QRect currentScreenRect = screens.at(currentScreen)->geometry();
+                    QRect targetScreenRect = screens.at(targetScreen)->geometry();
                     QPoint currentTopLeft = parent->mapToGlobal(geom.topLeft());
                     //QPoint currentBottomRight = parent->mapToGlobal(geom.bottomRight());
                     QPoint screenOffset = currentTopLeft - currentScreenRect.topLeft();

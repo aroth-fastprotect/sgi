@@ -118,7 +118,7 @@ namespace {
 Image::Image(QImage * originalImage, bool copyData)
     : _format(imageFormatFromQImage(originalImage->format()))
     , _dataType(DataTypeUnsignedByte)
-    , _origin(OriginTopLeft), _data(nullptr), _length(originalImage->byteCount())
+    , _origin(OriginTopLeft), _data(nullptr), _length(originalImage->sizeInBytes())
     , _width(originalImage->width()), _height(originalImage->height()), _depth(1)
     , _allocatedWidth(originalImage->bytesPerLine() / bytesPerPixelFromQImage(originalImage->format())), _allocatedHeight(originalImage->height())
     , _pitch { (unsigned)originalImage->bytesPerLine(), 0, 0, 0 }
