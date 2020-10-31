@@ -159,13 +159,16 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgViewer::HelpHandler)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgViewer::StatsHandler)
 
 #ifdef SGI_USE_OSGQT
+#ifdef OSGQT_ENABLE_QGLWIDGET
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::GraphicsWindowQt)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::GLWidget)
+#endif
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::GraphicsWindowQt5)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::QObjectWrapper)
-OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::GLWidget)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgQt::GLWindow)
 #endif
 
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgGA::EventQueue)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgGA::GUIEventHandler)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgGA::GUIEventAdapter)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgGA::CameraManipulator)
@@ -1016,6 +1019,7 @@ bool objectTreeBuildImpl<osg::Camera>::build(IObjectTreeItem * treeItem)
             {
                 treeItem->addChildIfNotExists("Callbacks", cloneItem<SGIItemOsg>(SGIItemTypeCallbacks));
             }
+            treeItem->addChild("CullSettings", cloneItem<SGIItemOsg>(SGIItemTypeCullSettings));
 
             SGIHostItemOsg view(object->getView());
             if(view.hasObject())
@@ -1097,6 +1101,9 @@ bool objectTreeBuildImpl<osg::Camera>::build(IObjectTreeItem * treeItem)
             }
 			ret = true;
         }
+        break;
+    case SGIItemTypeCullSettings:
+        ret = true;
         break;
     default:
         ret = callNextHandler(treeItem);
@@ -2505,6 +2512,7 @@ bool objectTreeBuildImpl<osgViewer::GraphicsWindow>::build(IObjectTreeItem * tre
 }
 
 #ifdef SGI_USE_OSGQT
+#ifdef OSGQT_ENABLE_QGLWIDGET
 bool objectTreeBuildImpl<osgQt::GraphicsWindowQt>::build(IObjectTreeItem * treeItem)
 {
     osgQt::GraphicsWindowQt * object = getObject<osgQt::GraphicsWindowQt,SGIItemOsg>();
@@ -2526,6 +2534,29 @@ bool objectTreeBuildImpl<osgQt::GraphicsWindowQt>::build(IObjectTreeItem * treeI
     }
     return ret;
 }
+
+bool objectTreeBuildImpl<osgQt::GLWidget>::build(IObjectTreeItem* treeItem)
+{
+	osgQt::GLWidget* object = getObject<osgQt::GLWidget, SGIItemQt>();
+	bool ret;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(treeItem);
+		if (ret)
+		{
+			SGIHostItemOsg gw(object->getGraphicsWindow());
+			if (gw.hasObject())
+				treeItem->addChild(std::string(), &gw);
+		}
+		break;
+	default:
+		ret = callNextHandler(treeItem);
+		break;
+	}
+	return ret;
+}
+#endif
 
 bool objectTreeBuildImpl<osgQt::GraphicsWindowQt5>::build(IObjectTreeItem * treeItem)
 {
@@ -2574,28 +2605,6 @@ bool objectTreeBuildImpl<osgQt::QObjectWrapper>::build(IObjectTreeItem * treeIte
     return ret;
 }
 
-bool objectTreeBuildImpl<osgQt::GLWidget>::build(IObjectTreeItem * treeItem)
-{
-    osgQt::GLWidget * object = getObject<osgQt::GLWidget, SGIItemQt>();
-    bool ret;
-    switch (itemType())
-    {
-    case SGIItemTypeObject:
-        ret = callNextHandler(treeItem);
-        if (ret)
-        {
-            SGIHostItemOsg gw(object->getGraphicsWindow());
-            if (gw.hasObject())
-                treeItem->addChild(std::string(), &gw);
-        }
-        break;
-    default:
-        ret = callNextHandler(treeItem);
-        break;
-    }
-    return ret;
-}
-
 bool objectTreeBuildImpl<osgQt::GLWindow>::build(IObjectTreeItem * treeItem)
 {
     osgQt::GLWindow * object = getObject<osgQt::GLWindow, SGIItemQt>();
@@ -2618,6 +2627,41 @@ bool objectTreeBuildImpl<osgQt::GLWindow>::build(IObjectTreeItem * treeItem)
     return ret;
 }
 #endif // SGI_USE_OSGQT
+
+bool objectTreeBuildImpl<osgGA::EventQueue>::build(IObjectTreeItem* treeItem)
+{
+    osgGA::EventQueue* object = getObject<osgGA::EventQueue, SGIItemOsg, DynamicCaster>();
+    bool ret;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            treeItem->addChild("Events", cloneItem<SGIItemOsg>(SGIItemTypeEventQueueEvents, ~0u));
+        }
+        break;
+    case SGIItemTypeEventQueueEvents:
+        if(itemNumber() == ~0u)
+        {
+            unsigned i = 0;
+            osgGA::EventQueue::Events events;
+            object->copyEvents(events);
+            for (auto ev : events)
+            {
+                SGIHostItemOsg item(ev);
+                if (item.hasObject())
+                    treeItem->addChild(helpers::str_plus_count("Event", i), &item);
+            }
+        }
+        ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
 
 bool objectTreeBuildImpl<osgGA::GUIEventHandler>::build(IObjectTreeItem * treeItem)
 {
@@ -3045,6 +3089,10 @@ bool objectTreeBuildImpl<osgDB::DatabasePager>::build(IObjectTreeItem * treeItem
             treeItem->addChild(helpers::str_plus_count("HTTP requests", object->getHttpRequestListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerHttpRequests));
             treeItem->addChild(helpers::str_plus_count("Data to compile", object->getDataToCompileListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerDataToCompile));
             treeItem->addChild(helpers::str_plus_count("Data to merge", object->getDataToMergeListSize()), cloneItem<SGIItemOsg>(SGIItemTypeDBPagerDataToMerge));
+
+            SGIHostItemOsg markerObject(object->getMarkerObject());
+            if(markerObject.hasObject())
+                treeItem->addChild("MarkerObject", &markerObject);
         }
         break;
     case SGIItemTypeThreads:

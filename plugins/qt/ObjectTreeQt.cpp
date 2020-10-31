@@ -20,6 +20,9 @@
 #ifdef WITH_QTOPENGL
 #include <QGLWidget>
 #endif // WITH_QTOPENGL
+#include <QLayout>
+
+#include <qpa/qplatformwindow.h>
 
 #include "ObjectTreeQt.h"
 #include "SGIItemQt"
@@ -55,6 +58,10 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QSystemTrayIcon)
 #ifdef WITH_QTOPENGL
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QGLWidget)
 #endif // WITH_QTOPENGL
+
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QLayout)
+
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(QPlatformSurface)
 
 using namespace sgi::qt_helpers;
 
@@ -105,7 +112,8 @@ bool objectTreeBuildImpl<QObject>::build(IObjectTreeItem * treeItem)
             unsigned numChild = children.size();
             if(numChild)
                 treeItem->addChild(helpers::str_plus_count("Childs", numChild), cloneItem<SGIItemQt>(SGIItemTypeChilds));
-            treeItem->addChild("Methods", cloneItem<SGIItemQt>(SGIItemTypeMethods, ~0u));
+            treeItem->addChild("Properties", cloneItem<SGIItemQt>(SGIItemTypeProperties, ~0u));
+			treeItem->addChild("Methods", cloneItem<SGIItemQt>(SGIItemTypeMethods, ~0u));
             const QThread * thread = object->thread();
             if(thread && object != thread)
             {
@@ -123,33 +131,37 @@ bool objectTreeBuildImpl<QObject>::build(IObjectTreeItem * treeItem)
                     const char *name = metaproperty.name();
                     QVariant value = object->property(name);
 
-                    if(value.canConvert<QObject*>())
+                    if((QMetaType::Type)value.type() == QMetaType::QObjectStar || value.canConvert<QObject*>())
                     {
                         std::stringstream ss;
                         ss << metaObject->className() << "::" << name;
                         SGIHostItemQt item(value.value<QObject*>());
-                        treeItem->addChild(ss.str(), &item);
+                        if(item.hasObject())
+                            treeItem->addChild(ss.str(), &item);
                     }
                     else if(value.canConvert<QIcon>())
                     {
                         std::stringstream ss;
                         ss << metaObject->className() << "::" << name;
                         SGIHostItemQtIcon item(value.value<QIcon>());
-                        treeItem->addChild(ss.str(), &item);
+                        if (item.hasObject())
+                            treeItem->addChild(ss.str(), &item);
                     }
                     else if(value.canConvert<QBitmap>())
                     {
                         std::stringstream ss;
                         ss << metaObject->className() << "::" << name;
                         SGIHostItemQtPaintDevice item(value.value<QBitmap>());
-                        treeItem->addChild(ss.str(), &item);
+                        if (item.hasObject())
+                            treeItem->addChild(ss.str(), &item);
                     }
                     else if(value.canConvert<QImage>())
                     {
                         std::stringstream ss;
                         ss << metaObject->className() << "::" << name;
                         SGIHostItemQtPaintDevice item(value.value<QImage>());
-                        treeItem->addChild(ss.str(), &item);
+                        if (item.hasObject())
+                            treeItem->addChild(ss.str(), &item);
                     }
                 }
                 metaObject = metaObject->superClass();
@@ -171,7 +183,41 @@ bool objectTreeBuildImpl<QObject>::build(IObjectTreeItem * treeItem)
         }
         break;
     case SGIItemTypeProperties:
-        ret = true;
+        {
+            if (_item->number() == ~0u)
+            {
+                const QMetaObject * metaObject = object->metaObject();
+                while (metaObject)
+                {
+                    int offset = metaObject->propertyOffset();
+                    int count = metaObject->propertyCount();
+                    for (int i = offset; i < count; ++i)
+                    {
+                        QMetaProperty prop = metaObject->property(i);
+						QVariant value = object->property(prop.name());
+						bool isSubItem = false;
+						if ((QMetaType::Type)value.type() == QMetaType::QObjectStar || value.canConvert<QObject*>())
+						{
+							QObject* o = value.value<QObject*>();
+							if (o)
+							{
+								SGIHostItemQt item(o);
+								treeItem->addChild(prop.name(), &item);
+								isSubItem = true;
+							}
+						}
+
+						if(!isSubItem)
+							treeItem->addChild(prop.name(), cloneItem<SGIItemQt>(SGIItemTypeProperties, i));
+                    }
+                    metaObject = metaObject->superClass();
+                }
+            }
+            else
+            {
+            }
+            ret = true;
+        }
         break;
     case SGIItemTypeMethods:
         {
@@ -222,6 +268,9 @@ bool objectTreeBuildImpl<QWidget>::build(IObjectTreeItem * treeItem)
             if(windowHandle.hasObject())
                 treeItem->addChild("WindowHandle", &windowHandle);
             treeItem->addChild("Palette", cloneItemMulti<SGIItemQt, SGIItemQtPaintDevice>(SGIItemTypePalette, ~0u));
+            SGIHostItemQt layout(object->layout());
+            if(layout.hasObject())
+                treeItem->addChild("Layout", &layout);
             SGIHostItemQt style(object->style());
             if(style.hasObject())
                 treeItem->addChild("Style", &style);
@@ -239,8 +288,8 @@ bool objectTreeBuildImpl<QWidget>::build(IObjectTreeItem * treeItem)
 
 bool objectTreeBuildImpl<QWindow>::build(IObjectTreeItem * treeItem)
 {
-    QWindow * qobject = getObject<QWindow, SGIItemQt>();
-    QWindow * surface = getObject<QWindow, SGIItemQtSurface>();
+    QWindow * qobject = getObject<QWindow, SGIItemQt, DynamicCaster>();
+    QSurface * surface = getObject<QSurface, SGIItemQtSurface, DynamicCaster>();
     bool ret = false;
     switch(itemType())
     {
@@ -250,18 +299,27 @@ bool objectTreeBuildImpl<QWindow>::build(IObjectTreeItem * treeItem)
         {
             treeItem->addChild("Format", cloneItem<SGIItemQt>(SGIItemTypeSurfaceFormat));
 
-            if (qobject)
-            {
-                SGIHostItemQtSurface surface(qobject);
-                treeItem->addChild("Surface", &surface);
-            }
+			// add the opposite base-type to the tree
+			if (qobject)
+			{
+				QSurface* s = dynamic_cast<QSurface*>(qobject);
+				SGIHostItemQtSurface item(s);
+				if(item.hasObject())
+					treeItem->addChild("Surface", &item);
+			}
+#if 0
             else if (surface)
             {
-                SGIHostItemQt qobject(surface);
-                treeItem->addChild("Object", &qobject);
-            }
+				SGIHostItemQt item(surface);
+				if (item.hasObject())
+					treeItem->addChild("Object", &item);
+			}
+#endif
         }
         break;
+	case SGIItemTypeSurfaceFormat:
+		ret = true;
+		break;
     default:
         ret = callNextHandler(treeItem);
         break;
@@ -276,12 +334,19 @@ bool objectTreeBuildImpl<QSurface>::build(IObjectTreeItem * treeItem)
     switch(itemType())
     {
     case SGIItemTypeObject:
-        ret = callNextHandler(treeItem);
-        if(ret)
-        {
-            treeItem->addChild("Format", cloneItem<SGIItemQt>(SGIItemTypeSurfaceFormat));
+		{
+			callNextHandler(treeItem);
+            treeItem->addChild("Format", cloneItem<SGIItemQtSurface>(SGIItemTypeSurfaceFormat));
+
+			SGIHostItemQtPlatformSurface platform(object->surfaceHandle());
+			if(platform.hasObject())
+				treeItem->addChild("SurfaceHandle", &platform);
+			ret = true;
         }
         break;
+	case SGIItemTypeSurfaceFormat:
+		ret = true;
+		break;
     default:
         ret = callNextHandler(treeItem);
         break;
@@ -599,9 +664,38 @@ bool objectTreeBuildImpl<QGLWidget>::build(IObjectTreeItem * treeItem)
         ret = callNextHandler(treeItem);
         if(ret)
         {
-            treeItem->addChild("Context", cloneItem<SGIItemQt>(SGIItemTypeContext));
-        }
+			if(object->context())
+				treeItem->addChild("Context", cloneItem<SGIItemQt>(SGIItemTypeContext));
+			if (object->overlayContext())
+				treeItem->addChild("OverlayContext", cloneItem<SGIItemQt>(SGIItemTypeOverlayContext));
+		}
         break;
+	case SGIItemTypeContext:
+		{
+			auto ctx = object->context();
+			if (ctx)
+			{
+				SGIHostItemQtPaintDevice device(ctx->device());
+				treeItem->addChild("Device", &device);
+				SGIHostItemQt contextHandle(ctx->contextHandle());
+				treeItem->addChild("ContextHandle", &contextHandle);
+			}
+			ret = true;
+		}
+		break;
+	case SGIItemTypeOverlayContext:
+		{
+			auto ctx = object->overlayContext();
+			if (ctx)
+			{
+				SGIHostItemQtPaintDevice device(ctx->device());
+				treeItem->addChild("Device", &device);
+				SGIHostItemQt contextHandle(ctx->contextHandle());
+				treeItem->addChild("ContextHandle", &contextHandle);
+			}
+			ret = true;
+		}
+		break;
     default:
         ret = callNextHandler(treeItem);
         break;
@@ -610,6 +704,74 @@ bool objectTreeBuildImpl<QGLWidget>::build(IObjectTreeItem * treeItem)
 }
 #endif // WITH_QTOPENGL
 
+bool objectTreeBuildImpl<QLayout>::build(IObjectTreeItem* treeItem)
+{
+    QLayout* object = getObject<QLayout, SGIItemQt>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            treeItem->addChild(helpers::str_plus_count("Items", object->count()), cloneItem<SGIItemQt>(SGIItemTypeLayoutItem, ~0u));
+        }
+        break;
+    case SGIItemTypeLayoutItem:
+        {
+            if (itemNumber() == ~0u)
+            {
+                for (int n = 0; n < object->count(); ++n)
+                {
+                    auto* item = object->itemAt(n);
+                    treeItem->addChild(qt_helpers::getObjectNameAndType(item), cloneItem<SGIItemQt>(SGIItemTypeLayoutItem, n));
+                }
+            }
+            else
+            {
+                auto* item = object->itemAt(itemNumber());
+                if(item)
+                {
+                    if(QWidget * w = item->widget())
+                    {
+                        SGIHostItemQt item(w);
+                        treeItem->addChild(std::string(), &item);
+                    }
+                    else if (QLayout * l = item->layout())
+                    {
+                        SGIHostItemQt item(l);
+                        treeItem->addChild(std::string(), &item);
+                    }
+                    else if (QSpacerItem * s = item->spacerItem())
+                    {
+                        //SGIHostItemQt item(s);
+                        //treeItem->addChild(std::string(), &item);
+                    }
+                }
+
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<QPlatformSurface>::build(IObjectTreeItem* treeItem)
+{
+	QPlatformSurface* object = getObject<QPlatformSurface, SGIItemQtPlatformSurface>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = true;
+		break;
+	}
+	return ret;
+}
 
 OBJECT_TREE_BUILD_ROOT_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 

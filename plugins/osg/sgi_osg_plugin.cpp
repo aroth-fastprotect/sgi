@@ -321,6 +321,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osgDB::FileLocationCallback,
     osgUtil::StateGraph, 
     osgUtil::RenderLeaf,
+    osgGA::EventQueue,
     osgViewer::Scene,
     osgText::Font::FontImplementation,
     osgText::Glyph3D,
@@ -348,6 +349,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Object)
     osgAnimation::AnimationUpdateCallbackBase,
     osgDB::Options, osgDB::ReaderWriter, osgDB::DatabaseRevision, osgDB::DatabaseRevisions, osgDB::FileList,
     osgViewer::ViewerBase, osgViewer::GraphicsWindow,
+    osgGA::Event, 
     osgGA::EventHandler, osgGA::GUIEventAdapter,
     osgText::Font,
     osgUtil::SceneView, osgUtil::RenderBin,
@@ -581,7 +583,9 @@ SGI_OBJECT_INFO_END()
 
 #ifdef SGI_USE_OSGQT
 SGI_OBJECT_INFO_BEGIN(osgViewer::GraphicsWindow)
+#ifdef OSGQT_ENABLE_QGLWIDGET
     osgQt::GraphicsWindowQt,
+#endif
     osgQt::GraphicsWindowQt5
 SGI_OBJECT_INFO_END()
 
@@ -598,13 +602,15 @@ SGI_OBJECT_INFO_BEGIN(QOpenGLWidget)
     osgQt::GLWidget
 SGI_OBJECT_INFO_END()
 #else
+#ifdef OSGQT_ENABLE_QGLWIDGET
 SGI_OBJECT_INFO_BEGIN(QWidget)
     QGLWidget
 SGI_OBJECT_INFO_END()
-
 SGI_OBJECT_INFO_BEGIN(QGLWidget)
     osgQt::GLWidget
 SGI_OBJECT_INFO_END()
+#endif
+
 SGI_OBJECT_INFO_BEGIN(QWindow)
     osgQt::GLWindow
 SGI_OBJECT_INFO_END()
@@ -642,7 +648,9 @@ GENERATE_IMPL_NO_ACCEPT(QWindow);
 #ifdef OSGQT_USE_QOPENGLWIDGET
 GENERATE_IMPL_NO_ACCEPT(QOpenGLWidget);
 #else
+#ifdef OSGQT_ENABLE_QGLWIDGET
 GENERATE_IMPL_NO_ACCEPT(QGLWidget);
+#endif
 #endif
 
 typedef generateItemImplT<generateItemAcceptImpl, SGIItemOsg, SGIItemQt, SGIItemInternal> generateItemImpl;
@@ -672,11 +680,34 @@ typedef SGIPluginImplementationT<       generateItemImpl,
                                         convertToImageConvertImpl
                                         >
     SGIPluginImpl;
+
+    extern void registerNodeHelpers();
 } // namespace osg_plugin
 
 
 #define REGISTER_GLENUM(c) \
     registerNamedEnumValue<osg_helpers::GLEnum>(c, #c)
+
+
+
+#ifndef OSGDB_PLUGIN_EXPORT
+#ifdef _MSC_VER
+#define OSGDB_PLUGIN_EXPORT __declspec(dllexport)
+#elif defined(__GNUC__)
+#define OSGDB_PLUGIN_EXPORT __attribute__ ((visibility ("default")))
+#else
+#define OSGDB_PLUGIN_EXPORT
+#endif
+
+#endif
+
+#define REGISTER_OSGPLUGIN_EX(ext, classname, proxyname) \
+    extern "C" OSGDB_PLUGIN_EXPORT void osgdb_##ext(void) {}
+
+#define IMPL_OSGPLUGIN_EX(ext, classname, proxyname) \
+    static osgDB::RegisterReaderWriterProxy<classname> g_proxy_##proxyname;
+
+
 
 class SGIPlugin_osg_Implementation : public osg_plugin::SGIPluginImpl
 {
@@ -725,6 +756,7 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeSlaves);
 
         SGIITEMTYPE_NAME(SGIItemTypeArrayData);
+        SGIITEMTYPE_NAME(SGIItemTypeEventQueueEvents);
         SGIITEMTYPE_NAME(SGIItemTypeEventHandlers);
         SGIITEMTYPE_NAME(SGIItemTypeDevices);
         SGIITEMTYPE_NAME(SGIItemTypeActivePagedLODs);
@@ -757,6 +789,7 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeDBPagerDataToMerge);
         SGIITEMTYPE_NAME(SGIItemTypeColorLayers);
         SGIITEMTYPE_NAME(SGIItemTypeCameaBufferAttachments);
+        SGIITEMTYPE_NAME(SGIItemTypeCullSettings);
         SGIITEMTYPE_NAME(SGIItemTypeFontTextureList);
         SGIITEMTYPE_NAME(SGIItemTypeStatsFrame);
         SGIITEMTYPE_NAME(SGIItemTypeCachedObjects);
@@ -774,6 +807,8 @@ public:
         SGIITEMTYPE_NAME(SGIItemTypeStateTextureAttributeMapList);
         SGIITEMTYPE_NAME(SGIItemTypeStatisticsStateSets);
         SGIITEMTYPE_NAME(SGIItemTypeStatisticsStateAttributes);
+
+        registerNodeHelpers();
     }
     SGIPlugin_osg_Implementation(const SGIPlugin_osg_Implementation & rhs)
         : osg_plugin::SGIPluginImpl(rhs)

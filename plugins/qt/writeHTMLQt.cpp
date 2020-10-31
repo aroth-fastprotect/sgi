@@ -16,6 +16,8 @@
 #include <QScreen>
 #include <QStyle>
 #include <QMetaProperty>
+#include <QFormLayout>
+
 #include "writeHTMLQt.h"
 #include "SGIItemQt"
 
@@ -44,6 +46,10 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QOpenGLShader)
 #ifdef WITH_QTOPENGL
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QGLWidget)
 #endif
+
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QLayout)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QGridLayout)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QFormLayout)
 
 extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaMethod & method);
 extern std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMetaProperty & property);
@@ -221,7 +227,7 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
         break;
     case SGIItemTypeProperties:
         {
-            os << "<table border=\'1\' align=\'left\'><tr><th>Property</th><th>Value</th></tr>" << std::endl;
+            os << "<table border=\'1\' align=\'left\'><tr><th>Property</th><th>Type</th><th>Value</th></tr>" << std::endl;
 
             const QMetaObject * metaObject = object->metaObject();
             while (metaObject)
@@ -230,6 +236,9 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
                 int propertyCount = metaObject->propertyCount();
                 for (int i = propertyOffset; i < propertyCount; ++i)
                 {
+					if (_item->number() != ~0u && i != _item->number())
+						continue;
+
                     QMetaProperty metaproperty = metaObject->property(i);
                     const char *name = metaproperty.name();
                     const char *typeName = metaproperty.typeName();
@@ -238,7 +247,7 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
                     if(value.type() == QVariant::Palette)
                         value = QString("palette:%1").arg(value.value<QPalette>().cacheKey());
 
-                    os << "<tr><td>" << metaObject->className() << "::" << name << "(" << typeName << ")</td><td>";
+                    os << "<tr><td>" << metaObject->className() << "::" << name << "</td><td>" << typeName << "</td><td>";
                     writeVariant(os, value, &metaproperty);
                     os << "</td></tr>" << std::endl;
                 }
@@ -298,6 +307,8 @@ bool writePrettyHTMLImpl<QObject>::process(std::basic_ostream<char>& os)
     return ret;
 }
 
+extern void writePrettyHTMLImpl_QPaintDevice_process(std::basic_ostream<char>& os, QPaintDevice* object);
+
 bool writePrettyHTMLImpl<QWidget>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
@@ -311,6 +322,8 @@ bool writePrettyHTMLImpl<QWidget>::process(std::basic_ostream<char>& os)
 
             // add QObject properties first
             callNextHandler(os);
+
+            writePrettyHTMLImpl_QPaintDevice_process(os, dynamic_cast<QPaintDevice*>(object));
 
             // add QWidget properties
             // DO NOT call winId() here, because this would trigger the widget to change
@@ -392,6 +405,7 @@ bool writePrettyHTMLImpl<QSurface>::process(std::basic_ostream<char>& os)
             os << "<tr><td>this</td><td>" << std::hex << (void*)object << std::dec << "</td></tr>" << std::endl;
             os << "<tr><td>surfaceClass</td><td>" << object->surfaceClass() << "</td></tr>" << std::endl;
             os << "<tr><td>surfaceType</td><td>" << object->surfaceType() << "</td></tr>" << std::endl;
+			os << "<tr><td>surfaceHandle</td><td>" << object->surfaceHandle() << "</td></tr>" << std::endl;
             os << "<tr><td>supportsOpenGL</td><td>" << (object->supportsOpenGL() ? "true" : "false") << "</td></tr>" << std::endl;
             os << "<tr><td>size</td><td>" << object->size() << "</td></tr>" << std::endl;
 
@@ -639,6 +653,10 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QGLCont
         os << "<tr><td>isSharing</td><td>" << (object->isSharing()?"true":"false") << "</td></tr>" << std::endl;
 
         os << "<tr><td>format</td><td>" << object->format() << "</td></tr>" << std::endl;
+		os << "<tr><td>requestedFormat</td><td>" << object->requestedFormat() << "</td></tr>" << std::endl;
+
+		os << "<tr><td>overlayTransparentColor</td><td>" << object->overlayTransparentColor() << "</td></tr>" << std::endl;
+
         os << "<tr><td>device</td><td>" << qt_helpers::getObjectNameAndType(object->device(), true) << "</td></tr>" << std::endl;
         //os << "<tr><td>functions</td><td>" << (void*)object->functions() << "</td></tr>" << std::endl;
         os << "</table>" << std::endl;
@@ -945,6 +963,12 @@ bool writePrettyHTMLImpl<QGLWidget>::process(std::basic_ostream<char>& os)
             ret = true;
         }
         break;
+    case SGIItemTypeOverlayContext:
+        {
+            os << object->overlayContext();
+            ret = true;
+        }
+        break;
     default:
         ret = callNextHandler(os);
         break;
@@ -986,5 +1010,227 @@ bool writePrettyHTMLImpl<QDialog>::process(std::basic_ostream<char>& os)
     }
     return ret;
 }
+
+
+bool writePrettyHTMLImpl<QLayout>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    QLayout* object = getObject<QLayout, SGIItemQt>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add QWidget properties first
+            callNextHandler(os);
+
+            // add QLayout properties
+            os << "<tr><td>geometry</td><td>" << object->geometry() << "</td></tr>" << std::endl;
+            os << "<tr><td>minimumSize</td><td>" << object->minimumSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>maximumSize</td><td>" << object->maximumSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>items</td><td><ol>";
+            for(int n = 0; n < object->count(); ++n)
+            {
+                const auto * item = object->itemAt(n);
+                os << "<li>" << qt_helpers::getObjectNameAndType(item) << "</li>";
+            }
+
+            os << "</ol></td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeLayoutItem:
+        {
+            if(itemNumber() != ~0u)
+            {
+                const auto* item = object->itemAt(itemNumber());
+                os << *item;
+            }
+            else
+            {
+                os << "<ol>";
+                for (int n = 0; n < object->count(); ++n)
+                {
+                    const auto* item = object->itemAt(n);
+                    os << "<li>" << qt_helpers::getObjectNameAndType(item) << "</li>";
+                }
+                os << "</ol>" << std::endl;
+
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<QGridLayout>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    QGridLayout* object = getObject<QGridLayout, SGIItemQt>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add QWidget properties first
+            callNextHandler(os);
+
+            // add QGridLayout properties
+            os << "<tr><td>columnCount</td><td>" << object->columnCount() << "</td></tr>" << std::endl;
+            os << "<tr><td>rowCount</td><td>" << object->rowCount() << "</td></tr>" << std::endl;
+            os << "<tr><td>originCorner</td><td>" << object->originCorner() << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeLayoutItem:
+        {
+            if(itemNumber() != ~0u)
+            {
+                const auto* item = object->itemAt(itemNumber());
+                os << *item;
+            }
+            else
+            {
+                struct GridItem {
+                    int row;
+                    int column;
+                    int rowspan;
+                    int colspan;
+                };
+                std::vector<struct GridItem> items;
+                for(int i = 0; i < object->count(); ++i)
+                {
+                    GridItem item;
+                    object->getItemPosition(i, &item.row, &item.column, &item.rowspan, &item.colspan);
+                    items.push_back(item);
+                }
+                struct GridItemSort
+                {
+                    inline bool operator() (const GridItem& lhs, const GridItem& rhs)
+                    {
+                        if(lhs.row < rhs.row)
+                            return true;
+                        else if(lhs.row == rhs.row)
+                            return (lhs.column < rhs.column);
+                        else
+                            return false;
+                    }
+                };
+                std::sort(items.begin(), items.end(), GridItemSort());
+
+                auto it = items.begin();
+                const GridItem * currentItem = items.empty() ? nullptr : &*it;
+                const GridItem* lastItem = nullptr;
+                os << "<table border=\'1\' align=\'left\'>";
+                for (int row = 0; row < object->rowCount(); ++row)
+                {
+                    if(currentItem && currentItem->row == row && lastItem != currentItem)
+                    {
+                        if(lastItem)
+                            os << "</tr>";
+                        os << "<tr rowspan=\"" << currentItem->rowspan << "\">";
+                        lastItem = currentItem;
+                    }
+                    for (int col = 0; col < object->columnCount(); ++col)
+                    {
+                        if(currentItem && currentItem->row == row && currentItem->column == col)
+                        {
+                            os << "<td colspan=\"" << currentItem->colspan << "\">";
+                            os << col << ',' << row;
+                            if(currentItem->colspan > 1 || currentItem->rowspan > 1)
+                            {
+                                os << '(' << currentItem->colspan << '/' << currentItem->rowspan << ')';
+                            }
+                            if (it != items.end())
+                            {
+                                ++it;
+                                currentItem = (it == items.end()) ? nullptr : &*it;
+                            }
+                            os << "</td>";
+                        }
+                    }
+                    os << "</tr>";
+                }
+                if(lastItem)
+                    os << "</tr>";
+                os << "</table>" << std::endl;
+            }
+            ret = true;
+        }
+        break;
+
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<QFormLayout>::process(std::basic_ostream<char>& os)
+{
+    bool ret = false;
+    QFormLayout* object = getObject<QFormLayout, SGIItemQt>();
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            // add QLayout properties first
+            callNextHandler(os);
+
+            // add QFormLayout properties
+            os << "<tr><td>rowCount</td><td>" << object->rowCount() << "</td></tr>" << std::endl;
+
+            if(_table)
+                os << "</table>" << std::endl;
+            ret = true;
+        }
+        break;
+    case SGIItemTypeLayoutItem:
+        {
+            if(itemNumber() != ~0u)
+            {
+                const auto* item = object->itemAt(itemNumber());
+                os << *item;
+            }
+            else
+            {
+                os << "<table border=\'1\' align=\'left\'><tr><th>Label</th><th>Field</th><th>Span</th></tr>" << std::endl;
+                for (int row = 0; row < object->rowCount(); ++row)
+                {
+                    os << "<tr>";
+                    os << "<td>" << qt_helpers::getObjectNameAndType(object->itemAt(row, QFormLayout::LabelRole)) << "</td>";
+                    os << "<td>" << qt_helpers::getObjectNameAndType(object->itemAt(row, QFormLayout::FieldRole)) << "</td>";
+                    os << "<td>" << qt_helpers::getObjectNameAndType(object->itemAt(row, QFormLayout::SpanningRole)) << "</td>";
+                    os << "</tr>";
+                }
+                os << "</table>" << std::endl;
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
 } // namespace qt_plugin
 } // namespace sgi

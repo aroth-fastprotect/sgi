@@ -98,6 +98,13 @@ struct QtProxy::JobShowImagePreviewDialog
     SGIItemBase * item;
     IHostCallback * callback;
 };
+struct QtProxy::JobThreadOp
+{
+    JobThreadOp(ThreadOp * op_)
+        : retval(false), op(op_) {}
+    bool retval;
+    ThreadOp * op;
+};
 
 QtProxy::QtProxy()
 {
@@ -127,6 +134,9 @@ QtProxy::QtProxy()
             Qt::BlockingQueuedConnection);
     connect(this, &QtProxy::triggerCreateContextMenuQt,
             this, &QtProxy::implCreateContextMenuQt,
+            Qt::BlockingQueuedConnection);
+    connect(this, &QtProxy::triggerThreadOp,
+            this, &QtProxy::implThreadOp,
             Qt::BlockingQueuedConnection);
 }
 
@@ -255,6 +265,21 @@ void QtProxy::implShowImagePreviewDialog(JobShowImagePreviewDialog * job)
 {
     ImagePreviewDialog * qtdialog = new ImagePreviewDialog(job->item, job->callback, job->parent);
     job->retval = qtdialog->dialogInterface();
+}
+
+void QtProxy::implThreadOp(JobThreadOp * job)
+{
+    job->retval = job->op->run();
+}
+
+bool QtProxy::runInMainThread(ThreadOp & op)
+{
+    JobThreadOp job(&op);
+    if (QThread::currentThread() == thread())
+        implThreadOp(&job);
+    else
+        emit triggerThreadOp(&job);
+    return job.retval;
 }
 
 } // namespace sgi

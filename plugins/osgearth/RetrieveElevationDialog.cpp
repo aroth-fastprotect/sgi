@@ -76,9 +76,8 @@ RetrieveElevationDialog::RetrieveElevationDialog(QWidget * parent, SGIPluginHost
 
 	ui = new Ui_RetrieveElevationDialog;
 	ui->setupUi( this );
-    ui->layer->addItem("All", QString());
-    ui->layer->setCurrentIndex(0);
-    ui->layer->setEnabled(false);
+
+    _api_key = "AIzaSyADjiSQAYjHuW0jAIcs_wydJQnFnT6fNiI";
 
     loadResults();
 }
@@ -162,13 +161,14 @@ void RetrieveElevationDialog::query()
         double elev = 0;
         query->getElevation(point, elev, desired_resolution, &resolution);
 #else
-        query->getElevation(point, desired_resolution, &resolution);
-        double elev = point.alt();
+        double elev = query->getElevation(point, desired_resolution, &resolution);
 #endif
         qint64 end = QDateTime::currentMSecsSinceEpoch();
         qint64 diff = end - start;
 
         addResult(point, elev, resolution, diff);
+
+		saveResults();
     }
 }
 
@@ -177,17 +177,23 @@ void RetrieveElevationDialog::webQuery()
     osgEarth::GeoPoint point;
     if(getQueryPoint(point))
     {
-        QString url = QString("http://maps.googleapis.com/maps/api/elevation/xml?locations=%1,%2").arg(point.y()).arg(point.x());
-        qint64 start = QDateTime::currentMSecsSinceEpoch();
-
-        double elevation = 0;
-        double resolution = 0;
-        if(elevationWebQuery(url.toStdString(), elevation, resolution))
+        osgEarth::GeoPoint geodetic_point;
+        if (point.transform(osgEarth::Registry::instance()->getGlobalGeodeticProfile()->getSRS(), geodetic_point))
         {
-            qint64 end = QDateTime::currentMSecsSinceEpoch();
-            qint64 diff = end - start;
+            QString url = QString("https://maps.googleapis.com/maps/api/elevation/xml?locations=%1,%2&key=%3").arg(geodetic_point.y()).arg(geodetic_point.x()).arg(_api_key);
+            qint64 start = QDateTime::currentMSecsSinceEpoch();
 
-            addResult(point, elevation, resolution, diff, QDateTime(), true);
+            double elevation = 0;
+            double resolution = 0;
+            if (elevationWebQuery(url.toStdString(), elevation, resolution))
+            {
+                qint64 end = QDateTime::currentMSecsSinceEpoch();
+                qint64 diff = end - start;
+
+                addResult(point, elevation, resolution, diff, QDateTime(), true);
+
+                saveResults();
+            }
         }
     }
 }

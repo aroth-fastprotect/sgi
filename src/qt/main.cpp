@@ -1,5 +1,5 @@
 // kate: syntax C++;
-// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+// SGI - Copyright (C) 2012-2019 FAST Protect, Andreas Roth
 
 #include "main.h"
 #include <QApplication>
@@ -20,6 +20,7 @@
 
 #include <QImage>
 #include <QtCore/QDebug>
+#include <QtCore/QLoggingCategory>
 
 #if defined(_DEBUG)
 #if defined(_MSC_VER)
@@ -40,6 +41,7 @@
 namespace sgi {
     namespace qt_loader {
 
+Q_LOGGING_CATEGORY(logging_sgi, "sgi");
 
 ApplicationEventFilter * ApplicationEventFilter::s_instance = nullptr;
 
@@ -77,10 +79,12 @@ ApplicationEventFilter::ApplicationEventFilter(QCoreApplication * parent)
     , _inspectorContextMenuMouseModifier(Qt::ControlModifier|Qt::ShiftModifier)
 {
     s_instance = this;
+#ifdef _DEBUG
 #ifdef SGI_USE_GAMMARAY
-    qDebug() << "ApplicationEventFilter ctor" << this << "gammaray";
+    qDebug(logging_sgi) << "ApplicationEventFilter ctor" << this << "gammaray";
 #else
-    qDebug() << "ApplicationEventFilter ctor" << this;
+    qDebug(logging_sgi) << "ApplicationEventFilter ctor" << this;
+#endif
 #endif
 
     connect(parent, &QCoreApplication::aboutToQuit, this, &ApplicationEventFilter::uninstall);
@@ -90,7 +94,9 @@ ApplicationEventFilter::ApplicationEventFilter(QCoreApplication * parent)
 
 ApplicationEventFilter::~ApplicationEventFilter()
 {
-    qDebug() << "ApplicationEventFilter dtor" << this;
+#ifdef _DEBUG
+    qDebug(logging_sgi) << "ApplicationEventFilter dtor" << this;
+#endif
 }
 
 void ApplicationEventFilter::install()
@@ -108,7 +114,9 @@ void ApplicationEventFilter::postEvent(QEvent * ev)
 
 void ApplicationEventFilter::uninstall()
 {
-    qDebug() << "ApplicationEventFilter uninstall" << this;
+#ifdef _DEBUG
+    qDebug(logging_sgi) << "ApplicationEventFilter uninstall" << this;
+#endif
 	if (!_contextMenu.isNull())
 		delete _contextMenu;
     _hostCallback = nullptr;
@@ -172,7 +180,7 @@ bool ApplicationEventFilter::handleEvent(SGIEvent * ev)
 
             QWidget * widget = QApplication::activeWindow();
             QImage * image = new QImage(ev->filename(), ev->format().toLocal8Bit().constData());
-            qWarning() << "Open" << ev->filename() << "as" << ev->format() << "loaded" << image->format();
+            qWarning(logging_sgi) << "Open" << ev->filename() << "as" << ev->format() << "loaded" << image->format();
 
             imagePreviewDialog(widget, image);
             ret = true;
@@ -180,12 +188,12 @@ bool ApplicationEventFilter::handleEvent(SGIEvent * ev)
         break;
     case SGIEvent::CommandListPlugins:
         {
-            qWarning() << "List plugins";
+            qWarning(logging_sgi) << "List plugins";
         }
         break;
     case SGIEvent::CommandObject:
         {
-            qWarning() << "Show dialog for object" << ev->filename();
+            qWarning(logging_sgi) << "Show dialog for object" << ev->filename();
             QWidget * widget = QApplication::activeWindow();
             QObject * obj = nullptr;
             if (ev->filename() == "app")
@@ -207,7 +215,7 @@ bool ApplicationEventFilter::handleEvent(SGIEvent * ev)
         }
         break;
     default:
-        qCritical() << "Command" << ev->command() << "is not implemented.";
+        qCritical(logging_sgi) << "Command" << ev->command() << "is not implemented.";
         break;
     }
     return ret;
@@ -225,8 +233,8 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
     case QEvent::MouseButtonRelease:
         {
             QMouseEvent * mouseEvent = static_cast<QMouseEvent *>(event);
-            if( (int)mouseEvent->button() == _inspectorContextMenuMouseButton &&
-                (mouseEvent->modifiers() & _inspectorContextMenuMouseModifier) != 0)
+            if((int)mouseEvent->button() == _inspectorContextMenuMouseButton &&
+                (mouseEvent->modifiers() & _inspectorContextMenuMouseModifier) == _inspectorContextMenuMouseModifier)
             {
 				bool sgi_skip_object = obj->property("sgi_skip_object").toBool();
 				if (!sgi_skip_object)
@@ -271,7 +279,7 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
 					}
 					if (!sgi_skip_object)
 					{
-						qDebug() << "ApplicationEventFilter" << widget << obj;
+						//qDebug() << "ApplicationEventFilter" << widget << obj;
 						contextMenu(widget, obj, x, y);
 						ret = true;
 					}
@@ -282,8 +290,8 @@ bool ApplicationEventFilter::eventFilter(QObject *obj, QEvent *event)
     case QEvent::MouseButtonPress:
         {
             QMouseEvent * mouseEvent = static_cast<QMouseEvent *>(event);
-            if( (int)mouseEvent->button() == _inspectorContextMenuMouseButton &&
-                (mouseEvent->modifiers() & _inspectorContextMenuMouseModifier) != 0)
+            if((int)mouseEvent->button() == _inspectorContextMenuMouseButton &&
+                (mouseEvent->modifiers() & _inspectorContextMenuMouseModifier) == _inspectorContextMenuMouseModifier)
             {
 				bool sgi_skip_object = obj->property("sgi_skip_object").toBool();
 				if (!sgi_skip_object)

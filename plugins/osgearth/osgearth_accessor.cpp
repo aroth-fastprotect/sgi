@@ -260,6 +260,14 @@ osgEarth::CacheSettings * LayerAccessor::getCacheSettings() const
 }
 #endif
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+const osgEarth::Status& TileSourceAccessor::getStatus() const {
+	return _status;
+}
+#endif
+
+
+
 
 } // namespace osgearth_plugin
 } // namespace sgi

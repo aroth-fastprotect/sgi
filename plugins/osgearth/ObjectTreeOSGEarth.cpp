@@ -49,6 +49,11 @@
 #include <osgEarthFeatures/FeatureSourceLayer>
 #include <osgEarthFeatures/FeatureModelLayer>
 #endif
+#include <osgEarthFeatures/FeatureModelGraph>
+
+#include <osgEarthSymbology/Style>
+
+#include <osgEarthAnnotation/LabelNode>
 
 #include <osgEarthDrivers/cache_filesystem/FileSystemCache>
 #include <osgEarthDrivers/tms/TMSOptions>
@@ -117,17 +122,26 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::RTTPicker)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureProfile)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSource)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::Feature)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSource)
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSourceLayer)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelLayer)
 #endif
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelGraph)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureDisplayLayout)
+
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::Style)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::StyleSelector)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::StyleSheet)
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Config)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ConfigOptions)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelLayerOptions)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSourceOptions)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::FeatureGeomModelOptions)
+
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Annotation::AnnotationNode)
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::FunctionLocation & t);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::StageMaskValues & t);
@@ -1793,7 +1807,7 @@ bool objectTreeBuildImpl<osgEarth::PolyShader>::build(IObjectTreeItem * treeItem
                 treeItem->addChild("NominalShader", &nominalShader);
 
             SGIHostItemOsg geometryShader(object->getGeometryShader());
-            if (nominalShader.hasObject())
+            if (geometryShader.hasObject())
                 treeItem->addChild("GeometryShader", &geometryShader);
 
             SGIHostItemOsg tessellationShader(object->getTessellationShader());
@@ -2038,7 +2052,7 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureProfile>::build(IObjectTreeI
 
 bool objectTreeBuildImpl<osgEarth::Features::FeatureSource>::build(IObjectTreeItem * treeItem)
 {
-	osgEarth::Features::FeatureSource * object = getObject<osgEarth::Features::FeatureSource, SGIItemOsg>();
+    FeatureSourceAccess * object = static_cast<FeatureSourceAccess*>(getObject<osgEarth::Features::FeatureSource, SGIItemOsg>());
 	bool ret = false;
 	switch (itemType())
 	{
@@ -2046,23 +2060,79 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureSource>::build(IObjectTreeIt
 		ret = callNextHandler(treeItem);
 		if (ret)
 		{
+            SGIHostItemOsg readOptions(object->getReadOptions());
+            if (readOptions.hasObject())
+                treeItem->addChild("Read options", &readOptions);
+
 			SGIHostItemOsg featureProfile(object->getFeatureProfile());
 			if (featureProfile.hasObject())
 				treeItem->addChild("FeatureProfile", &featureProfile);
 
 			SGIHostItemOsgEarthConfigOptions featureSourceOptions(object->getFeatureSourceOptions());
 			treeItem->addChild("FeatureSourceOptions", &featureSourceOptions);
+
+            int numFeatures = object->getFeatureCount();
+            std::string name = numFeatures > 0 ? helpers::str_plus_count("Features", object->getFeatureCount()) : std::string("Features");
+            treeItem->addChild(name, cloneItem<SGIItemOsg>(SGIItemTypeFeatureSourceFeatures));
 		}
 		break;
 	case SGIItemTypeConfig:
 		ret = true;
 		break;
+    case SGIItemTypeFeatureSourceFeatures:
+        {
+            osgEarth::Features::FeatureCursor* cursor = object->createFeatureCursor(nullptr);
+            if (cursor)
+            {
+                while (cursor->hasMore())
+                {
+                    osgEarth::Features::Feature * feature = cursor->nextFeature();
+                    if (feature)
+                    {
+                        SGIHostItemOsg item(feature);
+                        treeItem->addChild(helpers::str_plus_number("Feature", feature->getFID()), &item);
+                    }
+                }
+            }
+            ret = true;
+        }
+        break;
 	default:
 		ret = callNextHandler(treeItem);
 		break;
 	}
 	return ret;
 }
+
+bool objectTreeBuildImpl<osgEarth::Features::Feature>::build(IObjectTreeItem * treeItem)
+{
+    osgEarth::Features::Feature * object = getObject<osgEarth::Features::Feature, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            treeItem->addChild("Config", cloneItem<SGIItemOsg>(SGIItemTypeConfig));
+            auto style = object->style();
+            if(style.isSet())
+                treeItem->addChild("Style", cloneItem<SGIItemOsg>(SGIItemTypeStyle));
+        }
+        break;
+    case SGIItemTypeConfig:
+        ret = true;
+        break;
+    case SGIItemTypeStyle:
+        ret = true;
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
 
 bool objectTreeBuildImpl<osgEarth::Features::FeatureModelSource>::build(IObjectTreeItem * treeItem)
 {
@@ -2096,8 +2166,17 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureModelSource>::build(IObjectT
             if(featureSource.hasObject())
                 treeItem->addChild("FeatureSource", &featureSource);
 
-            SGIHostItemOsgEarthConfigOptions featureModelOptions(object->getFeatureModelOptions());
-            treeItem->addChild("FeatureModelOptions", &featureModelOptions);
+            const auto& featureModelOptions = object->getFeatureModelOptions();
+
+            if(featureModelOptions.layout().isSet())
+            {
+                SGIHostItemOsg layout(&featureModelOptions.layout().value());
+                if (layout.hasObject())
+                    treeItem->addChild("Layout", &layout);
+            }
+
+            SGIHostItemOsgEarthConfigOptions featureModelOptionsItem(featureModelOptions);
+            treeItem->addChild("FeatureModelOptions", &featureModelOptionsItem);
         }
         break;
     case SGIItemTypeConfig:
@@ -2149,6 +2228,23 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureModelLayer>::build(IObjectTr
             SGIHostItemOsg node(object->getNode());
             if(node.hasObject())
                 treeItem->addChild("Node", &node);
+
+            SGIHostItemOsg featureSource(object->getFeatureSource());
+            if (featureSource.hasObject())
+                treeItem->addChild("FeatureSource", &featureSource);
+
+            SGIHostItemOsg createFeatureNodeFactoryCallback(object->getCreateFeatureNodeFactoryCallback());
+            if (createFeatureNodeFactoryCallback.hasObject())
+                treeItem->addChild("CreateFeatureNodeFactoryCallback", &createFeatureNodeFactoryCallback);
+        }
+        break;
+    case SGIItemTypeCallbacks:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            SGIHostItemOsg createFeatureNodeFactoryCallback(object->getCreateFeatureNodeFactoryCallback());
+            if (createFeatureNodeFactoryCallback.hasObject())
+                treeItem->addChild("CreateFeatureNodeFactoryCallback", &createFeatureNodeFactoryCallback);
         }
         break;
     default:
@@ -2158,6 +2254,87 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureModelLayer>::build(IObjectTr
     return ret;
 }
 #endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+
+bool objectTreeBuildImpl<osgEarth::Features::FeatureModelGraph>::build(IObjectTreeItem* treeItem)
+{
+    osgEarth::Features::FeatureModelGraph* object = getObject<osgEarth::Features::FeatureModelGraph, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+
+            SGIHostItemOsg session(object->getSession());
+            if (session.hasObject())
+                treeItem->addChild("Session", &session);
+
+            SGIHostItemOsg styles(object->getStyles());
+            if (styles.hasObject())
+                treeItem->addChild("Styles", &styles);
+
+            const auto & levels = object->getLevels();
+            treeItem->addChild(helpers::str_plus_count("Levels", levels.size()), cloneItem<SGIItemOsg>(SGIItemTypeLevels, ~0u));
+        }
+        break;
+    case SGIItemTypeLevels:
+        {
+            if(itemNumber() == ~0u)
+            {
+                const auto& levels = object->getLevels();
+                for(unsigned i = 0; i < levels.size(); ++i)
+                {
+                    const auto * level = levels[i];
+                    if(level)
+                        treeItem->addChild(helpers::str_plus_number("Level", i) + std::string(":") + level->styleName().value(), cloneItem<SGIItemOsg>(SGIItemTypeLevels, i));
+                }
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osgEarth::Features::FeatureDisplayLayout>::build(IObjectTreeItem* treeItem)
+{
+    osgEarth::Features::FeatureDisplayLayout* object = getObject<osgEarth::Features::FeatureDisplayLayout, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            unsigned num = object->getNumLevels();
+            treeItem->addChild(helpers::str_plus_count("Levels", num), cloneItem<SGIItemOsg>(SGIItemTypeChilds, ~0u));
+        }
+        break;
+    case SGIItemTypeChilds:
+        {
+            if(itemNumber() == ~0u)
+            {
+                unsigned num = object->getNumLevels();
+                for(unsigned i = 0; i < num; ++i)
+                {
+                    auto * level = object->getLevel(i);
+                    if(level)
+                        treeItem->addChild(helpers::str_plus_number("Level", i) + std::string(":") + level->styleName().value(), cloneItem<SGIItemOsg>(SGIItemTypeChilds, i));
+                }
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
 
 bool objectTreeBuildImpl<osgEarth::Config>::build(IObjectTreeItem * treeItem)
 {
@@ -2192,7 +2369,7 @@ bool objectTreeBuildImpl<osgEarth::ConfigOptions>::build(IObjectTreeItem * treeI
     {
     case SGIItemTypeObject:
         {
-            SGIHostItemOsgEarthConfig configItem(object->getConfig());
+            SGIHostItemOsgEarthConfig configItem(new osgEarth::Config(object->getConfig()));
             treeItem->addChild("Config", &configItem);
 
             ret = true;
@@ -2277,6 +2454,142 @@ bool objectTreeBuildImpl<osgEarth::Drivers::FeatureGeomModelOptions>::build(IObj
     return ret;
 }
 
+bool objectTreeBuildImpl<osgEarth::Symbology::Style>::build(IObjectTreeItem* treeItem)
+{
+    osgEarth::Symbology::Style* object = getObject<osgEarth::Symbology::Style, SGIItemEarthStyle>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            treeItem->addChild("Config", cloneItem<SGIItemOsg>(SGIItemTypeConfig));
+            for(const auto symbol : object->symbols())
+            {
+                SGIHostItemOsg item(symbol.get());
+                if (item.hasObject())
+                    treeItem->addChild(std::string(), &item);
+            }
+            ret = true;
+        }
+        break;
+    case SGIItemTypeConfig:
+        ret = true;
+        break;
+    default:
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osgEarth::Symbology::StyleSelector>::build(IObjectTreeItem* treeItem)
+{
+    osgEarth::Symbology::StyleSelector* object = getObject<osgEarth::Symbology::StyleSelector, SGIItemEarthStyleSelector>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        {
+            treeItem->addChild("Config", cloneItem<SGIItemOsg>(SGIItemTypeConfig));
+            ret = true;
+        }
+        break;
+    case SGIItemTypeConfig:
+        ret = true;
+        break;
+    default:
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osgEarth::Symbology::StyleSheet>::build(IObjectTreeItem* treeItem)
+{
+    osgEarth::Symbology::StyleSheet* object = getObject<osgEarth::Symbology::StyleSheet, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            SGIHostItemOsgEarthStyle defaultStyle(object->getDefaultStyle());
+            if (defaultStyle.hasObject())
+                treeItem->addChild("DefaultStyle", &defaultStyle);
+
+            SGIHostItemOsg defaultResourceLibrary(object->getDefaultResourceLibrary());
+            if (defaultResourceLibrary.hasObject())
+                treeItem->addChild("DefaultResourceLibrary", &defaultResourceLibrary);
+
+            const auto & styles = object->styles();
+            treeItem->addChild(helpers::str_plus_count("Styles", styles.size()), cloneItem<SGIItemOsg>(SGIItemTypeChilds));
+
+            const auto & selectors = object->selectors();
+            treeItem->addChild(helpers::str_plus_count("Selectors", selectors.size()), cloneItem<SGIItemOsg>(SGIItemTypeSelectors));
+
+        }
+        break;
+    case SGIItemTypeChilds:
+        {
+            for(const auto & style : object->styles())
+            {
+                SGIHostItemOsgEarthStyle item(&style.second);
+                if (item.hasObject())
+                    treeItem->addChild(style.first, &item);
+            }
+            ret = true;
+        }
+        break;
+    case SGIItemTypeSelectors:
+        {
+            for(const auto & selector : object->selectors())
+            {
+                SGIHostItemOsgEarthStyleSelector item(&selector);
+                if (item.hasObject())
+                    treeItem->addChild(std::string(), &item);
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+
+bool objectTreeBuildImpl<osgEarth::Annotation::AnnotationNode>::build(IObjectTreeItem* treeItem)
+{
+    osgEarth::Annotation::AnnotationNode* object = getObject<osgEarth::Annotation::AnnotationNode, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if (ret)
+        {
+            treeItem->addChild("Config", cloneItem<SGIItemOsg>(SGIItemTypeConfig));
+            treeItem->addChild("Style", cloneItem<SGIItemOsg>(SGIItemTypeStyle));
+            
+
+            SGIHostItemOsg mapNode(object->getMapNode());
+            if (mapNode.hasObject())
+                treeItem->addChild("MapNode", &mapNode);
+
+            ret = true;
+        }
+        break;
+    case SGIItemTypeConfig:
+        ret = true;
+        break;
+    case SGIItemTypeStyle:
+        ret = true;
+        break;
+    default:
+        break;
+    }
+    return ret;
+}
+
 OBJECT_TREE_BUILD_ROOT_IMPL_DECLARE_AND_REGISTER(ISceneGraphDialog)
 
 struct RegistrySingleton
@@ -2297,7 +2610,8 @@ bool objectTreeBuildRootImpl<ISceneGraphDialog>::build(IObjectTreeItem * treeIte
 	SGIHostItemInternal hostItem(new SGIProxyItemT<RegistrySingleton>(_hostInterface, "osgEarth::Registry"));
 	treeItem->addChild(std::string(), &hostItem);
 
-	SGIItemOsg * osgitem = dynamic_cast<SGIItemOsg *>(object->item());
+	SGIItemBase* item = object->item();
+	SGIItemOsg * osgitem = dynamic_cast<SGIItemOsg *>(item);
 	if (osgitem)
 	{
         osg::Node * node = NULL;

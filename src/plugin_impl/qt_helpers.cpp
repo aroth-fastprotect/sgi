@@ -1,4 +1,4 @@
-// kate: syntax C++11;
+// kate: syntax C++;
 // SGI - Copyright (C) 2012-2019 FAST Protect, Andreas Roth
 
 #include <sgi/helpers/qt>
@@ -43,6 +43,7 @@
 #include <QMatrix4x4>
 #include <QPolygonF>
 #include <QIcon>
+#include <QLayout>
 #include <sgi/helpers/rtti>
 
 namespace std {
@@ -152,6 +153,7 @@ QENUM_OSTREAM(Qt::MouseEventSource)
 QENUM_OSTREAM(Qt::MouseEventFlag)
 QENUM_OSTREAM(Qt::ChecksumType)
 QENUM_OSTREAM(Qt::TabFocusBehavior)
+QENUM_OSTREAM(QSizePolicy::ControlTypes)
 
 QString fromLocal8Bit(const std::string & str)
 {
@@ -230,6 +232,7 @@ std::string getObjectTypename(const QPaintDevice * object)
 
 std::string getObjectName(const QPaintDevice * object, bool includeAddr)
 {
+    Q_UNUSED(includeAddr);
     std::string ret;
     std::stringstream buf;
     buf << (void*)object;
@@ -251,6 +254,181 @@ std::string getObjectNameAndType(const QPaintDevice * object, bool includeAddr)
     return ret;
 }
 
+std::string getObjectNameAndType(const QLayoutItem * object, bool includeAddr)
+{
+    std::string ret;
+    if(object)
+    {
+        std::stringstream buf;
+        if(QWidget * w = const_cast<QLayoutItem*>(object)->widget())
+        {
+            buf << "Widget:" << getObjectNameAndType((const QObject*)w, includeAddr);
+        }
+        else if(QLayout * l = const_cast<QLayoutItem*>(object)->layout())
+        {
+            buf << "Layout:" << getObjectNameAndType((const QObject*)l, includeAddr);
+        }
+        else if(QSpacerItem * s = const_cast<QLayoutItem*>(object)->spacerItem())
+        {
+            buf << "Spacer:" << (void*)object;;
+        }
+        else
+        {
+            buf << (void*)object;
+        }
+        ret = buf.str();
+    }
+    else
+        ret = "(null)";
+    return ret;
+}
+
+namespace  {
+    class QVariantHandler
+    {
+    private:
+        QVariantHandler() {}
+
+        typedef std::map<int, QVariantUserTypeHandler*> HandlerMap;
+        HandlerMap m_typeMap;
+        HandlerMap m_userTypeMap;
+    public:
+        static QVariantHandler & instance()
+        {
+            static QVariantHandler s_instance;
+            return s_instance;
+        }
+        void registerType(int type, QVariantUserTypeHandler * handler)
+        {
+            m_typeMap[type] = handler;
+        }
+        void registerUserType(int userType, QVariantUserTypeHandler * handler)
+        {
+            m_userTypeMap[userType] = handler;
+        }
+        void writePrettyHTML(std::basic_ostream<char>& os, const QVariant & v)
+        {
+            auto it = m_typeMap.find(v.type());
+            if(it != m_typeMap.end())
+                it->second->writePrettyHTML(os, v);
+            else
+            {
+                switch(v.type())
+                {
+                case QVariant::Invalid: os << "(invalid)"; break;
+                case QVariant::Bool: os << (v.toBool()?"true":"false"); break;
+                case QVariant::Int: os << v.toInt(); break;
+                case QVariant::UInt: os << v.toUInt(); break;
+                case (QVariant::Type)QMetaType::Long: os << v.toInt(); break;
+                case (QVariant::Type)QMetaType::ULong: os << (ulong)v.toUInt(); break;
+                case (QVariant::Type)QMetaType::Short: os << v.toInt(); break;
+                case (QVariant::Type)QMetaType::UShort: os << (ushort)v.toUInt(); break;
+                case QVariant::LongLong: os << v.toLongLong(); break;
+                case QVariant::ULongLong: os << v.toULongLong(); break;
+                case QVariant::Double: os << v.toDouble(); break;
+                case (QVariant::Type)QMetaType::Float: os << v.toFloat(); break;
+                case QVariant::Char: os << v.toChar(); break;
+                case (QVariant::Type)QMetaType::UChar: os << v.toChar(); break;
+                case (QVariant::Type)QMetaType::VoidStar: os << (void*)v.toULongLong(); break;
+                case QVariant::Map: os << v.toMap(); break;
+                case QVariant::List: os << v.toList(); break;
+                case QVariant::String: os << v.toString(); break;
+                case QVariant::StringList: os << v.toStringList(); break;
+                case QVariant::ByteArray: os << v.toByteArray(); break;
+                case QVariant::BitArray: os << v.toBitArray(); break;
+                case QVariant::Date: os << v.toDate(); break;
+                case QVariant::Time: os << v.toTime(); break;
+                case QVariant::DateTime: os << v.toDateTime(); break;
+                case QVariant::Url: os << v.toUrl(); break;
+                case QVariant::Locale: os << v.toLocale(); break;
+                case QVariant::Rect: os << v.toRect(); break;
+                case QVariant::RectF: os << v.toRectF(); break;
+                case QVariant::Size: os << v.toSize(); break;
+                case QVariant::SizeF: os << v.toSizeF(); break;
+                case QVariant::Line: os << v.toLine(); break;
+                case QVariant::LineF: os << v.toLineF(); break;
+                case QVariant::Point: os << v.toPoint(); break;
+                case QVariant::PointF: os << v.toPointF(); break;
+                case QVariant::RegExp: os << v.toRegExp(); break;
+                case QVariant::Hash: os << v.toHash(); break;
+                case QVariant::EasingCurve: os << v.toEasingCurve(); break;
+                case QVariant::Uuid: os << v.toUuid(); break;
+                case QVariant::ModelIndex: os << v.toModelIndex(); break;
+                case QVariant::PersistentModelIndex: os << v.toPersistentModelIndex(); break;
+                case QVariant::Font: os << v.value<QFont>(); break;
+                case QVariant::Pixmap: os << v.value<QPixmap>(); break;
+                case QVariant::Brush: os << v.value<QBrush>(); break;
+                case QVariant::Color: os << v.value<QColor>(); break;
+                case QVariant::Palette: os << v.value<QPalette>(); break;
+                case QVariant::Image: os << v.value<QImage>(); break;
+                case QVariant::Polygon: os << v.value<QPolygon>(); break;
+                case QVariant::Region: os << v.value<QRegion>(); break;
+                case QVariant::Bitmap: os << v.value<QBitmap>(); break;
+                case QVariant::Cursor: os << v.value<QCursor>(); break;
+                case QVariant::KeySequence: os << v.value<QKeySequence>(); break;
+                case QVariant::Pen: os << v.value<QPen>(); break;
+                case QVariant::TextLength: os << v.value<QTextLength>(); break;
+                case QVariant::TextFormat: os << v.value<QTextFormat>(); break;
+                case QVariant::Matrix: os << v.value<QMatrix>(); break;
+                case QVariant::Transform: os << v.value<QTransform>(); break;
+                case QVariant::Matrix4x4: os << v.value<QMatrix4x4>(); break;
+                case QVariant::Vector2D: os << v.value<QVector2D>(); break;
+                case QVariant::Vector3D: os << v.value<QVector3D>(); break;
+                case QVariant::Vector4D: os << v.value<QVector4D>(); break;
+                case QVariant::Quaternion: os << v.value<QQuaternion>(); break;
+                case QVariant::PolygonF: os << v.value<QPolygonF>(); break;
+                case QVariant::Icon: os << v.value<QIcon>(); break;
+                case QVariant::SizePolicy: os << v.value<QSizePolicy>(); break;
+                case (QVariant::Type)QMetaType::QObjectStar: os << v.value<QObject*>(); break;
+                case QVariant::UserType:
+                    {
+                        auto it = m_userTypeMap.find(v.userType());
+                        if(it != m_userTypeMap.end())
+                            it->second->writePrettyHTML(os, v);
+						else
+						{
+							bool ok = false;
+							int num = v.toInt(&ok);
+							if(ok)
+								os << QString("Unknown user type %1: %2").arg(v.userType()).arg(num);
+							else
+								os << QString("Unknown user type %1: %2").arg(v.userType()).arg(v.toString());
+						}
+                    }
+                    break;
+                default: 
+					{
+						bool ok = false;
+						int num = v.toInt(&ok);
+						if (ok)
+							os << QString("Unknown user type %1: %2").arg(v.userType()).arg(num);
+						else
+							os << QString("Unknown user type %1: %2").arg(v.userType()).arg(v.toString());
+					}
+					break;
+                }
+            }
+        }
+    };
+
+} // namespace
+
+void registerQVariantUserType(int userType, QVariantUserTypeHandler * handler)
+{
+    QVariantHandler::instance().registerUserType(userType, handler);
+}
+
+void registerQVariantType(int type, QVariantUserTypeHandler * handler)
+{
+    QVariantHandler::instance().registerType(type, handler);
+}
+
+void writePrettyHTML(std::basic_ostream<char>& os, const QVariant & v)
+{
+    QVariantHandler::instance().writePrettyHTML(os, v);
+}
+
+
     } // namespace qt_helpers
 } // namespace sgi
 
@@ -259,67 +437,7 @@ namespace std {
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QVariant & v)
     {
-        switch(v.type())
-        {
-        case QVariant::Invalid: os << "(invalid)"; break;
-        case QVariant::Bool: os << (v.toBool()?"true":"false"); break;
-        case QVariant::Int: os << v.toInt(); break;
-        case QVariant::UInt: os << v.toUInt(); break;
-        case QVariant::LongLong: os << v.toLongLong(); break;
-        case QVariant::ULongLong: os << v.toULongLong(); break;
-        case QVariant::Double: os << v.toDouble(); break;
-        case QVariant::Char: os << v.toChar(); break;
-        case QVariant::Map: os << v.toMap(); break;
-        case QVariant::List: os << v.toList(); break;
-        case QVariant::String: os << v.toString(); break;
-        case QVariant::StringList: os << v.toStringList(); break;
-        case QVariant::ByteArray: os << v.toByteArray(); break;
-        case QVariant::BitArray: os << v.toBitArray(); break;
-        case QVariant::Date: os << v.toDate(); break;
-        case QVariant::Time: os << v.toTime(); break;
-        case QVariant::DateTime: os << v.toDateTime(); break;
-        case QVariant::Url: os << v.toUrl(); break;
-        case QVariant::Locale: os << v.toLocale(); break;
-        case QVariant::Rect: os << v.toRect(); break;
-        case QVariant::RectF: os << v.toRectF(); break;
-        case QVariant::Size: os << v.toSize(); break;
-        case QVariant::SizeF: os << v.toSizeF(); break;
-        case QVariant::Line: os << v.toLine(); break;
-        case QVariant::LineF: os << v.toLineF(); break;
-        case QVariant::Point: os << v.toPoint(); break;
-        case QVariant::PointF: os << v.toPointF(); break;
-        case QVariant::RegExp: os << v.toRegExp(); break;
-        case QVariant::Hash: os << v.toHash(); break;
-        case QVariant::EasingCurve: os << v.toEasingCurve(); break;
-        case QVariant::Uuid: os << v.toUuid(); break;
-        case QVariant::ModelIndex: os << v.toModelIndex(); break;
-        case QVariant::PersistentModelIndex: os << v.toPersistentModelIndex(); break;
-        case QVariant::Font: os << v.value<QFont>(); break;
-        case QVariant::Pixmap: os << v.value<QPixmap>(); break;
-        case QVariant::Brush: os << v.value<QBrush>(); break;
-        case QVariant::Color: os << v.value<QColor>(); break;
-        case QVariant::Palette: os << v.value<QPalette>(); break;
-        case QVariant::Image: os << v.value<QImage>(); break;
-        case QVariant::Polygon: os << v.value<QPolygon>(); break;
-        case QVariant::Region: os << v.value<QRegion>(); break;
-        case QVariant::Bitmap: os << v.value<QBitmap>(); break;
-        case QVariant::Cursor: os << v.value<QCursor>(); break;
-        case QVariant::KeySequence: os << v.value<QKeySequence>(); break;
-        case QVariant::Pen: os << v.value<QPen>(); break;
-        case QVariant::TextLength: os << v.value<QTextLength>(); break;
-        case QVariant::TextFormat: os << v.value<QTextFormat>(); break;
-        case QVariant::Matrix: os << v.value<QMatrix>(); break;
-        case QVariant::Transform: os << v.value<QTransform>(); break;
-        case QVariant::Matrix4x4: os << v.value<QMatrix4x4>(); break;
-        case QVariant::Vector2D: os << v.value<QVector2D>(); break;
-        case QVariant::Vector3D: os << v.value<QVector3D>(); break;
-        case QVariant::Vector4D: os << v.value<QVector4D>(); break;
-        case QVariant::Quaternion: os << v.value<QQuaternion>(); break;
-        case QVariant::PolygonF: os << v.value<QPolygonF>(); break;
-        case QVariant::Icon: os << v.value<QIcon>(); break;
-        case QVariant::SizePolicy: os << v.value<QSizePolicy>(); break;
-        default: os << QString("Unknown type %1: %2").arg(v.type()).arg(v.toString()); break;
-        }
+        sgi::qt_helpers::writePrettyHTML(os, v);
         return os;
     }
 
@@ -468,6 +586,10 @@ namespace std {
     {
         return os << "(" << r.left() << ", " << r.top() << " x " << r.width() << ", " << r.height() << ")";
     }
+	std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QMargins& r)
+	{
+		return os << "(" << r.left() << ", " << r.top() << " x " << r.right() << ", " << r.bottom() << ")";
+	}
 
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPoint & p)
     {
@@ -538,9 +660,12 @@ namespace std {
     std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QPalette & palette)
     {
         os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
-        os << "<tr><td>cacheKey</td><td>" << palette.cacheKey() << "</td></tr>" << std::endl;
-
         QMetaEnum colorGroupEnum = QMetaEnum::fromType<QPalette::ColorGroup>();
+
+        os << "<tr><td>cacheKey</td><td>" << hex << palette.cacheKey() << "</td></tr>" << std::endl;
+        os << "<tr><td>currentColorGroup</td><td>" << colorGroupEnum.key(palette.currentColorGroup()) << "</td></tr>" << std::endl;
+        os << "<tr><td>resolve</td><td>" << palette.resolve() << "</td></tr>" << std::endl;
+
         QMetaEnum colorRoleEnum = QMetaEnum::fromType<QPalette::ColorRole>();
         for(int cg = 0; cg < QPalette::NColorGroups; ++cg)
         {
@@ -690,4 +815,37 @@ namespace std {
         return os;
     }
 
-}
+    std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const QLayoutItem & object_)
+    {
+        QLayoutItem * object = const_cast<QLayoutItem*>(&object_);
+        if (object)
+        {
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+            if (QWidget * w = object->widget())
+            {
+                os << "<tr><td>widget</td><td>" << sgi::qt_helpers::getObjectNameAndType((QObject*)w) << "</td></tr>" << std::endl;
+            }
+            else if (QLayout * l = object->layout())
+            {
+                os << "<tr><td>widget</td><td>" << sgi::qt_helpers::getObjectNameAndType((QObject*)l) << "</td></tr>" << std::endl;
+            }
+            else if (QSpacerItem * s = object->spacerItem())
+            {
+                os << "<tr><td>widget</td><td>" << (void*)s << "</td></tr>" << std::endl;
+            }
+            os << "<tr><td>isEmpty</td><td>" << (object->isEmpty() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>minimumSize</td><td>" << object->minimumSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>maximumSize</td><td>" << object->maximumSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>geometry</td><td>" << object->geometry() << "</td></tr>" << std::endl;
+            os << "<tr><td>hasHeightForWidth</td><td>" << (object->hasHeightForWidth() ? "true" : "false") << "</td></tr>" << std::endl;
+            os << "<tr><td>alignment</td><td>" << object->alignment() << "</td></tr>" << std::endl;
+            os << "<tr><td>controlTypes</td><td>" << object->controlTypes() << "</td></tr>" << std::endl;
+            os << "<tr><td>expandingDirections</td><td>" << object->expandingDirections() << "</td></tr>" << std::endl;
+            os << "</table>" << std::endl;
+        }
+        else
+            os << "(null)";
+        return os;
+    }
+} // namespace std

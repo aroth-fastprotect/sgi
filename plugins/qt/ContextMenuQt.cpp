@@ -7,6 +7,7 @@
 #include <QWidget>
 #include <QWindow>
 #include <QSystemTrayIcon>
+#include <QLayout>
 #include <sgi/helpers/string>
 #include <sgi/helpers/qt>
 
@@ -22,6 +23,8 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QPaintDevice)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QImage)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QIcon)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QSystemTrayIcon)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QLayout)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QWindow)
 
 using namespace sgi::qt_helpers;
 
@@ -41,8 +44,8 @@ bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
             if(metaObject.hasObject())
                 menuItem->addMenu("Meta object", &metaObject); 
 
-            menuItem->addMenu("Properties", cloneItem<SGIItemQt>(SGIItemTypeProperties));
-            menuItem->addMenu("Methods", cloneItem<SGIItemQt>(SGIItemTypeMethods));
+            menuItem->addMenu("Properties", cloneItem<SGIItemQt>(SGIItemTypeProperties, ~0u));
+            menuItem->addMenu("Methods", cloneItem<SGIItemQt>(SGIItemTypeMethods, ~0u));
 
             SGIHostItemQt parent(object->parent());
             if(parent.hasObject())
@@ -67,32 +70,53 @@ bool contextMenuPopulateImpl<QObject>::populate(IContextMenuItem * menuItem)
         break;
     case SGIItemTypeProperties:
         {
+			const QMetaObject * metaObject = object->metaObject();
+			while (metaObject)
+			{
+				int propertyOffset = metaObject->propertyOffset();
+				int propertyCount = metaObject->propertyCount();
+				std::vector<std::pair<int, const char*> > properties(propertyCount - propertyOffset);
+				for (int i = propertyOffset; i < propertyCount; ++i)
+				{
+					QMetaProperty metaproperty = metaObject->property(i);
+					properties[i - propertyOffset] = std::make_pair(i, metaproperty.name());
+				}
+				std::sort(properties.begin(), properties.end(), [](std::pair<int, const char*> const & lhs, std::pair<int, const char*> const & rhs) { return qstricmp(lhs.second, rhs.second) < -1; });
+				for(const std::pair<int, const char*> & prop : properties)
+				{
+					if(_item->number() != ~0u && prop.first != _item->number())
+						continue;
+					QMetaProperty metaproperty = metaObject->property(prop.first);
+					QVariant value = object->property(prop.second);
+					bool isSubMenu = false;
 
-            const QMetaObject * metaObject = object->metaObject();
-            while (metaObject)
-            {
-                int propertyOffset = metaObject->propertyOffset();
-                int propertyCount = metaObject->propertyCount();
-                std::vector<std::pair<int, const char*> > properties(propertyCount - propertyOffset);
-                for (int i = propertyOffset; i < propertyCount; ++i)
-                {
-                    QMetaProperty metaproperty = metaObject->property(i);
-                    properties[i - propertyOffset] = std::make_pair(i, metaproperty.name());
-                }
-                std::sort(properties.begin(), properties.end(), [](std::pair<int, const char*> const & lhs, std::pair<int, const char*> const & rhs) { return qstricmp(lhs.second, rhs.second) < -1; });
-                for(const std::pair<int, const char*> & prop : properties)
-                {
-                    QMetaProperty metaproperty = metaObject->property(prop.first);
-                    QVariant value = object->property(prop.second);
+					std::stringstream ss;
+					ss << metaObject->className() << "::" << prop.second << "=";
 
-                    std::stringstream ss;
-                    ss << metaObject->className() << "::" << prop.second << "=";
-                    writeVariant(ss, value, &metaproperty);
+					if ((QMetaType::Type)value.type() == QMetaType::QObjectStar || value.canConvert<QObject*>())
+					{
+						QObject* o = value.value<QObject*>();
+						if (o)
+						{
+							SGIHostItemQt item(o);
+							menuItem->addMenu(std::string(), &item);
+							isSubMenu = true;
+						}
+						else
+							ss << "QObject*(nullptr)";
+					}
+					else if (value.type() == QVariant::Icon)
+						ss << "QIcon()";
+					else if(value.type() == QVariant::Palette)
+						ss << "QPalette()";
+					else
+						writeVariant(ss, value, &metaproperty);
 
-                    menuItem->addSimpleAction(MenuActionObjectModifyProperty, ss.str(), _item, new ReferencedDataString(prop.second));
-                }
-                metaObject = metaObject->superClass();
-            }
+					if(!isSubMenu)
+						menuItem->addSimpleAction(MenuActionObjectModifyProperty, ss.str(), _item, new ReferencedDataString(prop.second));
+				}
+				metaObject = metaObject->superClass();
+			}
 
             ret = true;
         }
@@ -143,6 +167,9 @@ bool contextMenuPopulateImpl<QWidget>::populate(IContextMenuItem * menuItem)
             menuItem->addBoolAction(MenuActionWidgetSetAcceptDrops, "Accept drops", _item, object->acceptDrops());
             menuItem->addBoolAction(MenuActionWidgetSetAutoFillBackground, "Auto fill background", _item, object->autoFillBackground());
 
+            SGIHostItemQt layout(object->layout());
+            if(layout.hasObject())
+                menuItem->addMenu("Layout", &layout);
 
 /*
             if(object->parentWidget() != object->parent())
@@ -275,5 +302,92 @@ bool contextMenuPopulateImpl<QSystemTrayIcon>::populate(IContextMenuItem * menuI
     return ret;
 }
 
+bool contextMenuPopulateImpl<QLayout>::populate(IContextMenuItem * menuItem)
+{
+    QLayout * object = getObject<QLayout,SGIItemQt>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if (ret)
+        {
+            menuItem->addMenu(helpers::str_plus_count("Items", object->count()), cloneItem<SGIItemQt>(SGIItemTypeLayoutItem, ~0u));
+        }
+        break;
+    case SGIItemTypeLayoutItem:
+        {
+            if (itemNumber() == ~0u)
+            {
+                for (int n = 0; n < object->count(); ++n)
+                {
+                    auto* item = object->itemAt(n);
+                    menuItem->addMenu(qt_helpers::getObjectNameAndType(item), cloneItem<SGIItemQt>(SGIItemTypeLayoutItem, n));
+                }
+            }
+            else
+            {
+                auto* item = object->itemAt(itemNumber());
+                if(item)
+                {
+                    if(QWidget * w = item->widget())
+                    {
+                        SGIHostItemQt item(w);
+                        menuItem->addMenu(std::string(), &item);
+                    }
+                    else if (QLayout * l = item->layout())
+                    {
+                        SGIHostItemQt item(l);
+                        menuItem->addMenu(std::string(), &item);
+                    }
+                    else if (QSpacerItem * s = item->spacerItem())
+                    {
+                        //SGIHostItemQt item(s);
+                        //treeItem->addChild(std::string(), &item);
+                    }
+                }
+
+            }
+            ret = true;
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+
+bool contextMenuPopulateImpl<QWindow>::populate(IContextMenuItem* menuItem)
+{
+	QWindow* qobject = getObject<QWindow, SGIItemQt, DynamicCaster>();
+	QSurface* surface = getObject<QSurface, SGIItemQtSurface, DynamicCaster>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(menuItem);
+		if (ret)
+		{
+			SGIHostItemQt parent(qobject ? qobject->parent() : nullptr);
+			if (parent.hasObject())
+				menuItem->addMenu("Parent", &parent);
+
+			// add the opposite base-type to the tree
+			if (qobject)
+			{
+				QSurface* s = dynamic_cast<QSurface*>(qobject);
+				SGIHostItemQtSurface item(s);
+				if (item.hasObject())
+					menuItem->addMenu("Surface", &item);
+			}
+		}
+		break;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
+}
 } // namespace qt_plugin
 } // namespace sgi

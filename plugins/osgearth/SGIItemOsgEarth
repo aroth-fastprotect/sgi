@@ -15,6 +15,10 @@ namespace osgEarth {
     class TileKey;
     class CacheBin;
     class TerrainLayer;
+    namespace Symbology {
+        class Style;
+        class StyleSelector;
+    }
 } // namespace osgEarth
 
 namespace sgi {
@@ -60,7 +64,12 @@ enum SGIItemType_osgearth
     SGIItemTypeProfiles,
     SGIItemTypeProgramSharedRepo,
     SGIItemTypePickerContext,
-    SGIItemTypeGeoHeightfield
+    SGIItemTypeGeoHeightfield,
+    SGIItemTypeFeatureSourceFeatures,
+    SGIItemTypeStyle,
+    SGIItemTypeSelectors,
+    SGIItemTypeResourceLibraries,
+    SGIItemTypeLevels,
 };
 
 typedef SGIItemInfoPlainPtr<osgEarth::Config> SGIItemInfoOsgEarthConfig;
@@ -73,6 +82,15 @@ typedef SGIHostItemImpl<SGIItemInfoOsgEarthConfigOptions> SGIHostItemOsgEarthCon
 typedef SGIItemHolderT<SGIItemInfoOsgEarthConfigOptions> SGIItemHolderOsgEarthConfigOptions;
 typedef SGIItemT<SGIHostItemOsgEarthConfigOptions, SGIItemHolderOsgEarthConfigOptions> SGIItemEarthConfigOptions;
 
+typedef SGIItemInfoPlainPtr<osgEarth::Symbology::Style> SGIItemInfoOsgEarthStyle;
+typedef SGIHostItemImpl<SGIItemInfoOsgEarthStyle> SGIHostItemOsgEarthStyle;
+typedef SGIItemHolderT<SGIItemInfoOsgEarthStyle> SGIItemHolderOsgEarthStyle;
+typedef SGIItemT<SGIHostItemOsgEarthStyle, SGIItemHolderOsgEarthStyle> SGIItemEarthStyle;
+
+typedef SGIItemInfoPlainPtr<osgEarth::Symbology::StyleSelector> SGIItemInfoOsgEarthStyleSelector;
+typedef SGIHostItemImpl<SGIItemInfoOsgEarthStyleSelector> SGIHostItemOsgEarthStyleSelector;
+typedef SGIItemHolderT<SGIItemInfoOsgEarthStyleSelector> SGIItemHolderOsgEarthStyleSelector;
+typedef SGIItemT<SGIHostItemOsgEarthStyleSelector, SGIItemHolderOsgEarthStyleSelector> SGIItemEarthStyleSelector;
 namespace osgearth_plugin {
 
 struct TileSourceTileKeyData

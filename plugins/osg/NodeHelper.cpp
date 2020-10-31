@@ -14,6 +14,23 @@
 #include <osgDB/FileNameUtils>
 #include <osgDB/Registry>
 
+#ifndef OSGDB_PLUGIN_EXPORT
+#ifdef _MSC_VER
+#define OSGDB_PLUGIN_EXPORT __declspec(dllexport)
+#elif defined(__GNUC__)
+#define OSGDB_PLUGIN_EXPORT __attribute__ ((visibility ("default")))
+#else
+#define OSGDB_PLUGIN_EXPORT
+#endif
+
+#endif
+
+#define DECLARE_OSGPLUGIN_EX(ext, classname, proxyname) \
+    extern "C" OSGDB_PLUGIN_EXPORT void osgdb_##ext(void) {}
+
+#define REGISTER_OSGPLUGIN_EX(ext, classname, proxyname) \
+    static osgDB::RegisterReaderWriterProxy<classname> g_proxy_##proxyname;
+
 #define TOGGLECENTERMARKER_PL_EXTENSION "sgi_togglecentermarker"
 
 namespace sgi {
@@ -1317,22 +1334,12 @@ struct ToggleCenterMarkerPseudoLoader : public osgDB::ReaderWriter
     }
 };
 
+void registerNodeHelpers()
+{
+    REGISTER_OSGPLUGIN_EX(TOGGLECENTERMARKER_PL_EXTENSION, sgi::osg_plugin::ToggleCenterMarkerPseudoLoader, ToggleCenterMarkerPseudoLoader)
+}
+
 } // namespace osg_plugin
 } // namespace sgi
 
-#ifndef OSGDB_PLUGIN_EXPORT
-#ifdef _MSC_VER
-#define OSGDB_PLUGIN_EXPORT __declspec(dllexport)
-#elif defined(__GNUC__)
-#define OSGDB_PLUGIN_EXPORT __attribute__ ((visibility ("default")))
-#else
-#define OSGDB_PLUGIN_EXPORT
-#endif
-
-#endif
-
-#define REGISTER_OSGPLUGIN_EX(ext, classname, proxyname) \
-    extern "C" OSGDB_PLUGIN_EXPORT void osgdb_##ext(void) {} \
-    static osgDB::RegisterReaderWriterProxy<classname> g_proxy_##proxyname;
-
-REGISTER_OSGPLUGIN_EX(TOGGLECENTERMARKER_PL_EXTENSION, sgi::osg_plugin::ToggleCenterMarkerPseudoLoader, ToggleCenterMarkerPseudoLoader)
+DECLARE_OSGPLUGIN_EX(TOGGLECENTERMARKER_PL_EXTENSION, sgi::osg_plugin::ToggleCenterMarkerPseudoLoader, ToggleCenterMarkerPseudoLoader)

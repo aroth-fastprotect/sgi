@@ -16,6 +16,9 @@
 #include <osgEarth/XmlUtils>
 #include <sgi/helpers/rtti>
 
+#include <osgEarthSymbology/Style>
+#include <osgEarthSymbology/StyleSelector>
+
 namespace sgi {
 
 namespace osgearth_plugin {
@@ -28,6 +31,9 @@ GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::Config)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::ConfigOptions)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(TileKeyReferenced)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
+
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::Style)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::StyleSelector)
 
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(osgEarth::Config)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(osgEarth::ConfigOptions)
@@ -78,6 +84,20 @@ std::string getObjectNameImpl<osgEarth::Registry>::process()
 {
     return "osgEarth::Registry";
 }
+
+
+std::string getObjectNameImpl<osgEarth::Symbology::Style>::process()
+{
+    osgEarth::Symbology::Style* object = static_cast<osgEarth::Symbology::Style*>(item<SGIItemEarthStyle>()->object());
+    return object->getName();
+}
+
+std::string getObjectNameImpl<osgEarth::Symbology::StyleSelector>::process()
+{
+    osgEarth::Symbology::StyleSelector* object = static_cast<osgEarth::Symbology::StyleSelector*>(item<SGIItemEarthStyleSelector>()->object());
+    return object->name();
+}
+
 
 std::string getObjectNameImpl<TileKeyReferenced>::process()
 {

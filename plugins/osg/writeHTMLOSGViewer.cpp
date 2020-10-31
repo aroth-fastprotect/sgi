@@ -14,6 +14,7 @@
 #ifdef SGI_USE_OSGQT
 // osgQt headers
 #include <osgQt/GraphicsWindowQt>
+#include <osgQt/GraphicsWindowQt5>
 #endif
 
 #include "SGIItemOsg"
@@ -40,7 +41,10 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::ScreenCaptureHandler)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgViewer::InteractiveImageHandler)
 
 #ifdef SGI_USE_OSGQT
+#ifdef OSGQT_ENABLE_QGLWIDGET
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgQt::GraphicsWindowQt)
+#endif
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgQt::GraphicsWindowQt5)
 #endif
 
 using namespace sgi::osg_helpers;
@@ -622,6 +626,7 @@ bool writePrettyHTMLImpl<osgViewer::InteractiveImageHandler>::process(std::basic
 }
 
 #ifdef SGI_USE_OSGQT
+#ifdef OSGQT_ENABLE_QGLWIDGET
 bool writePrettyHTMLImpl<osgQt::GraphicsWindowQt>::process(std::basic_ostream<char>& os)
 {
     osgQt::GraphicsWindowQt * object = static_cast<osgQt::GraphicsWindowQt*>(item<SGIItemOsg>()->object());
@@ -650,6 +655,37 @@ bool writePrettyHTMLImpl<osgQt::GraphicsWindowQt>::process(std::basic_ostream<ch
     }
     return ret;
 }
+#endif
+bool writePrettyHTMLImpl<osgQt::GraphicsWindowQt5>::process(std::basic_ostream<char>& os)
+{
+	osgQt::GraphicsWindowQt5* object = static_cast<osgQt::GraphicsWindowQt5*>(item<SGIItemOsg>()->object());
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+	{
+		if (_table)
+			os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+		// add osgViewer::GraphicsWindow properties first
+		callNextHandler(os);
+
+		// add remaining osgQt::GraphicsWindowQt5 properties
+		os << "<tr><td>GL widget</td><td>" << (void*)object->getGLWidget() << "</td></tr>" << std::endl;
+		os << "<tr><td>GL window</td><td>" << (void*)object->getGLWindow() << "</td></tr>" << std::endl;
+
+		if (_table)
+			os << "</table>" << std::endl;
+		ret = true;
+	}
+	break;
+	default:
+		ret = callNextHandler(os);
+		break;
+	}
+	return ret;
+}
+
 #endif
 
 } // namespace osg_plugin

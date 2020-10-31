@@ -83,7 +83,10 @@ enum MenuAction {
     MenuActionLineDrawableSetStipplePattern,
     MenuActionLineDrawableSetStippleFactor,
     MenuActionLineDrawableSetColor,
+    MenuActionLineDrawableDirty,
     MenuActionLightSettings,
+
+    MenuActionFeatureModelLayerDirty,
 };
 
 enum MapDebugImageLayer {

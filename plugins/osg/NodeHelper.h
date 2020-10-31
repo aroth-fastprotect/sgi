@@ -438,5 +438,7 @@ public:
     void apply(osg::PagedLOD& node) override;
 };
 
+void registerNodeHelpers();
+
 } // namespace osg_plugin
 } // namespace sgi

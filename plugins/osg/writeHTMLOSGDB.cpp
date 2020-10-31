@@ -648,7 +648,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgDB::DatabasePager::DatabaseThread
 bool writePrettyHTMLImpl<osgDB::DatabasePager::DatabaseThread>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osgDB::DatabasePager::DatabaseThread * object = getObject<osgDB::DatabasePager::DatabaseThread,SGIItemOsg>();
+	DatabaseThreadAccess* object = static_cast<DatabaseThreadAccess*>(getObject<osgDB::DatabasePager::DatabaseThread, SGIItemOsg>());
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -656,15 +656,14 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager::DatabaseThread>::process(std::bas
             if(_table)
                 os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
 
-            const DatabaseThreadAccess * access = (const DatabaseThreadAccess *)object;
-
             // add object properties first
             callNextHandler(os);
 
             writePrettyHTMLImpl_OpenThreads_Thread(os, object);
 
             os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
-            os << "<tr><td>mode</td><td>" << access->getMode() << "</td></tr>" << std::endl;
+            os << "<tr><td>mode</td><td>" << object->getMode() << "</td></tr>" << std::endl;
+			os << "<tr><td>pager</td><td>" << osg_helpers::getObjectNameAndType(object->getPager(), true) << "</td></tr>" << std::endl;
             os << "<tr><td>active</td><td>" << (object->getActive()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>done</td><td>" << (object->getDone()?"true":"false") << "</td></tr>" << std::endl;
 
@@ -810,14 +809,101 @@ void writePrettyHTMLImpl_DatabaseRequest(std::basic_ostream<char>& os, const Dat
     }
     else
     {
+        os << "<tr>";
+        if (req)
+        {
+            os << "<td>" << osg_helpers::getObjectNameAndType(req) << "</td>";
+            if (!req->_valid)
+            {
+                os << "<td>invalid</td>";
+                os << "<td>-1</td>";
+                os << "<td>0</td>";
+                os << "<td>-1</td>";
+                os << "<td>0</td>";
+            }
+            else
+            {
+                os << "<td>" << req->_fileName << "</td>";
+                os << "<td>" << req->_frameNumberLastRequest << "</td>";
+                os << "<td>" << req->_timestampLastRequest << "</td>";
+                os << "<td>" << req->_priorityLastRequest << "</td>";
+                os << "<td>" << req->_numOfRequests << "</td>";
+            }
+        }
+        else
+        {
+            os << "<td>(null)</td>";
+            os << "<td></td>";
+            os << "<td>-1</td>";
+            os << "<td>0</td>";
+            os << "<td>-1</td>";
+            os << "<td>0</td>";
+        }
+        os << "</tr>";
     }
+}
+
+void writePrettyHTMLImpl_DatabaseRequestList(std::basic_ostream<char>& os, const DatabasePagerAccessor::RequestList & requestList, bool brief=true)
+{
+    if(requestList.empty())
+        os << "<i>empty</i>";
+    else
+    {
+        if(brief)
+            os << "<ul>";
+		else
+		{
+			os << requestList.size() << "&nbsp;requests<br/>";
+			os << "<table border=\'1\' align=\'left\'><tr><th>object</th><th>filename</th><th>frame</th><th>time</th><th>prio</th><th>numReq</th></tr>" << std::endl;
+		}
+        for(auto it = requestList.begin(); it != requestList.end(); it++)
+        {
+            const DatabasePagerAccessor::DatabaseRequestAccess * req = static_cast<const DatabasePagerAccessor::DatabaseRequestAccess*>((*it).get());
+            writePrettyHTMLImpl_DatabaseRequest(os, req, brief);
+        }
+        if(brief)
+            os << "</ul>" << std::endl;
+        else
+            os << "</table>" << std::endl;
+    }
+}
+
+void writePrettyHTMLImpl_DatabasePagerThreads(std::basic_ostream<char>& os, DatabasePagerAccessor* object, bool brief = true)
+{
+	if (brief)
+	{
+		os << "<ul>";
+		for (unsigned n = 0; n < object->getNumDatabaseThreads(); n++)
+		{
+			DatabaseThreadAccess* th = static_cast<DatabaseThreadAccess*>(object->getDatabaseThread(n));
+			os << "<li>" << osg_helpers::getObjectNameAndType(th) << "</li>";
+		}
+		os << "</ul>" << std::endl;
+	}
+	else
+	{
+		os << "<table border=\'1\' align=\'left\'><tr><th>Id</th><th>Name</th><th>Mode</th><th>State</th></tr>" << std::endl;
+		for (unsigned n = 0; n < object->getNumDatabaseThreads(); n++)
+		{
+			DatabaseThreadAccess* th = static_cast<DatabaseThreadAccess*>(object->getDatabaseThread(n));
+			os << "<tr><td>#" << n << "/" << th->getThreadId() << "</td>";
+			os << "<td>" << th->getName() << "</td>";
+			os << "<td>" << th->getMode() << "</td>";
+			os << "<td>"
+				<< (th->getActive() ? "active" : "inactive") << ", "
+				<< (th->isRunning() ? "running" : "not running") << ", "
+				<< (th->getDone() ? "done" : "not done")
+				<< "</td>";
+			os << "</tr>";
+		}
+		os << "</table>" << std::endl;
+	}
 }
 
 bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>& os)
 {
     bool ret = false;
-    osgDB::DatabasePager * object = getObject<osgDB::DatabasePager,SGIItemOsg>();
-    DatabasePagerAccessor * access = (DatabasePagerAccessor*)object;
+    DatabasePagerAccessor* object = static_cast<DatabasePagerAccessor*>(getObject<osgDB::DatabasePager,SGIItemOsg>());
     switch(itemType())
     {
     case SGIItemTypeObject:
@@ -829,13 +915,9 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
             callNextHandler(os);
 
             os << "<tr><td>num threads</td><td>" << object->getNumDatabaseThreads() << "</td></tr>" << std::endl;
-            os << "<tr><td>threads</td><td><ul>";
-            for(unsigned num = 0; num < object->getNumDatabaseThreads(); num++)
-            {
-                osg::ref_ptr<const osgDB::DatabasePager::DatabaseThread> thread = object->getDatabaseThread(num);
-                os << "<li>" << osg_helpers::getObjectNameAndType(thread.get()) << "</li>";
-            }
-            os << "</ul></td></tr>" << std::endl;
+            os << "<tr><td>threads</td><td>";
+			writePrettyHTMLImpl_DatabasePagerThreads(os, object, true);
+            os << "</td></tr>" << std::endl;
 
             os << "<tr><td>paused</td><td>" << (object->getDatabasePagerThreadPause()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>pre-compile</td><td>" << (object->getDoPreCompile()?"true":"false") << "</td></tr>" << std::endl;
@@ -843,14 +925,25 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
             os << "<tr><td>active frames</td><td>" << object->getNumFramesActive() << "</td></tr>" << std::endl;
             os << "<tr><td>target max number of page lod</td><td>" << object->getTargetMaximumNumberOfPageLOD() << "</td></tr>" << std::endl;
             os << "<tr><td>delete removed subgraphs</td><td>" << (object->getDeleteRemovedSubgraphsInDatabaseThread()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>num file requests</td><td>" << access->getLocalFileRequestListSize() << "</td></tr>" << std::endl;
-            os << "<tr><td>num http requests</td><td>" << access->getHttpRequestListSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>num file requests</td><td>" << object->getLocalFileRequestListSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>num http requests</td><td>" << object->getHttpRequestListSize() << "</td></tr>" << std::endl;
             os << "<tr><td>num compiles</td><td>" << object->getDataToCompileListSize() << "</td></tr>" << std::endl;
             os << "<tr><td>num merges</td><td>" << object->getDataToMergeListSize() << "</td></tr>" << std::endl;
+
+			os << "<tr><td>file requests</td><td>" << osg_helpers::getObjectNameAndType(object->getLocalFileRequestList()) << "</td></tr>" << std::endl;
+			os << "<tr><td>http requests</td><td>" << osg_helpers::getObjectNameAndType(object->getHttpRequestList()) << "</td></tr>" << std::endl;
+			os << "<tr><td>compiles</td><td>" << osg_helpers::getObjectNameAndType(object->getDataToCompileList()) << "</td></tr>" << std::endl;
+			os << "<tr><td>merges</td><td>" << osg_helpers::getObjectNameAndType(object->getDataToMergeList()) << "</td></tr>" << std::endl;
+
+            os << "<tr><td>requestsInProgress</td><td>" << (object->getRequestsInProgress()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>requiresRedraw</td><td>" << (object->requiresRedraw()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>min/max time to merge tile</td><td>" << object->getMinimumTimeToMergeTile() << "/" << object->getMaximumTimeToMergeTile() << "</td></tr>" << std::endl;
+            os << "<tr><td>avg time to merge tile</td><td>" << object->getAverageTimeToMergeTiles() << "</td></tr>" << std::endl;
             os << "<tr><td>require update</td><td>" << (object->requiresUpdateSceneGraph()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>apply PBO to images</td><td>" << (object->getApplyPBOToImages()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>drawablePolicy</td><td>" << object->getDrawablePolicy() << "</td></tr>" << std::endl;
 
-            os << "<tr><td>active PagedLODs</td><td>" << access->numberOfPagedLODs() << "</td></tr>" << std::endl;
+            os << "<tr><td>active PagedLODs</td><td>" << object->numberOfPagedLODs() << "</td></tr>" << std::endl;
 
 			bool changeAutoUnRef = false, valueAutoUnRef = false;
 			object->getUnrefImageDataAfterApplyPolicy(changeAutoUnRef, valueAutoUnRef);
@@ -867,27 +960,13 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
         }
         break;
     case SGIItemTypeThreads:
-        {
-            os << "<ul>";
-            for(unsigned n = 0; n < object->getNumDatabaseThreads(); n++)
-            {
-                osgDB::DatabasePager::DatabaseThread * th = object->getDatabaseThread(n);
-                os << "<li>" << helpers::str_plus_number("Thread", n)  << "[id=" << th->getThreadId() << "," << th->getName() << "]: "
-                    << (th->getActive()?"active":"inactive") << ", "
-                    << (th->isRunning()?"running":"not running") << ", "
-                    << (th->getDone()?"done":"not done")
-                    << "</li>";
-            }
-            os << "</ul>";
-            ret = true;
-        }
+		writePrettyHTMLImpl_DatabasePagerThreads(os, object, false);
+        ret = true;
         break;
     case SGIItemTypeActivePagedLODs:
         {
             os << "<ul>";
-            DatabasePagerAccessor * access = (DatabasePagerAccessor*)object;
-
-            osgDB::DatabasePager::PagedLODList * activePagedLODList = access->activePagedLODList();
+            osgDB::DatabasePager::PagedLODList * activePagedLODList = object->activePagedLODList();
             const DatabasePagerAccessor::SetBasedPagedLODList * list = static_cast<const DatabasePagerAccessor::SetBasedPagedLODList *>(activePagedLODList);
             for (DatabasePagerAccessor::SetBasedPagedLODList::const_iterator it = list->begin(); it != list->end(); it++)
             {
@@ -905,56 +984,32 @@ bool writePrettyHTMLImpl<osgDB::DatabasePager>::process(std::basic_ostream<char>
     case SGIItemTypeDBPagerFileRequests:
         {
             DatabasePagerAccessor::RequestList requestList;
-            access->copyFileRequests(requestList);
-            os << requestList.size() << " items<br/><ul>";
-            for(auto it = requestList.begin(); it != requestList.end(); it++)
-            {
-                const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
-                writePrettyHTMLImpl_DatabaseRequest(os, req, true);
-            }
-            os << "</ul>";
+            object->copyFileRequests(requestList);
+            writePrettyHTMLImpl_DatabaseRequestList(os, requestList, false);
             ret = true;
         }
         break;
     case SGIItemTypeDBPagerHttpRequests:
         {
             DatabasePagerAccessor::RequestList requestList;
-            access->copyHttpRequests(requestList);
-            os << requestList.size() << " items<br/><ul>";
-            for(auto it = requestList.begin(); it != requestList.end(); it++)
-            {
-                const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
-                writePrettyHTMLImpl_DatabaseRequest(os, req, true);
-            }
-            os << "</ul>";
+            object->copyHttpRequests(requestList);
+            writePrettyHTMLImpl_DatabaseRequestList(os, requestList, false);
             ret = true;
         }
         break;
     case SGIItemTypeDBPagerDataToCompile:
         {
             DatabasePagerAccessor::RequestList requestList;
-            access->copyDataToCompile(requestList);
-            os << requestList.size() << " items<br/><ul>";
-            for(auto it = requestList.begin(); it != requestList.end(); it++)
-            {
-                const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
-                writePrettyHTMLImpl_DatabaseRequest(os, req, true);
-            }
-            os << "</ul>";
+            object->copyDataToCompile(requestList);
+            writePrettyHTMLImpl_DatabaseRequestList(os, requestList, false);
             ret = true;
         }
         break;
     case SGIItemTypeDBPagerDataToMerge:
         {
             DatabasePagerAccessor::RequestList requestList;
-            access->copyDataToMerge(requestList);
-            os << requestList.size() << " items<br/><ul>";
-            for(auto it = requestList.begin(); it != requestList.end(); it++)
-            {
-                const DatabasePagerAccessor::DatabaseRequestAccess * req = (const DatabasePagerAccessor::DatabaseRequestAccess *)(*it).get();
-                writePrettyHTMLImpl_DatabaseRequest(os, req, true);
-            }
-            os << "</ul>";
+            object->copyDataToMerge(requestList);
+            writePrettyHTMLImpl_DatabaseRequestList(os, requestList, false);
             ret = true;
         }
         break;

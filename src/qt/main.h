@@ -1,11 +1,12 @@
 // kate: syntax C++;
-// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
+// SGI - Copyright (C) 2012-2019 FAST Protect, Andreas Roth
 #pragma once
 
 #include <QImageIOHandler>
 #include <sgi/details/ref_ptr>
 
 class QCoreApplication;
+class QLoggingCategory;
 
 namespace sgi {
 
@@ -16,6 +17,8 @@ namespace sgi {
     typedef details::ref_ptr<IHostCallback> IHostCallbackPtr;
 
 namespace qt_loader {
+
+extern const QLoggingCategory & logging_sgi();
 
 class SGIEvent;
 

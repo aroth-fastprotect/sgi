@@ -19,6 +19,24 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QPaintDevice)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QImage)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(QIcon)
 
+void writePrettyHTMLImpl_QPaintDevice_process(std::basic_ostream<char>& os, QPaintDevice * object)
+{
+    os << "<tr><td>paintingActive</td><td>" << (object->paintingActive() ? "true" : "false") << "</td></tr>" << std::endl;
+    os << "<tr><td>devType</td><td>" << object->devType() << "</td></tr>" << std::endl;
+    os << "<tr><td>width</td><td>" << object->width() << "</td></tr>" << std::endl;
+    os << "<tr><td>height</td><td>" << object->height() << "</td></tr>" << std::endl;
+    os << "<tr><td>widthMM</td><td>" << object->widthMM() << "</td></tr>" << std::endl;
+    os << "<tr><td>heightMM</td><td>" << object->heightMM() << "</td></tr>" << std::endl;
+    os << "<tr><td>logicalDpiX</td><td>" << object->logicalDpiX() << "</td></tr>" << std::endl;
+    os << "<tr><td>logicalDpiY</td><td>" << object->logicalDpiY() << "</td></tr>" << std::endl;
+    os << "<tr><td>physicalDpiX</td><td>" << object->physicalDpiX() << "</td></tr>" << std::endl;
+    os << "<tr><td>physicalDpiY</td><td>" << object->physicalDpiY() << "</td></tr>" << std::endl;
+    os << "<tr><td>devicePixelRatio</td><td>" << object->devicePixelRatio() << "</td></tr>" << std::endl;
+    os << "<tr><td>devicePixelRatioF</td><td>" << object->devicePixelRatioF() << "</td></tr>" << std::endl;
+    os << "<tr><td>colorCount</td><td>" << object->colorCount() << "</td></tr>" << std::endl;
+    os << "<tr><td>depth</td><td>" << object->depth() << "</td></tr>" << std::endl;
+}
+
 bool writePrettyHTMLImpl<QPaintDevice>::process(std::basic_ostream<char>& os)
 {
     QPaintDevice * object = getObject<QPaintDevice, SGIItemQtPaintDevice>();
@@ -32,18 +50,7 @@ bool writePrettyHTMLImpl<QPaintDevice>::process(std::basic_ostream<char>& os)
             os << "<tr><td>this</td><td>" << std::hex << (void*)object << std::dec << "</td></tr>" << std::endl;
             os << "<tr><td>typename</td><td>" << helpers::getRTTITypename_html(object) << "</td></tr>" << std::endl;
 
-            os << "<tr><td>paintingActive</td><td>" << (object->paintingActive()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>devType</td><td>" << object->devType() << "</td></tr>" << std::endl;
-            os << "<tr><td>width</td><td>" << object->width() << "</td></tr>" << std::endl;
-            os << "<tr><td>height</td><td>" << object->height() << "</td></tr>" << std::endl;
-            os << "<tr><td>widthMM</td><td>" << object->widthMM() << "</td></tr>" << std::endl;
-            os << "<tr><td>heightMM</td><td>" << object->heightMM() << "</td></tr>" << std::endl;
-            os << "<tr><td>logicalDpiX</td><td>" << object->logicalDpiX() << "</td></tr>" << std::endl;
-            os << "<tr><td>logicalDpiY</td><td>" << object->logicalDpiY() << "</td></tr>" << std::endl;
-            os << "<tr><td>physicalDpiX</td><td>" << object->physicalDpiX() << "</td></tr>" << std::endl;
-            os << "<tr><td>physicalDpiY</td><td>" << object->physicalDpiY() << "</td></tr>" << std::endl;
-            os << "<tr><td>colorCount</td><td>" << object->colorCount() << "</td></tr>" << std::endl;
-            os << "<tr><td>depth</td><td>" << object->depth() << "</td></tr>" << std::endl;
+            writePrettyHTMLImpl_QPaintDevice_process(os, object);
 
             if(_table)
                 os << "</table>" << std::endl;

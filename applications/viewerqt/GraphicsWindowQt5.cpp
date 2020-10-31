@@ -36,8 +36,29 @@
 #include <QOpenGLContext>
 #include <QSurfaceFormat>
 #include <QTimer>
+#include <QWidget>
+
+#include <sstream>
+
+#define GL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
+#define GL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+#define GL_CONTEXT_DEBUG_BIT_ARB               0x0001
+#define GL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB  0x0002
 
 using namespace flightgear;
+
+namespace Qt {
+    enum MissingQtKeys {
+        Key_MissingQtKeys_Base = Key_unknown - 0x00100000,
+        Key_Shift_L,
+        Key_Shift_R,
+        Key_Control_L,
+        Key_Control_R,
+        Key_Alt_L,
+        Key_Alt_R,
+    };
+}
+
 
 class QtKeyboardMap
 {
@@ -61,47 +82,58 @@ public:
         mKeyMap[Qt::Key_Tab        ] = osgGA::GUIEventAdapter::KEY_Tab;
         mKeyMap[Qt::Key_Space      ] = osgGA::GUIEventAdapter::KEY_Space;
         mKeyMap[Qt::Key_Delete     ] = osgGA::GUIEventAdapter::KEY_Delete;
-        mKeyMap[Qt::Key_Alt        ] = osgGA::GUIEventAdapter::KEY_Alt_L;
-        mKeyMap[Qt::Key_Shift      ] = osgGA::GUIEventAdapter::KEY_Shift_L;
+        mKeyMap[Qt::Key_Period     ] = osgGA::GUIEventAdapter::KEY_Period;
+        mKeyMap[Qt::Key_Alt      ] = osgGA::GUIEventAdapter::KEY_Alt_L;
+        mKeyMap[Qt::Key_Shift    ] = osgGA::GUIEventAdapter::KEY_Shift_L;
+        mKeyMap[Qt::Key_Control  ] = osgGA::GUIEventAdapter::KEY_Control_L;
+        mKeyMap[Qt::Key_Meta     ] = osgGA::GUIEventAdapter::KEY_Meta_L;
 
-#if defined(Q_OS_MACOS)
-        // undo the Qt-mac remapping
-        mKeyMap[Qt::Key_Meta       ] = osgGA::GUIEventAdapter::KEY_Control_L;
-        mKeyMap[Qt::Key_Control    ] = osgGA::GUIEventAdapter::KEY_Meta_L;
-#else
-        mKeyMap[Qt::Key_Control    ] = osgGA::GUIEventAdapter::KEY_Control_L;
-        mKeyMap[Qt::Key_Meta       ] = osgGA::GUIEventAdapter::KEY_Meta_L;
-#endif
-        mKeyMap[Qt::Key_Super_L    ] = osgGA::GUIEventAdapter::KEY_Super_L;
-        mKeyMap[Qt::Key_Super_R    ] = osgGA::GUIEventAdapter::KEY_Super_R;
-        mKeyMap[Qt::Key_Hyper_L    ] = osgGA::GUIEventAdapter::KEY_Hyper_L;
-        mKeyMap[Qt::Key_Hyper_R    ] = osgGA::GUIEventAdapter::KEY_Hyper_R;
+        mKeyMap[Qt::Key_Super_L     ] = osgGA::GUIEventAdapter::KEY_Super_L;
+        mKeyMap[Qt::Key_Super_R     ] = osgGA::GUIEventAdapter::KEY_Super_R;
+        mKeyMap[Qt::Key_Hyper_L     ] = osgGA::GUIEventAdapter::KEY_Hyper_L;
+        mKeyMap[Qt::Key_Hyper_R     ] = osgGA::GUIEventAdapter::KEY_Hyper_R;
 
+        mKeyMap[Qt::Key_CapsLock       ] = osgGA::GUIEventAdapter::KEY_Caps_Lock;
+        mKeyMap[Qt::Key_NumLock        ] = osgGA::GUIEventAdapter::KEY_Num_Lock;
+        mKeyMap[Qt::Key_ScrollLock     ] = osgGA::GUIEventAdapter::KEY_Scroll_Lock;
 
-        mKeyMap[Qt::Key_F1             ] = osgGA::GUIEventAdapter::KEY_F1;
-        mKeyMap[Qt::Key_F2             ] = osgGA::GUIEventAdapter::KEY_F2;
-        mKeyMap[Qt::Key_F3             ] = osgGA::GUIEventAdapter::KEY_F3;
-        mKeyMap[Qt::Key_F4             ] = osgGA::GUIEventAdapter::KEY_F4;
-        mKeyMap[Qt::Key_F5             ] = osgGA::GUIEventAdapter::KEY_F5;
-        mKeyMap[Qt::Key_F6             ] = osgGA::GUIEventAdapter::KEY_F6;
-        mKeyMap[Qt::Key_F7             ] = osgGA::GUIEventAdapter::KEY_F7;
-        mKeyMap[Qt::Key_F8             ] = osgGA::GUIEventAdapter::KEY_F8;
-        mKeyMap[Qt::Key_F9             ] = osgGA::GUIEventAdapter::KEY_F9;
-        mKeyMap[Qt::Key_F10            ] = osgGA::GUIEventAdapter::KEY_F10;
-        mKeyMap[Qt::Key_F11            ] = osgGA::GUIEventAdapter::KEY_F11;
-        mKeyMap[Qt::Key_F12            ] = osgGA::GUIEventAdapter::KEY_F12;
-        mKeyMap[Qt::Key_F13            ] = osgGA::GUIEventAdapter::KEY_F13;
-        mKeyMap[Qt::Key_F14            ] = osgGA::GUIEventAdapter::KEY_F14;
-        mKeyMap[Qt::Key_F15            ] = osgGA::GUIEventAdapter::KEY_F15;
-        mKeyMap[Qt::Key_F16            ] = osgGA::GUIEventAdapter::KEY_F16;
-        mKeyMap[Qt::Key_F17            ] = osgGA::GUIEventAdapter::KEY_F17;
-        mKeyMap[Qt::Key_F18            ] = osgGA::GUIEventAdapter::KEY_F18;
-        mKeyMap[Qt::Key_F19            ] = osgGA::GUIEventAdapter::KEY_F19;
-        mKeyMap[Qt::Key_F20            ] = osgGA::GUIEventAdapter::KEY_F20;
+        mKeyMap[Qt::Key_hyphen         ] = '-';
+        mKeyMap[Qt::Key_Equal          ] = '=';
 
-       
-        mKeyMap[Qt::Key_Insert        ] = osgGA::GUIEventAdapter::KEY_KP_Insert;
-        //mKeyMap[Qt::Key_Delete        ] = osgGA::GUIEventAdapter::KEY_KP_Delete;
+        mKeyMap[Qt::Key_division      ] = osgGA::GUIEventAdapter::KEY_KP_Divide;
+        mKeyMap[Qt::Key_multiply      ] = osgGA::GUIEventAdapter::KEY_KP_Multiply;
+        mKeyMap[Qt::Key_Minus         ] = '-';
+        mKeyMap[Qt::Key_Plus          ] = '+';
+        mKeyMap[Qt::Key_Insert        ] = osgGA::GUIEventAdapter::KEY_Insert;
+
+        mKeyMap[Qt::Key_Shift_L] = osgGA::GUIEventAdapter::KEY_Shift_L;
+        mKeyMap[Qt::Key_Shift_R] = osgGA::GUIEventAdapter::KEY_Shift_R;
+        mKeyMap[Qt::Key_Control_L] = osgGA::GUIEventAdapter::KEY_Control_L;
+        mKeyMap[Qt::Key_Control_R] = osgGA::GUIEventAdapter::KEY_Control_R;
+        mKeyMap[Qt::Key_Alt_L] = osgGA::GUIEventAdapter::KEY_Alt_L;
+        mKeyMap[Qt::Key_Alt_R] = osgGA::GUIEventAdapter::KEY_Alt_R;
+
+        mKeyMapKeypad[Qt::Key_Slash         ] = osgGA::GUIEventAdapter::KEY_KP_Divide;
+        mKeyMapKeypad[Qt::Key_Asterisk      ] = osgGA::GUIEventAdapter::KEY_KP_Multiply;
+        mKeyMapKeypad[Qt::Key_Minus         ] = osgGA::GUIEventAdapter::KEY_KP_Subtract;
+        mKeyMapKeypad[Qt::Key_Plus          ] = osgGA::GUIEventAdapter::KEY_KP_Add;
+        mKeyMapKeypad[Qt::Key_Period        ] = osgGA::GUIEventAdapter::KEY_Period;
+        
+
+        mKeyMapKeypad[Qt::Key_Home       ] = osgGA::GUIEventAdapter::KEY_KP_Home;
+        mKeyMapKeypad[Qt::Key_Enter      ] = osgGA::GUIEventAdapter::KEY_KP_Enter;
+        mKeyMapKeypad[Qt::Key_End        ] = osgGA::GUIEventAdapter::KEY_KP_End;
+        mKeyMapKeypad[Qt::Key_PageUp     ] = osgGA::GUIEventAdapter::KEY_KP_Page_Up;
+        mKeyMapKeypad[Qt::Key_PageDown   ] = osgGA::GUIEventAdapter::KEY_KP_Page_Down;
+        mKeyMapKeypad[Qt::Key_Left       ] = osgGA::GUIEventAdapter::KEY_KP_Left;
+        mKeyMapKeypad[Qt::Key_Right      ] = osgGA::GUIEventAdapter::KEY_KP_Right;
+        mKeyMapKeypad[Qt::Key_Up         ] = osgGA::GUIEventAdapter::KEY_KP_Up;
+        mKeyMapKeypad[Qt::Key_Down       ] = osgGA::GUIEventAdapter::KEY_KP_Down;
+        mKeyMapKeypad[Qt::Key_Tab        ] = osgGA::GUIEventAdapter::KEY_KP_Tab;
+        mKeyMapKeypad[Qt::Key_Delete     ] = osgGA::GUIEventAdapter::KEY_KP_Delete;
+        mKeyMapKeypad[Qt::Key_Insert     ] = osgGA::GUIEventAdapter::KEY_KP_Insert;
+        mKeyMapKeypad[Qt::Key_Clear      ] = osgGA::GUIEventAdapter::KEY_KP_Space;
+        
     }
 
     ~QtKeyboardMap()
@@ -110,42 +142,75 @@ public:
 
     int remapKey(QKeyEvent* event)
     {
-        const QChar unicodePoint = event->text().isEmpty() ? QChar() : event->text().at(0);
-        KeyMap::iterator itr = mKeyMap.find(event->key());
-        if (itr == mKeyMap.end()) {
-            if (unicodePoint.isNull()) {
-                // this happens for Ctrl modifiers on A-Z (at least). Keyboard.xml relies on the
-                // old ASCII mappings of these values, so we need to synthesise those here
-                // since Qt won't do it.
-                
-                const auto k = event->key();
-                if ((k >= Qt::Key_A) && (k <= Qt::Key_Z)) {
-                    return 1 + (k - Qt::Key_A); // offset into the ASCII control code range
-                } else {
-                    qWarning() << Q_FUNC_INFO << "misssing mapping for key";
-                }
+        int key = event->key();
+        bool isKeypad = (event->modifiers() & Qt::KeypadModifier);
+#ifdef _WIN32
+        switch (key)
+        {
+        case Qt::Key_Shift:
+        case Qt::Key_Alt:
+        case Qt::Key_Control:
+        {
+            switch (event->nativeScanCode())
+            {
+            case 0x2a: key = Qt::Key_Shift_L; break;
+            case 0x36: key = Qt::Key_Shift_R; break;
+            case 0x1d: key = Qt::Key_Control_L; break;
+            case 0x11d: key = Qt::Key_Control_R; break;
+            case 0x38: key = Qt::Key_Alt_L; break;
+            case 0x138: key = Qt::Key_Alt_R; break;
             }
-#if 0
-            qDebug() << "key" << event->key() << ", mods" << event->modifiers() << "Unicode:" << unicodePoint << ", ASCII:"
-                << unicodePoint.toLatin1() << "(" << (int)unicodePoint.toLatin1() << "), raw text:" << event->text();
-#endif
-            return int(unicodePoint.toLatin1());
         }
-        
-        return itr->second;
+        break;
+        }
+#endif
+
+        const KeyMap & map = (isKeypad)?mKeyMapKeypad:mKeyMap;
+        KeyMap::const_iterator itr = map.find(key);
+        if (itr == map.end())
+        {
+            if(key >= Qt::Key_0 && key <= Qt::Key_9)
+            {
+                if(isKeypad)
+                    return osgGA::GUIEventAdapter::KEY_KP_0 + (key - Qt::Key_0);
+                else
+                    return osgGA::GUIEventAdapter::KEY_0 + (key - Qt::Key_0);
+            }
+            else if(key >= Qt::Key_A && key <= Qt::Key_Z)
+            {
+                return osgGA::GUIEventAdapter::KEY_A + (key - Qt::Key_A);
+            }
+            else if(key >= Qt::Key_F1 && key <= Qt::Key_F35)
+            {
+                if(isKeypad)
+                    return osgGA::GUIEventAdapter::KEY_KP_F1 + (key - Qt::Key_F1);
+                else
+                    return osgGA::GUIEventAdapter::KEY_F1 + (key - Qt::Key_F1);
+            }
+            else
+            {
+                if(isKeypad)
+                    return key;
+                else
+                    return int(*(event->text().toLocal8Bit().data()));
+            }
+        }
+        else
+            return itr->second;
     }
 
 private:
     typedef std::map<unsigned int, int> KeyMap;
     KeyMap mKeyMap;
+    KeyMap mKeyMapKeypad;
 };
 
 static QtKeyboardMap s_QtKeyboardMap;
 
 
 
-GLWindow::GLWindow()
-    : QWindow()
+GLWindow::GLWindow(QWindow* parent)
+    : QWindow(parent)
     , _graphicsThreadActive(false)
 {
     _devicePixelRatio = 1.0;
@@ -177,8 +242,10 @@ void GLWindow::syncGeometryWithOSG()
     int scaled_height = static_cast<int>(h*_devicePixelRatio);
 
     if (_gw) {
-        _gw->resized( x(), y(), scaled_width,  scaled_height);
-        _gw->getEventQueue()->windowResize( x(), y(), scaled_width, scaled_height );
+		const int cx = x();
+		const int cy = y();
+        _gw->resized( cx, cy, scaled_width,  scaled_height);
+        _gw->getEventQueue()->windowResize(cx, cy, scaled_width, scaled_height );
         _gw->requestRedraw();
         _gw->_updateContextNeeded = true;
     }
@@ -211,10 +278,6 @@ bool GLWindow::event( QEvent* event )
         }
 #endif
     }
-    else if (event->type() == QEvent::UpdateRequest)
-    {
-        processUpdateEvent();
-    }
     else if (event->type() == QEvent::Close) {
         // spin an 'are you sure'? dialog here
         // need to decide immediately unfortunately.
@@ -225,44 +288,80 @@ bool GLWindow::event( QEvent* event )
     return QWindow::event( event );
 }
 
-void GLWindow::processUpdateEvent()
+void GLWindow::processDeferredEvents()
 {
-    osg::ref_ptr<osgViewer::ViewerBase> v;
-    if (_gw->_viewer.lock(v)) {
-        v->frame();
-    }
+	QQueue<QEvent::Type> deferredEventQueueCopy;
+	{
+		QMutexLocker lock(&_deferredEventQueueMutex);
+		deferredEventQueueCopy = _deferredEventQueue;
+		_eventCompressor.clear();
+		_deferredEventQueue.clear();
+	}
 
-    // see discussion of QWindow::requestUpdate to see
-    // why this is good behaviour
-    if (_gw->_continousUpdate) {
-        requestUpdate();
-    }
-
+	while (!deferredEventQueueCopy.isEmpty())
+	{
+		QEvent event(deferredEventQueueCopy.dequeue());
+		GLWindow::event(&event);
+	}
 }
 
-static void setOSGModifier(int& modifiers, unsigned int bits, bool set)
-{
-    if (set) {
-        modifiers |= bits;
-    } else {
-        modifiers &= ~bits;
-    }
-}
+#ifdef _WIN32
 
-void GLWindow::setKeyboardModifiers(const Qt::KeyboardModifiers qtMods)
-{
-    auto es = _gw->getEventQueue()->getCurrentEventState();
-    auto modifiers = es->getModKeyMask();
+enum WindowsNativeModifiers {
+    ShiftLeft = 0x00000001,
+    ControlLeft = 0x00000002,
+    AltLeft = 0x00000004,
+    MetaLeft = 0x00000008,
+    ShiftRight = 0x00000010,
+    ControlRight = 0x00000020,
+    AltRight = 0x00000040,
+    MetaRight = 0x00000080,
+    CapsLock = 0x00000100,
+    NumLock = 0x00000200,
+    ScrollLock = 0x00000400,
+    ExtendedKey = 0x01000000,
 
-#if defined(Q_OS_MACOS)
-    setOSGModifier(modifiers, osgGA::GUIEventAdapter::MODKEY_CTRL, qtMods & Qt::MetaModifier);
-#else
-    setOSGModifier(modifiers, osgGA::GUIEventAdapter::MODKEY_CTRL, qtMods & Qt::ControlModifier);
+    // Convenience mappings
+    ShiftAny = 0x00000011,
+    ControlAny = 0x00000022,
+    AltAny = 0x00000044,
+    MetaAny = 0x00000088,
+    LockAny = 0x00000700
+};
 #endif
-    setOSGModifier(modifiers, osgGA::GUIEventAdapter::MODKEY_ALT, qtMods & Qt::AltModifier);
-    setOSGModifier(modifiers, osgGA::GUIEventAdapter::MODKEY_SHIFT, qtMods & Qt::ShiftModifier);
 
-    _gw->getEventQueue()->getCurrentEventState()->setModKeyMask(modifiers);
+void GLWindow::setKeyboardModifiers(QKeyEvent* event)
+{
+    unsigned int mask = 0;
+#ifdef _WIN32
+    quint32 modkey = event->nativeModifiers();
+    if (modkey & ShiftLeft) mask |= osgGA::GUIEventAdapter::MODKEY_LEFT_SHIFT;
+    if (modkey & ShiftRight) mask |= osgGA::GUIEventAdapter::MODKEY_RIGHT_SHIFT;
+    if (modkey & ControlLeft) mask |= osgGA::GUIEventAdapter::MODKEY_LEFT_CTRL;
+    if (modkey & ControlRight) mask |= osgGA::GUIEventAdapter::MODKEY_RIGHT_CTRL;
+    if (modkey & AltLeft) mask |= osgGA::GUIEventAdapter::MODKEY_LEFT_ALT;
+    if (modkey & AltRight) mask |= osgGA::GUIEventAdapter::MODKEY_RIGHT_ALT;
+    if (modkey & MetaLeft) mask |= osgGA::GUIEventAdapter::MODKEY_LEFT_META;
+    if (modkey & MetaRight) mask |= osgGA::GUIEventAdapter::MODKEY_RIGHT_META;
+#else
+    int modkey = event->modifiers() & (Qt::ShiftModifier | Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier);
+    if (modkey & Qt::ShiftModifier) mask |= osgGA::GUIEventAdapter::MODKEY_SHIFT;
+    if (modkey & Qt::ControlModifier) mask |= osgGA::GUIEventAdapter::MODKEY_CTRL;
+    if (modkey & Qt::AltModifier) mask |= osgGA::GUIEventAdapter::MODKEY_ALT;
+    if (modkey & Qt::MetaModifier) mask |= osgGA::GUIEventAdapter::MODKEY_META;
+#endif
+    _gw->getEventQueue()->getCurrentEventState()->setModKeyMask(mask);
+}
+
+void GLWindow::setKeyboardModifiers( QInputEvent* event )
+{
+    int modkey = event->modifiers() & (Qt::ShiftModifier | Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier);
+    unsigned int mask = 0;
+    if ( modkey & Qt::ShiftModifier ) mask |= osgGA::GUIEventAdapter::MODKEY_SHIFT;
+    if ( modkey & Qt::ControlModifier ) mask |= osgGA::GUIEventAdapter::MODKEY_CTRL;
+    if ( modkey & Qt::AltModifier ) mask |= osgGA::GUIEventAdapter::MODKEY_ALT;
+    if ( modkey & Qt::MetaModifier ) mask |= osgGA::GUIEventAdapter::MODKEY_META;
+    _gw->getEventQueue()->getCurrentEventState()->setModKeyMask( mask );
 }
 
 void GLWindow::resizeEvent( QResizeEvent* event )
@@ -279,7 +378,7 @@ void GLWindow::moveEvent( QMoveEvent* event )
 
 void GLWindow::keyPressEvent( QKeyEvent* event )
 {
-    setKeyboardModifiers( event->modifiers() );
+    setKeyboardModifiers(event);
     int value = s_QtKeyboardMap.remapKey( event );
     _gw->getEventQueue()->keyPress( value );
 
@@ -294,7 +393,7 @@ void GLWindow::keyReleaseEvent( QKeyEvent* event )
     if (event->isAutoRepeat()) {
         event->ignore();
     } else {
-        setKeyboardModifiers(event->modifiers() );
+        setKeyboardModifiers(event);
         int value = s_QtKeyboardMap.remapKey( event );
         _gw->getEventQueue()->keyRelease( value );
     }
@@ -316,7 +415,7 @@ void GLWindow::mousePressEvent( QMouseEvent* event )
         case Qt::NoButton: button = 0; break;
         default: button = 0; break;
     }
-    setKeyboardModifiers(event->modifiers());
+    setKeyboardModifiers(event);
     _gw->getEventQueue()->mouseButtonPress( event->x()*_devicePixelRatio, event->y()*_devicePixelRatio, button );
 }
 
@@ -331,7 +430,7 @@ void GLWindow::mouseReleaseEvent( QMouseEvent* event )
         case Qt::NoButton: button = 0; break;
         default: button = 0; break;
     }
-    setKeyboardModifiers(event->modifiers());
+    setKeyboardModifiers(event);
     _gw->getEventQueue()->mouseButtonRelease( event->x()*_devicePixelRatio, event->y()*_devicePixelRatio, button );
 }
 
@@ -346,19 +445,19 @@ void GLWindow::mouseDoubleClickEvent( QMouseEvent* event )
         case Qt::NoButton: button = 0; break;
         default: button = 0; break;
     }
-    setKeyboardModifiers(event->modifiers());
+    setKeyboardModifiers(event);
     _gw->getEventQueue()->mouseDoubleButtonPress( event->x()*_devicePixelRatio, event->y()*_devicePixelRatio, button );
 }
 
 void GLWindow::mouseMoveEvent( QMouseEvent* event )
 {
-    setKeyboardModifiers(event->modifiers());
+    setKeyboardModifiers(event);
     _gw->getEventQueue()->mouseMotion( event->x()*_devicePixelRatio, event->y()*_devicePixelRatio );
 }
 
 void GLWindow::wheelEvent( QWheelEvent* event )
 {
-    setKeyboardModifiers(event->modifiers());
+    setKeyboardModifiers(event);
     _gw->getEventQueue()->mouseScroll(
         event->orientation() == Qt::Vertical ?
             (event->delta()>0 ? osgGA::GUIEventAdapter::SCROLL_UP : osgGA::GUIEventAdapter::SCROLL_DOWN) :
@@ -367,7 +466,7 @@ void GLWindow::wheelEvent( QWheelEvent* event )
 
 void GLWindow::moveGLContextToThread(QThread * targetThread)
 {
-    QOpenGLContext* ctx = QOpenGLContext::currentContext();
+    QOpenGLContext* ctx = _gw->_context.get();
     if (ctx)
     {
         if (this->thread() == targetThread)
@@ -428,7 +527,7 @@ bool GraphicsWindowQt5::init( Qt::WindowFlags f )
     _ownsWidget = true;
 
     // WindowFlags
-    Qt::WindowFlags flags = f | Qt::Window | Qt::CustomizeWindowHint;
+    Qt::WindowFlags flags = f | Qt::Window | Qt::CustomizeWindowHint | Qt::FramelessWindowHint;
     if ( _traits->windowDecoration ) {
         flags |= Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint;
         flags |= Qt::WindowFullscreenButtonHint;
@@ -438,7 +537,7 @@ bool GraphicsWindowQt5::init( Qt::WindowFlags f )
     }
 
     // create window
-    _window.reset(new GLWindow);
+	_window.reset(new GLWindow(windowData ? windowData->_parent : nullptr));
     _window->setFlags(flags);
     _window->setSurfaceType(QSurface::OpenGLSurface);
     _window->setFormat(traits2qSurfaceFormat(_traits.get()));
@@ -516,6 +615,33 @@ QSurfaceFormat GraphicsWindowQt5::traits2qSurfaceFormat( const osg::GraphicsCont
     format.setSwapInterval( traits->vsync ? 1 : 0 );
     format.setStereo( traits->quadBufferStereo ? 1 : 0 );
 
+    unsigned major, minor;
+    traits->getContextVersion(major, minor);
+    format.setVersion((int)major, (int)minor);
+
+    QSurfaceFormat::OpenGLContextProfile profile = QSurfaceFormat::NoProfile;
+    if (traits->glContextProfileMask & GL_CONTEXT_CORE_PROFILE_BIT_ARB)
+    {
+        profile = QSurfaceFormat::CoreProfile;
+        format.setOption(QSurfaceFormat::DeprecatedFunctions, false);
+    }
+    else if (traits->glContextProfileMask & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB)
+    {
+        profile = QSurfaceFormat::CompatibilityProfile;
+        format.setOption(QSurfaceFormat::DeprecatedFunctions, true);
+    }
+
+    format.setProfile(profile);
+
+    /*
+    if (traits->glContextFlags & GL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB)
+        format.setOption(QGL::DebugContext);
+        */
+
+    if (traits->glContextFlags & GL_CONTEXT_DEBUG_BIT_ARB)
+        format.setOption(QSurfaceFormat::DebugContext);
+
+
     return format;
 }
 
@@ -532,6 +658,24 @@ void GraphicsWindowQt5::qSurfaceFormat2traits( const QSurfaceFormat& format, osg
     traits->quadBufferStereo = format.stereo();
     traits->doubleBuffer = (format.swapBehavior() == QSurfaceFormat::DoubleBuffer);
     traits->vsync = format.swapInterval() >= 1;
+
+    std::stringstream ss;
+    ss << format.majorVersion() << '.' << format.minorVersion();
+    traits->glContextVersion = ss.str();
+
+    switch(format.profile())
+    {
+    default:
+    case QSurfaceFormat::NoProfile:
+        traits->glContextProfileMask = 0;
+        break;
+    case QSurfaceFormat::CoreProfile:
+        traits->glContextProfileMask = GL_CONTEXT_CORE_PROFILE_BIT_ARB;
+        break;
+    case QSurfaceFormat::CompatibilityProfile:
+        traits->glContextProfileMask = GL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+        break;
+    }
 }
 
 osg::GraphicsContext::Traits* GraphicsWindowQt5::createTraits( const QWindow* window )
@@ -552,13 +696,14 @@ osg::GraphicsContext::Traits* GraphicsWindowQt5::createTraits( const QWindow* wi
                             ( f & Qt::WindowMinMaxButtonsHint ) &&
                             ( f & Qt::WindowSystemMenuHint );
 
-    traits->supportsResize = true;
-
-  /*
+#if 0
     QSizePolicy sp = window->sizePolicy();
     traits->supportsResize = sp.horizontalPolicy() != QSizePolicy::Fixed ||
                             sp.verticalPolicy() != QSizePolicy::Fixed;
-*/
+#else
+    traits->supportsResize = true;
+#endif
+
     return traits;
 }
 
@@ -566,9 +711,10 @@ bool GraphicsWindowQt5::setWindowRectangleImplementation( int x, int y, int widt
 {
     if (!_window)
         return false;
-
+#if 0
     qDebug() << "setWRI window geometry to " << x << "," << y <<
       " w=" << width << " h=" << height;
+#endif
     _window->setGeometry( x, y, width, height );
     return true;
 }
@@ -759,12 +905,16 @@ void GraphicsWindowQt5::runOperations()
 bool GraphicsWindowQt5::makeCurrentImplementation()
 {
     if (!_context) {
+		QOpenGLContext* shareContext = nullptr;
         if ( _traits->sharedContext.valid() ) {
-            qWarning() << Q_FUNC_INFO << "share contexts not supported";
+			GraphicsWindowQt5 * gw = dynamic_cast<GraphicsWindowQt5*>(_traits->sharedContext.get());
+			if (gw)
+				shareContext = gw->_context.get();
         }
 
         _context.reset(new QOpenGLContext());
-        _context->setFormat(_window->format());
+		_context->setShareContext(shareContext);
+		_context->setFormat(_window->format());
         bool result = _context->create();
         if (!result)
         {
@@ -774,10 +924,9 @@ bool GraphicsWindowQt5::makeCurrentImplementation()
 
         _context->makeCurrent(_window.get());
 
-        QOpenGLContext * ctx = QOpenGLContext::currentContext();
-        this->setDefaultFboId(ctx->defaultFramebufferObject());
+        this->setDefaultFboId(_context->defaultFramebufferObject());
 
-        // allow derived classes to do work now the context is initialised
+        // allow derived classes to do work now the context is initialized
         contextInitalised();
     }
 
@@ -798,7 +947,19 @@ bool GraphicsWindowQt5::releaseContextImplementation()
 
 void GraphicsWindowQt5::swapBuffersImplementation()
 {
+    if (!_window->isExposed())
+        return;
+
+	_context->makeCurrent(_window.get());
+
     _context->swapBuffers(_window.get());
+
+	// FIXME: the processDeferredEvents should really be executed in a GUI (main) thread context but
+	// I couln't find any reliable way to do this. For now, lets hope non of *GUI thread only operations* will
+	// be executed in a QGLWidget::event handler. On the other hand, calling GUI only operations in the
+	// QGLWidget event handler is an indication of a Qt bug.
+	if (_window->getNumDeferredEvents() > 0)
+		_window->processDeferredEvents();
 }
 
 void GraphicsWindowQt5::requestWarpPointer( float x, float y )
@@ -856,6 +1017,13 @@ void GraphicsWindowQt5::setFullscreen(bool isFullscreen)
         // FIXME should restore previous state?
         _window->showNormal();
     }
+}
+
+QWidget* GraphicsWindowQt5::getOrCreateGLWidget(QWidget* parent)
+{
+    if (!_widget.get() && _window.get())
+        _widget.reset(QWidget::createWindowContainer(_window.get(), parent));
+    return _widget.get();
 }
 
 
@@ -957,7 +1125,7 @@ private:
     QScreen* qScreenFromSI(const osg::GraphicsContext::ScreenIdentifier& si)
     {
         QList<QScreen*> screens = QGuiApplication::screens();
-        if (screens.size() < si.screenNum) {
+        if (si.screenNum >= 0 && si.screenNum < screens.size()) {
             return screens.at(si.screenNum);
         }
 

@@ -1,5 +1,5 @@
 // kate: syntax C++;
-// SGI - Copyright (C) 2012-2018 FAST Protect, Andreas Roth
+// SGI - Copyright (C) 2012-2019 FAST Protect, Andreas Roth
 
 #pragma once
 #include "SGIHostItemBase.h"
@@ -10,14 +10,16 @@ struct QMetaObject;
 class QPaintDevice;
 class QSurface;
 class QIcon;
+class QPlatformSurface;
 
 namespace sgi {
 
 typedef SGIItemInfoPlainPtr<QObject> SGIItemInfoQt;
 typedef SGIItemInfoPlainPtr<QMetaObject> SGIItemInfoQtMeta;
 typedef SGIItemInfoSharedPtrQt<QPaintDevice, QSharedPointer<QPaintDevice> > SGIItemInfoQtPaintDevice;
-typedef SGIItemInfoSharedPtrQt<QSurface, QSharedPointer<QSurface> > SGIItemInfoQtSurface;
+typedef SGIItemInfoPlainPtr<QSurface> SGIItemInfoQtSurface;
 typedef SGIItemInfoPlainPtr<QIcon, QIcon*, details::copy_object, details::delete_operator, details::copy_object> SGIItemInfoQtIcon;
+typedef SGIItemInfoPlainPtr<QPlatformSurface> SGIItemInfoQtPlatformSurface;
 
 typedef SGIHostItemImpl<SGIItemInfoQt> SGIHostItemQt;
 typedef SGIHostItemImpl<SGIItemInfoQtMeta> SGIHostItemQtMeta;

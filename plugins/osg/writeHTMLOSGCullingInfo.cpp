@@ -33,6 +33,19 @@ bool writePrettyHTMLImpl<CullingInfo>::process(std::basic_ostream<char>& os)
             callNextHandler(os);
 
             os << "<tr><td>node</td><td>" << osg_helpers::getObjectNameAndType(object->node()) << "</td></tr>" << std::endl;
+			os << "<tr><td>path</td><td>";
+			for (const CullingNodeInfoPath& path : object->pathlist())
+			{
+				os << "<ol>";
+				for (const auto & ptr : path)
+				{
+					const CullingNodeInfo& info = (*ptr);
+					os << "<li>" << (&info) << "=" << osg_helpers::getObjectNameAndType(info.node) << "</li>";
+				}
+				os << "</ol>";
+			}
+			
+			os << "</td></tr>" << std::endl;
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -68,6 +81,7 @@ bool writePrettyHTMLImpl<CullingInfo>::process(std::basic_ostream<char>& os)
 void writePrettyHTMLImpl_CullingNodeInfo_Info(std::basic_ostream<char>& os, const CullingNodeInfo::Info & info)
 {
     os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+	os << "<tr><td>this</td><td>" << (void*)&info << "</td></tr>" << std::endl;
     os << "<tr><td>boundingSphere</td><td>" << info.boundingSphere << "</td></tr>" << std::endl;
     os << "<tr><td>boundingSphereComputed</td><td>" << (info.boundingSphereComputed ? "true" : "false") << "</td></tr>" << std::endl;
     os << "<tr><td>cullingMask</td><td>" << cullingMaskToString(info.cullingMask) << "</td></tr>" << std::endl;

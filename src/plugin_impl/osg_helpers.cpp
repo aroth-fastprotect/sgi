@@ -1078,6 +1078,13 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg
     return output << std::setprecision(12) << '[' << b._center << ",r=" << b._radius << ']';
 }
 
+FindTreeItemNodeVisitor::FindTreeItemNodeVisitor(TraversalMode tm)
+    : osg::NodeVisitor(tm)
+{
+    // find all nodes even when hidden
+    setNodeMaskOverride(~0u);
+}
+
 osg::Texture * FindTreeItemNodeVisitor::NodeItem::getImageGeodeTexture() const
 {
     osg::Texture * ret = nullptr;
