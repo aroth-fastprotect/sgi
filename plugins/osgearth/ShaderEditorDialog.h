@@ -5,6 +5,7 @@
 #include <QAbstractItemModel>
 #include <sgi/plugins/SGISettingsWindowImpl>
 #include <osg/ref_ptr>
+#include <osgEarth/Version>
 
 QT_BEGIN_NAMESPACE
 class Ui_ShaderEditorDialog;
@@ -24,7 +25,14 @@ namespace osg {
 }
 namespace osgEarth {
     class VirtualProgram;
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     class PolyShader;
+#else
+    namespace Util {
+        class PolyShader;
+    }
+    typedef Util::PolyShader PolyShader;
+#endif
 }
 
 namespace sgi {

@@ -14,7 +14,17 @@
 #include <sgi/helpers/osg>
 
 #include <osgEarth/Version>
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 #include <osgEarthUtil/Sky>
+#else
+#include <osgEarth/Sky>
+#include <osgEarth/Ephemeris>
+namespace osgEarth { namespace Util {
+    typedef osgEarth::SkyNode SkyNode;
+    typedef osgEarth::Ephemeris Ephemeris;
+    typedef osgEarth::CelestialBody CelestialBody;
+}}
+#endif
 
 #include <osg/io_utils>
 

@@ -2,6 +2,7 @@
 
 #include <sgi/plugins/SGISettingsDialogImpl>
 #include <set>
+#include <osgEarth/Version>
 
 QT_BEGIN_NAMESPACE
 class Ui_LightSettings;
@@ -15,9 +16,14 @@ namespace osg {
 }
 
 namespace osgEarth {
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     namespace Util {
         class SkyNode;
     }
+#else
+    class SkyNode;
+    namespace Util { typedef osgEarth::SkyNode SkyNode; }
+#endif
 }
 
 namespace sgi {

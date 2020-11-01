@@ -4,7 +4,11 @@
 #include <sgi/plugins/SGIItemOsg>
 
 #include <sgi/plugins/SettingsDialog>
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+#include <osgEarth/AutoClipPlaneHandler>
+#else
 #include <osgEarthUtil/AutoClipPlaneHandler>
+#endif
 
 #include "AutoClipPlaneCullCallbackDialog.h"
 #include "TileInspectorDialog.h"

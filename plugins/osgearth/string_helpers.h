@@ -6,6 +6,7 @@
 #include <osgEarth/Units>
 #include <osgEarth/GeoData>
 #include <osgEarth/TileKey>
+#include <osgEarth/Version>
 
 class QLineEdit;
 
@@ -19,7 +20,12 @@ namespace osgEarth {
     class ImageLayer;
     class ElevationLayer;
     class ModelLayer;
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    class TileLayer;
+#else
     class MaskLayer;
+#endif
     class MapOptions;
     class MapNodeOptions;
     class SpatialReference;

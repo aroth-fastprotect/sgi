@@ -1,3 +1,4 @@
+#define final
 #include "stdafx.h"
 #define SGI_NO_HOSTITEM_GENERATOR
 #include "ShaderEditorDialog.h"
@@ -20,6 +21,7 @@
 #include <ui_ShaderEditorDialog.h>
 
 #include <osgEarth/VirtualProgram>
+
 #include <osg/Node>
 #include "osgearth_accessor.h"
 

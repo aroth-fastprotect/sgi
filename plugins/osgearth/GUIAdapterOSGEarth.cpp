@@ -5,7 +5,11 @@
 #include "ContextMenuOSGEarth.h"
 
 #include <osgEarth/Registry>
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+#include <osgEarth/EarthManipulator>
+#else
 #include <osgEarthUtil/EarthManipulator>
+#endif
 #include <sgi/helpers/osg>
 
 #include "../osg/MenuActionOSG.h"

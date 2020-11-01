@@ -2,9 +2,18 @@
 
 #include <osgEarth/GeoData>
 #include <osgEarth/TileKey>
+#include <osgEarth/Version>
 
 namespace osgEarth {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    namespace Contrib {
+        class TileSource;
+    }
+    class TileLayer;
+    typedef Contrib::TileSource TileSource;
+#else
     class TileSource;
+#endif
     class DateTime;
     class URI;
 }

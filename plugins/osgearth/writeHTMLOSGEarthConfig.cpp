@@ -1,3 +1,4 @@
+#define final
 #include "stdafx.h"
 #include <ostream>
 #include "writeHTMLOSGEarth.h"
@@ -24,6 +25,11 @@
 #include <osgEarth/ImageLayer>
 #include <osgEarth/ElevationLayer>
 #include <osgEarth/ModelLayer>
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+#include <osgEarth/GeometryCompiler>
+#include <osgEarth/LatLongFormatter>
+#else
 #include <osgEarth/MaskLayer>
 
 #include <osgEarthFeatures/FeatureModelSource>
@@ -33,8 +39,13 @@
 #endif
 #include <osgEarthFeatures/GeometryCompiler>
 #include <osgEarthUtil/LatLongFormatter>
+#endif
 
 #include <osgEarthDrivers/cache_filesystem/FileSystemCache>
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+
+#else
 #include <osgEarthDrivers/tms/TMSOptions>
 #include <osgEarthDrivers/arcgis/ArcGISOptions>
 #include <osgEarthDrivers/wms/WMSOptions>
@@ -47,6 +58,7 @@
 #endif
 #include <osgEarthDrivers/feature_ogr/OGRFeatureOptions>
 #include <osgEarthDrivers/gdal/GDALOptions>
+#endif
 
 #include "osgearth_accessor.h"
 #include <sgi/helpers/rtti>
@@ -71,6 +83,8 @@ namespace osgearth_plugin {
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Config)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ConfigOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::DriverConfigOptions)
+
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MapOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNodeOptions)
 
@@ -84,15 +98,23 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskLayerOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TileSourceOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelSourceOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheOptions)
+#else
+//WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Map::Options)
+//WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNode::Options)
+#endif
+
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSourceOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSourceOptions)
+#endif
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::GeometryCompilerOptions)
-#else
+#elif OSGEARTH_VERSION_LESS_THAN(3,0,0)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSourceLayerOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelLayerOptions)
 #endif
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::TMSOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::WMSOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::VPBOptions)
@@ -104,6 +126,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::FeatureGeomModelO
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::FeatureStencilModelOptions)
 #endif
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::OGRFeatureOptions)
+#endif // OSGEARTH_VERSION_LESS_THAN(3,0,0)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ScreenSpaceLayoutOptions)
 
@@ -113,6 +136,7 @@ void writePrettyHTMLImplForDriverOptions(SGIPluginHostInterface * hostInterface,
 {
     osgEarth::DriverConfigOptions * actualOpts = const_cast<osgEarth::DriverConfigOptions *>(&opts);
     const std::string driver = opts.getDriver();
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
     if(driver == "feature_geom")
         actualOpts = new osgEarth::Drivers::FeatureGeomModelOptions(opts);
 #if OSGEARTH_VERSION_LESS_THAN(2,8,0)
@@ -133,6 +157,7 @@ void writePrettyHTMLImplForDriverOptions(SGIPluginHostInterface * hostInterface,
         actualOpts = new osgEarth::Drivers::GDALOptions(opts);
     else if(driver == "ogr")
         actualOpts = new osgEarth::Drivers::OGRFeatureOptions(opts);
+#endif
     SGIHostItemOsgEarthConfigOptions featureOptions(*actualOpts);
     if(featureOptions.hasObject())
         hostInterface->writePrettyHTML(os, &featureOptions);
@@ -272,6 +297,7 @@ bool writePrettyHTMLImpl<osgEarth::DriverConfigOptions>::process(std::basic_ostr
     return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 bool writePrettyHTMLImpl<osgEarth::MapOptions>::process(std::basic_ostream<char>& os)
 {
     osgEarth::MapOptions * object = getObject<osgEarth::MapOptions,SGIItemEarthConfigOptions>();
@@ -328,9 +354,11 @@ bool writePrettyHTMLImpl<osgEarth::MapNodeOptions>::process(std::basic_ostream<c
 
             callNextHandler(os);
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
             os << "<tr><td>proxy</td><td>" << object->proxySettings() << "</td></tr>" << std::endl;
             //os << "<tr><td>cacheOnly</td><td>" << object->cacheOnly() << "</td></tr>" << std::endl;
             os << "<tr><td>lighting</td><td>" << object->enableLighting() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>terrainOptions</td><td>";
             writePrettyHTMLImplForDriverOptions(_hostInterface, os, object->getTerrainOptions());
             os << "</td></tr>" << std::endl;
@@ -1221,6 +1249,7 @@ bool writePrettyHTMLImpl<osgEarth::Drivers::FeatureGeomModelOptions>::process(st
     }
     return ret;
 }
+#endif
 
 bool writePrettyHTMLImpl<osgEarth::ScreenSpaceLayoutOptions>::process(std::basic_ostream<char>& os)
 {

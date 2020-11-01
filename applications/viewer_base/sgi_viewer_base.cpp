@@ -32,8 +32,11 @@
 
 #ifdef SGI_USE_OSGEARTH
 #include <osgEarth/Notify>
+#include <osgEarth/Version>
 #include <osgEarth/MapNode>
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 #include <osgEarth/MapFrame>
+#endif
 #include <osgEarth/Registry>
 #include <osgEarth/TerrainEngineNode>
 #include <osgEarth/GLUtils>
@@ -41,10 +44,17 @@
 #include <osgEarth/PhongLightingEffect>
 #include <osgEarth/NodeUtils>
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 #include <osgEarthUtil/Ephemeris>
 #include <osgEarthUtil/ExampleResources>
 #include <osgEarthUtil/EarthManipulator>
 #include <osgEarthUtil/Shadowing>
+#else
+#include <osgEarth/Ephemeris>
+#include <osgEarth/ExampleResources>
+#include <osgEarth/EarthManipulator>
+#include <osgEarth/Shadowing>
+#endif
 #endif // SGI_USE_OSGEARTH
 
 #include <sgi/helpers/osg_helper_nodes>

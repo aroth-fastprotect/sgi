@@ -10,7 +10,9 @@
 #define VIRTUALPROGRAMM_ACCESS_HACK
 #include "osgearth_accessor.h"
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 #include <osgEarth/MapNodeOptions>
+#endif
 #include <osgEarth/Extension>
 
 #define PREALLOCATE_APPLY_VARS
@@ -170,7 +172,7 @@ const osgEarth::Map* ElevationQueryAccess::getMap() const
 }
 #endif
 
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0) && OSGEARTH_VERSION_LESS_THAN(3,0,0)
 void ElevationPoolAccess::getTiles(Tiles & tiles)
 {
     osgEarth::Threading::ScopedMutexLock lock(_tilesMutex);
@@ -229,7 +231,11 @@ class ProgramRepoAccessor : public osgEarth::ProgramRepo
 public:
     void remove(const osgEarth::ProgramKey & key)
     {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+        osgEarth::ScopedMutexLock lock(mutex());
+#else
         osgEarth::ScopedMutexLock lock(_m);
+#endif
         ProgramMap::iterator i = _db.find(key);
         if (i != _db.end())
         {
@@ -249,12 +255,29 @@ void VirtualProgramAccessor::dirty(unsigned contextID)
 #endif
 }
 
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+osgEarth::Util::CacheSettings * LayerAccessor::getCacheSettings() const
+{
+    const osgEarth::TileLayer* tl = dynamic_cast<const osgEarth::TileLayer*>(static_cast<const osgEarth::Layer*>(this));
+    if (tl)
+    {
+        class TLA : public osgEarth::TileLayer {
+        public:
+            osgEarth::Util::CacheSettings * getCacheSettings() const {
+                return const_cast<osgEarth::Util::CacheSettings *>(osgEarth::TileLayer::getCacheSettings());
+            }
+        };
+        return static_cast<const TLA*>(tl)->getCacheSettings();
+    }
+    else
+        return _cacheSettings.get();
+}
+#elif OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 osgEarth::CacheSettings * LayerAccessor::getCacheSettings() const 
 {
     const osgEarth::TerrainLayer* tl = dynamic_cast<const osgEarth::TerrainLayer*>(static_cast<const osgEarth::Layer*>(this));
     if (tl)
-        return tl->getCacheSettings();
+        return getCacheSettings(tl);
     else
         return _cacheSettings.get();
 }

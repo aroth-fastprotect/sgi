@@ -52,8 +52,8 @@ void TileKeySet::addTileKeyChilds(const osgEarth::TileKey & tilekey)
 }
 
 TileKeyList::TileKeyList()
-	: _minimum_lod_level(MINIMUM_LOD_LEVEL)
-	, _maximum_lod_level(MAXIMUM_LOD_LEVEL)
+    : _maximum_lod_level(MAXIMUM_LOD_LEVEL)
+    , _minimum_lod_level(MINIMUM_LOD_LEVEL)
 {
 }
 
@@ -542,12 +542,20 @@ std::string MapDownload::getUrl(const osgEarth::DataExtent & de, const osgEarth:
 class TileSourceInfo::TileSourceInfoPrivate
 {
 public:
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     TileSourceInfoPrivate(const osgEarth::TileSource * ts)
+#else
+    TileSourceInfoPrivate(const osgEarth::Contrib::TileSource * ts)
+#endif
         : tileSource(ts)
         , creationTime(static_cast<osgEarth::TimeStamp>(0))
         , modificationTime(static_cast<osgEarth::TimeStamp>(0))
         {
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             const osgEarth::TileSourceOptions & opts = ts->getOptions();
+#else
+            const osgEarth::Contrib::TileSourceOptions & opts = ts->getOptions();
+#endif
             driver = opts.getDriver();
             osgEarth::Config optsCfg = opts.getConfig();
             if(optsCfg.hasValue("url"))
@@ -562,7 +570,11 @@ public:
             }
         }
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     const osgEarth::TileSource * tileSource;
+#else
+    const osgEarth::Contrib::TileSource * tileSource;
+#endif
     std::string driver;
     osgEarth::URI url;
     osgEarth::URI path;

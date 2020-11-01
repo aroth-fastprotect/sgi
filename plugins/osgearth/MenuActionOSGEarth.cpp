@@ -1,3 +1,4 @@
+#define final
 #include "stdafx.h"
 #include "MenuActionOSGEarth.h"
 #include <sgi/plugins/SGIItemOsg>
@@ -17,11 +18,17 @@
 #include <osgEarth/ShaderGenerator>
 #include <osgEarth/Registry>
 #include <osgEarth/ImageUtils>
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 #include <osgEarth/MaskLayer>
+#endif
 #include <osgEarth/TileSource>
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 #include <osgEarthDrivers/debug/DebugOptions>
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+#endif
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+#include <osgEarth/Sky>
+#elif OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 #include <osgEarthUtil/Sky>
 #else
 #include <osgEarthUtil/SkyNode>
@@ -30,7 +37,11 @@
 #include <osgEarth/LineDrawable>
 #endif
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+#include <osgEarth/FeatureModelLayer>
+#else
 #include <osgEarthFeatures/FeatureModelLayer>
+#endif
 
 #include "SGIItemOsgEarth"
 #include "osgearth_accessor.h"
@@ -66,7 +77,11 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionImageLayerOpacity)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionImageLayerMinVisibleRange)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionImageLayerMaxVisibleRange)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionModelLayerSetURL)
+
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMaskLayerSetURL)
+#endif
+
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTerrainLayerEnable)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTerrainLayerVisible)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionModelLayerEnable)
@@ -264,12 +279,21 @@ bool setDebugImageLayer(osgEarth::Map * object, MapDebugImageLayer mode)
         case MapDebugImageLayerNormal:
         case MapDebugImageLayerInverted:
             {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+                osgEarth::Config cfg;
+                cfg.set("invertY", mode == MapDebugImageLayerInverted);
+                osgEarth::DriverConfigOptions tileOpts(cfg);
+                tileOpts.setDriver("debug");
+
+                osgEarth::ImageLayer * imageLayer = osgEarth::ImageLayer::create(tileOpts);
+#else
                 osgEarth::Drivers::DebugOptions tileOpts;
-                osgEarth::ImageLayerOptions opts;
                 tileOpts.invertY() = (mode == MapDebugImageLayerInverted);
+                osgEarth::ImageLayerOptions opts;
                 tileOpts.setDriver("debug");
                 opts.driver() = tileOpts;
                 osgEarth::ImageLayer * imageLayer = new osgEarth::ImageLayer(opts);
+#endif
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
                 if(layer.valid())
@@ -321,11 +345,13 @@ bool actionHandlerImpl<MenuActionNodeRegenerateShaders>::execute()
 bool actionHandlerImpl<MenuActionMapCachePolicyUsage>::execute()
 {
     osgEarth::Map * object = static_cast<osgEarth::Map*>(item<SGIItemOsg>()->object());
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
     const osgEarth::MapOptions & mapOptions = object->getMapOptions();
     osgEarth::CachePolicy newCachePolicy = mapOptions.cachePolicy().value();
     newCachePolicy.usage() = (osgEarth::CachePolicy::Usage)menuAction()->mode();
     /// @todo apply new default cache policy
     //object->setCachePolicy(newCachePolicy);
+#endif
     return false;
 }
 
@@ -338,7 +364,11 @@ bool actionHandlerImpl<MenuActionMapDebugImageLayer>::execute()
 
 bool actionHandlerImpl<MenuActionTerrainLayerCacheUsage>::execute()
 {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    osgEarth::TileLayer * object = static_cast<osgEarth::TileLayer*>(item<SGIItemOsg>()->object());
+#else
     osgEarth::TerrainLayer * object = static_cast<osgEarth::TerrainLayer*>(item<SGIItemOsg>()->object());
+#endif
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::CachePolicy newCachePolicy = ((TerrainLayerAccessor*)object)->getCachePolicy();
     newCachePolicy.usage() = (osgEarth::CachePolicy::Usage)menuAction()->mode();
@@ -431,8 +461,13 @@ bool actionHandlerImpl<MenuActionImageLayerMaxVisibleRange>::execute()
 
 bool actionHandlerImpl<MenuActionTerrainLayerSetURL>::execute()
 {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    osgEarth::TileLayer * object = static_cast<osgEarth::TileLayer*>(item<SGIItemOsg>()->object());
+    std::string url = ((TileLayerAccessor*)object)->getURL();
+#else
     osgEarth::TerrainLayer * object = static_cast<osgEarth::TerrainLayer*>(item<SGIItemOsg>()->object());
     std::string url = ((TerrainLayerAccessor*)object)->getURL();
+#endif
 
     bool gotInput = _hostInterface->inputDialogString(menuAction()->menu()->parentWidget(), url, "URL:", "Set URL", SGIPluginHostInterface::InputDialogStringEncodingSystem, _item);
     if(gotInput)
@@ -461,6 +496,7 @@ bool actionHandlerImpl<MenuActionModelLayerSetURL>::execute()
     return true;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 bool actionHandlerImpl<MenuActionMaskLayerSetURL>::execute()
 {
     osgEarth::MaskLayer * object = static_cast<osgEarth::MaskLayer*>(item<SGIItemOsg>()->object());
@@ -479,17 +515,27 @@ bool actionHandlerImpl<MenuActionMaskLayerSetURL>::execute()
     }
     return true;
 }
+#endif
 
 bool actionHandlerImpl<MenuActionTerrainLayerEnable>::execute()
 {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    osgEarth::TileLayer * object = static_cast<osgEarth::TileLayer*>(item<SGIItemOsg>()->object());
+    ((TileLayerAccessor*)object)->setEnabled(menuAction()->state());
+#else
     osgEarth::TerrainLayer * object = static_cast<osgEarth::TerrainLayer*>(item<SGIItemOsg>()->object());
     ((TerrainLayerAccessor*)object)->setEnabled(menuAction()->state());
+#endif
     return true;
 }
 
 bool actionHandlerImpl<MenuActionTerrainLayerVisible>::execute()
 {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    osgEarth::TileLayer * object = static_cast<osgEarth::TileLayer*>(item<SGIItemOsg>()->object());
+#else
     osgEarth::TerrainLayer * object = static_cast<osgEarth::TerrainLayer*>(item<SGIItemOsg>()->object());
+#endif
     object->setVisible(menuAction()->state());
     return true;
 }
@@ -530,13 +576,21 @@ bool actionHandlerImpl<MenuActionTileSourceUpdateMetaData>::execute()
 
 bool actionHandlerImpl<MenuActionTileBlacklistClear>::execute()
 {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    osgEarth::Contrib::TileBlacklist * tileblacklist = getObject<osgEarth::Contrib::TileBlacklist,SGIItemOsg,DynamicCaster>();
+    osgEarth::TileLayer * terrainlayer = getObject<osgEarth::TileLayer, SGIItemOsg, DynamicCaster>();
+    osgEarth::Contrib::TileSource * tilesource = getObject<osgEarth::Contrib::TileSource, SGIItemOsg, DynamicCaster>();
+#else
     osgEarth::TileBlacklist * tileblacklist = getObject<osgEarth::TileBlacklist,SGIItemOsg,DynamicCaster>();
     osgEarth::TerrainLayer * terrainlayer = getObject<osgEarth::TerrainLayer, SGIItemOsg, DynamicCaster>();
     osgEarth::TileSource * tilesource = getObject<osgEarth::TileSource, SGIItemOsg, DynamicCaster>();
+#endif
     osgEarth::Map * map = getObject<osgEarth::Map, SGIItemOsg, DynamicCaster>();
     osgEarth::MapNode * mapnode = getObject<osgEarth::MapNode, SGIItemOsg, DynamicCaster>();
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
     if (terrainlayer)
         tilesource = terrainlayer->getTileSource();
+#endif
     if (tilesource)
         tileblacklist = tilesource->getBlacklist();
     if (tileblacklist)
@@ -569,10 +623,18 @@ bool actionHandlerImpl<MenuActionTileBlacklistClear>::execute()
         map->getLayers(layers);
         for (osgEarth::Layer * layer : layers)
         {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+            osgEarth::TileLayer* terrainLayer = dynamic_cast<osgEarth::TileLayer*>(layer);
+#else
             osgEarth::TerrainLayer* terrainLayer = dynamic_cast<osgEarth::TerrainLayer*>(layer);
+#endif
             if (terrainLayer)
             {
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
                 tilesource = terrainLayer->getTileSource();
+#else
+                tilesource = nullptr;
+#endif
                 if (tilesource)
                     tileblacklist = tilesource->getBlacklist();
                 if (tileblacklist)
@@ -586,7 +648,11 @@ bool actionHandlerImpl<MenuActionTileBlacklistClear>::execute()
 
 bool actionHandlerImpl<MenuActionSkyNodeSetDateTime>::execute()
 {
+#if OSGEARTH_VERSION_GREATER_THAN(3,0,0)
+    osgEarth::SkyNode * object = getObject<osgEarth::SkyNode, SGIItemOsg>();
+#else
     osgEarth::Util::SkyNode * object = getObject<osgEarth::Util::SkyNode, SGIItemOsg>();
+#endif
     /// @todo open settings dialog for sky/light
     //object->clear();
     return true;
@@ -594,21 +660,33 @@ bool actionHandlerImpl<MenuActionSkyNodeSetDateTime>::execute()
 
 bool actionHandlerImpl<MenuActionSkyNodeSetSunVisible>::execute()
 {
+#if OSGEARTH_VERSION_GREATER_THAN(3,0,0)
+    osgEarth::SkyNode * object = getObject<osgEarth::SkyNode, SGIItemOsg>();
+#else
     osgEarth::Util::SkyNode * object = getObject<osgEarth::Util::SkyNode, SGIItemOsg>();
+#endif
     object->setSunVisible(menuAction()->state());
     return true;
 }
 
 bool actionHandlerImpl<MenuActionSkyNodeSetStarsVisible>::execute()
 {
+#if OSGEARTH_VERSION_GREATER_THAN(3,0,0)
+    osgEarth::SkyNode * object = getObject<osgEarth::SkyNode, SGIItemOsg>();
+#else
     osgEarth::Util::SkyNode * object = getObject<osgEarth::Util::SkyNode, SGIItemOsg>();
+#endif
     object->setStarsVisible(menuAction()->state());
     return true;
 }
 
 bool actionHandlerImpl<MenuActionSkyNodeSetMoonVisible>::execute()
 {
+#if OSGEARTH_VERSION_GREATER_THAN(3,0,0)
+    osgEarth::SkyNode * object = getObject<osgEarth::SkyNode, SGIItemOsg>();
+#else
     osgEarth::Util::SkyNode * object = getObject<osgEarth::Util::SkyNode, SGIItemOsg>();
+#endif
     object->setMoonVisible(menuAction()->state());
     return true;
 }
@@ -984,10 +1062,18 @@ bool actionHandlerImpl<MenuActionCacheBinCompact>::execute()
 bool actionHandlerImpl<MenuActionTerrainLayerClearCacheTiles>::execute()
 {
     TileSourceTileKey * data_ref = getObject<TileSourceTileKey, SGIItemOsg, DynamicCaster>();
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    osgEarth::TileLayer * terrainLayer = getObject<osgEarth::TileLayer,SGIItemOsg, DynamicCaster>();
+#else
     osgEarth::TerrainLayer * terrainLayer = getObject<osgEarth::TerrainLayer,SGIItemOsg, DynamicCaster>();
+#endif
+
     const osgEarth::Profile * profile = terrainLayer ? terrainLayer->getProfile() : nullptr;
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
-    osgEarth::CacheSettings * cs = terrainLayer ? terrainLayer->getCacheSettings() : nullptr;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    osgEarth::Util::CacheSettings * cs = getCacheSettings(terrainLayer);
+    osgEarth::CacheBin * bin = cs ? cs->getCacheBin() : nullptr;
+#elif OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+    osgEarth::CacheSettings * cs = getCacheSettings(terrainLayer);
     osgEarth::CacheBin * bin = cs ? cs->getCacheBin() : nullptr;
 #else
     osgEarth::CacheBin * bin = terrainLayer ? terrainLayer->getCacheBin(profile) : nullptr;
@@ -1004,10 +1090,17 @@ bool actionHandlerImpl<MenuActionTerrainLayerClearCacheTiles>::execute()
 
         if (object.cacheBin.valid())
             bin = object.cacheBin.get();
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+        else if (object.tileLayer.valid())
+#else
         else if (object.terrainLayer.valid())
+#endif
         {
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
-            cs = object.terrainLayer->getCacheSettings();
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+            cs = getCacheSettings(object.tileLayer);
+            bin = cs ? cs->getCacheBin() : nullptr;
+#elif OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            cs = getCacheSettings(object.terrainLayer);
             bin = cs ? cs->getCacheBin() : nullptr;
 #else
             bin = terrainLayer ? terrainLayer->getCacheBin(profile) : nullptr;
@@ -1117,7 +1210,11 @@ bool actionHandlerImpl<MenuActionLightSettings>::execute()
 
 bool actionHandlerImpl<MenuActionFeatureModelLayerDirty>::execute()
 {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    osgEarth::FeatureModelLayer * object = getObject<osgEarth::FeatureModelLayer, SGIItemOsg>();
+#else
     osgEarth::Features::FeatureModelLayer * object = getObject<osgEarth::Features::FeatureModelLayer, SGIItemOsg>();
+#endif
     object->dirty();
     return true;
 }

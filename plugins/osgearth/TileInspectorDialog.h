@@ -3,6 +3,7 @@
 #include <QDialog>
 #include <osg/ref_ptr>
 #include <sgi/plugins/SGISettingsDialogImpl>
+#include <osgEarth/Version>
 
 QT_BEGIN_NAMESPACE
 class Ui_TileInspectorDialog;
@@ -14,8 +15,17 @@ namespace osg {
 }
 
 namespace osgEarth {
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    namespace Contrib {
+    class TileSource;
+    }
+    class TileLayer;
+    typedef Contrib::TileSource TileSource;
+#else
     class TileSource;
     class TerrainLayer;
+#endif
     class TileKey;
 }
 

@@ -1,3 +1,4 @@
+#define final
 #include "stdafx.h"
 #include "ObjectTreeOSGEarth.h"
 #include "string_helpers.h"
@@ -21,7 +22,9 @@
 #endif
 #include <osgEarth/Map>
 #include <osgEarth/MapNode>
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 #include <osgEarth/MaskLayer>
+#endif
 #include <osgEarth/Registry>
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 #include <osgEarth/ShaderFactory>
@@ -32,30 +35,51 @@
 #include <osgEarth/ElevationPool>
 #endif
 
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+#include <osgEarth/Sky>
+#elif OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 #include <osgEarthUtil/Sky>
 #else
 #include <osgEarthUtil/SkyNode>
 #endif
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+#include <osgEarth/Controls>
+#include <osgEarth/RTTPicker>
+#else
 #include <osgEarthUtil/Controls>
 #include <osgEarthUtil/RTTPicker>
-#include <osgEarth/Capabilities>
 #include <osgEarth/TaskService>
+#endif
+
+#include <osgEarth/Capabilities>
 #include <osgEarth/StateSetCache>
 #include <osgEarth/OverlayDecorator>
 #include <osgEarth/TraversalData>
 
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+#include <osgEarth/FeatureModelLayer>
+#elif OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 #include <osgEarthFeatures/FeatureSourceLayer>
 #include <osgEarthFeatures/FeatureModelLayer>
 #endif
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+#include <osgEarth/FeatureModelGraph>
+
+#include <osgEarth/Style>
+
+#include <osgEarth/AnnotationNode>
+#else
 #include <osgEarthFeatures/FeatureModelGraph>
 
 #include <osgEarthSymbology/Style>
 
 #include <osgEarthAnnotation/LabelNode>
+#endif
 
 #include <osgEarthDrivers/cache_filesystem/FileSystemCache>
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 #include <osgEarthDrivers/tms/TMSOptions>
 #include <osgEarthDrivers/arcgis/ArcGISOptions>
 #include <osgEarthDrivers/wms/WMSOptions>
@@ -63,6 +87,7 @@
 #include <osgEarthDrivers/model_simple/SimpleModelOptions>
 #include <osgEarthDrivers/model_feature_geom/FeatureGeomModelOptions>
 #include <osgEarthDrivers/feature_ogr/OGRFeatureOptions>
+#endif
 
 #include "osgearth_accessor.h"
 #include "geo_helpers.h"
@@ -85,11 +110,18 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::ControlNod
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::LabelControl)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::ImageControl)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Layer)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::TileLayer)
+#else
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::TerrainLayer)
+#endif
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ImageLayer)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationLayer)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelLayer)
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskLayer)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskSource)
+#endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::VideoLayer)
 #endif
@@ -97,9 +129,13 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Terrain)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::TerrainEngineNode)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::TileSource)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(TileSourceInfo)
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Contrib::TileBlacklist)
+#else
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::TileBlacklist)
+#endif
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelSource)
-OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskSource)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(ElevationQueryReferenced)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(TileKeyReferenced)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
@@ -112,14 +148,27 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::PolyShader)
 #endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationPool)
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationPool::Tile)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationEnvelope)
+#endif
 #endif
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Picker)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::RTTPicker)
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::FeatureProfile)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::FeatureSource)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Feature)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::FeatureModelLayer)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::FeatureModelGraph)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::FeatureDisplayLayout)
 
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Style)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::StyleSelector)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::StyleSheet)
+#else
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureProfile)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureSource)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::Feature)
@@ -134,14 +183,21 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureDisplayLa
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::Style)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::StyleSelector)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::StyleSheet)
+#endif
 
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Config)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ConfigOptions)
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelLayerOptions)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSourceOptions)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Drivers::FeatureGeomModelOptions)
+#endif
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::AnnotationNode)
+#else
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Annotation::AnnotationNode)
+#endif
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::FunctionLocation & t);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ShaderComp::StageMaskValues & t);
@@ -184,9 +240,11 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
                 treeItem->addChild("ElevationPool", &elevationPool);
 #endif
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
             SGIHostItemOsg globalOpts(object->getGlobalOptions());
             if(globalOpts.hasObject())
                 treeItem->addChild("GlobalOptions", &globalOpts);
+#endif
 
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             SGIHostItemOsg dbOpts(object->getDBOptions());
@@ -198,11 +256,13 @@ bool objectTreeBuildImpl<osgEarth::Map>::build(IObjectTreeItem * treeItem)
                 treeItem->addChild("ReadOptions", &readOpts);
 #endif
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
             SGIHostItemOsgEarthConfigOptions initialOptions(object->getInitialMapOptions());
             treeItem->addChild("Initial Options", &initialOptions);
 
             SGIHostItemOsgEarthConfigOptions runtimeOptions(object->getMapOptions());
             treeItem->addChild("Runtime Options", &runtimeOptions);
+#endif
 
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             unsigned numImage = object->getNumImageLayers();
@@ -340,8 +400,10 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
             if(map.hasObject())
                 treeItem->addChild("Map", &map);
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
             SGIHostItemOsgEarthConfigOptions runtimeOptions(object->getMapNodeOptions());
             treeItem->addChild("Runtime Options", &runtimeOptions);
+#endif
 
 			const auto & extensions = object->getExtensions();
 			if(!extensions.empty())
@@ -374,9 +436,11 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
             if(modelLayerGroup.hasObject())
                 treeItem->addChild("ModelLayerGroup", &modelLayerGroup);
 #endif
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
             SGIHostItemOsg overlayDecorator(object->getOverlayDecorator());
             if(overlayDecorator.hasObject())
                 treeItem->addChild("OverlayDecorator", &overlayDecorator);
+#endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
             SGIHostItemOsg resourceReleaser(object->getResourceReleaser());
             if(resourceReleaser.hasObject())
@@ -511,6 +575,7 @@ bool objectTreeBuildImpl<osgEarth::Registry>::build(IObjectTreeItem * treeItem)
             treeItem->addChild("ProgramSharedRepo", cloneItem<SGIItemOsg>(SGIItemTypeProgramSharedRepo));
 #endif
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             SGIHostItemOsg taskServiceManager(object->getTaskServiceManager());
             if(taskServiceManager.hasObject())
                 treeItem->addChild("TaskServiceManager", &taskServiceManager);
@@ -518,6 +583,7 @@ bool objectTreeBuildImpl<osgEarth::Registry>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg asyncOperationQueue(object->getAsyncOperationQueue());
             if(asyncOperationQueue.hasObject())
                 treeItem->addChild("AsyncOperationQueue", &asyncOperationQueue);
+#endif
 #endif
 
             SGIHostItemOsg defaultOptions(object->getDefaultOptions());
@@ -927,6 +993,7 @@ bool objectTreeBuildImpl<osgEarth::Layer>::build(IObjectTreeItem * treeItem)
     return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 bool objectTreeBuildImpl<osgEarth::TerrainLayer>::build(IObjectTreeItem * treeItem)
 {
     TerrainLayerAccessor * object = static_cast<TerrainLayerAccessor*>(getObject<osgEarth::TerrainLayer,SGIItemOsg>());
@@ -998,6 +1065,31 @@ bool objectTreeBuildImpl<osgEarth::TerrainLayer>::build(IObjectTreeItem * treeIt
     }
     return ret;
 }
+#else
+bool objectTreeBuildImpl<osgEarth::TileLayer>::build(IObjectTreeItem * treeItem)
+{
+    TileLayerAccessor * object = static_cast<TileLayerAccessor*>(getObject<osgEarth::TileLayer,SGIItemOsg>());
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(treeItem);
+        if(ret)
+        {
+            const osgEarth::Profile * profile = object->profileNoInit();
+
+            SGIHostItemOsg profileItem(profile);
+            if(profile)
+                treeItem->addChild("Profile", &profileItem);
+        }
+        break;
+    default:
+        ret = callNextHandler(treeItem);
+        break;
+    }
+    return ret;
+}
+#endif
 
 bool objectTreeBuildImpl<osgEarth::ImageLayer>::build(IObjectTreeItem * treeItem)
 {
@@ -1054,7 +1146,7 @@ bool objectTreeBuildImpl<osgEarth::ModelLayer>::build(IObjectTreeItem * treeItem
             if(modelSource.hasObject())
                 treeItem->addChild("Model source", &modelSource);
 
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0) && OSGEARTH_VERSION_LESS_THAN(3,0,0)
             SGIHostItemOsg maskSource(object->getMaskSource());
             if(maskSource.hasObject())
                 treeItem->addChild("Mask source", &maskSource);
@@ -1083,6 +1175,7 @@ bool objectTreeBuildImpl<osgEarth::ModelLayer>::build(IObjectTreeItem * treeItem
     return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 bool objectTreeBuildImpl<osgEarth::MaskLayer>::build(IObjectTreeItem * treeItem)
 {
     osgEarth::MaskLayer * object = getObject<osgEarth::MaskLayer, SGIItemOsg>();
@@ -1115,6 +1208,7 @@ bool objectTreeBuildImpl<osgEarth::MaskLayer>::build(IObjectTreeItem * treeItem)
     }
     return ret;
 }
+#endif
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 bool objectTreeBuildImpl<osgEarth::VideoLayer>::build(IObjectTreeItem * treeItem)
@@ -1241,9 +1335,11 @@ bool objectTreeBuildImpl<osgEarth::TileSource>::build(IObjectTreeItem * treeItem
             if(blacklist.hasObject())
                 treeItem->addChild("Blacklist", &blacklist);
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
             const osgEarth::TileSourceOptions & tileSourceOpts = object->getOptions();
             SGIHostItemOsgEarthConfigOptions runtimeOptions(tileSourceOpts);
             treeItem->addChild("Runtime Options", &runtimeOptions);
+#endif
 
             const osgEarth::DataExtentList& dataExtents = object->getDataExtents();
             if(!dataExtents.empty())
@@ -1316,9 +1412,15 @@ bool objectTreeBuildImpl<TileSourceInfo>::build(IObjectTreeItem * treeItem)
     return ret;
 }
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+bool objectTreeBuildImpl<osgEarth::Contrib::TileBlacklist>::build(IObjectTreeItem * treeItem)
+{
+    osgEarth::Contrib::TileBlacklist * object = dynamic_cast<osgEarth::Contrib::TileBlacklist*>(item<SGIItemOsg>()->object());
+#else
 bool objectTreeBuildImpl<osgEarth::TileBlacklist>::build(IObjectTreeItem * treeItem)
 {
     osgEarth::TileBlacklist * object = dynamic_cast<osgEarth::TileBlacklist*>(item<SGIItemOsg>()->object());
+#endif
     bool ret = false;
     switch(itemType())
     {
@@ -1420,6 +1522,7 @@ bool objectTreeBuildImpl<osgEarth::ModelSource>::build(IObjectTreeItem * treeIte
     return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 bool objectTreeBuildImpl<osgEarth::MaskSource>::build(IObjectTreeItem * treeItem)
 {
     osgEarth::MaskSource * object = getObject<osgEarth::MaskSource,SGIItemOsg>();
@@ -1440,6 +1543,7 @@ bool objectTreeBuildImpl<osgEarth::MaskSource>::build(IObjectTreeItem * treeItem
     }
     return ret;
 }
+#endif
 
 bool objectTreeBuildImpl<ElevationQueryReferenced>::build(IObjectTreeItem * treeItem)
 {
@@ -1524,9 +1628,15 @@ bool objectTreeBuildImpl<TileSourceTileKey>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg tileSource(object.tileSource.get());
             if(tileSource.hasObject())
                 treeItem->addChild("TileSource", &tileSource);
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+            SGIHostItemOsg tileLayer(object.tileLayer.get());
+            if (tileLayer.hasObject())
+                treeItem->addChild("TileLayer", &tileLayer);
+#else
             SGIHostItemOsg terrainLayer(object.terrainLayer.get());
             if (terrainLayer.hasObject())
                 treeItem->addChild("TerrainLayer", &terrainLayer);
+#endif
             SGIHostItemOsg cacheBin(object.cacheBin.get());
             if (cacheBin.hasObject())
                 treeItem->addChild("CacheBin", &cacheBin);
@@ -1586,9 +1696,12 @@ bool objectTreeBuildImpl<osgEarth::VirtualProgram>::build(IObjectTreeItem * tree
 #if OSGEARTH_VERSION_LESS_THAN(2,7,0)
                 const std::string & name = it->first;
 				const osgEarth::VirtualProgram::ShaderEntry & entry = it->second;
+#elif OSGEARTH_VERSION_LESS_THAN(3,0,0)
+                const auto & id = it->key();
+                const auto & entry = it->data();
 #else
-				const auto & id = it->key();
-				const auto & entry = it->data();
+                const auto & id = it->first;
+                const auto & entry = it->second;
 #endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 				const auto & shader = entry._shader;
@@ -1846,6 +1959,7 @@ bool objectTreeBuildImpl<osgEarth::ElevationPool>::build(IObjectTreeItem * treeI
         break;
     case SGIItemTypeElevationLayers:
         {
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
             const osgEarth::ElevationLayerVector & elevationLayers = object->getElevationLayers();
             for(osgEarth::ElevationLayerVector::const_iterator it = elevationLayers.begin(); it != elevationLayers.end(); it++)
             {
@@ -1853,11 +1967,13 @@ bool objectTreeBuildImpl<osgEarth::ElevationPool>::build(IObjectTreeItem * treeI
                 SGIHostItemOsg childItem(layer.get());
                 treeItem->addChild(std::string(), &childItem);
             }
+#endif
             ret = true;
         }
         break;
     case SGIItemTypeTileCache:
         {
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
             ElevationPoolAccess::Tiles tiles;
             object->getTiles(tiles);
             for(ElevationPoolAccess::Tiles::const_iterator it = tiles.begin(); it != tiles.end(); it++)
@@ -1867,11 +1983,13 @@ bool objectTreeBuildImpl<osgEarth::ElevationPool>::build(IObjectTreeItem * treeI
                 SGIHostItemOsg childItem(tile.get());
                 treeItem->addChild(key.str(), &childItem);
             }
+#endif
             ret = true;
         }
         break;
     case SGIItemTypeTileCacheLRU:
         {
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
             ElevationPoolAccess::MRU mru;
             object->getMRU(mru);
             for(ElevationPoolAccess::MRU::const_iterator it = mru.begin(); it != mru.end(); it++)
@@ -1880,6 +1998,7 @@ bool objectTreeBuildImpl<osgEarth::ElevationPool>::build(IObjectTreeItem * treeI
                 SGIHostItemOsg childItem(tile.get());
                 treeItem->addChild(tile->_key.str(), &childItem);
             }
+#endif
             ret = true;
         }
         break;
@@ -1890,6 +2009,7 @@ bool objectTreeBuildImpl<osgEarth::ElevationPool>::build(IObjectTreeItem * treeI
     return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 bool objectTreeBuildImpl<osgEarth::ElevationPool::Tile>::build(IObjectTreeItem * treeItem)
 {
     osgEarth::ElevationPool::Tile * object = getObject<osgEarth::ElevationPool::Tile, SGIItemOsg>();
@@ -1936,6 +2056,7 @@ bool objectTreeBuildImpl<osgEarth::ElevationEnvelope>::build(IObjectTreeItem * t
     }
     return ret;
 }
+#endif // OSGEARTH_VERSION_LESS_THAN(3,0,0)
 
 #endif
 
@@ -2020,10 +2141,15 @@ bool objectTreeBuildImpl<osgEarth::Util::RTTPicker>::build(IObjectTreeItem * tre
     return ret;
 }
 
-
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+bool objectTreeBuildImpl<osgEarth::FeatureProfile>::build(IObjectTreeItem * treeItem)
+{
+    osgEarth::FeatureProfile * object = getObject<osgEarth::FeatureProfile, SGIItemOsg>();
+#else
 bool objectTreeBuildImpl<osgEarth::Features::FeatureProfile>::build(IObjectTreeItem * treeItem)
 {
-	osgEarth::Features::FeatureProfile * object = getObject<osgEarth::Features::FeatureProfile, SGIItemOsg>();
+    osgEarth::Features::FeatureProfile * object = getObject<osgEarth::Features::FeatureProfile, SGIItemOsg>();
+#endif
 	bool ret = false;
 	switch (itemType())
 	{
@@ -2033,11 +2159,13 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureProfile>::build(IObjectTreeI
 		{
 			SGIHostItemOsg srs(object->getSRS());
 			if (srs.hasObject())
-				treeItem->addChild("SRS", &srs);
+                treeItem->addChild("SRS", &srs);
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 			SGIHostItemOsg profile(object->getProfile());
 			if (profile.hasObject())
-				treeItem->addChild("Profile", &profile);
+                treeItem->addChild("Profile", &profile);
+#endif
 		}
 		break;
 	case SGIItemTypeConfig:
@@ -2050,9 +2178,15 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureProfile>::build(IObjectTreeI
 	return ret;
 }
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+bool objectTreeBuildImpl<osgEarth::FeatureSource>::build(IObjectTreeItem * treeItem)
+{
+    FeatureSourceAccess * object = static_cast<FeatureSourceAccess*>(getObject<osgEarth::FeatureSource, SGIItemOsg>());
+#else
 bool objectTreeBuildImpl<osgEarth::Features::FeatureSource>::build(IObjectTreeItem * treeItem)
 {
     FeatureSourceAccess * object = static_cast<FeatureSourceAccess*>(getObject<osgEarth::Features::FeatureSource, SGIItemOsg>());
+#endif
 	bool ret = false;
 	switch (itemType())
 	{
@@ -2068,8 +2202,10 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureSource>::build(IObjectTreeIt
 			if (featureProfile.hasObject())
 				treeItem->addChild("FeatureProfile", &featureProfile);
 
-			SGIHostItemOsgEarthConfigOptions featureSourceOptions(object->getFeatureSourceOptions());
-			treeItem->addChild("FeatureSourceOptions", &featureSourceOptions);
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
+            SGIHostItemOsgEarthConfigOptions featureSourceOptions(object->getFeatureSourceOptions());
+            treeItem->addChild("FeatureSourceOptions", &featureSourceOptions);
+#endif
 
             int numFeatures = object->getFeatureCount();
             std::string name = numFeatures > 0 ? helpers::str_plus_count("Features", object->getFeatureCount()) : std::string("Features");
@@ -2081,12 +2217,12 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureSource>::build(IObjectTreeIt
 		break;
     case SGIItemTypeFeatureSourceFeatures:
         {
-            osgEarth::Features::FeatureCursor* cursor = object->createFeatureCursor(nullptr);
+            auto * cursor = object->createFeatureCursor(nullptr);
             if (cursor)
             {
                 while (cursor->hasMore())
                 {
-                    osgEarth::Features::Feature * feature = cursor->nextFeature();
+                    auto * feature = cursor->nextFeature();
                     if (feature)
                     {
                         SGIHostItemOsg item(feature);
@@ -2104,9 +2240,15 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureSource>::build(IObjectTreeIt
 	return ret;
 }
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+bool objectTreeBuildImpl<osgEarth::Feature>::build(IObjectTreeItem * treeItem)
+{
+    osgEarth::Feature * object = getObject<osgEarth::Feature, SGIItemOsg>();
+#else
 bool objectTreeBuildImpl<osgEarth::Features::Feature>::build(IObjectTreeItem * treeItem)
 {
     osgEarth::Features::Feature * object = getObject<osgEarth::Features::Feature, SGIItemOsg>();
+#endif
     bool ret = false;
     switch (itemType())
     {
@@ -2133,7 +2275,7 @@ bool objectTreeBuildImpl<osgEarth::Features::Feature>::build(IObjectTreeItem * t
     return ret;
 }
 
-
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 bool objectTreeBuildImpl<osgEarth::Features::FeatureModelSource>::build(IObjectTreeItem * treeItem)
 {
     osgEarth::Features::FeatureModelSource * object = getObject<osgEarth::Features::FeatureModelSource,SGIItemOsg>();
@@ -2188,8 +2330,9 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureModelSource>::build(IObjectT
     }
     return ret;
 }
+#endif
 
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0) && OSGEARTH_VERSION_LESS_THAN(3,0,0)
 bool objectTreeBuildImpl<osgEarth::Features::FeatureSourceLayer>::build(IObjectTreeItem * treeItem)
 {
     osgEarth::Features::FeatureSourceLayer * object = getObject<osgEarth::Features::FeatureSourceLayer,SGIItemOsg>();
@@ -2211,10 +2354,17 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureSourceLayer>::build(IObjectT
     }
     return ret;
 }
+#endif
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+bool objectTreeBuildImpl<osgEarth::FeatureModelLayer>::build(IObjectTreeItem * treeItem)
+{
+    osgEarth::FeatureModelLayer * object = getObject<osgEarth::FeatureModelLayer,SGIItemOsg>();
+#else
 bool objectTreeBuildImpl<osgEarth::Features::FeatureModelLayer>::build(IObjectTreeItem * treeItem)
 {
     osgEarth::Features::FeatureModelLayer * object = getObject<osgEarth::Features::FeatureModelLayer,SGIItemOsg>();
+#endif
     bool ret = false;
     switch(itemType())
     {
@@ -2222,8 +2372,10 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureModelLayer>::build(IObjectTr
         ret = callNextHandler(treeItem);
         if(ret)
         {
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
             SGIHostItemOsgEarthConfigOptions featureModelLayerOptions(object->getFeatureModelLayerOptions());
             treeItem->addChild("FeatureModelLayerOptions", &featureModelLayerOptions);
+#endif
 
             SGIHostItemOsg node(object->getNode());
             if(node.hasObject())
@@ -2253,11 +2405,16 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureModelLayer>::build(IObjectTr
     }
     return ret;
 }
-#endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+bool objectTreeBuildImpl<osgEarth::FeatureModelGraph>::build(IObjectTreeItem* treeItem)
+{
+    osgEarth::FeatureModelGraph* object = getObject<osgEarth::FeatureModelGraph, SGIItemOsg>();
+#else
 bool objectTreeBuildImpl<osgEarth::Features::FeatureModelGraph>::build(IObjectTreeItem* treeItem)
 {
     osgEarth::Features::FeatureModelGraph* object = getObject<osgEarth::Features::FeatureModelGraph, SGIItemOsg>();
+#endif
     bool ret = false;
     switch (itemType())
     {
@@ -2270,9 +2427,11 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureModelGraph>::build(IObjectTr
             if (session.hasObject())
                 treeItem->addChild("Session", &session);
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
             SGIHostItemOsg styles(object->getStyles());
             if (styles.hasObject())
                 treeItem->addChild("Styles", &styles);
+#endif
 
             const auto & levels = object->getLevels();
             treeItem->addChild(helpers::str_plus_count("Levels", levels.size()), cloneItem<SGIItemOsg>(SGIItemTypeLevels, ~0u));
@@ -2300,9 +2459,15 @@ bool objectTreeBuildImpl<osgEarth::Features::FeatureModelGraph>::build(IObjectTr
     return ret;
 }
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+bool objectTreeBuildImpl<osgEarth::FeatureDisplayLayout>::build(IObjectTreeItem* treeItem)
+{
+    osgEarth::FeatureDisplayLayout* object = getObject<osgEarth::FeatureDisplayLayout, SGIItemOsg>();
+#else
 bool objectTreeBuildImpl<osgEarth::Features::FeatureDisplayLayout>::build(IObjectTreeItem* treeItem)
 {
     osgEarth::Features::FeatureDisplayLayout* object = getObject<osgEarth::Features::FeatureDisplayLayout, SGIItemOsg>();
+#endif
     bool ret = false;
     switch (itemType())
     {
@@ -2382,6 +2547,7 @@ bool objectTreeBuildImpl<osgEarth::ConfigOptions>::build(IObjectTreeItem * treeI
     return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 bool objectTreeBuildImpl<osgEarth::ModelLayerOptions>::build(IObjectTreeItem * treeItem)
 {
     osgEarth::ModelLayerOptions * object = getObject<osgEarth::ModelLayerOptions,SGIItemEarthConfigOptions>();
@@ -2453,17 +2619,24 @@ bool objectTreeBuildImpl<osgEarth::Drivers::FeatureGeomModelOptions>::build(IObj
     }
     return ret;
 }
+#endif
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+bool objectTreeBuildImpl<osgEarth::Style>::build(IObjectTreeItem* treeItem)
+{
+    osgEarth::Style* object = getObject<osgEarth::Style, SGIItemEarthStyle>();
+#else
 bool objectTreeBuildImpl<osgEarth::Symbology::Style>::build(IObjectTreeItem* treeItem)
 {
     osgEarth::Symbology::Style* object = getObject<osgEarth::Symbology::Style, SGIItemEarthStyle>();
+#endif
     bool ret = false;
     switch (itemType())
     {
     case SGIItemTypeObject:
         {
             treeItem->addChild("Config", cloneItem<SGIItemOsg>(SGIItemTypeConfig));
-            for(const auto symbol : object->symbols())
+            for(const auto & symbol : object->symbols())
             {
                 SGIHostItemOsg item(symbol.get());
                 if (item.hasObject())
@@ -2481,9 +2654,15 @@ bool objectTreeBuildImpl<osgEarth::Symbology::Style>::build(IObjectTreeItem* tre
     return ret;
 }
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+bool objectTreeBuildImpl<osgEarth::StyleSelector>::build(IObjectTreeItem* treeItem)
+{
+    osgEarth::StyleSelector* object = getObject<osgEarth::StyleSelector, SGIItemEarthStyleSelector>();
+#else
 bool objectTreeBuildImpl<osgEarth::Symbology::StyleSelector>::build(IObjectTreeItem* treeItem)
 {
     osgEarth::Symbology::StyleSelector* object = getObject<osgEarth::Symbology::StyleSelector, SGIItemEarthStyleSelector>();
+#endif
     bool ret = false;
     switch (itemType())
     {
@@ -2502,9 +2681,15 @@ bool objectTreeBuildImpl<osgEarth::Symbology::StyleSelector>::build(IObjectTreeI
     return ret;
 }
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+bool objectTreeBuildImpl<osgEarth::StyleSheet>::build(IObjectTreeItem* treeItem)
+{
+    osgEarth::StyleSheet* object = getObject<osgEarth::StyleSheet, SGIItemOsg>();
+#else
 bool objectTreeBuildImpl<osgEarth::Symbology::StyleSheet>::build(IObjectTreeItem* treeItem)
 {
     osgEarth::Symbology::StyleSheet* object = getObject<osgEarth::Symbology::StyleSheet, SGIItemOsg>();
+#endif
     bool ret = false;
     switch (itemType())
     {
@@ -2520,17 +2705,29 @@ bool objectTreeBuildImpl<osgEarth::Symbology::StyleSheet>::build(IObjectTreeItem
             if (defaultResourceLibrary.hasObject())
                 treeItem->addChild("DefaultResourceLibrary", &defaultResourceLibrary);
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
             const auto & styles = object->styles();
             treeItem->addChild(helpers::str_plus_count("Styles", styles.size()), cloneItem<SGIItemOsg>(SGIItemTypeChilds));
 
             const auto & selectors = object->selectors();
             treeItem->addChild(helpers::str_plus_count("Selectors", selectors.size()), cloneItem<SGIItemOsg>(SGIItemTypeSelectors));
+#else
+            const auto & styles = object->getStyles();
+            treeItem->addChild(helpers::str_plus_count("Styles", styles.size()), cloneItem<SGIItemOsg>(SGIItemTypeChilds));
+
+            const auto & selectors = object->getSelectors();
+            treeItem->addChild(helpers::str_plus_count("Selectors", selectors.size()), cloneItem<SGIItemOsg>(SGIItemTypeSelectors));
+#endif
 
         }
         break;
     case SGIItemTypeChilds:
         {
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
             for(const auto & style : object->styles())
+#else
+            for(const auto & style : object->getStyles())
+#endif
             {
                 SGIHostItemOsgEarthStyle item(&style.second);
                 if (item.hasObject())
@@ -2541,9 +2738,15 @@ bool objectTreeBuildImpl<osgEarth::Symbology::StyleSheet>::build(IObjectTreeItem
         break;
     case SGIItemTypeSelectors:
         {
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
             for(const auto & selector : object->selectors())
             {
                 SGIHostItemOsgEarthStyleSelector item(&selector);
+#else
+            for(const auto & selector : object->getSelectors())
+            {
+                SGIHostItemOsgEarthStyleSelector item(selector.second);
+#endif
                 if (item.hasObject())
                     treeItem->addChild(std::string(), &item);
             }
@@ -2557,9 +2760,15 @@ bool objectTreeBuildImpl<osgEarth::Symbology::StyleSheet>::build(IObjectTreeItem
     return ret;
 }
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+bool objectTreeBuildImpl<osgEarth::AnnotationNode>::build(IObjectTreeItem* treeItem)
+{
+    osgEarth::AnnotationNode* object = getObject<osgEarth::AnnotationNode, SGIItemOsg>();
+#else
 bool objectTreeBuildImpl<osgEarth::Annotation::AnnotationNode>::build(IObjectTreeItem* treeItem)
 {
     osgEarth::Annotation::AnnotationNode* object = getObject<osgEarth::Annotation::AnnotationNode, SGIItemOsg>();
+#endif
     bool ret = false;
     switch (itemType())
     {

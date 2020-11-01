@@ -39,14 +39,22 @@
 
 #ifdef SGI_USE_OSGEARTH
 #include <osgEarth/Notify>
+#include <osgEarth/Version>
 #include <osgEarth/MapNode>
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 #include <osgEarth/MapFrame>
+#endif
 #include <osgEarth/Registry>
 #include <osgEarth/TerrainEngineNode>
 #include <osgEarth/GLUtils>
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 #include <osgEarthUtil/ExampleResources>
 #include <osgEarthUtil/EarthManipulator>
+#else
+#include <osgEarth/ExampleResources>
+#include <osgEarth/EarthManipulator>
+#endif
 #endif // SGI_USE_OSGEARTH
 
 #include <iostream>
@@ -223,6 +231,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
 
     _mainGW = createGraphicsWindow(0, 0, w, h, nullptr, _impl);
 
+#ifdef SGI_USE_FLIGHTGEAR_GW
     flightgear::GraphicsWindowQt5* gwqt5 = dynamic_cast<flightgear::GraphicsWindowQt5*>(_mainGW.get());
     if (gwqt5)
     {
@@ -231,6 +240,7 @@ ViewerWidget::ViewerWidget(osg::ArgumentParser & arguments, QWidget * parent)
         _viewWidget = QWidget::createWindowContainer(glw);
     }
     else
+#endif
     {
         _viewWidget = getWidgetForGraphicsWindow(_mainGW.get());
     }

@@ -9,8 +9,13 @@
 #include <osgEarth/FadeEffect>
 #include <osgEarth/Registry>
 #include <osgEarth/Profile>
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+#include <osgEarth/Expression>
+#include <osgEarth/FeatureSourceIndexNode>
+#else
 #include <osgEarthSymbology/Expression>
 #include <osgEarthFeatures/FeatureSourceIndexNode>
+#endif
 #include <osg/io_utils>
 #include <sgi/plugins/SGIItemBase.h>
 
@@ -45,6 +50,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     return os << extent.toString();
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ElevationInterpolation & v)
 {
     switch(v)
@@ -57,6 +63,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     }
     return os;
 }
+#endif
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ElevationSamplePolicy & v)
 {
@@ -153,6 +160,31 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
                 << "}";
 }
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::NumericExpression & expr)
+{
+    return os << expr.expr();
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::StringExpression & expr)
+{
+    return os << expr.expr();
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Query& query)
+{
+    os << query.expression();
+    if(query.orderby().isSet())
+        os << " ORDER BY " << query.orderby().value();
+    if (query.bounds().isSet())
+        os << " BOUNDS " << query.bounds().value();
+    if (query.tileKey().isSet())
+        os << " TILEKEY " << query.tileKey().value();
+    if (query.limit().isSet())
+        os << " LIMIT " << query.limit().value();
+    return os;
+}
+#else
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::NumericExpression & expr)
 {
     return os << expr.expr();
@@ -176,11 +208,23 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
         os << " LIMIT " << query.limit().value();
     return os;
 }
+#endif
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Units& t)
 {
     return os << t.getAbbr();
 }
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Fill& t)
+{
+    return os << t.color();
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Stroke& t)
+{
+    /// @todo add remaining stroke parameters
+    return os << '{' << t.color() << ',' << t.width() << t.widthUnits() << '}';
+}
+#else // OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::Fill& t)
 {
     return os << t.color();
@@ -190,6 +234,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     /// @todo add remaining stroke parameters 
     return os << '{' << t.color() << ',' << t.width() << t.widthUnits() << '}';
 }
+#endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::DepthOffsetOptions& opts)
 {
@@ -201,11 +246,13 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     return os << std::setprecision(12) << "duration=" << opts.duration() << " maxRange=" << opts.maxRange() << " attenuationDistance=" << opts.attenuationDistance();;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Features::FeatureSourceIndexOptions & opts)
 {
     os << "embedFeatures=" << opts.embedFeatures();
     return os;
 }
+#endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
 
 } // namespace std
 

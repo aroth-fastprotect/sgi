@@ -9,31 +9,51 @@
 #include <osgEarth/Registry>
 #include <osgEarth/Version>
 #include <osgEarth/Map>
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 #include <osgEarth/MapFrame>
+#endif
 #include <osgEarth/MapNode>
 #include <osgEarth/ModelLayer>
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 #include <osgEarth/MaskLayer>
+#else
+#include <osgEarth/TileSource>
+#endif
 #include <osgEarth/XmlUtils>
 #include <sgi/helpers/rtti>
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 #include <osgEarthSymbology/Style>
 #include <osgEarthSymbology/StyleSelector>
+#else
+#include <osgEarth/Style>
+#include <osgEarth/StyleSelector>
+#endif
 
 namespace sgi {
 
 namespace osgearth_plugin {
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::TerrainLayer)
-GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelLayer)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskLayer)
+#else
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::TileLayer)
+#endif
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelLayer)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::Registry)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::Config)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::ConfigOptions)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(TileKeyReferenced)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::Style)
 GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::StyleSelector)
+#else
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::Style)
+GET_OBJECT_NAME_IMPL_DECLARE_AND_REGISTER(osgEarth::StyleSelector)
+#endif
 
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(osgEarth::Config)
 GET_OBJECT_TYPE_IMPL_DECLARE_AND_REGISTER(osgEarth::ConfigOptions)
@@ -50,11 +70,19 @@ WRITE_OBJECT_FILE_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNode)
 //--------------------------------------------------------------------------------
 // getObjectNameImpl
 //--------------------------------------------------------------------------------
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 std::string getObjectNameImpl<osgEarth::TerrainLayer>::process()
 {
     osgEarth::TerrainLayer * object = static_cast<osgEarth::TerrainLayer*>(item<SGIItemOsg>()->object());
     return object->getName();
 }
+#else
+std::string getObjectNameImpl<osgEarth::TileLayer>::process()
+{
+    osgEarth::TileLayer * object = static_cast<osgEarth::TileLayer*>(item<SGIItemOsg>()->object());
+    return object->getName();
+}
+#endif
 
 std::string getObjectNameImpl<osgEarth::ModelLayer>::process()
 {
@@ -62,11 +90,13 @@ std::string getObjectNameImpl<osgEarth::ModelLayer>::process()
     return object->getName();
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 std::string getObjectNameImpl<osgEarth::MaskLayer>::process()
 {
     osgEarth::MaskLayer * object = static_cast<osgEarth::MaskLayer*>(item<SGIItemOsg>()->object());
     return object->getName();
 }
+#endif
 
 std::string getObjectNameImpl<osgEarth::Config>::process()
 {
@@ -86,6 +116,7 @@ std::string getObjectNameImpl<osgEarth::Registry>::process()
 }
 
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 std::string getObjectNameImpl<osgEarth::Symbology::Style>::process()
 {
     osgEarth::Symbology::Style* object = static_cast<osgEarth::Symbology::Style*>(item<SGIItemEarthStyle>()->object());
@@ -97,7 +128,19 @@ std::string getObjectNameImpl<osgEarth::Symbology::StyleSelector>::process()
     osgEarth::Symbology::StyleSelector* object = static_cast<osgEarth::Symbology::StyleSelector*>(item<SGIItemEarthStyleSelector>()->object());
     return object->name();
 }
+#else
+std::string getObjectNameImpl<osgEarth::Style>::process()
+{
+    osgEarth::Style* object = static_cast<osgEarth::Style*>(item<SGIItemEarthStyle>()->object());
+    return object->getName();
+}
 
+std::string getObjectNameImpl<osgEarth::StyleSelector>::process()
+{
+    osgEarth::StyleSelector* object = static_cast<osgEarth::StyleSelector*>(item<SGIItemEarthStyleSelector>()->object());
+    return object->name().value();
+}
+#endif
 
 std::string getObjectNameImpl<TileKeyReferenced>::process()
 {
@@ -120,8 +163,13 @@ std::string getObjectNameImpl<TileSourceTileKey>::process()
     std::string name;
 	if (object.tileSource.valid())
         name = object.tileSource->getName();
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
     else if(object.terrainLayer.valid())
         name = object.terrainLayer->getName();
+#else
+    else if(object.tileLayer.valid())
+        name = object.tileLayer->getName();
+#endif
     else if (object.cacheBin.valid())
         name = object.cacheBin->getID();
     if (!name.empty())
@@ -334,7 +382,11 @@ bool writeMapNode(const osgEarth::MapNode* node, const std::string& fileName, co
 bool writeMapNode(const osgEarth::MapNode* node, const std::string& fileName, const osgEarth::Config & mergeExternal=osgEarth::Config() )
 {
     std::string baseuri;
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
     osgEarth::Config cfg = node->getMapNodeOptions().getConfig();
+#else
+    osgEarth::Config cfg = node->getConfig();
+#endif
     baseuri = cfg.referrer();
     return writeMapNode(node, fileName, baseuri, mergeExternal);
 }

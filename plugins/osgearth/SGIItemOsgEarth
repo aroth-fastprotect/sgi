@@ -10,16 +10,32 @@
 #include <sgi/plugins/SGIItemOsg>
 
 namespace osgEarth {
-    class ElevationQuery;
     class ElevationPool;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    namespace Util {
+        class ElevationQuery;
+    }
+    namespace Contrib {
+        class TileSource;
+    }
+    class TileLayer;
+    typedef Contrib::TileSource TileSource;
+#else
+    class ElevationQuery;
     class TileSource;
+    class TerrainLayer;
+#endif
     class TileKey;
     class CacheBin;
-    class TerrainLayer;
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
     namespace Symbology {
         class Style;
         class StyleSelector;
     }
+#else
+    class Style;
+    class StyleSelector;
+#endif
 } // namespace osgEarth
 
 namespace sgi {
@@ -85,15 +101,19 @@ typedef SGIItemT<SGIHostItemOsgEarthConfigOptions, SGIItemHolderOsgEarthConfigOp
 
 #if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 typedef SGIItemInfoPlainPtr<osgEarth::Symbology::Style> SGIItemInfoOsgEarthStyle;
+typedef SGIItemInfoPlainPtr<osgEarth::Symbology::StyleSelector> SGIItemInfoOsgEarthStyleSelector;
+#else
+typedef SGIItemInfoPlainPtr<osgEarth::Style> SGIItemInfoOsgEarthStyle;
+typedef SGIItemInfoPlainPtr<osgEarth::StyleSelector> SGIItemInfoOsgEarthStyleSelector;
+#endif
+
 typedef SGIHostItemImpl<SGIItemInfoOsgEarthStyle> SGIHostItemOsgEarthStyle;
 typedef SGIItemHolderT<SGIItemInfoOsgEarthStyle> SGIItemHolderOsgEarthStyle;
 typedef SGIItemT<SGIHostItemOsgEarthStyle, SGIItemHolderOsgEarthStyle> SGIItemEarthStyle;
 
-typedef SGIItemInfoPlainPtr<osgEarth::Symbology::StyleSelector> SGIItemInfoOsgEarthStyleSelector;
 typedef SGIHostItemImpl<SGIItemInfoOsgEarthStyleSelector> SGIHostItemOsgEarthStyleSelector;
 typedef SGIItemHolderT<SGIItemInfoOsgEarthStyleSelector> SGIItemHolderOsgEarthStyleSelector;
 typedef SGIItemT<SGIHostItemOsgEarthStyleSelector, SGIItemHolderOsgEarthStyleSelector> SGIItemEarthStyleSelector;
-#endif
 
 namespace osgearth_plugin {
 
@@ -115,14 +135,28 @@ struct TileSourceTileKeyData
 
     static ObjectType getObjectType(osgEarth::CacheBin * cb);
     static ObjectType getObjectType(osgEarth::TileSource * ts);
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    static ObjectType getObjectType(osgEarth::TileLayer * tl);
+#else
     static ObjectType getObjectType(osgEarth::TerrainLayer * tl);
+#endif
 
     TileSourceTileKeyData(osgEarth::TileSource * ts, const osgEarth::TileKey & tk, osg::Referenced * td = nullptr);
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    TileSourceTileKeyData(osgEarth::TileLayer * tl, const osgEarth::TileKey & tk, osg::Referenced * td = nullptr);
+#else
     TileSourceTileKeyData(osgEarth::TerrainLayer * tl, const osgEarth::TileKey & tk, osg::Referenced * td = nullptr);
+#endif
     TileSourceTileKeyData(osgEarth::CacheBin * cb, ObjectType type, const osgEarth::TileKey & tk, osg::Referenced * td = nullptr);
 
     osg::ref_ptr<osgEarth::TileSource> tileSource;
+
+    osgEarth::DataExtentList findTileSourceDataExtents(const osgEarth::TileSource * tileSource, const osgEarth::TileKey & key);
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    osg::ref_ptr<osgEarth::TileLayer> tileLayer;
+#else
     osg::ref_ptr<osgEarth::TerrainLayer> terrainLayer;
+#endif
     osg::ref_ptr<osgEarth::CacheBin> cacheBin;
     osgEarth::TileKey tileKey;
     osg::ref_ptr<osg::Referenced> tileData;
@@ -132,7 +166,11 @@ struct TileSourceTileKeyData
 
 class TileSourceInfo;
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+typedef details::ReferencedRawPtrT<osgEarth::Util::ElevationQuery, osg::Referenced> ElevationQueryReferenced;
+#else
 typedef details::ReferencedRawPtrT<osgEarth::ElevationQuery, osg::Referenced> ElevationQueryReferenced;
+#endif
 typedef details::ReferencedDataT<osgEarth::ElevationPool, osg::Referenced> ElevationPoolReferenced;
 typedef details::ReferencedDataT<osgEarth::TileKey, osg::Referenced> TileKeyReferenced;
 typedef details::ReferencedDataT<TileSourceTileKeyData, osg::Referenced> TileSourceTileKey;

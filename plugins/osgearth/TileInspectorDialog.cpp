@@ -1,3 +1,4 @@
+#define final
 #include "stdafx.h"
 #include "TileInspectorDialog.h"
 #include <sgi/plugins/SGIItemOsg>
@@ -27,12 +28,16 @@
 #include <osgEarth/MapFrame>
 #endif
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 #include <osgEarthDrivers/vpb/VPBOptions>
 #include <osgEarthDrivers/tms/TMSOptions>
 #include <osgEarthDrivers/arcgis/ArcGISOptions>
 
-#include <osgEarth/Version>
 #include <osgEarthUtil/TMS>
+#else
+#include <osgEarth/TMS>
+#endif
+
 
 #include <sgi/plugins/ContextMenu>
 #include <sgi/plugins/SceneGraphDialog>
@@ -55,7 +60,7 @@ using namespace sgi::qt_helpers;
 
 namespace {
 
-
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     static std::string getVPBTerrainTile( const osgEarth::TileKey& key, const osgEarth::Drivers::VPBOptions & options)
     {
         int level = key.getLevelOfDetail();
@@ -165,6 +170,7 @@ namespace {
         bufStr = buf.str();
         return bufStr;
     }
+#endif
     inline static bool IsSlash(int i) { return i == '/'; }
 
 	osg::Camera * findCamera(SGIItemOsg * item)
@@ -225,6 +231,17 @@ TileSourceTileKeyData::ObjectType TileSourceTileKeyData::getObjectType(osgEarth:
 {
     return TileSourceTileKeyData::ObjectTypeGeneric;
 }
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+TileSourceTileKeyData::ObjectType TileSourceTileKeyData::getObjectType(osgEarth::TileLayer * tl)
+{
+    if (dynamic_cast<osgEarth::ImageLayer*>(tl))
+        return TileSourceTileKeyData::ObjectTypeImage;
+    else if (dynamic_cast<osgEarth::ElevationLayer*>(tl))
+        return TileSourceTileKeyData::ObjectTypeHeightField;
+    else
+        return TileSourceTileKeyData::ObjectTypeGeneric;
+}
+#else
 TileSourceTileKeyData::ObjectType TileSourceTileKeyData::getObjectType(osgEarth::TerrainLayer * tl)
 {
     if (dynamic_cast<osgEarth::ImageLayer*>(tl))
@@ -234,14 +251,21 @@ TileSourceTileKeyData::ObjectType TileSourceTileKeyData::getObjectType(osgEarth:
     else
         return TileSourceTileKeyData::ObjectTypeGeneric;
 }
+#endif
 
 TileSourceTileKeyData::TileSourceTileKeyData(osgEarth::TileSource * ts, const osgEarth::TileKey & tk, osg::Referenced * td)
     : tileSource(ts), tileKey(tk), tileData(td), status(StatusNotLoaded), objectType(getObjectType(ts))
 {}
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+TileSourceTileKeyData::TileSourceTileKeyData(osgEarth::TileLayer * tl, const osgEarth::TileKey & tk, osg::Referenced * td)
+    : tileLayer(tl), tileKey(tk), tileData(td), status(StatusNotLoaded), objectType(getObjectType(tl))
+{}
+#else
 TileSourceTileKeyData::TileSourceTileKeyData(osgEarth::TerrainLayer * tl, const osgEarth::TileKey & tk, osg::Referenced * td)
     : terrainLayer(tl), tileKey(tk), tileData(td), status(StatusNotLoaded), objectType(getObjectType(tl))
 {}
+#endif
 TileSourceTileKeyData::TileSourceTileKeyData(osgEarth::CacheBin * cb, ObjectType type, const osgEarth::TileKey & tk, osg::Referenced * td)
     : cacheBin(cb), tileKey(tk), tileData(td), status(StatusNotLoaded), objectType(type)
 {}
@@ -299,11 +323,27 @@ namespace {
             return nullptr;
         if(osgEarth::TileSource * tileSource = dynamic_cast<osgEarth::TileSource *>(item->object()))
             return tileSource;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+        else if(osgEarth::TileLayer * tileLayer = dynamic_cast<osgEarth::TileLayer*>(item->object()))
+            return nullptr;
+#else
         else if(osgEarth::TerrainLayer * terrainLayer = dynamic_cast<osgEarth::TerrainLayer*>(item->object()))
             return terrainLayer->getTileSource();
+#endif
         else
             return nullptr;
     }
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    osgEarth::TileLayer * getTileLayer(SGIItemOsg * item)
+    {
+        if(!item)
+            return nullptr;
+        else if(osgEarth::TileLayer * tileLayer = dynamic_cast<osgEarth::TileLayer*>(item->object()))
+            return tileLayer;
+        else
+            return nullptr;
+    }
+#else
     osgEarth::TerrainLayer * getTerrainLayer(SGIItemOsg * item)
     {
         if(!item)
@@ -313,10 +353,17 @@ namespace {
         else
             return nullptr;
     }
+#endif
     osgEarth::CacheBin * getCacheBin(SGIItemOsg * item)
     {
         if (!item)
             return nullptr;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+        if (osgEarth::TileLayer * tileLayer = dynamic_cast<osgEarth::TileLayer *>(item->object()))
+        {
+            //tileLayer->getCachePolicy();
+        }
+#else
         if (osgEarth::TerrainLayer * terrainLayer = dynamic_cast<osgEarth::TerrainLayer *>(item->object()))
         {
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
@@ -329,6 +376,7 @@ namespace {
                 return cs->getCacheBin();
 #endif
         }
+#endif
         return nullptr;
     }
 }
@@ -439,12 +487,21 @@ TileInspectorDialog::TileInspectorDialog(QWidget * parent, SGIPluginHostInterfac
 
         if (item)
         {
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             osgEarth::TerrainLayer * terrainLayer = getTerrainLayer(item);
             if (terrainLayer)
             {
                 if (dynamic_cast<osgEarth::ImageLayer*>(terrainLayer))
                     currentLayerIndex = i;
             }
+#else
+            osgEarth::TileLayer * tileLayer = getTileLayer(item);
+            if (tileLayer)
+            {
+                if (dynamic_cast<osgEarth::ImageLayer*>(tileLayer))
+                    currentLayerIndex = i;
+            }
+#endif
 //             else
 //             {
 //                 osgEarth::TileSource * tileSource = getTileSource(item);
@@ -532,13 +589,22 @@ void TileInspectorDialog::layerChanged(int index)
 
 
     osgEarth::TileSource * tileSource = getTileSource(item);
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::TerrainLayer * terrainLayer = getTerrainLayer(item);
+#else
+    osgEarth::TileLayer * tileLayer = getTileLayer(item);
+#endif
     osgEarth::CacheBin * cachebin = getCacheBin(item);
 
 
     ui->layerSource->clear();
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     if (terrainLayer)
         ui->layerSource->addItem(tr("Layer"), QVariant(LayerDataSourceLayer));
+#else
+    if (tileLayer)
+        ui->layerSource->addItem(tr("Layer"), QVariant(LayerDataSourceLayer));
+#endif
     if (tileSource)
         ui->layerSource->addItem(tr("Tile source"), QVariant(LayerDataSourceTileSource));
     if (cachebin)
@@ -693,24 +759,44 @@ void TileInspectorDialog::refresh()
     QtSGIItem qitem = data.value<QtSGIItem>();
     SGIItemOsg * item = (SGIItemOsg *)qitem.item();
     osgEarth::TileSource * tileSource = (layerDataSource == LayerDataSourceTileSource) ? getTileSource(item) : nullptr;
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
     osgEarth::TerrainLayer * terrainLayer = (layerDataSource == LayerDataSourceLayer) ? getTerrainLayer(item) : nullptr;
     osgEarth::TerrainLayer * cacheBinTerrainLayer = nullptr;
-    osgEarth::CacheBin * cachebin = (layerDataSource == LayerDataSourceCache) ? getCacheBin(item) : nullptr;
-    TileSourceTileKeyData::ObjectType objectType = TileSourceTileKeyData::ObjectTypeGeneric;
     osgEarth::ImageLayer* imageLayer = dynamic_cast<osgEarth::ImageLayer*>(terrainLayer);
     osgEarth::ElevationLayer * elevLayer = dynamic_cast<osgEarth::ElevationLayer*>(terrainLayer);
+#else
+    osgEarth::TileLayer * tileLayer = (layerDataSource == LayerDataSourceLayer) ? getTileLayer(item) : nullptr;
+    osgEarth::TileLayer * cacheBinTerrainLayer = nullptr;
+    osgEarth::ImageLayer* imageLayer = dynamic_cast<osgEarth::ImageLayer*>(tileLayer);
+    osgEarth::ElevationLayer * elevLayer = dynamic_cast<osgEarth::ElevationLayer*>(tileLayer);
+#endif
+    osgEarth::CacheBin * cachebin = (layerDataSource == LayerDataSourceCache) ? getCacheBin(item) : nullptr;
+    TileSourceTileKeyData::ObjectType objectType = TileSourceTileKeyData::ObjectTypeGeneric;
     const osgEarth::Profile * profile = nullptr;
     if (tileSource)
         profile = tileSource->getProfile();
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
     else if (terrainLayer)
     {
         profile = terrainLayer->getProfile();
         imageLayer = dynamic_cast<osgEarth::ImageLayer*>(terrainLayer);
         elevLayer = dynamic_cast<osgEarth::ElevationLayer*>(terrainLayer);
     }
+#else
+    else if (tileLayer)
+    {
+        profile = tileLayer->getProfile();
+        imageLayer = dynamic_cast<osgEarth::ImageLayer*>(tileLayer);
+        elevLayer = dynamic_cast<osgEarth::ElevationLayer*>(tileLayer);
+    }
+#endif
     else if (cachebin)
     {
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
         cacheBinTerrainLayer = getTerrainLayer(item);
+#else
+        cacheBinTerrainLayer = getTileLayer(item);
+#endif
         if (cacheBinTerrainLayer)
         {
             profile = cacheBinTerrainLayer->getProfile();
@@ -740,16 +826,20 @@ void TileInspectorDialog::refresh()
     std::string driver;
     bool invertY = false;
     osgEarth::Config layerConf;
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
     osgEarth::TileSourceOptions tileSourceOptions;
+#else
+    osgEarth::Contrib::TileSourceOptions tileSourceOptions;
+#endif
     int tileSize = -1;
     if (tileSource)
     {
-        const osgEarth::TileSourceOptions & options = tileSource->getOptions();
-        tileSourceOptions = options;
-        layerConf = options.getConfig();
+        tileSourceOptions = tileSource->getOptions();
+        layerConf = tileSource->getOptions().getConfig();
         driver = tileSourceOptions.getDriver();
         tileSize = tileSource->getPixelsPerTile();
     }
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
     else if (terrainLayer)
     {
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
@@ -769,15 +859,25 @@ void TileInspectorDialog::refresh()
 			minimumLod = topts.minLevel().value();
 		if (topts.maxLevel().isSet())
 			maximumLod = topts.maxLevel().value();
-
-        osgEarth::ImageLayer* imageLayer = dynamic_cast<osgEarth::ImageLayer*>(terrainLayer);
-        osgEarth::ElevationLayer * elevLayer = dynamic_cast<osgEarth::ElevationLayer*>(terrainLayer);
-
     }
+#else
+    else if (tileLayer)
+    {
+        layerConf = tileLayer->getConfig();
+        driver = layerConf.value("driver");
+
+        tileSize = tileLayer->getTileSize();
+    }
+#endif
     if (driver == "tms")
     {
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
         osgEarth::Drivers::TMSOptions tmsopts(tileSourceOptions);
         invertY = tmsopts.tmsType().value() == "google";
+#else
+        std::string tmsType = tileSourceOptions.getConfig().value("type", std::string());
+        invertY = tmsType == "google";
+#endif
     }
 
     osgEarth::optional<osgEarth::URI> url;
@@ -808,14 +908,23 @@ void TileInspectorDialog::refresh()
             std::string tms_type;
             osgEarth::DataExtentList dataExtents;
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+            std::string format = layerConf.value("format", std::string());
+            std::string tmsType = layerConf.value("tmstype", std::string());
+#else
             osgEarth::Drivers::TMSOptions tmsopts(tileSourceOptions);
             std::string format = tmsopts.format().value();
+            std::string tmsType = tmsopts.tmsType().value()
+#endif
             if (format.empty())
                 format = "png";
             const int tileWidth = tileSize > 0 ? tileSize : (elevLayer ? 16 : 256);
             const int tileHeight = tileWidth;
-            
+
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            osg::ref_ptr<osgEarth::TMS::TileMap> tilemap = osgEarth::TMS::TileMap::create(baseurl, profile,
+                                                                                                      dataExtents, format, tileWidth, tileHeight);
+#elif OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
             osg::ref_ptr<osgEarth::Util::TMS::TileMap> tilemap = osgEarth::Util::TMS::TileMap::create(baseurl, profile,
                 dataExtents, format, tileWidth, tileHeight);
 #else
@@ -824,15 +933,17 @@ void TileInspectorDialog::refresh()
 #endif
 
             os << "Base URL: <a href=\"" << baseurl << "\">"  << baseurl << "</a><br/>";
-            os << "TMS type: " << tmsopts.tmsType().value() << "<br/>";
-            os << "Format: " << tmsopts.format().value() << "<br/>";
+            os << "TMS type: " << tmsType << "<br/>";
+            os << "Format: " << format << "<br/>";
             os << "InvertY: " << (invertY?"true":"false") << "<br/>";
             os << "Tile size: " << tileWidth << ',' << tileHeight << "<br/>";
             os << "<ul>";
             for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
             {
                 const osgEarth::TileKey & tilekey = *it;
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+                if (tileLayer && !tileLayer->mayHaveData(tilekey))
+#elif OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
                 if (terrainLayer && !terrainLayer->mayHaveData(tilekey))
 #else
                 if (tileSource && !tileSource->hasData(tilekey))
@@ -864,6 +975,7 @@ void TileInspectorDialog::refresh()
         }
         else if(driver == "vpb")
         {
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             osgEarth::Drivers::VPBOptions vpbopts(tileSourceOptions);
             os << "Base URL: <a href=\"" << vpbopts.url().value().full() << "\">"  << vpbopts.url().value().full() << "</a><br/>";
             os << "Base name: " << vpbopts.baseName().value() << "<br/>";
@@ -897,9 +1009,11 @@ void TileInspectorDialog::refresh()
                 }
             }
             os << "</ul>" << std::endl;
+#endif
         }
         else if(driver == "arcgis")
         {
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             osgEarth::Drivers::ArcGISOptions arcgisopts(tileSourceOptions);
             std::string url_full = arcgisopts.url().value().full();
             os << "Base URL: <a href=\"" << url_full << "\">"  << url_full << "</a><br/>";
@@ -937,6 +1051,7 @@ void TileInspectorDialog::refresh()
                 }
             }
             os << "</ul>" << std::endl;
+#endif
         }
         else
         {
@@ -956,6 +1071,17 @@ void TileInspectorDialog::refresh()
                 SGIHostItemOsg tskey(new TileSourceTileKey(data));
                 _treeRoot->addChild(std::string(), &tskey);
             }
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+            else if (tileLayer)
+            {
+                if (tileLayer->mayHaveData(tilekey))
+                {
+                    TileSourceTileKeyData data(tileLayer, tilekey);
+                    SGIHostItemOsg tskey(new TileSourceTileKey(data));
+                    _treeRoot->addChild(std::string(), &tskey);
+                }
+            }
+#else
             else if (terrainLayer)
             {
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
@@ -969,6 +1095,7 @@ void TileInspectorDialog::refresh()
                     _treeRoot->addChild(std::string(), &tskey);
                 }
             }
+#endif
             else if (cachebin)
             {
                 TileSourceTileKeyData data(cachebin, objectType, tilekey);
@@ -1053,7 +1180,11 @@ void TileInspectorDialog::proxySaveScript()
     if(tileSource)
     {
         const osgEarth::Profile * profile = tileSource->getProfile();
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
         const osgEarth::TileSourceOptions & options = tileSource->getOptions();
+#else
+        const osgEarth::Contrib::TileSourceOptions & options = tileSource->getOptions();
+#endif
         
         int idx = ui->numNeighbors->currentIndex();
         TileKeyList::NUM_NEIGHBORS numNeighbors = TileKeyList::NUM_NEIGHBORS_NONE;
@@ -1090,6 +1221,7 @@ void TileInspectorDialog::proxySaveScript()
                 osgEarth::DataExtentList dataExtents;
 
                 std::string tms_type;
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
                 osgEarth::Drivers::TMSOptions tmsopts(options);
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
                 osg::ref_ptr<osgEarth::Util::TMS::TileMap> tilemap = osgEarth::Util::TMS::TileMap::create(baseurl, profile,
@@ -1114,9 +1246,11 @@ void TileInspectorDialog::proxySaveScript()
                         }
                     }
                 }
+#endif
             }
             else if(options.getDriver() == "vpb")
             {
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
                 osgEarth::Drivers::VPBOptions vpbopts(options);
                 for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
                 {
@@ -1131,9 +1265,11 @@ void TileInspectorDialog::proxySaveScript()
                         }
                     }
                 }
+#endif
             }
             else if(options.getDriver() == "arcgis")
             {
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
                 osgEarth::Drivers::ArcGISOptions arcgisopts(options);
                 for(TileKeyList::const_iterator it = tilekeylist.begin(); it != tilekeylist.end(); it++)
                 {
@@ -1148,6 +1284,7 @@ void TileInspectorDialog::proxySaveScript()
                         }
                     }
                 }
+#endif
             }
 
             if(!urllist.empty())
@@ -1230,7 +1367,11 @@ void TileInspectorDialog::loadData()
             {
                 TileSourceTileKeyData & data = tskey->data();
                 osgEarth::TileSource * tileSource = data.tileSource;
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
                 osgEarth::TerrainLayer * terrainLayer = data.terrainLayer;
+#else
+                osgEarth::TileLayer * tileLayer = data.tileLayer;
+#endif
                 osgEarth::CacheBin * cacheBin = data.cacheBin;
 
                 if (tileSource)
@@ -1267,6 +1408,7 @@ void TileInspectorDialog::loadData()
                         data.status = data.tileData.valid() ? TileSourceTileKeyData::StatusLoaded : TileSourceTileKeyData::StatusLoadFailure;
                     }
                 }
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
                 else if (terrainLayer)
                 {
                     osgEarth::ImageLayer* imageLayer = dynamic_cast<osgEarth::ImageLayer*>(terrainLayer);
@@ -1283,6 +1425,24 @@ void TileInspectorDialog::loadData()
                     }
                     data.status = data.tileData.valid() ? TileSourceTileKeyData::StatusLoaded : TileSourceTileKeyData::StatusLoadFailure;
                 }
+#else
+                else if (tileLayer)
+                {
+                    osgEarth::ImageLayer* imageLayer = dynamic_cast<osgEarth::ImageLayer*>(tileLayer);
+                    osgEarth::ElevationLayer * elevLayer = dynamic_cast<osgEarth::ElevationLayer*>(tileLayer);
+                    if (imageLayer)
+                    {
+                        osgEarth::GeoImage image = imageLayer->createImage(data.tileKey);
+                        data.tileData = const_cast<osg::Image*>(image.getImage());
+                    }
+                    else if (elevLayer)
+                    {
+                        osgEarth::GeoHeightField hf = elevLayer->createHeightField(data.tileKey);
+                        data.tileData = const_cast<osg::HeightField*>(hf.getHeightField());
+                    }
+                    data.status = data.tileData.valid() ? TileSourceTileKeyData::StatusLoaded : TileSourceTileKeyData::StatusLoadFailure;
+                }
+#endif
                 else if (cacheBin)
                 {
                     std::string cacheKey = osgEarth::Stringify() << data.tileKey.str() << "_" << data.tileKey.getProfile()->getHorizSignature();
@@ -1385,7 +1545,9 @@ void TileInspectorDialog::takePositionFromCamera()
             {
                 const osgUtil::LineSegmentIntersector::Intersection & first = isector->getFirstIntersection();
                 osgEarth::GeoPoint geopt;
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
                 geopt.fromWorld(mapnode->getMapSRS()->getECEF(), first.getWorldIntersectPoint());
+#endif
                 osgEarth::GeoPoint geoptMap = geopt.transform(mapnode->getMapSRS());
 
                 ui->coordinate->setText(QString("%1,%2,%3").arg(geoptMap.y()).arg(geoptMap.x()).arg(geoptMap.z()));
@@ -1488,14 +1650,22 @@ void TileInspectorDialog::loadFromFile()
     if(!tileSource)
         return;
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     const osgEarth::TileSourceOptions & opts = tileSource->getOptions();
     QString oldFilename = QString::fromStdString(opts.blacklistFilename().value());
+#else
+    QString oldFilename;
+#endif
 
     QString filename = QFileDialog::getOpenFileName(this, tr("Load tile list from file"), oldFilename, tr("List files (*.list *.txt)"));
     if(filename.isEmpty())
         return;
 
+#if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osg::ref_ptr<osgEarth::TileBlacklist> blacklist = osgEarth::TileBlacklist::read(filename.toStdString());
+#else
+    osg::ref_ptr<osgEarth::Contrib::TileBlacklist> blacklist = osgEarth::Contrib::TileBlacklist::read(filename.toStdString());
+#endif
     if(!blacklist.valid())
     {
         QMessageBox::critical(this, tr("Tile list read error"), tr("Unable to read tile key list %1").arg(filename));
@@ -1594,14 +1764,23 @@ void TileInspectorDialog::updateLayerContextMenu()
 
     LAYER_DATA_SOURCE layerDataSource = (LAYER_DATA_SOURCE)ui->layerSource->itemData(ui->layerSource->currentIndex()).toInt();
     osgEarth::TileSource * tileSource = (layerDataSource == LayerDataSourceTileSource) ? getTileSource(item) : nullptr;
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
     osgEarth::TerrainLayer * terrainLayer = (layerDataSource == LayerDataSourceLayer) ? getTerrainLayer(item) : nullptr;
+#else
+    osgEarth::TileLayer * tileLayer = (layerDataSource == LayerDataSourceLayer) ? getTileLayer(item) : nullptr;
+#endif
     osgEarth::CacheBin * cachebin = (layerDataSource == LayerDataSourceCache) ? getCacheBin(item) : nullptr;
 
     SGIHostItemOsg hostitem((osg::Referenced*)nullptr);
     if (tileSource)
         hostitem = SGIHostItemOsg(tileSource);
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
     if (terrainLayer)
         hostitem = SGIHostItemOsg(terrainLayer);
+#else
+    if (tileLayer)
+        hostitem = SGIHostItemOsg(tileLayer);
+#endif
     if (cachebin)
         hostitem = SGIHostItemOsg(cachebin);
 

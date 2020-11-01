@@ -3,6 +3,7 @@
 #include <sgi/plugins/ContextMenuImpl>
 #include <sgi/plugins/SGIHostItemOsg.h>
 
+#include <osgEarth/Version>
 #include <osgEarth/Viewpoint>
 
 namespace osgEarth {
@@ -15,7 +16,15 @@ namespace osgEarth {
     class ElevationLayer;
     class ModelLayer;
     class MaskLayer;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    namespace Contrib {
     class TileSource;
+    }
+    class TileLayer;
+    typedef Contrib::TileSource TileSource;
+#else
+    class TileSource;
+#endif
     class TileBlacklist;
     class TileKey;
     class VirtualProgram;

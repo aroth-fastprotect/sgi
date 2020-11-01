@@ -8,7 +8,12 @@
 #include <sgi/plugins/SGISettingsDialogImpl>
 #include <sgi/plugins/SGIItemOsg>
 
+#include <osgEarth/Version>
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+#include <osgEarth/AutoClipPlaneHandler>
+#else
 #include <osgEarthUtil/AutoClipPlaneHandler>
+#endif
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

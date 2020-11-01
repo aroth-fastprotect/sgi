@@ -1,3 +1,4 @@
+#define final
 #include "stdafx.h"
 #include "ContextMenuOSGEarth.h"
 #include <sgi/plugins/SGIItemOsg>
@@ -6,22 +7,32 @@
 
 #include <osgEarth/Version>
 #include <osgEarth/MapNode>
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+#include <osgEarth/Sky>
+#elif OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
 #include <osgEarthUtil/Sky>
 #else
 #include <osgEarthUtil/SkyNode>
 #endif
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+#include <osgEarth/AutoClipPlaneHandler>
+#include <osgEarth/Controls>
+#include <osgEarth/RTTPicker>
+#else
 #include <osgEarthUtil/AutoClipPlaneHandler>
 #include <osgEarthUtil/Controls>
 #include <osgEarthUtil/RTTPicker>
 #include <osgEarth/MaskLayer>
+#endif
 #include <osgEarth/TileSource>
 #include <osgEarth/Registry>
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
 #include <osgEarth/LineDrawable>
 #endif
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 #include <osgEarthFeatures/FeatureModelLayer>
+#endif
 
 //#include <osgEarth/TimeControl>
 #include "SGIItemOsgEarth"
@@ -43,22 +54,37 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Registry)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Map)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::MapNode)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Layer)
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TerrainLayer)
+#else
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TileLayer)
+#endif
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::ImageLayer)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationLayer)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelLayer)
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskLayer)
+#endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LineDrawable)
 #endif
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::SkyNode)
+#else
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::SkyNode)
+#endif
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::AutoClipPlaneCullCallback)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::Control)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::Container)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::ControlCanvas)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Contrib::TileSource)
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Contrib::TileBlacklist)
+#else
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TileSource)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TileBlacklist)
+#endif
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::VirtualProgram)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::PolyShader)
 #ifdef SGI_USE_OSGEARTH_FAST
@@ -72,7 +98,9 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(TileSourceTileKey)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::RTTPicker)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::EarthManipulator)
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelLayer)
+#endif
 
 bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
 {
@@ -247,6 +275,7 @@ bool contextMenuPopulateImpl<osgEarth::Map>::populate(IContextMenuItem * menuIte
                     manipulateMenu->addSimpleAction(MenuActionTileBlacklistClear, "Clear blacklist", _item);
                 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
                 const osgEarth::MapOptions & mapOptions = object->getMapOptions();
                 osgEarth::CachePolicy::Usage cachePolicyUsage = mapOptions.cachePolicy().value().usage().value();
 
@@ -258,6 +287,7 @@ bool contextMenuPopulateImpl<osgEarth::Map>::populate(IContextMenuItem * menuIte
                     cacheMenu->addModeAction("Read only", osgEarth::CachePolicy::USAGE_READ_ONLY);
                     cacheMenu->addModeAction("No cache", osgEarth::CachePolicy::USAGE_NO_CACHE);
                 }
+#endif
 
                 menuItem->addSimpleAction(MenuActionTileInspector, "Tile inspector...", _item);
 #if OSGEARTH_VERSION_LESS_THAN(2,8,0)
@@ -428,6 +458,7 @@ bool contextMenuPopulateImpl<osgEarth::Layer>::populate(IContextMenuItem * menuI
 	return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 bool contextMenuPopulateImpl<osgEarth::TerrainLayer>::populate(IContextMenuItem * menuItem)
 {
     osgEarth::TerrainLayer * object = static_cast<osgEarth::TerrainLayer*>(item<SGIItemOsg>()->object());
@@ -487,6 +518,40 @@ bool contextMenuPopulateImpl<osgEarth::TerrainLayer>::populate(IContextMenuItem 
 	}
 	return ret;
 }
+#else
+bool contextMenuPopulateImpl<osgEarth::TileLayer>::populate(IContextMenuItem * menuItem)
+{
+    osgEarth::TileLayer * object = static_cast<osgEarth::TileLayer*>(item<SGIItemOsg>()->object());
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+        ret = callNextHandler(menuItem);
+        if(ret)
+        {
+            IContextMenuItem * manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+            if (manipulateMenu)
+            {
+                manipulateMenu->addSimpleAction(MenuActionTileBlacklistClear, "Clear blacklist", _item);
+            }
+
+            menuItem->addBoolAction(MenuActionTerrainLayerEnable, "Enable", _item, object->getEnabled());
+            menuItem->addBoolAction(MenuActionTerrainLayerVisible, "Visible", _item, object->getVisible());
+
+            std::string url = ((TileLayerAccessor*)object)->getURL();
+            if(!url.empty())
+                menuItem->addSimpleAction(MenuActionTerrainLayerSetURL, helpers::str_plus_info("URL", url), _item);
+
+            menuItem->addSimpleAction(MenuActionTileInspector, "Tile inspector...", _item);
+        }
+        break;
+    default:
+        ret = callNextHandler(menuItem);
+        break;
+    }
+    return ret;
+}
+#endif
 
 bool contextMenuPopulateImpl<osgEarth::ImageLayer>::populate(IContextMenuItem * menuItem)
 {
@@ -565,6 +630,7 @@ bool contextMenuPopulateImpl<osgEarth::ModelLayer>::populate(IContextMenuItem * 
 	return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 bool contextMenuPopulateImpl<osgEarth::MaskLayer>::populate(IContextMenuItem * menuItem)
 {
     osgEarth::MaskLayer * object = getObject<osgEarth::MaskLayer,SGIItemOsg>();
@@ -598,6 +664,7 @@ bool contextMenuPopulateImpl<osgEarth::MaskLayer>::populate(IContextMenuItem * m
 	}
 	return ret;
 }
+#endif
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
 
@@ -696,9 +763,15 @@ bool contextMenuPopulateImpl<osgEarth::CacheBin>::populate(IContextMenuItem * me
     return ret;
 }
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+bool contextMenuPopulateImpl<osgEarth::SkyNode>::populate(IContextMenuItem * menuItem)
+{
+    osgEarth::SkyNode * object = getObject<osgEarth::SkyNode,SGIItemOsg>();
+#else
 bool contextMenuPopulateImpl<osgEarth::Util::SkyNode>::populate(IContextMenuItem * menuItem)
 {
     osgEarth::Util::SkyNode * object = getObject<osgEarth::Util::SkyNode,SGIItemOsg>();
+#endif
     bool ret = false;
     switch(itemType())
     {
@@ -837,10 +910,15 @@ bool contextMenuPopulateImpl<osgEarth::Util::Controls::ControlCanvas>::populate(
     return ret;
 }
 
-
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+bool contextMenuPopulateImpl<osgEarth::Contrib::TileSource>::populate(IContextMenuItem * menuItem)
+{
+    osgEarth::Contrib::TileSource * object = dynamic_cast<osgEarth::Contrib::TileSource*>(item<SGIItemOsg>()->object());
+#else
 bool contextMenuPopulateImpl<osgEarth::TileSource>::populate(IContextMenuItem * menuItem)
 {
     osgEarth::TileSource * object = dynamic_cast<osgEarth::TileSource*>(item<SGIItemOsg>()->object());
+#endif
     bool ret = false;
     switch(itemType())
     {
@@ -875,9 +953,15 @@ bool contextMenuPopulateImpl<osgEarth::TileSource>::populate(IContextMenuItem * 
     return ret;
 }
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+bool contextMenuPopulateImpl<osgEarth::Contrib::TileBlacklist>::populate(IContextMenuItem * menuItem)
+{
+    osgEarth::Contrib::TileBlacklist * object = dynamic_cast<osgEarth::Contrib::TileBlacklist*>(item<SGIItemOsg>()->object());
+#else
 bool contextMenuPopulateImpl<osgEarth::TileBlacklist>::populate(IContextMenuItem * menuItem)
 {
     osgEarth::TileBlacklist * object = dynamic_cast<osgEarth::TileBlacklist*>(item<SGIItemOsg>()->object());
+#endif
     bool ret = false;
     switch(itemType())
     {
@@ -966,7 +1050,7 @@ bool contextMenuPopulateImpl<osgEarth::PolyShader>::populate(IContextMenuItem * 
 bool contextMenuPopulateImpl<ElevationQueryReferenced>::populate(IContextMenuItem * menuItem)
 {
     ElevationQueryReferenced * query_ref = getObject<ElevationQueryReferenced, SGIItemOsg>();
-    osgEarth::ElevationQuery* object = query_ref->get();
+    auto * object = query_ref->get();
     bool ret = false;
     switch(itemType())
     {
@@ -1041,6 +1125,15 @@ bool contextMenuPopulateImpl<TileSourceTileKey>::populate(IContextMenuItem * men
             if (tileSource.hasObject())
                 menuItem->addMenu("TileSource", &tileSource);
 
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+            SGIHostItemOsg tileLayer(object.tileLayer.get());
+            if (tileLayer.hasObject())
+            {
+                menuItem->addMenu("TileLayer", &tileLayer);
+                if (!object.tileLayer->getCacheID().empty())
+                    addCacheActions = true;
+            }
+#else
             SGIHostItemOsg terrainLayer(object.terrainLayer.get());
             if (terrainLayer.hasObject())
             {
@@ -1053,6 +1146,7 @@ bool contextMenuPopulateImpl<TileSourceTileKey>::populate(IContextMenuItem * men
                     addCacheActions = true;
 #endif
             }
+#endif
 
             SGIHostItemOsg cacheBin(object.cacheBin.get());
             if (cacheBin.hasObject())
@@ -1165,6 +1259,7 @@ bool contextMenuPopulateImpl<osgEarth::Util::EarthManipulator>::populate(IContex
     return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,0,0)
 bool contextMenuPopulateImpl<osgEarth::Features::FeatureModelLayer>::populate(IContextMenuItem* menuItem)
 {
     osgEarth::Features::FeatureModelLayer* object = getObject<osgEarth::Features::FeatureModelLayer, SGIItemOsg>();
@@ -1188,6 +1283,7 @@ bool contextMenuPopulateImpl<osgEarth::Features::FeatureModelLayer>::populate(IC
     }
     return ret;
 }
+#endif
 
 } // namespace osgearth_plugin
 } // namespace sgi

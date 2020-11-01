@@ -1,0 +1,23 @@
+// kate: syntax C++11;
+
+#pragma once
+
+#include <QtWidgets/private/qwidgetwindow_p.h>
+
+#ifndef _WIN32
+QT_BEGIN_NAMESPACE
+
+inline QWidgetWindow::QWidgetWindow(QWidget *widget) { }
+inline QWidgetWindow::~QWidgetWindow() { }
+#ifndef QT_NO_ACCESSIBILITY
+inline QAccessibleInterface *QWidgetWindow::accessibleRoot() const { return NULL; }
+#endif
+inline bool QWidgetWindow::event(QEvent *) { return false; }
+inline QObject *QWidgetWindow::focusObject() const { return NULL; }
+inline bool QWidgetWindow::nativeEvent(const QByteArray &eventType, void *message, long *result) { return false; }
+inline const QMetaObject *QWidgetWindow::metaObject() const { return NULL; }
+inline void *QWidgetWindow::qt_metacast(const char *) { return NULL; }
+inline int QWidgetWindow::qt_metacall(QMetaObject::Call, int, void **) { return 0; }
+QT_END_NAMESPACE
+
+#endif

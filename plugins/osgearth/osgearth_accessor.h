@@ -1,5 +1,6 @@
 #pragma once
 
+#define final
 
 #ifdef MAPNODE_ACCESS_HACK
 #define private protected
@@ -16,12 +17,10 @@
 #endif
 #ifdef VIRTUALPROGRAMM_ACCESS_HACK
 #define private protected
-#define final
 #endif
 #include <osgEarth/VirtualProgram>
 #ifdef VIRTUALPROGRAMM_ACCESS_HACK
 #undef private
-#undef final
 #endif
 
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
@@ -167,7 +166,11 @@ namespace osgearth_plugin {
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
         typedef std::vector<osg::ref_ptr<osgEarth::LayerCallback> > LayerCallbackList;
         void getLayerCallbacks(LayerCallbackList & callbacks) const;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+        osgEarth::Util::CacheSettings * getCacheSettings() const;
+#else
         osgEarth::CacheSettings * getCacheSettings() const;
+#endif
 #endif
     };
 
@@ -224,7 +227,45 @@ namespace osgearth_plugin {
         inline osgDB::Options * dbOptions() { return _dbOptions.get(); }
 #endif
     };
+#else
+    class TileLayerAccessor : public osgEarth::TileLayer
+    {
+    public:
+        inline std::string getURL() const
+        {
+            std::string url;
+            osgEarth::Config layerConf = getConfig();
+            if(layerConf.hasValue("url"))
+                url = layerConf.value("url");
+            return url;
+        }
+
+        inline const osgEarth::Profile * profileNoInit() { return _profile.get(); }
+    };
 #endif // OSGEARTH_VERSION_LESS_THAN(3,0,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+    namespace {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+    osgEarth::Util::CacheSettings * getCacheSettings(osgEarth::TileLayer * t)
+    {
+        class TLA : public osgEarth::TileLayer {
+        public:
+            osgEarth::Util::CacheSettings * getCacheSettings() {
+                return osgEarth::TileLayer::getCacheSettings();
+            }
+        };
+        return t ? static_cast<TLA*>(t)->getCacheSettings() : nullptr;
+    }
+#else
+    osgEarth::CacheSettings * getCacheSettings(osgEarth::TerrainLayer * t)
+    {
+        return t ? t->getCacheSettings() : nullptr;
+    }
+#endif
+
+    }
+#endif
+
     class ElevationLayerAccessor : public osgEarth::ElevationLayer
     {
     public:
@@ -314,7 +355,11 @@ namespace osgearth_plugin {
         typedef typename std::list<K>::const_iterator lru_const_iter;
         typedef typename std::list<K>                lru_type;
         typedef typename std::pair<T, lru_iter>      map_value_type;
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
+        typedef typename std::unordered_map<K, map_value_type> map_type;
+#else
         typedef typename std::map<K, map_value_type> map_type;
+#endif
         typedef typename map_type::iterator          map_iter;
         typedef typename map_type::const_iterator    map_const_iter;
         

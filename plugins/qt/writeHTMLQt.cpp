@@ -994,7 +994,6 @@ bool writePrettyHTMLImpl<QDialog>::process(std::basic_ostream<char>& os)
             // add QDialog properties
             os << "<tr><td>result</td><td>" << object->result() << "</td></tr>" << std::endl;
             os << "<tr><td>isModal</td><td>" << (object->isModal()?"true":"false") << "</td></tr>" << std::endl;
-            os << "<tr><td>orientation</td><td>" << object->orientation() << "</td></tr>" << std::endl;
             os << "<tr><td>sizeHint</td><td>" << object->sizeHint() << "</td></tr>" << std::endl;
             os << "<tr><td>minimumSizeHint</td><td>" << object->minimumSizeHint() << "</td></tr>" << std::endl;
             os << "<tr><td>isSizeGripEnabled</td><td>" << (object->isSizeGripEnabled()?"true":"false") << "</td></tr>" << std::endl;

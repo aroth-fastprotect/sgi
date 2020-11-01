@@ -101,15 +101,15 @@ QTreeWidgetItem * RetrieveElevationDialog::addResult(const osgEarth::GeoPoint & 
     item->setData(0, Qt::UserRole, QString::fromStdString(point.getConfig().toJSON()));
     item->setText(0, GeoPointToString(point));
     item->setText(1, QString::number(elevation,'f',1));
-    item->setData(1, Qt::UserRole, qVariantFromValue(elevation));
+    item->setData(1, Qt::UserRole, QVariant::fromValue(elevation));
     item->setText(2, QString::number(resolution,'f',1));
-    item->setData(2, Qt::UserRole, qVariantFromValue(resolution));
+    item->setData(2, Qt::UserRole, QVariant::fromValue(resolution));
     item->setText(3, QString("%1 ms").arg(time));
-    item->setData(3, Qt::UserRole, qVariantFromValue((unsigned)time));
+    item->setData(3, Qt::UserRole, QVariant::fromValue((unsigned)time));
     item->setText(4, resultTimestamp.toString(Qt::ISODate));
-    item->setData(4, Qt::UserRole, qVariantFromValue(resultTimestamp));
+    item->setData(4, Qt::UserRole, QVariant::fromValue(resultTimestamp));
     item->setText(5, (web)?QString("Web"):QString("osgEarth"));
-    item->setData(5, Qt::UserRole, qVariantFromValue(web));
+    item->setData(5, Qt::UserRole, QVariant::fromValue(web));
     parent->addChild(item);
     return item;
 }

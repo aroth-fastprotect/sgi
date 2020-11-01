@@ -24,7 +24,6 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QImage)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QIcon)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QSystemTrayIcon)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QLayout)
-CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(QWindow)
 
 using namespace sgi::qt_helpers;
 
@@ -185,25 +184,6 @@ bool contextMenuPopulateImpl<QWidget>::populate(IContextMenuItem * menuItem)
         break;
     }
     return ret;
-}
-
-bool contextMenuPopulateImpl<QWindow>::populate(IContextMenuItem * menuItem)
-{
-    QWindow * object = getObjectMulti<QWindow, SGIItemQt, SGIItemQtSurface>();
-	bool ret = false;
-	switch (itemType())
-	{
-	case SGIItemTypeObject:
-		ret = callNextHandler(menuItem);
-		if (ret)
-		{
-		}
-		break;
-	default:
-		ret = callNextHandler(menuItem);
-		break;
-	}
-	return ret;
 }
 
 bool contextMenuPopulateImpl<QMetaObject>::populate(IContextMenuItem * menuItem)

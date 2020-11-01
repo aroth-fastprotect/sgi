@@ -1,14 +1,24 @@
 #pragma once
 
 #include <sgi/plugins/SGIHostItemOsgEarth.h>
+#include <osgEarth/Version>
 
 namespace osgEarth {
 
     class ConfigOptions;
     class Config;
     class DriverConfigOptions;
+#if OSGEARTH_VERSION_GREATER_THAN(3,0,0)
+    class Map {
+        class Options;
+    };
+    class MapNode {
+        class Options;
+    };
+#else
     class MapOptions;
     class MapNodeOptions;
+#endif
     class ProfileOptions;
     class CacheOptions;
     class TerrainOptions;
