@@ -460,9 +460,12 @@ namespace  {
 
                 if(obj && obj->_contextID == contextID)
                 {
-                    const osg::Shader::PerContextShader * pcs = obj->_perContextShaders[contextID].get();
-                    if(pcs)
-                        return pcs->getInfoLog(log);
+                    if (contextID <= obj->_perContextShaders.size())
+                    {
+                        const osg::Shader::PerContextShader* pcs = obj->_perContextShaders[contextID].get();
+                        if (pcs)
+                            return pcs->getInfoLog(log);
+                    }
                     break;
                 }
 
