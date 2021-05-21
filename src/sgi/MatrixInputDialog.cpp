@@ -43,7 +43,7 @@ void MatrixInputDialog::formatMatrixValue(const Matrix & matrix, QString & text,
         for (int row = 0; row < 4; ++row) {
             for (int col = 0; col < 4; ++col)
                 ts << matrix(row, col) << " ";
-            ts << endl;
+            ts << '\n';
         }
         break;
     case MatrixUsageProjectionPerspective:
@@ -52,10 +52,10 @@ void MatrixInputDialog::formatMatrixValue(const Matrix & matrix, QString & text,
             osg::Matrixd pm(matrix.ptr());
             double fovy, aspectRatio, zNear, zFar;
             pm.getPerspective(fovy, aspectRatio, zNear, zFar);
-            ts << "fovy: " << fovy << endl;
-            ts << "aspectRatio: " << aspectRatio << endl;
-            ts << "zNear: " << zNear << endl;
-            ts << "zFar: " << zFar << endl;
+            ts << "fovy: " << fovy << '\n';
+            ts << "aspectRatio: " << aspectRatio << '\n';
+            ts << "zNear: " << zNear << '\n';
+            ts << "zFar: " << zFar << '\n';
 #endif
         }
         break;
@@ -65,12 +65,12 @@ void MatrixInputDialog::formatMatrixValue(const Matrix & matrix, QString & text,
             osg::Matrixd pm(matrix.ptr());
             double left, right, bottom, top, zNear, zFar;
             pm.getOrtho(left, right, bottom, top, zNear, zFar);
-            ts << "left: " << left << endl;
-            ts << "right: " << right << endl;
-            ts << "bottom: " << bottom << endl;
-            ts << "top: " << top << endl;
-            ts << "zNear: " << zNear << endl;
-            ts << "zFar: " << zFar << endl;
+            ts << "left: " << left << '\n';
+            ts << "right: " << right << '\n';
+            ts << "bottom: " << bottom << '\n';
+            ts << "top: " << top << '\n';
+            ts << "zNear: " << zNear << '\n';
+            ts << "zFar: " << zFar << '\n';
 #endif
         }
         break;
@@ -80,10 +80,10 @@ void MatrixInputDialog::formatMatrixValue(const Matrix & matrix, QString & text,
             osg::Matrixd pm(matrix.ptr());
             double left, right, bottom, top, zNear, zFar;
             pm.getOrtho(left, right, bottom, top, zNear, zFar);
-            ts << "left: " << left << endl;
-            ts << "right: " << right << endl;
-            ts << "bottom: " << bottom << endl;
-            ts << "top: " << top << endl;
+            ts << "left: " << left << '\n';
+            ts << "right: " << right << '\n';
+            ts << "bottom: " << bottom << '\n';
+            ts << "top: " << top << '\n';
 #endif
         }
         break;
@@ -93,12 +93,12 @@ void MatrixInputDialog::formatMatrixValue(const Matrix & matrix, QString & text,
             osg::Matrixd pm(matrix.ptr());
             double left, right, bottom, top, zNear, zFar;
             pm.getFrustum(left, right, bottom, top, zNear, zFar);
-            ts << "left: " << left << endl;
-            ts << "right: " << right << endl;
-            ts << "bottom: " << bottom << endl;
-            ts << "top: " << top << endl;
-            ts << "zNear: " << zNear << endl;
-            ts << "zFar: " << zFar << endl;
+            ts << "left: " << left << '\n';
+            ts << "right: " << right << '\n';
+            ts << "bottom: " << bottom << '\n';
+            ts << "top: " << top << '\n';
+            ts << "zNear: " << zNear << '\n';
+            ts << "zFar: " << zFar << '\n';
 #endif
         }
         break;
@@ -108,9 +108,9 @@ void MatrixInputDialog::formatMatrixValue(const Matrix & matrix, QString & text,
             osg::Matrixd pm(matrix.ptr());
             osg::Vec3d eye, center, up;
             pm.getLookAt(eye, center, up);
-            ts << "eye: " << eye << endl;
-            ts << "center: " << center << endl;
-            ts << "up: " << up << endl;
+            ts << "eye: " << eye << '\n';
+            ts << "center: " << center << '\n';
+            ts << "up: " << up << '\n';
 #endif
         }
         break;
@@ -121,10 +121,10 @@ void MatrixInputDialog::formatMatrixValue(const Matrix & matrix, QString & text,
             osg::Vec3d translate, scale;
             osg::Quat rotation, so;
             pm.decompose(translate, rotation, scale, so);
-            ts << "translate: " << translate << endl;
-            ts << "rotation: " << rotation << endl;
-            ts << "scale: " << scale << endl;
-            ts << "so: " << so << endl;
+            ts << "translate: " << translate << '\n';
+            ts << "rotation: " << rotation << '\n';
+            ts << "scale: " << scale << '\n';
+            ts << "so: " << so << '\n';
 #endif
         }
         break;

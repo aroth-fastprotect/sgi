@@ -49,7 +49,7 @@ void hexDumpMemory(std::basic_ostream<char>& os, const void * data, size_t size,
         os << std::endl;
     }
     if (truncated)
-        os << "truncated after " << maximumSize << " of " << size << " bytes" << endl;
+        os << "truncated after " << maximumSize << " of " << size << " bytes\n";
 }
 
 std::string joinStrings(const std::vector<std::string>& input, char delim)
