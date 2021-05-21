@@ -158,7 +158,11 @@ namespace {
             if (it != map.end())
             {
                 const QString & value = it.value();
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+                QStringList elems = value.split(',', Qt::SkipEmptyParts);
+#else
                 QStringList elems = value.split(',', QString::SkipEmptyParts);
+#endif
                 if (elems.size() == 3)
                 {
                     bool x_ok = false, y_ok = false, z_ok = false;
@@ -182,7 +186,11 @@ namespace {
             if (it != map.end())
             {
                 const QString & value = it.value();
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+                QStringList elems = value.split(',', Qt::SkipEmptyParts);
+#else
                 QStringList elems = value.split(',', QString::SkipEmptyParts);
+#endif
                 if (elems.size() == 4)
                 {
                     bool x_ok = false, y_ok = false, z_ok = false, w_ok = false;
