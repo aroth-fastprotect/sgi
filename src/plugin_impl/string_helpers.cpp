@@ -120,22 +120,25 @@ std::string& ciReplaceIn( std::string& s, const std::string& pattern, const std:
     return s;
 }
 
-/**
-* Trims whitespace from the ends of a string.
-* by Rodrigo C F Dias
-* http://www.codeproject.com/KB/stl/stdstringtrim.aspx
-*/
-void trim2( std::string& str )
-{
-    static const std::string whitespace (" \t\f\v\n\r");
-    std::string::size_type pos = str.find_last_not_of( whitespace );
-    if(pos != std::string::npos) {
-        str.erase(pos + 1);
-        pos = str.find_first_not_of( whitespace );
-        if(pos != std::string::npos) str.erase(0, pos);
-    }
-    else
-        str.erase(str.begin(), str.end());
+// https://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
+// trim from start (in place)
+static inline void ltrim(std::string& s) {
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+		return !std::isspace(ch);
+	}));
+}
+
+// trim from end (in place)
+static inline void rtrim(std::string& s) {
+	s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+		return !std::isspace(ch);
+	}).base(), s.end());
+}
+
+// trim from both ends (in place)
+void trim2(std::string& s) {
+	ltrim(s);
+	rtrim(s);
 }
 
 /**
