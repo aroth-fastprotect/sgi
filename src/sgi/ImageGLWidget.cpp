@@ -12,6 +12,7 @@
 #include <QStyle>
 #include <QLayout>
 #include <QDir>
+#include <iostream>
 
 #include <sgi/plugins/SGIImage.h>
 
