@@ -337,7 +337,7 @@ QImageIOPlugin::Capabilities sgi_loader_plugin::capabilities(QIODevice *device, 
     if (format == "sgi_loader")
         return CanRead;
     else
-        return 0;
+        return QImageIOPlugin::Capabilities();
 }
 
 
