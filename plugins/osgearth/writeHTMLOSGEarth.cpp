@@ -5296,7 +5296,7 @@ bool writePrettyHTMLImpl<osg::PagedLOD>::process(std::basic_ostream<char>& os)
 
             os << "<tr><td>cacheKeys</td><td><ol>";
             for(unsigned i = 0; i < object->getNumFileNames(); ++i)
-                os << "<li>" << osgEarth::Cache::makeCacheKey(object->getFileName(0), "uri") << "</li>";
+                os << "<li>" << osgEarth::Cache::makeCacheKey(object->getFileName(i), "uri") << "</li>";
             os << "<ol></td></tr>" << std::endl;
 
             if(_table)
@@ -5327,7 +5327,7 @@ bool writePrettyHTMLImpl<osg::ProxyNode>::process(std::basic_ostream<char>& os)
 
         os << "<tr><td>cacheKeys</td><td><ol>";
         for (unsigned i = 0; i < object->getNumFileNames(); ++i)
-            os << "<li>" << osgEarth::Cache::makeCacheKey(object->getFileName(0), "uri") << "</li>";
+            os << "<li>" << osgEarth::Cache::makeCacheKey(object->getFileName(i), "uri") << "</li>";
         os << "<ol></td></tr>" << std::endl;
 
         if (_table)

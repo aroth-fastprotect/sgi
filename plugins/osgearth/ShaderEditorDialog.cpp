@@ -230,9 +230,9 @@ void UniformModel::reload()
 Qt::ItemFlags UniformModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
-        return 0;
+        return Qt::NoItemFlags;
 
-    Qt::ItemFlags ret = 0;
+    Qt::ItemFlags ret = Qt::NoItemFlags;
     switch ((Section)index.column())
     {
     case SectionName:
@@ -462,9 +462,12 @@ namespace  {
 
                 if(obj && obj->_contextID == contextID)
                 {
-                    const osg::Shader::PerContextShader * pcs = obj->_perContextShaders[contextID].get();
-                    if(pcs)
-                        return pcs->getInfoLog(log);
+                    if (contextID <= obj->_perContextShaders.size())
+                    {
+                        const osg::Shader::PerContextShader* pcs = obj->_perContextShaders[contextID].get();
+                        if (pcs)
+                            return pcs->getInfoLog(log);
+                    }
                     break;
                 }
 

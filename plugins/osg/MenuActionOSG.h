@@ -29,6 +29,7 @@ enum MenuActionOptimizerRunMode {
 	MenuActionOptimizerRunModeAll,
 	MenuActionOptimizerRunModeCheck,
 	MenuActionOptimizerRunModeFastGeometry,
+    MenuActionOptimizerRunModeMergeGeometries,
 };
 
 enum MenuAction {

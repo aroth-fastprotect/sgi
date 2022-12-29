@@ -30,8 +30,8 @@ class ImagePreviewDialog : public QDialog
     Q_OBJECT
 
 public:
-                            ImagePreviewDialog(QWidget *parent = nullptr, Qt::WindowFlags f = 0);
-                            ImagePreviewDialog(SGIItemBase * item, IHostCallback * callback=nullptr, QWidget *parent = nullptr, Qt::WindowFlags f = 0);
+                            ImagePreviewDialog(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
+                            ImagePreviewDialog(SGIItemBase * item, IHostCallback * callback=nullptr, QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
     virtual                 ~ImagePreviewDialog();
 
 public:

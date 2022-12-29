@@ -14,7 +14,7 @@ class QTextDialog : public QDialog
 	Q_OBJECT
 
 public:
-    QTextDialog(QWidget *parent = nullptr, Qt::WindowFlags f = 0);
+    QTextDialog(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 	~QTextDialog();
 
     enum TextMode {

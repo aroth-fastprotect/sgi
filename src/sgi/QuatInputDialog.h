@@ -14,7 +14,7 @@ class QuatInputDialog : public QDialog
     Q_OBJECT
 
 public:
-    QuatInputDialog(QWidget *parent = nullptr, Qt::WindowFlags f = 0);
+    QuatInputDialog(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
     ~QuatInputDialog();
 
 public slots:
