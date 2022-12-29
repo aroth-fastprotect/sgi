@@ -9,12 +9,14 @@ namespace osgEarth {
     class Config;
     class DriverConfigOptions;
 #if OSGEARTH_VERSION_GREATER_THAN(3,0,0)
+    #if OSGEARTH_VERSION_LESS_THAN(3,3,0)
     class Map {
         class Options;
     };
     class MapNode {
         class Options;
     };
+    #endif
 #else
     class MapOptions;
     class MapNodeOptions;

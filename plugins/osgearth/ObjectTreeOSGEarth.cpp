@@ -144,7 +144,9 @@ OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::Cache)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheBin)
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheSettings)
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::PolyShader)
+#endif
 #endif
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
 OBJECT_TREE_BUILD_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationPool)
@@ -421,7 +423,7 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
             SGIHostItemOsg terrainEngineContainer(object->terrainEngineContainer());
 			if (terrainEngineContainer.hasObject())
 				treeItem->addChild("TerrainEngineContainer", &terrainEngineContainer);
-#else
+#elif OSGEARTH_VERSION_LESS_THAN(3,3,0)
             SGIHostItemOsg terrainEngine(object->getTerrainEngine());
             if(terrainEngine.hasObject())
                 treeItem->addChild("TerrainEngine", &terrainEngine);
@@ -441,7 +443,7 @@ bool objectTreeBuildImpl<osgEarth::MapNode>::build(IObjectTreeItem * treeItem)
             if(overlayDecorator.hasObject())
                 treeItem->addChild("OverlayDecorator", &overlayDecorator);
 #endif
-#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0) && OSGEARTH_VERSION_LESS_THAN(3,3,0)
             SGIHostItemOsg resourceReleaser(object->getResourceReleaser());
             if(resourceReleaser.hasObject())
                 treeItem->addChild("ResourceReleaser", &resourceReleaser);
@@ -1902,7 +1904,7 @@ bool objectTreeBuildImpl<osgEarth::CacheSettings>::build(IObjectTreeItem * treeI
     }
     return ret;
 }
-
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
 bool objectTreeBuildImpl<osgEarth::PolyShader>::build(IObjectTreeItem * treeItem)
 {
     PolyShaderAccessor * object = static_cast<PolyShaderAccessor*>(getObject<osgEarth::PolyShader, SGIItemOsg>());
@@ -1937,6 +1939,7 @@ bool objectTreeBuildImpl<osgEarth::PolyShader>::build(IObjectTreeItem * treeItem
     }
     return ret;
 }
+#endif // OSGEARTH_VERSION_LESS_THAN(3,3,0)
 
 #endif
 

@@ -174,7 +174,9 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationPool::Tile)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationEnvelope)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TileSource)
 #endif
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::PolyShader)
+#endif
 #endif
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Terrain)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TerrainEngineNode)
@@ -437,6 +439,7 @@ bool writePrettyHTMLImpl<osgEarth::Capabilities>::process(std::basic_ostream<cha
             callNextHandler(os);
 
             // add remaining Capabilities properties
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
             os << "<tr><td>MaxFFPTextureUnits</td><td>" << object->getMaxFFPTextureUnits() << "</td></tr>" << std::endl;
             os << "<tr><td>MaxGPUTextureUnits</td><td>" << object->getMaxGPUTextureUnits() << "</td></tr>" << std::endl;
             os << "<tr><td>MaxGPUTextureCoordSets</td><td>" << object->getMaxGPUTextureCoordSets() << "</td></tr>" << std::endl;
@@ -469,6 +472,24 @@ bool writePrettyHTMLImpl<osgEarth::Capabilities>::process(std::basic_ostream<cha
             os << "<tr><td>preferDisplayListsForStaticGeometry</td><td>" << (object->preferDisplayListsForStaticGeometry()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>numProcessors</td><td>" << object->getNumProcessors() << "</td></tr>" << std::endl;
             os << "<tr><td>supportsFragDepthWrite</td><td>" << (object->supportsFragDepthWrite()?"true":"false") << "</td></tr>" << std::endl;
+#else
+            os << "<tr><td>MaxGPUTextureUnits</td><td>" << object->getMaxGPUTextureUnits() << "</td></tr>" << std::endl;
+            os << "<tr><td>MaxTextureSize</td><td>" << object->getMaxTextureSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>MaxFastTextureSize</td><td>" << object->getMaxFastTextureSize() << "</td></tr>" << std::endl;
+            os << "<tr><td>supportsGLSL</td><td>" << (object->supportsGLSL()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>GLSL version</td><td>" << object->getGLSLVersion() << "</td></tr>" << std::endl;
+            os << "<tr><td>vendor</td><td>" << object->getVendor() << "</td></tr>" << std::endl;
+            os << "<tr><td>renderer</td><td>" << object->getRenderer() << "</td></tr>" << std::endl;
+            os << "<tr><td>version</td><td>" << object->getVersion() << "</td></tr>" << std::endl;
+            os << "<tr><td>supportsDepthPackedStencilBuffer</td><td>" << (object->supportsDepthPackedStencilBuffer()?"true":"false") << "</td></tr>" << std::endl;
+#ifdef OSGEARTH_WITH_FAST_MODIFICATIONS
+            os << "<tr><td>supportsQuadBufferStereo</td><td>" << (object->supportsQuadBufferStereo()?"true":"false") << "</td></tr>" << std::endl;
+#endif
+            os << "<tr><td>supportsDrawInstanced</td><td>" << (object->supportsDrawInstanced()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>supportsNonPowerOfTwoTextures</td><td>" << (object->supportsNonPowerOfTwoTextures()?"true":"false") << "</td></tr>" << std::endl;
+            os << "<tr><td>numProcessors</td><td>" << object->getNumProcessors() << "</td></tr>" << std::endl;
+            os << "<tr><td>supportsFragDepthWrite</td><td>" << (object->supportsFragDepthWrite()?"true":"false") << "</td></tr>" << std::endl;
+#endif
 
             if(_table)
                 os << "</table>" << std::endl;
@@ -694,11 +715,15 @@ bool writePrettyHTMLImpl<osgEarth::SpatialReference>::process(std::basic_ostream
             callNextHandler(os);
             os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
             os << "<tr><td>wkt</td><td>" << object->getWKT() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
             os << "<tr><td>initType</td><td>" << object->getInitType() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>horizontal init</td><td>" << object->getHorizInitString() << "</td></tr>" << std::endl;
             os << "<tr><td>vertical init</td><td>" << object->getVertInitString() << "</td></tr>" << std::endl;
             os << "<tr><td>datum name</td><td>" << object->getDatumName() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
             os << "<tr><td>ellipsoid</td><td>" << getObjectNameAndType(object->getEllipsoid()) << "</td></tr>" << std::endl;
+#endif
 
             os << "<tr><td>isGeographic</td><td>" << (object->isGeographic()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>isGeodetic</td><td>" << (object->isGeodetic()?"true":"false") << "</td></tr>" << std::endl;
@@ -708,7 +733,9 @@ bool writePrettyHTMLImpl<osgEarth::SpatialReference>::process(std::basic_ostream
             os << "<tr><td>isNorthPolar</td><td>" << (object->isNorthPolar()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>isSouthPolar</td><td>" << (object->isSouthPolar()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>isUserDefined</td><td>" << (object->isUserDefined()?"true":"false") << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
             os << "<tr><td>isContiguous</td><td>" << (object->isContiguous()?"true":"false") << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>isCube</td><td>" << (object->isCube()?"true":"false") << "</td></tr>" << std::endl;
             os << "<tr><td>isLTP</td><td>" << (object->isLTP()?"true":"false") << "</td></tr>" << std::endl;
 #if OSGEARTH_VERSION_LESS_THAN(2,10,0)
@@ -727,6 +754,7 @@ bool writePrettyHTMLImpl<osgEarth::SpatialReference>::process(std::basic_ostream
     return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Profile::ProfileType & t)
 {
     switch(t)
@@ -739,6 +767,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     }
     return os;
 }
+#endif
 
 void writePrettyHTML(std::basic_ostream<char>& os, const osgEarth::GeoCircle & object)
 {
@@ -803,7 +832,9 @@ bool writePrettyHTMLImpl<osgEarth::Profile>::process(std::basic_ostream<char>& o
             os << "<tr><td>lat/lon extent</td><td>";
             writePrettyHTML(os, object->getLatLongExtent());
             os << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
             os << "<tr><td>profileType</td><td>" << object->getProfileType() << "</td></tr>" << std::endl;
+#endif
             os << "<tr><td>full signature</td><td>" << object->getFullSignature() << "</td></tr>" << std::endl;
             os << "<tr><td>horiz signature</td><td>" << object->getHorizSignature() << "</td></tr>" << std::endl;
             os << "<tr><td>srs</td><td>";
@@ -970,7 +1001,9 @@ bool writePrettyHTMLImpl<osgEarth::TileLayer>::process(std::basic_ostream<char>&
 
         // add tile layer properties
         os << "<tr><td>name</td><td>" << object->getName() << "</td></tr>" << std::endl;
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
         os << "<tr><td>dataExtents</td><td>" << object->getDataExtents().size() << " entries" << "</td></tr>" << std::endl;
+#endif
         os << "<tr><td>dataExtentsUnion</td><td>" << object->getDataExtentsUnion() << "</td></tr>" << std::endl;
         os << "<tr><td>nodata value</td><td>" << object->getNoDataValue() << "</td></tr>" << std::endl;
         os << "<tr><td>min valid value</td><td>" << object->getMinValidValue() << "</td></tr>" << std::endl;
@@ -2237,6 +2270,7 @@ bool writePrettyHTMLImpl<osgEarth::ElevationEnvelope>::process(std::basic_ostrea
 }
 #endif
 
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
 bool writePrettyHTMLImpl<osgEarth::PolyShader>::process(std::basic_ostream<char>& os)
 {
     PolyShaderAccessor * object = static_cast<PolyShaderAccessor*>(getObject<osgEarth::PolyShader, SGIItemOsg>());
@@ -2272,6 +2306,7 @@ bool writePrettyHTMLImpl<osgEarth::PolyShader>::process(std::basic_ostream<char>
     }
     return ret;
 }
+#endif // #if OSGEARTH_VERSION_LESS_THAN(3,3,0)
 
 #endif
 

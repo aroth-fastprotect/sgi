@@ -86,7 +86,9 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TileSource)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TileBlacklist)
 #endif
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::VirtualProgram)
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::PolyShader)
+#endif
 #ifdef SGI_USE_OSGEARTH_FAST
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LODScaleOverrideNode)
 #endif
@@ -1017,6 +1019,7 @@ bool contextMenuPopulateImpl<osgEarth::VirtualProgram>::populate(IContextMenuIte
     return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
 bool contextMenuPopulateImpl<osgEarth::PolyShader>::populate(IContextMenuItem * menuItem)
 {
     PolyShaderAccessor * object = static_cast<PolyShaderAccessor*>(getObject<osgEarth::PolyShader, SGIItemOsg>());
@@ -1046,6 +1049,7 @@ bool contextMenuPopulateImpl<osgEarth::PolyShader>::populate(IContextMenuItem * 
     }
     return ret;
 }
+#endif
 
 bool contextMenuPopulateImpl<ElevationQueryReferenced>::populate(IContextMenuItem * menuItem)
 {

@@ -181,7 +181,9 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osgEarth::ElevationPool::Tile,
     osgEarth::ElevationEnvelope,
 #endif
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
     osgEarth::PolyShader,
+#endif
     osgEarth::ScreenSpaceLayoutData,
 #endif
     ElevationQueryReferenced,

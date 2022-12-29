@@ -959,7 +959,11 @@ namespace {
         stateSet->setAttributeAndModes(new osg::BlendFunc(GL_ONE, GL_ZERO), 1);
 
         const char* fs =
+#ifdef GLSL_VERSION_STR
             "#version " GLSL_VERSION_STR "\n"
+#else
+            "#version $GLSL_VERSION_STR \n"
+#endif
             "void swap(inout vec4 c) { c.rgba = c==vec4(0)? vec4(1) : vec4(vec3((c.r+c.g+c.b+c.a)/4.0),1); }\n";
         osgEarth::Registry::shaderGenerator().run(geode);
         osgEarth::VirtualProgram::getOrCreate(geode->getOrCreateStateSet())->setFunction("swap", fs, osgEarth::ShaderComp::LOCATION_FRAGMENT_COLORING);

@@ -200,6 +200,7 @@ void RTTPickerAccess::getPickContexts(PickContexts & contexts) const
     contexts = _pickContexts;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
 void PolyShaderAccessor::resetShaders()
 {
     _nominalShader = nullptr;
@@ -207,7 +208,7 @@ void PolyShaderAccessor::resetShaders()
     _tessevalShader = nullptr;
     _dirty = true;
 }
-
+#endif
 
 #if 0
 void VirtualProgramAccessor::getProgramCache(ProgramMap & programCache)
@@ -229,6 +230,7 @@ void VirtualProgramAccessor::getGLSLExtensions(ExtensionsSet & extensions)
 class ProgramRepoAccessor : public osgEarth::ProgramRepo
 {
 public:
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
     void remove(const osgEarth::ProgramKey & key)
     {
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,0,0)
@@ -242,6 +244,7 @@ public:
             _db.erase(i);
         }
     }
+#endif
 };
 
 void VirtualProgramAccessor::dirty(unsigned contextID)
@@ -251,7 +254,9 @@ void VirtualProgramAccessor::dirty(unsigned contextID)
 
     // Access the resuable shader map for this context. Bypasses reallocation overhead.
     ApplyVars& local = _apply[contextID];
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
     programRepo.remove(local.programKey);
+#endif
 #endif
 }
 

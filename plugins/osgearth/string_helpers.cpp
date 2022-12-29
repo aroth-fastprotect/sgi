@@ -40,10 +40,12 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     return os << key.str();
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Bounds & bounds)
 {
     return os << bounds.toString();
 }
+#endif
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::GeoExtent & extent)
 {
@@ -170,6 +172,13 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
 {
     return os << expr.expr();
 }
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,3,0)
+inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& output, const osg::BoundingBoxd & b)
+{
+    return output << std::setprecision(12) << '[' << b._min << ',' << b._max << ']';
+}
+#endif
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Query& query)
 {

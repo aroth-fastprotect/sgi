@@ -5,6 +5,7 @@
 
 #include <QPushButton>
 
+#include <osgEarth/Version>
 #include <osgEarth/VirtualProgram>
 
 #ifdef _DEBUG
@@ -23,18 +24,34 @@ public:
         , _vp(vp)
         , _functionHash(functionHash)
         , _originalOrder(0)
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
         , _originalLocation(osgEarth::ShaderComp::LOCATION_UNDEFINED)
+#else
+        , _originalLocation(osgEarth::VirtualProgram::LOCATION_UNDEFINED)
+#endif
         , _currentOrder(0)
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
         , _currentLocation(osgEarth::ShaderComp::LOCATION_UNDEFINED)
+#else
+        , _currentLocation(osgEarth::VirtualProgram::LOCATION_UNDEFINED)
+#endif
     {
     }
     bool _ready;
     osg::ref_ptr<osgEarth::VirtualProgram> _vp;
     unsigned _functionHash;
     float _originalOrder;
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
     osgEarth::ShaderComp::FunctionLocation _originalLocation;
+#else
+    osgEarth::VirtualProgram::FunctionLocation _originalLocation;
+#endif
     float _currentOrder;
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
     osgEarth::ShaderComp::FunctionLocation _currentLocation;
+#else
+    osgEarth::VirtualProgram::FunctionLocation _currentLocation;
+#endif
 };
 
 
@@ -86,7 +103,11 @@ void ShaderFunctionDetails::load()
 {
     Q_D(ShaderFunctionDetails);
     std::string functionName;
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
     osgEarth::ShaderComp::FunctionLocation location = osgEarth::ShaderComp::LOCATION_UNDEFINED;
+#else
+    osgEarth::VirtualProgram::FunctionLocation location = osgEarth::VirtualProgram::LOCATION_UNDEFINED;
+#endif
     float functionOrder = 0;
     bool found = false;
 
@@ -156,7 +177,11 @@ bool ShaderFunctionDetails::applyChanges(int location, float order)
         d->_vp->getFunctions(funcs);
 
         std::string functionName;
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
         osgEarth::ShaderComp::FunctionLocation oldLocation = osgEarth::ShaderComp::LOCATION_UNDEFINED;
+#else
+        osgEarth::VirtualProgram::FunctionLocation oldLocation = osgEarth::VirtualProgram::LOCATION_UNDEFINED;
+#endif
         std::string source;
         float oldOrder = 0;
 
@@ -174,9 +199,11 @@ bool ShaderFunctionDetails::applyChanges(int location, float order)
                     oldOrder = order;
                     functionName = func._name;
                     oldLocation = loc;
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
                     osgEarth::PolyShader * sh = d->_vp->getPolyShader(functionName);
                     if (sh)
                         source = sh->getShaderSource();
+#endif
                     found = true;
                 }
             }

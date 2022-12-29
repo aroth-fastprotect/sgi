@@ -293,6 +293,7 @@ namespace osgearth_plugin {
         double minimumRadius() const { return _rp; }
     };
 
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
     class PolyShaderAccessor : public osgEarth::PolyShader
     {
     public:
@@ -300,6 +301,7 @@ namespace osgearth_plugin {
         osg::Shader* getTessellationShader() const { return _tessevalShader.get(); }
         void resetShaders();
     };
+#endif
 
     class VirtualProgramAccessor : public osgEarth::VirtualProgram
     {

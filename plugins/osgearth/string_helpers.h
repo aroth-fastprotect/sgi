@@ -11,7 +11,11 @@
 class QLineEdit;
 
 namespace osgEarth {
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(3,3,0)
+    using Bounds = osg::BoundingBoxd;
+#else
     class Bounds;
+#endif
     class GeoExtent;
     class TileKey;
     class Map;
@@ -119,7 +123,9 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::TileKey & key);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::URI & uri);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::URIContext& urictx);
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Bounds & bounds);
+#endif
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::GeoExtent & extent);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Viewpoint & viewpoint);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ReadResult & result);

@@ -426,7 +426,11 @@ void UniformEditDock::onContextMenuRequested(const QPoint &pos)
 
 namespace  {
     static const char * default_vertex_shader =
+#ifdef GLSL_VERSION_STR
             "#version " GLSL_VERSION_STR "\n"
+#else
+            "#version $GLSL_VERSION_STR \n"
+#endif
 #ifdef OSG_GLES2_AVAILABLE
             "precision mediump float; \n"
 #endif
@@ -434,7 +438,11 @@ namespace  {
             "{ \n"
             "} \n";
     static const char * default_fragment_shader =
+#ifdef GLSL_VERSION_STR
             "#version " GLSL_VERSION_STR "\n"
+#else
+            "#version $GLSL_VERSION_STR \n"
+#endif
 #ifdef OSG_GLES2_AVAILABLE
            "precision mediump float; \n"
 #endif
@@ -706,6 +714,7 @@ osg::Program * ShaderEditorDialog::getProgram(bool create)
     return ret;
 }
 
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
 osgEarth::PolyShader * ShaderEditorDialog::getPolyShader(int index)
 {
     osgEarth::PolyShader * ret = nullptr;
@@ -735,6 +744,7 @@ osgEarth::PolyShader * ShaderEditorDialog::getPolyShader(int index)
     }
     return ret;
 }
+#endif
 
 const QString & ShaderEditorDialog::shaderLogFile() const
 {
@@ -962,7 +972,8 @@ void ShaderEditorDialog::activateDebugTools(bool on)
             {
                 const float & order = itmap->first;
                 const osgEarth::ShaderComp::Function & func = itmap->second;
-             
+
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
                 osgEarth::PolyShader * shader = vp->getPolyShader(func._name);
                 if (shader)
                 {
@@ -1001,6 +1012,7 @@ void ShaderEditorDialog::activateDebugTools(bool on)
                     }
                     vp->setFunction(func._name, os.str(), loc, order);
                 }
+#endif
             }
         }
     }
@@ -1130,8 +1142,9 @@ void ShaderEditorDialog::loadInfoLog()
     if (vp)
     {
         unsigned contextID = osg_helpers::findContextID(vp);
-        osgEarth::PolyShader * sh = getPolyShader(_currentVPFunctionIndex);
         std::string log;
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
+        osgEarth::PolyShader * sh = getPolyShader(_currentVPFunctionIndex);
         if (sh)
         {
             osg::Shader * shader = sh->getNominalShader();
@@ -1140,6 +1153,7 @@ void ShaderEditorDialog::loadInfoLog()
                 static_cast<ShaderAccess*>(shader)->getGlProgramInfoLog(contextID, log);
             }
         }
+#endif
         _infoLogDock->setInfoLog(log);
 
     }
@@ -1194,9 +1208,10 @@ void ShaderEditorDialog::vpFunctionChanged(int index)
 
     VirtualProgramAccessor * vp = static_cast<VirtualProgramAccessor*>(getVirtualProgram(false));
     unsigned contextID = osg_helpers::findContextID(vp);
-    osgEarth::PolyShader * sh = getPolyShader(index);
     std::string log;
     std::string src;
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
+    osgEarth::PolyShader * sh = getPolyShader(index);
     if (sh)
     {
         osg::Shader * shader = sh->getNominalShader();
@@ -1206,6 +1221,7 @@ void ShaderEditorDialog::vpFunctionChanged(int index)
         }
         src = sh->getShaderSource();
     }
+#endif
     ui->vpShaderCode->setPlainText(qt_helpers::fromUtf8(src));
     _infoLogDock->setInfoLog(log);
     _currentVPFunctionIndex = index;
@@ -1232,7 +1248,11 @@ void ShaderEditorDialog::vpFunctionAdd(QAction * action)
             case osgEarth::ShaderComp::LOCATION_FRAGMENT_COLORING:
             case osgEarth::ShaderComp::LOCATION_FRAGMENT_LIGHTING:
             case osgEarth::ShaderComp::LOCATION_FRAGMENT_OUTPUT:
+#ifdef GLSL_VERSION_STR
                 ss << "#version " GLSL_VERSION_STR "\n"
+#else
+                ss << "#version $GLSL_VERSION_STR \n"
+#endif
                     << "void " << functionName << "(inout vec4 color)\n"
                     << "{\n"
                     << "}\n";
@@ -1240,13 +1260,21 @@ void ShaderEditorDialog::vpFunctionAdd(QAction * action)
             case osgEarth::ShaderComp::LOCATION_VERTEX_MODEL:
             case osgEarth::ShaderComp::LOCATION_VERTEX_VIEW:
             case osgEarth::ShaderComp::LOCATION_VERTEX_CLIP:
+#ifdef GLSL_VERSION_STR
                 ss << "#version " GLSL_VERSION_STR "\n"
+#else
+                ss << "#version $GLSL_VERSION_STR \n"
+#endif
                     << "void " << functionName << "(inout vec4 VertexView)\n"
                     << "{\n"
                     << "}\n";
                 break;
             default:
+#ifdef GLSL_VERSION_STR
                 ss << "#version " GLSL_VERSION_STR "\n"
+#else
+                ss << "#version $GLSL_VERSION_STR \n"
+#endif
                     << "void " << functionName << "()\n"
                     << "{\n"
                     << "}\n";

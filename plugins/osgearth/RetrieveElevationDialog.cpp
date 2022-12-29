@@ -4,6 +4,7 @@
 
 #include <osgEarth/Version>
 #include <osgEarth/ElevationQuery>
+#include <osgEarth/HTTPClient>
 
 #include <sgi/plugins/SGISettingsDialogImpl>
 

@@ -138,7 +138,11 @@ void TileKeyList::addTilesForGeoExtent(const osgEarth::GeoExtent & ext, const os
     osgEarth::GeoPoint se(profile->getSRS(), ext.xMax(), ext.yMax());
 
     osgEarth::GeoPoint center;
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
     ext.getCentroid(center);
+#else
+    center = ext.getCentroid();
+#endif
 
     if (selected_lod < 0)
     {

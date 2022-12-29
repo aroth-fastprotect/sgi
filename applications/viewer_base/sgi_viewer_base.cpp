@@ -729,6 +729,7 @@ sgi_MapNodeHelper::sgi_MapNodeHelper(osg::ArgumentParser& args)
 #ifdef SGI_USE_OSGEARTH
     , _mapNodeHelper(new osgEarth::Util::MapNodeHelper)
     , _useOELighting(true)
+    , _useOEControls(false)
 #endif
     , _usageMessage(nullptr)
     , _onlyImages(false)
@@ -864,7 +865,11 @@ std::string sgi_MapNodeHelper::errorMessages() const
 #ifdef SGI_USE_OSGEARTH
 namespace {
     static const char * vert_defaultMaterial =
+#ifdef GLSL_VERSION_STR
         "#version " GLSL_VERSION_STR "\n"
+#else
+        "#version $GLSL_VERSION_STR \n"
+#endif
         "vec4 vp_Color; \n"
         "void defaultMaterial(inout vec4 vert) { \n"
         "    vp_Color = vec4(1,1,1,1); \n"
@@ -1194,7 +1199,13 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
 
 #ifdef SGI_USE_OSGEARTH
     if (mapNode.valid())
+    {
+#if OSGEARTH_VERSION_LESS_THAN(3,3,0)
         _mapNodeHelper->parse(mapNode.get(), args, view, root, userContainer);
+#else
+        _mapNodeHelper->parse(mapNode.get(), args, view, root, userContainer, _useOEControls);
+#endif
+    }
 
     // DO NOT call _mapNodeHelper->configureView because it creates the event handlers and
     // this results in duplicated event handlers
