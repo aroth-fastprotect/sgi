@@ -25,6 +25,11 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
     return os << uri.full();
 }
 
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::URIContext& urictx)
+{
+    return os << urictx.referrer();
+}
+
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::TileKey & key)
 {
     return os << key.str();
@@ -156,6 +161,39 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::StringExpression & expr)
 {
     return os << expr.expr();
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::Query& query)
+{
+    os << query.expression();
+    if(query.orderby().isSet())
+        os << " ORDER BY " << query.orderby().value();
+    if (query.bounds().isSet())
+        os << " BOUNDS " << query.bounds().value();
+    if (query.tileKey().isSet())
+        os << " TILEKEY " << query.tileKey().value();
+    if (query.limit().isSet())
+        os << " LIMIT " << query.limit().value();
+    return os;
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Units& t)
+{
+    return os << t.getAbbr();
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::Fill& t)
+{
+    return os << t.color();
+}
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::Stroke& t)
+{
+    /// @todo add remaining stroke parameters 
+    return os << '{' << t.color() << ',' << t.width() << t.widthUnits() << '}';
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::DepthOffsetOptions& opts)
+{
+    return os << opts.enabled() << " auto=" << opts.automatic() << " bias=" << opts.minBias() << '/' << opts.maxBias() << " range=" << opts.minRange() << '/' << opts.maxRange();
 }
 
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::FadeOptions & opts)

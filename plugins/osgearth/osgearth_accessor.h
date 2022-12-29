@@ -1,8 +1,10 @@
 #pragma once
 
+
 #ifdef MAPNODE_ACCESS_HACK
 #define private protected
 #endif
+#include <osgEarth/TileSource>
 #include <osgEarth/MapNode>
 #include <osgEarth/Map>
 #include <osgEarth/Version>
@@ -156,6 +158,13 @@ namespace osgearth_plugin {
 #endif
     };
 
+	class TileSourceAccessor : public osgEarth::TileSource
+	{
+	public:
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
+        const osgEarth::Status& getStatus() const;
+#endif
+    };
     class TerrainLayerAccessor : public osgEarth::TerrainLayer
     {
     public:
@@ -390,6 +399,11 @@ namespace osgearth_plugin {
 #if OSGEARTH_VERSION_LESS_THAN(2,8,0)
         const osgDB::Options * getDBOptions() { return _dbOptions.get(); }
 #endif
+    };
+    class FeatureSourceAccess : public osgEarth::Features::FeatureSource
+    {
+    public:
+        const osgDB::Options* getReadOptions() const { return FeatureSource::getReadOptions(); }
     };
 
     class RTTPickerAccess : public osgEarth::Util::RTTPicker 

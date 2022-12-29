@@ -604,13 +604,21 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
 			const osg::HeightField * hf = dynamic_cast<const osg::HeightField*>(osgitem->object());
             if(image)
             {
-                //osg_helpers::osgImageToQImage(image, &qimage);
+				ConstImagePtr sgi_image = osg_helpers::convertImage(image);
+				if (sgi_image.valid())
+					qt_helpers::convertImageToQImage(sgi_image, Image::ImageFormatAutomatic, qimage);
             }
 			else if (hf)
 			{
-				std::stringstream os;
-				osg_helpers::heightFieldDumpPlainText(os, hf);
-                previewTextPlain = os.str();
+				ConstImagePtr sgi_image = osg_helpers::convertImage(hf);
+				if (sgi_image.valid())
+					qt_helpers::convertImageToQImage(sgi_image, Image::ImageFormatAutomatic, qimage);
+				else
+				{
+					std::stringstream os;
+					osg_helpers::heightFieldDumpPlainText(os, hf);
+					previewTextPlain = os.str();
+				}
 			}
             else
             {
@@ -622,13 +630,21 @@ void TileInspectorDialog::setNodeInfo(const SGIItemBase * item)
 					const osg::HeightField * hf = dynamic_cast<const osg::HeightField*>(data.tileData.get());
                     if(image)
                     {
-                        //osg_helpers::osgImageToQImage(image, &qimage);
+						ConstImagePtr sgi_image = osg_helpers::convertImage(image);
+						if(sgi_image.valid())
+							qt_helpers::convertImageToQImage(sgi_image, Image::ImageFormatAutomatic, qimage);
                     }
 					else if (hf)
 					{
-						std::stringstream os;
-						osg_helpers::heightFieldDumpPlainText(os, hf);
-                        previewTextPlain = os.str();
+						ConstImagePtr sgi_image = osg_helpers::convertImage(hf);
+						if (sgi_image.valid())
+							qt_helpers::convertImageToQImage(sgi_image, Image::ImageFormatAutomatic, qimage);
+						else
+						{
+							std::stringstream os;
+							osg_helpers::heightFieldDumpPlainText(os, hf);
+							previewTextPlain = os.str();
+						}
 					}
                 }
             }
@@ -718,6 +734,8 @@ void TileInspectorDialog::refresh()
     typedef std::list<std::string> stdstringlist;
     stdstringlist urllist;
 
+	int minimumLod = -1;
+	int maximumLod = -1;
     std::string baseurl;
     std::string driver;
     bool invertY = false;
@@ -745,6 +763,13 @@ void TileInspectorDialog::refresh()
         tileSourceOptions = osgEarth::TileSourceOptions(layerConf);
         if (terrainLayer->getTileSource())
             tileSize = terrainLayer->getTileSource()->getPixelsPerTile();
+		
+		const osgEarth::TerrainLayerOptions& topts = terrainLayer->options();
+		if (topts.minLevel().isSet())
+			minimumLod = topts.minLevel().value();
+		if (topts.maxLevel().isSet())
+			maximumLod = topts.maxLevel().value();
+
         osgEarth::ImageLayer* imageLayer = dynamic_cast<osgEarth::ImageLayer*>(terrainLayer);
         osgEarth::ElevationLayer * elevLayer = dynamic_cast<osgEarth::ElevationLayer*>(terrainLayer);
 
@@ -768,6 +793,10 @@ void TileInspectorDialog::refresh()
     bool ok = false;
     QString input = ui->coordinate->text();
     TileKeyList tilekeylist;
+	if(minimumLod >= 0)
+		tilekeylist.setMinimumLOD(minimumLod);
+	if(maximumLod >= 0)
+		tilekeylist.setMaximumLOD(maximumLod);
     if(tilekeylist.fromLineEdit(ui->coordinate, profile, lod, numNeighbors) && !tilekeylist.empty())
     {
         std::ostringstream os;

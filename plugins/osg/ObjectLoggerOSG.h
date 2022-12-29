@@ -132,7 +132,11 @@ protected:
 class CullingNodeInfo : public osg::Referenced
 {
 public:
-    CullingNodeInfo(const osg::ref_ptr<osg::Node> & n) : node(n) {}
+	static unsigned getCullingMask(osgUtil::CullVisitor* cv, osg::Node& node);
+	static unsigned getCullingMask(osgUtil::CullVisitor* cv, osg::BoundingSphere& bs);
+
+public:
+	CullingNodeInfo(const osg::ref_ptr<osg::Node>& n) : node(n) {}
     osg::ref_ptr<osg::Node> node;
 
     struct Info {
@@ -141,6 +145,7 @@ public:
         osg::BoundingSphere boundingSphere;
         bool boundingSphereComputed;
         unsigned cullingMask;
+		void from(osgUtil::CullVisitor* cv, osg::Node& node);
     };
     Info before;
     Info after;

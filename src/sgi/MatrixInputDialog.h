@@ -16,7 +16,7 @@ class MatrixInputDialog : public QDialog
     Q_OBJECT
 
 public:
-    MatrixInputDialog(QWidget *parent = nullptr, Qt::WindowFlags f = 0);
+    MatrixInputDialog(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
     ~MatrixInputDialog();
 
 public slots:

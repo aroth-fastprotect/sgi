@@ -49,6 +49,7 @@
 
 #ifdef SGI_USE_OSGQT
 #include <osgQt/GraphicsWindowQt>
+#include <osgQt/GraphicsWindowQt5>
 #endif
 #include <osgText/Text>
 #include <osgAnimation/AnimationManagerBase>
@@ -139,7 +140,10 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgViewer::ViewerBase)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgViewer::GraphicsWindow)
 
 #ifdef SGI_USE_OSGQT
+#ifdef OSGQT_ENABLE_QGLWIDGET
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgQt::GraphicsWindowQt)
+#endif
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgQt::GraphicsWindowQt5)
 #endif
 
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgText::TextBase)
@@ -381,6 +385,7 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
 				optimizerMenu->addModeAction("Check", MenuActionOptimizerRunModeCheck);
 				optimizerMenu->addModeAction("Default", MenuActionOptimizerRunModeDefault);
 				optimizerMenu->addModeAction("Fast geometry", MenuActionOptimizerRunModeFastGeometry);
+                optimizerMenu->addModeAction("Merge geometries", MenuActionOptimizerRunModeMergeGeometries);
 				optimizerMenu->addModeAction("All", MenuActionOptimizerRunModeAll);
 			}
 
@@ -1362,6 +1367,10 @@ bool contextMenuPopulateImpl<osg::Camera>::populate(IContextMenuItem * menuItem)
             if (manipulateMenu)
             {
                 manipulateMenu->addSimpleAction(MenuActionCameraCullMask, helpers::str_plus_hex("Cull mask", object->getCullMask()), _item);
+                manipulateMenu->addSimpleAction(MenuActionCameraNearFarRatio, helpers::str_plus_number("Near/far ratio", object->getNearFarRatio()), _item);
+				double fovy, aspectRatio, zNear, zFar;
+				object->getProjectionMatrixAsPerspective(fovy, aspectRatio, zNear, zFar);
+				manipulateMenu->addSimpleAction(MenuActionCameraAspectRatio, helpers::str_plus_number("Aspect ratio", aspectRatio), _item);
                 manipulateMenu->addSimpleAction(MenuActionCameraViewMatrix, "View matrix", _item);
                 manipulateMenu->addSimpleAction(MenuActionCameraProjectionMatrix, "Projection matrix", _item);
 
@@ -1403,7 +1412,15 @@ bool contextMenuPopulateImpl<osg::Camera>::populate(IContextMenuItem * menuItem)
             ret = true;
         }
         break;
-
+    case SGIItemTypeCullSettings:
+        {
+            ret = true;
+            menuItem->addSimpleAction(MenuActionCameraCullMask, helpers::str_plus_hex("Cull mask", object->getCullMask()), _item);
+            menuItem->addSimpleAction(MenuActionCameraViewMatrix, "View matrix", _item);
+            menuItem->addSimpleAction(MenuActionCameraProjectionMatrix, "Projection matrix", _item);
+            menuItem->addSimpleAction(MenuActionCameraNearFarRatio, helpers::str_plus_number("Near/far ratio", object->getNearFarRatio()), _item);
+    }
+        break;
     default:
         ret = callNextHandler(menuItem);
         break;
@@ -1472,6 +1489,18 @@ bool contextMenuPopulateImpl<osgViewer::View>::populate(IContextMenuItem * menuI
             SGIHostItemOsg scene(object->getScene());
             if(scene.hasObject())
                 menuItem->addMenu("Scene", &scene);
+
+            SGIHostItemOsg databasePager(object->getDatabasePager());
+            if (databasePager.hasObject())
+                menuItem->addMenu("DatabasePager", &databasePager);
+
+            SGIHostItemOsg imagePager(object->getImagePager());
+            if (imagePager.hasObject())
+                menuItem->addMenu("ImagePager", &imagePager);
+
+            SGIHostItemOsg eventQueue(object->getEventQueue());
+            if (eventQueue.hasObject())
+                menuItem->addMenu("EventQueue", &eventQueue);
         }
         break;
     default:
@@ -2245,6 +2274,7 @@ bool contextMenuPopulateImpl<osgViewer::GraphicsWindow>::populate(IContextMenuIt
 }
 
 #ifdef SGI_USE_OSGQT
+#ifdef OSGQT_ENABLE_QGLWIDGET
 bool contextMenuPopulateImpl<osgQt::GraphicsWindowQt>::populate(IContextMenuItem * menuItem)
 {
     osgQt::GraphicsWindowQt * object = static_cast<osgQt::GraphicsWindowQt*>(item<SGIItemOsg>()->object());
@@ -2266,6 +2296,33 @@ bool contextMenuPopulateImpl<osgQt::GraphicsWindowQt>::populate(IContextMenuItem
     }
     return ret;
 }
+#endif // OSGQT_ENABLE_QGLWIDGET
+
+bool contextMenuPopulateImpl<osgQt::GraphicsWindowQt5>::populate(IContextMenuItem* menuItem)
+{
+	osgQt::GraphicsWindowQt5* object = getObject<osgQt::GraphicsWindowQt5,SGIItemOsg>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(menuItem);
+		if (ret)
+		{
+			SGIHostItemQt widget(object->getGLWidget());
+			if (widget.hasObject())
+				menuItem->addMenu("GLWidget", &widget);
+			SGIHostItemQt window(object->getGLWindow());
+			if (window.hasObject())
+				menuItem->addMenu("GLWindow", &window);
+		}
+		break;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
+}
+
 #endif // SGI_USE_OSGQT
 
 bool contextMenuPopulateImpl<osgDB::Registry>::populate(IContextMenuItem * menuItem)
@@ -2336,6 +2393,7 @@ bool contextMenuPopulateImpl<osgDB::DatabasePager>::populate(IContextMenuItem * 
             menuItem->addBoolAction(MenuActionDatabasePagerDoPreCompile, "Do pre-compile", _item, object->getDoPreCompile());
             menuItem->addBoolAction(MenuActionDatabasePagerDeleteSubgraphsInDBThread, "Delete Subgraphs in DB thread", _item, object->getDeleteRemovedSubgraphsInDatabaseThread());
             menuItem->addSimpleAction(MenuActionDatabasePagerTargetPageLODNumber, helpers::str_plus_count("Target PagedLOD number",object->getTargetMaximumNumberOfPageLOD()), _item);
+            menuItem->addSimpleAction(MenuActionDatabasePagerResetStats, "Reset stats", _item);
 
 			SGIHostItemOsg ico(object->getIncrementalCompileOperation());
 			if (ico.hasObject())
@@ -2349,6 +2407,9 @@ bool contextMenuPopulateImpl<osgDB::DatabasePager>::populate(IContextMenuItem * 
 
         }
         break;
+	case SGIItemTypeDBPagerFileRequests:
+		menuItem->addSimpleAction(MenuActionDatabasePagerRequestsClear, "Clear", _item);
+		break;
     default:
         ret = callNextHandler(menuItem);
         break;

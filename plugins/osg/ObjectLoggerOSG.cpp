@@ -737,8 +737,6 @@ public:
 
 protected:
     CullingNodeInfo * getCullingNodeInfo(osg::Node & node);
-    unsigned getCullingMask(osgUtil::CullVisitor * cv, osg::Node & node);
-    unsigned getCullingMask(osgUtil::CullVisitor * cv, osg::BoundingSphere & bs);
 
 private:
     CullingInfoForCamera * _logger;
@@ -754,16 +752,20 @@ public:
     {
         _operation.setInspector(inspector);
     }
+	CullingInfoForCamera* inspector()
+	{
+		return _operation.inspector();
+	}
 };
 
 CullingNodeInfo * CullingInfoForCamera::CullCallbackHandler::getCullingNodeInfo(osg::Node & node)
 {
     CullingNodeInfo * ret = nullptr;
-    for (CullingInfoPtr & cullinfo : _logger->_activeNodes)
+	const osg::Node* pnode = &node;
+	for (CullingInfoPtr& cullinfo : _logger->_activeNodes)
     {
         for (const CullingNodeInfoPath & path : cullinfo->pathlist())
         {
-            const osg::Node * pnode = &node;
             auto pathit = std::find_if(path.begin(), path.end(), [pnode](const CullingNodeInfoPtr & other) { return other->node == pnode; });
             if (pathit != path.end())
                 ret = const_cast<CullingNodeInfo *>(pathit->get());
@@ -785,7 +787,7 @@ namespace {
     };
 }
 
-unsigned CullingInfoForCamera::CullCallbackHandler::getCullingMask(osgUtil::CullVisitor * cv, osg::BoundingSphere & bs)
+unsigned CullingNodeInfo::getCullingMask(osgUtil::CullVisitor * cv, osg::BoundingSphere & bs)
 {
     unsigned ret = osg::CullingSet::NO_CULLING;
     const CullingSetAccess & cs = static_cast<const CullingSetAccess&>(cv->getCurrentCullingSet());
@@ -829,7 +831,7 @@ unsigned CullingInfoForCamera::CullCallbackHandler::getCullingMask(osgUtil::Cull
     return ret;
 }
 
-unsigned CullingInfoForCamera::CullCallbackHandler::getCullingMask(osgUtil::CullVisitor * cv, osg::Node & node)
+unsigned CullingNodeInfo::getCullingMask(osgUtil::CullVisitor * cv, osg::Node & node)
 {
     unsigned ret = osg::CullingSet::NO_CULLING;
     if (node.isCullingActive())
@@ -840,21 +842,12 @@ unsigned CullingInfoForCamera::CullCallbackHandler::getCullingMask(osgUtil::Cull
     return ret;
 }
 
-#define CullingNodeInfo_fill(_state) \
-        info->_state.cullStack = *cv; \
-        info->_state.boundingSphereComputed = static_cast<NodeAccess&>(node).isBoundingSphereComputed(); \
-        info->_state.boundingSphere = static_cast<NodeAccess&>(node).getBoundNoCompute(); \
-        info->_state.cullingMask = getCullingMask(cv, node); \
-        void(0)
-
 void CullingInfoForCamera::CullCallbackHandler::preApply(osg::NodeVisitor * nv, osg::Node & node)
 {
     CullVisitor* cv = dynamic_cast<CullVisitor*>(nv->asCullVisitor());
     CullingNodeInfo * info = getCullingNodeInfo(node);
     if (info)
-    {
-        CullingNodeInfo_fill(before);
-    }
+		info->before.from(cv, node);
 }
 
 void CullingInfoForCamera::CullCallbackHandler::postApply(osg::NodeVisitor * nv, osg::Node & node)
@@ -862,9 +855,7 @@ void CullingInfoForCamera::CullCallbackHandler::postApply(osg::NodeVisitor * nv,
     CullVisitor* cv = dynamic_cast<CullVisitor*>(nv->asCullVisitor());
     CullingNodeInfo * info = getCullingNodeInfo(node);
     if (info)
-    {
-        CullingNodeInfo_fill(after);
-    }
+		info->after.from(cv, node);
 }
 
 
@@ -908,29 +899,29 @@ void CullingInfoForCamera::setup(osg::Camera * camera)
 CullingInfoForCamera * CullingInfoForCamera::getCullingInfoForCamera(osg::Camera * camera)
 {
     CullingInfoForCamera * ret = nullptr;
-    osgViewer::View * view = camera ? dynamic_cast<osgViewer::View*>(camera->getView()) : nullptr;
-    osgViewer::ViewerBase * viewer = (view) ? view->getViewerBase() : nullptr;
-    if (viewer)
-    {
-        osgUtil::UpdateVisitor * updateVisitorBase = viewer->getUpdateVisitor();
-        CullCallbackHandler * updateVisitor = dynamic_cast<CullCallbackHandler*>(updateVisitorBase);
-        if (updateVisitor)
-            ret = updateVisitor->inspector();
+	osgViewer::Renderer* r = camera ? dynamic_cast<osgViewer::Renderer*>(camera->getRenderer()) : nullptr;
+	osgUtil::SceneView* s = r ? r->getSceneView(0) : nullptr;
+	osgUtil::CullVisitor * cvbase = s ? s->getCullVisitor() : nullptr;
+	if(cvbase)
+	{
+		CullVisitor* cv = dynamic_cast<CullVisitor*>(cvbase);
+        if (cv)
+            ret = cv->inspector();
     }
     return ret;
 }
 
 CullingInfoForCamera * CullingInfoForCamera::getOrCreateCullingInfoForCamera(osg::Camera * camera, SGIPluginHostInterface * hostInterface)
 {
-    CullingInfoForCamera * ret = nullptr;
-    osgViewer::View * view = camera ? dynamic_cast<osgViewer::View*>(camera->getView()) : nullptr;
-    osgViewer::ViewerBase * viewer = (view) ? view->getViewerBase() : nullptr;
-    if (viewer)
-    {
-        osgUtil::UpdateVisitor * updateVisitorBase = viewer->getUpdateVisitor();
-        CullCallbackHandler * updateVisitor = dynamic_cast<CullCallbackHandler*>(updateVisitorBase);
-        if (updateVisitor)
-            ret = updateVisitor->inspector();
+	CullingInfoForCamera* ret = nullptr;
+	osgViewer::Renderer* r = camera ? dynamic_cast<osgViewer::Renderer*>(camera->getRenderer()) : nullptr;
+	osgUtil::SceneView* s = r ? r->getSceneView(0) : nullptr;
+	osgUtil::CullVisitor* cvbase = s ? s->getCullVisitor() : nullptr;
+	if (cvbase)
+	{
+		CullVisitor* cv = dynamic_cast<CullVisitor*>(cvbase);
+		if (cv)
+			ret = cv->inspector();
         else
             ret = new CullingInfoForCamera(camera, hostInterface);
     }
@@ -976,6 +967,45 @@ bool CullingInfoForCamera::enableNode(osg::Node * node, bool enable)
         ret = true;
     }
     return ret;
+}
+
+namespace {
+	class CullStackCopy : public osg::CullStack {
+	public:
+		CullStackCopy& operator=(const CullStackCopy& rhs)
+		{
+			_projectionStack = rhs._projectionStack;
+
+			_modelviewStack = rhs._modelviewStack;
+			_MVPW_Stack = rhs._MVPW_Stack;
+
+			_viewportStack = rhs._viewportStack;
+			_referenceViewPoints = rhs._referenceViewPoints;
+			_eyePointStack = rhs._eyePointStack;
+			_viewPointStack = rhs._viewPointStack;
+
+			_clipspaceCullingStack = rhs._clipspaceCullingStack;
+			_projectionCullingStack = rhs._projectionCullingStack;
+
+			_modelviewCullingStack = rhs._modelviewCullingStack;
+			if (rhs._back_modelviewCullingStack != nullptr)
+			{
+				_index_modelviewCullingStack = _modelviewCullingStack.size() - 1;
+				_back_modelviewCullingStack = &_modelviewCullingStack.back();
+			}
+			return *this;
+		}
+	};
+}
+
+
+void CullingNodeInfo::Info::from(osgUtil::CullVisitor* cv, osg::Node & node_)
+{
+	NodeAccess& node = static_cast<NodeAccess&>(node_);
+	static_cast<CullStackCopy&>(cullStack) = static_cast<const CullStackCopy&>(static_cast<const osg::CullStack&>(*cv));
+	boundingSphereComputed = node.isBoundingSphereComputed();
+	boundingSphere = node.getBoundNoCompute();
+	cullingMask = getCullingMask(cv, node);
 }
 
 CullingInfo::CullingInfo(osg::Node * node, osg::Camera * camera)
@@ -1027,6 +1057,7 @@ bool CullingInfo::enable(osg::Node * node, bool enable, SGIPluginHostInterface *
 }
 
 CullingInfoRegistry::CullingInfoRegistry()
+	: _mutex(OpenThreads::Mutex::MUTEX_RECURSIVE)
 {
 }
 

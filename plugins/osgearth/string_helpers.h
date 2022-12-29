@@ -32,7 +32,10 @@ namespace osgEarth {
     class ModelLayerOptions;
     class ProxySettings;
     class URI;
+    class URIContext;
     class GeoPoint;
+    class Units;
+    class DepthOffsetOptions;
 
     class ProfileOptions;
     class CacheOptions;
@@ -44,6 +47,9 @@ namespace osgEarth {
     namespace Symbology {
         class NumericExpression;
         class StringExpression;
+        class Query;
+        class Fill;
+        class Stroke;
     }
     class FadeOptions;
 
@@ -106,6 +112,7 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::ProxySettings & v);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::TileKey & key);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::URI & uri);
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::URIContext& urictx);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Bounds & bounds);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::GeoExtent & extent);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Viewpoint & viewpoint);
@@ -114,7 +121,12 @@ std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEart
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::GeoPoint & pt);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::NumericExpression & expr);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::StringExpression & expr);
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::Query& query);
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Units& t);
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::Fill& t);
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Symbology::Stroke& t);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::FadeOptions & opts);
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::DepthOffsetOptions& opts);
 std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const osgEarth::Features::FeatureSourceIndexOptions & opts);
 
 } // namespace std

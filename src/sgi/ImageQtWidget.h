@@ -8,7 +8,7 @@ class ImageQtWidget : public QLabel
 {
     Q_OBJECT
 public:
-    ImageQtWidget(QWidget *parent = nullptr, Qt::WindowFlags f = 0);
+    ImageQtWidget(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 
     void setImage(const QImage & image);
 

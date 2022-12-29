@@ -76,9 +76,8 @@ RetrieveElevationDialog::RetrieveElevationDialog(QWidget * parent, SGIPluginHost
 
 	ui = new Ui_RetrieveElevationDialog;
 	ui->setupUi( this );
-    ui->layer->addItem("All", QString());
-    ui->layer->setCurrentIndex(0);
-    ui->layer->setEnabled(false);
+
+    _api_key = "AIzaSyADjiSQAYjHuW0jAIcs_wydJQnFnT6fNiI";
 
     loadResults();
 }
@@ -102,15 +101,15 @@ QTreeWidgetItem * RetrieveElevationDialog::addResult(const osgEarth::GeoPoint & 
     item->setData(0, Qt::UserRole, QString::fromStdString(point.getConfig().toJSON()));
     item->setText(0, GeoPointToString(point));
     item->setText(1, QString::number(elevation,'f',1));
-    item->setData(1, Qt::UserRole, qVariantFromValue(elevation));
+    item->setData(1, Qt::UserRole, QVariant::fromValue(elevation));
     item->setText(2, QString::number(resolution,'f',1));
-    item->setData(2, Qt::UserRole, qVariantFromValue(resolution));
+    item->setData(2, Qt::UserRole, QVariant::fromValue(resolution));
     item->setText(3, QString("%1 ms").arg(time));
-    item->setData(3, Qt::UserRole, qVariantFromValue((unsigned)time));
+    item->setData(3, Qt::UserRole, QVariant::fromValue((unsigned)time));
     item->setText(4, resultTimestamp.toString(Qt::ISODate));
-    item->setData(4, Qt::UserRole, qVariantFromValue(resultTimestamp));
+    item->setData(4, Qt::UserRole, QVariant::fromValue(resultTimestamp));
     item->setText(5, (web)?QString("Web"):QString("osgEarth"));
-    item->setData(5, Qt::UserRole, qVariantFromValue(web));
+    item->setData(5, Qt::UserRole, QVariant::fromValue(web));
     parent->addChild(item);
     return item;
 }
@@ -162,13 +161,14 @@ void RetrieveElevationDialog::query()
         double elev = 0;
         query->getElevation(point, elev, desired_resolution, &resolution);
 #else
-        query->getElevation(point, desired_resolution, &resolution);
-        double elev = point.alt();
+        double elev = query->getElevation(point, desired_resolution, &resolution);
 #endif
         qint64 end = QDateTime::currentMSecsSinceEpoch();
         qint64 diff = end - start;
 
         addResult(point, elev, resolution, diff);
+
+		saveResults();
     }
 }
 
@@ -177,17 +177,23 @@ void RetrieveElevationDialog::webQuery()
     osgEarth::GeoPoint point;
     if(getQueryPoint(point))
     {
-        QString url = QString("http://maps.googleapis.com/maps/api/elevation/xml?locations=%1,%2").arg(point.y()).arg(point.x());
-        qint64 start = QDateTime::currentMSecsSinceEpoch();
-
-        double elevation = 0;
-        double resolution = 0;
-        if(elevationWebQuery(url.toStdString(), elevation, resolution))
+        osgEarth::GeoPoint geodetic_point;
+        if (point.transform(osgEarth::Registry::instance()->getGlobalGeodeticProfile()->getSRS(), geodetic_point))
         {
-            qint64 end = QDateTime::currentMSecsSinceEpoch();
-            qint64 diff = end - start;
+            QString url = QString("https://maps.googleapis.com/maps/api/elevation/xml?locations=%1,%2&key=%3").arg(geodetic_point.y()).arg(geodetic_point.x()).arg(_api_key);
+            qint64 start = QDateTime::currentMSecsSinceEpoch();
 
-            addResult(point, elevation, resolution, diff, QDateTime(), true);
+            double elevation = 0;
+            double resolution = 0;
+            if (elevationWebQuery(url.toStdString(), elevation, resolution))
+            {
+                qint64 end = QDateTime::currentMSecsSinceEpoch();
+                qint64 diff = end - start;
+
+                addResult(point, elevation, resolution, diff, QDateTime(), true);
+
+                saveResults();
+            }
         }
     }
 }

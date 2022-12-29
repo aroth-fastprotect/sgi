@@ -34,8 +34,8 @@ class SceneGraphDialog : public QDialog
 	Q_OBJECT
 
 public:
-                            SceneGraphDialog(QWidget *parent = nullptr, Qt::WindowFlags f = 0);
-                            SceneGraphDialog(SGIItemBase * item, IHostCallback * callback=nullptr, QWidget *parent = nullptr, Qt::WindowFlags f = 0);
+                            SceneGraphDialog(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
+                            SceneGraphDialog(SGIItemBase * item, IHostCallback * callback=nullptr, QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
                             ~SceneGraphDialog() override;
 
 public:
@@ -70,7 +70,7 @@ protected slots:
 
     void                    tabChanged(int index);
     void                    addNewTab();
-    void                    closeTab();
+    void                    tabCloseRequest(int index);
 
     void                    showBesideParent();
 

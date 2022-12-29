@@ -105,7 +105,7 @@ public:
         _pluginDirectories.push_back(s.toStdString());
 
         loadInternalPlugin();
-#if 1
+#if 0
         PluginFileNameList pluginFiles = listAllAvailablePlugins();
         for(PluginFileNameList::const_iterator it = pluginFiles.begin(); it != pluginFiles.end(); it++)
         {
@@ -460,7 +460,7 @@ public:
 
 		IContextMenu *          contextMenu(QWidget * parent, const SGIItemBase * item) override
 		{
-            if (_contextMenu.valid() && _contextMenu->parentWidget() == parent)
+			if (_contextMenu.valid() && _contextMenu->getMenu() && _contextMenu->parentWidget() == parent)
 			{
 				_contextMenu->setObject(const_cast<SGIItemBase*>(item));
 			}
@@ -470,7 +470,7 @@ public:
 		}
 		IContextMenu *          contextMenu(QWidget * parent, const SGIHostItemBase * item) override
 		{
-			if (_contextMenu.valid() && _contextMenu->parentWidget() == parent)
+			if (_contextMenu.valid() && _contextMenu->getMenu() && _contextMenu->parentWidget() == parent)
 			{
 				_contextMenu->setObject(item);
 			}
@@ -480,7 +480,7 @@ public:
 		}
 		ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, SGIItemBase * item) override
 		{
-            if (_dialog.valid())
+            if (_dialog.valid() && _dialog->getDialog())
                 _dialog->setObject(item);
             else
                 _dialog = _impl->showSceneGraphDialog(parent, item, this);
@@ -490,7 +490,7 @@ public:
 		}
 		ISceneGraphDialog *     showSceneGraphDialog(QWidget * parent, const SGIHostItemBase * item) override
 		{
-            if (_dialog.valid())
+            if (_dialog.valid() && _dialog->getDialog())
                 _dialog->setObject(item);
             else
                 _dialog = _impl->showSceneGraphDialog(parent, item, this);
@@ -524,7 +524,7 @@ public:
         }
 		IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, SGIItemBase * item) override
 		{
-            if (_imagePreviewDialog.valid())
+            if (_imagePreviewDialog.valid() && _imagePreviewDialog->getDialog())
                 _imagePreviewDialog->setObject(item);
             else
                 _imagePreviewDialog = _impl->showImagePreviewDialog(parent, item, this);
@@ -534,7 +534,7 @@ public:
 		}
 		IImagePreviewDialog *   showImagePreviewDialog(QWidget * parent, const SGIHostItemBase * item) override
 		{
-			if (_imagePreviewDialog.valid())
+            if (_imagePreviewDialog.valid() && _imagePreviewDialog->getDialog())
 				_imagePreviewDialog->setObject(item);
 			else
 				_imagePreviewDialog = _impl->showImagePreviewDialog(parent, item, this);
@@ -749,7 +749,7 @@ public:
         for(const std::string & pluginDir : _pluginDirectories)
         {
             QString path = QString::fromStdString(pluginDir);
-            qDebug() << __FUNCTION__ << path << postfix;
+            //qDebug() << __FUNCTION__ << path << postfix;
             QDir directory(path);
             for(const QFileInfo & fi : directory.entryInfoList(QDir::Files))
             {
@@ -836,7 +836,9 @@ public:
                             impl->loadPlugin(pluginName, pluginFilename);
                         }
                         else
+                        {
                             qDebug() << "Ignore plugin " << pluginName;
+                        }
                     }
                 }
                 break;
@@ -862,8 +864,20 @@ public:
         bool ret = false;
         if(!_pluginsLoaded)
         {
-            AutoPluginLoader loader(this, nullptr, AutoPluginLoader::PluginMatchAll );
             _pluginsLoaded = true;
+            QtProxy * proxy = QtProxy::instance();
+            Q_ASSERT(proxy != nullptr);
+            struct loader : QtProxy::ThreadOp
+            {
+                SGIPluginsImpl * _this;
+                loader(SGIPluginsImpl * p) : _this(p) {}
+                bool run() override
+                {
+                    AutoPluginLoader loader(_this, nullptr, AutoPluginLoader::PluginMatchAll);
+                    return true;
+                }
+            } op(this);
+            proxy->runInMainThread(op);
         }
         for(PluginMap::const_iterator it = _plugins.begin(); it != _plugins.end(); it++)
         {

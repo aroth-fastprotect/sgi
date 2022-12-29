@@ -282,6 +282,9 @@ protected:
     pfnCopyImageQt _copyQt;
     bool _allocated;
 };
+typedef details::ref_ptr<Image> ImagePtr;
+typedef details::ref_ptr<const Image> ConstImagePtr;
+
 
 /**
  * Reads color data out of an image, regardles of its internal pixel format.

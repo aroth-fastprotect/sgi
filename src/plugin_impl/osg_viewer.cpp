@@ -215,10 +215,13 @@ QWidget * getWidgetForGraphicsWindow(osgViewer::GraphicsWindow * gw, QWidget * p
 {
     QWidget * ret = nullptr;
 #ifdef SGI_USE_OSGQT
+#ifdef OSGQT_ENABLE_QGLWIDGET
     osgQt::GraphicsWindowQt* gwq = dynamic_cast<osgQt::GraphicsWindowQt*>(gw);
     if (gwq)
         ret = gwq->getGLWidget();
-    else if (osgQt::GraphicsWindowQt5* gwq = dynamic_cast<osgQt::GraphicsWindowQt5*>(gw))
+    else 
+#endif // OSGQT_ENABLE_QGLWIDGET
+	if (osgQt::GraphicsWindowQt5* gwq = dynamic_cast<osgQt::GraphicsWindowQt5*>(gw))
     {
         if (gwq)
             ret = gwq->getOrCreateGLWidget();

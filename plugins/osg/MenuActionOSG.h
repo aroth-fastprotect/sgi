@@ -29,6 +29,7 @@ enum MenuActionOptimizerRunMode {
 	MenuActionOptimizerRunModeAll,
 	MenuActionOptimizerRunModeCheck,
 	MenuActionOptimizerRunModeFastGeometry,
+    MenuActionOptimizerRunModeMergeGeometries,
 };
 
 enum MenuAction {
@@ -105,7 +106,9 @@ enum MenuAction {
     MenuActionCameraClearColor,
     MenuActionCameraCullSettings,
     MenuActionCameraComputeNearFarMode,
+    MenuActionCameraNearFarRatio,
     MenuActionCameraProjectionResizePolicy,
+	MenuActionCameraAspectRatio,
     MenuActionCameraCullMask,
     MenuActionCameraViewMatrix, 
     MenuActionCameraProjectionMatrix,
@@ -153,6 +156,9 @@ enum MenuAction {
     MenuActionDatabasePagerDeleteSubgraphsInDBThread,
     MenuActionDatabasePagerTargetPageLODNumber,
 	MenuActionDatabasePagerIncrementalCompileOperation,
+    MenuActionDatabasePagerResetStats,
+	MenuActionDatabasePagerRequestsClear,
+	MenuActionDatabasePagerRequestsUpdate,
     MenuActionEventAdapterHitTest,
     MenuActionEventHandlerIgnoreHandledEventsMask,
     MenuActionCameraManipulatorAutoComputeHome,
