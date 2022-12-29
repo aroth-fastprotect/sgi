@@ -69,7 +69,7 @@ protected slots:
     void                    reloadSelectedItem();
 
     void                    tabChanged(int index);
-    void                    addNewTab();
+    void                    addNewTabForSelectedItem();
     void                    tabCloseRequest(int index);
 
     void                    showBesideParent();
@@ -91,6 +91,9 @@ protected:
     bool                    buildRootTree(ObjectTreeItem * treeItem);
 	bool                    buildTree(ObjectTreeItem * treeItem, SGIItemBase * item);
     bool                    populateToolsMenu(IContextMenuItem * menuItem);
+
+    void                    addNewTab();
+    void                    addNewTabForItem(SGIItemBase * item);
 
 	void					setNodeInfo(const SGIItemBase * item);
 

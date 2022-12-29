@@ -205,7 +205,7 @@ public:
         toolButtonAddTab = new QToolButton(dlg);
         toolButtonAddTab->setToolTip(tr("Add a new tab"));
         toolButtonAddTab->setIcon(QIcon::fromTheme("window-new"));
-		connect(toolButtonAddTab, &QToolButton::triggered, dlg, &SceneGraphDialog::addNewTab);
+        connect(toolButtonAddTab, &QToolButton::triggered, dlg, &SceneGraphDialog::addNewTabForSelectedItem);
         tabWidget->setCornerWidget(toolButtonAddTab);
 
         actionReloadSelected = new QAction(tr("Reload"), dlg);
@@ -286,7 +286,7 @@ SceneGraphDialog::SceneGraphDialog(SGIItemBase * item, IHostCallback * callback,
     QToolButton * toolsMenuButton = new QToolButton(this);
     toolsMenuButton->setMenu(_toolsMenu);
     toolsMenuButton->setText(tr("Tools"));
-    toolsMenuButton->setIcon(QIcon::fromTheme("list-settings"));
+    toolsMenuButton->setIcon(QIcon::fromTheme("emblem-system"));
     toolsMenuButton->setPopupMode(QToolButton::InstantPopup);
 
     ui->toolBar->addWidget(toolsMenuButton);
@@ -981,6 +981,34 @@ void SceneGraphDialog::addNewTab()
 {
     uiPage = ui->addTabPage(this);
     //ui->actionCloseTab->setEnabled(ui->tabs.size() > 1);
+}
+
+void SceneGraphDialog::addNewTabForItem(SGIItemBase * item)
+{
+    int existingTabIndex = -1;
+    for (int index = 0; item && existingTabIndex < 0 && index < (int)ui->tabs.size(); ++index)
+    {
+        Ui_TabPage * page = ui->tabs[index];
+        if (page->item.get() == item)
+            existingTabIndex = index;
+    }
+    if (existingTabIndex >= 0)
+        ui->tabWidget->setCurrentIndex(existingTabIndex);
+    else if(item)
+    {
+        addNewTab();
+        uiPage->item = item;
+    }
+}
+
+void SceneGraphDialog::addNewTabForSelectedItem()
+{
+    SGIItemBase * item = nullptr;
+    IObjectTreeItem * treeItem = selectedItem();
+    if(treeItem)
+        item = treeItem->item();
+    if(item)
+        addNewTabForItem(item);
 }
 
 void SceneGraphDialog::tabCloseRequest(int index)
