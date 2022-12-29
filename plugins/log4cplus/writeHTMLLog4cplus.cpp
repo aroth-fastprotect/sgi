@@ -4,6 +4,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
+#include <log4cplus/version.h>
 #include <log4cplus/hierarchy.h>
 #if defined(__clang__) || defined(__GNUC__)
 #pragma GCC diagnostic pop
@@ -287,7 +288,11 @@ namespace {
     {
     public:
         const log4cplus::tstring & getPattern() const { return pattern; }
+#if LOG4CPLUS_VERSION >= LOG4CPLUS_MAKE_VERSION(2, 0, 0)
+        typedef std::vector<std::unique_ptr<log4cplus::pattern::PatternConverter>> PatternConverterVector;
+#else
         typedef std::vector<log4cplus::pattern::PatternConverter*> PatternConverterVector;
+#endif
         const PatternConverterVector & getParsedPattern() const { return parsedPattern; }
     };
 }
@@ -313,7 +318,11 @@ bool writePrettyHTMLImpl<Log4cplusObjectPatternLayout>::process(std::basic_ostre
             const PatternLayoutAccess::PatternConverterVector & parsedPattern = access->getParsedPattern();
             for(auto it = parsedPattern.begin(); it != parsedPattern.end(); ++it)
             {
-                const log4cplus::pattern::PatternConverter * conv = *it;
+#if LOG4CPLUS_VERSION >= LOG4CPLUS_MAKE_VERSION(2, 0, 0)
+                log4cplus::pattern::PatternConverter* conv = (*it).get();
+#else
+                log4cplus::pattern::PatternConverter* conv = *it;
+#endif
                 os << "<li>" << conv << "</li>" << std::endl;
             }
             os << "</ol></td></tr>" << std::endl;
