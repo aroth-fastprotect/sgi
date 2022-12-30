@@ -422,13 +422,13 @@ osgEarth::GeoPoint geoPointFromString(const QString & str, bool * ok)
 		int firstSpace = str.indexOf(' ');
 		if (firstComma > 0)
 		{
-			if(firstSpace > 0 && firstSpace > firstComma + 1)
-				parts = str.split(' ', QString::SkipEmptyParts);
+            if(firstSpace > 0 && firstSpace > firstComma + 1)
+                parts = str.split(' ', Qt::SkipEmptyParts);
 			else
-				parts = str.split(',', QString::SkipEmptyParts);
+                parts = str.split(',', Qt::SkipEmptyParts);
 		}
 		else if (firstSpace > 0)
-			parts = str.split(' ', QString::SkipEmptyParts);
+            parts = str.split(' ', Qt::SkipEmptyParts);
 		if (parts.size() == 2)
 		{
 			lat = parseLatitude(parts[0], &latOk);
