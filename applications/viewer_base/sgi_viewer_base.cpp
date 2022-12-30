@@ -1024,6 +1024,13 @@ sgi_MapNodeHelper::load(osg::ArgumentParser& args,
                     }
                     if (readerWriter.valid())
                     {
+                        if((arg.length() > 2  && arg.at(0) == '.' && arg.at(1) == osgDB::getNativePathSeparator()) ||
+                            (arg.length() > 3 && arg.at(0) == '.' && arg.at(1) == '.' && arg.at(2) == osgDB::getNativePathSeparator()))
+                        {
+                            // convert relative path to absolute path
+                            arg = osgDB::getRealPath(arg);
+
+                        }
                         m_files.push_back(arg);
                         osgDB::ReaderWriter::ReadResult rr;
                         osgDB::ReaderWriter::Features supportedFeatures = readerWriter->supportedFeatures();
