@@ -110,6 +110,12 @@ macro(fast_package_log4cplus)
     find_package(Log4cplus)
 endmacro(fast_package_log4cplus)
 
+macro(fast_package_vsg)
+
+	find_package(vsg)
+
+endmacro(fast_package_vsg)
+
 macro(fast_configure_file)
     configure_file(${ARGN})
 endmacro()

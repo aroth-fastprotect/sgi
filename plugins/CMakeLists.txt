@@ -17,3 +17,7 @@ endif()
 if(SGI_PLUGIN_LOG4CPLUS)
     add_subdirectory(log4cplus)
 endif()
+
+if(SGI_PLUGIN_VSG)
+    add_subdirectory(vsg)
+endif()

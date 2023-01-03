@@ -37,6 +37,8 @@ enum SGIItemType
     SGIItemTypePluginBaseQt = SGIItemTypeDefaultPluginBase + 0x2000,
     SGIItemTypePluginBaseLog4cplus = SGIItemTypeDefaultPluginBase + 0x3000,
     SGIItemTypePluginBaseQtQuick = SGIItemTypeDefaultPluginBase + 0x4000,
+    SGIItemTypePluginBaseVsg = SGIItemTypeDefaultPluginBase + 0x5000,
+    SGIItemTypePluginBaseVsgEarth = SGIItemTypeDefaultPluginBase + 0x6000,
 
     SGIItemTypeUserPluginBase = 0x10000,
 };
