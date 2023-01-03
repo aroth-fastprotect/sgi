@@ -12,16 +12,29 @@
 #include <sgi/SGIItemInternal>
 
 #include "SGIItemVsg"
+#ifdef SGI_USE_VSGQT
+#include <sgi/plugins/SGIHostItemQt.h>
+#include <sgi/plugins/SGIItemQt>
+#endif
+
 #include "ObjectTreeVsg.h"
 #include "writeHTMLVsg.h"
 #include "getObjectInfoVsg.h"
 #include "ContextMenuVsg.h"
 #include "MenuActionVsg.h"
 
+#include <type_traits>
+
 #include <vsg/core/Data.h>
+#include <vsg/io/Options.h>
+#include <vsg/io/ObjectFactory.h>
+#ifdef SGI_USE_VSGQT
+#include <vsg/ui/PointerEvent.h>
+#include <vsgQt/ViewerWindow.h>
+#endif
 
 SGI_OBJECT_INFO_BEGIN(vsg::Object)
-    vsg::Data
+vsg::Data, vsg::Options, vsg::ObjectFactory
 SGI_OBJECT_INFO_END()
 
 namespace sgi {
@@ -31,8 +44,22 @@ namespace vsg_plugin {
 GENERATE_IMPL_TEMPLATE()
 GENERATE_IMPL_NO_ACCEPT(sgi::details::Referenced)
 
-typedef generateItemImplT<generateItemAcceptImpl, SGIItemVsg, SGIItemInternal > generateItemImpl;
+#ifdef SGI_USE_VSGQT
+GENERATE_IMPL_NO_ACCEPT(QObject);
+GENERATE_IMPL_NO_ACCEPT(QWidget);
+GENERATE_IMPL_NO_ACCEPT(QWindow);
+#ifdef OSGQT_USE_QOPENGLWIDGET
+GENERATE_IMPL_NO_ACCEPT(QOpenGLWidget);
+#else
+#ifdef OSGQT_ENABLE_QGLWIDGET
+GENERATE_IMPL_NO_ACCEPT(QGLWidget);
+#endif
+#endif
 
+typedef generateItemImplT<generateItemAcceptImpl, SGIItemVsg, SGIItemQt, SGIItemInternal> generateItemImpl;
+#else
+typedef generateItemImplT<generateItemAcceptImpl, SGIItemVsg, SGIItemInternal > generateItemImpl;
+#endif
 
 typedef SGIPluginImplementationT< generateItemImpl,
                                         writePrettyHTMLImpl,

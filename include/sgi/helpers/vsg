@@ -1,0 +1,44 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2023 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include <sstream>
+#include <iomanip>
+
+#include <sgi/helpers/rtti>
+
+namespace vsg {
+    class Object;
+    class Auxiliary;
+}
+
+namespace sgi {
+
+namespace vsg_helpers {
+
+/** Makes an HTML color ("#rrggbb" or "#rrggbbaa") from an OSG color. */
+template<typename T>
+inline std::string vec4fToHtmlColor( const T& c )
+{
+    std::stringstream buf;
+    buf << "#";
+    buf << std::hex << std::setw(2) << std::setfill('0') << (int)(c.r()*255.0f);
+    buf << std::hex << std::setw(2) << std::setfill('0') << (int)(c.g()*255.0f);
+    buf << std::hex << std::setw(2) << std::setfill('0') << (int)(c.b()*255.0f);
+    if ( c.a() < 1.0f )
+        buf << std::hex << std::setw(2) << std::setfill('0') << (int)(c.a()*255.0f);
+    std::string ssStr;
+    ssStr = buf.str();
+    return ssStr;
+}
+
+SGI_VSG_HELPER_EXPORT std::string getObjectTypename(const vsg::Auxiliary * object);
+SGI_VSG_HELPER_EXPORT std::string getObjectTypename(const vsg::Object * object);
+SGI_VSG_HELPER_EXPORT std::string getObjectName(const vsg::Auxiliary * object, bool includeAddr=true);
+SGI_VSG_HELPER_EXPORT std::string getObjectName(const vsg::Object * object, bool includeAddr=true);
+
+SGI_VSG_HELPER_EXPORT std::string getObjectNameAndType(const vsg::Auxiliary * object, bool includeAddr=true);
+SGI_VSG_HELPER_EXPORT std::string getObjectNameAndType(const vsg::Object * object, bool includeAddr=true);
+} // namespace vsg_helpers
+} // namespace sgi

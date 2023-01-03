@@ -34,12 +34,14 @@
     #  define SGI_REF_EXPORT __attribute__ ((visibility ("default")))
     #  define SGI_IMPL_EXPORT __attribute__ ((visibility ("default")))
     #  define SGI_OSG_HELPER_EXPORT __attribute__ ((visibility ("default")))
+    #  define SGI_VSG_HELPER_EXPORT __attribute__ ((visibility ("default")))
     #  define SGI_QT_HELPER_EXPORT __attribute__ ((visibility ("default")))
 #else
     #  define SGI_EXPORT
     #  define SGI_REF_EXPORT
     #  define SGI_IMPL_EXPORT
     #  define SGI_OSG_HELPER_EXPORT
+    #  define SGI_VSG_HELPER_EXPORT
     #  define SGI_QT_HELPER_EXPORT
 #endif
 /**
@@ -83,6 +85,7 @@ The sgi library is a NodeKit that allows to inspect and modify a scene graph dur
 #cmakedefine01 SGI_HAS_GAMMARAY_SUPPORT
 #cmakedefine01 SGI_HAS_FFMPEG_SUPPORT
 #cmakedefine01 SGI_HAS_OSGQT_SUPPORT
+#cmakedefine01 SGI_HAS_VSGQT_SUPPORT
 #cmakedefine01 SGI_HAS_OSGEARTH_SUPPORT
 #cmakedefine01 SGI_HAS_LOG4CPLUS_SUPPORT
 

@@ -1,7 +1,9 @@
 
 add_subdirectory(sgi_version)
 add_subdirectory(viewer_base)
+add_subdirectory(viewer_base_vsg)
 add_subdirectory(viewerqt)
+add_subdirectory(vsgviewerqt)
 add_subdirectory(osgviewer)
 add_subdirectory(helloWorldQt)
 if(SGI_BUILD_GLIMAGEVIEW)

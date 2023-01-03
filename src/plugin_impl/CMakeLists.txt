@@ -28,6 +28,7 @@ FAST_SHARED_LIBRARY(sgi-plugin-impl NO_MOC_INCLUDE)
 
 SET(TARGET_SRC
     osg_helpers.cpp
+    vsg_helpers.cpp
     osg_node_helpers.cpp
     osg_drawable_helpers.cpp
 	osg_statistics.cpp
@@ -79,6 +80,11 @@ if(OSGEARTH_FOUND)
 	include_directories(${OSGEARTH_INCLUDE_DIR})
     LIST(APPEND TARGET_LIBRARIES_VARS
         OSGEARTH_LIBRARY
+    )
+endif()
+if(TARGET vsg::vsg)
+    LIST(APPEND TARGET_LIBRARIES_VARS
+        vsg::vsg
     )
 endif()
 

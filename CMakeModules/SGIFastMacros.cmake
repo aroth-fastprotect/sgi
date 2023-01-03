@@ -113,6 +113,7 @@ endmacro(fast_package_log4cplus)
 macro(fast_package_vsg)
 
 	find_package(vsg)
+    find_package(vsgQt)
 
 endmacro(fast_package_vsg)
 
