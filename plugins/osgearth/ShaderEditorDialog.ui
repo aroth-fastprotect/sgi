@@ -39,7 +39,7 @@
     <item>
      <widget class="QStackedWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tabProgram">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -91,14 +91,14 @@
           <property name="lineWrapMode">
            <enum>QTextEdit::NoWrap</enum>
           </property>
-          <property name="tabStopWidth">
-           <number>40</number>
-          </property>
           <property name="acceptRichText">
            <bool>false</bool>
           </property>
           <property name="placeholderText">
            <string>Enter your shader code here...</string>
+          </property>
+          <property name="tabStopWidth" stdset="0">
+           <number>0</number>
           </property>
          </widget>
         </item>
