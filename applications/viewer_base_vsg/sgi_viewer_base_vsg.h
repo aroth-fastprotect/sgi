@@ -70,6 +70,8 @@ public:
 
     void setupEventHandlers(vsg::Viewer* viewer, vsg::Group * root);
 
+    void setupInitialPosition(vsg::Viewer* viewer) const;
+
 private:
     std::stringstream m_errorMessages;
     std::vector<std::string> m_files;

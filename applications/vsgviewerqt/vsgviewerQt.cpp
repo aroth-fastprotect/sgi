@@ -180,10 +180,9 @@ ViewerWidget::ViewerWidget(vsg::CommandLine & arguments, QWidget * parent)
 	if (h == 0)
 		h = QMainWindow::height();
 
-    _mainGW = createGraphicsWindow(0, 0, w, h, nullptr, _impl);
-    _viewWidget = getWidgetForGraphicsWindow(_mainGW.get());
+    _viewerWindow = createGraphicsWindow(0, 0, w, h, nullptr, _impl);
 
-    _view = new vsgViewer::View;
+    _viewWidget = QWidget::createWindowContainer(_viewerWindow, this);
 
     setCentralWidget(_viewWidget);
     if(_viewWidget)
