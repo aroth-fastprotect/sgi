@@ -29,6 +29,7 @@
 #include <vsg/app/CloseHandler.h>
 #include <vsg/app/Trackball.h>
 #include <vsg/utils/ComputeBounds.h>
+#include <vsg/io/read.h>
 
 #ifdef SGI_USE_VSGQT
 #include <vsg/ui/PointerEvent.h>
@@ -345,9 +346,50 @@ main(int argc, char** argv)
     sgi_MapNodeHelper & helper = myMainWindow->helper();
     // load an earth file, and support all or our example command-line options
     // and earth file <external> tags
-    vsg::Group * node = helper.load( arguments /*, view */);
+    vsg::ref_ptr<vsg::Group> node(helper.load( arguments /*, view */));
     if ( node )
     {
+        bool showImagePreviewDialog = helper.onlyImages() ? true : false;
+        vsg::ref_ptr<vsg::Group> root(new vsg::Group);
+        root->addChild(node);
+
+        if(addSceneGraphInspector)
+        {
+            vsg::ref_ptr<vsg::Options> opts(new vsg::Options);
+            opts->setValue("showSceneGraphDialog", showSceneGraphInspector ? "1" : "0");
+            opts->setValue("showImagePreviewDialog", showImagePreviewDialog ? "1" : "0");
+            vsg::ref_ptr<vsg::Node> sgi_loader = vsg::read_cast<vsg::Node>(".sgi_loader", opts);
+            if(sgi_loader.valid())
+                root->addChild(sgi_loader);
+            else
+                QMessageBox::information(myMainWindow, QCoreApplication::applicationFilePath(), "Failed to load SGI");
+        }
+
+        myMainWindow->setData(root);
+
+        if(fullscreen)
+            myMainWindow->showFullScreen();
+        else
+        {
+            myMainWindow->setGeometry(200, 200, 800, 600);
+            myMainWindow->show();
+        }
+        if(autoCloseTime >= 0)
+            setupWidgetAutoCloseTimer(myMainWindow, autoCloseTime);
+        //helper.setupInitialPosition(view);
+
+
+        //view->addEventHandler(new CreateViewHandler(myMainWindow));
+
+        QString filelist;
+        for (const auto & f : helper.files())
+        {
+            if (!filelist.isEmpty())
+                filelist += QChar(',');
+            filelist += QString::fromStdString(f);
+        }
+
+        myMainWindow->setWindowTitle("vsgViewerQt - " + filelist);
 
         ret = app.exec();
         //viewer->removeView(view);
