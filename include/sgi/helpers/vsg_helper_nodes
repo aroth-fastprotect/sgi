@@ -94,6 +94,33 @@ inline vsg::Node * createNodeForImage(vsg::Image* image)
     return createNodeForImage(image,image->extent);
 }
 
+class SGI_VSG_HELPER_EXPORT GeometryParams
+{
+public:
+    GeometryParams();
+    bool needTextureCoordinates() const;
+    bool useCustomColor() const;
+    bool useWhiteColorForTexture() const;
+    void setCustomColor(const vsg::vec4 & c);
+    unsigned textureUnit() const;
+    bool useTextureModulate() const;
+
+    vsg::vec4 color;
+    vsg::Image * image;
+    bool useDefaultColor;
+    bool useMaterial;
+    bool useTextureCoordinates;
+    bool useNormals;
+    bool useLogo;
+private:
+    bool _useCustomColor;
+};
+
+SGI_VSG_HELPER_EXPORT vsg::Geometry * createQuadGeometry(float w,float h, const GeometryParams & params=GeometryParams());
+SGI_VSG_HELPER_EXPORT vsg::Geometry * createTriangleGeometry(float s, const GeometryParams & params=GeometryParams());
+SGI_VSG_HELPER_EXPORT vsg::Geometry * createBoxGeometry(const vsg::vec3 & size, const GeometryParams & params=GeometryParams());
+SGI_VSG_HELPER_EXPORT vsg::Image * getSGILogoImage();
+
 
 } // namespace vsg_helpers
 } // namespace sgi

@@ -131,6 +131,7 @@ IF(NOT SGI_IS_SYSTEM_LIB)
 	SET(SGI_PLUGIN_IMPL_LIBRARY sgi-plugin-impl)
     set(SGI_OSG_HELPER_LIBRARY sgi-osg-helper)
     set(SGI_QT_HELPER_LIBRARY sgi-qt-helper)
+    set(SGI_VSG_HELPER_LIBRARY sgi-vsg-helper)
     set(SGI_REF_LIBRARY sgi-ref)
 
     set(SGI_PLUGIN_HOST_SUPPORT_INCLUDES)

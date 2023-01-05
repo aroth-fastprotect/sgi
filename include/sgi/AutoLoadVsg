@@ -1,0 +1,112 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2015 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include <vsg/io/read.h>
+#include <vsg/io/FileSystem.h>
+#include "Export"
+#include "helpers/singleton"
+
+namespace sgi {
+namespace autoload {
+    class Vsg
+    {
+    public:
+        typedef void*   PROC_ADDRESS;
+
+        enum LoadStatus {
+            NOT_LOADED = 0,
+            PREVIOUSLY_LOADED,
+            LOADED
+        };
+
+    protected:
+        Vsg()
+            : _loadStatus(NOT_LOADED)
+        {
+            // find and load the library in the OSG_LIBRARY_PATH
+            _libraryFilename = vsg::findFile(SGI_LIBRARY_NAME, nullptr);
+            if(!_libraryFilename.empty())
+            {
+                //_loadStatus = osgDB::Registry::instance()->loadLibrary(_libraryFilename);
+                //if(_loadStatus != NOT_LOADED)
+                  //  _library = osgDB::Registry::instance()->getLibrary(_libraryFilename);
+            }
+        }
+        ~Vsg()
+        {
+            _library = nullptr;
+        }
+        vsg::Object * library()
+        {
+            return _library;
+        }
+        PROC_ADDRESS getProcAddress(const char* procName)
+        {
+            return (_library.valid())?_library->getProcAddress(std::string(procName)):nullptr;
+        }
+        const std::string & libraryFilename() const
+        {
+            return _libraryFilename;
+        }
+        std::string libraryError() const
+        {
+            return (_library.valid())?std::string():std::string();
+        }
+    public:
+        typedef helpers::SingletonT<Vsg> Singleton;
+        typedef Singleton::InstanceAction InstanceAction;
+        static Singleton::value_type * instance(InstanceAction action=Singleton::InstanceActionGetOrCreate)
+        {
+            static Singleton s_singleton;
+            return s_singleton.instance(action);
+        }
+
+        static inline vsg::Object* sgiLibrary()
+        {
+            return Vsg::instance()->library();
+        }
+        static inline void * sgiLibraryProcAddress(const char * procName)
+        {
+            return Vsg::instance()->getProcAddress(procName);
+        }
+        static inline void * sgiLibraryProcAddressNoLoad(const char * procName)
+        {
+            Vsg * inst = Vsg::instance(Singleton::InstanceActionGet);
+            if(inst)
+                return inst->getProcAddress(procName);
+            else
+                return nullptr;
+        }
+        static inline std::string sgiLibraryName()
+        {
+            return std::string(SGI_LIBRARY_NAME);
+        }
+        static inline const std::string & sgiLibraryFilename()
+        {
+            return Vsg::instance()->libraryFilename();
+        }
+        static inline std::string sgiLibraryError()
+        {
+            return Vsg::instance()->libraryError();
+        }
+        static inline bool sgiLibraryLoaded()
+        {
+            Vsg * inst = Vsg::instance(Singleton::InstanceActionGet);
+            if(inst)
+                return inst->library() != nullptr;
+            else
+                return false;
+        }
+        static inline void sgiLibraryUnload()
+        {
+            Vsg::instance(Singleton::InstanceActionErase);
+        }
+    private:
+        std::string _libraryFilename;
+        LoadStatus _loadStatus;
+        vsg::ref_ptr<vsg::Object> _library;
+    };
+
+} } // namespace sgi::autoload

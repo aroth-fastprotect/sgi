@@ -7,6 +7,8 @@
 #include <iomanip>
 
 #include <sgi/helpers/rtti>
+#include <vsg/maths/vec3.h>
+#include <vsg/maths/vec4.h>
 
 namespace vsg {
     class Object;
@@ -40,5 +42,43 @@ SGI_VSG_HELPER_EXPORT std::string getObjectName(const vsg::Object * object, bool
 
 SGI_VSG_HELPER_EXPORT std::string getObjectNameAndType(const vsg::Auxiliary * object, bool includeAddr=true);
 SGI_VSG_HELPER_EXPORT std::string getObjectNameAndType(const vsg::Object * object, bool includeAddr=true);
+
+
+//////////////////////////////////////////////////////////////////////////
+// Vec3f steaming operators.
+inline std::ostream& operator << (std::ostream& output, const vsg::vec3 & vec)
+{
+    output << vec.x << " "
+           << vec.y << " "
+           << vec.z;
+    return output;     // to enable cascading
+}
+
+inline std::istream& operator >> (std::istream& input, vsg::vec3& vec)
+{
+    input >> vec.x >> std::ws >> vec.y >> std::ws >> vec.z;
+    return input;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Vec3f steaming operators.
+inline std::ostream& operator << (std::ostream& output, const vsg::vec4& vec)
+{
+    output  << vec.x << " "
+           << vec.y << " "
+           << vec.z << " "
+           << vec.w;
+    return output;     // to enable cascading
+}
+
+inline std::istream& operator >> (std::istream& input, vsg::vec4& vec)
+{
+    input >> vec.x >> std::ws
+        >> vec.y >> std::ws
+        >> vec.z >> std::ws
+        >> vec.w;
+    return input;
+}
+
 } // namespace vsg_helpers
 } // namespace sgi

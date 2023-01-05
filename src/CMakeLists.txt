@@ -1,5 +1,6 @@
 add_subdirectory(sgi)
 add_subdirectory(rw)
+add_subdirectory(vsg_rw)
 add_subdirectory(qt)
 add_subdirectory(plugin_impl)
 add_subdirectory(ref)
