@@ -52,7 +52,8 @@ public:
     ~sgi_MapNodeHelper();
 
 
-    vsg::Group* load(
+    bool load(
+        vsg::ref_ptr<vsg::Group> root,
         vsg::CommandLine& args
         );
 

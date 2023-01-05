@@ -67,6 +67,7 @@ protected:
     vsg::ref_ptr<vsg::Window> _window;
     vsgQt::ViewerWindow * _viewerWindow;
     vsg::ref_ptr<vsg::Viewer> _viewer;
+    vsg::ref_ptr<vsg::Node> _data;
     sgi_MapNodeHelper _helper;
 	GLContextImpl _impl;
 };

@@ -169,10 +169,6 @@ ViewerWidget::ViewerWidget(vsg::CommandLine & arguments, QWidget * parent)
     int x = -1, y = -1, width = -1, height = -1;
     while (arguments.read("--window", x, y, width, height)) {}
 
-    bool useMainThread = false;
-    if (arguments.read("--use-main-thread"))
-        useMainThread = true;
-
 	QRect rc = childrenRect();
 	int w = rc.width();
 	int h = rc.height();
@@ -180,14 +176,6 @@ ViewerWidget::ViewerWidget(vsg::CommandLine & arguments, QWidget * parent)
 		w = QMainWindow::width();
 	if (h == 0)
 		h = QMainWindow::height();
-
-    _viewerWindow = createGraphicsWindow(0, 0, w, h, nullptr, _impl);
-
-    _viewWidget = QWidget::createWindowContainer(_viewerWindow, this);
-
-    setCentralWidget(_viewWidget);
-    if(_viewWidget)
-        _viewWidget->setProperty("sgi_skip_object", true);
 }
 
 ViewerWidget::~ViewerWidget()
@@ -241,6 +229,84 @@ vsgQt::ViewerWindow * ViewerWidget::createGraphicsWindow( int x, int y, int w, i
 
     ret->viewer = _viewer;
 
+    auto horizonMountainHeight = 0.0; //arguments.value(0.0, "--hmh");
+
+    // provide the calls to set up the vsg::Viewer that will be used to render to the QWindow subclass vsgQt::ViewerWindow
+    ret->initializeCallback = [&](vsgQt::ViewerWindow& vw, uint32_t width, uint32_t height) {
+
+        auto& window = vw.windowAdapter;
+        if (!window) return false;
+
+        //auto& viewer = vw.viewer;
+        //if (!viewer) viewer = vsg::Viewer::create();
+
+        _viewer->addWindow(window);
+
+        // compute the bounds of the scene graph to help position camera
+        vsg::ComputeBounds computeBounds;
+        _data->accept(computeBounds);
+        vsg::dvec3 centre = (computeBounds.bounds.min + computeBounds.bounds.max) * 0.5;
+        double radius = vsg::length(computeBounds.bounds.max - computeBounds.bounds.min) * 0.6;
+        double nearFarRatio = 0.001;
+
+        // set up the camera
+        auto lookAt = vsg::LookAt::create(centre + vsg::dvec3(0.0, -radius * 3.5, 0.0), centre, vsg::dvec3(0.0, 0.0, 1.0));
+
+        vsg::ref_ptr<vsg::ProjectionMatrix> perspective;
+        vsg::ref_ptr<vsg::EllipsoidModel> ellipsoidModel(_data->getObject<vsg::EllipsoidModel>("EllipsoidModel"));
+        if (ellipsoidModel)
+        {
+            perspective = vsg::EllipsoidPerspective::create(
+                lookAt, ellipsoidModel, 30.0,
+                static_cast<double>(width) /
+                    static_cast<double>(height),
+                nearFarRatio, horizonMountainHeight);
+        }
+        else
+        {
+            perspective = vsg::Perspective::create(
+                30.0,
+                static_cast<double>(width) /
+                    static_cast<double>(height),
+                nearFarRatio * radius, radius * 4.5);
+        }
+
+        auto camera = vsg::Camera::create(perspective, lookAt, vsg::ViewportState::create(window->extent2D()));
+
+        // add close handler to respond the close window button and pressing escape
+        _viewer->addEventHandler(vsg::CloseHandler::create(_viewer));
+
+        // add trackball to enable mouse driven camera view control.
+        _viewer->addEventHandler(vsg::Trackball::create(camera, ellipsoidModel));
+
+        auto commandGraph = vsg::createCommandGraphForView(window, camera, _data);
+        _viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
+
+        _viewer->compile();
+
+        return true;
+    };
+
+    // provide the calls to invokve the vsg::Viewer to render a frame.
+    ret->frameCallback = [](vsgQt::ViewerWindow& vw) {
+
+        if (!vw.viewer || !vw.viewer->advanceToNextFrame())
+        {
+            return false;
+        }
+
+        // pass any events into EventHandlers assigned to the Viewer
+        vw.viewer->handleEvents();
+
+        vw.viewer->update();
+
+        vw.viewer->recordAndSubmit();
+
+        vw.viewer->present();
+
+        return true;
+    };
+
     return ret;
 }
 
@@ -259,6 +325,19 @@ bool ViewerWidget::createCamera()
 
 void ViewerWidget::setData(vsg::Node * node)
 {
+    _data = node;
+    //_viewerWindow->windowAdapter->getObject()
+
+    int w = width();
+    int h = height();
+
+    _viewerWindow = createGraphicsWindow(0, 0, w, h, nullptr, _impl);
+
+    _viewWidget = QWidget::createWindowContainer(_viewerWindow, this);
+
+    setCentralWidget(_viewWidget);
+    if(_viewWidget)
+        _viewWidget->setProperty("sgi_skip_object", true);
 
 }
 
@@ -339,19 +418,13 @@ main(int argc, char** argv)
     if ( !arguments.read("--autoclose", autoCloseTime) )
         autoCloseTime = -1;
 
-
-    myMainWindow->createCamera();
-
-
     sgi_MapNodeHelper & helper = myMainWindow->helper();
     // load an earth file, and support all or our example command-line options
     // and earth file <external> tags
-    vsg::ref_ptr<vsg::Group> node(helper.load( arguments /*, view */));
-    if ( node )
+    vsg::ref_ptr<vsg::Group> root(vsg::Group::create());
+    if ( helper.load( root, arguments /*, view */))
     {
         bool showImagePreviewDialog = helper.onlyImages() ? true : false;
-        vsg::ref_ptr<vsg::Group> root(new vsg::Group);
-        root->addChild(node);
 
         if(addSceneGraphInspector)
         {
@@ -361,10 +434,11 @@ main(int argc, char** argv)
             vsg::ref_ptr<vsg::Node> sgi_loader = vsg::read_cast<vsg::Node>(".sgi_loader", opts);
             if(sgi_loader.valid())
                 root->addChild(sgi_loader);
-            else
-                QMessageBox::information(myMainWindow, QCoreApplication::applicationFilePath(), "Failed to load SGI");
+            //else
+              //  QMessageBox::information(myMainWindow, QCoreApplication::applicationFilePath(), "Failed to load SGI");
         }
 
+        myMainWindow->createCamera();
         myMainWindow->setData(root);
 
         if(fullscreen)

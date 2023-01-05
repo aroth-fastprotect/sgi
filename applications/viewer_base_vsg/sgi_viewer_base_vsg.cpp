@@ -126,7 +126,8 @@ std::string sgi_MapNodeHelper::errorMessages() const
     return m_errorMessages.str();
 }
 
-vsg::Group* sgi_MapNodeHelper::load(
+bool sgi_MapNodeHelper::load(
+    vsg::ref_ptr<vsg::Group> root,
     vsg::CommandLine& args
     )
 {
@@ -163,7 +164,8 @@ vsg::Group* sgi_MapNodeHelper::load(
     bool previousWasOption = false;
     // check if the args only contain the executable name and nothing else
     bool emptyArgs = args.argc() <= 1;
-    vsg::Group * root = vsg::Group::create();
+    if(!root)
+        root = vsg::Group::create();
     // load all files from the given args
     for (int i = 1; i < args.argc(); )
     {
@@ -237,14 +239,13 @@ vsg::Group* sgi_MapNodeHelper::load(
             m_errorMessages << "No .earth, 3D model or image file/url specified in the command line. Empty command line arguments." << std::endl;
         else
             m_errorMessages << "No .earth, 3D model or image file/url specified in the command line." << std::endl;
-        return nullptr;
+        return false;
     }
 
     // check if we only got one image and nothing else
     _onlyImages = (!hasAtLeastOneNode && !hasAtLeastOneObject && hasAtLeastOneImage);
 
-
-    return root;
+    return true;
 }
 
 
