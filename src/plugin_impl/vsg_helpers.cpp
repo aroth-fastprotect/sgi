@@ -5,8 +5,11 @@
 #include <sgi/helpers/rtti>
 #include <sgi/helpers/vsg>
 
+#include <sgi/plugins/SGIImage.h>
+
 #include <vsg/core/Object.h>
 #include <vsg/core/Auxiliary.h>
+#include <vsg/core/Data.h>
 
 namespace sgi {
 
@@ -75,6 +78,37 @@ std::string getObjectNameAndType(const vsg::Object * object, bool includeAddr)
     }
     else
         ret = "(null)";
+    return ret;
+}
+
+const sgi::Image * convertImage(const vsg::Data * image)
+{
+    if (!image)
+        return nullptr;
+
+    const vsg::Data::Properties & properties = image->properties;
+    sgi::Image * ret = nullptr;
+    sgi::Image::ImageFormat imageFormat;
+    sgi::Image::DataType dataType;
+    switch(properties.format)
+    {
+    case 0:imageFormat = sgi::Image::ImageFormatInvalid; break;
+    case VK_FORMAT_R8G8_UNORM:
+        imageFormat = sgi::Image::ImageFormatRGB24; break;
+    case VK_FORMAT_R16G16_UNORM:
+        imageFormat = sgi::Image::ImageFormatRGB24; break;
+    default: imageFormat = sgi::Image::ImageFormatInvalid; break;
+    }
+    dataType = sgi::Image::DataTypeInvalid;
+
+    sgi::Image::Origin origin = (properties.origin == vsg::TOP_LEFT) ? sgi::Image::OriginTopLeft : sgi::Image::OriginBottomLeft;
+    if(imageFormat != sgi::Image::ImageFormatInvalid)
+    {
+        ret = new sgi::Image(imageFormat, dataType, origin,
+                             const_cast<void*>(image->dataPointer()), image->dataSize(),
+                             image->width(), image->height(), image->depth(), image->stride(),
+                             image);
+    }
     return ret;
 }
 

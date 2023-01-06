@@ -16,7 +16,8 @@ SET(TARGET_NO_TRANSLATION 1)
 
 SET(LIB_NAME sgi_loader)
 
-SET(_plugin_dir osgPlugins-${OPENSCENEGRAPH_VERSION})
+#SET(_plugin_dir vsgPlugins-${OPENSCENEGRAPH_VERSION})
+SET(_plugin_dir)
 IF(WIN32)
     SET(TARGET_BIN_DIR ${FAST_WORK_BIN_DIR}/${_plugin_dir})
     set(TARGET_LIB_DIR ${FAST_WORK_BIN_DIR}/${_plugin_dir})

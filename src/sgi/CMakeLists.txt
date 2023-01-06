@@ -32,6 +32,13 @@ SET(SGI_LIBRARY_POSTFIX_RELEASE "${CMAKE_RELEASE_POSTFIX}")
 SET(SGI_LIBRARY_POSTFIX_RELWITHDEBINFO "${CMAKE_RELWITHDEBINFO_POSTFIX}")
 SET(SGI_LIBRARY_POSTFIX_MINSIZEREL "${CMAKE_MINSIZEREL_POSTFIX}")
 
+set(VSG_RW_LIBNAME "vsgdb_sgi_loader")
+SET(VSG_RW_SGI_LIBRARY_NAME_DEBUG "${VSG_RW_LIBNAME}${CMAKE_DEBUG_POSTFIX}${CMAKE_SHARED_MODULE_SUFFIX}")
+SET(VSG_RW_SGI_LIBRARY_NAME_RELEASE "${VSG_RW_LIBNAME}${CMAKE_RELEASE_POSTFIX}${CMAKE_SHARED_MODULE_SUFFIX}")
+SET(VSG_RW_SGI_LIBRARY_NAME_RELWITHDEBINFO "${VSG_RW_LIBNAME}${CMAKE_RELWITHDEBINFO_POSTFIX}${CMAKE_SHARED_MODULE_SUFFIX}")
+SET(VSG_RW_SGI_LIBRARY_NAME_MINSIZEREL "${VSG_RW_LIBNAME}${CMAKE_MINSIZEREL_POSTFIX}${CMAKE_SHARED_MODULE_SUFFIX}")
+
+
 SET(SGI_LIBRARY_SHARED_MODULE_SUFFIX "${CMAKE_SHARED_MODULE_SUFFIX}")
 
 fast_configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../../Export.in ${SGI_INCLUDE_DIR}/sgi/Export)
@@ -50,7 +57,9 @@ SET(TARGET_H
 LIST(APPEND TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/Export
     ${SGI_INCLUDE_DIR}/sgi/AutoLoadOsg
+    ${SGI_INCLUDE_DIR}/sgi/AutoLoadVsg
     ${SGI_INCLUDE_DIR}/sgi/AutoLoadQt
+    ${SGI_INCLUDE_DIR}/sgi/AutoLoadSGI
     ${SGI_INCLUDE_DIR}/sgi/ContextMenu
     ${SGI_INCLUDE_DIR}/sgi/ContextMenuQt
     ${SGI_INCLUDE_DIR}/sgi/GenerateItem
@@ -73,9 +82,24 @@ LIST(APPEND TARGET_H
     ${SGI_INCLUDE_DIR}/sgi/helpers/rtti
     ${SGI_INCLUDE_DIR}/sgi/helpers/singleton
     ${SGI_INCLUDE_DIR}/sgi/helpers/string
+    ${SGI_INCLUDE_DIR}/sgi/helpers/vsg
+    ${SGI_INCLUDE_DIR}/sgi/helpers/vsg_helper_nodes
 
-	${SGI_INCLUDE_DIR}/sgi/details/type_list
-	${SGI_INCLUDE_DIR}/sgi/details/functionImplBase
+    ${SGI_INCLUDE_DIR}/sgi/details/call_function_for_object_type
+    ${SGI_INCLUDE_DIR}/sgi/details/caster
+    ${SGI_INCLUDE_DIR}/sgi/details/functionImplBase
+    ${SGI_INCLUDE_DIR}/sgi/details/DynamicLibrary
+    ${SGI_INCLUDE_DIR}/sgi/details/Object
+    ${SGI_INCLUDE_DIR}/sgi/details/object_type_info
+    ${SGI_INCLUDE_DIR}/sgi/details/Observer
+    ${SGI_INCLUDE_DIR}/sgi/details/observer_ptr
+    ${SGI_INCLUDE_DIR}/sgi/details/output
+    ${SGI_INCLUDE_DIR}/sgi/details/Referenced
+    ${SGI_INCLUDE_DIR}/sgi/details/ref_ptr
+    ${SGI_INCLUDE_DIR}/sgi/details/static_type_name
+    ${SGI_INCLUDE_DIR}/sgi/details/type_list
+    ${SGI_INCLUDE_DIR}/sgi/details/UserDataContainer
+
 
     ${SGI_INCLUDE_DIR}/sgi/plugins/fallback_support.h
     ${SGI_INCLUDE_DIR}/sgi/plugins/log4cplus_support.h

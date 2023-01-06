@@ -1,0 +1,112 @@
+// kate: syntax C++11;
+// SGI - Copyright (C) 2012-2023 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include "Export"
+#include "details/DynamicLibrary"
+#include "details/ref_ptr"
+#include "helpers/singleton"
+
+namespace sgi {
+namespace autoload {
+    class SGI
+    {
+    public:
+        typedef void*   PROC_ADDRESS;
+
+        enum LoadStatus {
+            NOT_LOADED = 0,
+            PREVIOUSLY_LOADED,
+            LOADED
+        };
+
+    protected:
+        SGI()
+            : _loadStatus(NOT_LOADED)
+        {
+            // find and load the library in the OSG_LIBRARY_PATH
+            _libraryFilename = sgi::details::DynamicLibrary::findFile(SGI_LIBRARY_NAME);
+            if(!_libraryFilename.empty())
+            {
+                _library = sgi::details::DynamicLibrary::loadLibrary(_libraryFilename);
+                if(_library)
+                    _loadStatus = LOADED;
+            }
+        }
+        ~SGI()
+        {
+            _library = nullptr;
+        }
+        sgi::details::DynamicLibrary * library()
+        {
+            return _library;
+        }
+        PROC_ADDRESS getProcAddress(const char* procName)
+        {
+            return (_library)?_library->getProcAddress(std::string(procName)):nullptr;
+        }
+        const std::string & libraryFilename() const
+        {
+            return _libraryFilename;
+        }
+        std::string libraryError() const
+        {
+            return (_library)?std::string():std::string();
+        }
+    public:
+        typedef helpers::SingletonT<SGI> Singleton;
+        typedef Singleton::InstanceAction InstanceAction;
+        static Singleton::value_type * instance(InstanceAction action=Singleton::InstanceActionGetOrCreate)
+        {
+            static Singleton s_singleton;
+            return s_singleton.instance(action);
+        }
+
+        static inline sgi::details::DynamicLibrary* sgiLibrary()
+        {
+            return SGI::instance()->library();
+        }
+        static inline void * sgiLibraryProcAddress(const char * procName)
+        {
+            return SGI::instance()->getProcAddress(procName);
+        }
+        static inline void * sgiLibraryProcAddressNoLoad(const char * procName)
+        {
+            SGI * inst = SGI::instance(Singleton::InstanceActionGet);
+            if(inst)
+                return inst->getProcAddress(procName);
+            else
+                return nullptr;
+        }
+        static inline std::string sgiLibraryName()
+        {
+            return std::string(SGI_LIBRARY_NAME);
+        }
+        static inline const std::string & sgiLibraryFilename()
+        {
+            return SGI::instance()->libraryFilename();
+        }
+        static inline std::string sgiLibraryError()
+        {
+            return SGI::instance()->libraryError();
+        }
+        static inline bool sgiLibraryLoaded()
+        {
+            SGI * inst = SGI::instance(Singleton::InstanceActionGet);
+            if(inst)
+                return inst->library() != nullptr;
+            else
+                return false;
+        }
+        static inline void sgiLibraryUnload()
+        {
+            SGI::instance(Singleton::InstanceActionErase);
+        }
+    private:
+        std::string _libraryFilename;
+        LoadStatus _loadStatus;
+        sgi::details::DynamicLibrary* _library;
+    };
+
+} } // namespace sgi::autoload

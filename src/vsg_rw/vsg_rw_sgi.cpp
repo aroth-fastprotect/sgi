@@ -26,12 +26,12 @@
 #include <vsg/ui/PointerEvent.h>
 
 #define SGI_NO_HOSTITEM_GENERATOR
+#include <sgi/AutoLoadQt>
 #include <sgi/ContextMenu>
 #include <sgi/SceneGraphDialog>
 #include <sgi/ObjectLoggerDialog>
 #include <sgi/ImagePreviewDialog>
 #include <sgi/ContextMenu>
-#include <sgi/AutoLoadQt>
 #include <sgi/GenerateItem>
 #include <sgi/Shutdown>
 #include <sgi/LibraryInfo>
@@ -966,29 +966,52 @@ class rw_sgi : public vsg::Inherit<vsg::ReaderWriter, rw_sgi>
 public:
     rw_sgi()
     {
-        //supportsExtension( "sgi_loader", "SGI loader" );
     }
     ~rw_sgi() override
 	{
 	}
 
-#if 0
-    ReadResult readObject(const std::string& fileName, const osgDB::Options* options) const override
+    vsg::ref_ptr<vsg::Object> read(const vsg::Path& filename, vsg::ref_ptr<const vsg::Options> options) const override
     {
-        return readNode( fileName, options );
+        vsg::ref_ptr<vsg::Object> ret;
+        auto ext = vsg::lowerCaseFileExtension(filename);
+        if (ext == ".sgi_loader")
+        {
+            ret = new SGIInstallNode(filename, options);
+        }
+        return ret;
     }
-    ReadResult readNode(const std::string& fileName, const osgDB::Options* options) const override
+
+
+    bool getFeatures(Features& features) const override
     {
-        std::string ext = osgDB::getFileExtension( fileName );
-        if ( !acceptsExtension( ext ) )
-            return ReadResult::FILE_NOT_HANDLED;
-
-        OSG_NOTICE << LC << "readNode " << fileName << std::endl;
-
-        return ReadResult(new SGIInstallNode(osgDB::getNameLessExtension(fileName), options));
+        features.extensionFeatureMap[".sgi_loader"] = static_cast<FeatureMask>(READ_FILENAME);
+        return true;
     }
-#endif
+
+    /// return true if .ext is supported
+    static bool extensionSupported(const vsg::Path& ext)
+    {
+        return ext == ".sgi_loader";
+    }
+
 };
 
-//REGISTER_OSGPLUGIN(earth, ReaderWriteSGI)
+namespace vsg {
+    VSG_type_name(rw_sgi);
+}
+
+#if defined(WIN32)
+#define VSG_RW_SGI_API __declspec(dllexport)
+#elif defined(__GNUC__)
+#define VSG_RW_SGI_API __attribute__ ((visibility ("default")))
+#else
+#define VSG_RW_SGI_API
+#endif
+
+extern "C" void VSG_RW_SGI_API vsg_rw_sgi_initialize(vsg::Options * options)
+{
+    vsg::ObjectFactory::instance()->add<rw_sgi>();
+    options->add(rw_sgi::create());
+}
 

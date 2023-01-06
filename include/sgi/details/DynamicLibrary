@@ -1,0 +1,122 @@
+// kate: mode C++;
+// SGI - Copyright (C) 2012-2023 FAST Protect, Andreas Roth
+
+#pragma once
+
+#include <sgi/Export>
+#include <string>
+
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#include <io.h>
+#include <windows.h>
+#include <winbase.h>
+#else // all other unix
+#include <unistd.h>
+#include <dlfcn.h>
+#endif
+
+namespace sgi {
+namespace details {
+
+/** DynamicLibrary - encapsulates the loading and unloading of dynamic libraries,
+    typically used for loading ReaderWriter plug-ins.
+*/
+class SGI_REF_EXPORT DynamicLibrary
+{
+    public:
+
+        typedef void*   HANDLE;
+        typedef void*   PROC_ADDRESS;
+
+        /** returns a pointer to a DynamicLibrary object on successfully
+          * opening of library returns NULL on failure.
+          */
+        static DynamicLibrary* loadLibrary(const std::string& libraryName)
+        {
+            HANDLE handle = nullptr;
+            handle = getLibraryHandle( libraryName ); // haven't found a lib ourselves, see if the OS can find it simply from the library name.
+
+            if (handle)
+                return new DynamicLibrary(libraryName,handle);
+            return nullptr;
+        }
+
+        static std::string findFile(const std::string& libraryName)
+        {
+            return libraryName;
+        }
+
+        /** return name of library stripped of path.*/
+        const std::string& getName() const     { return _name; }
+
+        /** return name of library including full path to it.*/
+        const std::string& getFullName() const { return _fullName; }
+
+        /** return handle to .dso/.dll dynamic library itself.*/
+        HANDLE             getHandle() const   { return _handle; }
+
+        /** return address of function located in library.*/
+        PROC_ADDRESS       getProcAddress(const std::string& procName)
+        {
+            if (_handle==nullptr)
+                return nullptr;
+#if defined(_WIN32) && !defined(__CYGWIN__)
+            return (PROC_ADDRESS)GetProcAddress( (HMODULE)_handle, procName.c_str() );
+#else // other unix
+            void* sym = dlsym( _handle,  procName.c_str() );
+            return (PROC_ADDRESS)sym;
+#endif
+        }
+
+    protected:
+
+        /** get handle to library file */
+        static HANDLE getLibraryHandle( const std::string& libraryName)
+        {
+            HANDLE handle = NULL;
+
+#if defined(_WIN32) && !defined(__CYGWIN__)
+            handle = LoadLibrary( libraryName.c_str() );
+#else
+            handle = dlopen( libraryName.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+#endif
+            return handle;
+        }
+
+        /** disallow default constructor.*/
+        DynamicLibrary() {}
+        /** disallow copy constructor.*/
+        DynamicLibrary(const DynamicLibrary&) {}
+        /** disallow copy operator.*/
+        DynamicLibrary& operator = (const DynamicLibrary&) { return *this; }
+
+        /** Disallow public construction so that users have to go
+          * through loadLibrary() above which returns NULL on
+          * failure, a valid DynamicLibrary object on success.
+          */
+        DynamicLibrary(const std::string& name,HANDLE handle)
+        {
+            _name = name;
+            _handle = handle;
+        }
+
+        ~DynamicLibrary()
+        {
+            if (_handle)
+            {
+#if defined(_WIN32) && !defined(__CYGWIN__)
+                FreeLibrary((HMODULE)_handle);
+#else // other unix
+                dlclose(_handle);
+#endif
+            }
+        }
+
+        HANDLE          _handle;
+        std::string     _name;
+        std::string     _fullName;
+
+};
+} // namespace details
+} // namespace sgi
+

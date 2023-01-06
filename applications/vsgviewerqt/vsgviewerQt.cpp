@@ -424,20 +424,6 @@ main(int argc, char** argv)
     vsg::ref_ptr<vsg::Group> root(vsg::Group::create());
     if ( helper.load( root, arguments /*, view */))
     {
-        bool showImagePreviewDialog = helper.onlyImages() ? true : false;
-
-        if(addSceneGraphInspector)
-        {
-            vsg::ref_ptr<vsg::Options> opts(new vsg::Options);
-            opts->setValue("showSceneGraphDialog", showSceneGraphInspector ? "1" : "0");
-            opts->setValue("showImagePreviewDialog", showImagePreviewDialog ? "1" : "0");
-            vsg::ref_ptr<vsg::Node> sgi_loader = vsg::read_cast<vsg::Node>(".sgi_loader", opts);
-            if(sgi_loader.valid())
-                root->addChild(sgi_loader);
-            //else
-              //  QMessageBox::information(myMainWindow, QCoreApplication::applicationFilePath(), "Failed to load SGI");
-        }
-
         myMainWindow->createCamera();
         myMainWindow->setData(root);
 

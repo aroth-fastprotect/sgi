@@ -119,7 +119,7 @@ private:
 SGI_VSG_HELPER_EXPORT vsg::Geometry * createQuadGeometry(float w,float h, const GeometryParams & params=GeometryParams());
 SGI_VSG_HELPER_EXPORT vsg::Geometry * createTriangleGeometry(float s, const GeometryParams & params=GeometryParams());
 SGI_VSG_HELPER_EXPORT vsg::Geometry * createBoxGeometry(const vsg::vec3 & size, const GeometryParams & params=GeometryParams());
-SGI_VSG_HELPER_EXPORT vsg::Image * getSGILogoImage();
+SGI_VSG_HELPER_EXPORT vsg::ref_ptr<vsg::Data> getSGILogoImage();
 
 
 } // namespace vsg_helpers

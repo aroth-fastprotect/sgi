@@ -2,15 +2,57 @@
 // SGI - Copyright (C) 2012-2023 FAST Protect, Andreas Roth
 
 #include <sgi/helpers/vsg_helper_nodes>
-#include <osg/Material>
-#include <osgDB/Registry>
-#include <osg/TexEnv>
+#include <sgi/plugins/SGIImage.h>
 
 #include "../../img/microscope64.c"
 
 namespace sgi {
 
-    namespace vsg_helpers {
+namespace vsg_helpers {
+
+
+    template<typename T>
+    vsg::ref_ptr<vsg::Data> create(sgi::ConstImagePtr & image, VkFormat format)
+    {
+        vsg::ref_ptr<vsg::Data> vsg_data;
+        if (image->depth() == 1)
+        {
+            vsg_data = vsg::Array2D<T>::create(image->width(), image->height(), reinterpret_cast<T*>(const_cast<void*>(image->data())), vsg::Data::Layout{format});
+        }
+        else
+        {
+            vsg_data = vsg::Array3D<T>::create(image->width(), image->height(), image->depth(), reinterpret_cast<T*>(const_cast<void*>(image->data())), vsg::Data::Layout{format});
+        }
+
+        return vsg_data;
+    }
+
+    vsg::ref_ptr<vsg::Data> convert(sgi::ConstImagePtr & image)
+    {
+        vsg::ref_ptr<vsg::Data> vsg_data;
+        switch(image->dataType())
+        {
+        case sgi::Image::DataTypeSignedByte:
+        case sgi::Image::DataTypeUnsignedByte:
+            vsg_data = create<vsg::ubvec2>(image, VK_FORMAT_R8G8_UNORM);
+            break;
+        case sgi::Image::DataTypeSignedShort:
+        case sgi::Image::DataTypeUnsignedShort:
+            vsg_data = create<vsg::usvec2>(image, VK_FORMAT_R16G16_UNORM);
+            break;
+        case sgi::Image::DataTypeSignedInt:
+        case sgi::Image::DataTypeUnsignedInt:
+            vsg_data = create<vsg::uivec2>(image, VK_FORMAT_R32G32_UINT);
+            break;
+        case sgi::Image::DataTypeFloat32:
+            vsg_data = create<vsg::vec2>(image, VK_FORMAT_R32G32_SFLOAT);
+            break;
+        case sgi::Image::DataTypeDouble:
+            vsg_data = create<vsg::dvec2>(image, VK_FORMAT_R64G64_SFLOAT);
+            break;
+        }
+        return vsg_data;
+    }
 
 GeometryParams::GeometryParams()
     : color()
@@ -359,20 +401,12 @@ vsg::Geometry * createBoxGeometry(const vsg::vec3 & size, const GeometryParams &
     return geom;
 }
 
-vsg::Image * getSGILogoImage()
+vsg::ref_ptr<vsg::Data> getSGILogoImage()
 {
-#if 0
-    osgDB::ReaderWriter * rw = osgDB::Registry::instance()->getReaderWriterForExtension("png");
-    std::string microscope64_png_str;
-    microscope64_png_str.assign((const char*)microscope64_png, sizeof(microscope64_png));
-    std::stringstream ss(microscope64_png_str);
-    osgDB::ReaderWriter::ReadResult result;
-    if (rw)
-        result = rw->readImage(ss);
-    return result.takeImage();
-#else
-    return nullptr;
-#endif
+    vsg::ref_ptr<vsg::Data> vsg_data = vsg::Array2D<vsg::ubvec2>::create(
+            microscope64_rgb_width, microscope64_rgb_height,
+            reinterpret_cast<vsg::ubvec2*>(const_cast<unsigned char*>(microscope64_rgb)), vsg::Data::Layout{VK_FORMAT_R8G8_UNORM});
+    return vsg_data;
 }
 
 

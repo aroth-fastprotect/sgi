@@ -14,6 +14,7 @@ namespace vsg {
     class CommandLine;
     class Node;
     class Group;
+    class Options;
 }
 
 void initializeNotifyLevels(vsg::CommandLine& arguments);
@@ -82,4 +83,5 @@ private:
     bool _movieTrackMouse;
     int _viewpointNum;
     std::string _viewpointName;
+    vsg::ref_ptr<vsg::Options> m_options;
 };

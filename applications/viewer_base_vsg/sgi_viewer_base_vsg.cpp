@@ -1,4 +1,5 @@
 #include "sgi_viewer_base_vsg.h"
+#include <sgi/AutoLoadSGI>
 
 #include <vsg/utils/CommandLine.h>
 #include <vsg/io/Logger.h>
@@ -82,6 +83,64 @@ sgi_CommonHelper::~sgi_CommonHelper()
 {
 }
 
+#ifdef __linux__
+namespace {
+std::string getVSGModuleFilename()
+{
+    std::string ret;
+    Dl_info info;
+    vsg::Path (* addr) () = vsg::executableFilePath;
+    if(dladdr(reinterpret_cast<const void*>(addr), &info) != 0)
+    {
+        ret = info.dli_fname;
+    }
+    return ret;
+}
+std::string getVSGModuleDirectory()
+{
+    std::string modulefilename = getVSGModuleFilename();
+    std::string ret(modulefilename, 0, modulefilename.find_last_of('/'));
+    return ret;
+}
+}
+#endif
+
+class autoload_rw_sgi
+{
+private:
+    sgi::details::DynamicLibrary * _library;
+    typedef void*   PROC_ADDRESS;
+public:
+    autoload_rw_sgi()
+    {
+#ifdef __linux__
+        std::string library_name = getVSGModuleDirectory() + std::string("/" VSG_RW_SGI_LIBRARY_NAME);
+#else
+        std::string library_name = VSG_RW_SGI_LIBRARY_NAME;
+#endif
+
+        _library = sgi::details::DynamicLibrary::loadLibrary(library_name);
+    }
+    PROC_ADDRESS getProcAddress(const char* procName)
+    {
+        return (_library)?_library->getProcAddress(std::string(procName)):nullptr;
+    }
+
+};
+
+namespace {
+    bool load_rw_sgi(vsg::Options* options)
+    {
+        static autoload_rw_sgi loader;
+        typedef void * (*pfn)(vsg::Options*);
+        pfn func = (pfn)loader.getProcAddress("vsg_rw_sgi_initialize");
+        if(func)
+            func(options);
+        return (func != nullptr);
+    }
+}
+
+
 sgi_MapNodeHelper::sgi_MapNodeHelper(vsg::CommandLine& args)
     : sgi_CommonHelper(args)
     , m_errorMessages()
@@ -92,7 +151,18 @@ sgi_MapNodeHelper::sgi_MapNodeHelper(vsg::CommandLine& args)
     , _movieTrackMouse(false)
     , _viewpointNum(-1)
     , _viewpointName()
+
 {
+    m_options = vsg::Options::create();
+    m_options->fileCache = vsg::getEnv("VSG_FILE_CACHE");
+    m_options->paths = vsg::getEnvPaths("VSG_FILE_PATH");
+
+#ifdef vsgXchange_all
+    // add vsgXchange's support for reading and writing 3rd party file formats
+    m_options->add(vsgXchange::all::create());
+#endif
+
+    load_rw_sgi(m_options);
 }
 
 sgi_MapNodeHelper::sgi_MapNodeHelper(const sgi_MapNodeHelper & rhs)
@@ -151,10 +221,18 @@ bool sgi_MapNodeHelper::load(
             _viewpointName.clear();
     }
 
+    bool addSceneGraphInspector = true;
+    bool showSceneGraphInspector = true;
+
+    if ( args.read("--nosgi") )
+        addSceneGraphInspector = false;
+    if ( args.read("--hidesgi") )
+        showSceneGraphInspector = false;
+
+
     //_usageMessage = args.getApplicationUsage();
 
 
-    auto options = vsg::Options::create();
     //osgDB::Registry * registry = osgDB::Registry::instance();
     bool hasAtLeastOneNode = false;
     bool hasAtLeastOneObject = false;
@@ -193,9 +271,10 @@ bool sgi_MapNodeHelper::load(
                 vsg::Path lowercaseExt = vsg::lowerCaseFileExtension(arg);
                 if (!lowercaseExt.empty())
                 {
-                    auto vsg_obj = vsg::read_cast<vsg::Object>(arg, options);
+                    auto vsg_obj = vsg::read_cast<vsg::Object>(arg, m_options);
                     if (vsg_obj)
                     {
+                        m_files.push_back(arg);
                         if (vsg::Node * node = dynamic_cast<vsg::Node*>(vsg_obj.get()))
                         {
                             hasAtLeastOneNode = true;
@@ -244,6 +323,20 @@ bool sgi_MapNodeHelper::load(
 
     // check if we only got one image and nothing else
     _onlyImages = (!hasAtLeastOneNode && !hasAtLeastOneObject && hasAtLeastOneImage);
+
+    bool showImagePreviewDialog = _onlyImages ? true : false;
+
+    if(addSceneGraphInspector)
+    {
+        vsg::ref_ptr<vsg::Options> opts(vsg::Options::create(*m_options.get()));
+        opts->setValue("showSceneGraphDialog", showSceneGraphInspector ? "1" : "0");
+        opts->setValue("showImagePreviewDialog", showImagePreviewDialog ? "1" : "0");
+        vsg::ref_ptr<vsg::Node> sgi_loader = vsg::read_cast<vsg::Node>(".sgi_loader", opts);
+        if(sgi_loader.valid())
+            root->addChild(sgi_loader);
+        //else
+        //  QMessageBox::information(myMainWindow, QCoreApplication::applicationFilePath(), "Failed to load SGI");
+    }
 
     return true;
 }
