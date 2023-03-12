@@ -149,6 +149,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Profile)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TileSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(TileSourceInfo)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelSource)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::VirtualProgram)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TileBlacklist)
 #ifdef SGI_USE_OSGEARTH_FAST
@@ -2505,6 +2506,8 @@ bool writePrettyHTMLImpl<osgEarth::ModelSource>::process(std::basic_ostream<char
             callNextHandler(os);
 
             // add remaining ModelSource properties
+            os << "<tr><td>status</td><td>" << object->getStatus() << "</td></tr>" << std::endl;
+
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0) && OSGEARTH_VERSION_LESS_THAN(2,9,0)
             const osgEarth::NodeOperationVector& preMergeOperations = object->preMergeOperations();
             os << "<tr><td>preMergeOperations</td><td><ul>";
@@ -2537,6 +2540,35 @@ bool writePrettyHTMLImpl<osgEarth::ModelSource>::process(std::basic_ostream<char
 #endif
         ret = true;
         break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+
+bool writePrettyHTMLImpl<osgEarth::MaskSource>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::MaskSource * object = getObject<osgEarth::MaskSource,SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        // add Object properties first
+        callNextHandler(os);
+
+        os << "<tr><td>status</td><td>" << object->getStatus() << "</td></tr>" << std::endl;
+
+        if(_table)
+                os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
     default:
         ret = callNextHandler(os);
         break;

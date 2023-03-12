@@ -165,6 +165,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Object)
 #endif
     osgEarth::Cache, osgEarth::TileSource,
     osgEarth::ModelSource,
+    osgEarth::MaskSource,
     osgEarth::Extension,
     osgEarth::Features::FeatureSource,
     osgEarth::Features::Feature,
@@ -396,6 +397,7 @@ SGI_OBJECT_INFO_END()
 SGI_OBJECT_INFO_BEGIN(osgEarth::TileSource)
     osgEarth::Features::FeatureTileSource
 SGI_OBJECT_INFO_END()
+
 
 SGI_OBJECT_INFO_BEGIN(osgEarth::Config)
 SGI_OBJECT_INFO_END()
