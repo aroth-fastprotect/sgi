@@ -82,6 +82,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ElevationLayerOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelLayerOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskLayerOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TileSourceOptions)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskSourceOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelSourceOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::CacheOptions)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Features::FeatureModelSourceOptions)
@@ -657,6 +658,31 @@ bool writePrettyHTMLImpl<osgEarth::TileSourceOptions>::process(std::basic_ostrea
             ret = true;
         }
         break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::MaskSourceOptions>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::MaskSourceOptions * object = getObject<osgEarth::MaskSourceOptions,SGIItemEarthConfigOptions>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        callNextHandler(os);
+
+        if(_table)
+                os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
     default:
         ret = callNextHandler(os);
         break;
