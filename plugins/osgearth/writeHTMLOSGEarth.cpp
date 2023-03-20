@@ -1605,6 +1605,13 @@ bool writePrettyHTMLImpl<osgEarth::Map>::process(std::basic_ostream<char>& os)
 #endif
             os << "<tr><td>cache</td><td>" << getObjectNameAndType(object->getCache(), true) << "</td></tr>" << std::endl;
 
+            osgEarth::StringSet attributions;
+            object->getAttributions(attributions);
+            os << "<tr><td>attributions</td><td><ul>";
+            for (auto aa : attributions)
+                os << "<li>" << aa << "</li>";
+            os << "</ul></td></tr>" << std::endl;
+
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             osgEarth::MapFrame mapframe(object, osgEarth::Map::ENTIRE_MODEL);
 
