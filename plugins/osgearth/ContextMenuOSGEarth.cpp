@@ -413,6 +413,7 @@ bool contextMenuPopulateImpl<osgEarth::Layer>::populate(IContextMenuItem * menuI
             if (cacheSettings.hasObject())
                 menuItem->addMenu("Cache settings", &cacheSettings);
 #endif
+			menuItem->addBoolAction(MenuActionLayerEnable, "Enable", _item, object->getEnabled());
 
             /*
             SGIHostItemOsg sequencecontrol(object->getSequenceControl());
@@ -444,8 +445,7 @@ bool contextMenuPopulateImpl<osgEarth::TerrainLayer>::populate(IContextMenuItem 
                 manipulateMenu->addSimpleAction(MenuActionTileBlacklistClear, "Clear blacklist", _item);
             }
 
-            menuItem->addBoolAction(MenuActionTerrainLayerEnable, "Enable", _item, object->getEnabled());
-            menuItem->addBoolAction(MenuActionTerrainLayerVisible, "Visible", _item, object->getVisible());
+			menuItem->addBoolAction(MenuActionTerrainLayerVisible, "Visible", _item, object->getVisible());
 
             std::string url = ((TerrainLayerAccessor*)object)->getURL();
             if(!url.empty())
@@ -539,7 +539,7 @@ bool contextMenuPopulateImpl<osgEarth::ModelLayer>::populate(IContextMenuItem * 
         ret = callNextHandler(menuItem);
         if(ret)
         {
-            menuItem->addBoolAction(MenuActionModelLayerEnable, "Enable", _item, object->getEnabled());
+            //menuItem->addBoolAction(MenuActionModelLayerEnable, "Enable", _item, object->getEnabled());
             menuItem->addBoolAction(MenuActionModelLayerVisible, "Visible", _item, object->getVisible());
             menuItem->addBoolAction(MenuActionModelLayerLighting, "Lighting", _item, object->isLightingEnabled());
 
