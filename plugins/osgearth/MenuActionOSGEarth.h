@@ -19,6 +19,7 @@ enum MenuAction {
     MenuActionMapCachePolicyUsage,
     MenuActionMapDebugImageLayer,
     MenuActionLayerEnable,
+    MenuActionLayerReload,
     MenuActionTerrainLayerEnable,
     MenuActionTerrainLayerVisible,
     MenuActionTerrainLayerCacheUsage,

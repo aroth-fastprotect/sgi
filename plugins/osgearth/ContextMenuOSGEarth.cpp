@@ -408,6 +408,13 @@ bool contextMenuPopulateImpl<osgEarth::Layer>::populate(IContextMenuItem * menuI
         ret = callNextHandler(menuItem);
         if(ret)
         {
+			IContextMenuItem* manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+			if (manipulateMenu)
+			{
+				manipulateMenu->addSimpleAction(MenuActionLayerReload, "Reload", _item);
+			}
+
+
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
             SGIHostItemOsg cacheSettings(object->getCacheSettings());
             if (cacheSettings.hasObject())

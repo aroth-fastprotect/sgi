@@ -68,6 +68,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionImageLayerMaxVisibleRange)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionModelLayerSetURL)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMaskLayerSetURL)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLayerEnable)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLayerReload)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTerrainLayerEnable)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTerrainLayerVisible)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionModelLayerEnable)
@@ -495,11 +496,23 @@ bool actionHandlerImpl<MenuActionTerrainLayerVisible>::execute()
     return true;
 }
 
-
 bool actionHandlerImpl<MenuActionLayerEnable>::execute()
 {
 	osgEarth::Layer* object = getObject<osgEarth::Layer, SGIItemOsg>();
 	object->setEnabled(menuAction()->state());
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionLayerReload>::execute()
+{
+	osgEarth::Layer* object = getObject<osgEarth::Layer, SGIItemOsg>();
+    class LayerReload : public osgEarth::Layer {
+    public:
+        void reload() {
+            fireCallback(&osgEarth::LayerCallback::onEnabledChanged);
+        }
+    };
+    static_cast<LayerReload*>(object)->reload();
 	return true;
 }
 
