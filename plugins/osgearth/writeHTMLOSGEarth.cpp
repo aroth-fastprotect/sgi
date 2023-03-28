@@ -2176,6 +2176,7 @@ bool writePrettyHTMLImpl<osgEarth::TerrainEngineNode>::process(std::basic_ostrea
 		// add remaining TerrainEngineNode properties
 		os << "<tr><td>terrain</td><td>" << getObjectNameAndType(object->getTerrain()) << "</td></tr>" << std::endl;
 		os << "<tr><td>resources</td><td>" << getObjectNameAndType(object->getResources()) << "</td></tr>" << std::endl;
+        os << "<tr><td>computeRangeCallback</td><td>" << getObjectNameAndType(object->getComputeRangeCallback()) << "</td></tr>" << std::endl;
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 		os << "<tr><td>terrain stateset</td><td>" << getObjectNameAndType(object->getTerrainStateSet()) << "</td></tr>" << std::endl;
 		os << "<tr><td>payload stateset</td><td>" << getObjectNameAndType(object->getPayloadStateSet()) << "</td></tr>" << std::endl;

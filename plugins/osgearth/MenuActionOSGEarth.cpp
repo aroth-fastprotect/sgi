@@ -19,6 +19,7 @@
 #include <osgEarth/ImageUtils>
 #include <osgEarth/MaskLayer>
 #include <osgEarth/TileSource>
+#include <osgEarth/TerrainEngineNode>
 
 #include <osgEarthDrivers/debug/DebugOptions>
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
@@ -124,6 +125,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableDirty)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLightSettings)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionFeatureModelLayerDirty)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTerrainEngineNodeDirty)
 
 using namespace sgi::osg_helpers;
 
@@ -1129,6 +1131,16 @@ bool actionHandlerImpl<MenuActionLineDrawableDirty>::execute()
 }
 
 #endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+
+
+bool actionHandlerImpl<MenuActionTerrainEngineNodeDirty>::execute()
+{
+	osgEarth::TerrainEngineNode* object = getObject<osgEarth::TerrainEngineNode, SGIItemOsg>();
+    object->dirtyTerrain();
+	return true;
+}
+
+
 
 
 bool actionHandlerImpl<MenuActionLightSettings>::execute()

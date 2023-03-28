@@ -52,6 +52,8 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskLayer)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LineDrawable)
 #endif
 
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TerrainEngineNode)
+
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::SkyNode)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::AutoClipPlaneCullCallback)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::Control)
@@ -638,6 +640,29 @@ bool contextMenuPopulateImpl<osgEarth::LineDrawable>::populate(IContextMenuItem 
 }
 #endif
 
+bool contextMenuPopulateImpl<osgEarth::TerrainEngineNode>::populate(IContextMenuItem* menuItem)
+{
+	osgEarth::TerrainEngineNode* object = getObject<osgEarth::TerrainEngineNode, SGIItemOsg>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(menuItem);
+		if (ret)
+		{
+			IContextMenuItem* manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+			if (manipulateMenu)
+			{
+				manipulateMenu->addSimpleAction(MenuActionTerrainEngineNodeDirty, "Dirty", _item);
+			}
+		}
+		break;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
+}
 
 #ifdef SGI_USE_OSGEARTH_FAST
 bool contextMenuPopulateImpl<osgEarth::LODScaleOverrideNode>::populate(IContextMenuItem * menuItem)

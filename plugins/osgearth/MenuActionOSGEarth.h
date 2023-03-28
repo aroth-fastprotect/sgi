@@ -89,6 +89,7 @@ enum MenuAction {
     MenuActionLightSettings,
 
     MenuActionFeatureModelLayerDirty,
+    MenuActionTerrainEngineNodeDirty,
 };
 
 enum MapDebugImageLayer {
