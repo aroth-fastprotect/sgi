@@ -4067,6 +4067,7 @@ bool writePrettyHTMLImpl<osgEarth::Features::Feature>::process(std::basic_ostrea
 
             os << "<tr><td>feature id</td><td>" << object->getFID() << "</td></tr>" << std::endl;
             os << "<tr><td>extent</td><td>" << object->getExtent() << "</td></tr>" << std::endl;
+            os << "<tr><td>geometry</td><td>" << getObjectNameAndType(static_cast<const osgEarth::Features::Feature *>(object)->getGeometry()) << "</td></tr>" << std::endl;
             os << "<tr><td>srs</td><td>";
             const osgEarth::SpatialReference * srs = object->getSRS();
             if (srs)
@@ -4074,6 +4075,7 @@ bool writePrettyHTMLImpl<osgEarth::Features::Feature>::process(std::basic_ostrea
             else
                 os << "(null)";
             os << "</td></tr>" << std::endl;
+            os << "<tr><td>geoInterp</td><td>" << object->geoInterp() << "</td></tr>" << std::endl;
 
             os << "<tr><td>attributes</td><td><table border=\'1\' align=\'left\'><tr><th>Key</th><th>Value</th></tr>";
             const osgEarth::Features::AttributeTable & attrs = object->getAttrs();
@@ -4091,6 +4093,13 @@ bool writePrettyHTMLImpl<osgEarth::Features::Feature>::process(std::basic_ostrea
         break;
     case SGIItemTypeConfig:
         {
+            os << "<pre>" << object->getGeoJSON() << "</pre>";
+            ret = true;
+        }
+        break;
+    case SGIItemTypeGeometry:
+        {
+            const osgEarth::Symbology::Geometry* geom = static_cast<const osgEarth::Features::Feature *>(object)->getGeometry();
             os << "<pre>" << object->getGeoJSON() << "</pre>";
             ret = true;
         }
