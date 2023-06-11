@@ -765,7 +765,9 @@ bool SceneGraphDialog::buildRootTree(ObjectTreeItem * treeItem)
 
 void SceneGraphDialog::setNodeInfo(const SGIItemBase * item)
 {
+    static std::locale c_locale("C");
     std::ostringstream os;
+    os.imbue(c_locale);
     if(item)
         SGIPlugins::instance()->writePrettyHTML(os, item);
     else
