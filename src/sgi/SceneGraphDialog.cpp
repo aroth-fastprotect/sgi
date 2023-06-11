@@ -16,8 +16,8 @@
 #include <QToolButton>
 #include <QComboBox>
 #include <QSpinBox>
-#include <QDesktopWidget>
 #include <QScrollBar>
+#include <QScreen>
 #include <QTimer>
 
 #include "sgi/plugins/SGIPluginInterface.h"
@@ -384,22 +384,32 @@ void SceneGraphDialog::showBesideParent()
     {
         _firstShow = false;
 
-        QDesktopWidget * dw = QApplication::desktop();
         QWidget * parent = parentWidget();
         if(parent)
         {
-            int numScreens = dw->screenCount();
-            int parentScreen = dw->screenNumber(parent);
-            int currentScreen = dw->screenNumber(this);
+            QList<QScreen*> screens = QGuiApplication::screens();
+            int numScreens = screens.size();
+            QScreen * parentScreen = parent->screen();
+            QScreen * currentScreen = this->screen();
 
             if(parentScreen == currentScreen)
             {
-                int targetScreen = (currentScreen + 1) % numScreens;
-                if(targetScreen != currentScreen)
+                QScreen * targetScreen = nullptr;
+                for(auto s : screens)
+                {
+                    if(s != currentScreen)
+                    {
+                        // just get the next 'different' screen
+                        targetScreen = s;
+                        break;
+                    }
+                }
+
+                if(targetScreen)
                 {
                     QRect geom = frameGeometry();
-                    QRect currentScreenRect = dw->screenGeometry(currentScreen);
-                    QRect targetScreenRect = dw->screenGeometry(targetScreen);
+                    QRect currentScreenRect = currentScreen->virtualGeometry();
+                    QRect targetScreenRect = targetScreen->virtualGeometry();
                     QPoint currentTopLeft = parent->mapToGlobal(geom.topLeft());
                     //QPoint currentBottomRight = parent->mapToGlobal(geom.bottomRight());
                     QPoint screenOffset = currentTopLeft - currentScreenRect.topLeft();
