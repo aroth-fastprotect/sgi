@@ -2120,7 +2120,10 @@ bool objectTreeBuildImpl<osgEarth::Features::Feature>::build(IObjectTreeItem * t
                 treeItem->addChild("Style", cloneItem<SGIItemOsg>(SGIItemTypeStyle));
             const osgEarth::Symbology::Geometry* geom = static_cast<const osgEarth::Features::Feature *>(object)->getGeometry();
             if(geom)
-                treeItem->addChild("Geometry", cloneItem<SGIItemOsg>(SGIItemTypeGeometry));
+            {
+                SGIHostItemOsg item(const_cast<osgEarth::Symbology::Geometry*>(geom));
+                treeItem->addChild("Geometry", &item);
+            }
         }
         break;
     case SGIItemTypeConfig:
