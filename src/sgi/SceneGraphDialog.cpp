@@ -17,7 +17,11 @@
 #include <QComboBox>
 #include <QSpinBox>
 #include <QScrollBar>
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+#include <QDesktopWidget>
+#else
 #include <QScreen>
+#endif
 #include <QTimer>
 
 #include "sgi/plugins/SGIPluginInterface.h"
@@ -383,17 +387,43 @@ void SceneGraphDialog::showBesideParent()
     if(_firstShow)
     {
         _firstShow = false;
-
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+        QDesktopWidget* dw = QApplication::desktop();
+#endif
         QWidget * parent = parentWidget();
         if(parent)
         {
             QList<QScreen*> screens = QGuiApplication::screens();
             int numScreens = screens.size();
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+			int parentScreen = dw->screenNumber(parent);
+			int currentScreen = dw->screenNumber(this);
+#else
             QScreen * parentScreen = parent->screen();
             QScreen * currentScreen = this->screen();
+#endif
 
             if(parentScreen == currentScreen)
             {
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+				int targetScreen = (currentScreen + 1) % numScreens;
+				if (targetScreen != currentScreen)
+				{
+					QRect geom = frameGeometry();
+					QRect currentScreenRect = dw->screenGeometry(currentScreen);
+					QRect targetScreenRect = dw->screenGeometry(targetScreen);
+					QPoint currentTopLeft = parent->mapToGlobal(geom.topLeft());
+					//QPoint currentBottomRight = parent->mapToGlobal(geom.bottomRight());
+					QPoint screenOffset = currentTopLeft - currentScreenRect.topLeft();
+					QPoint targetTopLeft = targetScreenRect.topLeft() + screenOffset;
+					QPoint targetBottomRight(targetTopLeft.x() + geom.width(), targetTopLeft.y() + geom.height());
+					if (targetScreenRect.contains(targetTopLeft))
+					{
+						targetTopLeft = parent->mapFromGlobal(targetTopLeft);
+						move(targetTopLeft);
+					}
+				}
+#else
                 QScreen * targetScreen = nullptr;
                 for(auto s : screens)
                 {
@@ -421,6 +451,7 @@ void SceneGraphDialog::showBesideParent()
                         move(targetTopLeft);
                     }
                 }
+#endif
             }
         }
     }
