@@ -149,6 +149,7 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Profile)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TileSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(TileSourceInfo)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::ModelSource)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskSource)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::VirtualProgram)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::TileBlacklist)
 #ifdef SGI_USE_OSGEARTH_FAST
@@ -219,6 +220,13 @@ WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::ExtrusionSymbol
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::LineSymbol)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::PointSymbol)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::PolygonSymbol)
+
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::Geometry)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::PointSet)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::LineString)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::Ring)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::Polygon)
+WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osgEarth::Symbology::MultiGeometry)
 
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::Image)
 WRITE_PRETTY_HTML_IMPL_DECLARE_AND_REGISTER(osg::PagedLOD)
@@ -791,7 +799,9 @@ bool writePrettyHTMLImpl<osgEarth::Layer>::process(std::basic_ostream<char>& os)
             os << "<tr><td>readOptions</td><td>" << getObjectNameAndType(object->getReadOptions()) << "</td></tr>" << std::endl;
             os << "<tr><td>cacheSettings</td><td>" << getObjectNameAndType(object->getCacheSettings()) << "</td></tr>" << std::endl;
             os << "<tr><td>sequenceControl</td><td>" << object->getSequenceControl() << "</td></tr>" << std::endl;
-            os << "<tr><td>extent</td><td>" << object->getExtent() << "</td></tr>" << std::endl;
+            os << "<tr><td>extent</td><td>";
+            writePrettyHTML(os, object->getExtent());
+            os << "</td></tr>" << std::endl;
             os << "<tr><td>cacheId</td><td>" << object->getCacheID() << "</td></tr>" << std::endl;
             os << "<tr><td>stateSet</td><td>" << getObjectNameAndType(object->getStateSet()) << "</td></tr>" << std::endl;
             os << "<tr><td>renderType</td><td>" << object->getRenderType() << "</td></tr>" << std::endl;
@@ -1604,6 +1614,13 @@ bool writePrettyHTMLImpl<osgEarth::Map>::process(std::basic_ostream<char>& os)
 #endif
             os << "<tr><td>cache</td><td>" << getObjectNameAndType(object->getCache(), true) << "</td></tr>" << std::endl;
 
+            osgEarth::StringSet attributions;
+            object->getAttributions(attributions);
+            os << "<tr><td>attributions</td><td><ul>";
+            for (auto aa : attributions)
+                os << "<li>" << aa << "</li>";
+            os << "</ul></td></tr>" << std::endl;
+
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
             osgEarth::MapFrame mapframe(object, osgEarth::Map::ENTIRE_MODEL);
 
@@ -2168,6 +2185,7 @@ bool writePrettyHTMLImpl<osgEarth::TerrainEngineNode>::process(std::basic_ostrea
 		// add remaining TerrainEngineNode properties
 		os << "<tr><td>terrain</td><td>" << getObjectNameAndType(object->getTerrain()) << "</td></tr>" << std::endl;
 		os << "<tr><td>resources</td><td>" << getObjectNameAndType(object->getResources()) << "</td></tr>" << std::endl;
+        os << "<tr><td>computeRangeCallback</td><td>" << getObjectNameAndType(object->getComputeRangeCallback()) << "</td></tr>" << std::endl;
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
 		os << "<tr><td>terrain stateset</td><td>" << getObjectNameAndType(object->getTerrainStateSet()) << "</td></tr>" << std::endl;
 		os << "<tr><td>payload stateset</td><td>" << getObjectNameAndType(object->getPayloadStateSet()) << "</td></tr>" << std::endl;
@@ -2505,6 +2523,8 @@ bool writePrettyHTMLImpl<osgEarth::ModelSource>::process(std::basic_ostream<char
             callNextHandler(os);
 
             // add remaining ModelSource properties
+            os << "<tr><td>status</td><td>" << object->getStatus() << "</td></tr>" << std::endl;
+
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0) && OSGEARTH_VERSION_LESS_THAN(2,9,0)
             const osgEarth::NodeOperationVector& preMergeOperations = object->preMergeOperations();
             os << "<tr><td>preMergeOperations</td><td><ul>";
@@ -2537,6 +2557,35 @@ bool writePrettyHTMLImpl<osgEarth::ModelSource>::process(std::basic_ostream<char
 #endif
         ret = true;
         break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+
+bool writePrettyHTMLImpl<osgEarth::MaskSource>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::MaskSource * object = getObject<osgEarth::MaskSource,SGIItemOsg>();
+    bool ret = false;
+    switch(itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if(_table)
+                os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        // add Object properties first
+        callNextHandler(os);
+
+        os << "<tr><td>status</td><td>" << object->getStatus() << "</td></tr>" << std::endl;
+
+        if(_table)
+                os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
     default:
         ret = callNextHandler(os);
         break;
@@ -3913,7 +3962,9 @@ bool writePrettyHTMLImpl<osgEarth::Features::FeatureProfile>::process(std::basic
 
 		callNextHandler(os);
 
-		os << "<tr><td>extent</td><td>" << object->getExtent() << "</td></tr>" << std::endl;
+        os << "<tr><td>extent</td><td>";
+        writePrettyHTML(os, object->getExtent());
+        os << "</td></tr>" << std::endl;
 		os << "<tr><td>SRS</td><td>" << getObjectNameAndType(object->getSRS()) << "</td></tr>" << std::endl;
 		os << "<tr><td>tiled</td><td>" << (object->getTiled() ? "true" : "false") << "</td></tr>" << std::endl;
 		os << "<tr><td>profile</td><td>" << getObjectNameAndType(object->getProfile()) << "</td></tr>" << std::endl;
@@ -4026,7 +4077,10 @@ bool writePrettyHTMLImpl<osgEarth::Features::Feature>::process(std::basic_ostrea
             callNextHandler(os);
 
             os << "<tr><td>feature id</td><td>" << object->getFID() << "</td></tr>" << std::endl;
-            os << "<tr><td>extent</td><td>" << object->getExtent() << "</td></tr>" << std::endl;
+            os << "<tr><td>extent</td><td>";
+            writePrettyHTML(os, object->getExtent());
+            os << "</td></tr>" << std::endl;
+            os << "<tr><td>geometry</td><td>" << getObjectNameAndType(static_cast<const osgEarth::Features::Feature *>(object)->getGeometry()) << "</td></tr>" << std::endl;
             os << "<tr><td>srs</td><td>";
             const osgEarth::SpatialReference * srs = object->getSRS();
             if (srs)
@@ -4034,6 +4088,7 @@ bool writePrettyHTMLImpl<osgEarth::Features::Feature>::process(std::basic_ostrea
             else
                 os << "(null)";
             os << "</td></tr>" << std::endl;
+            os << "<tr><td>geoInterp</td><td>" << object->geoInterp() << "</td></tr>" << std::endl;
 
             os << "<tr><td>attributes</td><td><table border=\'1\' align=\'left\'><tr><th>Key</th><th>Value</th></tr>";
             const osgEarth::Features::AttributeTable & attrs = object->getAttrs();
@@ -4051,6 +4106,13 @@ bool writePrettyHTMLImpl<osgEarth::Features::Feature>::process(std::basic_ostrea
         break;
     case SGIItemTypeConfig:
         {
+            os << "<pre>" << object->getGeoJSON() << "</pre>";
+            ret = true;
+        }
+        break;
+    case SGIItemTypeGeometry:
+        {
+            const osgEarth::Symbology::Geometry* geom = static_cast<const osgEarth::Features::Feature *>(object)->getGeometry();
             os << "<pre>" << object->getGeoJSON() << "</pre>";
             ret = true;
         }
@@ -4970,6 +5032,164 @@ bool writePrettyHTMLImpl<osgEarth::Symbology::PolygonSymbol>::process(std::basic
 
         os << "<tr><td>fill</td><td>" << object->fill() << "</td></tr>" << std::endl;
         os << "<tr><td>outline</td><td>" << object->outline() << "</td></tr>" << std::endl;
+
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Symbology::Geometry>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Symbology::Geometry* object = getObject<osgEarth::Symbology::Geometry, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        callNextHandler(os);
+
+        os << "<tr><td>componentType</td><td>" << object->getComponentType() << "</td></tr>" << std::endl;
+        os << "<tr><td>total point count</td><td>" << object->getTotalPointCount() << "</td></tr>" << std::endl;
+        os << "<tr><td>points</td><td><ol>";
+        for(auto pt : *object) {
+            os << "<li>" << pt << "</li>";
+        }
+        os << "</ol></td></tr>" << std::endl;
+
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Symbology::PointSet>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Symbology::PointSet* object = getObject<osgEarth::Symbology::PointSet, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        callNextHandler(os);
+
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Symbology::LineString>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Symbology::LineString* object = getObject<osgEarth::Symbology::LineString, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        callNextHandler(os);
+
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Symbology::Ring>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Symbology::Ring* object = getObject<osgEarth::Symbology::Ring, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        callNextHandler(os);
+
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Symbology::Polygon>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Symbology::Polygon* object = getObject<osgEarth::Symbology::Polygon, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        callNextHandler(os);
+
+        if (_table)
+            os << "</table>" << std::endl;
+        ret = true;
+    }
+    break;
+    default:
+        ret = callNextHandler(os);
+        break;
+    }
+    return ret;
+}
+
+bool writePrettyHTMLImpl<osgEarth::Symbology::MultiGeometry>::process(std::basic_ostream<char>& os)
+{
+    osgEarth::Symbology::MultiGeometry* object = getObject<osgEarth::Symbology::MultiGeometry, SGIItemOsg>();
+    bool ret = false;
+    switch (itemType())
+    {
+    case SGIItemTypeObject:
+    {
+        if (_table)
+            os << "<table border=\'1\' align=\'left\'><tr><th>Field</th><th>Value</th></tr>" << std::endl;
+
+        callNextHandler(os);
 
         if (_table)
             os << "</table>" << std::endl;

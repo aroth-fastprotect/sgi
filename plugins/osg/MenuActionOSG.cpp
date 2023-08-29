@@ -614,33 +614,37 @@ bool actionHandlerImpl<MenuActionNodeStripTextures>::execute()
 }
 
 namespace {
-	class OptimizerRun
+	class NodeOptimizerRun : public osg::Node
 	{
 	public:
-		OptimizerRun(MenuActionOptimizerRunMode mode)
-			: _mode(mode) {}
-		void operator()(osg::Node * object, osg::NodeVisitor* nv)
+		void run(MenuActionOptimizerRunMode mode)
 		{
 			osgUtil::Optimizer optimizer;
-			switch(_mode)
+			switch (mode)
 			{
 			case MenuActionOptimizerRunModeAll:
-				optimizer.optimize(object, osgUtil::Optimizer::ALL_OPTIMIZATIONS);
+				optimizer.optimize(this, osgUtil::Optimizer::ALL_OPTIMIZATIONS);
 				break;
 			case MenuActionOptimizerRunModeDefault:
-				optimizer.optimize(object, osgUtil::Optimizer::DEFAULT_OPTIMIZATIONS);
+				optimizer.optimize(this, osgUtil::Optimizer::DEFAULT_OPTIMIZATIONS);
 				break;
 			case MenuActionOptimizerRunModeCheck:
-				optimizer.optimize(object, osgUtil::Optimizer::CHECK_GEOMETRY);
+				optimizer.optimize(this, osgUtil::Optimizer::CHECK_GEOMETRY);
 				break;
 			case MenuActionOptimizerRunModeFastGeometry:
-				optimizer.optimize(object, osgUtil::Optimizer::MAKE_FAST_GEOMETRY);
+				optimizer.optimize(this, osgUtil::Optimizer::MAKE_FAST_GEOMETRY);
+				break;
+			case MenuActionOptimizerRunModeMergeGeometries:
+				optimizer.optimize(this,
+					osgUtil::Optimizer::DEFAULT_OPTIMIZATIONS |
+					osgUtil::Optimizer::MERGE_GEODES |
+					osgUtil::Optimizer::MERGE_GEOMETRY
+				);
 				break;
 			}
 		}
-	private:
-		MenuActionOptimizerRunMode _mode;
 	};
+
 
 }
 
@@ -648,7 +652,9 @@ bool actionHandlerImpl<MenuActionNodeOptimizerRun>::execute()
 {
 	osg::Node * object = getObject<osg::Node, SGIItemOsg>();
 	MenuActionOptimizerRunMode mode = (MenuActionOptimizerRunMode)menuAction()->mode();
-    //runOperationInUpdateCallback(object, std::bind(OptimizerRun, mode));
+    runOperationInUpdateCallback(object, 
+        std::bind(static_cast<void (NodeOptimizerRun::*)(MenuActionOptimizerRunMode)>(&NodeOptimizerRun::run), 
+            static_cast<NodeOptimizerRun*>(object), mode));
 	return true;
 }
 

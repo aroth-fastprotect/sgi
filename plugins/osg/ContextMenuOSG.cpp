@@ -385,6 +385,7 @@ bool contextMenuPopulateImpl<osg::Node>::populate(IContextMenuItem * menuItem)
 				optimizerMenu->addModeAction("Check", MenuActionOptimizerRunModeCheck);
 				optimizerMenu->addModeAction("Default", MenuActionOptimizerRunModeDefault);
 				optimizerMenu->addModeAction("Fast geometry", MenuActionOptimizerRunModeFastGeometry);
+                optimizerMenu->addModeAction("Merge geometries", MenuActionOptimizerRunModeMergeGeometries);
 				optimizerMenu->addModeAction("All", MenuActionOptimizerRunModeAll);
 			}
 

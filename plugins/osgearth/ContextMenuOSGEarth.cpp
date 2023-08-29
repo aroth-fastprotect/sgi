@@ -52,6 +52,8 @@ CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::MaskLayer)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::LineDrawable)
 #endif
 
+CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::TerrainEngineNode)
+
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::SkyNode)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::AutoClipPlaneCullCallback)
 CONTEXT_MENU_POPULATE_IMPL_DECLARE_AND_REGISTER(osgEarth::Util::Controls::Control)
@@ -408,11 +410,19 @@ bool contextMenuPopulateImpl<osgEarth::Layer>::populate(IContextMenuItem * menuI
         ret = callNextHandler(menuItem);
         if(ret)
         {
+			IContextMenuItem* manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+			if (manipulateMenu)
+			{
+				manipulateMenu->addSimpleAction(MenuActionLayerReload, "Reload", _item);
+			}
+
+
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,9,0)
             SGIHostItemOsg cacheSettings(object->getCacheSettings());
             if (cacheSettings.hasObject())
                 menuItem->addMenu("Cache settings", &cacheSettings);
 #endif
+			menuItem->addBoolAction(MenuActionLayerEnable, "Enable", _item, object->getEnabled());
 
             /*
             SGIHostItemOsg sequencecontrol(object->getSequenceControl());
@@ -444,8 +454,7 @@ bool contextMenuPopulateImpl<osgEarth::TerrainLayer>::populate(IContextMenuItem 
                 manipulateMenu->addSimpleAction(MenuActionTileBlacklistClear, "Clear blacklist", _item);
             }
 
-            menuItem->addBoolAction(MenuActionTerrainLayerEnable, "Enable", _item, object->getEnabled());
-            menuItem->addBoolAction(MenuActionTerrainLayerVisible, "Visible", _item, object->getVisible());
+			menuItem->addBoolAction(MenuActionTerrainLayerVisible, "Visible", _item, object->getVisible());
 
             std::string url = ((TerrainLayerAccessor*)object)->getURL();
             if(!url.empty())
@@ -539,7 +548,7 @@ bool contextMenuPopulateImpl<osgEarth::ModelLayer>::populate(IContextMenuItem * 
         ret = callNextHandler(menuItem);
         if(ret)
         {
-            menuItem->addBoolAction(MenuActionModelLayerEnable, "Enable", _item, object->getEnabled());
+            //menuItem->addBoolAction(MenuActionModelLayerEnable, "Enable", _item, object->getEnabled());
             menuItem->addBoolAction(MenuActionModelLayerVisible, "Visible", _item, object->getVisible());
             menuItem->addBoolAction(MenuActionModelLayerLighting, "Lighting", _item, object->isLightingEnabled());
 
@@ -631,6 +640,29 @@ bool contextMenuPopulateImpl<osgEarth::LineDrawable>::populate(IContextMenuItem 
 }
 #endif
 
+bool contextMenuPopulateImpl<osgEarth::TerrainEngineNode>::populate(IContextMenuItem* menuItem)
+{
+	osgEarth::TerrainEngineNode* object = getObject<osgEarth::TerrainEngineNode, SGIItemOsg>();
+	bool ret = false;
+	switch (itemType())
+	{
+	case SGIItemTypeObject:
+		ret = callNextHandler(menuItem);
+		if (ret)
+		{
+			IContextMenuItem* manipulateMenu = menuItem->getOrCreateMenu("Manipulate");
+			if (manipulateMenu)
+			{
+				manipulateMenu->addSimpleAction(MenuActionTerrainEngineNodeDirty, "Dirty", _item);
+			}
+		}
+		break;
+	default:
+		ret = callNextHandler(menuItem);
+		break;
+	}
+	return ret;
+}
 
 #ifdef SGI_USE_OSGEARTH_FAST
 bool contextMenuPopulateImpl<osgEarth::LODScaleOverrideNode>::populate(IContextMenuItem * menuItem)

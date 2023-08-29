@@ -631,7 +631,7 @@ void ImagePreviewDialog::ImagePreviewDialogImpl::updateToolbar()
 void ImagePreviewDialog::ImagePreviewDialogImpl::scaleImage(double factor)
 //! [23] //! [24]
 {
-	Q_ASSERT(ui->imageLabel->pixmap());
+	Q_ASSERT(ui->imageLabel->pixmap() != nullptr);
 	scaleFactor *= factor;
     ui->scrollAreaImageQt->setScaleFactor(scaleFactor);
     ui->scrollAreaImageGL->setScaleFactor(scaleFactor);
