@@ -77,7 +77,7 @@ RetrieveElevationDialog::RetrieveElevationDialog(QWidget * parent, SGIPluginHost
 	ui = new Ui_RetrieveElevationDialog;
 	ui->setupUi( this );
 
-    _api_key = "AIzaSyADjiSQAYjHuW0jAIcs_wydJQnFnT6fNiI";
+    _api_key = "AIzaSyADjiSQAYjHuW0jAIcs_wydJQnFnT6fNiI"; // @todo: API key has been regenerated! Don't leak API keys to public!!
 
     loadResults();
 }
