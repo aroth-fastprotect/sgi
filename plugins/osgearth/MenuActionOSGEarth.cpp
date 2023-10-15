@@ -19,6 +19,7 @@
 #include <osgEarth/ImageUtils>
 #include <osgEarth/MaskLayer>
 #include <osgEarth/TileSource>
+#include <osgEarth/TerrainEngineNode>
 
 #include <osgEarthDrivers/debug/DebugOptions>
 #if OSGEARTH_VERSION_GREATER_OR_EQUAL(2,6,0)
@@ -67,6 +68,8 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionImageLayerMinVisibleRange)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionImageLayerMaxVisibleRange)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionModelLayerSetURL)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionMaskLayerSetURL)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLayerEnable)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLayerReload)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTerrainLayerEnable)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTerrainLayerVisible)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionModelLayerEnable)
@@ -122,6 +125,7 @@ ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLineDrawableDirty)
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionLightSettings)
 
 ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionFeatureModelLayerDirty)
+ACTION_HANDLER_IMPL_DECLARE_AND_REGISTER(MenuActionTerrainEngineNodeDirty)
 
 using namespace sgi::osg_helpers;
 
@@ -492,6 +496,26 @@ bool actionHandlerImpl<MenuActionTerrainLayerVisible>::execute()
     osgEarth::TerrainLayer * object = static_cast<osgEarth::TerrainLayer*>(item<SGIItemOsg>()->object());
     object->setVisible(menuAction()->state());
     return true;
+}
+
+bool actionHandlerImpl<MenuActionLayerEnable>::execute()
+{
+	osgEarth::Layer* object = getObject<osgEarth::Layer, SGIItemOsg>();
+	object->setEnabled(menuAction()->state());
+	return true;
+}
+
+bool actionHandlerImpl<MenuActionLayerReload>::execute()
+{
+	osgEarth::Layer* object = getObject<osgEarth::Layer, SGIItemOsg>();
+    class LayerReload : public osgEarth::Layer {
+    public:
+        void reload() {
+            fireCallback(&osgEarth::LayerCallback::onEnabledChanged);
+        }
+    };
+    static_cast<LayerReload*>(object)->reload();
+	return true;
 }
 
 bool actionHandlerImpl<MenuActionModelLayerEnable>::execute()
@@ -1107,6 +1131,16 @@ bool actionHandlerImpl<MenuActionLineDrawableDirty>::execute()
 }
 
 #endif // OSGEARTH_VERSION_GREATER_OR_EQUAL(2,10,0)
+
+
+bool actionHandlerImpl<MenuActionTerrainEngineNodeDirty>::execute()
+{
+	osgEarth::TerrainEngineNode* object = getObject<osgEarth::TerrainEngineNode, SGIItemOsg>();
+    object->dirtyTerrain();
+	return true;
+}
+
+
 
 
 bool actionHandlerImpl<MenuActionLightSettings>::execute()

@@ -18,6 +18,8 @@ enum MenuAction {
     MenuActionNodeEditShaders,
     MenuActionMapCachePolicyUsage,
     MenuActionMapDebugImageLayer,
+    MenuActionLayerEnable,
+    MenuActionLayerReload,
     MenuActionTerrainLayerEnable,
     MenuActionTerrainLayerVisible,
     MenuActionTerrainLayerCacheUsage,
@@ -87,6 +89,7 @@ enum MenuAction {
     MenuActionLightSettings,
 
     MenuActionFeatureModelLayerDirty,
+    MenuActionTerrainEngineNodeDirty,
 };
 
 enum MapDebugImageLayer {

@@ -2114,16 +2114,25 @@ bool objectTreeBuildImpl<osgEarth::Features::Feature>::build(IObjectTreeItem * t
         ret = callNextHandler(treeItem);
         if (ret)
         {
-            treeItem->addChild("Config", cloneItem<SGIItemOsg>(SGIItemTypeConfig));
+            treeItem->addChild("GeoJSON", cloneItem<SGIItemOsg>(SGIItemTypeConfig));
             auto style = object->style();
             if(style.isSet())
                 treeItem->addChild("Style", cloneItem<SGIItemOsg>(SGIItemTypeStyle));
+            const osgEarth::Symbology::Geometry* geom = static_cast<const osgEarth::Features::Feature *>(object)->getGeometry();
+            if(geom)
+            {
+                SGIHostItemOsg item(const_cast<osgEarth::Symbology::Geometry*>(geom));
+                treeItem->addChild("Geometry", &item);
+            }
         }
         break;
     case SGIItemTypeConfig:
         ret = true;
         break;
     case SGIItemTypeStyle:
+        ret = true;
+        break;
+    case SGIItemTypeGeometry:
         ret = true;
         break;
     default:

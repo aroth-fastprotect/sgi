@@ -137,6 +137,7 @@ SGI_OBJECT_INFO_BEGIN(osg::Referenced)
     osgEarth::Features::FeatureCursor, osgEarth::Features::FeatureProfile,
     osgEarth::Features::FeatureDisplayLayout,
     osgEarth::Symbology::StyleSheet,
+    osgEarth::Symbology::Geometry,
 #if OSGEARTH_VERSION_LESS_THAN(2,9,0)
     osgEarth::Annotation::Decoration,
 #endif
@@ -165,12 +166,12 @@ SGI_OBJECT_INFO_BEGIN(osg::Object)
 #endif
     osgEarth::Cache, osgEarth::TileSource,
     osgEarth::ModelSource,
+    osgEarth::MaskSource,
     osgEarth::Extension,
     osgEarth::Features::FeatureSource,
     osgEarth::Features::Feature,
     osgEarth::Symbology::Symbol,
     osgEarth::Symbology::Taggable<osg::Object>,
-    osgEarth::Symbology::Symbol,
     osg::Node, osg::StateAttribute, osg::BufferData
 SGI_OBJECT_INFO_END()
 
@@ -397,6 +398,7 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::TileSource)
     osgEarth::Features::FeatureTileSource
 SGI_OBJECT_INFO_END()
 
+
 SGI_OBJECT_INFO_BEGIN(osgEarth::Config)
 SGI_OBJECT_INFO_END()
 
@@ -500,6 +502,14 @@ SGI_OBJECT_INFO_BEGIN(osgEarth::Symbology::InstanceSymbol)
     osgEarth::Symbology::IconSymbol,
     osgEarth::Symbology::ModelSymbol,
     osgEarth::Symbology::BillboardSymbol
+SGI_OBJECT_INFO_END()
+
+SGI_OBJECT_INFO_BEGIN(osgEarth::Symbology::Geometry)
+    osgEarth::Symbology::PointSet,
+    osgEarth::Symbology::LineString,
+    osgEarth::Symbology::Ring,
+    osgEarth::Symbology::Polygon,
+    osgEarth::Symbology::MultiGeometry
 SGI_OBJECT_INFO_END()
 
 namespace sgi {
